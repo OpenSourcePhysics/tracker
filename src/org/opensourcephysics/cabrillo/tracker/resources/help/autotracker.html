@@ -19,11 +19,12 @@
         
 		<h3><a name="auto1" id="auto1"></a>1. How autotracker works</h3>
 		<p>Autotracker works by creating one or more <strong>template</strong> images of a feature of interest and then searching each frame for the best<strong> match</strong> to that template. The best match is the one with the highest <strong>match score</strong>, a number that is inversely proportional to the sum of the squares of the RGB differences between the template and match pixels. Once the best match is found, it is compared with nearby match scores to determine an interpolated <strong>sub-pixel best match</strong> position.</p>
-		<p>By default, the template <strong>evolves</strong> to adapt to shape and color changes over time. Higher <strong>evolution rates</strong> track more rapid changes, but may result in template &quot;drift&quot; over many frames.</p>
+		<p>By default, the template <strong>evolves</strong> to adapt to shape and color changes over time. Higher <strong>evolution rates</strong> track more rapid changes, but may result in template &quot;drift&quot; over many frames. Template evolution works by compositing the match image with the existing template to form a new template. To limit drift, <strong>tethering</strong> may be used. Tethering works by compositing the original keyframe image with the existing template after evolving.</p>
       	<p>A <strong>target</strong> defines the position at which  points are marked relative to the template when matches are found. The target may be offset from the template. The specific <strong>track</strong> and <strong>point</strong> marked at the target position must be selected prior to autotracking.</p>
 		<p>A video frame in which a  template and its associated target are defined is called a <strong>key frame</strong>. Autotracking requires at least one key frame, but additional key frames may be defined to track sudden or extreme changes in the object, background or illumination.</p>
-	    <p>When the best match score is high (a good match), a point is automatically marked at the target position. But when the match score is only moderate (a possible match) then the user is asked to review the match and accept or override it. The <strong>automark level</strong> for automatic marking may be set by the user.</p>
-		<p>Autotracker limits its search for a match in each frame to a user-defined rectangular <strong>search area.</strong> When at least two steps have been marked, the velocity and acceleration of the point mass is used by default to predict the location of future matches and the search area is moved accordingly. However, you can turn off this <strong>look ahead</strong> feature and/or reposition or resize the search area at any time.</p>
+	    <p>When the best match score is high (a good match), a point is automatically marked at the target position. But when the match score is only moderate (a possible match) then the user is asked to review the match and accept or override it unless <strong>autoskip</strong> is on. The <strong>automark level</strong> for automatic marking may be set by the user.</p>
+	    <p>Autoskip continues to evolve the template when possible matches are found even though the matches are not marked. If no possible match is found, autotracker stops and awaits user action.</p>
+	<p>Autotracker limits its search for a match in each frame to a user-defined rectangular <strong>search area.</strong> When at least two steps have been marked, the velocity and acceleration of the point mass is used by default to predict the location of future matches and the search area is moved accordingly. However, you can turn off this <strong>look ahead</strong> feature and/or reposition or resize the search area at any time.</p>
 		<p>You can also limit the search to the <strong>x-axis only</strong> for <strong>1D</strong> autotracking. Set the axis origin and tilt angle to search along any desired line.</p>
 		<p>A specialized option is to search all frames non-stop using a fixed area and fixed template. For more information see <strong>Other buttons</strong> in the <a href="#settings">Setting and controls</a> section below.</p>
 <p>After autotracker has completed the marking process, you may modify the steps at will. In other words, autotracker helps you mark the steps but does not limit your control over them.</p>
@@ -41,9 +42,7 @@
     	</ol>
 		<p>Figure 1 shows autotracker after creating a key frame. The template is outlined on the video and shown at 2x magnification in autotracker along with the (perfect) match found. The target point is indicated by a bold cross on the video and the search area is outlined with a dashed line.</p>
 		<p align="center">
-        	<img src="../help_images/autotracker_video_keyframe.gif" alt="autotracker key frame" align="middle">
-            <img src="../help_images/spacer.gif">
-            <img src="../help_images/autotracker_keyframe.gif" alt="autotracker key frame" align="middle">
+            <img src="../help_images/autotracker_keyframe.gif" alt="autotracker key frame" align="top">
         </p>
         <h5>Fig. 1 Autotracker</h5>
         
@@ -58,14 +57,16 @@
 		<p><strong>Template:</strong> The template is the image to be matched.</p>
 		<ol>
             <li>Move or resize the template by dragging its center or handle (small solid square), respectively. <strong>Tip:</strong> the template need not be large nor include the whole object. A feature that is unique and includes high-contrast edges generally works best.</li>
-            <li>Set the <strong>evolution rate</strong> to define how the template adapts to shape and color changes. An evolution rate of 0% does not evolve at all (constant template image) while an evolution rate of 100% completely replaces the template with the match image after each frame. Intermediate evolution rates overlay the match image onto the current template with the indicated opacity. <strong>Note:</strong> higher evolution rates track more rapid changes, but may result in template &quot;drift&quot; over many frames.</li>
-            <li>Set the <strong>automark</strong> level to define the minimum match score needed for automatic marking. The default level of 4 is recommended as a good starting point. <strong>Tip:</strong> low automark levels can result in false matches--try increasing the evolution rate or defining additional key frames instead.</li>
+            <li>Set the <strong>evolve rate</strong> to define how the template adapts to shape and color changes. An evolution rate of 0% does not evolve at all (constant template image) while an evolution rate of 100% completely replaces the template with the match image after each frame. Intermediate evolution rates overlay the match image onto the current template with the indicated opacity. <strong>Note:</strong> higher evolution rates track more rapid changes, but may result in template &quot;drift&quot; over many frames.</li>
+            <li>Set the <strong>tether rate</strong> to limit template drift. A tether rate of 0% does not tether at all (template image may drift) while a tether rate of 100% completely replaces the template with the keyframe image after each frame and is thus equivalent to 0% evolution. Intermediate tether rates overlay the keyframe image onto the current template with the indicated opacity.</li>
+          <li>Set the <strong>automark</strong> level to define the minimum match score needed for automatic marking. The default level of 4 is recommended as a good starting point. <strong>Tip:</strong> low automark levels can result in false matches--try increasing the evolution rate or defining additional key frames instead.</li>
 		</ol>
 		<p><strong>Search:</strong> The search area defines the region that is searched for the best match.</p>
         <ol>
             <li> Move or resize the search area by dragging its center or handle (small solid square), respectively. <strong>Tip:</strong> The search area need not be large. For many motions the look-ahead feature does a good job of predicting match positions and searching in the right place.</li>
             <li>Check the <strong>X-axis Only</strong> checkbox to limit the search to the x-axis only.  The coordinate system origin will automatically be set to the center of the template. Tilt the axes to search in the desired direction. <strong>Note:</strong> if the x-axis does not pass through or near the center of the search area, no matches will be found.</li>
             <li>Check the <strong>Look Ahead</strong> checkbox to automatically move the search area to predicted match positions using a look-ahead algorithm that assumes constant acceleration. When this option is unchecked, the search area is moved to the previous match position.</li>
+            <li>Check the <strong>Autoskip</strong> checkbox to skip to the next frame and continue searching when a possible match is found but not marked. When autoskip is off, the autotracker will instead stop to wait for user action.</li>
         </ol>
 		<p><strong>Target:</strong> The target defines both the track and point to be marked and the position of the mark relative to the template.</p>
         <ol>
@@ -94,15 +95,11 @@
             <li><strong>Unable to search</strong>. This can happen if the search area falls outside the video image or, for 1D tracking, the x-axis does not pass through the search area. Options include marking the point manually (shift-click), making changes and repeating the search, or moving on to the next frame.</li>
         </ol>
 		<p align="center">
-        	<img src="../help_images/autotracker_video_success.gif" alt="successful search" align="middle">
-            <img src="../help_images/spacer.gif">
-            <img src="../help_images/autotracker_success.gif" alt="successful search" align="middle">
-        </p>
+            <img src="../help_images/autotracker_success.gif" alt="successful search" align="top">
+    </p>
 		<h5>Fig. 2 Search results: good match</h5>
 		<p align="center">
-        	<img src="../help_images/autotracker_video_possible.gif" alt="possible match" align="middle">
-            <img src="../help_images/spacer.gif">
-      		<img src="../help_images/autotracker_possible.gif" alt="possible match" align="middle">
+      		<img src="../help_images/autotracker_possible.gif" alt="possible match" align="top">
         </p>
         <h5>Fig. 3 Search results: possible match (false match in this case)</h5>
        

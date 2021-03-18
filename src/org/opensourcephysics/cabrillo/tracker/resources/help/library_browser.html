@@ -11,7 +11,7 @@
 	<body>
 		<h1><a name="lib0" id="lib0"></a>Library Browser</h1>
 		<p>The Library Browser enables users to browse and search <strong>collections</strong> of <strong>resources</strong> such as videos, <a href="datafile.html">Tracker tab files</a> (.trk) and <a href="zip_resource.html">Tracker project files</a> (.trz). Collections may be located on a local drive or remote server.</p>
-		<p>When a resource of interest is found, it  can be immediately opened in Tracker with just a double-click.</p>
+		<p>When a resource of interest is found, it  can be opened in Tracker with  a double-click or downloaded to the local machine with the download button..</p>
 <p align="center"> <img src="../help_images/library_browser.gif" alt="OSP Digital Library Browser"> </p>
 
 <h3><a name="lib1" id="lib1"></a>1. Opening a collection or resource file</h3>
@@ -23,7 +23,7 @@
     <img src="../help_images/library_browser_open.gif" alt="Library browser open menu" align="top">
   </p>
   <p align="center"><img src="../help_images/library_browser_toolbar_load.gif" alt="Library browser loading URL on toolbar" align="absmiddle"></p>
-<p>There are three ways to open a collection or resource file (shown above):</p>
+<p>There are three ways to open a collection or resource file into the Library Browser (shown above):</p>
 <ol>
   <li>Choose a collection by name from the <strong>Collections</strong> menu or <strong>File|Open Recent</strong> menu.</li>
   <li>Choose the <strong>File|Open...</strong> menu item and use the file chooser to open a file or collection on a local drive. Collections may be either:</li>
@@ -43,7 +43,7 @@
   <li><strong>Type</strong>:  may be <em>Collection, Tracker project, EJS model, Video, Image, HTML page, PDF document, </em>or<em> Other</em>. Displayed as the node icon in the tree.</li>
   <li><strong>HTML page</strong>: describes the resource and provides links to additional information. Displayed in the right pane when the node is selected. If no HTML page is defined, the right pane displays the node name, type and (for videos) thumbnail image.</li>
   <li><strong>Metadata</strong>: searchable author names, contact information and keywords. Displayed in the tooltip when the mouse hovers over the node.</li>
-  <li><strong>Target</strong>: the resource file itself. Displayed  in the URL field on the toolbar when the node is selected. Opened in Tracker (and/or  HTML browser or PDF viewer) when the node is double-clicked or the toolbar <strong>Load</strong> button is clicked. Some nodes (e.g. collection nodes) have no target.</li>
+  <li><strong>Target</strong>: the resource file itself. Displayed  in the URL field on the toolbar when the node is selected. Opened in Tracker (and/or  HTML browser or PDF viewer) when the node is double-clicked or the toolbar <strong>Open</strong> button is clicked. Some nodes (e.g. collection nodes) have no target.</li>
 </ol>
 
 <p>A <strong>Tracker project file</strong> is a resource that consists of a  zip file containing an entire Tracker project, including one or more Tracker tabs with associated videos, HTML/PDF documentation and metadata. For more information see <a href="zip_resource,html">Tracker Projects</a>.</p>
@@ -67,18 +67,18 @@
 <p>The tree nodes displayed in the search results are fully functional--that is, you can browse or open them in Tracker in the usual way. But it is often useful to open them in their original collections which may contain related resources. To open a search result in its original collection, right-click the node and choose <strong>Show Original</strong> from the popup menu.</p>
 <p>To fine-tune your search you can use the logic operators AND and OR (must be upper case) in your search phrase. When using more than one logic operator you should include parentheses for clarification (e.g. &quot;yo-yo OR (disk AND energy)&quot;). The search terms separated by these operators are used independently as described above, then the independent results are combined logically to obtain the final search results.</p>
 <p align="center"><img src="../help_images/library_browser_toolbar_searchOR.gif" alt="Library Browser entering search phrase with OR operator"></p>
-<p>Choose the <strong>Manage|Search Targets...</strong> menu item to control which cached XML documents are searched in the <strong>Library Manager</strong>. Click a checkbox to include or exclude a collection, or click  <strong>Select All</strong> or <strong>Select None</strong> for faster control. You can delete an unwanted XML file from the cache by clicking its <strong>Delete</strong> button.</p>
-<p align="center"><img src="../help_images/library_manager_search.gif" alt="Library manager displaying search tab"></p>
+<p>Click the <strong>Search Targets</strong> button <img src="../help_images/search_targets_button.gif" align="absmiddle"><img src="../help_images/spacer_thin.gif">to choose which cached XML documents to search. You can delete an unwanted XML file from the search cache by clicking its <strong>Delete</strong> button in the Search Targets tab of the Library Manager.</p>
+<p align="center"><img src="../help_images/library_browser_search_targets.gif" alt="Library browser search target chooser"><img src="../help_images/spacer.gif"><img src="../help_images/library_manager_search.gif" alt="Library manager displaying search tab"></p>
 
 <h3><a name="lib5" id="lib5"></a>5. Managing collections</h3>
 <p>The library browser provides direct access to collections in the following digital libraries, available in the <strong>Collections</strong> menu:</p>
 <ol>
   <li>A local library called <strong>My Library,</strong> managed by the user and discussed in this section.</li>
   <li>The <a href="library_browser.html#compadre"><strong>ComPADRE Digital Library</strong></a>, a part of the National Science Digital Library system.</li>
-  <li>The<strong> Tracker Home Library</strong>, managed by Douglas Brown, author of Tracker.</li>
-  <li>The <strong>Shared Library</strong> containing collections contributed by other educators and students. To find out how to share your own collections, see<a href="library_browser.html#compadre">Building the shared and ComPADRE libraries</a>. </li>
+  <li>The<strong> Tracker Home Library</strong>, managed by the Open Source Physics project.</li>
+  <li>The <strong>Shared Library</strong> containing collections contributed by other educators and students. To find out how to share your own collections, see <a href="library_browser.html#compadre">Building the shared and ComPADRE libraries</a>. </li>
 </ol>
-<p>My Library initially contains the <strong>Recent Local Files</strong> collection which shows all recently opened resources and the editable <strong>My Collection</strong> collection to which the user can add resources as described in <a href="library_browser.html#sharing">Editing local collections</a> below. It is easy to customize My Library by adding your own favorite collections.</p>
+<p>My Library initially contains the <strong>Recent Local Files</strong> collection, which shows all recently opened resources, and the editable <strong>My Collection</strong> collection to which the user can add resources as described in <a href="library_browser.html#sharing">Editing local collections</a> below. It is easy to customize My Library by adding your own favorite collections.</p>
 <p align="center"><img src="../help_images/library_browser_my_library.gif" alt="My Library menu"></p>
 <p>There are two ways to add a collection to My Library:</p>
 <ol>
@@ -126,10 +126,7 @@
       <li><strong>Body</strong>: include a brief description of the collection or resource, including image and hyperlinks if desired. Remember that the HTML pane in the library browser may be small. Extensive documentation and/or instructions should be in separate HTML and/or PDF resources.</li>    
       </ol>
     <h3><a name="editing" id="editing"></a>8. Editing XML collections</h3>
-		<p>An XML collection saved on a local drive is  editable by default unless it has been set to read-only by the operating system.</p>
-        <p>To edit a local collection, open it in the library browser and click the <strong>Open Editor</strong> button on  the toolbar.</p>
-        <p align="center"><img src="../help_images/library_browser_toolbar_edit.gif" alt="Library Browser Open Editor button"></p>
-<p>The editor displays (a) a button bar for creating and organizing resource nodes and (b) data fields for describing and defining the resources themselves.</p>
+		<p>An XML collection saved on a local drive is  editable by default unless it has been set to read-only by the operating system. To edit a local collection, open it in the library browser and click the <strong>Open Editor</strong> button on  the toolbar. The editor displays (a) a button bar for creating and organizing resource nodes and (b) data fields for describing and defining the resources themselves.</p>
 <p align="center"><img src="../help_images/library_browser_editing.gif" alt="Library Browser with collection editor open"></p>
 <p><strong>Button bar:</strong> the button bar provides the following buttons:</p>
 <ul>
@@ -165,7 +162,7 @@
     </ul>
     <p>To convert an absolute path to relative (or vice-versa), right-click the Resource or HTML File field and choose <strong>Set to relative</strong> (or <strong>Set to absolute</strong>) from the popup menu.</p>
         <h3><a name="sharing" id="sharing"></a>10. Uploading XML collections to the web</h3>
-    <p>XML collections can only be created, edited and saved on a local drive. But by uploading your resources to the web and changing the base URL of your collection, your XML  collection becomes completely portable--you may email the XML file to others, post it on the web or share it on a local network.</p>
+    <p>XML collections can only be created, edited and saved on a local drive. But by uploading your resources to the web and changing the base URL of your collection, your XML  collection becomes completely portable--you may email the XML file to others, post it on the web or share it on a local network. For example. the Rolling and Slipping collection shown being edited above can now be found at https://physlets.org/tracker/library/roll_slip_collection.xml.</p>
     <p>To put your  local collection on the web, open the XML file in the library browser and follow these steps (this assumes you have assembled your resource target and HTML files locally and used relative paths in the collection editor as described above):</p>
     <ol>
             <li>Identify  the server directory you will use for your web collection (e.g. &quot;<em>www.my_institution.edu/my_shared_projects</em>&quot;).</li>
