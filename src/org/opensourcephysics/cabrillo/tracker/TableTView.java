@@ -200,6 +200,15 @@ public class TableTView extends TrackChooserTView {
 	@Override
 	public void propertyChange(PropertyChangeEvent e) {
 		switch (e.getPropertyName()) {
+		case TTrack.PROPERTY_TTRACK_FORMAT:
+			// format has changed
+			TrackView view = null;
+			TTrack track = getSelectedTrack();
+			if (track != null && (view = getTrackView(track)) != null) {
+				int frameNo = trackerPanel.getFrameNumber();
+				view.refresh(frameNo, DataTable.MODE_TRACK_REFRESH);
+			}
+			break;
 		case TFrame.PROPERTY_TFRAME_TAB:
 			if (e.getNewValue() != null) {
 				TableTrackView trackview = (TableTrackView) getTrackView(selectedTrack);

@@ -1132,7 +1132,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 		}
 		if (trackerPanel.isEnabled("button.drawing")) //$NON-NLS-1$
 			add(drawingButton);
-		if (!pageViewTabs.isEmpty() || !trackerPanel.supplementalFilePaths.isEmpty())
+		if (desktopButton.isEnabled())
 			add(desktopButton);
 		add(notesButton);
 		if (!OSPRuntime.isJS) {
@@ -1219,6 +1219,8 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 
 		boolean hasPageURLs = !pageViewTabs.isEmpty();
 		desktopButton.setEnabled(hasPageURLs || !trackerPanel.supplementalFilePaths.isEmpty());
+		if (desktopButton.isEnabled() && desktopButton.getParent() == null)
+			rebuild();
 	}
 
 	private void refreshTracks() {
