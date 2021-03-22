@@ -152,6 +152,7 @@ public class Tracker {
 	static {
 		try {
 			if (OSPRuntime.isJS) {
+				OSPRuntime.launcherAllowEJSModel = false;
 				jsutil = ((JSUtilI) Class.forName("swingjs.JSUtil").newInstance());
 			}
 		} catch (Exception e) {

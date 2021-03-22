@@ -2198,7 +2198,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 //      	help_path = res.getString(); // open launcher with xml string
 //      }
 //      System.out.println(help_path);
-			helpLauncher = new Launcher(help_path, false);
+			helpLauncher = new Launcher(help_path, false, (JPanel) helpDialog.getContentPane());
 			helpLauncher.popupEnabled = false;
 			int level = FontSizer.getLevel();
 			if (helpLauncher.getTabCount() > 0) {
@@ -2221,7 +2221,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			dim.height = Math.min((9 * screen.height) / 10, (int) ((1 + level * 0.35) * dim.height));
 			helpLauncher.setSize(dim);
 
-			helpDialog.setContentPane(helpLauncher.getContentPane());
+			// BH 2021.03.21 we are already using the contentPane
+			//helpDialog.setContentPane(helpLauncher.getContentPane());
 			FontSizer.setFonts(helpDialog, FontSizer.getLevel());
 
 			helpDialog.pack();

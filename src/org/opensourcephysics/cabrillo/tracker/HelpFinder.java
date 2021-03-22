@@ -338,80 +338,80 @@ public class HelpFinder {
 	@SuppressWarnings("unchecked")
 	private static void initialize() {
 		// initialize the maps
-  	URL url = Tracker.getClassResource("resources/help/tracker_topics.xml"); //$NON-NLS-1$
-  	String xml = ResourceLoader.getString(url.toExternalForm());
-  	XMLControl control = new XMLControlElement(xml);
-  	ArrayList<LaunchNode> children = (ArrayList<LaunchNode>)control.getObject("child_nodes"); //$NON-NLS-1$
-  	for (LaunchNode next: children) {
-  		String pagekey = next.getKeywords();
-  		String name = next.getName();
-  		pageNames.put(pagekey, name);
-  		String path  = next.getDisplayTab(0).getURL().toString();
-  		pagePaths.put(pagekey, path);
-  		if (css==null) {
-  			css = XML.getDirectoryPath(path)+"/help.css"; //$NON-NLS-1$
-  		}
-    	String html = ResourceLoader.getString(path);
-    	Map<String, ArrayList<String>> map = getAnchors(html);
-    	pages.put(pagekey, map);
-  	}
-  	
-  	// create the search field, label and button
-  	searchField = new JTextField(20) {
-  		@Override
-  		public Dimension getMaximumSize() {
-  			return new Dimension((int)(100*FontSizer.getFactor()), clearSearchButton.getPreferredSize().height);
-  		}
-  	};
-    searchField.addKeyListener(new KeyAdapter() {
-      @Override
-	public void keyReleased(KeyEvent e) {
-      	
-        if(e.getKeyCode()==KeyEvent.VK_ENTER) {
-          String searchPhrase = stripExtraSpace(searchField.getText(), " "); //$NON-NLS-1$
-          if (searchPhrase.length()>=minimumSearchPhraseLength) {
-          	
-          	ArrayList<String> found = new ArrayList<String>();
-          	ArrayList<String[]> results = search(searchPhrase, found);
-          	if (results.size()==0) {
-  	          searchField.setBackground(_RED);
-          		return;
-          	}
-	          searchField.setBackground(Color.white);
-	          
-	          // write results in HTML file
-          	File file = writeResultsFile(searchPhrase, results, found);
-          	if (file==null) return;
-          	
-          	// create and display results node
-      			LaunchNode node = new LaunchNode("\""+searchPhrase+"\""); //$NON-NLS-1$ //$NON-NLS-2$
-        		node.addDisplayTab(null, file.getAbsolutePath(), null);
-        		node.getDisplayTab(0).getURL();  // so display tab url is not null
-           	displayResultsNode(node);
-          }
-        } 
-        else {
-          searchField.setBackground(Color.yellow);
-        }
-      }
+		URL url = Tracker.getClassResource("resources/help/tracker_topics.xml"); //$NON-NLS-1$
+		String xml = ResourceLoader.getString(url.toExternalForm());
+		XMLControl control = new XMLControlElement(xml);
+		ArrayList<LaunchNode> children = (ArrayList<LaunchNode>) control.getObject("child_nodes"); //$NON-NLS-1$
+		for (LaunchNode next : children) {
+			String pagekey = next.getKeywords();
+			String name = next.getName();
+			pageNames.put(pagekey, name);
+			String path = next.getDisplayTab(0).getURL().toString();
+			pagePaths.put(pagekey, path);
+			if (css == null) {
+				css = XML.getDirectoryPath(path) + "/help.css"; //$NON-NLS-1$
+			}
+			String html = ResourceLoader.getString(path);
+			Map<String, ArrayList<String>> map = getAnchors(html);
+			pages.put(pagekey, map);
+		}
 
-    });
-    searchLabel = new JLabel();
-    searchLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 4));
-    
-    clearSearchButton = new JButton();
-    clearSearchButton.setAction(new AbstractAction() {
+		// create the search field, label and button
+		searchField = new JTextField(20) {
+			@Override
+			public Dimension getMaximumSize() {
+				return new Dimension((int) (100 * FontSizer.getFactor()), clearSearchButton.getPreferredSize().height);
+			}
+		};
+		searchField.addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyReleased(KeyEvent e) {
+
+				if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+					String searchPhrase = stripExtraSpace(searchField.getText(), " "); //$NON-NLS-1$
+					if (searchPhrase.length() >= minimumSearchPhraseLength) {
+
+						ArrayList<String> found = new ArrayList<String>();
+						ArrayList<String[]> results = search(searchPhrase, found);
+						if (results.size() == 0) {
+							searchField.setBackground(_RED);
+							return;
+						}
+						searchField.setBackground(Color.white);
+
+						// write results in HTML file
+						File file = writeResultsFile(searchPhrase, results, found);
+						if (file == null)
+							return;
+
+						// create and display results node
+						LaunchNode node = new LaunchNode("\"" + searchPhrase + "\""); //$NON-NLS-1$ //$NON-NLS-2$
+						node.addDisplayTab(null, file.getAbsolutePath(), null);
+						node.getDisplayTab(0).getURL(); // so display tab url is not null
+						displayResultsNode(node);
+					}
+				} else {
+					searchField.setBackground(Color.yellow);
+				}
+			}
+
+		});
+		searchLabel = new JLabel();
+		searchLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 4));
+
+		clearSearchButton = new JButton();
+		clearSearchButton.setAction(new AbstractAction() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				helpLauncher.setSelectedTab(searchResultsTab);
 				helpLauncher.removeSelectedTab();
 				searchField.setText(null);
-		    clearSearchButton.setEnabled(false);
-		    searchResultsTab = null;
-		    rootNode = null;
-			}    	
-    });
-    clearSearchButton.setEnabled(false);
+				clearSearchButton.setEnabled(false);
+				searchResultsTab = null;
+				rootNode = null;
+			}
+		});
+		clearSearchButton.setEnabled(false);
 	}
 	
 	private static void displayResultsNode(LaunchNode node) {
@@ -477,13 +477,8 @@ public class HelpFinder {
     		name = anchorSplit[1].substring(m+1, p);
     	}
     	
-    	// strip section numbering
-    	try {
-				Integer.parseInt(name.substring(0, 1));
-				name = name.substring(name.indexOf(" ")+1, name.length()); //$NON-NLS-1$
-			} catch (Exception e) {
-			}
-    	
+    	if (Character.isDigit(name.charAt(0)))
+				name = name.substring(name.indexOf(" ")+1, name.length()); //$NON-NLS-1$	
     	anchorNames.put(anchor, name);
     	
     	// after finding the ID anchor, strip any other anchor tags

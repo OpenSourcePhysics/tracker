@@ -1291,7 +1291,6 @@ public class TrackerIO extends VideoIO {
 	 * 
 	 * @param trackerPanel
 	 * @param control      the XMLControl
-	 * @param dialog       the dialog
 	 * @param isExport
 	 * @param ok           run only if not canceled
 	 */
