@@ -13,38 +13,39 @@
 		<p align="center"><img src="../help_images/table_view.gif" alt="Datatable view"></p>
 		<p>The <strong>datatable view</strong> displays a table of a track's data. It has its own toolbar for selecting the track and visible data columns. The data displayed in the table can be analyzed with the Data Tool or copied to the clipboard for pasting into a spreadsheet or other application.</p>
         
-		<h3><a name="table1" id="table1"></a>1. Refreshing data</h3>
+		<h3><a name="table1" id="table1"></a>1. Controlling auto-refresh</h3>
 		<p>By default, datatables are refreshed automatically when changes in data occur (e.g. when marking points). But when working with very long videos it can be useful to turn off auto-refresh in order to speed up the marking process. To turn off auto-refresh, click the Refresh button on the toolbar and uncheck the <strong>Auto-refresh</strong> item in the popup menu.  When done marking, turn auto-refresh back on or refresh the data manually by choosing the <strong>Refresh</strong> item in the popup menu.</p>
 		<p align="center"><img src="../help_images/refresh_menu.gif" alt="Refresh menu"></p>
 <h3><a name="table2" id="table2"></a>2. Selecting a track</h3>
 		<p>Select a track from the dropdown list on the datatable view's toolbar.</p>
 		<p align="center"><img src="../help_images/table_selecting_track.gif" alt="Selecting a track"></p>
 
-		<h3><a name="table3" id="table3"></a>3. Selecting visible data columns</h3>
-		<p>Select the data columns displayed in the table by clicking the <strong>Data</strong> button and checking those of interest. The time column is always displayed.</p>
-		<p>Cells for which no data exists are empty. In particular, velocities and accelerations cannot be determined at the beginning, end, or where there are gaps in the position data.</p>
+		<h3><a name="table3" id="table3"></a>3. Selecting visible columns</h3>
+		<p>Select the  columns displayed in the table by clicking the <strong>Data</strong> button and checking the columns of interest. The time column is always displayed.</p>
 		<p align="center">
 			<img src="../help_images/datatable_dialog.gif" alt="Selecting data columns">
             <img src="../help_images/spacer.gif">
-            <img src="../help_images/table_view2.gif" alt="Data columns displayed in table">
+            <img src="../help_images/table_selecting_columns.gif" alt="Data columns displayed in table">
         </p>
+<p>Cells for which no data exist are empty. In particular, velocities and accelerations cannot be determined at the beginning, end, or where there are gaps in the position data.</p>
+		<p align="center">
+			<img src="../help_images/datatable_dialog2.gif" alt="Selecting data columns">
+            <img src="../help_images/spacer.gif">
+            <img src="../help_images/table_view2.gif" alt="Data columns displayed in table">
+    </p>
         
 		<h3><a name="table4" id="table4"></a>4. Sorting rows</h3>
 		<p>Click a column header to sort rows in ascending order of the data in the clicked column. The sorted column name is displayed in bold font.</p>
 		<p align="center"><img src="../help_images/table_sorted.gif" alt="Sorted column"></p>
         
 		<h3><a name="skips" id="skips"></a>5. Finding and filling data gaps</h3>
-		<p>Sometimes  steps are skipped when marking, by accident or otherwise. It is recommended you identify and eliminate these data gaps since they prevent Tracker from <a href="pointmass.html#mass3">calculating velocities and accelerations</a>. The datatable can help make this easier by drawing red lines where the gaps occur or (if autofill is enabled) by filling the gaps using linear interpolation. </p>
-		<p>When Tracker detects that there are missing steps (as in the table below, where step 2 is missing) a <strong>Gaps</strong> button is displayed on the table's toolbar. Click this button to display the <strong>Show in table</strong> checkbox. Check this to show gaps by drawing red lines as show on the right side. You can also choose to show gaps by default in the <a href="interface.html#prefs">preferences dialog</a>.</p>
+		<p>Sometimes  steps are skipped when marking, by accident or otherwise. It is recommended you identify and eliminate these data gaps since they prevent Tracker from <a href="pointmass.html#mass3">calculating velocities and accelerations</a>. The datatable can help make this easier by (a) drawing red lines where the gaps occur or  (b) filling the gaps using linear interpolation. </p>
+		<p>When Tracker detects that there are missing steps (as in the table below, where step 2 is missing) a <strong>gaps</strong> button is displayed on the table's toolbar and by default the gaps are shown in red. Click the gaps button and check/uncheck the <strong>Show data gaps</strong> and/or <strong>Autofill data gaps</strong> boxes as desired. For more information see Point Mass <a href="pointmass.html#autofill">Handling data gaps</a>. For data gap preferences see <a href="interface.html#prefs">preferences dialog</a>.</p>
         <p align="center">
-            <img src="../help_images/table_skips_off.gif" alt="Gaps button showing gaps">
-            <img src="../help_images/spacer.gif">
             <img src="../help_images/table_skips_on.gif" alt="Gaps shown in red">
+            <img src="../help_images/spacer.gif">
+            <img src="../help_images/table_skips_off.gif" alt="Gaps button showing gaps">
 </p>
-		<p>If autofill is enabled (see <a href="interface.html#prefs">preferences dialog</a>), the Gaps button will also have an <strong>Autofill</strong> checkbox. Checking this box automatically fills gaps by linear interpolation. For more information see Point Mass <a href="pointmass.html#autofill">Autofilling gaps</a>.</p>
-    <p align="center">
-            <img src="../help_images/table_fill_gap.gif" alt="Gaps button filling gaps">
-    </p>
 
 	<h3><a name="table6" id="table6"></a>6. Formatting data columns</h3>
 		<p>By default, the format of a number displayed in a table varies based on the magnitude of the number. If desired, you can set a fixed format using the <strong>Number Format</strong> dialog. To display the Number Format dialog right-click the datatable   and select  <strong>Number Format...</strong> from the popup menu. For more information see <a href="interface.html#numberformat">Number Formats</a>.</p>

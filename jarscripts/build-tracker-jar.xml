@@ -185,6 +185,7 @@
             **/opensourcephysics/resources/" 
         	excludes="**/html/, **/*.zip, **/*.mp4">
 		</jar>
+    	<signjar jar="${output}/tracker.jar" alias="mykey" storepass="dobrown" />
 		<delete dir="${temp}"/>
 	</target>
 
@@ -202,6 +203,12 @@
             	demoJS/, 
             	**/*.zip, 
             	**/*.mp4,
+            	**/tools_*, 
+            	**/launcher_*, 
+            	**/video_*, 
+            	**/display_res_*, 
+            	**/dialogs_res_*, 
+            	**/controls_res_*, 
             	*.xml, 
             	*.txt" />
 		</copy>
@@ -238,6 +245,7 @@
 				**/*.zip, 
 				**/*.mp4">
 		</jar>
+    	<signjar jar="${output}/tracker_starter.jar" alias="mykey" storepass="dobrown" />
 		<delete dir="${temp}"/>
 	</target>
 
