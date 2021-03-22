@@ -387,7 +387,8 @@ public class PointMass extends TTrack {
 	protected Object[] derivData = new Object[] { params, xData, yData, validData };
 	// identify skipped steps
 	protected TreeSet<Integer> skippedSteps = new TreeSet<Integer>();
-	protected boolean isAutofill = false, firstAutofill = true;
+	protected boolean isAutofill = false;
+	protected boolean showfilledSteps = Tracker.showGaps;
 
 	// for GUI
 	protected NumberField[][] vectorFields;
@@ -1032,22 +1033,25 @@ public class PointMass extends TTrack {
 	 */
 	public void setAutoFill(boolean autofill) {
 		isAutofill = autofill;
-		if (autofill) {
-			// fill unfilled gaps, but ask if more than one
-			int gapCount = getUnfilledGapCount();
-			if (gapCount > 1) {
-				int response = JOptionPane.showConfirmDialog(trackerPanel.getTFrame(),
-						TrackerRes.getString("TableTrackView.Dialog.FillMultipleGaps.Message"), //$NON-NLS-1$
-						TrackerRes.getString("TableTrackView.Dialog.FillMultipleGaps.Title"), //$NON-NLS-1$
-						JOptionPane.YES_NO_OPTION);
-				if (response == JOptionPane.YES_OPTION) {
-					gapCount = 1;
-				}
-			}
-			if (gapCount == 1) {
-				markAllInterpolatedSteps();
-			}
-		}
+//		if (autofill) {
+//			// fill unfilled gaps, but ask if more than one
+//			int gapCount = getUnfilledGapCount(false);
+//			if (gapCount > 1) {
+//				int response = JOptionPane.showConfirmDialog(trackerPanel.getTFrame(),
+//						TrackerRes.getString("TableTrackView.Dialog.FillMultipleGaps.Message"), //$NON-NLS-1$
+//						TrackerRes.getString("TableTrackView.Dialog.FillMultipleGaps.Title"), //$NON-NLS-1$
+//						JOptionPane.YES_NO_OPTION);
+//				if (response == JOptionPane.YES_OPTION) {
+//					gapCount = 1;
+//				}
+//			}
+//			if (gapCount == 1) {
+//				markAllInterpolatedSteps();
+//			}
+//		}
+//		else
+			// empty all gaps
+			markAllInterpolatedSteps();
 	}
 
 	/**
@@ -1056,6 +1060,17 @@ public class PointMass extends TTrack {
 	 * @return the gap count
 	 */
 	public int getGapCount() {
+		// older trk files don't define keyframes, 
+		// so if none defined make every frame a keyframe
+		if (keyFrames.isEmpty() && !steps.isEmpty()) {
+			System.out.println("pig filling "+this.getName());
+			Step[] steps = getSteps();
+			for (int i = 0; i < steps.length; i++) {
+				if (steps[i] != null) {
+					keyFrames.add(i);
+				}
+			}
+		}
 		int prev = -1;
 		int gapCount = 0;
 		for (int n : keyFrames) {
@@ -1075,7 +1090,7 @@ public class PointMass extends TTrack {
 	 * 
 	 * @return the unfilled gap count
 	 */
-	public int getUnfilledGapCount() {
+	public int getUnfilledGapCount(boolean emptyGapsOnly) {
 		int prev = -1;
 		int gapCount = 0;
 		for (int n : keyFrames) {
@@ -1085,13 +1100,18 @@ public class PointMass extends TTrack {
 				if (n - prev > 1) {
 					// gap exists here, is it filled?
 					boolean filled = true;
+					boolean empty = true;
 					for (int i = prev + 1; i < n; i++) {
 						if (skippedSteps.contains(i)) {
 							filled = false;
-							break;
 						}
+						else {
+							empty = false;
+						}						
 					}
-					if (!filled)
+					if (!emptyGapsOnly && !filled)
+						gapCount++;
+					else if (emptyGapsOnly && empty)
 						gapCount++;
 				}
 				prev = n;
@@ -1109,7 +1129,7 @@ public class PointMass extends TTrack {
 		// save state
 		XMLControl control = new XMLControlElement(this);
 		boolean changed = false;
-		// go through all keyFrames and mark or move steps in the gaps
+		// go through all keyFrames and mark, move or delete steps in the gaps
 		// keyFrames contain all manually or auto-marked steps
 		// find non-null position steps in the videoclip
 		VideoPlayer player = trackerPanel.getPlayer();
@@ -1144,7 +1164,7 @@ public class PointMass extends TTrack {
 	 * @param refreshData true to update derivatives
 	 */
 	public void markInterpolatedSteps(PositionStep step, boolean refreshData) {
-		if (isLocked())
+		if (isLocked() || trackerPanel == null)
 			return;
 		// keyFrames contain all manually or auto-marked steps
 		if (!keyFrames.contains(step.n))
@@ -1194,6 +1214,7 @@ public class PointMass extends TTrack {
 
 	/**
 	 * Marks steps by linear interpolation between two existing steps.
+	 * Removes steps if isAutofill is false.
 	 * 
 	 * @param startStep the start step
 	 * @param endStep   the end step
@@ -1220,16 +1241,22 @@ public class PointMass extends TTrack {
 			double y = y1 + (y2 - y1) * (i - startStepNum) / range;
 			int frameNum = clip.stepToFrame(i);
 			PositionStep step = (PositionStep) stepArray[frameNum];
-			if (step == null) {
-				newlyMarked = true;
-				step = new PositionStep(this, frameNum, x, y);
-				steps.setStep(frameNum, step);
-				step.setFootprint(getFootprint());
-			} else {
-				step.getPosition().setLocation(x, y); // triggers "location" property change for attachments
-				step.erase();
+			if (isAutofill()) {
+				if (step == null) {
+					newlyMarked = true;
+					step = new PositionStep(this, frameNum, x, y);
+					steps.setStep(frameNum, step);
+					step.setFootprint(getFootprint());
+				} else {
+					step.getPosition().setLocation(x, y); // triggers "location" property change for attachments
+					step.erase();
+				}
+				step.valid = true;
 			}
-			step.valid = true;
+			else if (step != null) { // autofill off
+				deleteStep(step.n);
+				newlyMarked = true;
+			}
 		}
 		return newlyMarked;
 	}

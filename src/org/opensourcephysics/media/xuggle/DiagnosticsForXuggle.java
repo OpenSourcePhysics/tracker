@@ -554,7 +554,6 @@ public class DiagnosticsForXuggle extends Diagnostics {
 	 * @return true if jars are copied
 	 */
 	public static boolean copyXuggleJarsTo(File dir) {
-		// return false; // pig
 		if (xuggleHome == null || dir == null) {
 			return false;
 		}

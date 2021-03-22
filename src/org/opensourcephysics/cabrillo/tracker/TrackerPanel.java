@@ -208,6 +208,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	protected XMLProperty customViewsProperty; // TFrame loads views
 	protected XMLProperty selectedViewsProperty; // TFrame sets selected views--legacy pre-JS
 	protected XMLProperty selectedViewTypesProperty; // TFrame sets selected view types--JS
+	protected XMLProperty selectedTrackViewsProperty; // TFrame sets selected track views
 	protected double[] dividerLocs; // TFrame sets dividers
 	protected Point zoomCenter; // used when loading
 	protected Map<Filter, Point> visibleFilters; // TFrame sets locations of filter inspectors
@@ -3797,9 +3798,10 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			// load the selected_& custom views properties
 			List<XMLProperty> props = control.getPropsRaw();
 			trackerPanel.selectedViewsProperty = null;
+			
 			trackerPanel.customViewsProperty = null;
-			for (int n = 0, i = props.size(); --i >= 0 && n < 2;) {
-				// n < 2 since "selected_views" & "selected_view_types" should never BOTH exist
+			for (int n = 0, i = props.size(); --i >= 0 && n < 3;) { 
+				// n < 3, not 4, since "selected_views" & "selected_view_types" should never BOTH exist
 				XMLProperty prop = props.get(i);
 				switch (prop.getPropertyName()) {
 				case "selected_views": 
@@ -3808,6 +3810,10 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 					break;
 				case "selected_view_types":
 					trackerPanel.selectedViewTypesProperty = prop;
+					n++;
+					break;
+				case "selected_track_views":
+					trackerPanel.selectedTrackViewsProperty = prop;
 					n++;
 					break;
 				case "views":
@@ -4067,6 +4073,9 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				// save the selected view types
 				int[] selectedViewTypes = frame.getSelectedViewTypes(trackerPanel);
 				control.setValue("selected_view_types", selectedViewTypes); //$NON-NLS-1$
+				// save the selected trackviews
+				String selectedTrackViews = frame.getSelectedTrackViews(trackerPanel);
+				control.setValue("selected_track_views", selectedTrackViews); //$NON-NLS-1$
 
 				// save the toolbar for button states
 				TToolBar toolbar = TToolBar.getToolbar(trackerPanel);

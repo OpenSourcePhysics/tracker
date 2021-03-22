@@ -1125,7 +1125,8 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 					entries[n] = null;
 				}
 			}
-			Undo.postTrackEdit(this, control);
+			if (!this.isDependent())
+				Undo.postTrackEdit(this, control);
 			firePropertyChange(PROPERTY_TTRACK_STEP, HINT_STEP_ADDED_OR_REMOVED, new Integer(n)); // $NON-NLS-1$
 		}
 		return step;

@@ -651,6 +651,31 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			}
 			trackerPanel.selectedViewsProperty = null;
 		}
+		// select the track views for plot and table
+		if (trackerPanel.selectedTrackViewsProperty != null) {
+			// typical value: "mass A,null;mass B,mass B;null,null;null,null"
+			String val = trackerPanel.selectedTrackViewsProperty.getPropertyContent().get(0).toString();
+			String[] forChoosers = val.split(";");
+			for (int i = 0; i < viewChoosers.length; i++) {
+				String[] selectedNames = forChoosers[i].split(",");
+				TView[] tviews = viewChoosers[i].getTViews();
+				// use fact that TView.VIEW_PLOT = 0 && VIEW_TABLE = 1
+				for (int k = 0; k < selectedNames.length; k++) {
+					if (!selectedNames[k].equals("null") && tviews[k] != null) {
+						TrackChooserTView view = (TrackChooserTView)tviews[k];
+						TTrack track = trackerPanel.getTrack(selectedNames[k]);
+						if (view.getSelectedTrack() != track) {
+							view.setSelectedTrack(track);
+							if (viewChoosers[i].getSelectedView() == view) {
+								viewChoosers[i].refresh();
+								viewChoosers[i].repaint();
+							}
+						}
+					}
+				}
+			}
+			trackerPanel.selectedViewTypesProperty = null;
+		}
 		placeViews(trackerPanel, viewChoosers);
 		initialize(trackerPanel);
 
@@ -1322,6 +1347,37 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			selectedViews[i] = choosers[i].getSelectedViewType();
 		}
 		return selectedViews;
+	}
+
+	/**
+	 * Gets the selected TrackView names for the specified tracker panel.
+	 *
+	 * @param trackerPanel the tracker panel
+	 * @return String[4][2] of track names selected in {plot, table}
+	 */
+	public String getSelectedTrackViews(TrackerPanel trackerPanel) {
+		StringBuffer buf = new StringBuffer();
+		TViewChooser[] choosers = getViewChoosers(trackerPanel);
+		for (int i = 0; i < choosers.length; i++) {
+			if (i > 0)
+				buf.append(";");
+			
+			TView[] views = choosers[i].getTViews();
+			if (views[TView.VIEW_PLOT] != null) {
+				PlotTView view = (PlotTView)views[TView.VIEW_PLOT];
+				TTrack track = view.getSelectedTrack();
+				buf.append(track == null? "null,": track.getName() + ",");
+			} else
+				buf.append("null,");
+			
+			if (views[TView.VIEW_TABLE] != null) {
+				TableTView view = (TableTView)views[TView.VIEW_TABLE];
+				TTrack track = view.getSelectedTrack();
+				buf.append(track == null? "null": track.getName());
+			} else
+				buf.append("null");				
+		}
+		return buf.toString();
 	}
 
 	/**

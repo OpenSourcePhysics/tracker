@@ -243,7 +243,10 @@ public class PositionStep extends Step {
 					@Override
 					public void draw(Graphics2D g, boolean highlighted) {
 						normalMark.draw(g, highlighted);
-						if (m.isAutofill()) {
+//						if (m.isAutofill()) {
+//							autofillMark.draw(g, false);
+//						}
+						if (m.showfilledSteps) {
 							autofillMark.draw(g, false);
 						}
 					}
@@ -338,6 +341,8 @@ public class PositionStep extends Step {
 				return;
 			super.setXY(x, y);
 			repaint();
+			// position set by user so add to keyFrames
+			getTrack().keyFrames.add(n);
 			if (!isAdjusting()) {
 				if (track.isAutofill()) {
 					track.markInterpolatedSteps(PositionStep.this, true);

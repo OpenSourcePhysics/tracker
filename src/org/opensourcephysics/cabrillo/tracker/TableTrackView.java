@@ -508,9 +508,11 @@ public class TableTrackView extends TrackView {
 		TTrack track = getTrack();
 		if (track instanceof PointMass) {
 			PointMass p = (PointMass) track;
-			boolean hasGaps = p.getGapCount() > 0 || p.skippedSteps.size() > 0;
-			gapsButton.setIcon(!hasGaps ? null : gapsButton.isSelected() ? SKIPS_ON_ICON : SKIPS_OFF_ICON);
-			gapsButton.setEnabled(hasGaps);
+			boolean hasGaps = p.getGapCount() > 0;
+			boolean hasSkips = p.skippedSteps.size() > 0;
+			gapsButton.setIcon(!hasGaps ? null : 
+				gapsButton.isSelected() ? SKIPS_ON_ICON : SKIPS_OFF_ICON);
+			gapsButton.setEnabled(hasGaps || hasSkips);
 		}
 
 	}
@@ -533,7 +535,9 @@ public class TableTrackView extends TrackView {
 	 */
 	@Override
 	public ArrayList<Component> getToolBarComponents() {
-		toolbarComponents.add(gapsButton);
+		if (toolbarComponents.size() == 0)
+			toolbarComponents.add(gapsButton);
+		refreshGapsButton();
 		return toolbarComponents;
 	}
 
@@ -746,6 +750,7 @@ public class TableTrackView extends TrackView {
 	@Override
 	public void propertyChange(PropertyChangeEvent e) {
 		TTrack track = getTrack();
+		boolean refreshGapButton = false;
 		switch (e.getPropertyName()) {
 		case TrackerPanel.PROPERTY_TRACKERPANEL_LOADED:
 		case TrackerPanel.PROPERTY_TRACKERPANEL_TRACK:
@@ -806,7 +811,7 @@ public class TableTrackView extends TrackView {
 		case TTrack.PROPERTY_TTRACK_STEP:
 		case TTrack.PROPERTY_TTRACK_STEPS:
 			if (TTrack.HINT_STEP_ADDED_OR_REMOVED == e.getOldValue()) {
-				refreshGapsButton();
+				refreshGapButton = true;
 			}
 			// commented out so TrackView will fire event to select table rows
 //			if (TTrack.HINT_STEPS_SELECTED == e.getOldValue())
@@ -815,6 +820,9 @@ public class TableTrackView extends TrackView {
 			break;
 		}
 		super.propertyChange(e);
+		// refresh gaps button AFTER super.propertyChange
+		if (refreshGapButton)
+			refreshGapsButton();
 	}
 
 	/**
@@ -991,6 +999,9 @@ public class TableTrackView extends TrackView {
 						refreshGapsButton();
 						dataTable.repaint();
 						dataTable.getTableHeader().resizeAndRepaint();
+						PointMass p = (PointMass) TableTrackView.this.getTrack();
+						p.showfilledSteps = gapsButton.isSelected();
+						p.repaint();
 					}
 				});
 				popup.add(item);
