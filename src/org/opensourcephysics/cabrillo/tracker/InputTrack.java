@@ -168,8 +168,9 @@ public abstract class InputTrack extends TTrack {
 			inputField.setValue(magField.getValue());
 			Dimension d = inputField.getPreferredSize();
 			Rectangle bounds = getLayoutBounds(step);
-			//System.out.println("InputTrack " + d + " " + inputField.getValue() + " " + inputField.getText());
-			inputField.setBounds(bounds.x - 2, bounds.y - 5, Math.max(50, d.width), d.height);
+//			inputField.setBounds(bounds.x - 2, bounds.y - 5, Math.max(50, d.width), d.height);
+			int wid = Math.max(40, bounds.width + 7);
+			inputField.setBounds(bounds.x - 2, bounds.y - 5, wid, d.height);
 			trackerPanel.add(inputField);
 			Border space = BorderFactory.createEmptyBorder(0, 1, 1, 0);
 			Color color = getFootprint().getColor();
@@ -295,7 +296,7 @@ public abstract class InputTrack extends TTrack {
 	 * Sets the editing flag.
 	 *
 	 * @param edit   <code>true</code> to edit the scale
-	 * @param target the tape step that handles the edit process
+	 * @param target the tape or protractor step that handles the edit process
 	 * @param pt     TODO
 	 */
 	protected void setEditing(boolean edit, Step target, Point pt) {
@@ -331,6 +332,20 @@ public abstract class InputTrack extends TTrack {
 		int n = trackerPanel.getFrameNumber();
 		if (this instanceof TapeMeasure) {
 			TapeStep step = (TapeStep) getStep(n);
+			if (step == null)
+				return;
+			Rectangle bounds = step.layoutBounds.get(trackerPanel);
+			if (bounds != null && bounds.contains(pt)) {
+				// readout was clicked
+				if (isFullyAttached()) {
+					trackerPanel.setSelectedTrack(this);
+					return;
+				}
+				setEditing(true, step, pt);
+			}
+		}
+		else if (this instanceof Protractor) {
+			ProtractorStep step = (ProtractorStep) getStep(n);
 			if (step == null)
 				return;
 			Rectangle bounds = step.layoutBounds.get(trackerPanel);

@@ -413,7 +413,7 @@ protected Mark getMark(TrackerPanel trackerPanel) {
     double theta = line2Angle-line1Angle;
     if (theta > Math.PI) theta -= 2*Math.PI;
     if (theta < -Math.PI) theta += 2*Math.PI;
-    if (refreshField && protractor.trackerPanel.getFrameNumber()==n) {
+    if (refreshField && protractor.trackerPanel.getFrameNumber()==n) {    	
     	protractor.angleField.setValue(theta);
     }
     return theta;
@@ -456,14 +456,16 @@ protected Mark getMark(TrackerPanel trackerPanel) {
    * Sets the arm length of this tape.
    *
    * @param end the arm end
-   * @param length the desired length
+   * @param length the desired length in world units
    */
   public void setArmLength(TPoint end, double length) {
     if (protractor.isLocked() || protractor.trackerPanel == null) return;
     XMLControl state = new XMLControlElement(protractor);
     // move end to new distance from vertex
-    double dx = length*vertex.cos(end);
-    double dy = -length*vertex.sin(end);
+    double scaleX = protractor.trackerPanel.getCoords().getScaleX(n);
+    double scaleY = protractor.trackerPanel.getCoords().getScaleY(n);
+    double dx = length*vertex.cos(end) * scaleX;
+    double dy = -length*vertex.sin(end) * scaleY;
     end.setXY(vertex.x+dx, vertex.y+dy);
     repaint();
 		Undo.postTrackEdit(protractor, state);
