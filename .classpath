@@ -2,7 +2,7 @@
 <classpath>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="src" path="src"/>
-	<classpathentry kind="lib" path="C:/Users/Doug/Eclipse/workspace_trackerJS/tracker/libraries/xuggle-xuggler-server-all.jar"/>
+	<classpathentry kind="lib" path="libraries/xuggle-xuggler-server-all.jar"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/osp"/>
 	<classpathentry kind="src" path="resources"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/xuggle_server"/>
