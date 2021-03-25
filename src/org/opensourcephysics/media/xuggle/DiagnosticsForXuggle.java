@@ -115,13 +115,15 @@ public class DiagnosticsForXuggle extends Diagnostics {
 			String[] jarDates = new String[xuggleJarNames.length];
 			String[] jarSizes = new String[xuggleJarNames.length];
 			String fileData = "Xuggle home files: "; //$NON-NLS-1$
-			for (int i = 0; i < jarDates.length; i++) {
-				jarDates[i] = xuggleJars[i] == null ? "" : " (modified " + sdf.format(xuggleJars[i].lastModified()); //$NON-NLS-1$ //$NON-NLS-2$
+			for (int i = 0; i < Math.min(jarSizes.length, xuggleJars.length); i++) {
+				jarDates[i] = xuggleJars[i] == null ? "" : 
+					" (modified " + sdf.format(xuggleJars[i].lastModified()); //$NON-NLS-1$ //$NON-NLS-2$
 			}
 			for (int i = 0; i < Math.min(jarSizes.length, xuggleJars.length); i++) {
-				jarSizes[i] = xuggleJars[i] == null ? ")" : ", size " + (xuggleJars[i].length() / 1024) + "kB) "; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+				jarSizes[i] = xuggleJars[i] == null ? ")" : 
+					", size " + (xuggleJars[i].length() / 1024) + "kB) "; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 			}
-			for (int i = 0; i < jarSizes.length; i++) {
+			for (int i = 0; i < Math.min(jarSizes.length, xuggleJars.length); i++) {
 				if (i > 0)
 					fileData += ", "; //$NON-NLS-1$
 				fileData += xuggleJars[i] == null? "null": xuggleJars[i].getName() + jarDates[i] + jarSizes[i]; //$NON-NLS-1$
