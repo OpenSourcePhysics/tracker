@@ -447,7 +447,7 @@ public class HelpFinder {
 	    }
     }
     
-  	searchResultsTab.setSelectedNode(node);
+  	searchResultsTab.setTreeSelectionPath(node);
     clearSearchButton.setEnabled(true);
 	}
 	
