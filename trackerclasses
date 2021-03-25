@@ -232,13 +232,13 @@ java/net/HttpURLConnection.js
 java/net/JarURLConnection.js
 java/net/MalformedURLException.js
 java/net/Parts.js
-java/net/UnknownHostException.js
 java/net/URI.js
 java/net/URISyntaxException.js
 java/net/URL.js
 java/net/URLConnection.js
 java/net/URLStreamHandler.js
 java/net/URLStreamHandlerFactory.js
+java/net/UnknownHostException.js
 java/nio/Bits.js
 java/nio/Buffer.js
 java/nio/ByteBuffer.js
@@ -880,10 +880,10 @@ org/opensourcephysics/display/CellBorder.js
 org/opensourcephysics/display/ColorIcon.js
 org/opensourcephysics/display/ComplexDataset.js
 org/opensourcephysics/display/Data.js
+org/opensourcephysics/display/DataClip.js
 org/opensourcephysics/display/DataFunction.js
 org/opensourcephysics/display/DataTable.js
 org/opensourcephysics/display/DataTableModel.js
-org/opensourcephysics/display/DataClip.js
 org/opensourcephysics/display/Dataset.js
 org/opensourcephysics/display/DatasetManager.js
 org/opensourcephysics/display/Dimensioned.js

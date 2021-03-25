@@ -228,7 +228,7 @@ public class TapeStep extends Step {
     	rotatorDrawShapes[1] = null;
     }
 		Rectangle layoutRect = layoutBounds.get(trackerPanel);
-		if (hit == null && !tape.readOnly && layoutRect != null && layoutRect.intersects(hitRect)) {
+		if (hit == null && layoutRect != null && layoutRect.intersects(hitRect)) {
 			drawLayout = true;
 			hit = tape;
 		}
