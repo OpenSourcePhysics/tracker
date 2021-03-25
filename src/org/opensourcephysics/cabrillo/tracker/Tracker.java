@@ -112,7 +112,6 @@ import org.opensourcephysics.tools.LaunchNode;
 import org.opensourcephysics.tools.Resource;
 import org.opensourcephysics.tools.ResourceLoader;
 
-import javajs.async.Assets;
 import javajs.async.AsyncSwingWorker;
 import javajs.async.SwingJSUtils.Performance;
 import swingjs.api.JSUtilI;
