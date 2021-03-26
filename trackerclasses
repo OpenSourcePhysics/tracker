@@ -642,7 +642,9 @@ javax/swing/table/TableColumnModel.js
 javax/swing/table/TableModel.js
 javax/swing/text/AbstractDocument.js
 javax/swing/text/AttributeSet.js
+javax/swing/text/BadLocationException.js
 javax/swing/text/Caret.js
+javax/swing/text/ChangedCharSetException.js
 javax/swing/text/DefaultCaret.js
 javax/swing/text/DefaultEditorKit.js
 javax/swing/text/DefaultFormatter.js
