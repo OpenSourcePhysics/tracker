@@ -1063,7 +1063,6 @@ public class PointMass extends TTrack {
 		// older trk files don't define keyframes, 
 		// so if none defined make every frame a keyframe
 		if (keyFrames.isEmpty() && !steps.isEmpty()) {
-			System.out.println("pig filling "+this.getName());
 			Step[] steps = getSteps();
 			for (int i = 0; i < steps.length; i++) {
 				if (steps[i] != null) {
