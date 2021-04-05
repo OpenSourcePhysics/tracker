@@ -792,7 +792,8 @@ public class Tracker {
 				// for each approved, remove tab
 				@Override
 				public Void apply(TrackerPanel trackerPanel) {
-					frame.new TabRemover(trackerPanel).execute();
+//					frame.new TabRemover(trackerPanel).execute();
+					frame.new TabRemover(trackerPanel).executeSynchronously();
 					return null;
 				}
 
