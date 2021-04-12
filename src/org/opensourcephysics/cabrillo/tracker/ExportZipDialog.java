@@ -109,7 +109,6 @@ import org.opensourcephysics.tools.JarTool;
 import org.opensourcephysics.tools.LaunchBuilder;
 import org.opensourcephysics.tools.LibraryBrowser;
 import org.opensourcephysics.tools.LibraryResource;
-import org.opensourcephysics.tools.LibraryTreePanel;
 import org.opensourcephysics.tools.Resource;
 import org.opensourcephysics.tools.ResourceLoader;
 
@@ -2592,8 +2591,8 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 		AsyncFileChooser chooser = TrackerIO.getChooser();
 		chooser.setDialogTitle(TrackerRes.getString("ZipResourceDialog.FileChooser.SaveZip.Title")); //$NON-NLS-1$
 		chooser.setAcceptAllFileFilterUsed(false);
-		chooser.addChoosableFileFilter(TrackerIO.trzFileFilter);
-		chooser.setFileFilter(TrackerIO.trzFileFilter);
+		chooser.addChoosableFileFilter(VideoIO.trzFileFilter);
+		chooser.setFileFilter(VideoIO.trzFileFilter);
 //    String title = titleField.getText().trim().replaceAll(" ", ""); //$NON-NLS-1$ //$NON-NLS-2$
 //    if (!"".equals(title)) { //$NON-NLS-1$
 //    	chooser.setSelectedFile(new File(title+".trz")); //$NON-NLS-1$

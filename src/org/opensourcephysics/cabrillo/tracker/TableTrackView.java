@@ -107,6 +107,7 @@ import org.opensourcephysics.display.TeXParser;
 import org.opensourcephysics.media.core.NumberField;
 import org.opensourcephysics.media.core.NumberField.NumberFormatter;
 import org.opensourcephysics.media.core.VideoClip;
+import org.opensourcephysics.media.core.VideoIO;
 import org.opensourcephysics.tools.DataRefreshTool;
 import org.opensourcephysics.tools.DataTool;
 import org.opensourcephysics.tools.FontSizer;
@@ -1454,8 +1455,8 @@ public class TableTrackView extends TrackView {
 	protected void setupDelimiterMenu(Action setDelimiterAction) {
 		ButtonGroup delimiterButtonGroup = new ButtonGroup();
 
-		for (String key : TrackerIO.delimiters.keySet()) {
-			String delimiter = TrackerIO.delimiters.get(key);
+		for (String key : TrackerIO.getDelimiters().keySet()) {
+			String delimiter = TrackerIO.getDelimiters().get(key);
 			JMenuItem item = new JRadioButtonMenuItem(key);
 			item.setActionCommand(delimiter);
 			item.addActionListener(setDelimiterAction);
@@ -1464,7 +1465,7 @@ public class TableTrackView extends TrackView {
 		Action addDelimiterAction = new AbstractAction() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				String delimiter = TrackerIO.delimiter;
+				String delimiter = TrackerIO.getDelimiter();
 				String response = GUIUtils.showInputDialog(TableTrackView.this,
 						TrackerRes.getString("TableTrackView.Dialog.CustomDelimiter.Message"), //$NON-NLS-1$
 						TrackerRes.getString("TableTrackView.Dialog.CustomDelimiter.Title"), //$NON-NLS-1$
@@ -1506,7 +1507,7 @@ public class TableTrackView extends TrackView {
 		for (; en.hasMoreElements();) {
 			JMenuItem item = (JMenuItem) en.nextElement();
 			String delim = item.getActionCommand();
-			if (!TrackerIO.delimiters.containsValue(delim))
+			if (!TrackerIO.getDelimiters().containsValue(delim))
 				delimiterButtonGroup.remove(item);
 		}
 		// add all button group items to menu

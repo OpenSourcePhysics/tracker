@@ -142,25 +142,7 @@ public class TrackerIO extends VideoIO {
 
 	}
 
-	/**
-	 * delimiters
-	 */
-	protected static final String TAB = "\t", SPACE = " ", //$NON-NLS-1$ //$NON-NLS-2$
-			COMMA = ",", SEMICOLON = ";"; //$NON-NLS-1$ //$NON-NLS-2$
-
 	public static final Runnable NULL_RUNNABLE = () -> {};
-
-	protected static SingleExtFileFilter zipFileFilter, trkFileFilter, trzFileFilter;
-	protected static SingleExtFileFilter videoAndTrkFileFilter, txtFileFilter, jarFileFilter;
-	protected static SingleExtFileFilter delimitedTextFileFilter;
-
-	/**
-	 * TAB, SPACE, COMMA, or SEMICOLON
-	 */
-	protected static Map<String, String> delimiters = new TreeMap<String, String>();
-	protected static String defaultDelimiter = TAB; // tab delimiter by default
-	protected static String delimiter = defaultDelimiter;
-	protected static Map<String, String> customDelimiters = new TreeMap<String, String>();
 
 	protected static boolean isffmpegError = false;
 	protected static TFrame theFrame;
@@ -288,10 +270,10 @@ public class TrackerIO extends VideoIO {
 			}
 
 		};
-		delimiters.put(TrackerRes.getString("TrackerIO.Delimiter.Tab"), TAB); //$NON-NLS-1$
-		delimiters.put(TrackerRes.getString("TrackerIO.Delimiter.Space"), SPACE); //$NON-NLS-1$
-		delimiters.put(TrackerRes.getString("TrackerIO.Delimiter.Comma"), COMMA); //$NON-NLS-1$
-		delimiters.put(TrackerRes.getString("TrackerIO.Delimiter.Semicolon"), SEMICOLON); //$NON-NLS-1$
+//		delimiters.put(TrackerRes.getString("TrackerIO.Delimiter.Tab"), TAB); //$NON-NLS-1$
+//		delimiters.put(TrackerRes.getString("TrackerIO.Delimiter.Space"), SPACE); //$NON-NLS-1$
+//		delimiters.put(TrackerRes.getString("TrackerIO.Delimiter.Comma"), COMMA); //$NON-NLS-1$
+//		delimiters.put(TrackerRes.getString("TrackerIO.Delimiter.Semicolon"), SEMICOLON); //$NON-NLS-1$
 	}
 
 	protected static TreeSet<String> videoFormatDescriptions // alphabetical
@@ -307,6 +289,22 @@ public class TrackerIO extends VideoIO {
 	 */
 	private TrackerIO() {
 		/** empty block */
+	}
+
+	/**
+	 * Gets the delimiters for copied or exported data
+	 * This overrides the VideoIO method since the TrackerRes strings have already been translated
+	 *
+	 * @return the delimiter map
+	 */
+	public static Map<String, String> getDelimiters() {
+		if (VideoIO.delimiters.isEmpty()) {
+			VideoIO.delimiters.put(TrackerRes.getString("TrackerIO.Delimiter.Tab"), TAB); //$NON-NLS-1$
+			VideoIO.delimiters.put(TrackerRes.getString("TrackerIO.Delimiter.Space"), SPACE); //$NON-NLS-1$
+			VideoIO.delimiters.put(TrackerRes.getString("TrackerIO.Delimiter.Comma"), COMMA); //$NON-NLS-1$
+			VideoIO.delimiters.put(TrackerRes.getString("TrackerIO.Delimiter.Semicolon"), SEMICOLON); //$NON-NLS-1$
+		}
+		return VideoIO.delimiters;
 	}
 
 	/**
@@ -1435,14 +1433,7 @@ public class TrackerIO extends VideoIO {
 	 * @param header      the table header
 	 */
 	public static void copyTable(DataTable table, boolean asFormatted, String header) {
-		Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-		StringBuffer buf = getData(table, asFormatted);
-		// replace spaces with underscores in header (must be single string)
-		header = header.replace(' ', '_');
-		if (!header.endsWith(XML.NEW_LINE))
-			header += XML.NEW_LINE;
-		StringSelection stringSelection = new StringSelection(header + buf.toString());
-		clipboard.setContents(stringSelection, stringSelection);
+		table.copyTable(asFormatted, header);
 		dataCopiedToClipboard = true;
 	}
 
@@ -1551,31 +1542,12 @@ public class TrackerIO extends VideoIO {
 	}
 
 	/**
-	 * Sets the delimiter for copied or exported data
-	 *
-	 * @param d the delimiter
-	 */
-	public static void setDelimiter(String d) {
-		if (d != null)
-			delimiter = d;
-	}
-
-	/**
-	 * Gets the delimiter for copied or exported data
-	 *
-	 * @return the delimiter
-	 */
-	public static String getDelimiter() {
-		return delimiter;
-	}
-
-	/**
 	 * Adds a custom delimiter to the collection of delimiters
 	 *
 	 * @param custom the delimiter to add
 	 */
 	public static void addCustomDelimiter(String custom) {
-		if (!delimiters.values().contains(custom)) { // don't add a standard delimiter
+		if (!getDelimiters().values().contains(custom)) { // don't add a standard delimiter
 			// by default, use delimiter itself for key (used for display purposes--could be
 			// description)
 			customDelimiters.put(custom, custom);

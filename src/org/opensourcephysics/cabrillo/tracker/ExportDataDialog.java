@@ -239,8 +239,8 @@ public class ExportDataDialog extends JDialog {
 						refreshGUI();		
 					});
 		} else {
-			if (TrackerIO.delimiters.keySet().contains(selected))
-				TrackerIO.setDelimiter(TrackerIO.delimiters.get(selected));
+			if (TrackerIO.getDelimiters().keySet().contains(selected))
+				TrackerIO.setDelimiter(TrackerIO.getDelimiters().get(selected));
 			else if (TrackerIO.customDelimiters.keySet().contains(selected))
 				TrackerIO.setDelimiter(TrackerIO.customDelimiters.get(selected));
 		}
@@ -261,7 +261,7 @@ public class ExportDataDialog extends JDialog {
 			// select all
 			table.selectAll();
 			// get data and write to output file
-			StringBuffer buf = TrackerIO.getData(table, asFormatted);
+			StringBuffer buf = table.getData(asFormatted);
 			write(file, trackName + buf.toString());
 			// restore previous selection state
 			table.clearSelection();
@@ -271,7 +271,7 @@ public class ExportDataDialog extends JDialog {
 				table.addColumnSelectionInterval(col, col);
 		} else {
 			// get data and write to output file
-			StringBuffer buf = TrackerIO.getData(table, asFormatted);
+			StringBuffer buf = table.getData(asFormatted);
 			write(file, trackName + buf.toString());
 		}
 	}
@@ -311,9 +311,9 @@ public class ExportDataDialog extends JDialog {
 		String delim = TrackerIO.getDelimiter();
 		delimiterDropdown.removeAllItems();
 		// standard delimiters
-		for (String key : TrackerIO.delimiters.keySet()) {
+		for (String key : TrackerIO.getDelimiters().keySet()) {
 			delimiterDropdown.addItem(key);
-			if (delim.equals(TrackerIO.delimiters.get(key)))
+			if (delim.equals(TrackerIO.getDelimiters().get(key)))
 				selectedItem = key;
 		}
 		// custom delimiters
