@@ -107,7 +107,6 @@ import org.opensourcephysics.display.TeXParser;
 import org.opensourcephysics.media.core.NumberField;
 import org.opensourcephysics.media.core.NumberField.NumberFormatter;
 import org.opensourcephysics.media.core.VideoClip;
-import org.opensourcephysics.media.core.VideoIO;
 import org.opensourcephysics.tools.DataRefreshTool;
 import org.opensourcephysics.tools.DataTool;
 import org.opensourcephysics.tools.FontSizer;
@@ -1388,6 +1387,7 @@ public class TableTrackView extends TrackView {
 				snapshot();
 			}
 		};
+		snapshotItem = new JMenuItem(snapshotAction);
 		// add and remove text column items
 		createTextColumnItem = new JMenuItem();
 		createTextColumnItem.addActionListener(new ActionListener() {
@@ -1408,7 +1408,6 @@ public class TableTrackView extends TrackView {
 		deleteTextColumnMenu = new JMenu();
 		renameTextColumnMenu = new JMenu();
 
-		snapshotItem = new JMenuItem(snapshotAction);
 		// add dataBuilder item
 		dataBuilderItem = new JMenuItem();
 		dataBuilderItem.addActionListener(new ActionListener() {
