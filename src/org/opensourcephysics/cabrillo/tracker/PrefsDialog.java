@@ -243,31 +243,29 @@ public class PrefsDialog extends JDialog {
   
 //_____________________________ private methods ____________________________
 
-  /**
-   * Finds the tracker jars.
-   */
-  private void findTrackerJars() {
-  	if (Tracker.trackerHome==null || codeBaseDir==null) {
-			trackerVersions = new OSPRuntime.Version[] {new OSPRuntime.Version("0")}; //$NON-NLS-1$
-  		return;
-  	}
-		String jarHome = OSPRuntime.isMac()? 
-				codeBaseDir.getAbsolutePath(): Tracker.trackerHome;
+	/**
+	 * Finds the tracker jars.
+	 */
+	private void findTrackerJars() {
+		trackerVersions = new OSPRuntime.Version[] { new OSPRuntime.Version("0") }; //$NON-NLS-1$
+		if (Tracker.trackerHome == null || codeBaseDir == null) {
+			return;
+		}
+		String jarHome = OSPRuntime.isMac() ? codeBaseDir.getAbsolutePath() : Tracker.trackerHome;
 		File dir = new File(jarHome);
 		String[] fileNames = dir.list(trackerJarFilter);
-		if (fileNames!=null && fileNames.length>0) {
+		if (fileNames != null && fileNames.length > 0) {
 			TreeSet<OSPRuntime.Version> versions = new TreeSet<OSPRuntime.Version>();
-			for (int i=0; i<fileNames.length; i++) {
+			for (int i = 0; i < fileNames.length; i++) {
 				if ("tracker.jar".equals(fileNames[i].toLowerCase())) {//$NON-NLS-1$
 					versions.add(new OSPRuntime.Version("0")); //$NON-NLS-1$
-				}
-				else {					
-					versions.add(new OSPRuntime.Version(fileNames[i].substring(8, fileNames[i].length()-4)));
+				} else {
+					versions.add(new OSPRuntime.Version(fileNames[i].substring(8, fileNames[i].length() - 4)));
 				}
 			}
 			trackerVersions = versions.toArray(new OSPRuntime.Version[versions.size()]);
 		}
-  }
+	}
  
 	/**
 	 * Creates the visible components of this panel.
