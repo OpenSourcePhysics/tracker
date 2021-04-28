@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<classpath>
+<classpath> 
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="lib" path="libraries/xuggle-xuggler-server-all-5.7.0-20210422.000415-2.jar"/>

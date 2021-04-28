@@ -89,7 +89,7 @@ public class DiagnosticsForXuggle extends Diagnostics {
 //	 * -1 none of the above
 		
 
-		if (OSPLog.getLevelValue() <= Level.CONFIG.intValue()) {
+		if (true || OSPLog.getLevelValue() <= Level.CONFIG.intValue()) {
 			OSPLog.config("status code = " + status); //$NON-NLS-1$
 			// log XUGGLE_HOME and PATH environment variables
 			OSPLog.config("XUGGLE_HOME = " + xuggleHome); //$NON-NLS-1$
