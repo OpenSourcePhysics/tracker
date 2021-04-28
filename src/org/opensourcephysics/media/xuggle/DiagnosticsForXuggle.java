@@ -160,7 +160,8 @@ public class DiagnosticsForXuggle extends Diagnostics {
 				path = " " + codeFile.getAbsolutePath(); //$NON-NLS-1$
 				DateFormat format = DateFormat.getDateInstance(DateFormat.SHORT);
 				Date date = new Date(codeFile.lastModified());
-				fileInfo = " (" + format.format(date) + ")"; //$NON-NLS-1$ //$NON-NLS-2$
+				long size = codeFile.length();
+				fileInfo = " (" + format.format(date) + ", " + size + " bytes)"; //$NON-NLS-1$ //$NON-NLS-2$
 			} catch (Exception ex) {
 			}
 
