@@ -302,9 +302,9 @@ public class DiagnosticsForXuggle extends Diagnostics {
 			IContainer.make(); // throws exception if xuggle not available
 			return 0;
 		} catch (Exception e) {
-//			e.printStackTrace();
+			e.printStackTrace();
 		} catch (Error er) {
-//			er.printStackTrace();
+			er.printStackTrace();
 		}
 
 		boolean completeCodeBase = codeBaseJars[0] != null;
