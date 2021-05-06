@@ -423,7 +423,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
 		int w = (int) (0.9 * dim.width);
 		int margin = (int) (0.05 * dim.width);
-		int h = (int) (0.8 * (dim.height - 80));
+		int h = (int) (0.7 * (dim.height - 80));
 		Rectangle rect = new Rectangle(margin, 80, w, h);
 		if (isInit) {
 			Runnable onOrient = new Runnable() {
@@ -437,8 +437,10 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 
 			// startup
 			/**
-			 * @j2sNative window.addEventListener("orientationchange", function() { 
-			 *                 onOrient.run$();
+			 * @j2sNative window.addEventListener(window.onorientationchange ?
+			 *            "orientationchange" : "resize", function() { 
+			 *                console.log("Orientation changed");
+			 *                onOrient.run$();
 			 *             },
 			 *            false);
 			 */
