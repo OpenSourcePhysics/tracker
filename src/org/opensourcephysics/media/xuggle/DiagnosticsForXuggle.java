@@ -9,8 +9,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
-import java.util.logging.Level;
-
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.JLabel;
@@ -45,6 +43,33 @@ public class DiagnosticsForXuggle extends Diagnostics {
 	static File[] codeBaseJars, xuggleHomeJars;
 	static String pathEnvironment, pathValue;
 	static String requester;
+	
+	/**  dependencies of Xuggle 5.70:
+		<dependency>
+		  <groupId>org.slf4j</groupId>
+		  <artifactId>slf4j-api</artifactId>
+		  <version>1.7.30</version>
+		  <scope>compile</scope>
+		</dependency>
+		<dependency>
+		  <groupId>commons-cli</groupId>
+		  <artifactId>commons-cli</artifactId>
+		  <version>1.1</version>
+		  <scope>compile</scope>
+		</dependency>
+		<dependency>
+		  <groupId>ch.qos.logback</groupId>
+		  <artifactId>logback-core</artifactId>
+		  <version>1.0.0</version>
+		  <scope>runtime</scope>
+		</dependency>
+		<dependency>
+		  <groupId>ch.qos.logback</groupId>
+		  <artifactId>logback-classic</artifactId>
+		  <version>1.0.0</version>
+		  <scope>runtime</scope>
+		</dependency>
+	 */
 
 	static { // added by W. Christian
 		if (!OSPRuntime.isJS) {
@@ -89,7 +114,7 @@ public class DiagnosticsForXuggle extends Diagnostics {
 //	 * -1 none of the above
 		
 
-		if (true || OSPLog.getLevelValue() <= Level.CONFIG.intValue()) {
+//		if (true || OSPLog.getLevelValue() <= Level.CONFIG.intValue()) {
 			OSPLog.config("status code = " + status); //$NON-NLS-1$
 			// log XUGGLE_HOME and PATH environment variables
 			OSPLog.config("XUGGLE_HOME = " + xuggleHome); //$NON-NLS-1$
@@ -235,7 +260,7 @@ public class DiagnosticsForXuggle extends Diagnostics {
 			}
 		}
 		}
-		}
+//		}
 
 	}
 
