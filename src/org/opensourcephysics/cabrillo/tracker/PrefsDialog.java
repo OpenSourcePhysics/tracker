@@ -1712,7 +1712,7 @@ public class PrefsDialog extends JDialog {
 		  	    String selectedItem = Tracker.preferredJRE;
 	  	    	if (selectedItem==null || !availableJREPaths.contains(selectedItem)) {
   	        	if (bundledVM!=null) {
-  	        		selectedItem = TrackerRes.getString("PrefsDialog.JREDropdown.BundledJRE"); //$NON-NLS-1$;
+  	        		selectedItem = TrackerRes.getString("PrefsDialog.JREDropdown.BundledJRE") + " " + bundledVM; //$NON-NLS-1$;
   	        	}
   	        	else {
   	        		selectedItem = TrackerRes.getString("PrefsDialog.JREDropdown.LatestJRE"); //$NON-NLS-1$;
@@ -1964,7 +1964,11 @@ public class PrefsDialog extends JDialog {
 			selected = 0;
 			for (int i = 0, count = versionDropdown.getItemCount(); i < count; i++) {
 				String next = versionDropdown.getItemAt(i).toString();
-				if (Tracker.preferredTrackerJar != null && Tracker.preferredTrackerJar.indexOf(next) > -1) {
+				if (Tracker.preferredTrackerJar != null && 
+						Tracker.preferredTrackerJar.indexOf(next) > -1 &&
+						// distinguish tracker-5.9.2.jar from tracker-5.9.20210507
+						(Tracker.preferredTrackerJar.indexOf(".jar") - 
+								Tracker.preferredTrackerJar.indexOf(next)) == next.length()) {
 					selected = i;
 					break;
 				}
