@@ -1,7 +1,7 @@
 /*
  * The tracker.deploy package defines classes for launching and installing Tracker.
  *
- * Copyright (c) 2021 Douglas Brown, Wolfgang Christian, Robert Hanson
+ * Copyright (c) 2021 Douglas Brown, Wolfgang Christian, Robert M. Hanson
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -49,6 +49,7 @@ import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.controls.XMLControlElement;
 import org.opensourcephysics.display.OSPRuntime;
+import org.opensourcephysics.media.core.VideoIO;
 import org.opensourcephysics.tools.JREFinder;
 import org.opensourcephysics.tools.ResourceLoader;
 
@@ -96,8 +97,26 @@ public class TrackerStarter {
 	static Thread launchThread, exitThread;
 	static boolean abortExit;
 	static int exitCounter = 0;
-	public static final String XUGGLE_SERVER_NAME = "xuggle-xuggler-server-all";
-	public static final String XUGGLE_SUPPORT_NAME = "slf4j-api";
+	public static final String[] XUGGLE_JAR_NAMES = new String[] { 
+			"xuggle-xuggler-server-all", 
+			"slf4j-api", 
+			"logback-classic", 
+			"logback-core", 
+			"commons-cli" }; //$NON-NLS-1$
+	public static FileFilter xuggleFileFilter = new FileFilter() {
+
+		@Override
+		public boolean accept(File file) {
+			for (int i = 0; i < XUGGLE_JAR_NAMES.length; i++) {
+				if (file.getName().startsWith(XUGGLE_JAR_NAMES[i]))
+					return true;
+			}
+			return false;
+		}				
+	};
+
+//	public static final String XUGGLE_SERVER_NAME = "xuggle-xuggler-server-all";
+//	public static final String XUGGLE_SUPPORT_NAME = "slf4j-api";
 	
 	static {
 		// identify codeBaseDir
@@ -242,30 +261,26 @@ public class TrackerStarter {
 		try {
 			xuggleHome = findXuggleHome(trackerHome, true);
 			if (xuggleHome != null) {
-				// check for xuggle 3.4 jar and/or xuggle server in xugglehome
-				xuggleJar = new File(trackerHome, "xuggle-xuggler.jar");
-				
-				xuggleServerJar = new File(trackerHome, XUGGLE_SERVER_NAME+".jar");
+				copyXuggleJarsTo(trackerHome, xuggleHome);
+				// check for xuggle jar and/or xuggle server jar in xugglehome
+				xuggleJar = new File(trackerHome, "xuggle-xuggler.jar");				
+				xuggleServerJar = new File(trackerHome, XUGGLE_JAR_NAMES[0]+".jar");
 
-				File[] jars = new File(xuggleHome).listFiles(new FileFilter() {
-
-					@Override
-					public boolean accept(File file) {
-						return file.getName().startsWith(XUGGLE_SERVER_NAME)
-								|| file.getName().startsWith(XUGGLE_SUPPORT_NAME);
-					}				
-				});
-				if (jars.length ==2) {
-					for (int i = 0; i < jars.length; i++) {
-						if (jars[i].getName().startsWith(XUGGLE_SUPPORT_NAME)) {
-							File file = new File(trackerHome, XUGGLE_SUPPORT_NAME+".jar");
-							copyXuggleJarTo(jars[i], file);
-						}
-						else if (copyXuggleJarTo(jars[i], xuggleServerJar)) {
-							logMessage("using xuggle server: " + jars[i].getName()); //$NON-NLS-1$
-						}						
-					}
+				if (xuggleServerJar.exists()) {
+					logMessage("xuggle jar: " + xuggleServerJar); //$NON-NLS-1$					
 				}
+//				File[] jars = new File(xuggleHome).listFiles(xuggleFileFilter);
+//				if (jars.length ==2) {
+//					for (int i = 0; i < jars.length; i++) {
+//						if (jars[i].getName().startsWith(XUGGLE_SUPPORT_NAME)) {
+//							File file = new File(trackerHome, XUGGLE_SUPPORT_NAME+".jar");
+//							copyXuggleJarTo(jars[i], file);
+//						}
+//						else if (copyXuggleJarTo(jars[i], xuggleServerJar)) {
+//							logMessage("using xuggle server: " + jars[i].getName()); //$NON-NLS-1$
+//						}						
+//					}
+//				}
 
 			}
 
@@ -913,20 +928,45 @@ public class TrackerStarter {
 	}
 	
 	/**
-	 * Copies a Xuggle jar to a target file. Does nothing if the directory
-	 * already contains a target of the same size.
+	 * Copies Xuggle jar files to a target directory. Does nothing if the target
+	 * files exist and are the same size.
 	 *
-	 * @param xuggleJar the jar to copy
-	 * @param target the target file
-	 * @return true if the target file exists and is up to date
+	 * @param targetDir the directory
+	 * @param xuggleDir the Xuggle directory containing source jar files
+	 * @return true if jars are copied
 	 */
-	private static boolean copyXuggleJarTo(File xuggleJar, File target) {
-		long fileLength = xuggleJar.length();
-		if (!target.exists() || target.length() != fileLength) {
-			return ResourceLoader.copyAllFiles(xuggleJar, target);
+	public static boolean copyXuggleJarsTo(String targetDir, String xuggleDir) {
+		if (xuggleDir == null || targetDir == null) {
+			return false;
 		}
-		return true; // target exists and is same size 
+		File xuggleJarDir = new File(xuggleDir); //$NON-NLS-1$
+		File[] xuggleJars = xuggleJarDir.listFiles(xuggleFileFilter);
+		boolean copied = false;
+		// if more than one with same (root) xuggleJarName, choose most recent
+		for (int i = 0; i < XUGGLE_JAR_NAMES.length; i++) {
+			File xuggleFile = null;
+			long modified = 0;
+			for (int j = 0; j < xuggleJars.length; j++) {
+				if (!xuggleJars[j].getName().startsWith(XUGGLE_JAR_NAMES[i]))
+					continue;
+				if (xuggleJars[j].lastModified() > modified) {
+					xuggleFile = xuggleJars[j];
+					modified = xuggleJars[i].lastModified();
+				}
+			}
+			if (xuggleFile != null) {
+				File target = new File(targetDir, TrackerStarter.XUGGLE_JAR_NAMES[i] + ".jar");
+				// copy jar
+				if (!target.exists() || target.lastModified() != modified) {
+					copied = VideoIO.copyFile(xuggleFile, target) || copied;
+				}				
+			}
+			
+		}
+		return copied;
 	}
+
+
 
 	/**
 	 * Launches the specified tracker jar with a list of arguments
