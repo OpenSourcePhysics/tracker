@@ -9,7 +9,7 @@
 	<property name="tracker-assets" value="${trackerdir}/resources/tracker-assets.zip" />
 	<property name="temp" value="temp-build" />
 	<property name="output" value="${trackerdir}/distribution" />
-	<property name="author" value="D Brown, R Hanson, W Christian" />
+	<property name="author" value="D Brown, W Christian, R M Hanson" />
 	<path id="xuggle.jar" location="${trackerdir}/libraries/xuggle-xuggler.jar"/>
 
 	<tstamp>

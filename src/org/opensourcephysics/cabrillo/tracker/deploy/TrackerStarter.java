@@ -262,12 +262,12 @@ public class TrackerStarter {
 			xuggleHome = findXuggleHome(trackerHome, true);
 			if (xuggleHome != null) {
 				copyXuggleJarsTo(trackerHome, xuggleHome);
-				// check for xuggle jar and/or xuggle server jar in xugglehome
+				// check for xuggle-xuggler.jar (ver 3.4) and xuggle-xuggler-server-all.jar in xugglehome
 				xuggleJar = new File(trackerHome, "xuggle-xuggler.jar");				
 				xuggleServerJar = new File(trackerHome, XUGGLE_JAR_NAMES[0]+".jar");
 
 				if (xuggleServerJar.exists()) {
-					logMessage("xuggle jar: " + xuggleServerJar); //$NON-NLS-1$					
+					logMessage("xuggle server: " + xuggleServerJar); //$NON-NLS-1$					
 				}
 //				File[] jars = new File(xuggleHome).listFiles(xuggleFileFilter);
 //				if (jars.length ==2) {
@@ -1043,13 +1043,13 @@ public class TrackerStarter {
 			env.put("XUGGLE_HOME", xuggleHome); //$NON-NLS-1$ 
 			logMessage("setting XUGGLE_HOME = " + xuggleHome); //$NON-NLS-1$
 			
-			// set XUGGLE_SERVER if exists
-			if (xuggleServerJar.exists()) {
-				env.put("XUGGLE_SERVER", "true"); //$NON-NLS-1$ 
-				logMessage("setting XUGGLE_SERVER = true"); //$NON-NLS-1$
-			} 
+//			// set XUGGLE_SERVER if exists
+//			if (xuggleServerJar.exists()) {
+//				env.put("XUGGLE_SERVER", "true"); //$NON-NLS-1$ 
+//				logMessage("setting XUGGLE_SERVER = true"); //$NON-NLS-1$
+//			} 
 			
-//			// set path, etc, if xuggle 3.4 is present?
+			// set path, etc, only if xuggle-xuggler.jar (ver 3.4) is present?
 //			if (xuggleJar.exists() && new File(xuggleHome).exists()) {
 //
 //				String pathEnvironment = OSPRuntime.isWindows()? "Path":  //$NON-NLS-1$
@@ -1068,27 +1068,25 @@ public class TrackerStarter {
 //				logMessage("added to "+pathEnvironment+": " + xuggleHome); //$NON-NLS-1$ //$NON-NLS-2$
 //			}
 
-//			String subdir = OSPRuntime.isWindows()? "bin": "lib"; //$NON-NLS-1$ //$NON-NLS-2$
-//			if (xuggleJar.exists() && new File(xuggleHome, subdir).exists()) {
-//	
-//				String pathEnvironment = OSPRuntime.isWindows()? "Path":  //$NON-NLS-1$
-//					OSPRuntime.isMac()? "DYLD_LIBRARY_PATH": "LD_LIBRARY_PATH"; //$NON-NLS-1$ //$NON-NLS-2$
-//				
-//				String xugglePath = xuggleHome+File.separator+subdir;
-//				if (new File(xugglePath).exists()) {
-//					// get current PATH
-//					String pathValue = env.get(pathEnvironment);
-//					if (pathValue==null) pathValue = ""; //$NON-NLS-1$
-//					
-//					// add xuggle path at beginning of current PATH
-//					if (!pathValue.startsWith(xugglePath)) {
-//						pathValue = xugglePath+File.pathSeparator+pathValue;
-//					}
-//					
-//					env.put(pathEnvironment, pathValue);
-//					logMessage("added to "+pathEnvironment+": " + xugglePath); //$NON-NLS-1$ //$NON-NLS-2$
-//				}			
-//			}
+			String subdir = OSPRuntime.isWindows()? "bin": "lib"; //$NON-NLS-1$ //$NON-NLS-2$
+			if (xuggleJar.exists() && new File(xuggleHome, subdir).exists()) {
+	
+				String pathEnvironment = OSPRuntime.isWindows()? "Path":  //$NON-NLS-1$
+					OSPRuntime.isMac()? "DYLD_LIBRARY_PATH": "LD_LIBRARY_PATH"; //$NON-NLS-1$ //$NON-NLS-2$
+				
+				String xugglePath = xuggleHome+File.separator+subdir;
+				// get current PATH
+				String pathValue = env.get(pathEnvironment);
+				if (pathValue==null) pathValue = ""; //$NON-NLS-1$
+				
+				// add xuggle path at beginning of current PATH
+				if (!pathValue.startsWith(xugglePath)) {
+					pathValue = xugglePath+File.pathSeparator+pathValue;
+				}
+				
+				env.put(pathEnvironment, pathValue);
+				logMessage("adding to "+pathEnvironment+": " + xugglePath); //$NON-NLS-1$ //$NON-NLS-2$		
+			}
 		}
 		
 //		if (ffmpegHome!=null && new File(ffmpegHome).exists()) {
