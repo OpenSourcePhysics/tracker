@@ -1,9 +1,0 @@
-TrackerStarter version 5.1.3  11:03:22  Apr 18 2020
-
- - relaunch initiated by Tracker
- - TrackerStarter running in jre: C:\Program Files\Java\jre1.8.0_191
- - launching with main arguments: null
- - TrackerStarter jar: C:\Users\hansonr\git\tracker\bin
- - environment variable TRACKER_HOME: null
- - using trackerhome: null
- - writing code base start log C:\Users\hansonr\git\tracker\tracker_start.log
