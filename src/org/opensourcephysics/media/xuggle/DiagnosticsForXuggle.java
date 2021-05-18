@@ -353,9 +353,9 @@ public class DiagnosticsForXuggle extends Diagnostics {
 		// get xuggle home jars
 		xuggleHomeJars = new File(xuggleHome).listFiles(TrackerStarter.xuggleFileFilter);
 		boolean completeHome = xuggleHomeJars.length > 0 && xuggleHomeJars[0] != null;
-		for (int i = 1; i < xuggleHomeJars.length; i++) {
-			completeHome = completeHome && xuggleHomeJars[i] != null;
-		}
+//		for (int i = 1; i < xuggleHomeJars.length; i++) {
+//			completeHome = completeHome && xuggleHomeJars[i] != null;
+//		}
 
 		if (!completeHome)
 			return 3; // no xuggle jars in XUGGLE_HOME

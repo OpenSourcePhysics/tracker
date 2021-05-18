@@ -1689,7 +1689,7 @@ public class PrefsDialog extends JDialog {
 		  			if (OSPRuntime.isMac()) {
 		  				path = new File(Tracker.trackerHome).getParent()+"/PlugIns/Java.runtime"; //$NON-NLS-1$
 		  			}
-		  			String bundledVM = TrackerStarter.findBundledVM();
+		  			String bundledVM = TrackerStarter.findBundledVMs()[0];
 		  			File defaultVM = jreFinder.getDefaultJRE(vmBitness, path, true);
 		  	    for (File next: availableJREs) {
 		  	    	String jrePath = next.getPath();

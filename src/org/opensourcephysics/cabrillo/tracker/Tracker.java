@@ -1956,10 +1956,13 @@ public class Tracker {
 			long currentMemory = memory.getHeapMemoryUsage().getMax() / (1024 * 1024);
 
 			if (!isRelaunch) {
-				// should never run in 32-bit VM
-				if (JREFinder.getFinder().is32BitVM(preferredJRE))
+				// should not run in 32-bit VM if using xuggle server
+				String classpath = OSPRuntime.getManifestAttribute(OSPRuntime.getLaunchJar(), "Class-Path");
+				boolean requestXuggleServer = classpath.contains("-server-");
+				if (requestXuggleServer && JREFinder.getFinder().is32BitVM(preferredJRE))
 					preferredJRE = null;
-				boolean needsJavaVM = OSPRuntime.getVMBitness() == 32;
+				boolean needs64BitVM = requestXuggleServer || !OSPRuntime.isWindows();
+				boolean needsJavaVM = OSPRuntime.getVMBitness() == (needs64BitVM? 32: 64);
 				if (!needsJavaVM) {
 					String javaCommand = System.getProperty("java.home"); //$NON-NLS-1$
 					javaCommand = XML.forwardSlash(javaCommand) + "/bin/java"; //$NON-NLS-1$

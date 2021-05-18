@@ -34,17 +34,20 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
+import java.net.JarURLConnection;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.jar.JarFile;
 import java.nio.charset.Charset;
 
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 
+import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.controls.XMLControlElement;
@@ -87,7 +90,8 @@ public class TrackerStarter {
 	static String[] executables;
 	static String logText = ""; //$NON-NLS-1$
 	static String javaCommand = "java"; //$NON-NLS-1$
-	static String preferredVM, bundledVM;
+	static String preferredVM;
+	static String[] bundledVMs;
 	static String snapshot = "-snapshot"; //$NON-NLS-1$
 	static boolean debug = false;
 	static boolean log = true;
@@ -220,7 +224,6 @@ public class TrackerStarter {
 		if (launching) return;
 		launching = true;
 		logMessage("TrackerStarter running in jre: " + javaHome); //$NON-NLS-1$
-		
 		launchThread = null;
 		
 		// look for new version tracker jar as first argument
@@ -264,10 +267,13 @@ public class TrackerStarter {
 				copyXuggleJarsTo(trackerHome, xuggleHome);
 				// check for xuggle-xuggler.jar (ver 3.4) and xuggle-xuggler-server-all.jar in xugglehome
 				xuggleJar = new File(trackerHome, "xuggle-xuggler.jar");				
+				if (xuggleJar.exists()) {
+					logMessage("xuggle 3.4 found: " + xuggleJar); //$NON-NLS-1$					
+				}
 				xuggleServerJar = new File(trackerHome, XUGGLE_JAR_NAMES[0]+".jar");
 
 				if (xuggleServerJar.exists()) {
-					logMessage("xuggle server: " + xuggleServerJar); //$NON-NLS-1$					
+					logMessage("xuggle server found: " + xuggleServerJar); //$NON-NLS-1$					
 				}
 //				File[] jars = new File(xuggleHome).listFiles(xuggleFileFilter);
 //				if (jars.length ==2) {
@@ -563,30 +569,31 @@ public class TrackerStarter {
 
 	
 	/**
-	 * Finds the bundled Java vm, if any.
+	 * Finds the bundled Java VMs. Always returns array but some strings may be null.
 	 */
-	public static String findBundledVM() {
-		if (bundledVM!=null) return bundledVM;
+	public static String[] findBundledVMs() {
+		if (bundledVMs!=null) return bundledVMs;
 		try {
 			findTrackerHome(false);
 		} catch (Exception e) {}
 		
-		File jre = null;
 		if (OSPRuntime.isWindows()) {
-			jre = JREFinder.getFinder().getDefaultJRE(64, trackerHome, false);
+			File jre = JREFinder.getFinder().getDefaultJRE(64, trackerHome, false);
+			String jrepath = jre == null? null: jre.getPath();
+			File jre32 = JREFinder.getFinder().getDefaultJRE(32, trackerHome, false);
+			String jre32path = jre32 == null? null: jre32.getPath();
+			return new String[] {jrepath, jre32path};
 		}
 		else if (OSPRuntime.isMac()) {
 			File home = new File(trackerHome);
 			String path = home.getParent()+"/PlugIns/Java.runtime"; //$NON-NLS-1$
-			jre = JREFinder.getFinder().getDefaultJRE(64, path, false);
+			File jre = JREFinder.getFinder().getDefaultJRE(64, path, false);
+			return new String[] {jre.getPath()};
 		}
 		else {
-			jre = JREFinder.getFinder().getDefaultJRE(OSPRuntime.getVMBitness(), trackerHome, false);
+			File jre = JREFinder.getFinder().getDefaultJRE(64, trackerHome, false);
+			return new String[] {jre.getPath()};
 		}
-		if (jre != null && jre.exists()) {
-			return jre.getPath();
-		}
-		return null;
 	}
 
 
@@ -734,17 +741,36 @@ public class TrackerStarter {
 				logMessage("no preferred Tracker version, using tracker.jar (presumed "+versionStr+")"); //$NON-NLS-1$				
 			}
 			
+			// determine if preferred tracker will use Xuggle 3.4 or Xuggle server
+			boolean requestXuggleServer = true;
+			String jarName = useDefaultTrackerJar? "tracker.jar": jar;
+			String jarHome = OSPRuntime.isMac() ? codeBaseDir.getAbsolutePath() : trackerHome;
+			String jarPath = XML.forwardSlash(new File(jarHome, jarName).getAbsolutePath());			
+			try {
+				JarFile jarfile = new JarFile(jarPath);
+				String classpath = OSPRuntime.getManifestAttribute(jarfile, "Class-Path");
+				requestXuggleServer = classpath.contains("-server-");
+				logMessage("preferred xuggle version: "+ (requestXuggleServer? "5.7 server": "3.4")); //$NON-NLS-1$				
+			} catch (Exception ex) {
+				// ex.printStackTrace();
+				OSPLog.warning(ex.getMessage());
+			}
+			
 			// preferred java vm
 			OSPRuntime.Version ver = new OSPRuntime.Version(versionStr);
-			boolean usesXuggleServer = ver.compareTo(new OSPRuntime.Version("5.9.2")) >= 0;
 			preferredVM = null;
 			if (prefsXMLControl.getPropertyNamesRaw().contains("java_vm")) { //$NON-NLS-1$
 				loaded = true;
 				preferredVM = prefsXMLControl.getString("java_vm"); //$NON-NLS-1$
 			}
-			// if using xuggle server and preferredVM is 32-bit, set preferredVM to null
-			if (getXuggleServerJar() != null && usesXuggleServer &&
+			// if requesting xuggle server and preferredVM is 32-bit, set preferredVM to null
+			if (requestXuggleServer && xuggleServerJar != null &&
 					preferredVM != null && JREFinder.getFinder().is32BitVM(preferredVM)) {
+				preferredVM = null;
+			}
+			// if NOT requesting xuggle server and preferredVM is 64-bit, set preferredVM to null
+			if (!requestXuggleServer && xuggleJar != null &&
+					preferredVM != null && !JREFinder.getFinder().is32BitVM(preferredVM)) {
 				preferredVM = null;
 			}
 			if (preferredVM!=null) {
@@ -760,27 +786,48 @@ public class TrackerStarter {
 			}
 			if (preferredVM==null) {
 				// look for bundled jre
-				bundledVM = findBundledVM();
-				// if xuggle server is present and bundledVM is 32-bit, use default 64-bit
-				if (getXuggleServerJar() != null && usesXuggleServer &&
-						(bundledVM == null || JREFinder.getFinder().is32BitVM(bundledVM))) {
-					File vm = JREFinder.getFinder().getDefaultJRE(64, trackerHome, true);
-					if (vm != null) {						
-						File javaFile = OSPRuntime.getJavaFile(vm.getPath());
+				bundledVMs = findBundledVMs();
+				// xuggle server is requested and available
+				if (requestXuggleServer && xuggleServerJar != null) {
+					if (bundledVMs[0] == null) {
+						// if no bundled 64-bit use default 64-bit
+						File vm = JREFinder.getFinder().getDefaultJRE(64, trackerHome, true);
+						if (vm != null) {						
+							File javaFile = OSPRuntime.getJavaFile(vm.getPath());
+							if (javaFile!=null) {
+								logMessage("no preferred java VM, using default 64-bit VM: "+vm.getPath()); //$NON-NLS-1$
+								javaCommand = XML.stripExtension(javaFile.getPath());
+							}
+						}
+					}
+					else {
+						File javaFile = OSPRuntime.getJavaFile(bundledVMs[0]);
 						if (javaFile!=null) {
-							logMessage("no preferred java VM, using default 64-bit VM: "+vm.getPath()); //$NON-NLS-1$
+							logMessage("no preferred java VM, using bundled: "+bundledVMs[0]); //$NON-NLS-1$
 							javaCommand = XML.stripExtension(javaFile.getPath());
 						}
 					}
 				}
-				else if (bundledVM != null) {
-					File javaFile = OSPRuntime.getJavaFile(bundledVM);
-					if (javaFile!=null) {
-//						preferredVM = bundledVM;
-						logMessage("no preferred java VM, using bundled: "+bundledVM); //$NON-NLS-1$
-						javaCommand = XML.stripExtension(javaFile.getPath());
+				// xuggle 3.4 is requested and available
+				else if (!requestXuggleServer && xuggleJar != null) {
+					if (bundledVMs.length < 2 || bundledVMs[1] == null) {
+						File vm = JREFinder.getFinder().getDefaultJRE(32, trackerHome, true);
+						if (vm != null) {						
+							File javaFile = OSPRuntime.getJavaFile(vm.getPath());
+							if (javaFile!=null) {
+								logMessage("no preferred java VM, using default 32-bit VM: "+vm.getPath()); //$NON-NLS-1$
+								javaCommand = XML.stripExtension(javaFile.getPath());
+							}
+						}
 					}
-				} 
+					else {
+						File javaFile = OSPRuntime.getJavaFile(bundledVMs[1]);
+						if (javaFile!=null) {
+							logMessage("no preferred java VM, using bundled: "+bundledVMs[1]); //$NON-NLS-1$
+							javaCommand = XML.stripExtension(javaFile.getPath());
+						}						
+					}
+				}
 				else {
 					logMessage("no preferred or bundled java VM, using default"); //$NON-NLS-1$
 				}
