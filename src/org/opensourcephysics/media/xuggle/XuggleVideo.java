@@ -684,7 +684,8 @@ public class XuggleVideo extends VideoAdapter implements SmoothPlayable {
 			videoDecoder = container.getStream(streamIndex).getStreamCoder();
 			timebase = container.getStream(streamIndex).getTimeBase().copy();
 		}
-		if (videoDecoder.open(null, null) < 0) {
+//		if (videoDecoder.open(null, null) < 0) {
+		if (videoDecoder.open() < 0) {
 			return "unable to open video decoder in " + path;
 		}
 		newPicture();
