@@ -684,6 +684,12 @@ public class PrefsDialog extends JDialog {
 					} else if (jar != null && !jar.equals(Tracker.preferredTrackerJar)) {
 						Tracker.preferredTrackerJar = jar;
 					}
+					// determine if preferred tracker will use Xuggle 3.4 or Xuggle server
+					String jarName = jar == null? "tracker.jar": jar;
+					String jarHome = OSPRuntime.isMac() ? codeBaseDir.getAbsolutePath() : Tracker.trackerHome;
+					String jarPath = XML.forwardSlash(new File(jarHome, jarName).getPath());			
+					int bitness = TrackerStarter.usesXuggleServer(jarPath)? 64: OSPRuntime.isWindows()? 32: 64;
+					refreshJREDropdown(bitness);
 				}
 			});
 			versionSubPanel.add(versionDropdown);
@@ -1667,6 +1673,9 @@ public class PrefsDialog extends JDialog {
   }
   
   private void refreshJREDropdown(final int vmBitness) {
+  	if (String.valueOf(vmBitness).equals(jreDropdown.getName()))
+  		return;
+		jreDropdown.setName(String.valueOf(vmBitness));
     // refresh JRE dropdown in background thread
   	Runnable runner = new Runnable() {
   		@Override
@@ -1689,7 +1698,9 @@ public class PrefsDialog extends JDialog {
 		  			if (OSPRuntime.isMac()) {
 		  				path = new File(Tracker.trackerHome).getParent()+"/PlugIns/Java.runtime"; //$NON-NLS-1$
 		  			}
-		  			String bundledVM = TrackerStarter.findBundledVMs()[0];
+		  			String[] bundledVMs = TrackerStarter.findBundledVMs();
+		  			String bundledVM = vmBitness == 32 && OSPRuntime.isWindows()? bundledVMs[1]: bundledVMs[0];
+
 		  			File defaultVM = jreFinder.getDefaultJRE(vmBitness, path, true);
 		  	    for (File next: availableJREs) {
 		  	    	String jrePath = next.getPath();

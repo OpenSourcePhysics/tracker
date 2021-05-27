@@ -242,6 +242,7 @@ public class Tracker {
 			"config.saveWithData", "data.builder", "data.tool" }; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 	static Set<String> defaultConfig;
 	static boolean xuggleCopied;
+	static boolean usesXuggleServer;
 	static String[] mainArgs;
 	static JFrame splash;
 	public static Icon trackerLogoIcon;
@@ -1935,6 +1936,8 @@ public class Tracker {
 					java.util.jar.Attributes att = jarfile.getManifest().getMainAttributes();
 					Object mainclass = att.getValue("Main-Class"); //$NON-NLS-1$
 					isTrackerJar = mainclass.toString().endsWith("Tracker"); //$NON-NLS-1$
+					Object classpath = att.getValue("Class-Path");
+					usesXuggleServer = classpath.toString().contains("-server-");
 				} catch (Exception ex) {
 				}
 
@@ -1957,11 +1960,9 @@ public class Tracker {
 
 			if (!isRelaunch) {
 				// should not run in 32-bit VM if using xuggle server
-				String classpath = OSPRuntime.getManifestAttribute(OSPRuntime.getLaunchJar(), "Class-Path");
-				boolean requestXuggleServer = classpath.contains("-server-");
-				if (requestXuggleServer && JREFinder.getFinder().is32BitVM(preferredJRE))
+				if (usesXuggleServer && JREFinder.getFinder().is32BitVM(preferredJRE))
 					preferredJRE = null;
-				boolean needs64BitVM = requestXuggleServer || !OSPRuntime.isWindows();
+				boolean needs64BitVM = usesXuggleServer || !OSPRuntime.isWindows();
 				boolean needsJavaVM = OSPRuntime.getVMBitness() == (needs64BitVM? 32: 64);
 				if (!needsJavaVM) {
 					String javaCommand = System.getProperty("java.home"); //$NON-NLS-1$
@@ -1971,11 +1972,11 @@ public class Tracker {
 						if (JREFinder.getFinder().is32BitVM(javaPath))
 							javaPath = null;
 						else {
-						File javaFile = OSPRuntime.getJavaFile(javaPath);
-						if (javaFile != null) {
-							javaPath = XML.stripExtension(XML.forwardSlash(javaFile.getPath()));
-						} else
-							javaPath = null;
+							File javaFile = OSPRuntime.getJavaFile(javaPath);
+							if (javaFile != null) {
+								javaPath = XML.stripExtension(XML.forwardSlash(javaFile.getPath()));
+							} else
+								javaPath = null;
 						}
 					}
 					needsJavaVM = javaPath != null && !javaCommand.equals(javaPath);

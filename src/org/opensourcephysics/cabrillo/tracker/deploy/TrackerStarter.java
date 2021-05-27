@@ -34,7 +34,6 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
-import java.net.JarURLConnection;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -47,7 +46,6 @@ import java.nio.charset.Charset;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 
-import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.controls.XMLControlElement;
@@ -75,6 +73,8 @@ public class TrackerStarter {
 	public static final String LOG_DIAGNOSTICS_NAME = "tracker_start_diagnostics.log"; //$NON-NLS-1$
   public static final int DEFAULT_MEMORY_SIZE = 256;
 	public static final String PREFS_FILE_NAME = "tracker.prefs"; //$NON-NLS-1$
+	public static final int INDEX_XUGGLE_57 = 0;
+	public static final int INDEX_XUGGLE_34 = 1;
 	  
 	static String newline = "\n"; //$NON-NLS-1$
 	static String encoding = "UTF-8"; //$NON-NLS-1$
@@ -101,26 +101,33 @@ public class TrackerStarter {
 	static Thread launchThread, exitThread;
 	static boolean abortExit;
 	static int exitCounter = 0;
-	public static final String[] XUGGLE_JAR_NAMES = new String[] { 
-			"xuggle-xuggler-server-all", 
-			"slf4j-api", 
-			"logback-classic", 
-			"logback-core", 
-			"commons-cli" }; //$NON-NLS-1$
+	public static int xuggleVersionIndex;
+	public static final String[][] XUGGLE_JAR_NAMES = new String[][] {
+		new String[] { // for xuggle 5.7
+				"xuggle-xuggler-server-all", 
+				"slf4j-api" }, 
+//				"slf4j-api", 
+//				"logback-classic", 
+//				"logback-core", 
+//				"commons-cli" },
+		new String[] { // for xuggle 3.4
+				"xuggle-xuggler", 
+				"slf4j-api", 
+				"logback-classic", 
+				"logback-core"}};
+	
 	public static FileFilter xuggleFileFilter = new FileFilter() {
-
 		@Override
 		public boolean accept(File file) {
-			for (int i = 0; i < XUGGLE_JAR_NAMES.length; i++) {
-				if (file.getName().startsWith(XUGGLE_JAR_NAMES[i]))
+			String[] xuggleNames = XUGGLE_JAR_NAMES[xuggleVersionIndex];
+			for (int i = 0; i < xuggleNames.length; i++) {
+				if (file.getName().startsWith(xuggleNames[i]))
 					return true;
 			}
 			return false;
 		}				
 	};
-
-//	public static final String XUGGLE_SERVER_NAME = "xuggle-xuggler-server-all";
-//	public static final String XUGGLE_SUPPORT_NAME = "slf4j-api";
+	static HashMap<String, Boolean> usesXuggleServer = new HashMap<String, Boolean>();
 	
 	static {
 		// identify codeBaseDir
@@ -264,29 +271,15 @@ public class TrackerStarter {
 		try {
 			xuggleHome = findXuggleHome(trackerHome, true);
 			if (xuggleHome != null) {
-				copyXuggleJarsTo(trackerHome, xuggleHome);
 				// check for xuggle-xuggler.jar (ver 3.4) and xuggle-xuggler-server-all.jar in xugglehome
-				xuggleJar = new File(trackerHome, "xuggle-xuggler.jar");				
+				xuggleJar = new File(trackerHome, XUGGLE_JAR_NAMES[1][0]+".jar");				
 				if (xuggleJar.exists()) {
 					logMessage("xuggle 3.4 found: " + xuggleJar); //$NON-NLS-1$					
 				}
-				xuggleServerJar = new File(trackerHome, XUGGLE_JAR_NAMES[0]+".jar");
-
+				xuggleServerJar = new File(trackerHome, XUGGLE_JAR_NAMES[0][0]+".jar");
 				if (xuggleServerJar.exists()) {
-					logMessage("xuggle server found: " + xuggleServerJar); //$NON-NLS-1$					
+					logMessage("xuggle 5.7 server found: " + xuggleServerJar); //$NON-NLS-1$					
 				}
-//				File[] jars = new File(xuggleHome).listFiles(xuggleFileFilter);
-//				if (jars.length ==2) {
-//					for (int i = 0; i < jars.length; i++) {
-//						if (jars[i].getName().startsWith(XUGGLE_SUPPORT_NAME)) {
-//							File file = new File(trackerHome, XUGGLE_SUPPORT_NAME+".jar");
-//							copyXuggleJarTo(jars[i], file);
-//						}
-//						else if (copyXuggleJarTo(jars[i], xuggleServerJar)) {
-//							logMessage("using xuggle server: " + jars[i].getName()); //$NON-NLS-1$
-//						}						
-//					}
-//				}
 
 			}
 
@@ -310,6 +303,20 @@ public class TrackerStarter {
 			exitGracefully(null);
 		}
 
+		// copy appropriate xuggle jars
+		boolean usesServer = TrackerStarter.usesXuggleServer(jarPath);
+		xuggleVersionIndex = usesServer? INDEX_XUGGLE_57: INDEX_XUGGLE_34;
+		String xuggleVers = usesServer? "5.7": "3.4";
+		String source = XML.forwardSlash(xuggleHome); //$NON-NLS-1$
+		if (xuggleVersionIndex == INDEX_XUGGLE_34)
+			source += "/share/java/jars";
+		if (copyXuggleJarsTo(trackerHome, source)) {
+			logMessage("xuggle "+xuggleVers+" files up to date "); //$NON-NLS-1$			
+		}
+		else {
+			logMessage("xuggle "+xuggleVers+" files missing or not up to date "); //$NON-NLS-1$			
+		}
+		
 		// launch Tracker
 		boolean launched = true;
 		try {
@@ -742,22 +749,14 @@ public class TrackerStarter {
 			}
 			
 			// determine if preferred tracker will use Xuggle 3.4 or Xuggle server
-			boolean requestXuggleServer = true;
 			String jarName = useDefaultTrackerJar? "tracker.jar": jar;
 			String jarHome = OSPRuntime.isMac() ? codeBaseDir.getAbsolutePath() : trackerHome;
 			String jarPath = XML.forwardSlash(new File(jarHome, jarName).getAbsolutePath());			
-			try {
-				JarFile jarfile = new JarFile(jarPath);
-				String classpath = OSPRuntime.getManifestAttribute(jarfile, "Class-Path");
-				requestXuggleServer = classpath.contains("-server-");
-				logMessage("preferred xuggle version: "+ (requestXuggleServer? "5.7 server": "3.4")); //$NON-NLS-1$				
-			} catch (Exception ex) {
-				// ex.printStackTrace();
-				OSPLog.warning(ex.getMessage());
-			}
+			boolean requestXuggleServer = usesXuggleServer(jarPath);
+			logMessage("preferred xuggle version: "+ (requestXuggleServer? "5.7 server": "3.4")); //$NON-NLS-1$				
 			
 			// preferred java vm
-			OSPRuntime.Version ver = new OSPRuntime.Version(versionStr);
+//			OSPRuntime.Version ver = new OSPRuntime.Version(versionStr);
 			preferredVM = null;
 			if (prefsXMLControl.getPropertyNamesRaw().contains("java_vm")) { //$NON-NLS-1$
 				loaded = true;
@@ -766,11 +765,13 @@ public class TrackerStarter {
 			// if requesting xuggle server and preferredVM is 32-bit, set preferredVM to null
 			if (requestXuggleServer && xuggleServerJar != null &&
 					preferredVM != null && JREFinder.getFinder().is32BitVM(preferredVM)) {
+				logMessage("preferred VM ignored since xuggle 5.7 requires a 64 bit java VM"); //$NON-NLS-1$
 				preferredVM = null;
 			}
-			// if NOT requesting xuggle server and preferredVM is 64-bit, set preferredVM to null
-			if (!requestXuggleServer && xuggleJar != null &&
+			// if Windows, using Xuggle 3.4 and preferredVM is 64-bit, set preferredVM to null
+			if (OSPRuntime.isWindows() && !requestXuggleServer && xuggleJar != null &&
 					preferredVM != null && !JREFinder.getFinder().is32BitVM(preferredVM)) {
+				logMessage("preferred VM ignored since xuggle 3.4 requires a 32 bit java VM"); //$NON-NLS-1$
 				preferredVM = null;
 			}
 			if (preferredVM!=null) {
@@ -785,9 +786,10 @@ public class TrackerStarter {
 				}
 			}
 			if (preferredVM==null) {
-				// look for bundled jre
+				logMessage("no preferred java VM"); //$NON-NLS-1$
+				// look for bundled VMs
 				bundledVMs = findBundledVMs();
-				// xuggle server is requested and available
+				// is xuggle server requested and available?
 				if (requestXuggleServer && xuggleServerJar != null) {
 					if (bundledVMs[0] == null) {
 						// if no bundled 64-bit use default 64-bit
@@ -795,7 +797,7 @@ public class TrackerStarter {
 						if (vm != null) {						
 							File javaFile = OSPRuntime.getJavaFile(vm.getPath());
 							if (javaFile!=null) {
-								logMessage("no preferred java VM, using default 64-bit VM: "+vm.getPath()); //$NON-NLS-1$
+								logMessage("no bundled VM, using default VM: "+vm.getPath()); //$NON-NLS-1$
 								javaCommand = XML.stripExtension(javaFile.getPath());
 							}
 						}
@@ -803,33 +805,35 @@ public class TrackerStarter {
 					else {
 						File javaFile = OSPRuntime.getJavaFile(bundledVMs[0]);
 						if (javaFile!=null) {
-							logMessage("no preferred java VM, using bundled: "+bundledVMs[0]); //$NON-NLS-1$
+							logMessage("using bundled VM: "+bundledVMs[0]); //$NON-NLS-1$
 							javaCommand = XML.stripExtension(javaFile.getPath());
 						}
 					}
 				}
-				// xuggle 3.4 is requested and available
+				// is xuggle 3.4 requested and available?
 				else if (!requestXuggleServer && xuggleJar != null) {
-					if (bundledVMs.length < 2 || bundledVMs[1] == null) {
-						File vm = JREFinder.getFinder().getDefaultJRE(32, trackerHome, true);
+					int index = OSPRuntime.isWindows()? 1: 0;
+					int bitness = OSPRuntime.isWindows()? 32: 64;
+					if (bundledVMs.length <= index || bundledVMs[index] == null) {
+						File vm = JREFinder.getFinder().getDefaultJRE(bitness, trackerHome, true);
 						if (vm != null) {						
 							File javaFile = OSPRuntime.getJavaFile(vm.getPath());
 							if (javaFile!=null) {
-								logMessage("no preferred java VM, using default 32-bit VM: "+vm.getPath()); //$NON-NLS-1$
+								logMessage("no bundled VM, using default VM: "+vm.getPath()); //$NON-NLS-1$
 								javaCommand = XML.stripExtension(javaFile.getPath());
 							}
 						}
 					}
 					else {
-						File javaFile = OSPRuntime.getJavaFile(bundledVMs[1]);
+						File javaFile = OSPRuntime.getJavaFile(bundledVMs[index]);
 						if (javaFile!=null) {
-							logMessage("no preferred java VM, using bundled: "+bundledVMs[1]); //$NON-NLS-1$
+							logMessage("using bundled VM: "+bundledVMs[index]); //$NON-NLS-1$
 							javaCommand = XML.stripExtension(javaFile.getPath());
 						}						
 					}
 				}
 				else {
-					logMessage("no preferred or bundled java VM, using default"); //$NON-NLS-1$
+					logMessage("no bundled java VM, using current VM"); //$NON-NLS-1$
 				}
 			}
 
@@ -890,6 +894,19 @@ public class TrackerStarter {
 				logMessage("no starter preferences found in " + prefsPath); //$NON-NLS-1$      		
 		}
 	}
+	
+	/**
+	 * Gets the xuggle jar names for a specified jarpath.
+	 * 
+	 * @return an array of jar names
+	 */
+	public static String[] getXuggleJarNames(String jarpath) {		
+		xuggleVersionIndex = jarpath == null? INDEX_XUGGLE_57: 
+			usesXuggleServer(jarpath)? INDEX_XUGGLE_57: INDEX_XUGGLE_34;
+		return XUGGLE_JAR_NAMES[xuggleVersionIndex];
+	}
+
+
 
 	/**
 	 * Gets the preferred tracker jar path.
@@ -975,8 +992,8 @@ public class TrackerStarter {
 	}
 	
 	/**
-	 * Copies Xuggle jar files to a target directory. Does nothing if the target
-	 * files exist and are the same size.
+	 * Copies Xuggle jar files to a target directory. Does nothing and returns true 
+	 * if the target files exist and are the same size.
 	 *
 	 * @param targetDir the directory
 	 * @param xuggleDir the Xuggle directory containing source jar files
@@ -987,30 +1004,32 @@ public class TrackerStarter {
 			return false;
 		}
 		File xuggleJarDir = new File(xuggleDir); //$NON-NLS-1$
+		xuggleVersionIndex = xuggleDir.contains("share/java/jars")? INDEX_XUGGLE_34: INDEX_XUGGLE_57;
 		File[] xuggleJars = xuggleJarDir.listFiles(xuggleFileFilter);
-		boolean copied = false;
+		boolean upToDate = true;
+		String[] xuggleNames = XUGGLE_JAR_NAMES[xuggleVersionIndex];
 		// if more than one with same (root) xuggleJarName, choose most recent
-		for (int i = 0; i < XUGGLE_JAR_NAMES.length; i++) {
+		for (int i = 0; i < xuggleNames.length; i++) {
 			File xuggleFile = null;
 			long modified = 0;
 			for (int j = 0; j < xuggleJars.length; j++) {
-				if (!xuggleJars[j].getName().startsWith(XUGGLE_JAR_NAMES[i]))
+				if (!xuggleJars[j].getName().startsWith(xuggleNames[i]))
 					continue;
 				if (xuggleJars[j].lastModified() > modified) {
 					xuggleFile = xuggleJars[j];
-					modified = xuggleJars[i].lastModified();
+					modified = xuggleFile.lastModified();
 				}
 			}
 			if (xuggleFile != null) {
-				File target = new File(targetDir, TrackerStarter.XUGGLE_JAR_NAMES[i] + ".jar");
+				File target = new File(targetDir, xuggleNames[i] + ".jar");
 				// copy jar
-				if (!target.exists() || target.lastModified() != modified) {
-					copied = VideoIO.copyFile(xuggleFile, target) || copied;
+				if (!target.exists() || target.lastModified() < modified) {
+					upToDate = VideoIO.copyFile(xuggleFile, target) && upToDate;
 				}				
 			}
 			
 		}
-		return copied;
+		return upToDate;
 	}
 
 
@@ -1164,7 +1183,11 @@ public class TrackerStarter {
 		// write codeBase tracker_start log
 		writeCodeBaseLog(LOG_FILE_NAME);
 
-		// write the user tracker_start log and set environment variable
+		// write the user tracker_start log and set log environment variables
+		String prevLogText = System.getenv("START_LOG_TEXT"); //$NON-NLS-1$
+		if (prevLogText != null)
+			logText = prevLogText + "\n" + logText;
+		env.put("START_LOG_TEXT", logText); //$NON-NLS-1$
 		startLogPath = writeUserLog();
 		if (startLogPath!=null)
 			env.put("START_LOG", startLogPath); //$NON-NLS-1$
@@ -1314,6 +1337,23 @@ public class TrackerStarter {
 		else {
 			logMessage("unable to write code base start log"); //$NON-NLS-1$
 		}
+	}
+	
+	public static boolean usesXuggleServer(String jarpath) {
+		Boolean b = usesXuggleServer.get(jarpath);
+		if (b != null)
+			return b;
+		boolean usesServer = false;
+		try {
+			JarFile jarfile = new JarFile(jarpath);
+			String classpath = OSPRuntime.getManifestAttribute(jarfile, "Class-Path");
+			usesServer = classpath.contains("-server-");
+			usesXuggleServer.put(jarpath, usesServer);
+		} catch (Exception ex) {
+			// ex.printStackTrace();
+//			OSPLog.warning(ex.getMessage());
+		}
+		return usesServer;
 	}
 
 	private static boolean fileExists(String path) {
