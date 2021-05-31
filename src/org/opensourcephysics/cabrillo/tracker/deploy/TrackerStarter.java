@@ -278,7 +278,7 @@ public class TrackerStarter {
 				}
 				xuggleServerJar = new File(trackerHome, XUGGLE_JAR_NAMES[0][0]+".jar");
 				if (xuggleServerJar.exists()) {
-					logMessage("xuggle 5.7 server found: " + xuggleServerJar); //$NON-NLS-1$					
+					logMessage("xuggle 5.7 found: " + xuggleServerJar); //$NON-NLS-1$					
 				}
 
 			}
@@ -751,7 +751,7 @@ public class TrackerStarter {
 			// determine if preferred tracker will use Xuggle 3.4 or Xuggle server
 			String jarName = useDefaultTrackerJar? "tracker.jar": jar;
 			String jarHome = OSPRuntime.isMac() ? codeBaseDir.getAbsolutePath() : trackerHome;
-			String jarPath = XML.forwardSlash(new File(jarHome, jarName).getAbsolutePath());			
+			String jarPath = new File(jarHome, jarName).getAbsolutePath();			
 			boolean requestXuggleServer = usesXuggleServer(jarPath);
 			logMessage("preferred xuggle version: "+ (requestXuggleServer? "5.7 server": "3.4")); //$NON-NLS-1$				
 			
@@ -983,8 +983,9 @@ public class TrackerStarter {
 			// look in jarHome
 			File file = new File(jarHome, jarPath);
 			if (file.exists()) {
-				logMessage("using tracker jar: " + file.getAbsolutePath()); //$NON-NLS-1$
-				return XML.forwardSlash(file.getAbsolutePath());
+				String path = XML.forwardSlash(file.getAbsolutePath());
+				logMessage("using tracker jar: " + path); //$NON-NLS-1$
+				return path;
 			}
 		}
 		throw new NullPointerException("No Tracker jar files found in " + jarHome); //$NON-NLS-1$
@@ -1340,6 +1341,7 @@ public class TrackerStarter {
 	}
 	
 	public static boolean usesXuggleServer(String jarpath) {
+		jarpath = XML.forwardSlash(jarpath);
 		Boolean b = usesXuggleServer.get(jarpath);
 		if (b != null)
 			return b;

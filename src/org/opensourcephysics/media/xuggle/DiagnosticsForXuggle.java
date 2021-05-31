@@ -131,8 +131,10 @@ public class DiagnosticsForXuggle extends Diagnostics {
 
 		if (xuggleHome != null) {
 			
+			boolean usesServer = TrackerStarter.usesXuggleServer(OSPRuntime.getLaunchJarPath());
+			File xuggleSrc = usesServer? new File(xuggleHome): new File(xuggleHome, "share/java/jars");
 			// log xuggle home jars
-			File[] xuggleJars = new File(xuggleHome).listFiles(TrackerStarter.xuggleFileFilter);
+			File[] xuggleJars = xuggleSrc.listFiles(TrackerStarter.xuggleFileFilter);
 			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
 //			int len = Math.max(xuggleJars.length, TrackerStarter.XUGGLE_JAR_NAMES.length);
 			String[] jarDates = new String[xuggleJars.length];

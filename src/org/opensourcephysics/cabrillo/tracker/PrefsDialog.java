@@ -142,6 +142,7 @@ public class PrefsDialog extends JDialog {
   protected JSpinner recentSizeSpinner, runSpinner;
   protected JComboBox<String> lookFeelDropdown, languageDropdown, jreDropdown, trailLengthDropdown,
   		checkForUpgradeDropdown, versionDropdown, logLevelDropdown, fontSizeDropdown;
+//  protected JLabel xuggleVersionLabel;
   protected JComboBox<Footprint> footprintDropdown;
   protected JRadioButton vm32Button, vm64Button;
   protected JRadioButton movieEngineButton, noEngineButton;
@@ -687,13 +688,17 @@ public class PrefsDialog extends JDialog {
 					// determine if preferred tracker will use Xuggle 3.4 or Xuggle server
 					String jarName = jar == null? "tracker.jar": jar;
 					String jarHome = OSPRuntime.isMac() ? codeBaseDir.getAbsolutePath() : Tracker.trackerHome;
-					String jarPath = XML.forwardSlash(new File(jarHome, jarName).getPath());			
-					int bitness = TrackerStarter.usesXuggleServer(jarPath)? 64: OSPRuntime.isWindows()? 32: 64;
+					String jarPath = XML.forwardSlash(new File(jarHome, jarName).getPath());
+					boolean usesServer = TrackerStarter.usesXuggleServer(jarPath);
+					int bitness = usesServer? 64: OSPRuntime.isWindows()? 32: 64;
+//					xuggleVersionLabel.setText(usesServer? "(uses Xuggle 5.7)": "(uses Xuggle 3.4)");
 					refreshJREDropdown(bitness);
 				}
 			});
 			versionSubPanel.add(versionDropdown);
-	
+//			xuggleVersionLabel = new JLabel();	
+//			xuggleVersionLabel.setBorder(BorderFactory.createEmptyBorder(2, 10, 2, 2));
+//			versionSubPanel.add(xuggleVersionLabel);
 			// jre subpanel
 //			JPanel jreSubPanel = new JPanel(new BorderLayout());
 			JPanel jreSubPanel = new JPanel();

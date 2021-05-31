@@ -122,7 +122,7 @@
 			<attribute name="Class-Path" value=". xuggle-xuggler.jar logback-classic.jar logback-core.jar slf4j-api.jar"/>
 			<attribute name="permissions" value="all-permissions"/>
 		</manifest >
-		<jar jarfile="${output}/tracker-5.8.${date}.jar" basedir="${temp}" manifest="${temp}/meta-inf/TRACKER.mf" 
+		<jar jarfile="${output}/tracker-5.2.${date}.jar" basedir="${temp}" manifest="${temp}/meta-inf/TRACKER.mf" 
 			includes="
 			**/epsgraphics/,
             **/controls/,
@@ -152,7 +152,7 @@
 			<attribute name="Class-Path" value=". xuggle-xuggler-server-all.jar"/>
 			<attribute name="permissions" value="all-permissions"/>
 		</manifest >
-		<jar jarfile="${output}/tracker-5.9.${date}.jar" basedir="${temp}" manifest="${temp}/meta-inf/TRACKER.mf" 
+		<jar jarfile="${output}/tracker-6.0.${date}.jar" basedir="${temp}" manifest="${temp}/meta-inf/TRACKER.mf" 
 			includes="
 			**/epsgraphics/,
             **/controls/,

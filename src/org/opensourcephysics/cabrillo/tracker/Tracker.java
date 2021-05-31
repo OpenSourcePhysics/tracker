@@ -847,9 +847,25 @@ public class Tracker {
 		if (ver1 == null || ver2 == null) {
 			return 0;
 		}
-		// typical newer semantic version "4.9.10" or 5.0.7.190504 beta or 5.0.7190504
-		// beta
-		// typical older version "4.97"
+		// typical newer semantic version 4.9.10 or 5.2.0
+		// or 5.0.7.190504 beta or 5.9.20210504 beta
+		// typical older version 4.97
+		try {
+			// treat versions 5.2.x as 6.0.x and 5.9.xxx betas as 5.1.9 
+			double d1 = Double.parseDouble(ver1.substring(0, 3));
+			if (d1 == 5.9)
+				ver1 = "5.1.9";
+			else if (d1 >= 5.2 && d1 < 6)
+				ver1 = String.valueOf(d1 + 0.8) + ver1.substring(3);
+			
+			double d2 = Double.parseDouble(ver2.substring(0, 3));
+			if (d2 == 5.9)
+				ver2 = "5.1.9";
+			else if (d2 >= 5.2 && d2 < 6)
+				ver2 = String.valueOf(d2 + 0.8) + ver2.substring(3);
+			
+		} catch(Exception ex) {}
+		
 		String[] v1 = ver1.trim().split("\\."); //$NON-NLS-1$
 		String[] v2 = ver2.trim().split("\\."); //$NON-NLS-1$
 		// newer beta version arrays have length 4
@@ -891,9 +907,11 @@ public class Tracker {
 		}
 		// both arrays have the same length
 		for (int i = 0; i < v1.length; i++) {
-			if (Integer.parseInt(v1[i]) < Integer.parseInt(v2[i])) {
+			int int1 = Integer.parseInt(v1[i]);
+			int int2 = Integer.parseInt(v2[i]);
+			if (int1 < int2) {
 				return -1;
-			} else if (Integer.parseInt(v1[i]) > Integer.parseInt(v2[i])) {
+			} else if (int1 > int2) {
 				return 1;
 			}
 		}
