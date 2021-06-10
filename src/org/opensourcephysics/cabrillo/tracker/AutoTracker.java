@@ -1008,7 +1008,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 
 		// get location, width and height of match
 		TPoint p = null;
-		BufferedImage image = video.getImage();
+		BufferedImage image = getImage(video);
 		if (lineSpread >= 0) {
 			double theta = trackerPanel.getCoords().getAngle(n);
 			double x0 = trackerPanel.getCoords().getOriginX(n);
@@ -1050,6 +1050,10 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 		return null;
 	}
 
+	private BufferedImage getImage(Video video) {
+			return video.getImage();
+	}
+
 	/**
 	 * Builds an evolved template based on data in the specified FrameData and the
 	 * current video image.
@@ -1061,7 +1065,6 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 		TPoint[] matchPts = frame.getMatchPoints();
 		if (matchPts == null)
 			return null; // can't build template without a match
-//  	System.out.println("building evolved for "+frame.getFrameNumber());
 		TemplateMatcher matcher = getTemplateMatcher();
 		matcher.setTemplate(frame.getTemplate());
 		matcher.setWorkingPixels(frame.getWorkingPixels());
@@ -1090,7 +1093,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 		if (video != null && keyFrame != null) {
 			// create template image
 			Shape mask = keyFrame.getMask();
-			BufferedImage source = video.getImage();
+			BufferedImage source = getImage(video);
 			Rectangle rect = mask.getBounds();
 			BufferedImage templateImage = new BufferedImage(rect.width, rect.height, BufferedImage.TYPE_INT_RGB);
 			templateImage.createGraphics().drawImage(source, -rect.x, -rect.y, null);
@@ -2195,6 +2198,11 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 		private boolean refreshPosted;
 		protected boolean isPositioned;
 
+		public void clearTextPaneSize() {
+			textPaneSize = null;
+		}
+
+
 		/**
 		 * Constructs a Wizard.
 		 */
@@ -2256,7 +2264,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 				if (!isPositioned) {
 					Timer timer = new Timer(10, (e) -> {
 						// refreshGUI a second time before positioning
-						textPaneSize = null;
+						clearTextPaneSize();
 						refreshGUI();
 						// place near top right corner of frame
 						Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
@@ -2288,7 +2296,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 			setFontLevel(pointDropdown);
 			if (trackerPanel == null)
 				return;
-			textPaneSize = null;  // forces recalculation
+			clearTextPaneSize();
 			refreshGUI(); // also resets label sizes
 		}
 
@@ -2301,10 +2309,6 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 			}
 			DefaultComboBoxModel<Object> model = new DefaultComboBoxModel<Object>(items);
 			next.setModel(model);
-			//System.out.println(">AutoTracker " + next.getName() + "<" + " " + next.getSelectedIndex());
-			// BH 2020.02.09 Java bug this was "n" where n was the integer index
-			// but Java needs an Object here, not an index.
-			// Now that it is functioning, a second bug showed up in the action listener
 			if (next == pointDropdown) {
 				next.setName("refresh");
 				next.setSelectedItem(o);
@@ -3213,9 +3217,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 		 * Refreshes the preferred size of the text pane.
 		 */
 		protected void refreshTextPaneSize() {
-			textPaneSize = null;
-			if (OSPRuntime.isJS)
-				return;
+			clearTextPaneSize();
 			followupPanel.removeAll();
 			followupPanel.add(acceptButton);
 			textPane.setText(getTemplateInstructions());
@@ -3444,7 +3446,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 			refreshInfo();
 			refreshDrawingFlags();
 			pack();
-			if (textPaneSize == null && !OSPRuntime.isJS) {
+			if (textPaneSize == null) {
 				refreshTextPaneSize();
 				pack(); // pack again with new textPanelSize
 			}
@@ -3991,5 +3993,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 			}
 			return value;
 		}
+		
 	}
+
 }
