@@ -24,10 +24,10 @@
  */
 package org.opensourcephysics.cabrillo.tracker;
 
-import java.awt.*;
-import java.awt.image.*;
+import java.awt.Color;
+import java.awt.Polygon;
+import java.awt.image.BufferedImage;
 
-import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.media.core.TPoint;
 
 /**

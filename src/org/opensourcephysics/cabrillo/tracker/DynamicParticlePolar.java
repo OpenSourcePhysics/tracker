@@ -43,6 +43,7 @@ public class DynamicParticlePolar extends DynamicParticle {
 	final static protected String[] polarVars = new String[] { "r", "vr", //$NON-NLS-1$ //$NON-NLS-2$
 			FunctionEditor.THETA, FunctionEditor.OMEGA, "t" }; //$NON-NLS-1$
 
+	@Override
 	protected String[] getBoostVars() {
 		return polarVars;
 	}

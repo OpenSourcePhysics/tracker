@@ -30,6 +30,8 @@ import java.awt.event.*;
 import javax.swing.*;
 import javax.swing.text.JTextComponent;
 
+import org.opensourcephysics.cabrillo.tracker.AutoTracker.FrameData;
+import org.opensourcephysics.cabrillo.tracker.AutoTracker.KeyFrameData;
 import org.opensourcephysics.display.*;
 import org.opensourcephysics.media.core.*;
 
@@ -40,37 +42,37 @@ import org.opensourcephysics.media.core.*;
  */
 public class TMouseHandler implements InteractiveMouseHandler {
 
-  // static fields
-  static Cursor markPointCursor;
+	// static fields
+	static Cursor markPointCursor;
 	static Cursor autoTrackCursor;
 	static Cursor autoTrackMarkCursor;
 
-  static final int STATE_MARK = 1;
-  static final int STATE_AUTO = 2;
-  static final int STATE_AUTOMARK = 3;
-  
-  // instance fields
-  Interactive iad = null;
-  TPoint selectedPoint = null;
-  boolean stepCreated = false, autoTracked = false;
-  boolean marking;
-  TTrack selectedTrack;
-  int frameNumber;
-  Point mousePtRelativeToViewRect = new Point(); // starting position of mouse
-  Point viewLoc = new Point(); // starting position of view rect
-  Dimension dim = new Dimension();
-  
-  static {
-    ImageIcon icon = (ImageIcon) Tracker.getResourceIcon("creatept.gif", false); //$NON-NLS-1$
-    markPointCursor = GUIUtils.createCustomCursor(icon.getImage(), new Point(8, 8), 
-    		TrackerRes.getString("Tracker.Cursor.Crosshair.Description"), Cursor.MOVE_CURSOR); //$NON-NLS-1$  	
-    icon = (ImageIcon) Tracker.getResourceIcon("autotrack.gif", false); //$NON-NLS-1$
-    autoTrackCursor = GUIUtils.createCustomCursor(icon.getImage(), new Point(9, 9), 
-    		TrackerRes.getString("PointMass.Cursor.Autotrack.Description"), Cursor.MOVE_CURSOR); //$NON-NLS-1$ 
-    icon = (ImageIcon) Tracker.getResourceIcon("autotrack_mark.gif", false); //$NON-NLS-1$
-    autoTrackMarkCursor = GUIUtils.createCustomCursor(icon.getImage(), new Point(9, 9), 
-    		TrackerRes.getString("Tracker.Cursor.Autotrack.Keyframe.Description"), Cursor.MOVE_CURSOR); //$NON-NLS-1$  	
-  }
+	static final int STATE_MARK = 1;
+	static final int STATE_AUTO = 2;
+	static final int STATE_AUTOMARK = 3;
+
+	// instance fields
+	Interactive iad = null;
+	TPoint selectedPoint = null;
+	boolean stepCreated = false, autoTracked = false;
+	boolean marking;
+	TTrack selectedTrack;
+	int frameNumber;
+	Point mousePtRelativeToViewRect = new Point(); // starting position of mouse
+	Point viewLoc = new Point(); // starting position of view rect
+	Dimension dim = new Dimension();
+
+	static {
+		ImageIcon icon = (ImageIcon) Tracker.getResourceIcon("creatept.gif", false); //$NON-NLS-1$
+		markPointCursor = GUIUtils.createCustomCursor(icon.getImage(), new Point(8, 8),
+				TrackerRes.getString("Tracker.Cursor.Crosshair.Description"), Cursor.MOVE_CURSOR); //$NON-NLS-1$
+		icon = (ImageIcon) Tracker.getResourceIcon("autotrack.gif", false); //$NON-NLS-1$
+		autoTrackCursor = GUIUtils.createCustomCursor(icon.getImage(), new Point(9, 9),
+				TrackerRes.getString("PointMass.Cursor.Autotrack.Description"), Cursor.MOVE_CURSOR); //$NON-NLS-1$
+		icon = (ImageIcon) Tracker.getResourceIcon("autotrack_mark.gif", false); //$NON-NLS-1$
+		autoTrackMarkCursor = GUIUtils.createCustomCursor(icon.getImage(), new Point(9, 9),
+				TrackerRes.getString("Tracker.Cursor.Autotrack.Keyframe.Description"), Cursor.MOVE_CURSOR); //$NON-NLS-1$
+	}
 
 	/**
 	 * Handles a mouse action for a tracker panel.
@@ -239,8 +241,8 @@ public class TMouseHandler implements InteractiveMouseHandler {
 			}
 		}
 	}
-  
-  private void clearInteractive(TrackerPanel trackerPanel, MouseEvent e) {
+
+	private void clearInteractive(TrackerPanel trackerPanel, MouseEvent e) {
 		// no interactive
 		if (trackerPanel.getSelectedPoint() != null) {
 			// deselect the selected point--this will post undoable edit if changed
@@ -273,7 +275,7 @@ public class TMouseHandler implements InteractiveMouseHandler {
 		}
 	}
 
-private void selectPoint(TrackerPanel trackerPanel, MouseEvent e) {
+	private void selectPoint(TrackerPanel trackerPanel, MouseEvent e) {
 		// select a clicked TPoint
 		selectedPoint = (TPoint) iad;
 		// find associated step and track
@@ -287,7 +289,6 @@ private void selectPoint(TrackerPanel trackerPanel, MouseEvent e) {
 			}
 		}
 		trackerPanel.clearTemp();
-
 
 		// if control-down, manage trackerPanel.selectedSteps
 		boolean isStepSelected = trackerPanel.selectedSteps.contains(step);
@@ -332,7 +333,7 @@ private void selectPoint(TrackerPanel trackerPanel, MouseEvent e) {
 			}
 		}
 		if (selectedStepsChanged && stepTrack != null) {
-			stepTrack.firePropertyChange(TTrack.PROPERTY_TTRACK_STEPS, TTrack.HINT_STEPS_SELECTED, null); //$NON-NLS-1$
+			stepTrack.firePropertyChange(TTrack.PROPERTY_TTRACK_STEPS, TTrack.HINT_STEPS_SELECTED, null); // $NON-NLS-1$
 		}
 
 		if (step != null)
@@ -340,8 +341,7 @@ private void selectPoint(TrackerPanel trackerPanel, MouseEvent e) {
 
 		if (selectedPoint instanceof AutoTracker.Handle) {
 			((AutoTracker.Handle) selectedPoint).setScreenLocation(e.getX(), e.getY(), trackerPanel);
-		}
-		else if (selectedPoint instanceof Ruler.Handle) {
+		} else if (selectedPoint instanceof Ruler.Handle) {
 			((Ruler.Handle) selectedPoint).setScreenLocation(e.getX(), e.getY(), trackerPanel);
 		}
 		if (selectedPoint != null) {
@@ -354,12 +354,11 @@ private void selectPoint(TrackerPanel trackerPanel, MouseEvent e) {
 		}
 	}
 
-private void markPoint(TrackerPanel trackerPanel, MouseEvent e, AutoTracker autoTracker) {
+	private void markPoint(TrackerPanel trackerPanel, MouseEvent e, AutoTracker autoTracker) {
 		iad = null;
-		boolean autotrackTrigger = isAutoTrackTrigger(e) && 
-				selectedTrack.isAutoTrackable() &&
-				trackerPanel.getVideo() != null;
-		AutoTracker.KeyFrame keyFrame = autotrackTrigger? getActiveKeyFrame(autoTracker): null;
+		boolean autotrackTrigger = (AutoTracker.isAutoTrackTrigger(e) && selectedTrack.isAutoTrackable()
+				&& trackerPanel.getVideo() != null);
+		KeyFrameData keyFrameData = (autotrackTrigger ? getActiveKeyFrame(autoTracker) : null);
 		// create step
 		frameNumber = trackerPanel.getFrameNumber();
 		Step step = selectedTrack.getStep(frameNumber); // may be null for point mass, offset origin,
@@ -370,18 +369,12 @@ private void markPoint(TrackerPanel trackerPanel, MouseEvent e, AutoTracker auto
 			if (autotrackTrigger) {
 				selectedTrack.autoMarkAt(frameNumber, trackerPanel.getMouseX(), trackerPanel.getMouseY());
 				step = selectedTrack.getStep(frameNumber);
-//    	if (step!=null) {
-//    		TPoint[] pts = step.getPoints();
-//    		// increment target index 
-//        if (pts.length>index+1) nextIndex = index+1;
-//    	}
 			} else {
 				boolean newStep = step == null;
 				if (selectedTrack instanceof PointMass) {
 					selectedTrack.keyFrames.add(frameNumber);
 				}
-				step = selectedTrack.createStep(frameNumber, trackerPanel.getMouseX(),
-						trackerPanel.getMouseY());
+				step = selectedTrack.createStep(frameNumber, trackerPanel.getMouseX(), trackerPanel.getMouseY());
 				if (selectedTrack instanceof PointMass) {
 					PointMass m = (PointMass) selectedTrack;
 					if (m.isAutofill()) {
@@ -395,8 +388,8 @@ private void markPoint(TrackerPanel trackerPanel, MouseEvent e, AutoTracker auto
 					nextIndex = index + 1;
 			}
 		} else if (step.getPoints()[index] == null) {
-			if (keyFrame != null) {
-				TPoint target = keyFrame.getTarget();
+			if (keyFrameData != null) {
+				TPoint target = keyFrameData.getTarget();
 				target.setXY(trackerPanel.getMouseX(), trackerPanel.getMouseY());
 			}
 			selectedTrack.autoMarkAt(frameNumber, trackerPanel.getMouseX(), trackerPanel.getMouseY());
@@ -411,22 +404,20 @@ private void markPoint(TrackerPanel trackerPanel, MouseEvent e, AutoTracker auto
 			// remark step target if Axes/Tape/Protractor/Perspective selected and no
 			// keyframe exists
 			// make sure autoTracker is instantiated at this point
-			if (autoTracker==null) {
+			if (autoTracker == null) {
 				autoTracker = trackerPanel.getAutoTracker(true);
 				autoTracker.setTrack(trackerPanel.getSelectedTrack());
 			}
-			if (selectedTrack instanceof CoordAxes || selectedTrack instanceof TapeMeasure
-					|| selectedTrack instanceof PerspectiveTrack || selectedTrack instanceof Protractor) {
-				if (autoTracker.getTrack() == selectedTrack) {
-					AutoTracker.FrameData frame = autoTracker.getFrame(frameNumber);
-					if (frame.getKeyFrame() == null) {
-						target.setXY(trackerPanel.getMouseX(), trackerPanel.getMouseY());
-					}
-				}
+			if (autoTracker.getTrack() == selectedTrack
+					&& (selectedTrack instanceof CoordAxes 
+					|| selectedTrack instanceof TapeMeasure
+					|| selectedTrack instanceof PerspectiveTrack 
+					|| selectedTrack instanceof Protractor)
+						&& autoTracker.getOrCreateFrameData(frameNumber).getKeyFrameData() == null) {
+							target.setXY(trackerPanel.getMouseX(), trackerPanel.getMouseY());
 			}
 			autoTracker.addKeyFrame(target, trackerPanel.getMouseX(), trackerPanel.getMouseY());
 			trackerPanel.refreshTrackBar();
-			//TTrackBar.getTrackbar(trackerPanel).refresh();
 		}
 
 		if (step != null && !autotrackTrigger) {
@@ -434,7 +425,7 @@ private void markPoint(TrackerPanel trackerPanel, MouseEvent e, AutoTracker auto
 			trackerPanel.setSelectedPoint(step.getDefaultPoint());
 			selectedTrack.repaint(step);
 			iad = selectedPoint = trackerPanel.getSelectedPoint();
-			stepCreated = keyFrame == null;
+			stepCreated = keyFrameData == null;
 		}
 
 		selectedTrack.setTargetIndex(nextIndex);
@@ -443,22 +434,13 @@ private void markPoint(TrackerPanel trackerPanel, MouseEvent e, AutoTracker auto
 		}
 	}
 
-protected static boolean isAutoTrackTrigger(InputEvent e) {
-  	if (e.isControlDown()) return true;
-  	if (e.isMetaDown() && OSPRuntime.isMac()) return true; // meta is command key on Mac
-  	return false;
-  }
+	protected KeyFrameData getActiveKeyFrame(AutoTracker autoTracker) {
+		FrameData frameData;
+		return (selectedTrack != null && autoTracker != null 
+				&& selectedTrack == autoTracker.getTrack()
+				&& autoTracker.getWizard().isVisible() 
+				&& (frameData = autoTracker.getOrCreateFrameData(frameNumber)).getKeyFrameData()
+						== frameData ? (KeyFrameData) frameData : null);
+	}
 
-  protected AutoTracker.KeyFrame getActiveKeyFrame(AutoTracker autoTracker) {
-  	if (autoTracker==null) return null;
-		if (selectedTrack!=null && autoTracker.getWizard().isVisible()
-				&& autoTracker.getTrack()==selectedTrack) {
-  		AutoTracker.FrameData frame = autoTracker.getFrame(frameNumber);
-			if (frame!=null && frame.getKeyFrame()==frame) {
-				return (AutoTracker.KeyFrame)frame;
-			}
-		}
-  	return null;
-  }
-  
 }

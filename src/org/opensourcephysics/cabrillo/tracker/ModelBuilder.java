@@ -53,16 +53,11 @@ public class ModelBuilder extends FunctionTool {
 	private JComboBox<FTObject> boosterDropdown;
 	private JComboBox<String> solverDropdown;
 
-	private static int ntest, ntest1;
 	private static String[] solverClassNames = {
 			"org.opensourcephysics.numerics.RK4", 
 			"org.opensourcephysics.numerics.Euler", 
 			"org.opensourcephysics.numerics.Ralston2"};
 
-	public void validate() {
-		//OSPLog.debug("ModelBuilder.validate #" + ++ntest1);
-		super.validate();
-	}
 	/**
 	 * Constructor.
 	 * 
@@ -150,7 +145,6 @@ public class ModelBuilder extends FunctionTool {
 				if (!solverDropdown.isEnabled() || solverDropdown.getSelectedIndex() < 0)
 					return;
 				ModelFunctionPanel modelpanel = (ModelFunctionPanel)getSelectedPanel();
-				int i = solverDropdown.getSelectedIndex();
 				String solver = solverClassNames[solverDropdown.getSelectedIndex()];
 				if (solver != null && modelpanel.model instanceof DynamicParticle) {
 					DynamicParticle dyna = (DynamicParticle)modelpanel.model;

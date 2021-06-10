@@ -64,8 +64,6 @@ public class WorldTView extends TrackerPanel implements TView {
 	public WorldTView(TrackerPanel panel) {
 		super(panel.frame);
 		trackerPanel = panel;
-		if (panel == null)
-			return;
 		init();
 		setPlayerVisible(false);
 		setDrawingInImageSpace(false);

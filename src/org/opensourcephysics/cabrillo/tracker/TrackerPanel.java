@@ -140,7 +140,6 @@ import org.opensourcephysics.tools.ResourceLoader;
 import org.opensourcephysics.tools.VideoCaptureTool;
 
 import javajs.async.AsyncDialog;
-import javajs.async.SwingJSUtils.Performance;
 
 /**
  * This extends VideoPanel to manage and draw TTracks. It is Tracker's main view
@@ -1097,7 +1096,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	}
 	
 	synchronized void clear(boolean andSetCoords) {
-		long t0 = Performance.now(0);
+		//long t0 = Performance.now(0);
 		setSelectedTrack(null);
 		selectedPoint = null;
 		ArrayList<TTrack> list = getTracks();
@@ -3405,7 +3404,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	@Override
 	protected void dispose() {
 
-		long t0 = Performance.now(0);
+		//long t0 = Performance.now(0);
 		super.dispose();
 
 		refreshTimer.stop();
@@ -3831,7 +3830,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		@Override
 		public void finalizeLoading() {
 			videoPanel.setLoader(null);
-			long t0 = Performance.now(0);
+			//long t0 = Performance.now(0);
 			//OSPLog.debug(Performance.timeCheckStr("TrackerPanel.finalizeLoading1", Performance.TIME_MARK));
 			TrackerPanel trackerPanel = (TrackerPanel) videoPanel;
 			try {

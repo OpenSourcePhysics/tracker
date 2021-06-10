@@ -8,7 +8,6 @@ import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -20,6 +19,7 @@ import javax.swing.JFileChooser;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
+
 import org.opensourcephysics.controls.ListChooser;
 import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.controls.XML;
@@ -35,6 +35,7 @@ import org.opensourcephysics.tools.FunctionPanel;
 import org.opensourcephysics.tools.FunctionTool;
 import org.opensourcephysics.tools.Parameter;
 import org.opensourcephysics.tools.ToolsRes;
+
 import javajs.async.AsyncDialog;
 import javajs.async.AsyncFileChooser;
 

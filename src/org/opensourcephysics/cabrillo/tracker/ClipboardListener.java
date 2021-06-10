@@ -28,11 +28,8 @@ import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.ClipboardOwner;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
-import java.util.ArrayList;
-import org.opensourcephysics.display.DatasetManager;
+
 import org.opensourcephysics.display.OSPRuntime;
-import org.opensourcephysics.media.core.DataTrack;
-import org.opensourcephysics.tools.DataTool;
 
 /**
  * A class to paste data into a TrackerPanel automatically whenever delimited
@@ -113,6 +110,7 @@ class ClipboardListener extends Thread implements ClipboardOwner {
 	 * 
 	 * @param t a Transferable.
 	 */
+	@SuppressWarnings("deprecation")
 	public void processContents(Transferable t) {
 		// if Tracker itself copied the data, ignore it
 		if (TrackerIO.dataCopiedToClipboard) {

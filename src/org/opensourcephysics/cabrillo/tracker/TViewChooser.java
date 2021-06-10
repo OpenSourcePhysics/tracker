@@ -50,13 +50,10 @@ import javax.swing.JPopupMenu;
 import javax.swing.JToolBar;
 import javax.swing.border.Border;
 
-import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.tools.FontSizer;
-
-import javajs.async.SwingJSUtils.Performance;
 
 /**
  * This is a panel with a toolbar for selecting and controlling TViews.

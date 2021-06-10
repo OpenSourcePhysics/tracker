@@ -91,8 +91,6 @@ import org.opensourcephysics.tools.DataTool;
 import org.opensourcephysics.tools.FontSizer;
 import org.opensourcephysics.tools.FunctionTool;
 
-import javajs.async.SwingJSUtils.Performance;
-
 /**
  * This is the main menu for Tracker.
  *
@@ -1732,7 +1730,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 	}
 
 	protected void refreshEditMenu(boolean opening) {
-		long t0 = Performance.now(0);
+		//long t0 = Performance.now(0);
 		if (isTainted(MENU_EDIT)) {
 			boolean hasTracks = !trackerPanel.getUserTracks().isEmpty();
 			editMenu.removeAll();
