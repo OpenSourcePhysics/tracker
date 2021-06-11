@@ -1045,7 +1045,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 
 		// if good match found then build evolved template and return match target
 		if (matchWidthAndHeight[1] >= goodMatch) {
-			buildEvolvedTemplate(frameData);
+			buildEvolvedTemplateImage(frameData);
 			return getMatchTarget(center);
 		}
 
@@ -1063,20 +1063,20 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 	 * @param frameData the FrameData frame
 	 * @return the evolved template
 	 */
-	protected BufferedImage buildEvolvedTemplate(FrameData frameData) {
+	protected BufferedImage buildEvolvedTemplateImage(FrameData frameData) {
 		TPoint[] matchPts = frameData.getMatchPoints();
 		if (matchPts == null)
 			return null; // can't build template without a match
 		TemplateMatcher matcher = getTemplateMatcher();
-		matcher.setTemplate(frameData.getTemplate());
+		matcher.setTemplate(frameData.getTemplateImage());
 		matcher.setWorkingPixels(frameData.getWorkingPixels());
 		Rectangle rect = frameData.getKeyFrameData().getMask().getBounds();
 		// get new image to rebuild template
 		rect.x = (int) Math.round(matchPts[2].getX());
 		rect.y = (int) Math.round(matchPts[2].getY());
-		BufferedImage newTemplate = matcher.buildTemplate(newImage(rect), evolveAlpha, tetherAlpha);
+		BufferedImage image = matcher.buildTemplate(newImage(rect), evolveAlpha, tetherAlpha);
 		matcher.setIndex(frameData.getFrameNumber());
-		return newTemplate;
+		return image;
 	}
 
 	/**
@@ -1905,7 +1905,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 		private TPoint[] searchPoints;
 		TPoint trackPoint;
 		private double[] autoMarkLoc;
-		private BufferedImage template;
+		private BufferedImage templateImage;
 		private Icon templateIcon; // shows template used for search
 		private Icon matchIcon; // only if match is found
 		private Icon evolvedIcon; // evolved template only shown when adjusting parameters
@@ -1968,14 +1968,14 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 		 * @param matcher the template matcher
 		 */
 		void setTemplate(TemplateMatcher matcher) {
-			template = matcher.getTemplate();
+			templateImage = matcher.getTemplate();
 			templateAlphas[0] = matcher.getAlphas()[0];
 			templateAlphas[1] = matcher.getAlphas()[1];
 			workingPixels = matcher.getWorkingPixels(workingPixels);
 			matcherHashCode = matcher.hashCode();
 			// refresh icons
 			setMatchIcon(null);
-			BufferedImage img = createMagnifiedImage(template);
+			BufferedImage img = createMagnifiedImage(templateImage);
 			setTemplateIcon(new ImageIcon(img));
 //			setEvolvedIcon(null);
 		}
@@ -2000,11 +2000,11 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 		 * exists.
 		 */
 		BufferedImage getTemplateToMatch() {
-			if (template == null || newTemplateExists()) {
+			if (templateImage == null || newTemplateExists()) {
 				// replace current template with new one
 				setTemplate(getTemplateMatcher());
 			}
-			return template;
+			return templateImage;
 		}
 
 		/**
@@ -2025,14 +2025,14 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 		/**
 		 * Returns the previously matched template.
 		 */
-		BufferedImage getTemplate() {
-			return template;
+		protected BufferedImage getTemplateImage() {
+			return templateImage;
 		}
 
 		/**
 		 * Returns the working pixels used to generate the current template.
 		 */
-		int[] getWorkingPixels() {
+		protected int[] getWorkingPixels() {
 			return workingPixels;
 		}
 
@@ -2171,7 +2171,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 				templateIcon = null;
 				evolvedIcon = null;
 				templateAlphas = new int[] { 0, 0 };
-				template = null;
+				templateImage = null;
 			}
 		}
 	}
@@ -2947,9 +2947,9 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 					FrameData frameData = getOrCreateFrameData(n);
 					// build evolved template
 					TemplateMatcher matcher = getTemplateMatcher();
-					matcher.setTemplate(frameData.getTemplate());
+					matcher.setTemplate(frameData.getTemplateImage());
 					matcher.setWorkingPixels(frameData.getWorkingPixels());
-					buildEvolvedTemplate(frameData);
+					buildEvolvedTemplateImage(frameData);
 					// mark the target
 					marking = true;
 					TPoint p = getMatchTarget(frameData.getMatchPoints()[0]);
@@ -3384,7 +3384,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 			// enable the search buttons
 			int code = getStatusCode(n);
 			KeyFrameData keyFrameData = frameData.getKeyFrameData();
-			boolean initialized = keyFrameData != null && track != null;
+			boolean initialized = (keyFrameData != null && track != null);
 			boolean notStepping = paused || !stepping;
 			boolean stable = frameData.searched && !frameData.newTemplateExists();
 			boolean canSearchThis = !stable || code == 5 || (changed && code != 0)
