@@ -1562,13 +1562,42 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 		return null;
 	}
 
+	final static int STATUS_KEY_FRAME                 = 0;
+	final static int STATUS_AUTO_MARKED_GOOD          = 1;
+	final static int STATUS_POSSIBLE_MATCH_NOT_MARKED = 2;
+	final static int STATUS_NO_MATCH_FOUND_UNMARKED   = 3;
+	final static int STATUS_TRIED_UNABLE_TO_SEARCH    = 4;
+	final static int STATUS_MANUALLY_MARKED           = 5;
+	final static int STATUS_ACCEPTED_BY_USER          = 6;
+	final static int STATUS_NEVER_SEARCHED            = 7;
+	final static int STATUS_POSSIBLE_MATCH            = 8;
+	final static int STATUS_NO_MATCH_FOUND_SEARCHED   = 9;
+	final static int STATUS_CALIB_TOOL_POSSIBLE_MATCH = 10;
+	
 	/**
-	 * Determines the status code for a given frame. The status codes are: 0: a key
-	 * frame 1: automarked with a good match 2: possible match, not marked 3:
-	 * searched but no match found 4: unable to search--search area outside image or
-	 * x-axis 5: manually marked by the user 6: match accepted by the user 7: never
-	 * searched 8: possible match but previously marked 9: no match found but
-	 * previously marked 10: calibration tool possible match
+	 * Determines the status code for a given frame. The status codes are:
+	 * 
+	 * 0: a key frame
+	 * 
+	 * 1: automarked with a good match
+	 * 
+	 * 2: possible match, not marked
+	 * 
+	 * 3: searched but no match found
+	 * 
+	 * 4: unable to search--search area outside image or x-axis
+	 * 
+	 * 5: manually marked by the user
+	 * 
+	 * 6: match accepted by the user
+	 * 
+	 * 7: never searched
+	 * 
+	 * 8: possible match but previously marked
+	 * 
+	 * 9: no match found but previously marked
+	 * 
+	 * 10: calibration tool possible match
 	 * 
 	 * @param n the frame number
 	 * @return the status code
@@ -1576,14 +1605,14 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 	protected int getStatusCode(int n) {
 		FrameData frameData = getOrCreateFrameData(n);
 		if (frameData.isKeyFrameData())
-			return 0; // key frame
+			return STATUS_KEY_FRAME; // key frame
 		double[] widthAndHeight = frameData.getMatchWidthAndHeight();
 		if (frameData.isMarked()) { // frame is marked (includes always-marked tracks like axes, calibration points,
 			// etc)
 			if (frameData.isAutoMarked()) { // automarked
 				if (widthAndHeight[1] > goodMatch)
-					return 1; // automarked with good match
-				return 6; // accepted by user
+					return STATUS_AUTO_MARKED_GOOD; // automarked with good match
+				return STATUS_ACCEPTED_BY_USER; // accepted by user
 			}
 			// not automarked
 			TTrack track = getTrack();
@@ -1596,27 +1625,28 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 			if (frameData.searched) {
 				if (isCalibrationTool) {
 					if (widthAndHeight[1] > possibleMatch)
-						return 8; // possible match for calibration
-					return 9; // no match found, existing mark or calibration
+						return STATUS_POSSIBLE_MATCH; // possible match for calibration
+					return STATUS_NO_MATCH_FOUND_SEARCHED; // no match found, existing mark or calibration
 				}
 				if (frameData.decided)
-					return 5; // manually marked by user
+					return STATUS_MANUALLY_MARKED; // manually marked by user
 				if (widthAndHeight[1] > possibleMatch)
-					return 8; // possible match, already marked
-				return 9; // no match found, existing mark or calibration
+					return STATUS_POSSIBLE_MATCH; // possible match, already marked
+				return STATUS_NO_MATCH_FOUND_SEARCHED; // no match found, existing mark or calibration
 			}
-			return 7; // never searched
+			return STATUS_NEVER_SEARCHED; // never searched
 		}
 		if (frameData.searched) { // frame unmarked but searched
 			if (widthAndHeight[1] < possibleMatch)
-				return 3; // no match found
-			return 2; // possible match found but not marked
+				return STATUS_NO_MATCH_FOUND_UNMARKED; // no match found
+			return STATUS_POSSIBLE_MATCH_NOT_MARKED; // possible match found but not marked
 		}
 		// frame is unmarked and unsearched
 		if (widthAndHeight == null)
-			return 7; // never searched
-		return 4; // tried but unable to search
+			return STATUS_NEVER_SEARCHED; // never searched
+		return STATUS_TRIED_UNABLE_TO_SEARCH; // tried but unable to search
 	}
+	
 
 	protected boolean canStep() {
 		VideoPlayer player = trackerPanel.getPlayer();
@@ -3694,7 +3724,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 			StringBuffer buf = new StringBuffer();
 			buf.append(TrackerRes.getString("AutoTracker.Info.Frame") + " " + n); //$NON-NLS-1$ //$NON-NLS-2$
 			switch (code) {
-			case 0: // keyframe
+			case STATUS_KEY_FRAME: // keyframe
 				textPane.setForeground(Color.blue);
 				buf.append(" ("); //$NON-NLS-1$
 				buf.append(TrackerRes.getString("AutoTracker.Info.KeyFrame").toLowerCase()); //$NON-NLS-1$
@@ -3705,13 +3735,13 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 				buf.append(" "); //$NON-NLS-1$
 				buf.append(TrackerRes.getString("AutoTracker.Info.MouseOver.Instructions")); //$NON-NLS-1$
 				break;
-			case 1: // good match was found and marked
+			case STATUS_AUTO_MARKED_GOOD: // good match was found and marked
 				textPane.setForeground(Color.green.darker());
 				buf.append(" (" + TrackerRes.getString("AutoTracker.Info.MatchScore")); //$NON-NLS-1$ //$NON-NLS-2$
 				buf.append(" " + format.format(peakWidthAndHeight[1]) + "): "); //$NON-NLS-1$ //$NON-NLS-2$
 				buf.append(TrackerRes.getString("AutoTracker.Info.Match")); //$NON-NLS-1$
 				break;
-			case 2: // possible match was found, not marked
+			case STATUS_POSSIBLE_MATCH_NOT_MARKED: // possible match was found, not marked
 				textPane.setForeground(Color.red);
 				buf.append(" (" + TrackerRes.getString("AutoTracker.Info.MatchScore")); //$NON-NLS-1$ //$NON-NLS-2$
 				buf.append(" " + format.format(peakWidthAndHeight[1]) + "): "); //$NON-NLS-1$ //$NON-NLS-2$
@@ -3729,7 +3759,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 				if (canStep())
 					buf.append("\n" + TrackerRes.getString("AutoTracker.Info.Skip")); //$NON-NLS-1$ //$NON-NLS-2$
 				break;
-			case 3: // no match was found
+			case STATUS_NO_MATCH_FOUND_UNMARKED: // no match was found
 				textPane.setForeground(Color.red);
 				buf.append(": "); //$NON-NLS-1$
 				if (lineSpread >= 0) {
@@ -3744,7 +3774,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 				if (canStep())
 					buf.append("\n" + TrackerRes.getString("AutoTracker.Info.Skip")); //$NON-NLS-1$ //$NON-NLS-2$
 				break;
-			case 4: // searchRect failed (no video image or x-axis inside)
+			case STATUS_TRIED_UNABLE_TO_SEARCH: // searchRect failed (no video image or x-axis inside)
 				textPane.setForeground(Color.red);
 				buf.append(": "); //$NON-NLS-1$
 				if (lineSpread >= 0) { // 1D tracking
@@ -3758,18 +3788,18 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 				if (canStep())
 					buf.append("\n" + TrackerRes.getString("AutoTracker.Info.Skip")); //$NON-NLS-1$ //$NON-NLS-2$
 				break;
-			case 5: // target marked manually
+			case STATUS_MANUALLY_MARKED: // target marked manually
 				textPane.setForeground(Color.blue);
 				buf.append(": "); //$NON-NLS-1$
 				buf.append(TrackerRes.getString("AutoTracker.Info.MarkedByUser")); //$NON-NLS-1$
 				break;
-			case 6: // match accepted
+			case STATUS_ACCEPTED_BY_USER: // match accepted
 				textPane.setForeground(Color.green.darker());
 				buf.append(" (" + TrackerRes.getString("AutoTracker.Info.MatchScore")); //$NON-NLS-1$ //$NON-NLS-2$
 				buf.append(" " + format.format(peakWidthAndHeight[1]) + "): "); //$NON-NLS-1$ //$NON-NLS-2$
 				buf.append(TrackerRes.getString("AutoTracker.Info.Accepted")); //$NON-NLS-1$
 				break;
-			case 7: // not searched or marked
+			case STATUS_NEVER_SEARCHED: // not searched or marked
 				textPane.setForeground(Color.blue);
 				buf.append(" ("); //$NON-NLS-1$
 				buf.append(TrackerRes.getString("AutoTracker.Info.Unsearched")); //$NON-NLS-1$
@@ -3780,7 +3810,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 				buf.append("\n\n"); //$NON-NLS-1$
 				buf.append(TrackerRes.getString("AutoTracker.Info.MouseOver.Instructions")); //$NON-NLS-1$
 				break;
-			case 8: // possible match found, existing mark or calibration tool
+			case STATUS_POSSIBLE_MATCH: // possible match found, existing mark or calibration tool
 				textPane.setForeground(Color.blue);
 				buf.append(" (" + TrackerRes.getString("AutoTracker.Info.MatchScore")); //$NON-NLS-1$ //$NON-NLS-2$
 				buf.append(" " + format.format(peakWidthAndHeight[1]) + "): "); //$NON-NLS-1$ //$NON-NLS-2$
@@ -3797,7 +3827,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 				}
 				buf.append("\n" + TrackerRes.getString("AutoTracker.Info.NewKeyFrame")); //$NON-NLS-1$ //$NON-NLS-2$
 				break;
-			case 9: // no match found, existing mark or calibration tool
+			case STATUS_NO_MATCH_FOUND_SEARCHED: // no match found, existing mark or calibration tool
 				textPane.setForeground(Color.red);
 				buf.append(": "); //$NON-NLS-1$
 				if (lineSpread >= 0) {
@@ -3811,7 +3841,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 					buf.append("\n" + TrackerRes.getString("AutoTracker.Info.Keep")); //$NON-NLS-1$ //$NON-NLS-2$
 				buf.append("\n" + TrackerRes.getString("AutoTracker.Info.NewKeyFrame")); //$NON-NLS-1$ //$NON-NLS-2$
 				break;
-			case 10: // no match found, already marked
+			case STATUS_CALIB_TOOL_POSSIBLE_MATCH: // no match found, already marked
 				textPane.setForeground(Color.red);
 				buf.append(": "); //$NON-NLS-1$
 				if (lineSpread >= 0) {
