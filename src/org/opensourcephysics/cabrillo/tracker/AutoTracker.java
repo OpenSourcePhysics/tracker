@@ -167,11 +167,11 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 	private Wizard wizard;
 	private Shape match = new Ellipse2D.Double();
 	private double minMaskRadius = 4;
-	private Handle maskHandle = new Handle();
-	private Corner maskCorner = new Corner();
+	private Handle maskHandle = new Handle("mask");
+	private Corner maskCorner = new Corner("mask");
 	private TPoint maskCenter = new TPoint();
-	private Handle searchHandle = new Handle();
-	private Corner searchCorner = new Corner();
+	private Handle searchHandle = new Handle("search");
+	private Corner searchCorner = new Corner("search");
 	private TPoint searchCenter = new TPoint();
 	private TPoint predictedTarget = new TPoint();
 	private Rectangle2D searchRect2D = new Rectangle2D.Double();
@@ -639,6 +639,18 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 	 */
 	@Override
 	public Interactive findInteractive(DrawingPanel panel, int xpix, int ypix) {
+		Interactive ia = findInteractiveImp(panel, xpix, ypix);
+//		if (ia != null)
+//			System.out.println(ia.getClass().getSimpleName() + " " 
+//					+ (ia instanceof ATObject ? 
+//					((ATObject) ia).name : ia.getClass().getSimpleName()) 
+//					+ "  " + test++);
+		return ia;
+	}
+	
+	int test = 0;
+	
+	private Interactive findInteractiveImp(DrawingPanel panel, int xpix, int ypix) {
 		isInteracting = false;
 		KeyFrameData keyFrameData = getPanelKeyFrameData();
 		if (keyFrameData == null || !wizard.isVisible() || getVideo() == null) {
@@ -652,23 +664,26 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 				return target;
 			}
 		}
+
 		hitPt.setLocation(xpix, ypix);
-		if (searchVisible) {
-			if (hitRect.contains(searchCorner.getScreenPosition(trackerPanel))) {
-				return searchCorner;
-			}
-			if (searchHitShape.intersects(hitRect)) {
-				return searchHandle;
-			}
+
+		// BH moved corners up in front of handles so that they can be found.
+		if (searchVisible && hitRect.contains(searchCorner.getScreenPosition(trackerPanel))) {
+			return searchCorner;
 		}
-		if (maskVisible) {
-			if (hitRect.contains(maskCorner.getScreenPosition(trackerPanel))) {
-				return maskCorner;
-			}
-			if (maskHitShape.intersects(hitRect)) {
-				return maskHandle;
-			}
+
+		if (maskVisible && hitRect.contains(maskCorner.getScreenPosition(trackerPanel))) {
+			return maskCorner;
 		}
+
+		if (maskVisible && maskHitShape.intersects(hitRect)) {
+			return maskHandle;
+		}
+
+		if (searchVisible && searchHitShape.intersects(hitRect)) {
+			return searchHandle;
+		}
+
 		return null;
 	}
 
@@ -1803,12 +1818,25 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 		return null;
 	}
 
+	abstract protected class ATObject extends TPoint {
+
+		final String name;
+		
+		public ATObject(String name) {
+			this.name = name;
+		}
+	}
 //____________________ inner TPoint classes ______________________
 
 	/**
 	 * An edge point used for translation.
 	 */
-	protected class Handle extends TPoint {
+	protected class Handle extends ATObject {
+
+		
+		public Handle(String name) {
+			super(name);
+		}
 
 		/**
 		 * Overrides TPoint setXY method.
@@ -1872,7 +1900,12 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 	/**
 	 * A corner point used for resizing.
 	 */
-	protected class Corner extends TPoint {
+	protected class Corner extends ATObject {
+
+		public Corner(String name) {
+			super(name);
+		}
+		
 
 		/**
 		 * Overrides TPoint setXY method.
