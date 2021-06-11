@@ -1262,12 +1262,12 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 	 */
 	protected void dispose() {
 		trackerPanel.removeDrawable(this);
-		trackerPanel.removePropertyChangeListener("selectedpoint", this); //$NON-NLS-1$
+		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDPOINT, this); //$NON-NLS-1$
 		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDTRACK, this); // $NON-NLS-1$
 		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this); // $NON-NLS-1$
 		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR, this); // $NON-NLS-1$
-		trackerPanel.removePropertyChangeListener("video", this); //$NON-NLS-1$
-		trackerPanel.removePropertyChangeListener("stepnumber", this); //$NON-NLS-1$
+		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_VIDEO, this); //$NON-NLS-1$
+		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_STEPNUMBER, this); //$NON-NLS-1$
 		setTrack(null);
 		trackDataMap.clear();
 		trackerPanel.autoTracker = null;
@@ -1971,7 +1971,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 			templateImage = matcher.getTemplate();
 			templateAlphas[0] = matcher.getAlphas()[0];
 			templateAlphas[1] = matcher.getAlphas()[1];
-			workingPixels = matcher.getWorkingPixels(workingPixels);
+			workingPixels = matcher.getWorkingPixels();//workingPixels);
 			matcherHashCode = matcher.hashCode();
 			// refresh icons
 			setMatchIcon(null);
