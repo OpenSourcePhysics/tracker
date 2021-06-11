@@ -1074,7 +1074,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 		// get new image to rebuild template
 		rect.x = (int) Math.round(matchPts[2].getX());
 		rect.y = (int) Math.round(matchPts[2].getY());
-		BufferedImage image = matcher.buildTemplate(newImage(rect), evolveAlpha, tetherAlpha);
+		BufferedImage image = matcher.buildTemplate(newVideoImage(rect), evolveAlpha, tetherAlpha);
 		matcher.setIndex(frameData.getFrameNumber());
 		return image;
 	}
@@ -1092,12 +1092,12 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 			Rectangle rect = mask.getBounds();
 			// translate mask to (0, 0) relative to template
 			transform.setToTranslation(-rect.x, -rect.y);
-			return new TemplateMatcher(newImage(rect), transform.createTransformedShape(mask));
+			return new TemplateMatcher(newVideoImage(rect), transform.createTransformedShape(mask));
 		}
 		return null;
 	}
 
-	private BufferedImage newImage(Rectangle rect) {
+	private BufferedImage newVideoImage(Rectangle rect) {
 		BufferedImage image = new BufferedImage(rect.width, rect.height, BufferedImage.TYPE_INT_RGB);
 		Graphics2D g = image.createGraphics();
 		g.drawImage(getVideo().getImage(), -rect.x, -rect.y, null);
