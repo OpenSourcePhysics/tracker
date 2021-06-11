@@ -2525,19 +2525,16 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 				trackDropdown.getComponent(i).addMouseListener(mouseOverListener);
 			}
 			trackDropdown.setRenderer(new TrackRenderer());
-			trackDropdown.addActionListener(new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					if ("refresh".equals(trackDropdown.getName())) //$NON-NLS-1$
-						return;
-					Object[] item = (Object[]) trackDropdown.getSelectedItem();
-					if (item != null) {
-						TTrack t = trackerPanel.getTrackByName(TTrack.class, (String) item[1]);
-						if (t != null) {
-							stop(true, false);
-							setTrack(t);
-							refreshGUI();
-						}
+			trackDropdown.addActionListener((e) -> {
+				if ("refresh".equals(trackDropdown.getName())) //$NON-NLS-1$
+					return;
+				Object[] item = (Object[]) trackDropdown.getSelectedItem();
+				if (item != null) {
+					TTrack t = trackerPanel.getTrackByName(TTrack.class, (String) item[1]);
+					if (t != null) {
+						stop(true, false);
+						setTrack(t);
+						refreshGUI();
 					}
 				}
 			});
@@ -2546,74 +2543,15 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 			startPanel = new JPanel();
 			startButton = new JButton();
 			startButton.setDisabledIcon(graySearchIcon);
-			final ActionListener searchAction = new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					hidePopup = false;
-					if (stepping) {
-						stop(false, false); // stop after the next search
-					} else
-						search(true, true); // search this frame and keep stepping
-				}
+			final ActionListener searchAction = (e) -> {
+				hidePopup = false;
+				if (stepping) {
+					stop(false, false); // stop after the next search
+				} else
+					search(true, true); // search this frame and keep stepping
 			};
 
-			startButton.addActionListener(new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					if (hidePopup) {
-						popup.setVisible(false);
-						hidePopup = false;
-						return;
-					}
-					// set "neverPause" flag
-					neverPause = (e.getModifiers() & 0x01) == 1; // shift key down
-					if (neverPause && !stepping) {
-						// show popup menu
-						if (popup == null) {
-							popup = new JPopupMenu();
-							JMenuItem item = new JMenuItem(
-									TrackerRes.getString("AutoTracker.Wizard.Menuitem.SearchFixed")); //$NON-NLS-1$
-							item.setToolTipText(
-									TrackerRes.getString("AutoTracker.Wizard.MenuItem.SearchFixed.Tooltip")); //$NON-NLS-1$
-							item.addActionListener(searchAction);
-							item.addMouseListener(new MouseAdapter() {
-								@Override
-								public void mouseEntered(MouseEvent e) {
-									prepareForFixedSearch(true);
-								}
-
-								@Override
-								public void mouseExited(MouseEvent e) {
-									prepareForFixedSearch(false);
-								}
-							});
-							popup.add(item);
-							popup.addSeparator();
-							item = new JMenuItem(TrackerRes.getString("AutoTracker.Wizard.Menuitem.CopyMatchScores")); //$NON-NLS-1$
-							item.setToolTipText(
-									TrackerRes.getString("AutoTracker.Wizard.MenuItem.CopyMatchScores.Tooltip")); //$NON-NLS-1$
-							item.addActionListener(new ActionListener() {
-								@Override
-								public void actionPerformed(ActionEvent e) {
-									hidePopup = false;
-									// get match score data string
-									String matchScore = getMatchDataString();
-									// copy to the clipboard
-									Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-									StringSelection stringSelection = new StringSelection(matchScore);
-									clipboard.setContents(stringSelection, stringSelection);
-								}
-							});
-							popup.add(item);
-						}
-						hidePopup = true;
-						FontSizer.setFonts(popup, FontSizer.getLevel());
-						popup.show(startButton, 0, startButton.getHeight());
-					} else {
-						searchAction.actionPerformed(e);
-					}
-				}
-			});
+			startButton.addActionListener((e) -> { startAction(e, searchAction); });
 			startButton.addKeyListener(kl);
 			startButton.addMouseMotionListener(new MouseAdapter() {
 				@Override
@@ -2626,26 +2564,20 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 			});
 			startPanel.add(startButton);
 			searchThisButton = new JButton();
-			searchThisButton.addActionListener(new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					if (searchThisButton.getName() != null) {
-						trackerPanel.getPlayer().back();
-						return;
-					}
-					neverPause = (e.getModifiers() > 16);
-					search(true, false); // search this frame and stop
+			searchThisButton.addActionListener((e) -> {
+				if (searchThisButton.getName() != null) {
+					trackerPanel.getPlayer().back();
+					return;
 				}
+				neverPause = (e.getModifiers() > 16);
+				search(true, false); // search this frame and stop
 			});
 			searchThisButton.addKeyListener(kl);
 			startPanel.add(searchThisButton);
 			searchNextButton = new JButton();
-			searchNextButton.addActionListener(new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					neverPause = (e.getModifiers() > 16);
-					search(false, false); // search next frame and stop
-				}
+			searchNextButton.addActionListener((e) -> {
+				neverPause = (e.getModifiers() > 16);
+				search(false, false); // search next frame and stop
 			});
 			searchNextButton.addKeyListener(kl);
 			startPanel.add(searchNextButton);
@@ -2798,46 +2730,36 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 			oneDCheckbox.addMouseListener(mouseOverListener);
 			oneDCheckbox.setOpaque(false);
 			oneDCheckbox.setSelected(lineSpread >= 0);
-			oneDCheckbox.addActionListener(new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					lineSpread = oneDCheckbox.isSelected() ? 0 : -1;
-					setChanged();
-					if (oneDCheckbox.isSelected()) {
-						CoordAxes axes = trackerPanel.getAxes();
-						int n = trackerPanel.getFrameNumber();
-						KeyFrameData keyFrameData = getOrCreateFrameData(n).getKeyFrameData();
-						if (keyFrameData != null) {
-							n = keyFrameData.getFrameNumber();
-							TPoint[] maskPts = keyFrameData.getMaskPoints();
-							axes.getOrigin().setXY(maskPts[0].x, maskPts[0].y);
-						}
-						axes.setVisible(true);
+			oneDCheckbox.addActionListener((e) -> {
+				lineSpread = oneDCheckbox.isSelected() ? 0 : -1;
+				setChanged();
+				if (oneDCheckbox.isSelected()) {
+					CoordAxes axes = trackerPanel.getAxes();
+					int n = trackerPanel.getFrameNumber();
+					KeyFrameData keyFrameData = getOrCreateFrameData(n).getKeyFrameData();
+					if (keyFrameData != null) {
+						n = keyFrameData.getFrameNumber();
+						TPoint[] maskPts = keyFrameData.getMaskPoints();
+						axes.getOrigin().setXY(maskPts[0].x, maskPts[0].y);
 					}
-					TFrame.repaintT(trackerPanel);
+					axes.setVisible(true);
 				}
+				TFrame.repaintT(trackerPanel);
 			});
 			lookAheadCheckbox = new JCheckBox();
 			lookAheadCheckbox.addMouseListener(mouseOverListener);
 			lookAheadCheckbox.setOpaque(false);
 			lookAheadCheckbox.setSelected(lookAhead);
-			lookAheadCheckbox.addActionListener(new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					lookAhead = lookAheadCheckbox.isSelected();
-					setChanged();
-				}
+			lookAheadCheckbox.addActionListener((e) -> {
+				lookAhead = lookAheadCheckbox.isSelected();
+				setChanged();
 			});
 			autoSkipCheckbox = new JCheckBox();
 			autoSkipCheckbox.addMouseListener(mouseOverListener);
 			autoSkipCheckbox.setOpaque(false);
 			autoSkipCheckbox.setSelected(autoSkip);
-			autoSkipCheckbox.addActionListener(new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					autoSkip = autoSkipCheckbox.isSelected();
-//					setChanged();
-				}
+			autoSkipCheckbox.addActionListener((e) -> {
+				autoSkip = autoSkipCheckbox.isSelected();
 			});
 			flowpanel = new JPanel();
 			flowpanel.setBorder(BorderFactory.createEmptyBorder(1, 0, 0, 0));
@@ -2880,23 +2802,20 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 			for (int i = 0; i < pointDropdown.getComponentCount(); i++) {
 				pointDropdown.getComponent(i).addMouseListener(mouseOverListener);
 			}
-			pointDropdown.addActionListener(new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					if ("refresh".equals(pointDropdown.getName())) //$NON-NLS-1$
+			pointDropdown.addActionListener((e) -> {
+				if ("refresh".equals(pointDropdown.getName())) //$NON-NLS-1$
+					return;
+				String item = (String) pointDropdown.getSelectedItem();
+				if (item != null) {
+					stop(true, false);
+					TTrack track = getTrack();
+					if (track == null)
 						return;
-					String item = (String) pointDropdown.getSelectedItem();
-					if (item != null) {
-						stop(true, false);
-						TTrack track = getTrack();
-						if (track == null)
-							return;
-						track.setTargetIndex(item);
-						TPoint[] searchPts = getPanelFrameData().getSearchPoints(true);
-						if (searchPts != null)
-							setSearchPoints(searchPts[0], searchPts[1]);
-						refreshGUI();
-					}
+					track.setTargetIndex(item);
+					TPoint[] searchPts = getPanelFrameData().getSearchPoints(true);
+					if (searchPts != null)
+						setSearchPoints(searchPts[0], searchPts[1]);
+					refreshGUI();
 				}
 			});
 
@@ -2921,87 +2840,30 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 
 			// create buttons
 			closeButton = new JButton();
-			closeButton.addActionListener(new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					stop(true, true); // stop after the next search
-					setVisible(false);
-				}
+			closeButton.addActionListener((e) -> { 
+				stop(true, true); // stop after the next search
+				setVisible(false);
 			});
 			closeButton.addKeyListener(kl);
 
 			helpButton = new JButton();
-			helpButton.addActionListener(new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					trackerPanel.getTFrame().showHelp("autotracker", 0); //$NON-NLS-1$
-				}
-			});
+			helpButton.addActionListener((e) -> { trackerPanel.getTFrame().showHelp("autotracker", 0); });
 			helpButton.addKeyListener(kl);
 
 			acceptButton = new JButton();
-			acceptButton.addActionListener(new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					int n = trackerPanel.getFrameNumber();
-					FrameData frameData = getOrCreateFrameData(n);
-					// build evolved template
-					TemplateMatcher matcher = getTemplateMatcher();
-					matcher.setTemplate(frameData.getTemplateImage());
-					matcher.setWorkingPixels(frameData.getWorkingPixels());
-					buildEvolvedTemplateImage(frameData);
-					// mark the target
-					marking = true;
-					TPoint p = getMatchTarget(frameData.getMatchPoints()[0]);
-					TTrack track = getTrack();
-					TPoint target = track.autoMarkAt(n, p.x, p.y);
-					frameData.setAutoMarkPoint(target);
-					frameData.decided = true;
-					if (stepping && canStep()) {
-						paused = false;
-						trackerPanel.getPlayer().step();
-					} else {
-						stop(true, true);
-					}
-				}
-			});
+			acceptButton.addActionListener((e) -> { acceptAction(); });
 			acceptButton.addKeyListener(kl);
 
 			skipButton = new JButton();
-			skipButton.addActionListener(new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					// set decided flag
-					getPanelFrameData().decided = true;
-					// eliminate match icon?
-//    			frame.setMatchIcon(null);
-					// step to the next frame if possible
-					if (canStep()) {
-						paused = false;
-						trackerPanel.getPlayer().step();
-					} else {
-						stop(true, false);
-					}
-				}
-			});
+			skipButton.addActionListener((e) -> { skipAction(); });
 			skipButton.addKeyListener(kl);
 
 			deleteButton = new JButton();
-			deleteButton.addActionListener(new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					deleteButtonAction();
-				}
-			});
+			deleteButton.addActionListener((e) -> {	deleteButtonAction(); });
 			deleteButton.addKeyListener(kl);
 
 			keyFrameButton = new JButton();
-			keyFrameButton.addActionListener(new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					keyFrameButtonAction();
-				}
-			});
+			keyFrameButton.addActionListener((e) ->  { keyFrameButtonAction(); });
 			keyFrameButton.addKeyListener(kl);
 
 			// assemble content
@@ -3046,6 +2908,95 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 			evolveAlpha = getAlphaFromPercent(defaultEvolve);
 			tetherAlpha = getAlphaFromPercent(defaultTether);
 //			refreshGUI();
+		}
+
+		protected void acceptAction() {
+			int n = trackerPanel.getFrameNumber();
+			FrameData frameData = getOrCreateFrameData(n);
+			// build evolved template
+			TemplateMatcher matcher = getTemplateMatcher();
+			matcher.setTemplate(frameData.getTemplateImage());
+			matcher.setWorkingPixels(frameData.getWorkingPixels());
+			buildEvolvedTemplateImage(frameData);
+			// mark the target
+			marking = true;
+			TPoint p = getMatchTarget(frameData.getMatchPoints()[0]);
+			TTrack track = getTrack();
+			TPoint target = track.autoMarkAt(n, p.x, p.y);
+			frameData.setAutoMarkPoint(target);
+			frameData.decided = true;
+			if (stepping && canStep()) {
+				paused = false;
+				trackerPanel.getPlayer().step();
+			} else {
+				stop(true, true);
+			}
+		}
+
+		protected void skipAction() {
+			// set decided flag
+			getPanelFrameData().decided = true;
+			// eliminate match icon?
+			//    			frame.setMatchIcon(null);
+			// step to the next frame if possible
+			if (canStep()) {
+				paused = false;
+				trackerPanel.getPlayer().step();
+			} else {
+				stop(true, false);
+			}
+		}
+		
+		protected void startAction(ActionEvent e, ActionListener searchAction) {
+			if (hidePopup) {
+				popup.setVisible(false);
+				hidePopup = false;
+				return;
+			}
+			// set "neverPause" flag
+			neverPause = (e.getModifiers() & 0x01) == 1; // shift key down
+			if (neverPause && !stepping) {
+				// show popup menu
+				if (popup == null) {
+					popup = new JPopupMenu();
+					JMenuItem item = new JMenuItem(
+							TrackerRes.getString("AutoTracker.Wizard.Menuitem.SearchFixed")); //$NON-NLS-1$
+					item.setToolTipText(
+							TrackerRes.getString("AutoTracker.Wizard.MenuItem.SearchFixed.Tooltip")); //$NON-NLS-1$
+					item.addActionListener(searchAction);
+					item.addMouseListener(new MouseAdapter() {
+						@Override
+						public void mouseEntered(MouseEvent e) {
+							prepareForFixedSearch(true);
+						}
+
+						@Override
+						public void mouseExited(MouseEvent e) {
+							prepareForFixedSearch(false);
+						}
+					});
+					popup.add(item);
+					popup.addSeparator();
+					item = new JMenuItem(TrackerRes.getString("AutoTracker.Wizard.Menuitem.CopyMatchScores")); //$NON-NLS-1$
+					item.setToolTipText(
+							TrackerRes.getString("AutoTracker.Wizard.MenuItem.CopyMatchScores.Tooltip")); //$NON-NLS-1$
+					item.addActionListener((e2) -> {
+						hidePopup = false;
+						// get match score data string
+						String matchScore = getMatchDataString();
+						// copy to the clipboard
+						Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+						StringSelection stringSelection = new StringSelection(matchScore);
+						clipboard.setContents(stringSelection, stringSelection);
+					});
+					popup.add(item);
+				}
+				hidePopup = true;
+				FontSizer.setFonts(popup, FontSizer.getLevel());
+				popup.show(startButton, 0, startButton.getHeight());
+			} else {
+				searchAction.actionPerformed(e);
+			}
 		}
 
 		protected void deleteLaterAction() {
@@ -4033,5 +3984,5 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 		}
 
 	}
-	
+
 }
