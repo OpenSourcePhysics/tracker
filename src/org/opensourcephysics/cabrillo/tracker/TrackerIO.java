@@ -40,6 +40,8 @@ import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
 import java.awt.print.PageFormat;
 import java.awt.print.Printable;
@@ -74,6 +76,7 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JProgressBar;
 import javax.swing.JSplitPane;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
@@ -1743,6 +1746,7 @@ public class TrackerIO extends VideoIO {
 		private List<VideoPanel> panelList = new ArrayList<>();
 
 		private LibraryBrowser libraryBrowser;
+		private MonitorDialog monitorDialog;
 		/**
 		 * 
 		 * @param paths  or more paths to load in sequence
@@ -1783,7 +1787,6 @@ public class TrackerIO extends VideoIO {
 			path = ResourceLoader.getURIPath(path);
 			isffmpegError = false;
 			theFrame = frame;
-//			setCanceled(false);
 			// prevent circular references when loading tabsets
 			nonURIPath = ResourceLoader.getNonURIPath(path);
 			if (rawPath.startsWith("//") && nonURIPath.startsWith("/") && !nonURIPath.startsWith("//")) //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
@@ -1796,13 +1799,13 @@ public class TrackerIO extends VideoIO {
 			if (!ResourceLoader.isHTTP(path))
 				path = nonURIPath;
 
-//			// create progress monitor
-//			monitorDialog = new MonitorDialog(frame, path);
-//			monitorDialog.setVisible(true);
-//			monitors.add(monitorDialog);
+			// create progress monitor
+			monitorDialog = new MonitorDialog(frame, path);
+			monitorDialog.setVisible(true);
+			monitors.add(monitorDialog);
+			setCanceled(false);
 
-			// load data from zip or trz file
-			
+			// load data from zip or trz file			
 			boolean isTRZ = ResourceLoader.isJarZipTrz(path, false);
 			
 			if (isTRZ || path.indexOf("&TrackerSet=") >= 0) {
@@ -2291,7 +2294,7 @@ public class TrackerIO extends VideoIO {
 			}
 			TFrame.repaintT(trackerPanel);
 			frame.setSelectedTab(trackerPanel);
-//			monitorDialog.close();
+			monitorDialog.close();
 			// check for video frames with durations that vary by 20% from average
 			if (Tracker.warnVariableDuration)
 				findBadVideoFrames(trackerPanel, defaultBadFrameTolerance, true, true, true);
@@ -2386,113 +2389,113 @@ public class TrackerIO extends VideoIO {
 
 	}
 
-//	static class MonitorDialog extends JDialog implements TrackerMonitor {
-//
-//		JProgressBar monitor;
-//		Timer timer;
-//		int frameCount = Integer.MIN_VALUE;
-//
-//		MonitorDialog(TFrame frame, String path) {
-//			super(frame, false);
-//			setName(path);
-//			JPanel contentPane = new JPanel(new BorderLayout());
-//			setContentPane(contentPane);
-//			monitor = new JProgressBar(0, 100);
-//			monitor.setValue(0);
-//			monitor.setStringPainted(true);
-//			// make timer to step progress forward slowly
-//			timer = new Timer(300, new ActionListener() {
-//				@Override
-//				public void actionPerformed(ActionEvent e) {
-//					if (!isVisible())
-//						return;
-//					int progress = monitor.getValue() + 1;
-//					if (progress <= 20)
-//						monitor.setValue(progress);
-//				}
-//			});
-//			timer.setRepeats(true);
-//			this.addWindowListener(new WindowAdapter() {
-//				@Override
-//				public void windowClosing(WindowEvent e) {
-//					VideoIO.setCanceled(true);
-//				}
-//			});
-////	  	// give user a way to close unwanted dialog: double-click
-////	  	addMouseListener(new MouseAdapter() {
-////	  		public void mouseClicked(MouseEvent e) {
-////	  			if (e.getClickCount()==2) {
-////	        	close();
-////	  			}
-////	  		}
-////	  	});
-//			JPanel progressPanel = new JPanel(new BorderLayout());
-//			progressPanel.setBorder(BorderFactory.createEmptyBorder(4, 30, 8, 30));
-//			progressPanel.add(monitor, BorderLayout.CENTER);
-//			progressPanel.setOpaque(false);
-//			JLabel label = new JLabel(TrackerRes.getString("Tracker.Splash.Loading") //$NON-NLS-1$
-//					+ " \"" + XML.getName(path) + "\""); //$NON-NLS-1$ //$NON-NLS-2$
-//			JPanel labelbar = new JPanel();
-//			labelbar.add(label);
-//			JButton cancelButton = new JButton(TrackerRes.getString("Dialog.Button.Cancel")); //$NON-NLS-1$
-//			cancelButton.addActionListener(new ActionListener() {
-//				@Override
-//				public void actionPerformed(ActionEvent e) {
-//					VideoIO.setCanceled(true);
-//					close();
-//				}
-//			});
-//			JPanel buttonbar = new JPanel();
-//			buttonbar.add(cancelButton);
-//			contentPane.add(labelbar, BorderLayout.NORTH);
-//			contentPane.add(progressPanel, BorderLayout.CENTER);
-//			contentPane.add(buttonbar, BorderLayout.SOUTH);
-//			FontSizer.setFonts(contentPane, FontSizer.getLevel());
-//			pack();
-//			Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
-//			int x = (dim.width - getBounds().width) / 2;
-//			int y = (dim.height - getBounds().height) / 2;
-//			setLocation(x, y);
-//			timer.start();
-//		}
-//
-//		@Override
-//		public void stop() {
-//			timer.stop();
-//		}
-//
-//		@Override
-//		public void restart() {
-//			monitor.setValue(0);
-//			frameCount = Integer.MIN_VALUE;
-//			// restart timer
-//			timer.start();
-//		}
-//
-//		@Override
-//		public void setProgressAsync(int progress) {
-//			monitor.setValue(progress);
-//		}
-//
-//		@Override
-//		public void setFrameCount(int count) {
-//			frameCount = count;
-//		}
-//
-//		@Override
-//		public int getFrameCount() {
-//			return frameCount;
-//		}
-//
-//		@Override
-//		public void close() {
-//			timer.stop();
-//			setVisible(false);
-//			monitors.remove(this);
-//			dispose();
-//		}
-//
-//	}
+	static class MonitorDialog extends JDialog implements TrackerMonitor {
+
+		JProgressBar monitor;
+		Timer timer;
+		int frameCount = Integer.MIN_VALUE;
+
+		MonitorDialog(TFrame frame, String path) {
+			super(frame, false);
+			setName(path);
+			JPanel contentPane = new JPanel(new BorderLayout());
+			setContentPane(contentPane);
+			monitor = new JProgressBar(0, 100);
+			monitor.setValue(0);
+			monitor.setStringPainted(true);
+			// make timer to step progress forward slowly
+			timer = new Timer(300, new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					if (!isVisible())
+						return;
+					int progress = monitor.getValue() + 1;
+					if (progress <= 20)
+						monitor.setValue(progress);
+				}
+			});
+			timer.setRepeats(true);
+			this.addWindowListener(new WindowAdapter() {
+				@Override
+				public void windowClosing(WindowEvent e) {
+					VideoIO.setCanceled(true);
+				}
+			});
+//	  	// give user a way to close unwanted dialog: double-click
+//	  	addMouseListener(new MouseAdapter() {
+//	  		public void mouseClicked(MouseEvent e) {
+//	  			if (e.getClickCount()==2) {
+//	        	close();
+//	  			}
+//	  		}
+//	  	});
+			JPanel progressPanel = new JPanel(new BorderLayout());
+			progressPanel.setBorder(BorderFactory.createEmptyBorder(4, 30, 8, 30));
+			progressPanel.add(monitor, BorderLayout.CENTER);
+			progressPanel.setOpaque(false);
+			JLabel label = new JLabel(TrackerRes.getString("Tracker.Splash.Loading") //$NON-NLS-1$
+					+ " \"" + XML.getName(path) + "\""); //$NON-NLS-1$ //$NON-NLS-2$
+			JPanel labelbar = new JPanel();
+			labelbar.add(label);
+			JButton cancelButton = new JButton(TrackerRes.getString("Dialog.Button.Cancel")); //$NON-NLS-1$
+			cancelButton.addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					VideoIO.setCanceled(true);
+					close();
+				}
+			});
+			JPanel buttonbar = new JPanel();
+			buttonbar.add(cancelButton);
+			contentPane.add(labelbar, BorderLayout.NORTH);
+			contentPane.add(progressPanel, BorderLayout.CENTER);
+			contentPane.add(buttonbar, BorderLayout.SOUTH);
+			FontSizer.setFonts(contentPane, FontSizer.getLevel());
+			pack();
+			Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
+			int x = (dim.width - getBounds().width) / 2;
+			int y = (dim.height - getBounds().height) / 2;
+			setLocation(x, y);
+			timer.start();
+		}
+
+		@Override
+		public void stop() {
+			timer.stop();
+		}
+
+		@Override
+		public void restart() {
+			monitor.setValue(0);
+			frameCount = Integer.MIN_VALUE;
+			// restart timer
+			timer.start();
+		}
+
+		@Override
+		public void setProgressAsync(int progress) {
+			monitor.setValue(progress);
+		}
+
+		@Override
+		public void setFrameCount(int count) {
+			frameCount = count;
+		}
+
+		@Override
+		public int getFrameCount() {
+			return frameCount;
+		}
+
+		@Override
+		public void close() {
+			timer.stop();
+			setVisible(false);
+			monitors.remove(this);
+			dispose();
+		}
+
+	}
 
 	/**
 	 * Transferable class for copying images to the system clipboard.
@@ -2538,6 +2541,7 @@ public class TrackerIO extends VideoIO {
 	static void setProgress(String name, String string, int framesLoaded) {
 		for (TrackerMonitor monitor : monitors) {
 			String monitorName = XML.forwardSlash(monitor.getName());
+//			if (framesLoaded%100==0) System.out.println("pig setting progress to "+framesLoaded+" for "+name);
 			if (monitorName.endsWith(name)) {
 				int progress;
 				if (monitor.getFrameCount() != Integer.MIN_VALUE) {
@@ -2545,6 +2549,7 @@ public class TrackerIO extends VideoIO {
 				} else {
 					progress = 20 + ((framesLoaded / 20) % 60);
 				}
+//				if (framesLoaded%100==0) System.out.println("pig setting monitor progress to "+progress);
 				monitor.setProgressAsync(progress);
 				monitor.setTitle(
 						TrackerRes.getString("TFrame.ProgressDialog.Title.FramesLoaded") + ": " + framesLoaded); //$NON-NLS-1$ //$NON-NLS-2$
