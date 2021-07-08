@@ -101,7 +101,6 @@ public class NumberFormatDialog extends JDialog {
 	java.text.DecimalFormat testFormat;
 	String[] displayedNames = new String[0];
 	Map<String, String> realNames = new HashMap<String, String>();
-	@SuppressWarnings("unchecked")
 	Map<TTrack, TreeMap<String, String>> prevTrackPatterns = new HashMap<TTrack, TreeMap<String, String>>();
 	JPanel variablePanel, applyToPanel, unitsPanel, decimalSeparatorPanel;
 	JList<String> variableList = new JList<String>();

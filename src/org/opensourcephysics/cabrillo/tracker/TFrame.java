@@ -134,7 +134,6 @@ import org.opensourcephysics.tools.Resource;
 import org.opensourcephysics.tools.ResourceLoader;
 
 import javajs.async.AsyncSwingWorker;
-import javajs.async.SwingJSUtils.Performance;
 
 /**
  * This is the main frame for Tracker.
@@ -878,7 +877,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	 */
 	private void finishRemoveTab(TrackerPanel trackerPanel, TTabPanel tabPanel) {
 //		OSPLog.debug(Performance.timeCheckStr("TFrame.removeTab start", Performance.TIME_MARK));
-		long t0 = Performance.now(0);
+		//long t0 = Performance.now(0);
 
 //		TTabPanel tabPanel = (TTabPanel) tabbedPane.getComponentAt(tab);
 //		// remove the tab
@@ -1233,28 +1232,25 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	}
 
 	private void addPaneSafely(JSplitPane pane, int where, Component c) {
-		Component nc = null;
 		switch (where) {
 		case SPLIT_MAIN:
 			if (pane.getTopComponent() != c)
-				pane.setTopComponent(nc = c);
+				pane.setTopComponent(c);
 			break;
 		case SPLIT_LEFT:
 			if (pane.getLeftComponent() != c)
-				pane.setLeftComponent(nc = c);
+				pane.setLeftComponent(c);
 			break;
 		case SPLIT_RIGHT:
 			if (pane.getRightComponent() != c)
-				pane.setRightComponent(nc = c);
+				pane.setRightComponent(c);
 			break;
 		case SPLIT_BOTTOM:
 			if (pane.getBottomComponent() != c)
-				pane.setBottomComponent(nc = c);
+				pane.setBottomComponent(c);
 			break;
 			
 		}
-//		if (nc != null)
-//			System.out.println("checking " + where + " " + nc);	
 	}
 
 
@@ -3664,6 +3660,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 
 	public class DataDropHandler extends TransferHandler {
 
+		@SuppressWarnings("deprecation")
 		DataFlavor df = DataFlavor.plainTextFlavor;
 		@Override
 		public boolean canImport(TransferHandler.TransferSupport support) {

@@ -37,7 +37,6 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.function.Function;
 
-import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.JDialog;

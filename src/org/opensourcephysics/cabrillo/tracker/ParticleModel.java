@@ -134,7 +134,7 @@ abstract public class ParticleModel extends PointMass {
 		setFootprint(defaultFootprint.getName());
 		// assign a meaningful initial name
 		setName(TrackerRes.getString("ParticleModel.New.Name")); //$NON-NLS-1$
-		long t0 = Performance.now(0);
+		//long t0 = Performance.now(0);
 		initializeFunctionPanel();
 		// OSPLog.debug("!!! " + Performance.now(t0) + "
 		// ParticleModel.initializeFunctionPanel");
@@ -154,7 +154,7 @@ abstract public class ParticleModel extends PointMass {
 			return;
 		// OSPLog.debug("ParticleModel.draw frame " + trackerPanel.getFrameNumber() +
 		// "/" + lastValidFrame + " " + isVisible() );
-		long t0 = Performance.now(0);
+		//long t0 = Performance.now(0);
 
 		if (isVisible() && trackerPanel.getFrameNumber() > lastValidFrame) {
 				refreshSteps("draw");
@@ -937,6 +937,7 @@ abstract public class ParticleModel extends PointMass {
 		trackerPanel.getTFrame().holdPainting(b);
 	}
 
+	@Override
 	public void fireStepsChanged() {
 		ParticleModel[] models = getModels();
 		for (int m = 0, n = models.length - 1; m < n; m++) {

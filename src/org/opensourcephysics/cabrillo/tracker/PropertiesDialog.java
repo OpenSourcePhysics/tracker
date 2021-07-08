@@ -24,14 +24,34 @@
  */
 package org.opensourcephysics.cabrillo.tracker;
 
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
-import java.awt.event.*;
-import java.awt.font.FontRenderContext;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.geom.Rectangle2D;
+import java.text.NumberFormat;
+import java.util.ArrayList;
+import java.util.BitSet;
 
-import javax.swing.*;
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JTabbedPane;
+import javax.swing.JTable;
+import javax.swing.JTextField;
+import javax.swing.JToolBar;
+import javax.swing.ListSelectionModel;
+import javax.swing.SwingConstants;
+import javax.swing.ToolTipManager;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableModel;
@@ -44,10 +64,6 @@ import org.opensourcephysics.media.core.VideoType;
 import org.opensourcephysics.media.mov.MovieVideoI;
 import org.opensourcephysics.tools.FontSizer;
 import org.opensourcephysics.tools.ResourceLoader;
-
-import java.text.NumberFormat;
-import java.util.ArrayList;
-import java.util.BitSet;
 
 /**
  * A dialog for viewing and setting document properties and metadata.

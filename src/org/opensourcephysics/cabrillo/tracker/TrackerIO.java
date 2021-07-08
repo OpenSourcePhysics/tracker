@@ -62,7 +62,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.function.Function;
 import java.util.zip.ZipEntry;
@@ -2019,7 +2018,7 @@ public class TrackerIO extends VideoIO {
 				// collect other files in top directory except thumbnails and videos
 				else if (next.indexOf("thumbnail") == -1 && next.indexOf("/") == -1
 						&& !isKnownVideoExtension(next)) { //$NON-NLS-1$ //$NON-NLS-2$
-					String s = ResourceLoader.getURIPath(path + "!/" + next); //$NON-NLS-1$
+					//String s = ResourceLoader.getURIPath(path + "!/" + next); //$NON-NLS-1$
 					otherFiles.add(next);
 				}
 			}
@@ -2253,7 +2252,7 @@ public class TrackerIO extends VideoIO {
 			}
 			// if (monitorDialog.isVisible())
 			// monitorDialog.setProgress(85);
-			VideoType vidType = (VideoType) video.getProperty("video_type"); //$NON-NLS-1$
+			//VideoType vidType = (VideoType) video.getProperty("video_type"); //$NON-NLS-1$
 //			OSPLog.finer(video.getProperty("path") + " opened as " + //$NON-NLS-1$ //$NON-NLS-2$
 //					vidType.getClass().getSimpleName() + " " + vidType.getDescription()); //$NON-NLS-1$
 			if (video instanceof AsyncVideoI) {

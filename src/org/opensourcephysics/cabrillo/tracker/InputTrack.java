@@ -12,13 +12,11 @@ import java.awt.event.FocusEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.text.NumberFormat;
 
 import javax.swing.BorderFactory;
 import javax.swing.JCheckBox;
 import javax.swing.border.Border;
 
-import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.controls.XMLControlElement;
 import org.opensourcephysics.media.core.NumberField;

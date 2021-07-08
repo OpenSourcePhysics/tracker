@@ -144,32 +144,21 @@ public class CoordAxesStep extends Step {
 		TrackerPanel trackerPanel = (TrackerPanel) panel;
 		setHitRectCenter(xpix, ypix);
 		TTrack track = getTrack();
-		AutoTracker autoTracker = track.trackerPanel == null ? null : track.trackerPanel.getAutoTracker(false);
+		AutoTracker autoTracker = (track.trackerPanel == null ? null : track.trackerPanel.getAutoTracker(false));
 		if (handleEnabled) {
 			Shape hitShape = handleShapes.get(trackerPanel);
 			if (hitShape != null && hitShape.intersects(hitRect)) {
-				if (autoTracker != null && autoTracker.getTrack() == track && track.getTargetIndex() == 1) {
-					int n = track.trackerPanel.getFrameNumber();
-					AutoTracker.FrameData frame = autoTracker.getFrame(n);
-					if (frame == frame.getKeyFrame()) {
-						return null;
-					}
-				}
-				return handle;
+				return (autoTracker != null 
+						&& autoTracker.getTrack() == track 
+						&& track.getTargetIndex() == 1
+						&& autoTracker.isOnKeyFrame(track.trackerPanel) ? null : handle);
 			}
 		}
-		if (originEnabled && !track.isLocked()) {
-			Interactive ia = super.findInteractive(panel, xpix, ypix);
-			if (ia == origin) {
-				if (autoTracker != null && autoTracker.getTrack() == track && track.getTargetIndex() == 0) {
-					int n = track.trackerPanel.getFrameNumber();
-					AutoTracker.FrameData frame = autoTracker.getFrame(n);
-					if (frame == frame.getKeyFrame()) {
-						return null;
-					}
-				}
-				return origin;
-			}
+		if (originEnabled && !track.isLocked() && super.findInteractive(panel, xpix, ypix) == origin) {
+			return (autoTracker != null 
+					&& autoTracker.getTrack() == track 
+					&& track.getTargetIndex() == 0
+					&& autoTracker.isOnKeyFrame(track.trackerPanel) ? null : origin); 
 		}
 		return null;
 	}

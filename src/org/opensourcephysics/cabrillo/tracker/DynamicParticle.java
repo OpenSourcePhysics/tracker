@@ -25,21 +25,26 @@
 package org.opensourcephysics.cabrillo.tracker;
 
 import java.awt.Graphics;
-import java.awt.geom.*;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Point2D;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.util.ArrayList;
 import java.util.HashMap;
 
-import org.opensourcephysics.media.core.*;
-import org.opensourcephysics.numerics.*;
-import org.opensourcephysics.tools.Parameter;
-import org.opensourcephysics.tools.UserFunction;
-import org.opensourcephysics.tools.UserFunctionEditor;
-import org.opensourcephysics.controls.*;
+import org.opensourcephysics.controls.XML;
+import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.display.Dataset;
 import org.opensourcephysics.display.DatasetManager;
 import org.opensourcephysics.display.DrawingPanel;
+import org.opensourcephysics.media.core.ImageCoordSystem;
+import org.opensourcephysics.media.core.Trackable;
+import org.opensourcephysics.media.core.VideoClip;
+import org.opensourcephysics.numerics.ODE;
+import org.opensourcephysics.numerics.ODESolver;
+import org.opensourcephysics.numerics.RK4;
+import org.opensourcephysics.tools.Parameter;
+import org.opensourcephysics.tools.UserFunction;
+import org.opensourcephysics.tools.UserFunctionEditor;
 
 /**
  * DynamicParticle models a particle using Newton's 2nd law.
@@ -735,10 +740,4 @@ public class DynamicParticle extends ParticleModel implements ODE {
 			return obj;
 		}
 	}
-
-	protected void holdPainting(boolean b) {
-		// don't hold?
-	}
-
-
 }

@@ -701,6 +701,7 @@ public class XuggleVideo extends VideoAdapter implements SmoothPlayable {
 		return -1;
 	}
 
+	@SuppressWarnings("deprecation")
 	private String openContainer() {
 		disposeXuggle();
 		container = IContainer.make();

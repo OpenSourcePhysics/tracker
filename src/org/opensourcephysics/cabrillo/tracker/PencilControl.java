@@ -61,8 +61,6 @@ import javax.swing.JTextField;
 import javax.swing.JToolBar;
 import javax.swing.ListCellRenderer;
 import javax.swing.SpinnerNumberModel;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import javax.swing.undo.AbstractUndoableEdit;
 import javax.swing.undo.CannotUndoException;
 import javax.swing.undo.UndoManager;
@@ -70,7 +68,6 @@ import javax.swing.undo.UndoableEditSupport;
 
 import org.opensourcephysics.display.ColorIcon;
 import org.opensourcephysics.display.DrawingPanel;
-import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.display.ResizableIcon;
 import org.opensourcephysics.tools.FontSizer;
 

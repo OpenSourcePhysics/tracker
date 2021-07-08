@@ -56,7 +56,7 @@ public class TrackerCountReader extends JFrame {
 			"4.93", "4.92", "4.91", "4.90"}; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
 	private String[] OSs = {"all", "windows", "osx", "linux"}; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
 	private String[] engines = {"all", "Xuggle", "none"}; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ 
-	JComboBox actionDropdown, versionDropdown, osDropdown, engineDropdown;
+	JComboBox<String> actionDropdown, versionDropdown, osDropdown, engineDropdown;
 	JLabel actionLabel, versionLabel, osLabel, engineLabel;
 
 	JTextArea textArea;
@@ -73,10 +73,10 @@ public class TrackerCountReader extends JFrame {
 		osLabel = new JLabel("OS"); //$NON-NLS-1$
 		engineLabel = new JLabel("Engine"); //$NON-NLS-1$
 		
-		actionDropdown = new JComboBox(actions);
-		versionDropdown = new JComboBox(versions);
-		osDropdown = new JComboBox(OSs);
-		engineDropdown = new JComboBox(engines);
+		actionDropdown = new JComboBox<String>(actions);
+		versionDropdown = new JComboBox<String>(versions);
+		osDropdown = new JComboBox<String>(OSs);
+		engineDropdown = new JComboBox<String>(engines);
 		actionDropdown.setBorder(BorderFactory.createEmptyBorder(1, 4, 1, 4));
 		versionDropdown.setBorder(BorderFactory.createEmptyBorder(1, 4, 1, 4));
 		osDropdown.setBorder(BorderFactory.createEmptyBorder(1, 4, 1, 4));
@@ -104,6 +104,7 @@ public class TrackerCountReader extends JFrame {
 		
 		sendButton = new JButton("Send"); //$NON-NLS-1$
 		sendButton.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				if (textArea.getForeground().equals(Color.RED.darker())) {
 					String text = textArea.getText().trim();
@@ -213,7 +214,8 @@ public class TrackerCountReader extends JFrame {
 		
 		textArea = new JTextArea();
 		textArea.addKeyListener(new KeyAdapter() {
-      public void keyPressed(KeyEvent e) {
+      @Override
+			public void keyPressed(KeyEvent e) {
       	textArea.setForeground(Color.RED.darker());
       }
     });

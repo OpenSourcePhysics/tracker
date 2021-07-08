@@ -2928,7 +2928,7 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 	}
 
 	int getMarkingCursorType(InputEvent e) {
-		if (e != null && TMouseHandler.isAutoTrackTrigger(e) && trackerPanel.getVideo() != null
+		if (e != null && AutoTracker.isAutoTrackTrigger(e) && trackerPanel.getVideo() != null
 				&& isAutoTrackable(getTargetIndex())) {
 			Step step = getStep(trackerPanel.getFrameNumber());
 			if (step == null || step.getPoints()[step.getPoints().length - 1] == null) {
@@ -2941,8 +2941,7 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 				AutoTracker autoTracker = trackerPanel.getAutoTracker(true);
 				if (autoTracker.getTrack() == null || autoTracker.getTrack() == this) {
 					int n = trackerPanel.getFrameNumber();
-					AutoTracker.KeyFrame key = autoTracker.getFrame(n).getKeyFrame();
-					if (key == null)
+					if (autoTracker.getOrCreateFrameData(n).getKeyFrameData() == null)
 						return TMouseHandler.STATE_AUTOMARK;
 				}
 			}
