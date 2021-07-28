@@ -1604,7 +1604,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 				displayWhenLoadedCheckbox.setText(TrackerRes.getString("TFrame.NotesDialog.Checkbox.ShowByDefault")); //$NON-NLS-1$
 			}
 			// refresh memory button
-			TTrackBar.refreshMemoryButton();
+			TTrackBar.refreshMemoryButton(trackerPanel);
 			validate();
 			if (helpLauncher != null) {
 				// refresh navigation bar components
@@ -2931,7 +2931,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	DataDropHandler getDataDropHandler() {
 		return (dataDropHandler == null ? (dataDropHandler = new DataDropHandler()) : dataDropHandler);
 	}
-
+	
 	/**
 	 * Initializes a new tracker panel.
 	 *
@@ -3117,12 +3117,12 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	 * @return a clean TrackerPanel.
 	 */
 	synchronized TrackerPanel getCleanTrackerPanel() {
-		if (getTabCount() == 0 || haveContent())
+		if (getTabCount() == 0 || haveContent() || !OSPRuntime.isJS)
 			return new TrackerPanel(this);
 		TrackerPanel panel = getTrackerPanel(0);
 		JSplitPane[] panes = getSplitPanes(panel);
 		setDefaultWeights(panes);
-//		panel.changed = true;
+//		panel.changed = true;	
 		return panel;
 	}
 
@@ -3130,8 +3130,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	 * Remove the first tab if it is empty and there are more than n tabs  (0 or 1)
 	 */
 	public void removeEmptyTab(int n) {
-//		if (getTabCount() > n && !haveContent())
-//			removeTabNow(0);
+		if (getTabCount() > n && !haveContent())
+			removeTabNow(0);
 	}
 
 	public void removeTabNow(int i) {
