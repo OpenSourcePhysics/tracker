@@ -140,7 +140,7 @@ public class TMouseHandler implements InteractiveMouseHandler {
 				}
 			}
 			if (TTrackBar.outOfMemory) {
-				TTrackBar.refreshMemoryButton();
+				TTrackBar.refreshMemoryButton(trackerPanel);
 			}
 			break;
 

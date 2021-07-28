@@ -2104,7 +2104,8 @@ public class Tracker {
 		if (node != null) {
 			frame.setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
 		}
-		TTrackBar.refreshMemoryButton();
+		TrackerPanel trackerPanel = frame.getSelectedPanel();
+		TTrackBar.refreshMemoryButton(trackerPanel);
 
 		// inform user if memory size was reduced
 		if (!OSPRuntime.isJS && originalMemoryRequest > requestedMemorySize) {
@@ -2243,7 +2244,7 @@ public class Tracker {
 			}
 
 			Timer memoryTimer = new Timer(5000, (e) -> {
-					TTrackBar.refreshMemoryButton();
+				TTrackBar.refreshMemoryButton(trackerPanel);
 			});
 			memoryTimer.setRepeats(true);
 			memoryTimer.start();

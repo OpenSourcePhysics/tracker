@@ -74,7 +74,7 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 
 	// static fields
 	protected static Map<TrackerPanel, TTrackBar> trackbars = new HashMap<TrackerPanel, TTrackBar>();
-	protected static JButton memoryButton, newVersionButton;
+	protected static JButton newVersionButton;
 	protected static boolean outOfMemory = false;
 	protected static Icon selectTrackIcon, memoryIcon, redMemoryIcon;
 	protected static JButton testButton;
@@ -100,6 +100,7 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 	protected final Component toolbarEnd = Box.createHorizontalGlue();
 	protected int toolbarComponentHeight, numberFieldWidth;
 	protected TButton trackButton;
+	protected JButton memoryButton;
 	protected JButton maximizeButton;
 	protected TButton selectButton;
 	protected JLabel emptyLabel = new JLabel();
@@ -278,59 +279,60 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 			}
 		});
 
-		memoryButton = new TButton(memoryIcon) {
-			@Override
-			public JPopupMenu getPopup() {
-				JPopupMenu popup = new JPopupMenu();
-				JMenuItem memoryItem = new JMenuItem(TrackerRes.getString("TTrackBar.Memory.Menu.SetSize")); //$NON-NLS-1$
-				popup.add(memoryItem);
-				memoryItem.addActionListener(new ActionListener() {
-					@Override
-					public void actionPerformed(ActionEvent e) {
-						TFrame frame = (TFrame) memoryButton.getTopLevelAncestor();
-						String response = GUIUtils.showInputDialog(frame,
-								TrackerRes.getString("TTrackBar.Dialog.SetMemory.Message"), //$NON-NLS-1$
-								TrackerRes.getString("TTrackBar.Dialog.SetMemory.Title"), //$NON-NLS-1$
-								JOptionPane.PLAIN_MESSAGE, String.valueOf(Tracker.preferredMemorySize));
-						if (response != null && !"".equals(response)) { //$NON-NLS-1$
-							String s = response;
-							try {
-								double d = Double.parseDouble(s);
-								d = Math.rint(d);
-								int n = (int) d;
-								if (n < 0)
-									n = -1; // default
-								else
-									n = Math.max(n, 32); // not less than 32MB
-								if (n != Tracker.preferredMemorySize) {
-									Tracker.preferredMemorySize = n;
-									int ans = JOptionPane.showConfirmDialog(frame,
-											TrackerRes.getString("TTrackBar.Dialog.Memory.Relaunch.Message"), //$NON-NLS-1$
-											TrackerRes.getString("TTrackBar.Dialog.Memory.Relaunch.Title"), //$NON-NLS-1$
-											JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
-									if (ans == JOptionPane.YES_OPTION) {
-
-										Tracker.savePreferences();
-										frame.relaunchCurrentTabs();
-									}
-								}
-							} catch (Exception ex) {
-							}
-						}
-					}
-				});
-				FontSizer.setFonts(popup, FontSizer.getLevel());
-				return popup;
-			}
-		};
-		Font font = memoryButton.getFont();
-		memoryButton.setFont(font.deriveFont(Font.PLAIN, font.getSize() - 1));
-		memoryButton.addMouseListener(new MouseAdapter() {
-			@Override
-			public void mouseEntered(MouseEvent e) {
-				refreshMemoryButton();
-			}
-		});
+//		memoryButton = new TButton(memoryIcon) {
+//			@Override
+//			public JPopupMenu getPopup() {
+//				JPopupMenu popup = new JPopupMenu();
+//				JMenuItem memoryItem = new JMenuItem(TrackerRes.getString("TTrackBar.Memory.Menu.SetSize")); //$NON-NLS-1$
+//				popup.add(memoryItem);
+//				memoryItem.addActionListener(new ActionListener() {
+//					@Override
+//					public void actionPerformed(ActionEvent e) {
+//						TFrame frame = (TFrame) memoryButton.getTopLevelAncestor();
+//						String response = GUIUtils.showInputDialog(frame,
+//								TrackerRes.getString("TTrackBar.Dialog.SetMemory.Message"), //$NON-NLS-1$
+//								TrackerRes.getString("TTrackBar.Dialog.SetMemory.Title"), //$NON-NLS-1$
+//								JOptionPane.PLAIN_MESSAGE, String.valueOf(Tracker.preferredMemorySize));
+//						if (response != null && !"".equals(response)) { //$NON-NLS-1$
+//							String s = response;
+//							try {
+//								double d = Double.parseDouble(s);
+//								d = Math.rint(d);
+//								int n = (int) d;
+//								if (n < 0)
+//									n = -1; // default
+//								else
+//									n = Math.max(n, 32); // not less than 32MB
+//								if (n != Tracker.preferredMemorySize) {
+//									Tracker.preferredMemorySize = n;
+//									int ans = JOptionPane.showConfirmDialog(frame,
+//											TrackerRes.getString("TTrackBar.Dialog.Memory.Relaunch.Message"), //$NON-NLS-1$
+//											TrackerRes.getString("TTrackBar.Dialog.Memory.Relaunch.Title"), //$NON-NLS-1$
+//											JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+//									if (ans == JOptionPane.YES_OPTION) {
+//
+//										Tracker.savePreferences();
+//										frame.relaunchCurrentTabs();
+//									}
+//								}
+//							} catch (Exception ex) {
+//							}
+//						}
+//					}
+//				});
+//				FontSizer.setFonts(popup, FontSizer.getLevel());
+//				return popup;
+//			}
+//		};
+//		Font font = memoryButton.getFont();
+//		memoryButton.setFont(font.deriveFont(Font.PLAIN, font.getSize() - 1));
+//		memoryButton.addMouseListener(new MouseAdapter() {
+//			@Override
+//			public void mouseEntered(MouseEvent e) {
+//				refreshMemoryButton();
+//			}
+//		});
+		
 //		Border space = BorderFactory.createEmptyBorder(1, 4, 1, 4);
 //		Border line = BorderFactory.createLineBorder(Color.GRAY);
 //		memoryButton.setBorder(BorderFactory.createCompoundBorder(line, space));
@@ -347,6 +349,7 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 				return popup;
 			}
 		};
+		Font font = newVersionButton.getFont();
 		newVersionButton.setFont(font.deriveFont(Font.PLAIN, font.getSize() - 1));
 		newVersionButton.setForeground(Color.GREEN.darker());
 //		newVersionButton.setBorder(BorderFactory.createCompoundBorder(line, space));
@@ -478,6 +481,67 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 			}
 		});
 
+		/**
+		 * Java only; transpiler may ignore
+		 * 
+		 * @j2sNative
+		 * 
+		 */
+		{
+			memoryButton = new TButton(memoryIcon) {
+				@Override
+				public JPopupMenu getPopup() {
+					JPopupMenu popup = new JPopupMenu();
+					JMenuItem memoryItem = new JMenuItem(TrackerRes.getString("TTrackBar.Memory.Menu.SetSize")); //$NON-NLS-1$
+					popup.add(memoryItem);
+					memoryItem.addActionListener(new ActionListener() {
+						@Override
+						public void actionPerformed(ActionEvent e) {
+							TFrame frame = (TFrame) memoryButton.getTopLevelAncestor();
+							String response = GUIUtils.showInputDialog(frame,
+									TrackerRes.getString("TTrackBar.Dialog.SetMemory.Message"), //$NON-NLS-1$
+									TrackerRes.getString("TTrackBar.Dialog.SetMemory.Title"), //$NON-NLS-1$
+									JOptionPane.PLAIN_MESSAGE, String.valueOf(Tracker.preferredMemorySize));
+							if (response != null && !"".equals(response)) { //$NON-NLS-1$
+								String s = response;
+								try {
+									double d = Double.parseDouble(s);
+									d = Math.rint(d);
+									int n = (int) d;
+									if (n < 0)
+										n = -1; // default
+									else
+										n = Math.max(n, 32); // not less than 32MB
+									if (n != Tracker.preferredMemorySize) {
+										Tracker.preferredMemorySize = n;
+										int ans = JOptionPane.showConfirmDialog(frame,
+												TrackerRes.getString("TTrackBar.Dialog.Memory.Relaunch.Message"), //$NON-NLS-1$
+												TrackerRes.getString("TTrackBar.Dialog.Memory.Relaunch.Title"), //$NON-NLS-1$
+												JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+										if (ans == JOptionPane.YES_OPTION) {
+	
+											Tracker.savePreferences();
+											frame.relaunchCurrentTabs();
+										}
+									}
+								} catch (Exception ex) {
+								}
+							}
+						}
+					});
+					FontSizer.setFonts(popup, FontSizer.getLevel());
+					return popup;
+				}
+			};
+			Font font = memoryButton.getFont();
+			memoryButton.setFont(font.deriveFont(Font.PLAIN, font.getSize() - 1));
+			memoryButton.addMouseListener(new MouseAdapter() {
+				@Override
+				public void mouseEntered(MouseEvent e) {
+					refreshMemoryButton(trackerPanel);
+				}
+			});
+		}
 //		Border space = BorderFactory.createEmptyBorder(1, 4, 1, 4);
 //		Border line = BorderFactory.createLineBorder(Color.GRAY);
 //		trackButton.setBorder(BorderFactory.createCompoundBorder(line, space));
@@ -737,7 +801,8 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 				track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_COLOR, this); // $NON-NLS-1$
 				track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_FOOTPRINT, this); // $NON-NLS-1$
 			}
-			trackButton.setTrack(null);
+			if (trackButton != null)
+				trackButton.setTrack(null);
 			refresh();
 			break;
 		}
@@ -759,15 +824,19 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 			track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_COLOR, this); // $NON-NLS-1$
 			track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_FOOTPRINT, this); // $NON-NLS-1$
 		}
-		trackButton.setTrack(null);
+		if (trackButton != null)
+			trackButton.setTrack(null);
 		trackerPanel = null;
 	}
 
 	/**
-	 * Refreshes the memory button.
+	 * Refreshes the memory button for a TrackerPanel.
 	 */
-	protected static void refreshMemoryButton() {
-		if (memoryButton == null)
+	protected static void refreshMemoryButton(TrackerPanel trackerPanel) {
+		if (OSPRuntime.isJS || trackerPanel == null)
+			return;
+		TTrackBar trackbar = getTrackbar(trackerPanel);
+		if (trackbar == null || trackbar.memoryButton == null)
 			return;
 		System.gc();
 		java.lang.management.MemoryMXBean memory = java.lang.management.ManagementFactory.getMemoryMXBean();
@@ -777,7 +846,7 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 			outOfMemory = false;
 			showOutOfMemoryDialog = false;
 			cur = max;
-			JOptionPane.showMessageDialog(memoryButton,
+			JOptionPane.showMessageDialog(trackbar.memoryButton,
 					TrackerRes.getString("Tracker.Dialog.OutOfMemory.Message1") + "\n" //$NON-NLS-1$ //$NON-NLS-2$
 							+ TrackerRes.getString("Tracker.Dialog.OutOfMemory.Message2"), //$NON-NLS-1$
 					TrackerRes.getString("Tracker.Dialog.OutOfMemory.Title"), //$NON-NLS-1$
@@ -785,10 +854,10 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 		}
 		String mem = TrackerRes.getString("TTrackBar.Button.Memory") + " "; //$NON-NLS-1$ //$NON-NLS-2$
 		String of = TrackerRes.getString("DynamicSystem.Parameter.Of") + " "; //$NON-NLS-1$ //$NON-NLS-2$
-		memoryButton.setToolTipText(mem + cur + "MB " + of + max + "MB"); //$NON-NLS-1$ //$NON-NLS-2$
+		trackbar.memoryButton.setToolTipText(mem + cur + "MB " + of + max + "MB"); //$NON-NLS-1$ //$NON-NLS-2$
 //		memoryButton.setToolTipText(TrackerRes.getString("TTrackBar.Button.Memory.Tooltip")); //$NON-NLS-1$
 		double used = ((double) cur) / max;
-		memoryButton.setIcon(used > 0.8 ? redMemoryIcon : memoryIcon);
+		trackbar.memoryButton.setIcon(used > 0.8 ? redMemoryIcon : memoryIcon);
 	}
 
 }

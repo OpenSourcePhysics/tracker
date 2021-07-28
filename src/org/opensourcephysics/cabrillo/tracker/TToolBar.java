@@ -1135,9 +1135,9 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 		if (desktopButton.isEnabled())
 			add(desktopButton);
 		add(notesButton);
-		if (!OSPRuntime.isJS) {
+		if (!OSPRuntime.isJS && TTrackBar.getTrackbar(trackerPanel).memoryButton != null) {
 			add(getSeparator());
-			add(TTrackBar.memoryButton);
+			add(TTrackBar.getTrackbar(trackerPanel).memoryButton);
 		}
 		add(refreshButton);
 
