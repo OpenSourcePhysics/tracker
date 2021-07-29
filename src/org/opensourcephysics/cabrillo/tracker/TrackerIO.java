@@ -804,8 +804,11 @@ public class TrackerIO extends VideoIO {
 
 			@Override
 			public void propertyChange(PropertyChangeEvent e) {
-				if (e.getNewValue() == AsyncSwingWorker.CANCELED_ASYNC)
+				if (e.getNewValue() == AsyncSwingWorker.CANCELED_ASYNC) {
 					VideoIO.setCanceled(true);
+					if (!OSPRuntime.isJS)
+						frame.doTabStateChanged();
+				}
 			}
 			
 		});

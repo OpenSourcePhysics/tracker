@@ -1200,6 +1200,8 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 		if (frame != null) {
 			TView[][] views = frame.getTViews(trackerPanel);
 			for (TView[] next : views) {
+				if (next == null)
+					continue;
 				for (TView view : next) {
 					if (view == null)
 						continue;
