@@ -688,7 +688,6 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		}
 		trackerPanel.clearTemp();
 		setIgnoreRepaint(false);
-		trackerPanel.changed = false;
 		trackerPanel.refreshTrackData(DataTable.MODE_TAB);
 		if (doSelect)
 			setSelectedTab(trackerPanel);
@@ -708,6 +707,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 					//TTrackBar.getTrackbar(trackerPanel).refresh();
 				// DB following line needed to autoload data functions from external files
 				trackerPanel.getDataBuilder();
+				trackerPanel.changed = false;
 			}
 		});
 		timer.setRepeats(false);
