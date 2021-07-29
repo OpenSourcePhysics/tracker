@@ -3701,227 +3701,257 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		public Object loadObject(XMLControl control, Object obj) {
 			// load the video clip
 			TrackerPanel trackerPanel = (TrackerPanel) obj;	
-			// BH adds early setting of frame.
-			asyncloader = (AsyncLoader) ((XMLControlElement) control).getData();
-			trackerPanel.frame = asyncloader.getFrame();
-			trackerPanel.frame.holdPainting(true);
-			// load the dividers
-			trackerPanel.dividerLocs = (double[]) control.getObject("dividers"); //$NON-NLS-1$
-			// load the track control location
-			trackerPanel.trackControlX = control.getInt("track_control_x"); //$NON-NLS-1$
-			trackerPanel.trackControlY = control.getInt("track_control_y"); //$NON-NLS-1$
-			// load the info dialog location
-			trackerPanel.infoX = control.getInt("info_x"); //$NON-NLS-1$
-			trackerPanel.infoY = control.getInt("info_y"); //$NON-NLS-1$
-			// load the image size
-			if (control.getPropertyNamesRaw().contains("width")) { //$NON-NLS-1$
-				trackerPanel.setImageWidth(control.getDouble("width")); //$NON-NLS-1$
-			}
-			if (control.getPropertyNamesRaw().contains("height")) { //$NON-NLS-1$
-				trackerPanel.setImageHeight(control.getDouble("height")); //$NON-NLS-1$
-			}
-			// load the zoom center and magnification
-			trackerPanel.setMagnification(control.getDouble("magnification")); //$NON-NLS-1$
-			if (control.getPropertyNamesRaw().contains("center_x")) { //$NON-NLS-1$
-				int x = control.getInt("center_x"); //$NON-NLS-1$
-				int y = control.getInt("center_y"); //$NON-NLS-1$
-				trackerPanel.zoomCenter = new Point(x, y);
-			}
-			// load and check if a newer Tracker version created this file
-			String fileVersion = control.getString("semantic_version"); //$NON-NLS-1$
-			// if ver is null then must be an older version
-			if (fileVersion != null && !OSPRuntime.isJS) {
-				int result = 0;
-				try {
-					result = Tracker.compareVersions(fileVersion, OSPRuntime.VERSION);
-				} catch (Exception e) {
+			switch (trackerPanel.progress) {
+			case 0:
+				// BH adds early setting of frame.
+				asyncloader = (AsyncLoader) ((XMLControlElement) control).getData();
+				trackerPanel.frame = asyncloader.getFrame();
+				trackerPanel.frame.holdPainting(true);
+				trackerPanel.progress = 5;
+				// load the dividers
+				trackerPanel.dividerLocs = (double[]) control.getObject("dividers"); //$NON-NLS-1$
+				// load the track control location
+				trackerPanel.trackControlX = control.getInt("track_control_x"); //$NON-NLS-1$
+				trackerPanel.trackControlY = control.getInt("track_control_y"); //$NON-NLS-1$
+				// load the info dialog location
+				trackerPanel.infoX = control.getInt("info_x"); //$NON-NLS-1$
+				trackerPanel.infoY = control.getInt("info_y"); //$NON-NLS-1$
+				// load the image size
+				if (control.getPropertyNamesRaw().contains("width")) { //$NON-NLS-1$
+					trackerPanel.setImageWidth(control.getDouble("width")); //$NON-NLS-1$
 				}
-				if (result > 0) { // file is newer version than Tracker
-					JOptionPane.showMessageDialog(trackerPanel,
-							TrackerRes.getString("TrackerPanel.Dialog.Version.Message1") //$NON-NLS-1$
-									+ " " + fileVersion + " " //$NON-NLS-1$ //$NON-NLS-2$
-									+ TrackerRes.getString("TrackerPanel.Dialog.Version.Message2") //$NON-NLS-1$
-									+ "\n" + TrackerRes.getString("TrackerPanel.Dialog.Version.Message3") //$NON-NLS-1$ //$NON-NLS-2$
-									+ " (" + OSPRuntime.VERSION + ")." //$NON-NLS-1$ //$NON-NLS-2$
-									+ "\n\n" + TrackerRes.getString("TrackerPanel.Dialog.Version.Message4") //$NON-NLS-1$ //$NON-NLS-2$
-									+ " https://" + Tracker.trackerWebsite + ".", //$NON-NLS-1$ //$NON-NLS-2$
-							TrackerRes.getString("TrackerPanel.Dialog.Version.Title"), //$NON-NLS-1$
-							JOptionPane.INFORMATION_MESSAGE);
+				if (control.getPropertyNamesRaw().contains("height")) { //$NON-NLS-1$
+					trackerPanel.setImageHeight(control.getDouble("height")); //$NON-NLS-1$
 				}
-			}
-			// load the description
-			trackerPanel.hideDescriptionWhenLoaded = control.getBoolean("hide_description"); //$NON-NLS-1$
-			String desc = control.getString("description"); //$NON-NLS-1$
-			if (desc != null) {
-				trackerPanel.setDescription(desc);
-				trackerPanel.getTFrame().showNotes(trackerPanel);
-			}
-			// load the metadata
-			trackerPanel.author = control.getString("author"); //$NON-NLS-1$
-			trackerPanel.contact = control.getString("contact"); //$NON-NLS-1$
-
-			// load units and unit visibility
-			if (control.getPropertyNamesRaw().contains("length_unit")) { //$NON-NLS-1$
-				trackerPanel.lengthUnit = control.getString("length_unit"); //$NON-NLS-1$
-			}
-			if (control.getPropertyNamesRaw().contains("mass_unit")) { //$NON-NLS-1$
-				trackerPanel.massUnit = control.getString("mass_unit"); //$NON-NLS-1$
-			}
-			if (control.getPropertyNamesRaw().contains("units_visible")) { //$NON-NLS-1$
-				trackerPanel.unitsVisible = control.getBoolean("units_visible"); //$NON-NLS-1$
-			}
-
-			// load custom number formats
-			String[][] patterns = (String[][]) control.getObject("number_formats"); //$NON-NLS-1$
-			if (patterns != null) {
-				for (int ip = 0; ip < patterns.length; ip++) {
-					String[] next = patterns[ip];
-					int ttype = TTrack.getBaseTypeInt(next[0]);
-					if (ttype < 0)
-						continue;
-					TreeMap<String, String> patternMap = trackerPanel.getFormatPatterns(ttype);
-					for (int i = 1; i < next.length;) {
-						patternMap.put(next[i++], next[i++]);
+				// load the zoom center and magnification
+				trackerPanel.setMagnification(control.getDouble("magnification")); //$NON-NLS-1$
+				if (control.getPropertyNamesRaw().contains("center_x")) { //$NON-NLS-1$
+					int x = control.getInt("center_x"); //$NON-NLS-1$
+					int y = control.getInt("center_y"); //$NON-NLS-1$
+					trackerPanel.zoomCenter = new Point(x, y);
+				}
+				// load and check if a newer Tracker version created this file
+				String fileVersion = control.getString("semantic_version"); //$NON-NLS-1$
+				// if ver is null then must be an older version
+				if (fileVersion != null && !OSPRuntime.isJS) {
+					int result = 0;
+					try {
+						result = Tracker.compareVersions(fileVersion, OSPRuntime.VERSION);
+					} catch (Exception e) {
+					}
+					if (result > 0) { // file is newer version than Tracker
+						JOptionPane.showMessageDialog(trackerPanel,
+								TrackerRes.getString("TrackerPanel.Dialog.Version.Message1") //$NON-NLS-1$
+										+ " " + fileVersion + " " //$NON-NLS-1$ //$NON-NLS-2$
+										+ TrackerRes.getString("TrackerPanel.Dialog.Version.Message2") //$NON-NLS-1$
+										+ "\n" + TrackerRes.getString("TrackerPanel.Dialog.Version.Message3") //$NON-NLS-1$ //$NON-NLS-2$
+										+ " (" + OSPRuntime.VERSION + ")." //$NON-NLS-1$ //$NON-NLS-2$
+										+ "\n\n" + TrackerRes.getString("TrackerPanel.Dialog.Version.Message4") //$NON-NLS-1$ //$NON-NLS-2$
+										+ " https://" + Tracker.trackerWebsite + ".", //$NON-NLS-1$ //$NON-NLS-2$
+								TrackerRes.getString("TrackerPanel.Dialog.Version.Title"), //$NON-NLS-1$
+								JOptionPane.INFORMATION_MESSAGE);
 					}
 				}
-			}
-			// load the configuration
-			Configuration config = (Configuration) control.getObject("configuration"); //$NON-NLS-1$
-			if (config != null) {
-				trackerPanel.enabled = config.enabled;
-			}
-
-			// OSPLog.debug(Performance.timeCheckStr("TrackerPanel.finalizeLoading ref and
-			// config ", Performance.TIME_MARK));
-
-			// load the selected_& custom views properties
-			List<XMLProperty> props = control.getPropsRaw();
-			trackerPanel.selectedViewsProperty = null;
-			
-			trackerPanel.customViewsProperty = null;
-			for (int n = 0, i = props.size(); --i >= 0 && n < 3;) { 
-				// n < 3, not 4, since "selected_views" & "selected_view_types" should never BOTH exist
-				XMLProperty prop = props.get(i);
-				switch (prop.getPropertyName()) {
-				case "selected_views": 
-					trackerPanel.selectedViewsProperty = prop;
-					n++;
-					break;
-				case "selected_view_types":
-					trackerPanel.selectedViewTypesProperty = prop;
-					n++;
-					break;
-				case "selected_track_views":
-					trackerPanel.selectedTrackViewsProperty = prop;
-					n++;
-					break;
-				case "views":
-					trackerPanel.customViewsProperty = prop;
-					n++;
-					break;
+				trackerPanel.progress = 5;
+				break;
+			case 5:
+				// load the description
+				trackerPanel.hideDescriptionWhenLoaded = control.getBoolean("hide_description"); //$NON-NLS-1$
+				String desc = control.getString("description"); //$NON-NLS-1$
+				if (desc != null) {
+					trackerPanel.setDescription(desc);
+					trackerPanel.getTFrame().showNotes(trackerPanel);
 				}
+				// load the metadata
+				trackerPanel.author = control.getString("author"); //$NON-NLS-1$
+				trackerPanel.contact = control.getString("contact"); //$NON-NLS-1$
+
+				// load units and unit visibility
+				if (control.getPropertyNamesRaw().contains("length_unit")) { //$NON-NLS-1$
+					trackerPanel.lengthUnit = control.getString("length_unit"); //$NON-NLS-1$
+				}
+				if (control.getPropertyNamesRaw().contains("mass_unit")) { //$NON-NLS-1$
+					trackerPanel.massUnit = control.getString("mass_unit"); //$NON-NLS-1$
+				}
+				if (control.getPropertyNamesRaw().contains("units_visible")) { //$NON-NLS-1$
+					trackerPanel.unitsVisible = control.getBoolean("units_visible"); //$NON-NLS-1$
+				}
+
+				// load custom number formats
+				String[][] patterns = (String[][]) control.getObject("number_formats"); //$NON-NLS-1$
+				if (patterns != null) {
+					for (int ip = 0; ip < patterns.length; ip++) {
+						String[] next = patterns[ip];
+						int ttype = TTrack.getBaseTypeInt(next[0]);
+						if (ttype < 0)
+							continue;
+						TreeMap<String, String> patternMap = trackerPanel.getFormatPatterns(ttype);
+						for (int i = 1; i < next.length;) {
+							patternMap.put(next[i++], next[i++]);
+						}
+					}
+				}
+				// load the configuration
+				Configuration config = (Configuration) control.getObject("configuration"); //$NON-NLS-1$
+				if (config != null) {
+					trackerPanel.enabled = config.enabled;
+				}
+
+				// OSPLog.debug(Performance.timeCheckStr("TrackerPanel.finalizeLoading ref and
+				// config ", Performance.TIME_MARK));
+
+				// load the selected_& custom views properties
+				List<XMLProperty> props = control.getPropsRaw();
+				trackerPanel.selectedViewsProperty = null;
+				
+				trackerPanel.customViewsProperty = null;
+				for (int n = 0, i = props.size(); --i >= 0 && n < 3;) { 
+					// n < 3, not 4, since "selected_views" & "selected_view_types" should never BOTH exist
+					XMLProperty prop = props.get(i);
+					switch (prop.getPropertyName()) {
+					case "selected_views": 
+						trackerPanel.selectedViewsProperty = prop;
+						n++;
+						break;
+					case "selected_view_types":
+						trackerPanel.selectedViewTypesProperty = prop;
+						n++;
+						break;
+					case "selected_track_views":
+						trackerPanel.selectedTrackViewsProperty = prop;
+						n++;
+						break;
+					case "views":
+						trackerPanel.customViewsProperty = prop;
+						n++;
+						break;
+					}
+				}
+				trackerPanel.progress = 10;
+				break;
+			default:
+				super.loadObject(control, obj);	// loads video
 			}
 
-			super.loadObject(control, obj);
 			return trackerPanel;
 		}
 
 		@SuppressWarnings("unchecked")
 		@Override
 		public void finalizeLoading() {
-			videoPanel.setLoader(null);
 			//long t0 = Performance.now(0);
 			//OSPLog.debug(Performance.timeCheckStr("TrackerPanel.finalizeLoading1", Performance.TIME_MARK));
 			TrackerPanel trackerPanel = (TrackerPanel) videoPanel;
+			if (trackerPanel.progress < 70) {
+				return;
+			}
+			videoPanel.setLoader(null);
 			try {
-				//OSPLog.debug("TrackerPanel.finalizeLoading start");
-				XMLControl child;
-				Video video = finalizeClip();
-				if (video != null) {
-					FilterStack stack = video.getFilterStack();
-					ArrayList<Filter> filters = stack.getFilters();
-					for (int i = 0, n = filters.size(); i < n; i++) {
-						Filter filter = filters.get(i);
-						filter.setVideoPanel(trackerPanel);
-						if (filter.inspectorX != Integer.MIN_VALUE) {
-							filter.inspectorVisible = true;
-							if (trackerPanel.visibleFilters == null) {
-								trackerPanel.visibleFilters = new HashMap<Filter, Point>();
+				switch(trackerPanel.progress) {
+				case 70:
+					XMLControl child;
+					Video video = finalizeClip();
+					if (video != null) {
+						FilterStack stack = video.getFilterStack();
+						ArrayList<Filter> filters = stack.getFilters();
+						for (int i = 0, n = filters.size(); i < n; i++) {
+							Filter filter = filters.get(i);
+							filter.setVideoPanel(trackerPanel);
+							if (filter.inspectorX != Integer.MIN_VALUE) {
+								filter.inspectorVisible = true;
+								if (trackerPanel.visibleFilters == null) {
+									trackerPanel.visibleFilters = new HashMap<Filter, Point>();
+								}
+								Point p = new Point(filter.inspectorX, filter.inspectorY);
+								trackerPanel.visibleFilters.put(filter, p);
 							}
-							Point p = new Point(filter.inspectorX, filter.inspectorY);
-							trackerPanel.visibleFilters.put(filter, p);
 						}
 					}
+					// load the clip control
+					child = control.getChildControl("clipcontrol"); //$NON-NLS-1$
+					if (child != null) {
+						child.loadObject(trackerPanel.getPlayer().getClipControl());
+					}
+					trackerPanel.progress = 72;
+					break;
+				case 72:
+					// load the toolbar
+					child = control.getChildControl("toolbar"); //$NON-NLS-1$
+					if (child != null) {
+						TToolBar toolbar = TToolBar.getToolbar(trackerPanel);
+						child.loadObject(toolbar);
+					}
+					// load the coords
+					child = control.getChildControl("coords"); //$NON-NLS-1$
+					if (child != null) {
+						ImageCoordSystem coords = trackerPanel.getCoords();
+						child.loadObject(coords);
+						int n = trackerPanel.getFrameNumber();
+						trackerPanel.getSnapPoint().setXY(coords.getOriginX(n), coords.getOriginY(n));
+					}
+					trackerPanel.progress = 75;					
+					break;
+				case 75:
+					// load the tracks
+					ArrayList<?> tracks = ArrayList.class.cast(control.getObject("tracks")); //$NON-NLS-1$
+					if (tracks != null) {
+						for (int i = 0, n = tracks.size(); i < n; i++) {
+							trackerPanel.addTrack((TTrack) tracks.get(i));
+						}
+						// wait until all tracks are added, then finalize the loading
+						// for those that need it -- CenterOfMass, DyanamicSystem, and VectorSum
+						for (int i = 0, n = tracks.size(); i < n; i++) {
+							((TTrack) tracks.get(i)).initialize(trackerPanel);
+						}
+					}
+					trackerPanel.progress = 90;
+					break;
+				case 90:
+					// load drawing scenes saved in vers 4.11.0+
+					ArrayList<PencilScene> scenes = (ArrayList<PencilScene>) control.getObject("drawing_scenes"); //$NON-NLS-1$
+					if (scenes != null) {
+						PencilDrawer drawer = PencilDrawer.getDrawer(trackerPanel);
+						drawer.setDrawingsVisible(control.getBoolean("drawings_visible")); //$NON-NLS-1$
+						// replace previous scenes
+						drawer.setScenes(scenes);
+					}
+					// load drawings saved with vers 4.10.0
+					ArrayList<PencilDrawing> drawings = (ArrayList<PencilDrawing>) control.getObject("drawings"); //$NON-NLS-1$
+					if (drawings != null) {
+						PencilDrawer drawer = PencilDrawer.getDrawer(trackerPanel);
+						drawer.setDrawingsVisible(control.getBoolean("drawings_visible")); //$NON-NLS-1$
+						// clear previous scenes and add drawings to new one
+						drawer.clearScenes();
+						for (int i = 0, n = drawings.size(); i < n; i++) {
+							drawer.addDrawingtoSelectedScene(drawings.get(i));
+						}
+					}
+					trackerPanel.progress = 95;
+					break;
+				case 95:
+					// load the reference frame
+					String rfName = control.getString("referenceframe"); //$NON-NLS-1$
+					if (rfName != null) {
+						trackerPanel.setReferenceFrame(rfName);
+					}
+					// set selected track
+					String name = control.getString(PROPERTY_TRACKERPANEL_SELECTEDTRACK); //$NON-NLS-1$
+					trackerPanel.setSelectedTrack(name == null ? null : trackerPanel.getTrack(name));
+					trackerPanel.progress = 100;
+					break;
 				}
-				// load the clip control
-				child = control.getChildControl("clipcontrol"); //$NON-NLS-1$
-				if (child != null) {
-					child.loadObject(trackerPanel.getPlayer().getClipControl());
-				}
-				// load the toolbar
-				child = control.getChildControl("toolbar"); //$NON-NLS-1$
-				if (child != null) {
-					TToolBar toolbar = TToolBar.getToolbar(trackerPanel);
-					child.loadObject(toolbar);
-				}
-				// load the coords
-				child = control.getChildControl("coords"); //$NON-NLS-1$
-				if (child != null) {
-					ImageCoordSystem coords = trackerPanel.getCoords();
-					child.loadObject(coords);
-					int n = trackerPanel.getFrameNumber();
-					trackerPanel.getSnapPoint().setXY(coords.getOriginX(n), coords.getOriginY(n));
-				}
+				//OSPLog.debug("TrackerPanel.finalizeLoading start");
 
-				// load the tracks
-				ArrayList<?> tracks = ArrayList.class.cast(control.getObject("tracks")); //$NON-NLS-1$
-				if (tracks != null) {
-					for (int i = 0, n = tracks.size(); i < n; i++) {
-						trackerPanel.addTrack((TTrack) tracks.get(i));
-					}
-					// wait until all tracks are added, then finalize the loading
-					// for those that need it -- CenterOfMass, DyanamicSystem, and VectorSum
-					for (int i = 0, n = tracks.size(); i < n; i++) {
-						((TTrack) tracks.get(i)).initialize(trackerPanel);
-					}
-				}
-				// load drawing scenes saved in vers 4.11.0+
-				ArrayList<PencilScene> scenes = (ArrayList<PencilScene>) control.getObject("drawing_scenes"); //$NON-NLS-1$
-				if (scenes != null) {
-					PencilDrawer drawer = PencilDrawer.getDrawer(trackerPanel);
-					drawer.setDrawingsVisible(control.getBoolean("drawings_visible")); //$NON-NLS-1$
-					// replace previous scenes
-					drawer.setScenes(scenes);
-				}
-				// load drawings saved with vers 4.10.0
-				ArrayList<PencilDrawing> drawings = (ArrayList<PencilDrawing>) control.getObject("drawings"); //$NON-NLS-1$
-				if (drawings != null) {
-					PencilDrawer drawer = PencilDrawer.getDrawer(trackerPanel);
-					drawer.setDrawingsVisible(control.getBoolean("drawings_visible")); //$NON-NLS-1$
-					// clear previous scenes and add drawings to new one
-					drawer.clearScenes();
-					for (int i = 0, n = drawings.size(); i < n; i++) {
-						drawer.addDrawingtoSelectedScene(drawings.get(i));
-					}
-				}
 
 				// OSPLog.debug(Performance.timeCheckStr("TrackerPanel.finalizeLoading scenes
 				// and pencil ", Performance.TIME_MARK));
 
-				// load the reference frame
-				String rfName = control.getString("referenceframe"); //$NON-NLS-1$
-				if (rfName != null) {
-					trackerPanel.setReferenceFrame(rfName);
-				}
-				// set selected track
-				String name = control.getString(PROPERTY_TRACKERPANEL_SELECTEDTRACK); //$NON-NLS-1$
-				trackerPanel.setSelectedTrack(name == null ? null : trackerPanel.getTrack(name));
 
 			} finally {
 				//OSPLog.debug("!!! " + Performance.now(t0) + " TrackerPanel.finalizeLoading");
 				//OSPLog.debug("TrackerPanel.finalizeLoading done");
 			}
-			if (asyncloader != null) {
+			if (trackerPanel.progress == 100 && asyncloader != null) {
 				asyncloader.finalized(trackerPanel);
 				asyncloader = null;
 			}

@@ -45,6 +45,7 @@ import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.media.core.DoubleArray;
 import org.opensourcephysics.media.core.ImageCoordSystem;
+import org.opensourcephysics.media.core.IncrementallyLoadable;
 import org.opensourcephysics.media.core.Video;
 import org.opensourcephysics.media.core.VideoAdapter;
 import org.opensourcephysics.media.core.VideoFileFilter;
@@ -91,7 +92,7 @@ import com.xuggle.xuggler.video.IConverter;
  * ALWAYS includes any !isComplete() pictures. These images are always precalculated.
  * 
  */
-public class XuggleVideo extends VideoAdapter implements SmoothPlayable {
+public class XuggleVideo extends VideoAdapter implements SmoothPlayable, IncrementallyLoadable {
 
 	public static boolean registered;
 	public static final String[][] RECORDABLE_EXTENSIONS = { { "mov", "mov" }, //$NON-NLS-1$ //$NON-NLS-2$
@@ -138,11 +139,11 @@ public class XuggleVideo extends VideoAdapter implements SmoothPlayable {
 	private final String path;
 
 	// maps frame number to timestamp of displayed packet (last packet loaded)
-	private final Long[] packetTimeStamps;
+	private Long[] packetTimeStamps;
 	// maps frame number to timestamp of key packet (first packet loaded)
-	private final Long[] keyTimeStamps;
+	private Long[] keyTimeStamps;
 	// array of frame start times in milliseconds
-	private final double[] startTimes;
+	private double[] startTimes;
 	private final Timer failDetectTimer;
 
 	private IContainer container;
@@ -152,6 +153,15 @@ public class XuggleVideo extends VideoAdapter implements SmoothPlayable {
 	private IVideoPicture picture;
 	private IRational timebase;
 	private IConverter converter;
+	
+	// all of the following used during loading only
+	private ArrayList<Long> packetTSList;
+	private ArrayList<Long> keyTSList;
+	private ArrayList<BufferedImage> imageList;
+	private int index = 0;
+	private long keyTimeStamp = Long.MIN_VALUE;
+	private ArrayList<Double> seconds;
+	private int[] frameRefs;
 
 	/**
 	 * The firstDisplayPacket is the index of the first displayable video frame.
@@ -193,11 +203,15 @@ public class XuggleVideo extends VideoAdapter implements SmoothPlayable {
 				break;
 			}
 		}
-		int[] frameRefs = new int[] { -1, -1 };
+		frameRefs = new int[] { -1, -1 };
 		// timer to detect failures
 		failDetectTimer = new Timer(5000, new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
+				if (VideoIO.isCanceled()) {
+					failDetectTimer.stop();
+					return;
+				}
 				if (frameRefs[FRAME] == frameRefs[PREVFRAME]) {
 					firePropertyChange(PROPERTY_VIDEO_STALLED, null, fileName);
 					failDetectTimer.stop();
@@ -227,7 +241,7 @@ public class XuggleVideo extends VideoAdapter implements SmoothPlayable {
 		OSPLog.finest("Xuggle video loading " + path + " local?: " + isLocal); //$NON-NLS-1$ //$NON-NLS-2$
 		failDetectTimer.start();
 		frameCount = -1;
-		String err = openContainer(); // pig this calls preLoadContainer() to set frameCount
+		String err = openContainer();
 		if (err != null) {
 			dispose();
 			throw new IOException(err);
@@ -241,72 +255,180 @@ public class XuggleVideo extends VideoAdapter implements SmoothPlayable {
 //		}
 //		packetTimeStamps = new Long[frameCount];
 //		keyTimeStamps = new Long[frameCount];
-		ArrayList<Long> packetTSList = new ArrayList<Long>();
-		ArrayList<Long> keyTSList = new ArrayList<Long>();
+		packetTSList = new ArrayList<Long>();
+		keyTSList = new ArrayList<Long>();
 
-		long keyTimeStamp = Long.MIN_VALUE;
-		ArrayList<Double> seconds = new ArrayList<Double>();
+		seconds = new ArrayList<Double>();
 		firePropertyChange(PROPERTY_VIDEO_PROGRESS, fileName, 0);
 		
 //		imageCache = new BufferedImage[Math.min(Math.max(firstDisplayPacket, CACHE_MAX), frameCount)];
-		ArrayList<BufferedImage> imageList = new ArrayList<BufferedImage>();
+		imageList = new ArrayList<BufferedImage>();
 		
 		
 		firstDisplayPacket = 0;
-		// step thru container and find all video frames
-		int index = 0;
-		while (container.readNextPacket(packet) >= 0) {
-			if (VideoIO.isCanceled()) {
-				failDetectTimer.stop();
-				firePropertyChange(PROPERTY_VIDEO_PROGRESS, fileName, null);
-				// clean up
-				dispose();
-				throw new IOException("Canceled by user"); //$NON-NLS-1$
-			}
-			if (isCurrentStream()) {
-				long dts = packet.getTimeStamp(); // decode time stamp
-				if (keyTimeStamp == Long.MIN_VALUE || packet.isKeyPacket()) {
-					keyTimeStamp = dts;
-				}
-				int offset = 0;
-				int size = packet.getSize();
-				while (offset < size) {
-					// decode the packet into the picture
-					int bytesDecoded = videoDecoder.decodeVideo(picture, packet, offset);
-					// check for errors
-					if (bytesDecoded < 0)
-						break;
-					offset += bytesDecoded;
-					if (!picture.isComplete()) {
-//						System.out.println("!! XuggleVideo picture was incomplete!");
-						firstDisplayPacket++;
-						continue;
-					}					
-				}
-				// save valid buffered images for cache
-				if (picture.isComplete() && imageList.size() < CACHE_MAX - firstDisplayPacket) {
-					imageList.add(getBufferedImage());
-				}
-				
-//				dumpImage(containerFrame, getBufferedImage(), "C");				
-//				System.out.println(" frame " + containerFrame + " dts=" + dts + " kts=" + keyTimeStamp + " "
-//						+ packet.getFormattedTimeStamp() + " " + picture.getFormattedTimeStamp());
-				
-				packetTSList.add(dts);
-				keyTSList.add(keyTimeStamp);
-				if (keyTS0 == Long.MIN_VALUE)
-					keyTS0 = dts; 
-				seconds.add((dts - keyTS0) * timebase.getValue());
-				firePropertyChange(PROPERTY_VIDEO_PROGRESS, fileName, index);
-				frameRefs[FRAME] = index++;
-			}
+		if (!VideoIO.loadIncrementally) {
+			// step thru container quikly and find all video frames
+			while (loadMoreFrames(500)) {}
 		}
+		
+		
+//		while (container.readNextPacket(packet) >= 0) {
+//			if (VideoIO.isCanceled()) {
+//				failDetectTimer.stop();
+//				firePropertyChange(PROPERTY_VIDEO_PROGRESS, fileName, null);
+//				// clean up
+//				dispose();
+//				throw new IOException("Canceled by user"); //$NON-NLS-1$
+//			}
+//			if (isCurrentStream()) {
+//				long dts = packet.getTimeStamp(); // decode time stamp
+//				if (keyTimeStamp == Long.MIN_VALUE || packet.isKeyPacket()) {
+//					keyTimeStamp = dts;
+//				}
+//				int offset = 0;
+//				int size = packet.getSize();
+//				while (offset < size) {
+//					// decode the packet into the picture
+//					int bytesDecoded = videoDecoder.decodeVideo(picture, packet, offset);
+//					// check for errors
+//					if (bytesDecoded < 0)
+//						break;
+//					offset += bytesDecoded;
+//					if (!picture.isComplete()) {
+////						System.out.println("!! XuggleVideo picture was incomplete!");
+//						firstDisplayPacket++;
+//						continue;
+//					}					
+//				}
+//				// save valid buffered images for cache
+//				if (picture.isComplete() && imageList.size() < CACHE_MAX - firstDisplayPacket) {
+//					imageList.add(getBufferedImage());
+//				}
+//				
+////				dumpImage(containerFrame, getBufferedImage(), "C");				
+////				System.out.println(" frame " + containerFrame + " dts=" + dts + " kts=" + keyTimeStamp + " "
+////						+ packet.getFormattedTimeStamp() + " " + picture.getFormattedTimeStamp());
+//				
+//				packetTSList.add(dts);
+//				keyTSList.add(keyTimeStamp);
+//				if (keyTS0 == Long.MIN_VALUE)
+//					keyTS0 = dts; 
+//				seconds.add((dts - keyTS0) * timebase.getValue());
+//				firePropertyChange(PROPERTY_VIDEO_PROGRESS, fileName, index);
+//				frameRefs[FRAME] = index++;
+//			}
+//		}
+		
+		// code below moved to finalizeLoading()
+//		failDetectTimer.stop();
+//
+//		// throw IOException if no frames were loaded		
+//		frameCount = packetTSList.size();
+//		if (frameCount == firstDisplayPacket) {
+//			firePropertyChange(PROPERTY_VIDEO_PROGRESS, fileName, null);
+//			dispose();
+//			throw new IOException("packets loaded but no complete picture"); //$NON-NLS-1$
+//		}
+//		
+//		OSPLog.finest("XuggleVideo found " + firstDisplayPacket + " incomplete out of " + frameCount + " total frames");
+//
+//		// create imageCache
+//		imageCache = new BufferedImage[imageList.size() + firstDisplayPacket];
+//		BufferedImage[] temp = imageList.toArray(new BufferedImage[imageList.size()]);
+//		System.arraycopy(temp, 0, imageCache, firstDisplayPacket, temp.length);
+//		// no longer need imageList
+//		imageList = null;
+//		// Note: imageCache has null images prior to firstDisplayPacket
+//
+//		// reload incomplete packets to get images? Never used! Is this necessary? 
+////		index = 0;
+////		seekToStart();
+////		while (container.readNextPacket(packet) >= 0 && index < firstDisplayPacket) {
+////			if (VideoIO.isCanceled()) {
+////				failDetectTimer.stop();
+////				firePropertyChange(PROPERTY_VIDEO_PROGRESS, fileName, null);
+////				// clean up
+////				dispose();
+////				throw new IOException("Canceled by user"); //$NON-NLS-1$
+////			}
+////			if (isCurrentStream()) {
+////				long dts = packet.getTimeStamp(); // decode time stamp
+////				if (keyTimeStamp == Long.MIN_VALUE || packet.isKeyPacket()) {
+////					keyTimeStamp = dts;
+////				}
+////				int offset = 0;
+////				int size = packet.getSize();
+////				while (offset < size) {
+////					// decode the packet into the picture
+////					int bytesDecoded = videoDecoder.decodeVideo(picture, packet, offset);
+////					// check for errors
+////					if (bytesDecoded < 0)
+////						break;
+////					offset += bytesDecoded;
+////					if (picture.isComplete()) {
+////						if (index < imageCache.length) {
+////							imageCache[index] = getBufferedImage();
+////						}
+////					}					
+////				}					
+////				frameRefs[FRAME] = index++;
+////			}
+////		}
+//		
+//		packetTimeStamps = packetTSList.toArray(new Long[frameCount]);
+//		keyTimeStamps = keyTSList.toArray(new Long[frameCount]);
+//		// no longer need packetTSList and keyTSList
+//		packetTSList = null;
+//		keyTSList = null;
+//		// set initial video clip properties
+//		startFrameNumber = 0;
+//		endFrameNumber = frameCount - 1;
+//		// create startTimes array
+//		startTimes = new double[frameCount];
+//		startTimes[0] = 0;
+//		for (int i = 1; i < startTimes.length; i++) {
+//			startTimes[i] = seconds.get(i) * 1000;
+//		}
+//
+//		setImage(imageCache[firstDisplayPacket]);
+//		seekToStart();
+//		container.readNextPacket(packet);
+////
+////		for (int i = frameCount; --i >= 0;) {
+////			dumpImage(i, getImage(i), "D");
+////		}
+////
+////		
+//		
+//		seekToStart(); // why??
+//		loadPictureFromNextPacket();
+//		BufferedImage img = getImage(0);
+////		if (img == null) {
+////			for (int i = 1; i < frameCount; i++) {
+////				if ((img = getImage(i)) != null)
+////					break;
+////			}
+////		}
+//		firePropertyChange(PROPERTY_VIDEO_PROGRESS, fileName, null);
+//		if (img == null) {
+//			dispose();
+//			throw new IOException("No images"); //$NON-NLS-1$
+//		}
+//		setImage(img);
+//		
+//		seekToStart(); // why again?????
+//		loadPictureFromNextPacket();
+//		
+//		//debugCache();
+	}
+	
+	private void finalizeLoading() throws IOException {
 		failDetectTimer.stop();
 
 		// throw IOException if no frames were loaded		
 		frameCount = packetTSList.size();
 		if (frameCount == firstDisplayPacket) {
-			firePropertyChange(PROPERTY_VIDEO_PROGRESS, fileName, null);
+			firePropertyChange(PROPERTY_VIDEO_PROGRESS, path, null);
 			dispose();
 			throw new IOException("packets loaded but no complete picture"); //$NON-NLS-1$
 		}
@@ -317,6 +439,8 @@ public class XuggleVideo extends VideoAdapter implements SmoothPlayable {
 		imageCache = new BufferedImage[imageList.size() + firstDisplayPacket];
 		BufferedImage[] temp = imageList.toArray(new BufferedImage[imageList.size()]);
 		System.arraycopy(temp, 0, imageCache, firstDisplayPacket, temp.length);
+		// no longer need imageList
+		imageList = null;
 		// Note: imageCache has null images prior to firstDisplayPacket
 
 		// reload incomplete packets to get images? Never used! Is this necessary? 
@@ -356,6 +480,9 @@ public class XuggleVideo extends VideoAdapter implements SmoothPlayable {
 		
 		packetTimeStamps = packetTSList.toArray(new Long[frameCount]);
 		keyTimeStamps = keyTSList.toArray(new Long[frameCount]);
+		// no longer need packetTSList and keyTSList
+		packetTSList = null;
+		keyTSList = null;
 		// set initial video clip properties
 		startFrameNumber = 0;
 		endFrameNumber = frameCount - 1;
@@ -385,7 +512,7 @@ public class XuggleVideo extends VideoAdapter implements SmoothPlayable {
 //					break;
 //			}
 //		}
-		firePropertyChange(PROPERTY_VIDEO_PROGRESS, fileName, null);
+		firePropertyChange(PROPERTY_VIDEO_PROGRESS, path, null);
 		if (img == null) {
 			dispose();
 			throw new IOException("No images"); //$NON-NLS-1$
@@ -395,11 +522,67 @@ public class XuggleVideo extends VideoAdapter implements SmoothPlayable {
 		seekToStart(); // why again?????
 		loadPictureFromNextPacket();
 		
-		//debugCache();
-//		System.out.println("OK");
+	}
+	
+	@Override
+	public boolean loadMoreFrames(int n) throws IOException {
+		if (isFullyLoaded()) 
+			return false;
+		int finalIndex = index + n;
+		while (index < finalIndex && container.readNextPacket(packet) >= 0) {
+			if (VideoIO.isCanceled()) {
+				failDetectTimer.stop();
+				firePropertyChange(PROPERTY_VIDEO_PROGRESS, path, null);
+				// clean up
+				dispose();
+				throw new IOException("Canceled by user"); //$NON-NLS-1$
+			}
+			if (isCurrentStream()) {
+				long dts = packet.getTimeStamp(); // decode time stamp
+				if (keyTimeStamp == Long.MIN_VALUE || packet.isKeyPacket()) {
+					keyTimeStamp = dts;
+				}
+				int offset = 0;
+				int size = packet.getSize();
+				while (offset < size) {
+					// decode the packet into the picture
+					int bytesDecoded = videoDecoder.decodeVideo(picture, packet, offset);
+					// check for errors
+					if (bytesDecoded < 0)
+						break;
+					offset += bytesDecoded;
+					if (!picture.isComplete()) {
+//						System.out.println("!! XuggleVideo picture was incomplete!");
+						firstDisplayPacket++;
+						continue;
+					}					
+				}
+				// save valid buffered images for cache
+				if (picture.isComplete() && imageList.size() < CACHE_MAX - firstDisplayPacket) {
+					imageList.add(getBufferedImage());
+				}
+				
+//				dumpImage(containerFrame, getBufferedImage(), "C");				
+//				System.out.println(" frame " + containerFrame + " dts=" + dts + " kts=" + keyTimeStamp + " "
+//						+ packet.getFormattedTimeStamp() + " " + picture.getFormattedTimeStamp());
+				
+				packetTSList.add(dts);
+				keyTSList.add(keyTimeStamp);
+				if (keyTS0 == Long.MIN_VALUE)
+					keyTS0 = dts; 
+				seconds.add((dts - keyTS0) * timebase.getValue());
+				firePropertyChange(PROPERTY_VIDEO_PROGRESS, path, index);
+				frameRefs[FRAME] = index++;
+			}
+		}
+		boolean success = index == finalIndex;
+		if (!success && !isFullyLoaded()) {
+			finalizeLoading();
+		}
+		return success;
 	}
 
-    void debugCache() {
+  void debugCache() {
 		if (imageCache != null) {
 			for (int i = 0; i < imageCache.length; i++) {
 				dumpImage(i, imageCache[i], "img");
@@ -1089,6 +1272,16 @@ public class XuggleVideo extends VideoAdapter implements SmoothPlayable {
 	@Override
 	public String getTypeName() {
 		return MovieFactory.ENGINE_XUGGLE;
+	}
+
+	@Override
+	public int getLoadedFrameCount() {
+		return index;
+	}
+
+	@Override
+	public boolean isFullyLoaded() {
+		return packetTSList == null;
 	}
 
 }

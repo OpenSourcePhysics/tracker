@@ -40,8 +40,6 @@ import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
 import java.awt.print.PageFormat;
 import java.awt.print.Printable;
@@ -75,7 +73,6 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JProgressBar;
 import javax.swing.JSplitPane;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
@@ -95,6 +92,7 @@ import org.opensourcephysics.media.core.AsyncVideoI;
 import org.opensourcephysics.media.core.ImageCoordSystem;
 import org.opensourcephysics.media.core.ImageVideo;
 import org.opensourcephysics.media.core.ImageVideoType;
+import org.opensourcephysics.media.core.IncrementallyLoadable;
 import org.opensourcephysics.media.core.MediaRes;
 import org.opensourcephysics.media.core.Video;
 import org.opensourcephysics.media.core.VideoClip;
@@ -800,7 +798,18 @@ public class TrackerIO extends VideoIO {
 		// openURL
 		// ..TFrame.doOpenURL
 		//OSPLog.debug("TrackerIO openTabPathAsync " + paths); //$NON-NLS-1$
-		new AsyncLoader(paths, existingPanel, frame, libraryBrowser, whenDone).execute();
+		VideoIO.loadIncrementally = true;
+		AsyncLoader loader = new AsyncLoader(paths, existingPanel, frame, libraryBrowser, whenDone);
+		loader.addPropertyChangeListener(new PropertyChangeListener() {
+
+			@Override
+			public void propertyChange(PropertyChangeEvent e) {
+				if (e.getNewValue() == AsyncSwingWorker.CANCELED_ASYNC)
+					VideoIO.setCanceled(true);
+			}
+			
+		});
+		loader.execute();
 	}
 
 	
@@ -941,7 +950,7 @@ public class TrackerIO extends VideoIO {
 			choose(trackerPanel, control, false, () -> {
 					trackerPanel.changed = true;
 					control.loadObject(trackerPanel);
-					TTrackBar.refreshMemoryButton();
+					TTrackBar.refreshMemoryButton(trackerPanel);
 			});
 		} else {
 			JOptionPane.showMessageDialog(trackerPanel.getTFrame(),
@@ -1230,7 +1239,7 @@ public class TrackerIO extends VideoIO {
 							return null;
 						File[] inserted = new File[i];
 						System.arraycopy(files, 0, inserted, 0, i);
-						TTrackBar.refreshMemoryButton();
+						TTrackBar.refreshMemoryButton(trackerPanel);
 						return inserted;
 					}
 				} else { // bad file is last one in array
@@ -1241,12 +1250,12 @@ public class TrackerIO extends VideoIO {
 						return null;
 					File[] inserted = new File[i];
 					System.arraycopy(files, 0, inserted, 0, i);
-					TTrackBar.refreshMemoryButton();
+					TTrackBar.refreshMemoryButton(trackerPanel);
 					return inserted;
 				}
 			}
 		}
-		TTrackBar.refreshMemoryButton();
+		TTrackBar.refreshMemoryButton(trackerPanel);
 		return files;
 	}
 
@@ -1731,6 +1740,7 @@ public class TrackerIO extends VideoIO {
 
 		private boolean panelChanged;
 		private TrackerPanel trackerPanel;
+		private Video video;
 		private String rawPath;
 		private String nonURIPath;
 		private XMLControlElement control;
@@ -1745,7 +1755,8 @@ public class TrackerIO extends VideoIO {
 		private List<VideoPanel> panelList = new ArrayList<>();
 
 		private LibraryBrowser libraryBrowser;
-		private MonitorDialog monitorDialog;
+//		private MonitorDialog monitorDialog;
+		
 		/**
 		 * 
 		 * @param paths  or more paths to load in sequence
@@ -1754,7 +1765,7 @@ public class TrackerIO extends VideoIO {
 		 * @param whenDone
 		 */
 		public AsyncLoader(List<String> paths, TrackerPanel existingPanel, TFrame frame, LibraryBrowser libraryBrowser, Runnable whenDone) {
-			super(frame, paths.get(0), (whenDone == null ? 0 : 10), 0, 100);
+			super(frame, "Loading "+XML.getName(paths.get(0)), (whenDone == null ? 0 : 10), 0, 100);
 			path = path0 = name = paths.remove(0);
 			this.paths = paths;
 			isAsync = (delayMillis > 0);
@@ -1798,10 +1809,10 @@ public class TrackerIO extends VideoIO {
 			if (!ResourceLoader.isHTTP(path))
 				path = nonURIPath;
 
-			// create progress monitor
-			monitorDialog = new MonitorDialog(frame, path);
-			monitorDialog.setVisible(true);
-			monitors.add(monitorDialog);
+			// create progress monitor 
+//			monitorDialog = new MonitorDialog(frame, path);
+//			monitorDialog.setVisible(true); // delay this
+//			monitors.add(monitorDialog);
 			setCanceled(false);
 
 			// load data from zip or trz file			
@@ -1913,6 +1924,10 @@ public class TrackerIO extends VideoIO {
 //			OSPLog.debug(Performance.timeCheckStr("TrackerIO.asyncLoad " + type + " end " + progress + " " + path,
 //					Performance.TIME_MARK));
 			if (progress == 100) {
+//				if (monitorDialog != null) {
+//					monitorDialog.close();
+//					monitorDialog = null;
+//				}
 				if (paths.size() > 0) {
 					path = paths.remove(0);
 					if (setupLoader())
@@ -2119,6 +2134,8 @@ public class TrackerIO extends VideoIO {
 		}
 
 		private int loadTRK(int progress) {
+//			if (monitorDialog != null && monitorDialog.isVisible())
+//			monitorDialog.setProgressAsync(80);
 //			XMLControl child = control.getChildControl("videoclip"); //$NON-NLS-1$
 //			if (child != null) {
 //				int count = child.getInt("video_framecount"); //$NON-NLS-1$
@@ -2129,8 +2146,25 @@ public class TrackerIO extends VideoIO {
 //					monitorDialog.setFrameCount(count);
 //				}
 //			}
+			
+//			control.setValue("TRKPath", getName());
+//			XMLControl child = control.getChildControl("videoclip"); //$NON-NLS-1$
+//			if (child != null)
+//				child = child.getChildControl("video"); //$NON-NLS-1$
+//			if (child != null) {
+//				String videoPath = child.getString("path");
+//				if (videoPath != null) {
+//					control.setValue("rawvideopath", videoPath);					
+//				}
+//			}
+			
 			panelList.add(trackerPanel);
 			trackerPanel = (TrackerPanel) control.loadObject(trackerPanel, this);
+			if (trackerPanel.progress < 100) {
+				return trackerPanel.progress;
+			}
+			
+			// 
 			trackerPanel.setIgnoreRepaint(true);
 
 			// find page view files and add to TrackerPanel.pageViewFilePaths
@@ -2172,18 +2206,16 @@ public class TrackerIO extends VideoIO {
 				trackerPanel.setDataFile(new File(ResourceLoader.getNonURIPath(path)));
 			}
 
-//			if (monitorDialog.isVisible())
-//				monitorDialog.setProgress(80);
 			if (isCanceled()) {
 				cancelAsync();
 				return 100;
 			}
 			frame.addTab(trackerPanel, TFrame.ADD_SELECT | TFrame.ADD_NOREFRESH, null);
-//			if (monitorDialog.isVisible())
-//				monitorDialog.setProgress(90);
 			frame.showTrackControl(trackerPanel);
 			// BH ah, but asynchronous load may not have been completed yet.
 //			frame.showNotes(trackerPanel);
+			
+
 			trackerPanel.setIgnoreRepaint(false);
 //			frame.refresh();
 			if (control.failedToRead()) {
@@ -2193,8 +2225,20 @@ public class TrackerIO extends VideoIO {
 						JOptionPane.WARNING_MESSAGE);
 			}
 
-			checkDone(false);
-			
+			checkDone(false);			
+			// remove empty tab if running in Java
+			if (!OSPRuntime.isJS) {
+				Runnable runner = new Runnable() {
+					@Override
+					public void run() {
+						frame.removeEmptyTab(1);
+						frame.getToolBar(trackerPanel).refresh(TToolBar.REFRESH_TFRAME_REFRESH_TRUE);
+						frame.doTabStateChanged();
+
+					}
+				};
+				SwingUtilities.invokeLater(runner);
+			}
 			return 100;
 		}
 
@@ -2213,26 +2257,43 @@ public class TrackerIO extends VideoIO {
 		}
 
 		private int loadVideo(int progress) {
-			// check for unsupported MP4 videos
-			if (!checkMP4(path, libraryBrowser, trackerPanel))
-				return 100;
+			boolean logConsole = OSPLog.isConsoleMessagesLogged();
+			if (progress == 0) {
+				// check for unsupported MP4 videos
+				if (!checkMP4(path, libraryBrowser, trackerPanel))
+					return 100;
+				//trackerPanel.setTFrame(frame);
+	//			OSPLog.debug("TrackerIO opening video path " + path); //$NON-NLS-1$
+				// download web videos to the OSP cache
+				if (ResourceLoader.isHTTP(path)) {
+					String name = ResourceLoader.getNonURIPath(XML.getName(path));
+					File localFile = ResourceLoader.downloadToOSPCache(path, name, false);
+					if (localFile != null) {
+						path = localFile.toURI().toString();
+					}
+				}
+	
+				// attempt to load video
+				if (!Tracker.warnXuggleError)
+					OSPLog.setConsoleMessagesLogged(false);
+				video = getVideo(path, null);
+			}
 			
-			//trackerPanel.setTFrame(frame);
-//			OSPLog.debug("TrackerIO opening video path " + path); //$NON-NLS-1$
-			// download web videos to the OSP cache
-			if (ResourceLoader.isHTTP(path)) {
-				String name = ResourceLoader.getNonURIPath(XML.getName(path));
-				File localFile = ResourceLoader.downloadToOSPCache(path, name, false);
-				if (localFile != null) {
-					path = localFile.toURI().toString();
+			if (video != null 
+					&& video instanceof IncrementallyLoadable 
+					&& VideoIO.loadIncrementally) {
+				IncrementallyLoadable iVideo = (IncrementallyLoadable)video;
+				try {
+					if (iVideo.loadMoreFrames(VideoIO.incrementToLoad)) {
+						setFrameCount(iVideo.getLoadedFrameCount());
+						progress = getFrameCount() / VideoIO.incrementToLoad;
+						progress = 1 + (progress % 95);
+						return progress;					
+					}
+				} catch (IOException e) {
+					e.printStackTrace();
 				}
 			}
-
-			// attempt to load video
-			boolean logConsole = OSPLog.isConsoleMessagesLogged();
-			if (!Tracker.warnXuggleError)
-				OSPLog.setConsoleMessagesLogged(false);
-			Video video = getVideo(path, null);
 			OSPLog.setConsoleMessagesLogged(logConsole);
 //			monitorDialog.stop();
 			if (isCanceled()) {
@@ -2268,8 +2329,9 @@ public class TrackerIO extends VideoIO {
 			} else {
 				finalizeVideoLoading(video);
 			}
+			// add video path to recent files
+			Tracker.addRecent(ResourceLoader.getNonURIPath(XML.forwardSlash(path)), false); // add at beginning			
 			return 100;
-
 		}
 
 		private void finalizeVideoLoading(Video video) {
@@ -2293,7 +2355,10 @@ public class TrackerIO extends VideoIO {
 			}
 			TFrame.repaintT(trackerPanel);
 			frame.setSelectedTab(trackerPanel);
-			monitorDialog.close();
+//			if (monitorDialog != null) {
+//				monitorDialog.close();
+//				monitorDialog = null;
+//			}
 			// check for video frames with durations that vary by 20% from average
 			if (Tracker.warnVariableDuration)
 				findBadVideoFrames(trackerPanel, defaultBadFrameTolerance, true, true, true);
@@ -2313,7 +2378,7 @@ public class TrackerIO extends VideoIO {
 				Tracker.addRecent(ResourceLoader.getNonURIPath(XML.forwardSlash(xmlPath0)), false); // add at beginning
 			}
 
-			TTrackBar.refreshMemoryButton();
+			TTrackBar.refreshMemoryButton(trackerPanel);
 
 			switch (type) {
 			case TYPE_VIDEO:
@@ -2386,115 +2451,124 @@ public class TrackerIO extends VideoIO {
 			return frame;
 		}
 
-	}
-
-	static class MonitorDialog extends JDialog implements TrackerMonitor {
-
-		JProgressBar monitor;
-		Timer timer;
-		int frameCount = Integer.MIN_VALUE;
-
-		MonitorDialog(TFrame frame, String path) {
-			super(frame, false);
-			setName(path);
-			JPanel contentPane = new JPanel(new BorderLayout());
-			setContentPane(contentPane);
-			monitor = new JProgressBar(0, 100);
-			monitor.setValue(0);
-			monitor.setStringPainted(true);
-			// make timer to step progress forward slowly
-			timer = new Timer(300, new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					if (!isVisible())
-						return;
-					int progress = monitor.getValue() + 1;
-					if (progress <= 20)
-						monitor.setValue(progress);
-				}
-			});
-			timer.setRepeats(true);
-			this.addWindowListener(new WindowAdapter() {
-				@Override
-				public void windowClosing(WindowEvent e) {
-					VideoIO.setCanceled(true);
-				}
-			});
-//	  	// give user a way to close unwanted dialog: double-click
-//	  	addMouseListener(new MouseAdapter() {
-//	  		public void mouseClicked(MouseEvent e) {
-//	  			if (e.getClickCount()==2) {
-//	        	close();
-//	  			}
-//	  		}
-//	  	});
-			JPanel progressPanel = new JPanel(new BorderLayout());
-			progressPanel.setBorder(BorderFactory.createEmptyBorder(4, 30, 8, 30));
-			progressPanel.add(monitor, BorderLayout.CENTER);
-			progressPanel.setOpaque(false);
-			JLabel label = new JLabel(TrackerRes.getString("Tracker.Splash.Loading") //$NON-NLS-1$
-					+ " \"" + XML.getName(path) + "\""); //$NON-NLS-1$ //$NON-NLS-2$
-			JPanel labelbar = new JPanel();
-			labelbar.add(label);
-			JButton cancelButton = new JButton(TrackerRes.getString("Dialog.Button.Cancel")); //$NON-NLS-1$
-			cancelButton.addActionListener(new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					VideoIO.setCanceled(true);
-					close();
-				}
-			});
-			JPanel buttonbar = new JPanel();
-			buttonbar.add(cancelButton);
-			contentPane.add(labelbar, BorderLayout.NORTH);
-			contentPane.add(progressPanel, BorderLayout.CENTER);
-			contentPane.add(buttonbar, BorderLayout.SOUTH);
-			FontSizer.setFonts(contentPane, FontSizer.getLevel());
-			pack();
-			Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
-			int x = (dim.width - getBounds().width) / 2;
-			int y = (dim.height - getBounds().height) / 2;
-			setLocation(x, y);
-			timer.start();
-		}
-
 		@Override
-		public void stop() {
-			timer.stop();
-		}
-
-		@Override
-		public void restart() {
-			monitor.setValue(0);
-			frameCount = Integer.MIN_VALUE;
-			// restart timer
-			timer.start();
-		}
-
-		@Override
-		public void setProgressAsync(int progress) {
-			monitor.setValue(progress);
-		}
-
-		@Override
-		public void setFrameCount(int count) {
-			frameCount = count;
-		}
-
-		@Override
-		public int getFrameCount() {
-			return frameCount;
-		}
-
-		@Override
-		public void close() {
-			timer.stop();
-			setVisible(false);
-			monitors.remove(this);
-			dispose();
+		public String getNote(int progress) {
+			if (type == TYPE_TRK && progress > 10 && progress < 70)
+				return "Video frames loaded: " + trackerPanel.framesLoaded;
+			if (type == TYPE_VIDEO)
+				return "Video frames loaded: " + getFrameCount();
+			return String.format("Completed %d%%.\n", progressPercent);
 		}
 
 	}
+
+//	static class MonitorDialog extends JDialog implements TrackerMonitor {
+//
+//		JProgressBar monitor;
+//		Timer timer;
+//		int frameCount = Integer.MIN_VALUE;
+//
+//		MonitorDialog(TFrame frame, String path) {
+//			super(frame, false);
+//			setName(path);
+//			JPanel contentPane = new JPanel(new BorderLayout());
+//			setContentPane(contentPane);
+//			monitor = new JProgressBar(0, 100);
+//			monitor.setValue(0);
+//			monitor.setStringPainted(true);
+//			// make timer to step progress forward slowly
+//			timer = new Timer(300, new ActionListener() {
+//				@Override
+//				public void actionPerformed(ActionEvent e) {
+//					if (!isVisible())
+//						return;
+//					int progress = monitor.getValue() + 1;
+//					if (progress <= 20)
+//						monitor.setValue(progress);
+//				}
+//			});
+//			timer.setRepeats(true);
+//			this.addWindowListener(new WindowAdapter() {
+//				@Override
+//				public void windowClosing(WindowEvent e) {
+//					VideoIO.setCanceled(true);
+//				}
+//			});
+////	  	// give user a way to close unwanted dialog: double-click
+////	  	addMouseListener(new MouseAdapter() {
+////	  		public void mouseClicked(MouseEvent e) {
+////	  			if (e.getClickCount()==2) {
+////	        	close();
+////	  			}
+////	  		}
+////	  	});
+//			JPanel progressPanel = new JPanel(new BorderLayout());
+//			progressPanel.setBorder(BorderFactory.createEmptyBorder(4, 30, 8, 30));
+//			progressPanel.add(monitor, BorderLayout.CENTER);
+//			progressPanel.setOpaque(false);
+//			JLabel label = new JLabel(TrackerRes.getString("Tracker.Splash.Loading") //$NON-NLS-1$
+//					+ " \"" + XML.getName(path) + "\""); //$NON-NLS-1$ //$NON-NLS-2$
+//			JPanel labelbar = new JPanel();
+//			labelbar.add(label);
+//			JButton cancelButton = new JButton(TrackerRes.getString("Dialog.Button.Cancel")); //$NON-NLS-1$
+//			cancelButton.addActionListener(new ActionListener() {
+//				@Override
+//				public void actionPerformed(ActionEvent e) {
+//					VideoIO.setCanceled(true);
+//					close();
+//				}
+//			});
+//			JPanel buttonbar = new JPanel();
+//			buttonbar.add(cancelButton);
+//			contentPane.add(labelbar, BorderLayout.NORTH);
+//			contentPane.add(progressPanel, BorderLayout.CENTER);
+//			contentPane.add(buttonbar, BorderLayout.SOUTH);
+//			FontSizer.setFonts(contentPane, FontSizer.getLevel());
+//			pack();
+//			Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
+//			int x = (dim.width - getBounds().width) / 2;
+//			int y = (dim.height - getBounds().height) / 2;
+//			setLocation(x, y);
+//			timer.start();
+//		}
+//
+//		@Override
+//		public void stop() {
+//			timer.stop();
+//		}
+//
+//		@Override
+//		public void restart() {
+//			monitor.setValue(0);
+//			frameCount = Integer.MIN_VALUE;
+//			// restart timer
+//			timer.start();
+//		}
+//
+//		@Override
+//		public void setProgressAsync(int progress) {
+//			monitor.setValue(progress);
+//		}
+//
+//		@Override
+//		public void setFrameCount(int count) {
+//			frameCount = count;
+//		}
+//
+//		@Override
+//		public int getFrameCount() {
+//			return frameCount;
+//		}
+//
+//		@Override
+//		public void close() {
+//			timer.stop();
+//			setVisible(false);
+//			monitors.remove(this);
+//			dispose();
+//		}
+//
+//	}
 
 	/**
 	 * Transferable class for copying images to the system clipboard.
@@ -2540,16 +2614,15 @@ public class TrackerIO extends VideoIO {
 	static void setProgress(String name, String string, int framesLoaded) {
 		for (TrackerMonitor monitor : monitors) {
 			String monitorName = XML.forwardSlash(monitor.getName());
-//			if (framesLoaded%100==0) System.out.println("pig setting progress to "+framesLoaded+" for "+name);
 			if (monitorName.endsWith(name)) {
 				int progress;
-				if (monitor.getFrameCount() != Integer.MIN_VALUE) {
+				if (monitor.getFrameCount() > 0) {
 					progress = 20 + (int) (framesLoaded * 60.0 / monitor.getFrameCount());
 				} else {
 					progress = 20 + ((framesLoaded / 20) % 60);
 				}
-//				if (framesLoaded%100==0) System.out.println("pig setting monitor progress to "+progress);
-				monitor.setProgressAsync(progress);
+
+				monitor.setProgressAsync(progress);				
 				monitor.setTitle(
 						TrackerRes.getString("TFrame.ProgressDialog.Title.FramesLoaded") + ": " + framesLoaded); //$NON-NLS-1$ //$NON-NLS-2$
 				break;
