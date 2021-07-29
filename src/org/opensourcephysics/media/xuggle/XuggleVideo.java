@@ -26,8 +26,6 @@
 package org.opensourcephysics.media.xuggle;
 
 import java.awt.Frame;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeListener;
 import java.io.File;
@@ -39,8 +37,6 @@ import java.util.ArrayList;
 
 import javax.imageio.ImageIO;
 import javax.swing.SwingUtilities;
-import javax.swing.Timer;
-
 import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.media.core.DoubleArray;
