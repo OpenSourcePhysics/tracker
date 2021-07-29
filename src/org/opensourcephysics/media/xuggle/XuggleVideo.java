@@ -144,7 +144,7 @@ public class XuggleVideo extends VideoAdapter implements SmoothPlayable, Increme
 	private Long[] keyTimeStamps;
 	// array of frame start times in milliseconds
 	private double[] startTimes;
-	private final Timer failDetectTimer;
+//	private final Timer failDetectTimer;
 
 	private IContainer container;
 	private IStreamCoder videoDecoder;
@@ -205,21 +205,21 @@ public class XuggleVideo extends VideoAdapter implements SmoothPlayable, Increme
 		}
 		frameRefs = new int[] { -1, -1 };
 		// timer to detect failures
-		failDetectTimer = new Timer(5000, new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				if (VideoIO.isCanceled()) {
-					failDetectTimer.stop();
-					return;
-				}
-				if (frameRefs[FRAME] == frameRefs[PREVFRAME]) {
-					firePropertyChange(PROPERTY_VIDEO_STALLED, null, fileName);
-					failDetectTimer.stop();
-				}
-				frameRefs[PREVFRAME] = frameRefs[FRAME];
-			}
-		});
-		failDetectTimer.setRepeats(true);
+//		failDetectTimer = new Timer(5000, new ActionListener() {
+//			@Override
+//			public void actionPerformed(ActionEvent e) {
+//				if (VideoIO.isCanceled()) {
+//					failDetectTimer.stop();
+//					return;
+//				}
+//				if (frameRefs[FRAME] == frameRefs[PREVFRAME]) {
+//					firePropertyChange(PROPERTY_VIDEO_STALLED, null, fileName);
+//					failDetectTimer.stop();
+//				}
+//				frameRefs[PREVFRAME] = frameRefs[FRAME];
+//			}
+//		});
+//		failDetectTimer.setRepeats(true);
 		Resource res = ResourceLoader.getResource(fileName);
 		if (res == null) {
 			throw new IOException("unable to create resource for " + fileName); //$NON-NLS-1$
@@ -239,7 +239,7 @@ public class XuggleVideo extends VideoAdapter implements SmoothPlayable, Increme
 			setProperty("path", XML.getRelativePath(fileName)); //$NON-NLS-1$
 		}
 		OSPLog.finest("Xuggle video loading " + path + " local?: " + isLocal); //$NON-NLS-1$ //$NON-NLS-2$
-		failDetectTimer.start();
+//		failDetectTimer.start();
 		frameCount = -1;
 		String err = openContainer();
 		if (err != null) {
@@ -423,7 +423,7 @@ public class XuggleVideo extends VideoAdapter implements SmoothPlayable, Increme
 	}
 	
 	private void finalizeLoading() throws IOException {
-		failDetectTimer.stop();
+//		failDetectTimer.stop();
 
 		// throw IOException if no frames were loaded		
 		frameCount = packetTSList.size();
@@ -531,7 +531,7 @@ public class XuggleVideo extends VideoAdapter implements SmoothPlayable, Increme
 		int finalIndex = index + n;
 		while (index < finalIndex && container.readNextPacket(packet) >= 0) {
 			if (VideoIO.isCanceled()) {
-				failDetectTimer.stop();
+//				failDetectTimer.stop();
 				firePropertyChange(PROPERTY_VIDEO_PROGRESS, path, null);
 				// clean up
 				dispose();
