@@ -2122,10 +2122,12 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 								public void propertyChange(PropertyChangeEvent e) {
 								// if HINT_LOAD_RESOURCE, then e.getNewValue() is LibraryResource to load
 								if (LibraryBrowser.HINT_LOAD_RESOURCE == e.getOldValue()) {
+									
 									LibraryResource record = (LibraryResource)e.getNewValue();
 									String toCancel = " ["+TrackerRes.getString("TFrame.LibraryBrowser.Message.Cancel")+"]";
 									String loading = " "+TrackerRes.getString("Tracker.Splash.Loading")+" \"";
-									libraryBrowser.setMessage(loading + record.getName() + "\"" + toCancel, Color.YELLOW);
+									String message = loading + record.getName() + "\"" + toCancel;
+									libraryBrowser.setMessage(message, Color.YELLOW);
 									libraryBrowser.setComandButtonEnabled(false);
 									VideoIO.setCanceled(false);
 
@@ -3231,7 +3233,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 				try {
 					ArrayList<String> uriPaths = new ArrayList<String>();
 					uriPaths.add(target);
-					TrackerIO.openFromLibrary(uriPaths, this, whenDone);
+					VideoIO.loader = TrackerIO.openFromLibrary(uriPaths, this, whenDone);
 					whenDone = null;
 				} catch (Throwable t) {
 				}

@@ -786,7 +786,7 @@ public class TrackerIO extends VideoIO {
 	 * @param desktopFiles  a list of HTML and/or PDF files to open on the desktop
 	 *                      (may be null)
 	 */
-	private static void startLoading(List<String> paths, TrackerPanel existingPanel, TFrame frame,
+	private static AsyncLoader startLoading(List<String> paths, TrackerPanel existingPanel, TFrame frame,
 		  LibraryBrowser libraryBrowser, Runnable whenDone) {
 		// importVideo 
 		// openFromLibary
@@ -813,6 +813,7 @@ public class TrackerIO extends VideoIO {
 			
 		});
 		loader.execute();
+		return loader;
 	}
 
 	
@@ -879,10 +880,10 @@ public class TrackerIO extends VideoIO {
 	 * @param uriPaths     an array of URL paths to be loaded
 	 * @param frame        the frame for the TrackerPanels
 	 */
-	public static void openFromLibrary(List<String> uriPaths, TFrame frame, Runnable whenDone) {
+	public static AsyncLoader openFromLibrary(List<String> uriPaths, TFrame frame, Runnable whenDone) {
 		// TFrame.openLibraryResource
 		if (uriPaths == null || uriPaths.isEmpty()) {
-			return;
+			return null;
 		}
 		frame.loadedFiles.clear();
 // BH I may have disabled this for testing only.
@@ -896,7 +897,7 @@ public class TrackerIO extends VideoIO {
 
 		// open in separate background thread if flagged
 			// from TFrame.openLibaryResource
-		startLoading(uriPaths, null, frame, frame.libraryBrowser, whenDone);
+		return startLoading(uriPaths, null, frame, frame.libraryBrowser, whenDone);
 	}
 
 	private static void addToLibrary(TFrame frame, String path) {
@@ -1755,7 +1756,7 @@ public class TrackerIO extends VideoIO {
 		private boolean stopped; // BH TODO
 		private String xmlPath, xmlPath0;
 		private Runnable whenDone;
-		private List<VideoPanel> panelList = new ArrayList<>();
+		private Set<VideoPanel> panelList = new HashSet<>();
 
 		private LibraryBrowser libraryBrowser;
 //		private MonitorDialog monitorDialog;
@@ -2428,6 +2429,10 @@ public class TrackerIO extends VideoIO {
 		public void cancelAsync() {
 			super.cancelAsync();
 			frame.clearHoldPainting();
+			progressMonitor.close();
+			if (libraryBrowser != null) {
+				libraryBrowser.cancelLoading();
+			}
 		}
 
 		@Override
