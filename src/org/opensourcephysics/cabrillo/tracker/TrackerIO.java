@@ -1060,7 +1060,7 @@ public class TrackerIO extends VideoIO {
 		//OSPLog.debug("TrackerIO importing file: " + path); //$NON-NLS-1$
 		TFrame frame = trackerPanel.getTFrame();
 		frame.loadedFiles.clear();
-		startLoading(listOf(path), trackerPanel, frame, null, whenDone);
+		VideoIO.loader = startLoading(listOf(path), trackerPanel, frame, frame.libraryBrowser, whenDone);
 	}
 
 	static List<String> listOf(String path) {
@@ -2432,6 +2432,14 @@ public class TrackerIO extends VideoIO {
 			progressMonitor.close();
 			if (libraryBrowser != null) {
 				libraryBrowser.cancelLoading();
+			}
+			if (type == TYPE_VIDEO) {
+				// remove existingPanel if clean and removable
+				if (existingPanel != null) {
+					int tab = frame.getRemovableTabNumber(existingPanel);
+					if (tab > -1)
+						frame.removeTabNow(tab);
+				}
 			}
 		}
 

@@ -3107,14 +3107,24 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	/**
 	 * @return true if there is at least one tab and it is not changed and it has the default title
 	 */
-    boolean haveContent() {
+  boolean haveContent() {
 		return (getTabCount() > 0 && (getTrackerPanel(0).changed
 				|| !tabbedPane.getTitleAt(0).equals(TrackerRes.getString("TrackerPanel.NewTab.Name")))); //$NON-NLS-1$
 	}
 
 	/**
+	 * @return the tab number to remove if the specified TrackerPanel is present and clean, or -1 if not
+	 */
+  int getRemovableTabNumber(TrackerPanel panel) {
+  	int tab = getTab(panel);
+		boolean clean = tab > -1 && !panel.changed
+				&& tabbedPane.getTitleAt(tab).equals(TrackerRes.getString("TrackerPanel.NewTab.Name")); //$NON-NLS-1$
+		return clean? tab: -1;
+	}
+
+	/**
 	 * Returns a clean TrackerPanel.
-	 * Uses the blank untitled TrackerPanel in frame tab 0 if it is unchanged
+	 * Uses the blank untitled TrackerPanel in frame tab 0 if it is unchanged (JS only)
 	 *
 	 * @return a clean TrackerPanel.
 	 */
