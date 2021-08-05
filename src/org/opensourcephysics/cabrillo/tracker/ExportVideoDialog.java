@@ -866,7 +866,7 @@ public class ExportVideoDialog extends JDialog {
 				playControl.step();
 			}
 		} catch (Exception ex) {
-			JOptionPane.showMessageDialog(trackerPanel, ex, "Exception saving video: ", //$NON-NLS-1$
+			JOptionPane.showMessageDialog(trackerPanel, ex.getStackTrace(), "Exception saving video: ", //$NON-NLS-1$
 					JOptionPane.WARNING_MESSAGE);
 			monitor.close();
 			playControl.removePropertyChangeListener("stepnumber", listener); //$NON-NLS-1$

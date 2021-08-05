@@ -3848,7 +3848,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			videoPanel.setLoader(null);
 			try {
 				switch(trackerPanel.progress) {
-				case 70:
+				case 70: // VideoPanel finished getting video clip
 					XMLControl child;
 					Video video = finalizeClip();
 					if (video != null) {

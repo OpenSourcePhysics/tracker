@@ -225,8 +225,14 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 		protected void finalizeExport() {
 			// video should be ready at this point
 			// add video file(s) to ziplist
-			File vidFile = new File(getTempDirectory() + videoTarget);
-			zipList.add(vidFile);
+			File vidFile = new File(videoTarget);
+			if (vidFile.exists())
+				zipList.add(vidFile);
+			else {
+				vidFile = new File(getTempDirectory(), videoTarget);
+				if (vidFile.exists())
+					zipList.add(vidFile);
+			}
 			
 			// deal with image videos
 			if (!"".equals(videoSubdirectory)) { //$NON-NLS-1$
