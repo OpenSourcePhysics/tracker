@@ -491,6 +491,8 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 //				break;
 //			}
 //		}
+		if (trackViews == null)
+			return false;
 		for (Iterator<TTrack> it = trackViews.keySet().iterator(); it.hasNext();) {
 			TrackView view = trackViews.get(it.next());
 			if (view.isCustomState())
