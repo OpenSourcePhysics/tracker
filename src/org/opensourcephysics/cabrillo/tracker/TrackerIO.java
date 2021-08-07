@@ -1937,8 +1937,8 @@ public class TrackerIO extends VideoIO {
 					if (setupLoader())
 						progress = 0;
 				} else {
-					// remove the initial tab if there is more than one tab now
-					frame.removeEmptyTab(1);
+					// remove the initial empty tab if there are now 2 or more
+					frame.removeEmptyTabIfTabCountGreaterThan(1);
 				}
 				
 			}
@@ -2235,10 +2235,8 @@ public class TrackerIO extends VideoIO {
 				Runnable runner = new Runnable() {
 					@Override
 					public void run() {
-						frame.removeEmptyTab(1);
 						frame.getToolBar(trackerPanel).refresh(TToolBar.REFRESH_TFRAME_REFRESH_TRUE);
 						frame.doTabStateChanged();
-
 					}
 				};
 				SwingUtilities.invokeLater(runner);

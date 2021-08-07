@@ -613,9 +613,11 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 		case TTrack.PROPERTY_TTRACK_FOOTPRINT:
 			// track property has changed
 			track = (TTrack)e.getSource();
-			view = trackViews.get(track);
-			if (view != null)
-				view.trackIcon = null;
+			if (trackViews != null) {
+				view = trackViews.get(track);
+				if (view != null)
+					view.trackIcon = null;
+				}
 			refresh();
 		}
 	}

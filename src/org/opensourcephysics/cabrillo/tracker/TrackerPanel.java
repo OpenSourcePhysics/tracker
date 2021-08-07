@@ -4848,7 +4848,8 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		setMouseCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
 		TFrame frame = getTFrame();
 		if (frame != null) {
-			frame.removeEmptyTab(0);
+			// remove the initial empty tab if any
+			frame.removeEmptyTabIfTabCountGreaterThan(0);
 			frame.doOpenURL(res.getURL().toExternalForm());
 		}
 	}

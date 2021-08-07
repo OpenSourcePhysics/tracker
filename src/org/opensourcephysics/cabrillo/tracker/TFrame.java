@@ -3140,9 +3140,9 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	}
 
 	/**
-	 * Remove the first tab if it is empty and there are more than n tabs  (0 or 1)
+	 * Remove the first tab if it is empty and there are at least n tabs  (1 or 2)
 	 */
-	public void removeEmptyTab(int n) {
+	public void removeEmptyTabIfTabCountGreaterThan(int n) {
 		if (getTabCount() > n && !haveContent())
 			removeTabNow(0);
 	}
