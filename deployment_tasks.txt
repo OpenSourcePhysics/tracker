@@ -4,7 +4,7 @@ workspace_trackerJS:
 -- update version number in OSPRuntime
 -- check out master and merge SwingJS?
 -- add version tag to master and push all code to GitHub
--- build tracker.jar, tracker_starter.jar
+-- build tracker.jar, tracker_starter.jar using build-tracker-jar.xml file in tracker/jarscripts
 -- update version number in tracker_installer.xml
 -- update version number in tracker_upgrade_installer.xml
 

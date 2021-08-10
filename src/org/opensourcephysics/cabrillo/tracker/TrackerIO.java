@@ -954,7 +954,7 @@ public class TrackerIO extends VideoIO {
 			choose(trackerPanel, control, false, () -> {
 					trackerPanel.changed = true;
 					control.loadObject(trackerPanel);
-					TTrackBar.refreshMemoryButton(trackerPanel);
+					TToolBar.refreshMemoryButton(trackerPanel);
 			});
 		} else {
 			JOptionPane.showMessageDialog(trackerPanel.getTFrame(),
@@ -1243,7 +1243,7 @@ public class TrackerIO extends VideoIO {
 							return null;
 						File[] inserted = new File[i];
 						System.arraycopy(files, 0, inserted, 0, i);
-						TTrackBar.refreshMemoryButton(trackerPanel);
+						TToolBar.refreshMemoryButton(trackerPanel);
 						return inserted;
 					}
 				} else { // bad file is last one in array
@@ -1254,12 +1254,12 @@ public class TrackerIO extends VideoIO {
 						return null;
 					File[] inserted = new File[i];
 					System.arraycopy(files, 0, inserted, 0, i);
-					TTrackBar.refreshMemoryButton(trackerPanel);
+					TToolBar.refreshMemoryButton(trackerPanel);
 					return inserted;
 				}
 			}
 		}
-		TTrackBar.refreshMemoryButton(trackerPanel);
+		TToolBar.refreshMemoryButton(trackerPanel);
 		return files;
 	}
 
@@ -1937,7 +1937,7 @@ public class TrackerIO extends VideoIO {
 					if (setupLoader())
 						progress = 0;
 				} else {
-					// remove the initial empty tab if there are now 2 or more
+					// remove the empty tab if there is more than 1 tab
 					frame.removeEmptyTabIfTabCountGreaterThan(1);
 				}
 				
@@ -2380,7 +2380,7 @@ public class TrackerIO extends VideoIO {
 				Tracker.addRecent(ResourceLoader.getNonURIPath(XML.forwardSlash(xmlPath0)), false); // add at beginning
 			}
 
-			TTrackBar.refreshMemoryButton(trackerPanel);
+			TToolBar.refreshMemoryButton(trackerPanel);
 
 			switch (type) {
 			case TYPE_VIDEO:

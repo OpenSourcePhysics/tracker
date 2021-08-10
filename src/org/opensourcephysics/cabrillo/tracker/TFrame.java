@@ -1604,8 +1604,6 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 				closeNotesDialogButton.setText(TrackerRes.getString("Dialog.Button.Close")); //$NON-NLS-1$
 				displayWhenLoadedCheckbox.setText(TrackerRes.getString("TFrame.NotesDialog.Checkbox.ShowByDefault")); //$NON-NLS-1$
 			}
-			// refresh memory button
-			TTrackBar.refreshMemoryButton(trackerPanel);
 			validate();
 			if (helpLauncher != null) {
 				// refresh navigation bar components

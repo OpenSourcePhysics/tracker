@@ -27,6 +27,7 @@ package org.opensourcephysics.cabrillo.tracker;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.Graphics;
 //import java.awt.Frame;
 import java.awt.Point;
@@ -74,6 +75,7 @@ import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.desktop.OSPDesktop;
 import org.opensourcephysics.display.DataTable;
+import org.opensourcephysics.display.GUIUtils;
 import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.display.ResizableIcon;
 import org.opensourcephysics.media.core.ClipInspector;
@@ -111,6 +113,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 	final protected static Icon stretchOffIcon, stretchOnIcon;
 	final protected static Icon xmassOffIcon, xmassOnIcon;
 	final protected static Icon fontSizeIcon;
+	final protected static Icon memoryIcon, redMemoryIcon;
 	final protected static Icon autotrackerOffIcon, autotrackerOnIcon, autotrackerDisabledIcon;
 	final protected static Icon infoIcon, refreshIcon, htmlIcon, htmlDisabledIcon;
 	final protected static Icon[] trailIcons = new Icon[4];
@@ -169,7 +172,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 	final protected JMenu vStretchMenu, aStretchMenu;
 	protected ButtonGroup vGroup, aGroup;
 	final protected JMenuItem showTrackControlItem, selectNoneItem, stretchOffItem;
-	final protected JButton notesButton, refreshButton, desktopButton;
+	final protected JButton notesButton, refreshButton, desktopButton, memoryButton;
 	final protected Component toolbarFiller;
 	final protected JMenu cloneMenu;
 	final protected ArrayList<PageTView.TabData> pageViewTabs = new ArrayList<PageTView.TabData>();
@@ -217,6 +220,8 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 		autotrackerDisabledIcon = Tracker.getResourceIcon("autotrack_disabled.gif", true); //$NON-NLS-1$
 		infoIcon = Tracker.getResourceIcon("info.gif", true); //$NON-NLS-1$
 		refreshIcon = Tracker.getResourceIcon("refresh.gif", true); //$NON-NLS-1$
+		memoryIcon = Tracker.getResourceIcon("memory.gif", true); //$NON-NLS-1$
+		redMemoryIcon = Tracker.getResourceIcon("memory_red.gif", true); //$NON-NLS-1$
 		// oops refreshIcon = new
 		// ResizableIcon(Tracker.getClassResource("resources/images/refresh.gif"));
 		// //$NON-NLS-1$
@@ -648,6 +653,70 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 		notesButton.addActionListener((e) -> {
 				doNotesAction();
 		});
+		
+		/**
+		 * Java only; transpiler may ignore
+		 * 
+		 * @j2sNative
+		 * 
+		 */
+		{
+			memoryButton = new TButton(memoryIcon) {
+				@Override
+				public JPopupMenu getPopup() {
+					JPopupMenu popup = new JPopupMenu();
+					JMenuItem memoryItem = new JMenuItem(TrackerRes.getString("TTrackBar.Memory.Menu.SetSize")); //$NON-NLS-1$
+					popup.add(memoryItem);
+					memoryItem.addActionListener(new ActionListener() {
+						@Override
+						public void actionPerformed(ActionEvent e) {
+							TFrame frame = (TFrame) memoryButton.getTopLevelAncestor();
+							String response = GUIUtils.showInputDialog(frame,
+									TrackerRes.getString("TTrackBar.Dialog.SetMemory.Message"), //$NON-NLS-1$
+									TrackerRes.getString("TTrackBar.Dialog.SetMemory.Title"), //$NON-NLS-1$
+									JOptionPane.PLAIN_MESSAGE, String.valueOf(Tracker.preferredMemorySize));
+							if (response != null && !"".equals(response)) { //$NON-NLS-1$
+								String s = response;
+								try {
+									double d = Double.parseDouble(s);
+									d = Math.rint(d);
+									int n = (int) d;
+									if (n < 0)
+										n = -1; // default
+									else
+										n = Math.max(n, 32); // not less than 32MB
+									if (n != Tracker.preferredMemorySize) {
+										Tracker.preferredMemorySize = n;
+										int ans = JOptionPane.showConfirmDialog(frame,
+												TrackerRes.getString("TTrackBar.Dialog.Memory.Relaunch.Message"), //$NON-NLS-1$
+												TrackerRes.getString("TTrackBar.Dialog.Memory.Relaunch.Title"), //$NON-NLS-1$
+												JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+										if (ans == JOptionPane.YES_OPTION) {
+	
+											Tracker.savePreferences();
+											frame.relaunchCurrentTabs();
+										}
+									}
+								} catch (Exception ex) {
+								}
+							}
+						}
+					});
+					FontSizer.setFonts(popup, FontSizer.getLevel());
+					return popup;
+				}
+			};
+			Font font = memoryButton.getFont();
+			memoryButton.setFont(font.deriveFont(Font.PLAIN, font.getSize() - 1));
+			memoryButton.addMouseListener(new MouseAdapter() {
+				@Override
+				public void mouseEntered(MouseEvent e) {
+					refreshMemoryButton();
+				}
+			});
+		}
+
+		
 		refreshButton = new TButton(refreshIcon) {
 
 			@Override
@@ -677,6 +746,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 		selectNoneItem.addActionListener((e) -> {
 				trackerPanel.setSelectedTrack(null);
 		});
+		trackerPanel.getTFrame().clearHoldPainting();
 		refresh(REFRESH__CREATE_GUI_TRUE);
 		validate();
 	}
@@ -840,6 +910,46 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 		double zoom = trackerPanel.getMagnification() * 100;
 		zoomButton.setText(zoomFormat.format(zoom) + "%"); //$NON-NLS-1$
 	}
+	
+	/**
+	 * Refreshes the memory button for a TrackerPanel.
+	 */
+	protected static void refreshMemoryButton(TrackerPanel panel) {
+		TToolBar toolbar = toolbars.get(panel);
+		if (toolbar != null) {
+			toolbar.refreshMemoryButton();
+		}
+	}
+	
+	/**
+	 * Refreshes the memory button.
+	 */
+	protected void refreshMemoryButton() {
+		if (OSPRuntime.isJS)
+			return;
+		System.gc();
+		java.lang.management.MemoryMXBean memory = java.lang.management.ManagementFactory.getMemoryMXBean();
+		long cur = memory.getHeapMemoryUsage().getUsed() / (1024 * 1024);
+		long max = memory.getHeapMemoryUsage().getMax() / (1024 * 1024);
+		if (TTrackBar.outOfMemory && TTrackBar.showOutOfMemoryDialog) {
+			TTrackBar.outOfMemory = false;
+			TTrackBar.showOutOfMemoryDialog = false;
+			cur = max;
+			JOptionPane.showMessageDialog(memoryButton,
+					TrackerRes.getString("Tracker.Dialog.OutOfMemory.Message1") + "\n" //$NON-NLS-1$ //$NON-NLS-2$
+							+ TrackerRes.getString("Tracker.Dialog.OutOfMemory.Message2"), //$NON-NLS-1$
+					TrackerRes.getString("Tracker.Dialog.OutOfMemory.Title"), //$NON-NLS-1$
+					JOptionPane.WARNING_MESSAGE);
+		}
+		String mem = TrackerRes.getString("TTrackBar.Button.Memory") + " "; //$NON-NLS-1$ //$NON-NLS-2$
+		String of = TrackerRes.getString("DynamicSystem.Parameter.Of") + " "; //$NON-NLS-1$ //$NON-NLS-2$
+		memoryButton.setToolTipText(mem + cur + "MB " + of + max + "MB"); //$NON-NLS-1$ //$NON-NLS-2$
+//		memoryButton.setToolTipText(TrackerRes.getString("TTrackBar.Button.Memory.Tooltip")); //$NON-NLS-1$
+		double used = ((double) cur) / max;
+		memoryButton.setIcon(used > 0.8 ? redMemoryIcon : memoryIcon);
+	}
+
+
 	
 	protected JPopupMenu refreshEyePopup() {
 		if (pathVisMenuItem == null) {
@@ -1022,6 +1132,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 	}
 
 	protected void refreshAsync(boolean refreshTrackProperties) {
+		
 //		long t0 = Performance.now(0);
 		//OSPLog.debug(Performance.timeCheckStr("TToolBar refreshAsync", Performance.TIME_MARK));
 		refreshing = true; // signals listeners that items are being refreshed (not implemented)
@@ -1135,9 +1246,9 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 		if (desktopButton.isEnabled())
 			add(desktopButton);
 		add(notesButton);
-		if (!OSPRuntime.isJS && TTrackBar.getTrackbar(trackerPanel).memoryButton != null) {
+		if (!OSPRuntime.isJS) {
 			add(getSeparator());
-			add(TTrackBar.getTrackbar(trackerPanel).memoryButton);
+			add(memoryButton);
 		}
 		add(refreshButton);
 
@@ -1299,7 +1410,6 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 	public void paint(Graphics g) {
 		if (!trackerPanel.isPaintable() || getComponentCount() == 0)
 			return;
-		//System.out.println("TToolbar.paint");
 		super.paint(g);
 	}
 

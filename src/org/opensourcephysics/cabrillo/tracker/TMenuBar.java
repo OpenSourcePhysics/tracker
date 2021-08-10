@@ -873,7 +873,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 								try {
 									iVideo.setEditable(false);
 									refresh("menuItem.editVideoFrames !edit");
-									TTrackBar.refreshMemoryButton(trackerPanel);
+									TToolBar.refreshMemoryButton(trackerPanel);
 								} catch (Exception e1) {
 									Toolkit.getDefaultToolkit().beep();
 								}
@@ -892,7 +892,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 									try {
 										iVideo.setEditable(true);
 										refresh("memory_issue");
-										TTrackBar.refreshMemoryButton(trackerPanel);
+										TToolBar.refreshMemoryButton(trackerPanel);
 									} catch (Exception ex) {
 										Toolkit.getDefaultToolkit().beep();
 										error = true;
@@ -910,7 +910,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 											}
 											System.gc();
 											refresh("memory error");
-											TTrackBar.refreshMemoryButton(trackerPanel);
+											TToolBar.refreshMemoryButton(trackerPanel);
 										}
 									}
 								} else { // user canceled
