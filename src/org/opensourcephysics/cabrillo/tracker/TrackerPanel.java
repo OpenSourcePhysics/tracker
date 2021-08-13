@@ -181,6 +181,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	public static final int PROGRESS_LOAD_INIT               = 0;
 	public static final int PROGRESS_PANEL_READY             = 5;
 //	public static final int PROGRESS_VIDEO_LOADING           = 10; See VideoPanel
+//	public static final int PROGRESS_VIDEO_PROCESSING        = 20; See VideoPanel
 //	public static final int PROGRESS_VIDEO_READY             = 70; See VideoPanel
 	public static final int PROGRESS_VIDEO_LOADED            = 72;
 	public static final int PROGRESS_TOOLBAR_AND_COORD_READY = 75;
