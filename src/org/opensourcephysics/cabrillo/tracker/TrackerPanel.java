@@ -179,8 +179,6 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	public static final String STICK = "Stick", TAPE = "CalibrationTapeMeasure", //$NON-NLS-1$ //$NON-NLS-2$
 			CALIBRATION = "Calibration", OFFSET = "OffsetOrigin"; //$NON-NLS-1$ //$NON-NLS-2$
 
-	protected static String alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; //$NON-NLS-1$
-
 	// instance fields
 	protected double defaultImageBorder;
 	protected String description = ""; //$NON-NLS-1$
@@ -2211,29 +2209,30 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	}
 
 	/**
-	 * Gets the alphabet index for setting the name letter suffix and color of a
-	 * track.
+	 * Gets the next available name (and color, based on the attached suffix) for a track.
 	 * 
 	 * @param name      the default name with no letter suffix
 	 * @param connector the string connecting the name and letter
-	 * @return the index of the first available letter suffix
+	 * @return name + connector + letter or null
 	 */
-	protected int getAlphabetIndex(String name, String connector) {
-		for (int i = 0; i < alphabet.length(); i++) {
-			String letter = alphabet.substring(i, i + 1);
-			String proposed = name + connector + letter;
-			boolean isTaken = false;
-			ArrayList<TTrack> list = getTracksTemp();
-			for (int it = 0, n = list.size(); it < n; it++) {
+	protected String getNextName(String name, String connector) {
+		String p = name + connector;
+		ArrayList<TTrack> list = getTracksTemp();
+		int n = list.size();
+		String proposed = null;
+		// test A-Z
+		for (int i = 65; i <= 90 && proposed == null; i++) {
+			proposed = p + (char) i;
+			for (int it = 0; it < n; it++) {
 				TTrack track = list.get(it);
-				String nextName = track.getName();
-				isTaken = isTaken || proposed.equals(nextName);
+				if (proposed.equals(track.getName())) {
+					proposed = null;
+					break;
+				}
 			}
-			clearTemp();
-			if (!isTaken)
-				return i;
 		}
-		return 0;
+		clearTemp();
+		return proposed;
 	}
 
 	/**

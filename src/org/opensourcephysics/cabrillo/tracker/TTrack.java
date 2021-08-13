@@ -741,8 +741,7 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 	 * @param index the color index
 	 */
 	public void setColorToDefault(int index) {
-		int colorIndex = index % defaultColors.length;
-		setColor(defaultColors[colorIndex]);
+		setColor(defaultColors[index % defaultColors.length]);
 	}
 
 	/**
@@ -752,11 +751,9 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 	 * @param connector    the string connector between the name and letter suffix
 	 */
 	public void setDefaultNameAndColor(TrackerPanel trackerPanel, String connector) {
-		String name = getName();
-		int i = trackerPanel.getAlphabetIndex(name, connector);
-		String letter = TrackerPanel.alphabet.substring(i, i + 1);
-		setName(name + connector + letter);
-		setColorToDefault(i);
+		String name = trackerPanel.getNextName(getName(), connector);
+		setName(name);
+		setColorToDefault((int) name.charAt(name.length() - 1) - 65);
 	}
 
 	/**
