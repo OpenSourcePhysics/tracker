@@ -62,6 +62,7 @@ import java.util.TreeSet;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
+import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -536,6 +537,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 
 	int BHtest;
 	private int cursorType;
+	boolean showTrackControlDelayed;
 	/**
 	 * Gets a list of TTracks being drawn on this panel.
 	 *
@@ -634,13 +636,13 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		if (track.trackerPanel == null) {
 			track.setTrackerPanel(this);
 		}
-		boolean showTrackControl = true;
+		showTrackControlDelayed = true;
 		// set angle format of the track
 		if (getTFrame() != null)
 			track.setAnglesInRadians(getTFrame().anglesInRadians);
 		// special case: axes
 		if (track instanceof CoordAxes) {
-			showTrackControl = false;
+			showTrackControlDelayed = false;
 			if (getAxes() != null)
 				removeDrawable(getAxes()); // only one axes at a time
 			super.addDrawable(track);
@@ -652,12 +654,12 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		}
 		// special case: same calibration tool added again?
 		else if (calibrationTools.contains(track)) {
-			showTrackControl = false;
+			showTrackControlDelayed = false;
 			super.addDrawable(track);
 		}
 		// special case: tape measure
 		else if (track instanceof TapeMeasure) {
-			showTrackControl = false;
+			showTrackControlDelayed = false;
 			TapeMeasure tape = (TapeMeasure) track;
 			if (!tape.isReadOnly()) { // calibration tape or stick
 				calibrationTools.add(tape);
@@ -671,21 +673,21 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		}
 		// special case: offset origin or calibration points
 		else if (track instanceof OffsetOrigin || track instanceof Calibration) {
-			showTrackControl = false;
+			showTrackControlDelayed = false;
 			calibrationTools.add(track);
 			visibleCalibrationTools.add(track);
 			super.addDrawable(track);
 		}
 		// special case: protractor or circlefitter
 		else if (track instanceof Protractor || track instanceof CircleFitter) {
-			showTrackControl = false;
+			showTrackControlDelayed = false;
 			measuringTools.add(track);
 			visibleMeasuringTools.add(track);
 			super.addDrawable(track);
 		}
 		// special case: perspective track
 		else if (track instanceof PerspectiveTrack) {
-			showTrackControl = false;
+			showTrackControlDelayed = false;
 			super.addDrawable(track);
 		}
 		// special case: ParticleDataTrack may add extra points
@@ -754,10 +756,6 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		}
 
 		changed = true;
-		if (showTrackControl && getTFrame() != null && this.isShowing()) {
-			TrackControl.getControl(this).setVisible(true);
-		}
-
 		// select new track in autotracker
 		if (autoTracker != null && track != getAxes()) {
 			autoTracker.setTrack(track);
@@ -3772,7 +3770,6 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				String desc = control.getString("description"); //$NON-NLS-1$
 				if (desc != null) {
 					trackerPanel.setDescription(desc);
-					trackerPanel.getTFrame().showNotes(trackerPanel);
 				}
 				// load the metadata
 				trackerPanel.author = control.getString("author"); //$NON-NLS-1$
@@ -4933,6 +4930,22 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	void refreshTrackBar() {
 		TTrackBar.getTrackbar(this).refresh();
 //		getTFrame().getTrackBar(this).refresh();
+	}
+
+	public void onLoaded() {
+		if (showTrackControlDelayed && isShowing()) {
+			showTrackControlDelayed = false;
+			TrackControl.getControl(this).setVisible(true);
+		}
+		final JButton button = getTFrame().getToolBar(this).notesButton;
+		TTrack track = getSelectedTrack();
+		if (!hideDescriptionWhenLoaded
+				&& (track == null ? getDescription() != null && getDescription().trim().length() != 0
+				: track.getDescription() != null && track.getDescription().trim().length() > 0)) {
+			if (!button.isSelected())
+				button.doClick();
+		} else if (button.isSelected())
+			button.doClick();
 	}
 
 }

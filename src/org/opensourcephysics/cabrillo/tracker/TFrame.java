@@ -2301,25 +2301,6 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		}
 	}
 
-	/**
-	 * Shows the notes, if any.
-	 *
-	 * @param panel the tracker panel
-	 */
-	protected void showNotes(final TrackerPanel panel) {
-		final JButton button = getToolBar(panel).notesButton;
-		SwingUtilities.invokeLater(() -> {
-			TTrack track = panel.getSelectedTrack();
-			if (!panel.hideDescriptionWhenLoaded
-					&& ((track != null && track.getDescription() != null && !track.getDescription().trim().equals("")) //$NON-NLS-1$
-							|| (track == null && panel.getDescription() != null && !panel.getDescription().trim().equals("")))) { //$NON-NLS-1$
-				if (!button.isSelected())
-					button.doClick();
-			} else if (button.isSelected())
-				button.doClick();
-		});
-	}
-
 //  /**
 //   * Checks the current memory usage. If the total memory being used approaches 
 //   * the max available, this reopens Tracker in a new larger java vm.
@@ -3706,24 +3687,22 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	/**
 	 *  An empty JDialog that serves as a modal blocker when the progress monitor is visible.
 	 */
-	private JDialog frameBlocker;
+	private Object frameBlocker;
 
 	public void setFrameBlocker(boolean blocking) {
-		if (blocking) {
-			if (frameBlocker != null)
-				System.out.println("TrackerIO async already blocking!");
-			frameBlocker = new JDialog(this, true);
-//			frameBlocker.setSize(10, 10);
-//			SwingUtilities.invokeLater(() -> {
-//				frameBlocker.setVisible(true);
-//			});
-		} else if (frameBlocker != null) {
-//			frameBlocker.setVisible(false);
-			frameBlocker = null;
-		}
 		getJMenuBar().setEnabled(!blocking);
 		tabbedPane.setEnabled(!blocking);
 		getContentPane().setVisible(!blocking);
+		TrackerPanel panel = getSelectedPanel();
+		if (blocking) {
+			frameBlocker = new Object();
+			notesDialog.setVisible(false);
+			if (panel != null && panel.trackControl != null)
+				panel.trackControl.setVisible(false);
+		} else if (frameBlocker != null) {
+			frameBlocker = null;
+			panel.onLoaded();
+		}
 	}
 	
 	@Override
