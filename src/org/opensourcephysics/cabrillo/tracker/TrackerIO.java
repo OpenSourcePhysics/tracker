@@ -2448,6 +2448,7 @@ public class TrackerIO extends VideoIO {
 						frame.removeTabNow(tab);
 				}
 			}
+			frame.removeEmptyTabIfTabCountGreaterThan(1);
 		}
 
 		@Override
