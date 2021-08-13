@@ -178,6 +178,15 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	public static final String STICK = "Stick", TAPE = "CalibrationTapeMeasure", //$NON-NLS-1$ //$NON-NLS-2$
 			CALIBRATION = "Calibration", OFFSET = "OffsetOrigin"; //$NON-NLS-1$ //$NON-NLS-2$
 
+	public static final int PROGRESS_LOAD_INIT               = 0;
+	public static final int PROGRESS_PANEL_READY             = 5;
+//	public static final int PROGRESS_VIDEO_LOADING           = 10; See VideoPanel
+//	public static final int PROGRESS_VIDEO_READY             = 70; See VideoPanel
+	public static final int PROGRESS_VIDEO_LOADED            = 72;
+	public static final int PROGRESS_TOOLBAR_AND_COORD_READY = 75;
+	public static final int PROGRESS_TRACKS_READY            = 90;
+	public static final int PROGRESS_PENCIL_DRAWINGS_READY   = 95;
+
 	protected static String alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; //$NON-NLS-1$
 
 	// instance fields
@@ -3706,11 +3715,10 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			asyncloader.setLoader(this);
 			this.control = control;
 			switch (trackerPanel.progress) {
-			case 0:
+			case PROGRESS_LOAD_INIT:
 				// BH adds early setting of frame.
 				trackerPanel.frame = asyncloader.getFrame();
 				trackerPanel.frame.holdPainting(true);
-				trackerPanel.progress = 5;
 				// load the dividers
 				trackerPanel.dividerLocs = (double[]) control.getObject("dividers"); //$NON-NLS-1$
 				// load the track control location
@@ -3755,9 +3763,9 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 								JOptionPane.INFORMATION_MESSAGE);
 					}
 				}
-				trackerPanel.progress = 5;
+				trackerPanel.progress = PROGRESS_PANEL_READY;
 				break;
-			case 5:
+			case PROGRESS_PANEL_READY:
 				// load the description
 				trackerPanel.hideDescriptionWhenLoaded = control.getBoolean("hide_description"); //$NON-NLS-1$
 				String desc = control.getString("description"); //$NON-NLS-1$
@@ -3830,7 +3838,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 						break;
 					}
 				}
-				trackerPanel.progress = 10;
+				trackerPanel.progress = PROGRESS_VIDEO_LOADING;
 				break;
 			default:
 				super.loadObject(control, obj);	// loads video
@@ -3851,7 +3859,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			videoPanel.setLoader(null);
 			try {
 				switch(trackerPanel.progress) {
-				case 70: // VideoPanel finished getting video clip
+				case PROGRESS_VIDEO_READY: // VideoPanel finished getting video clip
 					XMLControl child;
 					Video video = finalizeClip();
 					if (video != null) {
@@ -3875,9 +3883,9 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 					if (child != null) {
 						child.loadObject(trackerPanel.getPlayer().getClipControl());
 					}
-					trackerPanel.progress = 72;
+					trackerPanel.progress = PROGRESS_VIDEO_LOADED;
 					break;
-				case 72:
+				case PROGRESS_VIDEO_LOADED:
 					// load the toolbar
 					child = control.getChildControl("toolbar"); //$NON-NLS-1$
 					if (child != null) {
@@ -3892,9 +3900,9 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 						int n = trackerPanel.getFrameNumber();
 						trackerPanel.getSnapPoint().setXY(coords.getOriginX(n), coords.getOriginY(n));
 					}
-					trackerPanel.progress = 75;					
+					trackerPanel.progress = PROGRESS_TOOLBAR_AND_COORD_READY;					
 					break;
-				case 75:
+				case PROGRESS_TOOLBAR_AND_COORD_READY:
 					// load the tracks
 					ArrayList<?> tracks = ArrayList.class.cast(control.getObject("tracks")); //$NON-NLS-1$
 					if (tracks != null) {
@@ -3907,9 +3915,9 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 							((TTrack) tracks.get(i)).initialize(trackerPanel);
 						}
 					}
-					trackerPanel.progress = 90;
+					trackerPanel.progress = PROGRESS_TRACKS_READY;
 					break;
-				case 90:
+				case PROGRESS_TRACKS_READY:
 					// load drawing scenes saved in vers 4.11.0+
 					ArrayList<PencilScene> scenes = (ArrayList<PencilScene>) control.getObject("drawing_scenes"); //$NON-NLS-1$
 					if (scenes != null) {
@@ -3929,9 +3937,9 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 							drawer.addDrawingtoSelectedScene(drawings.get(i));
 						}
 					}
-					trackerPanel.progress = 95;
+					trackerPanel.progress = PROGRESS_PENCIL_DRAWINGS_READY;
 					break;
-				case 95:
+				case PROGRESS_PENCIL_DRAWINGS_READY:
 					// load the reference frame
 					String rfName = control.getString("referenceframe"); //$NON-NLS-1$
 					if (rfName != null) {
@@ -3943,13 +3951,6 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 					trackerPanel.progress = 100;
 					break;
 				}
-				//OSPLog.debug("TrackerPanel.finalizeLoading start");
-
-
-				// OSPLog.debug(Performance.timeCheckStr("TrackerPanel.finalizeLoading scenes
-				// and pencil ", Performance.TIME_MARK));
-
-
 			} finally {
 				//OSPLog.debug("!!! " + Performance.now(t0) + " TrackerPanel.finalizeLoading");
 				//OSPLog.debug("TrackerPanel.finalizeLoading done");
