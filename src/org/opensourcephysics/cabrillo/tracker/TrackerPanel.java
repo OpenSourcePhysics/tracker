@@ -3845,7 +3845,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			//long t0 = Performance.now(0);
 			//OSPLog.debug(Performance.timeCheckStr("TrackerPanel.finalizeLoading1", Performance.TIME_MARK));
 			TrackerPanel trackerPanel = (TrackerPanel) videoPanel;
-			if (trackerPanel.progress < 70) {
+			if (trackerPanel.progress < PROGRESS_VIDEO_READY) {
 				return;
 			}
 			videoPanel.setLoader(null);
