@@ -827,13 +827,12 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 
 		@Override
 		public void initAsync() {
-			int tab = getTab(trackerPanel);
-			tabPanel = (TTabPanel) tabbedPane.getComponentAt(tab);
+			tabPanel = getTabPanel(trackerPanel);
 			// remove the tab immediately
 			// BH 2020.11.24 thread lock
 			synchronized (tabbedPane) {
 				trackerPanel.trackControl.dispose();
-				tabbedPane.remove(tab);
+// BH why this if the next?				tabbedPane.remove(tab);
 				tabbedPane.remove(tabPanel);
 			}
 		}
@@ -1018,7 +1017,6 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			// show defaultMenuBar
 			setJMenuBar(defaultMenuBar);
 		}
-
 //		synchronized (tabbedPane) {
 //			tabbedPane.remove(tabPanel);
 //		}
@@ -1199,9 +1197,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		if (viewChoosers == null)
 			viewChoosers = new TViewChooser[0];
 		int[] order = isPortraitLayout() ? PORTRAIT_VIEW_ORDER : DEFAULT_ORDER;
-		int tab = getTab(trackerPanel);
-		if (tab == -1) return;
-		TTabPanel tabPanel = (TTabPanel) tabbedPane.getComponentAt(tab);
+		TTabPanel tabPanel = getTabPanel(trackerPanel);
 		Object[] objects = tabPanel.getObjects();
 		TViewChooser[] choosers = (TViewChooser[]) objects[TFRAME_VIEWCHOOSERS];
 		for (int i = 0; i < Math.min(viewChoosers.length, choosers.length); i++) {
@@ -1230,6 +1226,12 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		// add toolbars at north position
 		tabPanel.setToolbarVisible(true);
 	}
+
+	public TTabPanel getTabPanel(TrackerPanel trackerPanel) {
+		int tab = getTab(trackerPanel);
+		return (tab >= 0 ? (TTabPanel) tabbedPane.getComponentAt(tab) : null);
+	}
+
 
 	private void addPaneSafely(JSplitPane pane, int where, Component c) {
 		switch (where) {
@@ -1554,6 +1556,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 				TMenuBar menuBar = getMenuBar(trackerPanel);
 				if (menuBar != null) {
 					setJMenuBar(menuBar);
+					
 					menuBar.refresh(TMenuBar.REFRESH_TFRAME_LOCALE);
 				}
 				// show hint
@@ -2708,7 +2711,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	private void createDefaultMenuBar() {
 		// create the default (empty) menubar
 		int keyMask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
-		defaultMenuBar = new JMenuBar();
+		defaultMenuBar = new DeactivatingMenuBar();
 		setJMenuBar(defaultMenuBar);
 		// file menu
 		JMenu fileMenu = new JMenu(TrackerRes.getString("TMenuBar.Menu.File")); //$NON-NLS-1$
@@ -3700,7 +3703,6 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			if (frameBlocker != null)
 				System.out.println("TrackerIO async already blocking!");
 			frameBlocker = new JDialog(this, true);
-			this.getJMenuBar().setEnabled(false);
 //			frameBlocker.setSize(10, 10);
 //			SwingUtilities.invokeLater(() -> {
 //				frameBlocker.setVisible(true);
@@ -3708,7 +3710,27 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		} else if (frameBlocker != null) {
 //			frameBlocker.setVisible(false);
 			frameBlocker = null;
-			this.getJMenuBar().setEnabled(true);
+		}
+		getJMenuBar().setEnabled(!blocking);
+		tabbedPane.setEnabled(!blocking);
+		getContentPane().setVisible(!blocking);
+	}
+	
+	@Override
+	public void setJMenuBar(JMenuBar bar) {
+		super.setJMenuBar(bar);
+		bar.setEnabled(frameBlocker == null);
+	}
+	
+	static class DeactivatingMenuBar extends JMenuBar {
+		@Override
+		public void setEnabled(boolean b) {
+			super.setEnabled(b);
+			Component[] c = getComponents();
+			for (int i = 0; i < c.length; i++)
+				c[i].setEnabled(b);
 		}
 	}
+
+
 }

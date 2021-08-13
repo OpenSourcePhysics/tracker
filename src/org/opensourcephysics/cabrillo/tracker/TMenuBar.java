@@ -97,7 +97,7 @@ import org.opensourcephysics.tools.FunctionTool;
  * @author Douglas Brown
  */
 @SuppressWarnings("serial")
-public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuListener {
+public class TMenuBar extends TFrame.DeactivatingMenuBar implements PropertyChangeListener, MenuListener {
 
 	private static Map<TrackerPanel, TMenuBar> menubars = new HashMap<TrackerPanel, TMenuBar>();
 
@@ -2863,5 +2863,4 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 			}
 		}
 	}
-
 }

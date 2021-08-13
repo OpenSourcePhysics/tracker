@@ -3279,10 +3279,10 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		if (!isPaintable()) {
 			return;
 		}
-
+		boolean justScroll = (zoomCenter != null && isShowing() && getTFrame() != null
+				&& (scrollPane.getVerticalScrollBar().isVisible() || scrollPane.getHorizontalScrollBar().isVisible()));
 		// BH moved this up, because why paint if you are going to paint again?
-		if (zoomCenter != null && isShowing() && getTFrame() != null && scrollPane != null) {
-			
+		if (justScroll) {
 			final Rectangle rect = scrollPane.getViewport().getViewRect();
 			int x = zoomCenter.x - rect.width / 2;
 			int y = zoomCenter.y - rect.height / 2;
@@ -3294,10 +3294,10 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 
 //		long t0 = Performance.now(0);
 
-		 //OSPLog.debug(Performance.timeCheckStr("TrackerPanel.paintComp 0",
-		 //Performance.TIME_MARK));
+		// OSPLog.debug(Performance.timeCheckStr("TrackerPanel.paintComp 0",
+		// Performance.TIME_MARK));
 
-		 super.paintComponent(g);
+		super.paintComponent(g);
 		showFilterInspectors();
 //		OSPLog.debug("!!! " + Performance.now(t0) + " TrackerPanel.paintComponent");
 //		 OSPLog.debug(Performance.timeCheckStr("TrackerPanel.paintCOmp 1",

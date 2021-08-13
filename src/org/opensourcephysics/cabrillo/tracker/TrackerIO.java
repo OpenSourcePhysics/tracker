@@ -2417,6 +2417,7 @@ public class TrackerIO extends VideoIO {
 		public void stop() {
 			stopped = true;
 			frame.clearHoldPainting();
+			frame.setFrameBlocker(false);
 		}
 
 		@Override
@@ -2434,7 +2435,8 @@ public class TrackerIO extends VideoIO {
 		public void cancelAsync() {
 			super.cancelAsync();
 			frame.clearHoldPainting();
-			progressMonitor.close();
+			frame.setFrameBlocker(false);
+			frame.setCursor(Cursor.getDefaultCursor());
 			if (libraryBrowser != null) {
 				libraryBrowser.cancelLoading();
 			}
