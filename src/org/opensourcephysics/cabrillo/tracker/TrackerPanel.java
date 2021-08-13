@@ -2224,8 +2224,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		for (int i = 65; i <= 90 && proposed == null; i++) {
 			proposed = p + (char) i;
 			for (int it = 0; it < n; it++) {
-				TTrack track = list.get(it);
-				if (proposed.equals(track.getName())) {
+				if (proposed.equals(list.get(it).getName())) {
 					proposed = null;
 					break;
 				}
