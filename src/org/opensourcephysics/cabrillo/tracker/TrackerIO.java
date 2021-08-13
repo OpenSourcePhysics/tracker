@@ -283,16 +283,16 @@ public class TrackerIO extends VideoIO {
 	public static String selectedVideoFormat;
 
 
-	//	public static final int PROGRESS_LOAD_INIT               = 0;
+	//	public static final int PROGRESS_LOAD_INIT               = 0; See VideoIO
 	public static final int PROGRESS_PANEL_READY                 = 5;
-	//	public static final int PROGRESS_VIDEO_LOADING           = 10; See VideoPanel
-	//	public static final int PROGRESS_VIDEO_PROCESSING        = 20; See VideoPanel
-	//	public static final int PROGRESS_VIDEO_READY             = 70; See VideoPanel
+	//	public static final int PROGRESS_VIDEO_LOADING           = 10; See VideoIO
+	//	public static final int PROGRESS_VIDEO_PROCESSING        = 20; See VideoIO
+	//	public static final int PROGRESS_VIDEO_READY             = 80; See VideoIO
 	public static final int PROGRESS_VIDEO_LOADED            = PROGRESS_VIDEO_READY + 5; // 85
 	public static final int PROGRESS_TOOLBAR_AND_COORD_READY = PROGRESS_VIDEO_READY + 10; // 90
 	public static final int PROGRESS_TRACKS_READY            = PROGRESS_VIDEO_READY + 15; // 95
 	public static final int PROGRESS_PENCIL_DRAWINGS_READY   = PROGRESS_VIDEO_READY + 19; // 99
-	//	public static final int PROGRESS_COMPLETE                = 100;
+	//	public static final int PROGRESS_COMPLETE                = 100; See VideoIO
 
 
 
