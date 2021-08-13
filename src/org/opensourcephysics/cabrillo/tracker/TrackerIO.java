@@ -74,11 +74,11 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
-import javax.swing.ProgressMonitor;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 import javax.swing.filechooser.FileFilter;
 
+import org.opensourcephysics.cabrillo.tracker.TrackerPanel.Loader;
 import org.opensourcephysics.controls.ListChooser;
 import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.controls.XML;
@@ -111,7 +111,6 @@ import org.opensourcephysics.tools.ResourceLoader;
 import javajs.async.AsyncDialog;
 import javajs.async.AsyncFileChooser;
 import javajs.async.AsyncSwingWorker;
-import javajs.async.SwingJSUtils.Performance;
 
 /**
  * This provides static methods for managing video and text input/output.
@@ -124,8 +123,6 @@ public class TrackerIO extends VideoIO {
 		{"mov", "flv", "mp4", "wmv", "avi" };
 
 	public interface TrackerMonitor {
-
-		void stop();
 
 		void setFrameCount(int count);
 
@@ -1719,7 +1716,7 @@ public class TrackerIO extends VideoIO {
 		private final TrackerPanel existingPanel;
 		private final TFrame frame;
 		private final ArrayList<String> desktopFiles = new ArrayList<>();
-		private final long t0;
+//		private final long t0;
 
 		
 
@@ -1741,14 +1738,14 @@ public class TrackerIO extends VideoIO {
 		private int type = TYPE_UNK;
 		private int frameCount;
 		private String name;
-		private String title; // BH TODO
-		private boolean stopped; // BH TODO
+//		private String title; // BH TODO
 		private String xmlPath, xmlPath0;
 		private Runnable whenDone;
 		private Set<VideoPanel> panelList = new HashSet<>();
 
 		private LibraryBrowser libraryBrowser;
 //		private MonitorDialog monitorDialog;
+		private Loader loader;
 		
 		/**
 		 * 
@@ -1772,7 +1769,7 @@ public class TrackerIO extends VideoIO {
 			this.whenDone = whenDone;
 			monitors.add(this);
 			//OSPLog.debug(Performance.timeCheckStr("TrackerIO.asyncLoad start " + paths, Performance.TIME_MARK));
-			t0 = Performance.now(0);
+//			t0 = Performance.now(0);
 		}
 
 		@Override
@@ -1783,8 +1780,7 @@ public class TrackerIO extends VideoIO {
 		private boolean setupLoader() {
 			xmlPath = null;
 			trackerPanel = null;
-			title = null;
-			stopped = false;
+			//title = null;
 			panelChanged = false;
 			nonURIPath = null;
 			frameCount = 0;
@@ -2124,7 +2120,11 @@ public class TrackerIO extends VideoIO {
 
 		private int loadTRK(int progress) {
 			panelList.add(trackerPanel);
-			trackerPanel = (TrackerPanel) control.loadObject(trackerPanel, this);
+			if (loader != null && loader.control == control) {
+				loader.loadObject(control, trackerPanel);
+			} else {
+				control.loadObject(trackerPanel, this);
+			}
 			if (trackerPanel.progress < 100) {
 				return trackerPanel.progress;
 			}
@@ -2354,13 +2354,6 @@ public class TrackerIO extends VideoIO {
 		}
 
 		@Override
-		public void stop() {
-			stopped = true;
-			frame.clearHoldPainting();
-			frame.setFrameBlocker(false);
-		}
-
-		@Override
 		public void setFrameCount(int count) {
 			frameCount = count;
 		}
@@ -2412,7 +2405,8 @@ public class TrackerIO extends VideoIO {
 
 		@Override
 		public void setTitle(String title) {
-			this.title = title;
+			// unused
+//			this.title = title;
 		}
 
 		public TFrame getFrame() {
@@ -2421,11 +2415,15 @@ public class TrackerIO extends VideoIO {
 
 		@Override
 		public String getNote(int progress) {
-			if (type == TYPE_TRK && progress > 10 && progress < 70)
+			if (type == TYPE_TRK && progress > 10 && progress < VideoPanel.PROGRESS_VIDEO_READY)
 				return "Video frames loaded: " + trackerPanel.framesLoaded;
 			if (type == TYPE_VIDEO)
 				return "Video frames loaded: " + getFrameCount();
 			return String.format("Completed %d%%.\n", progressPercent);
+		}
+
+		public void setLoader(Loader loader) {
+			this.loader = loader;
 		}
 
 	}
@@ -2459,6 +2457,7 @@ public class TrackerIO extends VideoIO {
 	}
 
 	static void closeMonitor(String fileName) {
+		// THIS MAY NOT WORK -- TESTED? fileName may change with TRZ loading
 		for (TrackerMonitor monitor : monitors) {
 			if (fileName == null) {
 				monitor.close();

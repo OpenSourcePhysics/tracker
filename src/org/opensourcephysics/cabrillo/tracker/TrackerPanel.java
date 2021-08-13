@@ -3674,6 +3674,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		}
 
 		private AsyncLoader asyncloader;
+		public XMLControl control;
 
 		/**
 		 * Creates an object.
@@ -3702,6 +3703,8 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			// load the video clip
 			TrackerPanel trackerPanel = (TrackerPanel) obj;	
 			asyncloader = (AsyncLoader) ((XMLControlElement) control).getData();
+			asyncloader.setLoader(this);
+			this.control = control;
 			switch (trackerPanel.progress) {
 			case 0:
 				// BH adds early setting of frame.
