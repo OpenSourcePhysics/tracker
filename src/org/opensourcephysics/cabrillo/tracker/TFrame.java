@@ -3689,4 +3689,26 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		}
 
 	}
+
+	/**
+	 *  An empty JDialog that serves as a modal blocker when the progress monitor is visible.
+	 */
+	private JDialog frameBlocker;
+
+	public void setFrameBlocker(boolean blocking) {
+		if (blocking) {
+			if (frameBlocker != null)
+				System.out.println("TrackerIO async already blocking!");
+			frameBlocker = new JDialog(this, true);
+			this.getJMenuBar().setEnabled(false);
+//			frameBlocker.setSize(10, 10);
+//			SwingUtilities.invokeLater(() -> {
+//				frameBlocker.setVisible(true);
+//			});
+		} else if (frameBlocker != null) {
+//			frameBlocker.setVisible(false);
+			frameBlocker = null;
+			this.getJMenuBar().setEnabled(true);
+		}
+	}
 }

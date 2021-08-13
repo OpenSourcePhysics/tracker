@@ -74,6 +74,7 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
+import javax.swing.ProgressMonitor;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 import javax.swing.filechooser.FileFilter;
@@ -1770,6 +1771,10 @@ public class TrackerIO extends VideoIO {
 		 */
 		public AsyncLoader(List<String> paths, TrackerPanel existingPanel, TFrame frame, LibraryBrowser libraryBrowser, Runnable whenDone) {
 			super(frame, "Loading "+XML.getName(paths.get(0)), (whenDone == null ? 0 : 10), 0, 100);
+			if (whenDone != null) {
+				frame.setFrameBlocker(true);
+			}
+
 			path = path0 = name = paths.remove(0);
 			this.paths = paths;
 			isAsync = (delayMillis > 0);
@@ -2119,6 +2124,7 @@ public class TrackerIO extends VideoIO {
 				if (!OSPRuntime.skipDisplayOfPDF) {
 					Thread displayURLOpener = new Thread(() -> {
 						for (String relpath : tempFiles) {
+							if (!ResourceLoader.wasPDFOpen(relpath))
 								OSPDesktop.displayURL(OSPRuntime.unzipFiles ? relpath : path + "!/" + relpath);
 						}
 					});
@@ -2375,6 +2381,7 @@ public class TrackerIO extends VideoIO {
 		}
 
 		private void doneLoading() {
+			frame.setFrameBlocker(false);
 //			monitorDialog.close();
 			if (xmlPath0 != null && !ResourceLoader.isJarZipTrz(xmlPath0,  true)) { //$NON-NLS-1$
 				Tracker.addRecent(ResourceLoader.getNonURIPath(XML.forwardSlash(xmlPath0)), false); // add at beginning
