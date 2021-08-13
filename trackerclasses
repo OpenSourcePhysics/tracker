@@ -644,8 +644,10 @@ javax/swing/table/TableModel.js
 javax/swing/text/AbstractDocument.js
 javax/swing/text/AttributeSet.js
 javax/swing/text/BadLocationException.js
+javax/swing/text/BoxView.js
 javax/swing/text/Caret.js
 javax/swing/text/ChangedCharSetException.js
+javax/swing/text/CompositeView.js
 javax/swing/text/DefaultCaret.js
 javax/swing/text/DefaultEditorKit.js
 javax/swing/text/DefaultFormatter.js
@@ -682,6 +684,7 @@ javax/swing/text/TextAction.js
 javax/swing/text/Utilities.js
 javax/swing/text/View.js
 javax/swing/text/ViewFactory.js
+javax/swing/text/WrappedPlainView.js
 javax/swing/text/html/CSS.js
 javax/swing/text/html/CSSBorder.js
 javax/swing/text/html/CSSParser.js
@@ -928,6 +931,7 @@ org/opensourcephysics/display/axes/CartesianType1.js
 org/opensourcephysics/display/axes/CoordinateStringBuilder.js
 org/opensourcephysics/display/axes/DrawableAxes.js
 org/opensourcephysics/display/dialogs/DialogsRes.js
+org/opensourcephysics/ejs/EjsRes.js
 org/opensourcephysics/frames/ImageFrame.js
 org/opensourcephysics/js/JSUtil.js
 org/opensourcephysics/media/core/AsyncVideoI.js
