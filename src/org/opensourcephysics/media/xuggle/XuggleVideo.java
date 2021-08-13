@@ -1284,4 +1284,9 @@ public class XuggleVideo extends VideoAdapter implements SmoothPlayable, Increme
 		return packetTSList == null;
 	}
 
+	@Override
+	public int getLoadableFrameCount() {
+		return endFrameNumber + 1;
+	}
+
 }
