@@ -361,7 +361,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	/**
 	 * Overrides VideoPanel setVideo method.
 	 *
-	 * @param newVideo the video
+	 * @param newVideo the video; may be null
 	 */
 	@Override
 	public void setVideo(Video newVideo) {
@@ -4929,4 +4929,5 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		TTrackBar.getTrackbar(this).refresh();
 //		getTFrame().getTrackBar(this).refresh();
 	}
+
 }
