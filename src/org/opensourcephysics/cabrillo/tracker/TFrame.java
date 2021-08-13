@@ -827,20 +827,30 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 
 		@Override
 		public void initAsync() {
-			tabPanel = getTabPanel(trackerPanel);
-			// remove the tab immediately
-			// BH 2020.11.24 thread lock
-			synchronized (tabbedPane) {
-				trackerPanel.trackControl.dispose();
-// BH why this if the next?				tabbedPane.remove(tab);
-				tabbedPane.remove(tabPanel);
-			}
 		}
 
 		@Override
 		public int doInBackgroundAsync(int i) {
-			if (trackerPanel != null)
+			if (trackerPanel != null) {
+				tabPanel = getTabPanel(trackerPanel);
+				System.err.println("TabRemover removing " + tabPanel);
+				// remove the tab immediately
+				// BH 2020.11.24 thread lock
+				try {
+//				synchronized (tabbedPane) {
+					trackerPanel.trackControl.dispose();
+					int tab = getTab(trackerPanel);
+					System.err.println("TabRemover removing " + tab);
+					tabbedPane.remove(tab);
+					System.err.println("TabRemover removing " + tabPanel);
+					tabbedPane.remove(tabPanel);
+//				}
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+
 				finishRemoveTab(trackerPanel, tabPanel);
+			}
 			return 1;
 		}
 
