@@ -179,16 +179,6 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	public static final String STICK = "Stick", TAPE = "CalibrationTapeMeasure", //$NON-NLS-1$ //$NON-NLS-2$
 			CALIBRATION = "Calibration", OFFSET = "OffsetOrigin"; //$NON-NLS-1$ //$NON-NLS-2$
 
-	public static final int PROGRESS_LOAD_INIT               = 0;
-	public static final int PROGRESS_PANEL_READY             = 5;
-//	public static final int PROGRESS_VIDEO_LOADING           = 10; See VideoPanel
-//	public static final int PROGRESS_VIDEO_PROCESSING        = 20; See VideoPanel
-//	public static final int PROGRESS_VIDEO_READY             = 70; See VideoPanel
-	public static final int PROGRESS_VIDEO_LOADED            = PROGRESS_VIDEO_READY + 5; // 85
-	public static final int PROGRESS_TOOLBAR_AND_COORD_READY = PROGRESS_VIDEO_READY + 10; // 90
-	public static final int PROGRESS_TRACKS_READY            = PROGRESS_VIDEO_READY + 15; // 95
-	public static final int PROGRESS_PENCIL_DRAWINGS_READY   = PROGRESS_VIDEO_READY + 19; // 99
-
 	protected static String alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; //$NON-NLS-1$
 
 	// instance fields
@@ -3714,7 +3704,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			asyncloader.setLoader(this);
 			this.control = control;
 			switch (trackerPanel.progress) {
-			case PROGRESS_LOAD_INIT:
+			case VideoIO.PROGRESS_LOAD_INIT:
 				// BH adds early setting of frame.
 				trackerPanel.frame = asyncloader.getFrame();
 				trackerPanel.frame.holdPainting(true);
@@ -3762,9 +3752,9 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 								JOptionPane.INFORMATION_MESSAGE);
 					}
 				}
-				trackerPanel.progress = PROGRESS_PANEL_READY;
+				trackerPanel.progress = TrackerIO.PROGRESS_PANEL_READY;
 				break;
-			case PROGRESS_PANEL_READY:
+			case TrackerIO.PROGRESS_PANEL_READY:
 				// load the description
 				trackerPanel.hideDescriptionWhenLoaded = control.getBoolean("hide_description"); //$NON-NLS-1$
 				String desc = control.getString("description"); //$NON-NLS-1$
@@ -3836,7 +3826,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 						break;
 					}
 				}
-				trackerPanel.progress = PROGRESS_VIDEO_LOADING;
+				trackerPanel.progress = VideoIO.PROGRESS_VIDEO_LOADING;
 				break;
 			default:
 				super.loadObject(control, obj);	// loads video
@@ -3851,13 +3841,13 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			//long t0 = Performance.now(0);
 			//OSPLog.debug(Performance.timeCheckStr("TrackerPanel.finalizeLoading1", Performance.TIME_MARK));
 			TrackerPanel trackerPanel = (TrackerPanel) videoPanel;
-			if (trackerPanel.progress < PROGRESS_VIDEO_READY) {
+			if (trackerPanel.progress < VideoIO.PROGRESS_VIDEO_READY) {
 				return;
 			}
 			videoPanel.setLoader(null);
 			try {
 				switch(trackerPanel.progress) {
-				case PROGRESS_VIDEO_READY: // VideoPanel finished getting video clip
+				case VideoIO.PROGRESS_VIDEO_READY: // VideoPanel finished getting video clip
 					XMLControl child;
 					Video video = finalizeClip();
 					if (video != null) {
@@ -3881,9 +3871,9 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 					if (child != null) {
 						child.loadObject(trackerPanel.getPlayer().getClipControl());
 					}
-					trackerPanel.progress = PROGRESS_VIDEO_LOADED;
+					trackerPanel.progress = TrackerIO.PROGRESS_VIDEO_LOADED;
 					break;
-				case PROGRESS_VIDEO_LOADED:
+				case TrackerIO.PROGRESS_VIDEO_LOADED:
 					// load the toolbar
 					child = control.getChildControl("toolbar"); //$NON-NLS-1$
 					if (child != null) {
@@ -3898,9 +3888,9 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 						int n = trackerPanel.getFrameNumber();
 						trackerPanel.getSnapPoint().setXY(coords.getOriginX(n), coords.getOriginY(n));
 					}
-					trackerPanel.progress = PROGRESS_TOOLBAR_AND_COORD_READY;					
+					trackerPanel.progress = TrackerIO.PROGRESS_TOOLBAR_AND_COORD_READY;					
 					break;
-				case PROGRESS_TOOLBAR_AND_COORD_READY:
+				case TrackerIO.PROGRESS_TOOLBAR_AND_COORD_READY:
 					// load the tracks
 					ArrayList<?> tracks = ArrayList.class.cast(control.getObject("tracks")); //$NON-NLS-1$
 					if (tracks != null) {
@@ -3913,9 +3903,9 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 							((TTrack) tracks.get(i)).initialize(trackerPanel);
 						}
 					}
-					trackerPanel.progress = PROGRESS_TRACKS_READY;
+					trackerPanel.progress = TrackerIO.PROGRESS_TRACKS_READY;
 					break;
-				case PROGRESS_TRACKS_READY:
+				case TrackerIO.PROGRESS_TRACKS_READY:
 					// load drawing scenes saved in vers 4.11.0+
 					ArrayList<PencilScene> scenes = (ArrayList<PencilScene>) control.getObject("drawing_scenes"); //$NON-NLS-1$
 					if (scenes != null) {
@@ -3935,9 +3925,9 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 							drawer.addDrawingtoSelectedScene(drawings.get(i));
 						}
 					}
-					trackerPanel.progress = PROGRESS_PENCIL_DRAWINGS_READY;
+					trackerPanel.progress = TrackerIO.PROGRESS_PENCIL_DRAWINGS_READY;
 					break;
-				case PROGRESS_PENCIL_DRAWINGS_READY:
+				case TrackerIO.PROGRESS_PENCIL_DRAWINGS_READY:
 					// load the reference frame
 					String rfName = control.getString("referenceframe"); //$NON-NLS-1$
 					if (rfName != null) {
@@ -3946,14 +3936,14 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 					// set selected track
 					String name = control.getString(PROPERTY_TRACKERPANEL_SELECTEDTRACK); //$NON-NLS-1$
 					trackerPanel.setSelectedTrack(name == null ? null : trackerPanel.getTrack(name));
-					trackerPanel.progress = 100;
+					trackerPanel.progress = VideoIO.PROGRESS_COMPLETE;
 					break;
 				}
 			} finally {
 				//OSPLog.debug("!!! " + Performance.now(t0) + " TrackerPanel.finalizeLoading");
 				//OSPLog.debug("TrackerPanel.finalizeLoading done");
 			}
-			if (trackerPanel.progress == 100 && asyncloader != null) {
+			if (trackerPanel.progress == VideoIO.PROGRESS_COMPLETE && asyncloader != null) {
 				asyncloader.finalized(trackerPanel);
 				asyncloader = null;
 			}
