@@ -1942,6 +1942,12 @@ public class TrackerIO extends VideoIO {
 				}
 				
 			}
+			// if progress < 100, check memory
+			long[] memory = TToolBar.getMemory();
+			double used = ((double) memory[0]) / memory[1];
+			if (used > 0.8) {
+				
+			}
 			return progress;
 		}
 
