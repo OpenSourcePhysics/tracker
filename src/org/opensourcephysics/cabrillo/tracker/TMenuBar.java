@@ -579,7 +579,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements PropertyChan
 		fileMenu = new JMenu(TrackerRes.getString("TMenuBar.Menu.File"));
 		fileMenu.setName("file");
 		fileMenu.addMenuListener(this);
-		if (!OSPRuntime.isApplet) {
+		//if (!OSPRuntime.isApplet) {
 			if (testing) {
 				file_replaceTabItem = new JMenuItem("Replace Tab"); // TODO TrackerRes.getString("TMenuBar.Menu.ReplaceTab")
 				file_replaceTabItem.addActionListener((e)-> {frame.loadExperimentURL(null);});
@@ -647,7 +647,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements PropertyChan
 			saveVideoAsItem = new JMenuItem(actions.get("saveVideo")); //$NON-NLS-1$
 			// saveTabset item
 			file_saveTabsetAsItem = new JMenuItem(actions.get("saveTabsetAs")); //$NON-NLS-1$
-		}
+		//}
 		// properties item
 		file_propertiesItem = new JMenuItem(actions.get("properties")); //$NON-NLS-1$
 		// printFrame item
@@ -1388,7 +1388,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements PropertyChan
 		if (isTainted(MENU_FILE)) {
 			// refresh file menu
 			fileMenu.removeAll();
-			if (!OSPRuntime.isApplet) {
+			//if (!OSPRuntime.isApplet) {
 				// update save and close items
 				file_saveItem.setEnabled(trackerPanel.getDataFile() != null);
 				String name = trackerPanel.getTitle();
@@ -1448,7 +1448,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements PropertyChan
 					if (trackerPanel.isEnabled("file.export")) //$NON-NLS-1$
 						fileMenu.add(file_exportMenu);
 				}
-			}
+			//}
 			if (fileMenu.getItemCount() > 0)
 				fileMenu.addSeparator();
 			fileMenu.add(file_propertiesItem);
@@ -1923,7 +1923,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements PropertyChan
 			// import video item at top
 			boolean importEnabled = trackerPanel.isEnabled("video.import") //$NON-NLS-1$
 					|| trackerPanel.isEnabled("video.open"); //$NON-NLS-1$
-			if (importEnabled && !OSPRuntime.isApplet) {
+			if (importEnabled) {// && !OSPRuntime.isApplet) {
 				if (hasVideo)
 					video_openVideoItem.setText(TrackerRes.getString("TMenuBar.MenuItem.Replace")); //$NON-NLS-1$
 				else

@@ -891,7 +891,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	 * Saves this TrackerPanel if changed, then runs the appropriate Runnable
 	 */
 	public void askSaveIfChanged(Runnable whenSaved, Runnable whenCanceled) {
-		if (!changed || OSPRuntime.isApplet) {
+		if (!changed) {// || OSPRuntime.isApplet) {
 			whenSaved.run();
 			return;
 		}

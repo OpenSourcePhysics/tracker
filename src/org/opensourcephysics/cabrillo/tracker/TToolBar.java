@@ -1151,7 +1151,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 		// assemble buttons
 		removeAll();
 		
-		if (!OSPRuntime.isApplet) {
+		//if (!OSPRuntime.isApplet) {
 			if (trackerPanel.isEnabled("file.open")) { //$NON-NLS-1$
 				add(openButton);
 			}
@@ -1168,7 +1168,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 			}
 			if (getComponentCount() > 0)
 				add(getSeparator());
-		}
+		//}
 		boolean addSeparator = false;
 		if (trackerPanel.isEnabled("button.clipSettings")) {//$NON-NLS-1$
 			add(clipSettingsButton);

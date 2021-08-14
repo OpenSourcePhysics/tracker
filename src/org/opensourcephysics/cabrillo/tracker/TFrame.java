@@ -2678,7 +2678,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			}
 		});
 		fileMenu.add(newItem);
-		if (!OSPRuntime.isApplet) {
+		//if (!OSPRuntime.isApplet) {
 			fileMenu.addSeparator();
 			// open file item
 			Icon icon = Tracker.getResourceIcon("open.gif", true); //$NON-NLS-1$
@@ -2733,7 +2733,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 				}
 			});
 			fileMenu.add(exitItem);
-		}
+		//}
 		// edit menu
 		JMenu editMenu = new JMenu(TrackerRes.getString("TMenuBar.Menu.Edit")); //$NON-NLS-1$
 		defaultMenuBar.add(editMenu);
