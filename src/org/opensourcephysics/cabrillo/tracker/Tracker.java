@@ -794,7 +794,7 @@ public class Tracker {
 				@Override
 				public Void apply(TrackerPanel trackerPanel) {
 //					frame.new TabRemover(trackerPanel).execute();
-					frame.new TabRemover(trackerPanel).executeSynchronously();
+					frame.removeTabSynchronously(trackerPanel);//new TabRemover(trackerPanel).executeSynchronously();
 					return null;
 				}
 

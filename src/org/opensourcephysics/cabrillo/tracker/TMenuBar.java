@@ -56,7 +56,6 @@ import javax.swing.ButtonGroup;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
-import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
@@ -96,7 +95,6 @@ import org.opensourcephysics.tools.FunctionTool;
  *
  * @author Douglas Brown
  */
-@SuppressWarnings("serial")
 public class TMenuBar extends TFrame.DeactivatingMenuBar implements PropertyChangeListener, MenuListener {
 
 	private static Map<TrackerPanel, TMenuBar> menubars = new HashMap<TrackerPanel, TMenuBar>();

@@ -133,8 +133,6 @@ import org.opensourcephysics.tools.LibraryTreePanel;
 import org.opensourcephysics.tools.Resource;
 import org.opensourcephysics.tools.ResourceLoader;
 
-import javajs.async.AsyncSwingWorker;
-
 /**
  * This is the main frame for Tracker.
  *
@@ -800,8 +798,9 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			}, 
 			() -> {
 				// when all approved remove tabs synchronously
-				for (int i = 0; i < panels.size(); i++) {		
-					new TabRemover(panels.get(i)).executeSynchronously();
+				for (int i = 0; i < panels.size(); i++) {	
+					removeTabSynchronously(panels.get(i));
+//					new TabRemover(panels.get(i)).executeSynchronously();
 				}
 			}, 
 			() -> {
@@ -812,49 +811,33 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	}
 
 	
-	/**
-	 * An AsyncSwingWorker to remove a tab.
-	 */
-	class TabRemover extends AsyncSwingWorker {
-
-		TrackerPanel trackerPanel;
-		TTabPanel tabPanel;
-
-		TabRemover(TrackerPanel trackerPanel) {
-			super(null, null, 1, 0, 1);
-			this.trackerPanel = trackerPanel;
-		}
-
-		@Override
-		public void initAsync() {
-		}
-
-		@Override
-		public int doInBackgroundAsync(int i) {
-			if (trackerPanel != null) {
-				tabPanel = getTabPanel(trackerPanel);
-				// remove the tab immediately
-				// BH 2020.11.24 thread lock
-				// BH 2021.08.13 removed
-				try {
-//				synchronized (tabbedPane) {
-					trackerPanel.trackControl.dispose();
-					int tab = getTab(trackerPanel);
-					tabbedPane.remove(tab);
-					tabbedPane.remove(tabPanel);
-//				}
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-				finishRemoveTab(trackerPanel, tabPanel);
-			}
-			return 1;
-		}
-
-		@Override
-		public void doneAsync() {
-		}
-	}
+//	/**
+//	 * An AsyncSwingWorker to remove a tab.
+//	 */
+//	class TabRemover extends AsyncSwingWorker {
+//
+//		TrackerPanel trackerPanel;
+//		TTabPanel tabPanel;
+//
+//		TabRemover(TrackerPanel trackerPanel) {
+//			super(null, null, 1, 0, 1);
+//			this.trackerPanel = trackerPanel;
+//		}
+//
+//		@Override
+//		public void initAsync() {
+//		}
+//
+//		@Override
+//		public int doInBackgroundAsync(int i) {
+//			removeTabSynchronously(trackerPanel);
+//			return 1;
+//		}
+//
+//		@Override
+//		public void doneAsync() {
+//		}
+//	}
 
 	/**
 	 * Removes a tracker panel tab.
@@ -864,9 +847,31 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	public void removeTab(TrackerPanel trackerPanel) {
 		if (getTab(trackerPanel) >= 0)
 			trackerPanel.askSaveIfChanged(() -> {
-				new TabRemover(trackerPanel).executeSynchronously();// was sync
+				removeTabSynchronously(trackerPanel);
+				//new TabRemover(trackerPanel).executeSynchronously();// was sync
 			}, null);
 	}
+
+	public void removeTabSynchronously(TrackerPanel trackerPanel) {
+		if (trackerPanel != null) {
+			TTabPanel tabPanel = getTabPanel(trackerPanel);
+			// remove the tab immediately
+			// BH 2020.11.24 thread lock
+			// BH 2021.08.13 removed
+			try {
+//			synchronized (tabbedPane) {
+				trackerPanel.trackControl.dispose();
+				int tab = getTab(trackerPanel);
+				tabbedPane.remove(tab);
+				tabbedPane.remove(tabPanel);
+//			}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			finishRemoveTab(trackerPanel, tabPanel);
+		}
+	}
+
 
 	/**
 	 * Finishes removing a tracker panel and it's TTabPanel.
@@ -3100,7 +3105,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	public void removeTabNow(int i) {
 		TrackerPanel tp = getTrackerPanel(i);
 		if (tp != null)
-			new TabRemover(tp).executeSynchronously();
+			removeTabSynchronously(tp);//new TabRemover(tp).executeSynchronously();
 	}
 
 	private String lastExperiment = "";

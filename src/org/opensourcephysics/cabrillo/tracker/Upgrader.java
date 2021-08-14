@@ -160,7 +160,8 @@ public class Upgrader {
 									TrackerRes.getString("Upgrader.Dialog.Downloaded.Message1") + " " //$NON-NLS-1$ //$NON-NLS-2$
 											+ installer.getPath() + "." //$NON-NLS-1$
 											+ XML.NEW_LINE + TrackerRes.getString("Upgrader.Dialog.Downloaded.Message2") //$NON-NLS-1$
-											+ XML.NEW_LINE, TrackerRes.getString("TTrackBar.Dialog.Download.Title"), //$NON-NLS-1$
+											+ XML.NEW_LINE,
+									TrackerRes.getString("TTrackBar.Dialog.Download.Title"), //$NON-NLS-1$
 									JOptionPane.OK_CANCEL_OPTION, JOptionPane.INFORMATION_MESSAGE);
 							if (ans != JOptionPane.OK_OPTION) {
 								return;
@@ -190,16 +191,13 @@ public class Upgrader {
 									Tracker.savePreferences();
 									// exit Tracker
 									TrackerPanel trackerPanel = frame.getSelectedPanel();
-									if (trackerPanel != null) {
-										TActions.getAction("exit", trackerPanel).actionPerformed(null); //$NON-NLS-1$
-									} else {
-										Tracker.exit();
-									}
-								} else {
-									// upgrade installer launch failure
-									OSPLog.warning("failed to launch upgrade installer"); //$NON-NLS-1$
-									failed[0] = true;
+									TActions.exitAction(trackerPanel);
+									return;
 								}
+								// upgrade installer launch failure
+								OSPLog.warning("failed to launch upgrade installer"); //$NON-NLS-1$
+								failed[0] = true;
+
 							} catch (Exception ex) {
 								OSPLog.warning("exception: " + ex); //$NON-NLS-1$
 								failed[0] = true;
@@ -432,20 +430,14 @@ public class Upgrader {
 
 									// exit Tracker
 									TrackerPanel trackerPanel = frame.getSelectedPanel();
-									if (trackerPanel != null) {
-										TActions.getAction("exit", trackerPanel).actionPerformed(null);
-									} else {
-										Tracker.exit();
-									}
-
-								} else {
-									OSPLog.warning("failed to mount upgrade installer"); //$NON-NLS-1$
-									failed[0] = true;
-								}
+									TActions.exitAction(trackerPanel);
+									return;
+								} 
+								OSPLog.warning("failed to mount upgrade installer"); //$NON-NLS-1$
 							} catch (Exception ex) {
 								OSPLog.warning("exception: " + ex); //$NON-NLS-1$
-								failed[0] = true;
 							}
+							failed[0] = true;
 						} else {
 							OSPLog.warning("failed to download upgrade installer"); //$NON-NLS-1$
 							failed[0] = true;
@@ -570,15 +562,12 @@ public class Upgrader {
 //	            clipboard.setContents(data, data);
 
 							TrackerPanel trackerPanel = frame.getSelectedPanel();
-							if (trackerPanel != null) {
-								TActions.getAction("exit", trackerPanel).actionPerformed(null);
-							} else {
-								Tracker.exit();
-							}
-						} else {
-							OSPLog.warning("failed to download upgrade installer"); //$NON-NLS-1$
-							failed[0] = true;
+							TActions.exitAction(trackerPanel);
+							return;
 						}
+						OSPLog.warning("failed to download upgrade installer"); //$NON-NLS-1$
+						failed[0] = true;
+
 						if (failed[0]) {
 							// close upgrade dialog and display Tracker web site
 							closeUpgradeDialog();

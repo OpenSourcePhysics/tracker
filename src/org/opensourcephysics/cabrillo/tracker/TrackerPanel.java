@@ -377,7 +377,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		}
 		if (newVideo != oldVideo && oldVideo != null) {
 			// clear filters from old video
-			TActions.getAction("clearFilters", this).actionPerformed(null); //$NON-NLS-1$
+			TActions.clearFiltersAction(this, false);
 		}
 		super.setVideo(newVideo, true); // play all steps by default
 		if (state != null) {
@@ -4381,8 +4381,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 
 			TMenuBar.refreshPopup(this, TMenuBar.POPUPMENU_MAINTVIEW_POPUP, popup);
 			// video properties item
-			Action vidPropsAction = TActions.getAction("aboutVideo", this); //$NON-NLS-1$
-			JMenuItem propertiesItem = new JMenuItem(vidPropsAction);
+			JMenuItem propertiesItem = new JMenuItem(TActions.getAction("aboutVideo", this));
 			popup.addSeparator();
 			propertiesItem.setText(TrackerRes.getString("TActions.AboutVideo")); //$NON-NLS-1$
 			popup.add(propertiesItem);
@@ -4391,8 +4390,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			if (isEnabled("file.print")) { //$NON-NLS-1$
 				if (popup.getComponentCount() > 0)
 					popup.addSeparator();
-				Action printAction = TActions.getAction("print", this); //$NON-NLS-1$
-				popup.add(printAction);
+				popup.add(TActions.getAction("print", this));
 			}
 			// add help item
 			if (popup.getComponentCount() > 0)
@@ -4943,10 +4941,6 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			button.doClick();
 	}
 	
-	public String toString() {
-		return "[TrackerPanel " + hashCode() + " " + getTabName() + "]";
-	}
-
 	public String getTabName() {
 		return getTFrame().getTabTitle(getTFrame().getTab(this));
 	}
@@ -4957,4 +4951,10 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		if (modelBuilder != null)
 			modelBuilder.setVisible(false);
 	}
+
+	@Override
+	public String toString() {
+		return "[TrackerPanel " + hashCode() + " " + getTabName() + "]";
+	}
+
 }
