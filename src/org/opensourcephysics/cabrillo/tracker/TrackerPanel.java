@@ -4950,4 +4950,11 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	public String getTabName() {
 		return getTFrame().getTabTitle(getTFrame().getTab(this));
 	}
+
+	public void onBlocked() {
+		if (trackControl != null)
+			trackControl.setVisible(false);
+		if (modelBuilder != null)
+			modelBuilder.setVisible(false);
+	}
 }

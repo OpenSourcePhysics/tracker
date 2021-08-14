@@ -3655,8 +3655,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			frameBlocker = new Object();
 			notesDialog.setVisible(false);
 			panel = getSelectedPanel();
-			if (panel != null && panel.trackControl != null)
-				panel.trackControl.setVisible(false);
+			if (panel != null)
+				panel.onBlocked();
 		} else if (frameBlocker != null) {
 			frameBlocker = null;
 			panel.onLoaded();
