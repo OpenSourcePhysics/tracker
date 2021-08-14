@@ -37,6 +37,7 @@ import java.util.ArrayList;
 
 import javax.imageio.ImageIO;
 import javax.swing.SwingUtilities;
+
 import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.media.core.DoubleArray;
@@ -104,7 +105,7 @@ public class XuggleVideo extends VideoAdapter implements SmoothPlayable, Increme
 			"dv" }; //$NON-NLS-1$
 	
 	private final static int FRAME = 1;
-	private final static int PREVFRAME = 0;
+//	private final static int PREVFRAME = 0;
 
 	static {
 		IContainer.make(); // throws exception if xuggle not available
@@ -176,7 +177,7 @@ public class XuggleVideo extends VideoAdapter implements SmoothPlayable, Increme
 
 	private int streamIndex = -1;
 	private long keyTS0 = Long.MIN_VALUE;
-	private long keyTS1 = Long.MIN_VALUE;
+//	private long keyTS1 = Long.MIN_VALUE;
 
 	private long systemStartPlayTime;
 	private double frameStartPlayTime;
@@ -773,8 +774,10 @@ public class XuggleVideo extends VideoAdapter implements SmoothPlayable, Increme
 	private void disposeXuggle() {
 		if (raf != null) {
 			try {
+				//System.err.println("XuggleVideo.dispose path =" + path);
 				raf.close();
 			} catch (IOException e) {
+				e.printStackTrace();
 			}
 		}
 		if (videoDecoder != null) {
@@ -797,7 +800,7 @@ public class XuggleVideo extends VideoAdapter implements SmoothPlayable, Increme
 			container = null;
 		}
 		streamIndex = firstDisplayPacket = -1;
-		keyTS0 = keyTS1 = Long.MIN_VALUE;
+		keyTS0 = /*keyTS1 =*/ Long.MIN_VALUE;
 	}
 
 	/**
@@ -886,6 +889,7 @@ public class XuggleVideo extends VideoAdapter implements SmoothPlayable, Increme
 		container = IContainer.make();
 		if (isLocal) {
 			try {
+				//System.err.println("XV opening " + path);
 				raf = new RandomAccessFile(path, "r"); //$NON-NLS-1$
 
 			} catch (FileNotFoundException e) {
@@ -1278,6 +1282,11 @@ public class XuggleVideo extends VideoAdapter implements SmoothPlayable, Increme
 	@Override
 	public boolean isFullyLoaded() {
 		return packetTSList == null;
+	}
+
+	@Override
+	public int getLoadableFrameCount() {
+		return endFrameNumber + 1;
 	}
 
 }

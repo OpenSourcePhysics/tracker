@@ -723,14 +723,14 @@ public class Tracker {
 		frame = new TFrame(options);
 		Diagnostics.setDialogOwner(frame);
 		// set up the Java VM exit mechanism when used as application
-		if (!OSPRuntime.isApplet) {
+		//if (!OSPRuntime.isApplet) {
 			frame.addWindowListener(new WindowAdapter() {
 				@Override
 				public void windowClosing(WindowEvent e) {
 					onWindowClosing();
 				}
 			});
-		}
+		//}
 	}
 
 //________________________________  static methods ____________________________
@@ -794,7 +794,7 @@ public class Tracker {
 				@Override
 				public Void apply(TrackerPanel trackerPanel) {
 //					frame.new TabRemover(trackerPanel).execute();
-					frame.new TabRemover(trackerPanel).executeSynchronously();
+					frame.removeTabSynchronously(trackerPanel);//new TabRemover(trackerPanel).executeSynchronously();
 					return null;
 				}
 

@@ -1163,7 +1163,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 		// assemble buttons
 		removeAll();
 		
-		if (!OSPRuntime.isApplet) {
+		//if (!OSPRuntime.isApplet) {
 			if (trackerPanel.isEnabled("file.open")) { //$NON-NLS-1$
 				add(openButton);
 			}
@@ -1180,7 +1180,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 			}
 			if (getComponentCount() > 0)
 				add(getSeparator());
-		}
+		//}
 		boolean addSeparator = false;
 		if (trackerPanel.isEnabled("button.clipSettings")) {//$NON-NLS-1$
 			add(clipSettingsButton);
@@ -1741,9 +1741,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 						track.setCalibrator(scale == 1.0 ? 1.0 : null);
 						// assign a default name
 						String name = TrackerRes.getString("CalibrationStick.New.Name"); //$NON-NLS-1$
-						int i = trackerPanel.getAlphabetIndex(name, " "); //$NON-NLS-1$
-						String letter = TrackerPanel.alphabet.substring(i, i + 1);
-						track.setName(name + " " + letter); //$NON-NLS-1$
+						track.setName(trackerPanel.getNextName(name, " "));
 						trackerPanel.addTrack(track);
 						calibrationButton.setSelected(true);
 
@@ -1812,9 +1810,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 						Calibration track = new Calibration();
 						// assign a default name
 						String name = TrackerRes.getString("Calibration.New.Name"); //$NON-NLS-1$
-						int i = trackerPanel.getAlphabetIndex(name, " "); //$NON-NLS-1$
-						String letter = TrackerPanel.alphabet.substring(i, i + 1);
-						track.setName(name + " " + letter); //$NON-NLS-1$
+						track.setName(trackerPanel.getNextName(name, " "));
 
 						trackerPanel.addTrack(track);
 						calibrationButton.setSelected(true);
@@ -1834,10 +1830,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 						OffsetOrigin track = new OffsetOrigin();
 						// assign a default name
 						String name = TrackerRes.getString("OffsetOrigin.New.Name"); //$NON-NLS-1$
-						int i = trackerPanel.getAlphabetIndex(name, " "); //$NON-NLS-1$
-						String letter = TrackerPanel.alphabet.substring(i, i + 1);
-						track.setName(name + " " + letter); //$NON-NLS-1$
-
+						track.setName(trackerPanel.getNextName(name, " "));
 						trackerPanel.addTrack(track);
 						calibrationButton.setSelected(true);
 						// show all tools in visibleTools list

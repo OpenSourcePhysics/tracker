@@ -706,7 +706,7 @@ public class Undo {
 			// clear filters from old video
 			Video video = panel.getVideo();
 			if (video != null) {
-				TActions.getAction("clearFilters", panel).actionPerformed(null); //$NON-NLS-1$
+				TActions.clearFiltersAction(panel, false);
 			}
 			XMLControl control = new XMLControlElement(xml);
 			VideoClip clip = (VideoClip) control.loadObject(null);

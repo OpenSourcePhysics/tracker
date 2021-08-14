@@ -56,7 +56,6 @@ import javax.swing.ButtonGroup;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
-import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
@@ -96,8 +95,7 @@ import org.opensourcephysics.tools.FunctionTool;
  *
  * @author Douglas Brown
  */
-@SuppressWarnings("serial")
-public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuListener {
+public class TMenuBar extends TFrame.DeactivatingMenuBar implements PropertyChangeListener, MenuListener {
 
 	private static Map<TrackerPanel, TMenuBar> menubars = new HashMap<TrackerPanel, TMenuBar>();
 
@@ -579,7 +577,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 		fileMenu = new JMenu(TrackerRes.getString("TMenuBar.Menu.File"));
 		fileMenu.setName("file");
 		fileMenu.addMenuListener(this);
-		if (!OSPRuntime.isApplet) {
+		//if (!OSPRuntime.isApplet) {
 			if (testing) {
 				file_replaceTabItem = new JMenuItem("Replace Tab"); // TODO TrackerRes.getString("TMenuBar.Menu.ReplaceTab")
 				file_replaceTabItem.addActionListener((e)-> {frame.loadExperimentURL(null);});
@@ -647,7 +645,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 			saveVideoAsItem = new JMenuItem(actions.get("saveVideo")); //$NON-NLS-1$
 			// saveTabset item
 			file_saveTabsetAsItem = new JMenuItem(actions.get("saveTabsetAs")); //$NON-NLS-1$
-		}
+		//}
 		// properties item
 		file_propertiesItem = new JMenuItem(actions.get("properties")); //$NON-NLS-1$
 		// printFrame item
@@ -1388,7 +1386,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 		if (isTainted(MENU_FILE)) {
 			// refresh file menu
 			fileMenu.removeAll();
-			if (!OSPRuntime.isApplet) {
+			//if (!OSPRuntime.isApplet) {
 				// update save and close items
 				file_saveItem.setEnabled(trackerPanel.getDataFile() != null);
 				String name = trackerPanel.getTitle();
@@ -1448,7 +1446,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 					if (trackerPanel.isEnabled("file.export")) //$NON-NLS-1$
 						fileMenu.add(file_exportMenu);
 				}
-			}
+			//}
 			if (fileMenu.getItemCount() > 0)
 				fileMenu.addSeparator();
 			fileMenu.add(file_propertiesItem);
@@ -1923,7 +1921,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 			// import video item at top
 			boolean importEnabled = trackerPanel.isEnabled("video.import") //$NON-NLS-1$
 					|| trackerPanel.isEnabled("video.open"); //$NON-NLS-1$
-			if (importEnabled && !OSPRuntime.isApplet) {
+			if (importEnabled) {// && !OSPRuntime.isApplet) {
 				if (hasVideo)
 					video_openVideoItem.setText(TrackerRes.getString("TMenuBar.MenuItem.Replace")); //$NON-NLS-1$
 				else
@@ -2863,5 +2861,4 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 			}
 		}
 	}
-
 }

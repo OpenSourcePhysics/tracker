@@ -30,11 +30,13 @@ import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.Icon;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
 
 import org.opensourcephysics.controls.XMLControlElement;
 import org.opensourcephysics.display.OSPRuntime;
@@ -44,8 +46,6 @@ import org.opensourcephysics.media.core.TPoint;
 import org.opensourcephysics.media.core.Video;
 import org.opensourcephysics.tools.FunctionTool;
 
-import javajs.async.AsyncSwingWorker;
-
 /**
  * This creates a map of action name to action for many common tracker actions.
  *
@@ -54,15 +54,16 @@ import javajs.async.AsyncSwingWorker;
 public class TActions {
 
 	// static fields
-	static Map<TrackerPanel, Map<String, AbstractAction>> actionMaps = new HashMap<TrackerPanel, Map<String, AbstractAction>>(); // maps
-																																	// trackerPanel
-																																	// to
-																																	// actions
+	/**
+	 * maps trackerPanel to actions
+	 * 
+	 */
+	static Map<TrackerPanel, Map<String, AbstractAction>> actionMaps = new HashMap<TrackerPanel, Map<String, AbstractAction>>(); 
 																																	// map
 	static String newline = System.getProperty("line.separator", "\n"); //$NON-NLS-1$ //$NON-NLS-2$
 
 	/**
-	 * Private constructor.
+	 * No instantiation
 	 */
 	private TActions() {
 		/** empty block */
@@ -130,13 +131,12 @@ public class TActions {
 					@Override
 					public void actionPerformed(ActionEvent e) {
 						if (OSPRuntime.isJS) {
-							PasteDataDialog dialog = trackerPanel.getPasteDataDialog();
-							dialog.setVisible(true);																
-						}
-						else
+							trackerPanel.getPasteDataDialog().setVisible(true);
+						} else {
 							OSPRuntime.paste((data) -> {
-							trackerPanel.doPaste(data);
-						});
+								trackerPanel.doPaste(data);
+							});
+						}
 
 					}
 				});
@@ -233,7 +233,7 @@ public class TActions {
 				new AbstractAction(TrackerRes.getString("TActions.Action.ImportData")) { //$NON-NLS-1$
 					@Override
 					public void actionPerformed(ActionEvent e) {
-						getAction("dataTrack", trackerPanel).actionPerformed(e); //$NON-NLS-1$
+						dataTrackAction(trackerPanel);
 					}
 				});
 
@@ -371,13 +371,7 @@ public class TActions {
 				new AbstractAction(TrackerRes.getString("TActions.Action.Exit"), null) { //$NON-NLS-1$
 					@Override
 					public void actionPerformed(ActionEvent e) {
-						TFrame frame = trackerPanel.getTFrame();
-						if (frame != null) {
-							if (frame.getTabCount() > 0)
-								frame.removeAllTabs();
-							if (frame.getTabCount() == 0)
-								System.exit(0);
-						}
+						exitAction(trackerPanel);
 					}
 				});
 
@@ -547,15 +541,7 @@ public class TActions {
 				getAsyncAction(new AbstractAction(TrackerRes.getString("DynamicParticle.Name"), null) { //$NON-NLS-1$
 					@Override
 					public void actionPerformed(ActionEvent e) {
-						DynamicParticle model = new DynamicParticle();
-						model.setDefaultNameAndColor(trackerPanel, " "); //$NON-NLS-1$
-						trackerPanel.addTrack(model);
-						trackerPanel.setSelectedPoint(null);
-						trackerPanel.selectedSteps.clear();
-						trackerPanel.setSelectedTrack(model);
-						FunctionTool inspector = model.getModelBuilder();
-						model.setStartFrame(trackerPanel.getPlayer().getVideoClip().getStartFrameNumber());
-						inspector.setVisible(true);
+						dynamicParticleAction(trackerPanel);
 					}
 				}, true));
 
@@ -564,15 +550,7 @@ public class TActions {
 				getAsyncAction(new AbstractAction(TrackerRes.getString("DynamicParticlePolar.Name"), null) { //$NON-NLS-1$
 					@Override
 					public void actionPerformed(ActionEvent e) {
-						DynamicParticle model = new DynamicParticlePolar();
-						model.setDefaultNameAndColor(trackerPanel, " "); //$NON-NLS-1$
-						trackerPanel.addTrack(model);
-						trackerPanel.setSelectedPoint(null);
-						trackerPanel.selectedSteps.clear();
-						trackerPanel.setSelectedTrack(model);
-						FunctionTool inspector = model.getModelBuilder();
-						model.setStartFrame(trackerPanel.getPlayer().getVideoClip().getStartFrameNumber());
-						inspector.setVisible(true);
+						dynamicParticlePolarAction(trackerPanel);
 					}
 				}, true));
 
@@ -677,23 +655,7 @@ public class TActions {
 						TrackerRes.getString("TActions.Action.ClearFilters"), null) { //$NON-NLS-1$
 					@Override
 					public void actionPerformed(ActionEvent e) {
-						Video video = trackerPanel.getVideo();
-						if (video != null) {
-							ArrayList<String> xml = new ArrayList<String>();
-							FilterStack stack = video.getFilterStack();
-							for (Filter filter : stack.getFilters()) {
-								xml.add(new XMLControlElement(filter).toXML());
-								PerspectiveTrack track = PerspectiveTrack.filterMap.get(filter);
-								if (track != null) {
-									trackerPanel.removeTrack(track);
-									track.dispose();
-								}
-							}
-							stack.clear();
-							if (e != null) {
-								Undo.postFilterClear(trackerPanel, xml);
-							}
-						}
+						clearFiltersAction(trackerPanel, true);
 					}
 				});
 
@@ -702,16 +664,7 @@ public class TActions {
 				new AbstractAction(TrackerRes.getString("ParticleDataTrack.Name"), null) { //$NON-NLS-1$
 					@Override
 					public void actionPerformed(ActionEvent e) {
-						// choose file and import data
-						TrackerIO.getChooserFilesAsync("open data", //$NON-NLS-1$
-								(files) -> {
-									if (files == null) {
-										return null;
-									}
-									String filePath = files[0].getAbsolutePath();
-									trackerPanel.importDataAsync(filePath, null, null);
-									return null;
-								});
+						dataTrackAction(trackerPanel);
 					}
 				});
 
@@ -749,12 +702,56 @@ public class TActions {
 		return actions;
 	}
 
-	protected static void cloneAction(TrackerPanel trackerPanel, String name) {
-		trackerPanel.cloneNamed(name);
+	protected static void dataTrackAction(TrackerPanel trackerPanel) {
+		// choose file and import data
+		TrackerIO.getChooserFilesAsync("open data", //$NON-NLS-1$
+				(files) -> {
+					if (files == null) {
+						return null;
+					}
+					String filePath = files[0].getAbsolutePath();
+					trackerPanel.importDataAsync(filePath, null, null);
+					return null;
+				});
 	}
 
-	@SuppressWarnings("serial")
-	private static AbstractAction getAsyncAction(Action a, boolean useSeparateThread) {
+	public static void cloneAction(TrackerPanel trackerPanel, String name) {
+		trackerPanel.cloneNamed(name);
+	}
+	public static void dynamicParticleAction(TrackerPanel trackerPanel) {
+		DynamicParticle model = new DynamicParticle();
+		model.setDefaultNameAndColor(trackerPanel, " "); //$NON-NLS-1$
+		trackerPanel.addTrack(model);
+		trackerPanel.setSelectedPoint(null);
+		trackerPanel.selectedSteps.clear();
+		trackerPanel.setSelectedTrack(model);
+		FunctionTool inspector = model.getModelBuilder();
+		model.setStartFrame(trackerPanel.getPlayer().getVideoClip().getStartFrameNumber());
+		inspector.setVisible(true);
+	}
+
+	public static void dynamicParticlePolarAction(TrackerPanel trackerPanel) {
+		DynamicParticle model = new DynamicParticlePolar();
+		model.setDefaultNameAndColor(trackerPanel, " "); //$NON-NLS-1$
+		trackerPanel.addTrack(model);
+		trackerPanel.setSelectedPoint(null);
+		trackerPanel.selectedSteps.clear();
+		trackerPanel.setSelectedTrack(model);
+		FunctionTool inspector = model.getModelBuilder();
+		model.setStartFrame(trackerPanel.getPlayer().getVideoClip().getStartFrameNumber());
+		inspector.setVisible(true);
+	}
+
+
+//	@SuppressWarnings("serial")
+	/**
+	 * Use SwingUtilities.invokeLater to ensure that any mouse action on a menu item has completed prior to this action's running.
+	 * 
+	 * @param a
+	 * @param useSeparateThread
+	 * @return
+	 */
+	private static AbstractAction getAsyncAction(AbstractAction a, boolean useSeparateThread) {
 		Object nameObj = a.getValue(Action.NAME);
 		String name = nameObj == null ? null : nameObj.toString();
 		Object iconObj = a.getValue(Action.SMALL_ICON);
@@ -762,39 +759,76 @@ public class TActions {
 		return new AbstractAction(name, icon) {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				new AsyncSwingWorker(null, null, 0, 0, 1) {
-
-					@Override
-					public void initAsync() {
-					}
-
-					@Override
-					public int doInBackgroundAsync(int i) {
-						if (this.getProgressAsync() > 0)
-							return 1;
-						if (useSeparateThread) {
-							AsyncSubtask task = this.new AsyncSubtask(1);
-							task.start(new Runnable() {
-
-								@Override
-								public void run() {
-									a.actionPerformed(e);
-									task.done();
-								}
-							});
-						} else {
-							a.actionPerformed(e);
-						}
-						return 1;
-					}
-
-					@Override
-					public void doneAsync() {
-					}
-
-				}.execute();
+				SwingUtilities.invokeLater(()->{
+					a.actionPerformed(e);
+				});
+//				new AsyncSwingWorker(null, null, 0, 0, 1) {
+//
+//					@Override
+//					public void initAsync() {
+//					}
+//
+//					@Override
+//					public int doInBackgroundAsync(int i) {
+//						if (this.getProgressAsync() > 0)
+//							return 1;
+//						if (useSeparateThread) {
+//							AsyncSubtask task = this.new AsyncSubtask(1);
+//							task.start(new Runnable() {
+//
+//								@Override
+//								public void run() {
+//									a.actionPerformed(e);
+//									task.done();
+//								}
+//							});
+//						} else {
+//							a.actionPerformed(e);
+//						}
+//						return 1;
+//					}
+//
+//					@Override
+//					public void doneAsync() {
+//					}
+//
+//				}.execute();
 			}
 		};
+	}
+
+	public static void clearFiltersAction(TrackerPanel trackerPanel, boolean andUndo) {
+		Video video = trackerPanel.getVideo();
+		if (video != null) {
+			ArrayList<String> xml = new ArrayList<String>();
+			FilterStack stack = video.getFilterStack();
+			for (Filter filter : stack.getFilters()) {
+				xml.add(new XMLControlElement(filter).toXML());
+				PerspectiveTrack track = PerspectiveTrack.filterMap.get(filter);
+				if (track != null) {
+					trackerPanel.removeTrack(track);
+					track.dispose();
+				}
+			}
+			stack.clear();
+			if (andUndo) {
+				Undo.postFilterClear(trackerPanel, xml);
+			}
+		}
+	}
+
+	public static void exitAction(TrackerPanel trackerPanel) {
+		if (trackerPanel == null) {
+			Tracker.exit();
+			return;
+		}
+		TFrame frame = trackerPanel.getTFrame();
+		if (frame != null) {
+			if (frame.getTabCount() > 0)
+				frame.removeAllTabs();
+			if (frame.getTabCount() == 0)
+				System.exit(0);
+		}
 	}
 
 }

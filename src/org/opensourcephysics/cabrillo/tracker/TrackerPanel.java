@@ -62,6 +62,7 @@ import java.util.TreeSet;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
+import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -177,8 +178,6 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	/** Calibration tool types */
 	public static final String STICK = "Stick", TAPE = "CalibrationTapeMeasure", //$NON-NLS-1$ //$NON-NLS-2$
 			CALIBRATION = "Calibration", OFFSET = "OffsetOrigin"; //$NON-NLS-1$ //$NON-NLS-2$
-
-	protected static String alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; //$NON-NLS-1$
 
 	// instance fields
 	protected double defaultImageBorder;
@@ -361,7 +360,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	/**
 	 * Overrides VideoPanel setVideo method.
 	 *
-	 * @param newVideo the video
+	 * @param newVideo the video; may be null
 	 */
 	@Override
 	public void setVideo(Video newVideo) {
@@ -378,7 +377,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		}
 		if (newVideo != oldVideo && oldVideo != null) {
 			// clear filters from old video
-			TActions.getAction("clearFilters", this).actionPerformed(null); //$NON-NLS-1$
+			TActions.clearFiltersAction(this, false);
 		}
 		super.setVideo(newVideo, true); // play all steps by default
 		if (state != null) {
@@ -526,6 +525,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 
 	int BHtest;
 	private int cursorType;
+	boolean showTrackControlDelayed;
 	/**
 	 * Gets a list of TTracks being drawn on this panel.
 	 *
@@ -624,13 +624,13 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		if (track.trackerPanel == null) {
 			track.setTrackerPanel(this);
 		}
-		boolean showTrackControl = true;
+		showTrackControlDelayed = true;
 		// set angle format of the track
 		if (getTFrame() != null)
 			track.setAnglesInRadians(getTFrame().anglesInRadians);
 		// special case: axes
 		if (track instanceof CoordAxes) {
-			showTrackControl = false;
+			showTrackControlDelayed = false;
 			if (getAxes() != null)
 				removeDrawable(getAxes()); // only one axes at a time
 			super.addDrawable(track);
@@ -642,12 +642,12 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		}
 		// special case: same calibration tool added again?
 		else if (calibrationTools.contains(track)) {
-			showTrackControl = false;
+			showTrackControlDelayed = false;
 			super.addDrawable(track);
 		}
 		// special case: tape measure
 		else if (track instanceof TapeMeasure) {
-			showTrackControl = false;
+			showTrackControlDelayed = false;
 			TapeMeasure tape = (TapeMeasure) track;
 			if (!tape.isReadOnly()) { // calibration tape or stick
 				calibrationTools.add(tape);
@@ -661,21 +661,21 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		}
 		// special case: offset origin or calibration points
 		else if (track instanceof OffsetOrigin || track instanceof Calibration) {
-			showTrackControl = false;
+			showTrackControlDelayed = false;
 			calibrationTools.add(track);
 			visibleCalibrationTools.add(track);
 			super.addDrawable(track);
 		}
 		// special case: protractor or circlefitter
 		else if (track instanceof Protractor || track instanceof CircleFitter) {
-			showTrackControl = false;
+			showTrackControlDelayed = false;
 			measuringTools.add(track);
 			visibleMeasuringTools.add(track);
 			super.addDrawable(track);
 		}
 		// special case: perspective track
 		else if (track instanceof PerspectiveTrack) {
-			showTrackControl = false;
+			showTrackControlDelayed = false;
 			super.addDrawable(track);
 		}
 		// special case: ParticleDataTrack may add extra points
@@ -744,10 +744,6 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		}
 
 		changed = true;
-		if (showTrackControl && getTFrame() != null && this.isShowing()) {
-			TrackControl.getControl(this).setVisible(true);
-		}
-
 		// select new track in autotracker
 		if (autoTracker != null && track != getAxes()) {
 			autoTracker.setTrack(track);
@@ -894,8 +890,8 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	/**
 	 * Saves this TrackerPanel if changed, then runs the appropriate Runnable
 	 */
-	public void save(Runnable whenSaved, Runnable whenCanceled) {
-		if (!changed || OSPRuntime.isApplet) {
+	public void askSaveIfChanged(Runnable whenSaved, Runnable whenCanceled) {
+		if (!changed) {// || OSPRuntime.isApplet) {
 			whenSaved.run();
 			return;
 		}
@@ -2213,29 +2209,29 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	}
 
 	/**
-	 * Gets the alphabet index for setting the name letter suffix and color of a
-	 * track.
+	 * Gets the next available name (and color, based on the attached suffix) for a track.
 	 * 
 	 * @param name      the default name with no letter suffix
 	 * @param connector the string connecting the name and letter
-	 * @return the index of the first available letter suffix
+	 * @return name + connector + letter or null
 	 */
-	protected int getAlphabetIndex(String name, String connector) {
-		for (int i = 0; i < alphabet.length(); i++) {
-			String letter = alphabet.substring(i, i + 1);
-			String proposed = name + connector + letter;
-			boolean isTaken = false;
-			ArrayList<TTrack> list = getTracksTemp();
-			for (int it = 0, n = list.size(); it < n; it++) {
-				TTrack track = list.get(it);
-				String nextName = track.getName();
-				isTaken = isTaken || proposed.equals(nextName);
+	protected String getNextName(String name, String connector) {
+		String p = name + connector;
+		ArrayList<TTrack> list = getTracksTemp();
+		int n = list.size();
+		String proposed = null;
+		// test A-Z
+		for (int i = 65; i <= 90 && proposed == null; i++) {
+			proposed = p + (char) i;
+			for (int it = 0; it < n; it++) {
+				if (proposed.equals(list.get(it).getName())) {
+					proposed = null;
+					break;
+				}
 			}
-			clearTemp();
-			if (!isTaken)
-				return i;
 		}
-		return 0;
+		clearTemp();
+		return proposed;
 	}
 
 	/**
@@ -3279,10 +3275,10 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		if (!isPaintable()) {
 			return;
 		}
-
+		boolean justScroll = (zoomCenter != null && isShowing() && getTFrame() != null
+				&& (scrollPane.getVerticalScrollBar().isVisible() || scrollPane.getHorizontalScrollBar().isVisible()));
 		// BH moved this up, because why paint if you are going to paint again?
-		if (zoomCenter != null && isShowing() && getTFrame() != null && scrollPane != null) {
-			
+		if (justScroll) {
 			final Rectangle rect = scrollPane.getViewport().getViewRect();
 			int x = zoomCenter.x - rect.width / 2;
 			int y = zoomCenter.y - rect.height / 2;
@@ -3294,10 +3290,10 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 
 //		long t0 = Performance.now(0);
 
-		 //OSPLog.debug(Performance.timeCheckStr("TrackerPanel.paintComp 0",
-		 //Performance.TIME_MARK));
+		// OSPLog.debug(Performance.timeCheckStr("TrackerPanel.paintComp 0",
+		// Performance.TIME_MARK));
 
-		 super.paintComponent(g);
+		super.paintComponent(g);
 		showFilterInspectors();
 //		OSPLog.debug("!!! " + Performance.now(t0) + " TrackerPanel.paintComponent");
 //		 OSPLog.debug(Performance.timeCheckStr("TrackerPanel.paintCOmp 1",
@@ -3674,6 +3670,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		}
 
 		private AsyncLoader asyncloader;
+		public XMLControl control;
 
 		/**
 		 * Creates an object.
@@ -3702,12 +3699,13 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			// load the video clip
 			TrackerPanel trackerPanel = (TrackerPanel) obj;	
 			asyncloader = (AsyncLoader) ((XMLControlElement) control).getData();
+			asyncloader.setLoader(this);
+			this.control = control;
 			switch (trackerPanel.progress) {
-			case 0:
+			case VideoIO.PROGRESS_LOAD_INIT:
 				// BH adds early setting of frame.
 				trackerPanel.frame = asyncloader.getFrame();
 				trackerPanel.frame.holdPainting(true);
-				trackerPanel.progress = 5;
 				// load the dividers
 				trackerPanel.dividerLocs = (double[]) control.getObject("dividers"); //$NON-NLS-1$
 				// load the track control location
@@ -3752,15 +3750,14 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 								JOptionPane.INFORMATION_MESSAGE);
 					}
 				}
-				trackerPanel.progress = 5;
+				trackerPanel.progress = TrackerIO.PROGRESS_PANEL_READY;
 				break;
-			case 5:
+			case TrackerIO.PROGRESS_PANEL_READY:
 				// load the description
 				trackerPanel.hideDescriptionWhenLoaded = control.getBoolean("hide_description"); //$NON-NLS-1$
 				String desc = control.getString("description"); //$NON-NLS-1$
 				if (desc != null) {
 					trackerPanel.setDescription(desc);
-					trackerPanel.getTFrame().showNotes(trackerPanel);
 				}
 				// load the metadata
 				trackerPanel.author = control.getString("author"); //$NON-NLS-1$
@@ -3827,7 +3824,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 						break;
 					}
 				}
-				trackerPanel.progress = 10;
+				trackerPanel.progress = VideoIO.PROGRESS_VIDEO_LOADING;
 				break;
 			default:
 				super.loadObject(control, obj);	// loads video
@@ -3839,16 +3836,17 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		@SuppressWarnings("unchecked")
 		@Override
 		public void finalizeLoading() {
-			//long t0 = Performance.now(0);
-			//OSPLog.debug(Performance.timeCheckStr("TrackerPanel.finalizeLoading1", Performance.TIME_MARK));
+			// long t0 = Performance.now(0);
+			// OSPLog.debug(Performance.timeCheckStr("TrackerPanel.finalizeLoading1",
+			// Performance.TIME_MARK));
 			TrackerPanel trackerPanel = (TrackerPanel) videoPanel;
-			if (trackerPanel.progress < 70) {
+			if (trackerPanel.progress < VideoIO.PROGRESS_VIDEO_READY) {
 				return;
 			}
 			videoPanel.setLoader(null);
 			try {
-				switch(trackerPanel.progress) {
-				case 70: // VideoPanel finished getting video clip
+				switch (trackerPanel.progress) {
+				case VideoIO.PROGRESS_VIDEO_READY: // VideoPanel finished getting video clip
 					XMLControl child;
 					Video video = finalizeClip();
 					if (video != null) {
@@ -3872,9 +3870,9 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 					if (child != null) {
 						child.loadObject(trackerPanel.getPlayer().getClipControl());
 					}
-					trackerPanel.progress = 72;
+					trackerPanel.progress = TrackerIO.PROGRESS_VIDEO_LOADED;
 					break;
-				case 72:
+				case TrackerIO.PROGRESS_VIDEO_LOADED:
 					// load the toolbar
 					child = control.getChildControl("toolbar"); //$NON-NLS-1$
 					if (child != null) {
@@ -3889,24 +3887,30 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 						int n = trackerPanel.getFrameNumber();
 						trackerPanel.getSnapPoint().setXY(coords.getOriginX(n), coords.getOriginY(n));
 					}
-					trackerPanel.progress = 75;					
+					trackerPanel.progress = TrackerIO.PROGRESS_TOOLBAR_AND_COORD_READY;
 					break;
-				case 75:
+				case TrackerIO.PROGRESS_TOOLBAR_AND_COORD_READY:
 					// load the tracks
 					ArrayList<?> tracks = ArrayList.class.cast(control.getObject("tracks")); //$NON-NLS-1$
-					if (tracks != null) {
-						for (int i = 0, n = tracks.size(); i < n; i++) {
-							trackerPanel.addTrack((TTrack) tracks.get(i));
-						}
-						// wait until all tracks are added, then finalize the loading
-						// for those that need it -- CenterOfMass, DyanamicSystem, and VectorSum
-						for (int i = 0, n = tracks.size(); i < n; i++) {
-							((TTrack) tracks.get(i)).initialize(trackerPanel);
-						}
+					if (tracks == null) {
+						trackerPanel.progress = TrackerIO.PROGRESS_TRACKS_INITIALIZED;
+						break;
 					}
-					trackerPanel.progress = 90;
+					for (int i = 0, n = tracks.size(); i < n; i++) {
+						trackerPanel.addTrack((TTrack) tracks.get(i));
+					}
+					trackerPanel.progress = TrackerIO.PROGRESS_TRACKS_ADDED;
 					break;
-				case 90:
+				case TrackerIO.PROGRESS_TRACKS_ADDED:
+					ArrayList<?> tracks2 = ArrayList.class.cast(control.getObject("tracks")); //$NON-NLS-1$
+					// wait until all tracks are added, then finalize the loading
+					// for those that need it -- CenterOfMass, DyanamicSystem, and VectorSum
+					for (int i = 0, n = tracks2.size(); i < n; i++) {
+						((TTrack) tracks2.get(i)).initialize(trackerPanel);
+					}
+					trackerPanel.progress = TrackerIO.PROGRESS_TRACKS_INITIALIZED;
+				break;
+				case TrackerIO.PROGRESS_TRACKS_INITIALIZED:
 					// load drawing scenes saved in vers 4.11.0+
 					ArrayList<PencilScene> scenes = (ArrayList<PencilScene>) control.getObject("drawing_scenes"); //$NON-NLS-1$
 					if (scenes != null) {
@@ -3926,32 +3930,25 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 							drawer.addDrawingtoSelectedScene(drawings.get(i));
 						}
 					}
-					trackerPanel.progress = 95;
+					trackerPanel.progress = TrackerIO.PROGRESS_PENCIL_DRAWINGS_READY;
 					break;
-				case 95:
+				case TrackerIO.PROGRESS_PENCIL_DRAWINGS_READY:
 					// load the reference frame
 					String rfName = control.getString("referenceframe"); //$NON-NLS-1$
 					if (rfName != null) {
 						trackerPanel.setReferenceFrame(rfName);
 					}
 					// set selected track
-					String name = control.getString(PROPERTY_TRACKERPANEL_SELECTEDTRACK); //$NON-NLS-1$
+					String name = control.getString(PROPERTY_TRACKERPANEL_SELECTEDTRACK); // $NON-NLS-1$
 					trackerPanel.setSelectedTrack(name == null ? null : trackerPanel.getTrack(name));
-					trackerPanel.progress = 100;
+					trackerPanel.progress = VideoIO.PROGRESS_COMPLETE;
 					break;
 				}
-				//OSPLog.debug("TrackerPanel.finalizeLoading start");
-
-
-				// OSPLog.debug(Performance.timeCheckStr("TrackerPanel.finalizeLoading scenes
-				// and pencil ", Performance.TIME_MARK));
-
-
 			} finally {
-				//OSPLog.debug("!!! " + Performance.now(t0) + " TrackerPanel.finalizeLoading");
-				//OSPLog.debug("TrackerPanel.finalizeLoading done");
+				// OSPLog.debug("!!! " + Performance.now(t0) + " TrackerPanel.finalizeLoading");
+				// OSPLog.debug("TrackerPanel.finalizeLoading done");
 			}
-			if (trackerPanel.progress == 100 && asyncloader != null) {
+			if (trackerPanel.progress == VideoIO.PROGRESS_COMPLETE && asyncloader != null) {
 				asyncloader.finalized(trackerPanel);
 				asyncloader = null;
 			}
@@ -4384,8 +4381,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 
 			TMenuBar.refreshPopup(this, TMenuBar.POPUPMENU_MAINTVIEW_POPUP, popup);
 			// video properties item
-			Action vidPropsAction = TActions.getAction("aboutVideo", this); //$NON-NLS-1$
-			JMenuItem propertiesItem = new JMenuItem(vidPropsAction);
+			JMenuItem propertiesItem = new JMenuItem(TActions.getAction("aboutVideo", this));
 			popup.addSeparator();
 			propertiesItem.setText(TrackerRes.getString("TActions.AboutVideo")); //$NON-NLS-1$
 			popup.add(propertiesItem);
@@ -4394,8 +4390,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			if (isEnabled("file.print")) { //$NON-NLS-1$
 				if (popup.getComponentCount() > 0)
 					popup.addSeparator();
-				Action printAction = TActions.getAction("print", this); //$NON-NLS-1$
-				popup.add(printAction);
+				popup.add(TActions.getAction("print", this));
 			}
 			// add help item
 			if (popup.getComponentCount() > 0)
@@ -4929,4 +4924,37 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		TTrackBar.getTrackbar(this).refresh();
 //		getTFrame().getTrackBar(this).refresh();
 	}
+
+	public void onLoaded() {
+		if (showTrackControlDelayed && isShowing()) {
+			showTrackControlDelayed = false;
+			TrackControl.getControl(this).setVisible(true);
+		}
+		final JButton button = getTFrame().getToolBar(this).notesButton;
+		TTrack track = getSelectedTrack();
+		if (!hideDescriptionWhenLoaded
+				&& (track == null ? getDescription() != null && getDescription().trim().length() != 0
+				: track.getDescription() != null && track.getDescription().trim().length() > 0)) {
+			if (!button.isSelected())
+				button.doClick();
+		} else if (button.isSelected())
+			button.doClick();
+	}
+	
+	public String getTabName() {
+		return getTFrame().getTabTitle(getTFrame().getTab(this));
+	}
+
+	public void onBlocked() {
+		if (trackControl != null)
+			trackControl.setVisible(false);
+		if (modelBuilder != null)
+			modelBuilder.setVisible(false);
+	}
+
+	@Override
+	public String toString() {
+		return "[TrackerPanel " + hashCode() + " " + getTabName() + "]";
+	}
+
 }

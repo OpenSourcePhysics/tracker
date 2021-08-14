@@ -91,31 +91,30 @@ public class DynamicSystemInspector extends JDialog
     updateDisplay();
   }
 
-  /**
-   * Responds to property change events. This listens for the
-   * following events: TFrame.PROPERTY_TFRAME_TAB from TFrame.
-   *
-   * @param e the property change event
-   */
-  @Override
-public void propertyChange(PropertyChangeEvent e) {
-    if (e.getPropertyName().equals(TFrame.PROPERTY_TFRAME_TAB)) { //$NON-NLS-1$
-      if (trackerPanel != null && e.getNewValue() == trackerPanel) {
-        setVisible(isVisible);
-      }
-      else {
-        boolean vis = isVisible;
-        setVisible(false);
-        isVisible = vis;
-      }
-    }
-    else if (e.getPropertyName().equals(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK) //$NON-NLS-1$
-    		&& e.getNewValue() instanceof DynamicParticle) {
-    	newParticle = (DynamicParticle)e.getNewValue();
-    	updateDisplay();
-    }
-    else updateDisplay();
-  }
+	/**
+	 * Responds to property change events. This listens for the following events:
+	 * TFrame.PROPERTY_TFRAME_TAB from TFrame.
+	 *
+	 * @param e the property change event
+	 */
+	@Override
+	public void propertyChange(PropertyChangeEvent e) {
+		if (e.getPropertyName().equals(TFrame.PROPERTY_TFRAME_TAB)) { // $NON-NLS-1$
+			if (trackerPanel != null && e.getNewValue() == trackerPanel) {
+				setVisible(isVisible);
+			} else {
+				boolean vis = isVisible;
+				setVisible(false);
+				isVisible = vis;
+			}
+		} else if (e.getPropertyName().equals(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK) // $NON-NLS-1$
+				&& e.getNewValue() instanceof DynamicParticle) {
+			newParticle = (DynamicParticle) e.getNewValue();
+			updateDisplay();
+		} else {
+			updateDisplay();
+		}
+	}
 
   /**
    * Overrides JDialog setVisible method.
@@ -162,9 +161,6 @@ public void setVisible(boolean vis) {
 			public void actionPerformed(ActionEvent e) {
 				final JButton button = (JButton) e.getSource();
 				final int n = button == changeButtons[0] ? 0 : 1;
-				final Action cloneAction = TActions.getAction("cloneTrack", trackerPanel); //$NON-NLS-1$
-				final Action cartesianAction = TActions.getAction("dynamicParticle", trackerPanel); //$NON-NLS-1$
-				final Action polarAction = TActions.getAction("dynamicParticlePolar", trackerPanel); //$NON-NLS-1$
 				JPopupMenu popup = new JPopupMenu();
 				boolean hasPopupItems = false;
 				JMenu cloneMenu = new JMenu(TrackerRes.getString("TMenuBar.MenuItem.Clone")); //$NON-NLS-1$
@@ -175,12 +171,12 @@ public void setVisible(boolean vis) {
 						continue; // no other systems
 					// add items to clone menu
 					final JMenuItem cloneItem = new JMenuItem(p.getName(), p.getFootprint().getIcon(21, 16));
-					cloneItem.setActionCommand(p.getName());
+					String name = p.getName();
 					cloneItem.addActionListener(new ActionListener() {
 						@Override
 						public void actionPerformed(ActionEvent e) {
 							newParticle = null;
-							cloneAction.actionPerformed(e);
+							TActions.cloneAction(trackerPanel, name);
 							if (newParticle != null) {
 								newParticle.getModelBuilder();
 								selectedParticles[n] = newParticle;
@@ -230,7 +226,7 @@ public void setVisible(boolean vis) {
 					@Override
 					public void actionPerformed(ActionEvent e) {
 						newParticle = null;
-						cartesianAction.actionPerformed(e);
+						TActions.dynamicParticleAction(trackerPanel);
 						if (newParticle != null) {
 							newParticle.getModelBuilder();
 							selectedParticles[n] = newParticle;
@@ -244,7 +240,7 @@ public void setVisible(boolean vis) {
 					@Override
 					public void actionPerformed(ActionEvent e) {
 						newParticle = null;
-						polarAction.actionPerformed(e);
+						TActions.dynamicParticlePolarAction(trackerPanel);
 						if (newParticle != null) {
 							newParticle.getModelBuilder();
 							selectedParticles[n] = newParticle;
