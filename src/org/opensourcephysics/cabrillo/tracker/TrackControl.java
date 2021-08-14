@@ -65,7 +65,7 @@ public class TrackControl extends JDialog
   protected JToolBar[] trackBars = new JToolBar[0];
   protected boolean positioned = false;
   protected int trackCount;
-  protected boolean isVisible;
+  protected boolean wasVisible;
   protected KeyListener shiftKeyListener;
   protected TButton newTrackButton;
   
@@ -146,21 +146,27 @@ public class TrackControl extends JDialog
 		if (trackerPanel == null)
 			return;
 		if (!positioned && vis) {
-			TFrame frame = trackerPanel.getTFrame();
-			if (!frame.isVisible())
-				return;
-			Point p = frame.getLocationOnScreen();
-			setLocation(p.x + frame.getWidth() / 2 - getWidth() / 2, p.y + 90);
-			positioned = true;
+			positionForFrame();
 		}
 		if (vis && trackCount == 0 && !isEmpty())
 			refresh();
 		super.setVisible(vis);
-		isVisible = vis;
+		wasVisible = vis;
 		TToolBar toolbar = TToolBar.getToolbar(trackerPanel);
 		toolbar.trackControlButton.setSelected(vis);
 	}
 	
+	private void positionForFrame() {
+		if (positioned)
+			return;
+		TFrame frame = trackerPanel.getTFrame();
+		if (!frame.isVisible())
+			return;
+		Point p = frame.getLocationOnScreen();
+		setLocation(p.x + frame.getWidth() / 2 - getWidth() / 2, p.y + 90);
+		positioned = true;
+	}
+
 	/**
 	 * Responds to property change events from TrackerPanel.
 	 *
@@ -171,13 +177,16 @@ public class TrackControl extends JDialog
 		
 		String name = e.getPropertyName();
 		switch (name) {
-		case TFrame.PROPERTY_TFRAME_TAB :
-			if (e.getNewValue() == trackerPanel) {
-				setVisible(isVisible);
+		case TFrame.PROPERTY_TFRAME_TAB:
+			TrackerPanel p = (TrackerPanel) e.getNewValue();
+			if (p == null)
+				return;
+			if (p == trackerPanel) {
+				setVisible(wasVisible);
 			} else {
-				boolean vis = isVisible;
+				boolean vis = wasVisible;
 				setVisible(false);
-				isVisible = vis;
+				wasVisible = vis;
 			}
 			break;
 		case TrackerPanel.PROPERTY_TRACKERPANEL_TRACK:

@@ -290,7 +290,8 @@ public class TrackerIO extends VideoIO {
 	//	public static final int PROGRESS_VIDEO_READY             = 80; See VideoIO
 	public static final int PROGRESS_VIDEO_LOADED            = PROGRESS_VIDEO_READY + 5; // 85
 	public static final int PROGRESS_TOOLBAR_AND_COORD_READY = PROGRESS_VIDEO_READY + 10; // 90
-	public static final int PROGRESS_TRACKS_READY            = PROGRESS_VIDEO_READY + 15; // 95
+	public static final int PROGRESS_TRACKS_ADDED            = PROGRESS_VIDEO_READY + 12; // 92
+	public static final int PROGRESS_TRACKS_INITIALIZED      = PROGRESS_VIDEO_READY + 15; // 95
 	public static final int PROGRESS_PENCIL_DRAWINGS_READY   = PROGRESS_VIDEO_READY + 19; // 99
 	//	public static final int PROGRESS_COMPLETE                = 100; See VideoIO
 
@@ -1774,7 +1775,7 @@ public class TrackerIO extends VideoIO {
 			super(frame, "Loading " + XML.getName(paths.get(0)), (whenDone == null ? 0 : 10), PROGRESS_LOAD_INIT,
 					PROGRESS_COMPLETE);
 			if (whenDone != null) {
-				frame.setFrameBlocker(true);
+				frame.setFrameBlocker(true, null);
 			}
 
 			path = path0 = name = paths.remove(0);
@@ -2194,13 +2195,7 @@ public class TrackerIO extends VideoIO {
 				return PROGRESS_COMPLETE;
 			}
 			frame.addTab(trackerPanel, TFrame.ADD_SELECT | TFrame.ADD_NOREFRESH, null);
-			frame.showTrackControl(trackerPanel);
-			// BH ah, but asynchronous load may not have been completed yet.
-//			frame.showNotes(trackerPanel);
-			
-
 			trackerPanel.setIgnoreRepaint(false);
-//			frame.refresh();
 			if (control.failedToRead()) {
 				JOptionPane.showMessageDialog(trackerPanel.getTFrame(), "\"" + XML.getName(path) + "\" " + //$NON-NLS-1$ //$NON-NLS-2$
 						TrackerRes.getString("TrackerIO.Dialog.ReadFailed.Message"), //$NON-NLS-1$
@@ -2211,14 +2206,10 @@ public class TrackerIO extends VideoIO {
 			checkDone(false);			
 			// remove empty tab if running in Java
 			if (!OSPRuntime.isJS) {
-				Runnable runner = new Runnable() {
-					@Override
-					public void run() {
-						frame.getToolBar(trackerPanel).refresh(TToolBar.REFRESH_TFRAME_REFRESH_TRUE);
-						frame.doTabStateChanged();
-					}
-				};
-				SwingUtilities.invokeLater(runner);
+				SwingUtilities.invokeLater(()->{
+					frame.getToolBar(trackerPanel).refresh(TToolBar.REFRESH_TFRAME_REFRESH_TRUE);
+					frame.doTabStateChanged();
+				});
 			}
 			return PROGRESS_COMPLETE;
 		}
@@ -2340,7 +2331,7 @@ public class TrackerIO extends VideoIO {
 		}
 
 		private void doneLoading() {
-			frame.setFrameBlocker(false);
+			frame.setFrameBlocker(false, trackerPanel);
 			if (xmlPath0 != null && !ResourceLoader.isJarZipTrz(xmlPath0,  true)) { //$NON-NLS-1$
 				Tracker.addRecent(ResourceLoader.getNonURIPath(XML.forwardSlash(xmlPath0)), false); // add at beginning
 			}
@@ -2386,7 +2377,7 @@ public class TrackerIO extends VideoIO {
 		public void cancelAsync() {
 			super.cancelAsync();
 			frame.clearHoldPainting();
-			frame.setFrameBlocker(false);
+			frame.setFrameBlocker(false, trackerPanel);
 			frame.setCursor(Cursor.getDefaultCursor());
 			if (libraryBrowser != null) {
 				libraryBrowser.cancelLoading();

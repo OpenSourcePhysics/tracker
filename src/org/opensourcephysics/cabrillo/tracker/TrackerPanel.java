@@ -890,7 +890,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	/**
 	 * Saves this TrackerPanel if changed, then runs the appropriate Runnable
 	 */
-	public void save(Runnable whenSaved, Runnable whenCanceled) {
+	public void askSaveIfChanged(Runnable whenSaved, Runnable whenCanceled) {
 		if (!changed || OSPRuntime.isApplet) {
 			whenSaved.run();
 			return;
@@ -3836,15 +3836,16 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		@SuppressWarnings("unchecked")
 		@Override
 		public void finalizeLoading() {
-			//long t0 = Performance.now(0);
-			//OSPLog.debug(Performance.timeCheckStr("TrackerPanel.finalizeLoading1", Performance.TIME_MARK));
+			// long t0 = Performance.now(0);
+			// OSPLog.debug(Performance.timeCheckStr("TrackerPanel.finalizeLoading1",
+			// Performance.TIME_MARK));
 			TrackerPanel trackerPanel = (TrackerPanel) videoPanel;
 			if (trackerPanel.progress < VideoIO.PROGRESS_VIDEO_READY) {
 				return;
 			}
 			videoPanel.setLoader(null);
 			try {
-				switch(trackerPanel.progress) {
+				switch (trackerPanel.progress) {
 				case VideoIO.PROGRESS_VIDEO_READY: // VideoPanel finished getting video clip
 					XMLControl child;
 					Video video = finalizeClip();
@@ -3886,24 +3887,30 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 						int n = trackerPanel.getFrameNumber();
 						trackerPanel.getSnapPoint().setXY(coords.getOriginX(n), coords.getOriginY(n));
 					}
-					trackerPanel.progress = TrackerIO.PROGRESS_TOOLBAR_AND_COORD_READY;					
+					trackerPanel.progress = TrackerIO.PROGRESS_TOOLBAR_AND_COORD_READY;
 					break;
 				case TrackerIO.PROGRESS_TOOLBAR_AND_COORD_READY:
 					// load the tracks
 					ArrayList<?> tracks = ArrayList.class.cast(control.getObject("tracks")); //$NON-NLS-1$
-					if (tracks != null) {
-						for (int i = 0, n = tracks.size(); i < n; i++) {
-							trackerPanel.addTrack((TTrack) tracks.get(i));
-						}
-						// wait until all tracks are added, then finalize the loading
-						// for those that need it -- CenterOfMass, DyanamicSystem, and VectorSum
-						for (int i = 0, n = tracks.size(); i < n; i++) {
-							((TTrack) tracks.get(i)).initialize(trackerPanel);
-						}
+					if (tracks == null) {
+						trackerPanel.progress = TrackerIO.PROGRESS_TRACKS_INITIALIZED;
+						break;
 					}
-					trackerPanel.progress = TrackerIO.PROGRESS_TRACKS_READY;
+					for (int i = 0, n = tracks.size(); i < n; i++) {
+						trackerPanel.addTrack((TTrack) tracks.get(i));
+					}
+					trackerPanel.progress = TrackerIO.PROGRESS_TRACKS_ADDED;
 					break;
-				case TrackerIO.PROGRESS_TRACKS_READY:
+				case TrackerIO.PROGRESS_TRACKS_ADDED:
+					ArrayList<?> tracks2 = ArrayList.class.cast(control.getObject("tracks")); //$NON-NLS-1$
+					// wait until all tracks are added, then finalize the loading
+					// for those that need it -- CenterOfMass, DyanamicSystem, and VectorSum
+					for (int i = 0, n = tracks2.size(); i < n; i++) {
+						((TTrack) tracks2.get(i)).initialize(trackerPanel);
+					}
+					trackerPanel.progress = TrackerIO.PROGRESS_TRACKS_INITIALIZED;
+				break;
+				case TrackerIO.PROGRESS_TRACKS_INITIALIZED:
 					// load drawing scenes saved in vers 4.11.0+
 					ArrayList<PencilScene> scenes = (ArrayList<PencilScene>) control.getObject("drawing_scenes"); //$NON-NLS-1$
 					if (scenes != null) {
@@ -3932,14 +3939,14 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 						trackerPanel.setReferenceFrame(rfName);
 					}
 					// set selected track
-					String name = control.getString(PROPERTY_TRACKERPANEL_SELECTEDTRACK); //$NON-NLS-1$
+					String name = control.getString(PROPERTY_TRACKERPANEL_SELECTEDTRACK); // $NON-NLS-1$
 					trackerPanel.setSelectedTrack(name == null ? null : trackerPanel.getTrack(name));
 					trackerPanel.progress = VideoIO.PROGRESS_COMPLETE;
 					break;
 				}
 			} finally {
-				//OSPLog.debug("!!! " + Performance.now(t0) + " TrackerPanel.finalizeLoading");
-				//OSPLog.debug("TrackerPanel.finalizeLoading done");
+				// OSPLog.debug("!!! " + Performance.now(t0) + " TrackerPanel.finalizeLoading");
+				// OSPLog.debug("TrackerPanel.finalizeLoading done");
 			}
 			if (trackerPanel.progress == VideoIO.PROGRESS_COMPLETE && asyncloader != null) {
 				asyncloader.finalized(trackerPanel);
@@ -4935,5 +4942,12 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		} else if (button.isSelected())
 			button.doClick();
 	}
+	
+	public String toString() {
+		return "[TrackerPanel " + hashCode() + " " + getTabName() + "]";
+	}
 
+	public String getTabName() {
+		return getTFrame().getTabTitle(getTFrame().getTab(this));
+	}
 }

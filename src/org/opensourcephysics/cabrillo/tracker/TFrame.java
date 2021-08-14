@@ -738,12 +738,12 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 				}
 				tab[0]--;
 				if (tab[0] > -1) {
-					getTrackerPanel(tab[0]).save(this, whenCanceled);
+					getTrackerPanel(tab[0]).askSaveIfChanged(this, whenCanceled);
 				} else if (whenAllApproved != null)
 					whenAllApproved.run();
 			}
 		};
-		trackerPanel.save(approved, whenCanceled);
+		trackerPanel.askSaveIfChanged(approved, whenCanceled);
 	}
 
 	protected void relaunchCurrentTabs() {
@@ -862,17 +862,10 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	 * @param trackerPanel the tracker panel
 	 */
 	public void removeTab(TrackerPanel trackerPanel) {
-		int tab = getTab(trackerPanel);
-		if (tab == -1)
-			return; // tab not found
-		Runnable whenSaved = new Runnable() {
-			@Override
-			public void run() {
-				// remove tab asynchronously
-				new TabRemover(trackerPanel).execute();
-			}
-		};
-		trackerPanel.save(whenSaved, null);
+		if (getTab(trackerPanel) >= 0)
+			trackerPanel.askSaveIfChanged(() -> {
+				new TabRemover(trackerPanel).executeSynchronously();// was sync
+			}, null);
 	}
 
 	/**
@@ -882,19 +875,6 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	 * @param tabPanel     the TTabPanel
 	 */
 	private void finishRemoveTab(TrackerPanel trackerPanel, TTabPanel tabPanel) {
-//		OSPLog.debug(Performance.timeCheckStr("TFrame.removeTab start", Performance.TIME_MARK));
-		//long t0 = Performance.now(0);
-
-//		TTabPanel tabPanel = (TTabPanel) tabbedPane.getComponentAt(tab);
-//		// remove the tab
-//		synchronized (tabbedPane) {
-//			tabbedPane.remove(tabPanel);
-//		}
-
-		// hide the info dialog if removing the currently selected tab
-//		if (tab == getSelectedTab()) {
-//			notesDialog.setVisible(false);
-//		}
 		// remove property change listeners
 		trackerPanel.removePropertyChangeListener(VideoPanel.PROPERTY_VIDEOPANEL_DATAFILE, this); // $NON-NLS-1$
 		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_VIDEO, this); // $NON-NLS-1$
@@ -1155,7 +1135,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	 * @return the title
 	 */
 	public String getTabTitle(int tab) {
-		return tabbedPane.getTitleAt(tab);
+		return (tab < 0 ? null : tabbedPane.getTitleAt(tab));
 	}
 
 	/**
@@ -2282,22 +2262,6 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		helpDialog.setVisible(true);
 	}
 
-	/**
-	 * Shows the track control if any user tracks are present.
-	 *
-	 * @param panel the tracker panel
-	 */
-	protected void showTrackControl(final TrackerPanel panel) {
-		if (panel.getUserTracks().size() > 0) {
-			SwingUtilities.invokeLater(() -> {
-				TrackControl tc = TrackControl.getControl(panel);
-				if (tc.positioned && !tc.isEmpty()) {
-					tc.setVisible(true);
-				}
-			});
-		}
-	}
-
 //  /**
 //   * Checks the current memory usage. If the total memory being used approaches 
 //   * the max available, this reopens Tracker in a new larger java vm.
@@ -3025,10 +2989,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	public boolean isPaintable() {
 //		System.out.println("TFrame.isPaintable " + paintHold + " " + isVisible() + " " + !getIgnoreRepaint());
 
-		return isVisible() &&
-		paintHold == 0
-		 && !getIgnoreRepaint()
-		;
+		return isVisible() && paintHold == 0 && !getIgnoreRepaint();
 	}
 
 	public boolean hasPaintHold() {
@@ -3139,7 +3100,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	public void removeTabNow(int i) {
 		TrackerPanel tp = getTrackerPanel(i);
 		if (tp != null)
-		new TabRemover(tp).executeSynchronously();
+			new TabRemover(tp).executeSynchronously();
 	}
 
 	private String lastExperiment = "";
@@ -3686,14 +3647,14 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	 */
 	private Object frameBlocker;
 
-	public void setFrameBlocker(boolean blocking) {
+	public void setFrameBlocker(boolean blocking, TrackerPanel panel) {
 		getJMenuBar().setEnabled(!blocking);
 		tabbedPane.setEnabled(!blocking);
 		getContentPane().setVisible(!blocking);
-		TrackerPanel panel = getSelectedPanel();
 		if (blocking) {
 			frameBlocker = new Object();
 			notesDialog.setVisible(false);
+			panel = getSelectedPanel();
 			if (panel != null && panel.trackControl != null)
 				panel.trackControl.setVisible(false);
 		} else if (frameBlocker != null) {
