@@ -2798,7 +2798,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				getVideo().setProperty("measure", null); //$NON-NLS-1$
 			}
 			firePropertyChange(TTrack.PROPERTY_TTRACK_DATA, e.getOldValue(), isAdjusting ? e.getNewValue() : null); // to views //$NON-NLS-1$
-			// pass this on to particle models
+			// pass this on to particle models and PencilControl
 			firePropertyChange(name, e.getSource(), name == Trackable.PROPERTY_ADJUSTING ? e.getNewValue() : null); 
 			if (getSelectedPoint() != null) {
 				getSelectedPoint().showCoordinates(this);
