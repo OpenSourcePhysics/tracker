@@ -220,6 +220,9 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	protected TrackControl trackControl;
 	protected boolean isModelBuilderVisible;
 	protected boolean isShiftKeyDown, isControlKeyDown;
+	/**
+	 * changeable TapeMeasure, Calibration, OffsetOrigin
+	 */
 	protected ArrayList<TTrack> calibrationTools = new ArrayList<TTrack>();
 	protected Set<TTrack> visibleCalibrationTools = new HashSet<TTrack>();
 	protected Set<TTrack> measuringTools = new HashSet<TTrack>();
@@ -617,107 +620,89 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	public synchronized void addTrack(TTrack track) {
 		if (track == null)
 			return;
-		// BH 2020.07.09 
+		// BH 2020.07.09
 		userTracks = null;
 		TTrack.activeTracks.put(track.getID(), track);
 		// set trackerPanel property if not yet set
 		if (track.trackerPanel == null) {
 			track.setTrackerPanel(this);
 		}
-		showTrackControlDelayed = true;
 		// set angle format of the track
 		if (getTFrame() != null)
 			track.setAnglesInRadians(getTFrame().anglesInRadians);
-		// special case: axes
-		if (track instanceof CoordAxes) {
+		showTrackControlDelayed = true;
+		boolean doAddDrawable = true;
+		if (track instanceof ParticleDataTrack) {
+			// special case: ParticleDataTrack may add extra points
+			ParticleDataTrack pdt = (ParticleDataTrack) track;
+			super.addDrawable(pdt);
+			if (pdt.morePoints.size() > 0) {
+				SwingUtilities.invokeLater(() -> {
+					addDataTrackPoints(pdt, this);
+				});
+			}
+			doAddDrawable = false;
+		} else if (calibrationTools.contains(track)) {
+			// special case: same calibration tool added again?
 			showTrackControlDelayed = false;
-			if (getAxes() != null)
-				removeDrawable(getAxes()); // only one axes at a time
-			super.addDrawable(track);
-			moveToBack(track);
-			TMat mat = getMat();
-			if (mat != null) {
-				moveToBack(mat); // put mat behind grid
+		} else {
+			switch (track.getBaseType()) {
+			case "PerspectiveTrack":
+				showTrackControlDelayed = false;
+				break;
+			case "TapeMeasure":
+				showTrackControlDelayed = false;
+				TapeMeasure tape = (TapeMeasure) track;
+				if (tape.isReadOnly()) {
+					// tape measure
+					measuringTools.add(tape);
+					visibleMeasuringTools.add(tape);
+				} else {
+					// calibration tape or stick
+					calibrationTools.add(tape);
+					visibleCalibrationTools.add(tape);
+				}
+				break;
+			case "OffsetOrigin":
+			case "Calibration":
+				showTrackControlDelayed = false;
+				calibrationTools.add(track);
+				visibleCalibrationTools.add(track);
+				break;
+			case "CoordAxes":
+				showTrackControlDelayed = false;
+				if (getAxes() != null)
+					removeDrawable(getAxes()); // only one axes at a time
+				super.addDrawable(track);
+				moveToBack(track);
+				TMat mat = getMat();
+				if (mat != null) {
+					moveToBack(mat); // put mat behind grid
+				}
+				doAddDrawable = false;
+				break;
+			case "Protractor":
+			case "CircleFitter":
+				showTrackControlDelayed = false;
+				measuringTools.add(track);
+				visibleMeasuringTools.add(track);
+				break;
+			default:
+				// all other tracks (point mass, vector, particle model, line profile, etc)
+				// set track name--prevents duplicate names
+				setTrackName(track, track.getName(), false);
+				break;
 			}
 		}
-		// special case: same calibration tool added again?
-		else if (calibrationTools.contains(track)) {
-			showTrackControlDelayed = false;
+		if (doAddDrawable)
 			super.addDrawable(track);
-		}
-		// special case: tape measure
-		else if (track instanceof TapeMeasure) {
-			showTrackControlDelayed = false;
-			TapeMeasure tape = (TapeMeasure) track;
-			if (!tape.isReadOnly()) { // calibration tape or stick
-				calibrationTools.add(tape);
-				visibleCalibrationTools.add(tape);
-			}
-			else { // tape measure
-				measuringTools.add(tape);
-				visibleMeasuringTools.add(tape);
-			}
-			super.addDrawable(track);
-		}
-		// special case: offset origin or calibration points
-		else if (track instanceof OffsetOrigin || track instanceof Calibration) {
-			showTrackControlDelayed = false;
-			calibrationTools.add(track);
-			visibleCalibrationTools.add(track);
-			super.addDrawable(track);
-		}
-		// special case: protractor or circlefitter
-		else if (track instanceof Protractor || track instanceof CircleFitter) {
-			showTrackControlDelayed = false;
-			measuringTools.add(track);
-			visibleMeasuringTools.add(track);
-			super.addDrawable(track);
-		}
-		// special case: perspective track
-		else if (track instanceof PerspectiveTrack) {
-			showTrackControlDelayed = false;
-			super.addDrawable(track);
-		}
-		// special case: ParticleDataTrack may add extra points
-		else if (track instanceof ParticleDataTrack) {
-			super.addDrawable(track);
-			final ParticleDataTrack dt = (ParticleDataTrack) track;
-			if (dt.morePoints.size() > 0) {
-				Runnable runner = new Runnable() {
-					@Override
-					public void run() {
-						for (ParticleDataTrack child : dt.morePoints) {
-							addTrack(child);
-						}
-						TFrame frame = getTFrame();
-						if (frame != null && TrackerPanel.this.isShowing()) {
-							TView[][] views = frame.getTViews(TrackerPanel.this);
-							for (TView[] next : views) {
-								for (TView view : next) {
-									if (view != null && view instanceof TrackChooserTView) {
-										((TrackChooserTView) view).setSelectedTrack(dt);
-									}
-								}
-							}
-						}
-					}
-				};
-				SwingUtilities.invokeLater(runner);
-			}
-		}
-		// all other tracks (point mass, vector, particle model, line profile, etc)
-		else {
-			// set track name--prevents duplicate names
-			setTrackName(track, track.getName(), false);
-			super.addDrawable(track);
-		}
-
-		// DB TTrack.setTrackerPanel() now responsible for adding the track to this TrackerPanel's listeners		
+		
+		// DB TTrack.setTrackerPanel() now responsible for adding the track to this
+		// TrackerPanel's listeners
+		
 		// here we add this TrackerPanel to the track listeners
 		track.addListener(this);
-		if (this == track.trackerPanel) {
-		}
-		
+
 		// update track control and dataBuilder
 		if (trackControl != null && trackControl.isVisible())
 			trackControl.refresh();
@@ -736,6 +721,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		track.setFontLevel(FontSizer.getLevel());
 
 		// notify views, also TrackControl
+		// note that this callback will 
 		firePropertyChange(PROPERTY_TRACKERPANEL_TRACK, null, track); // to views //$NON-NLS-1$
 
 		// set default NumberField format patterns
@@ -747,6 +733,23 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		// select new track in autotracker
 		if (autoTracker != null && track != getAxes()) {
 			autoTracker.setTrack(track);
+		}
+	}
+
+	private static void addDataTrackPoints(ParticleDataTrack dt, TrackerPanel trackerPanel) {
+		for (ParticleDataTrack child : dt.morePoints) {
+			trackerPanel.addTrack(child);
+		}
+		TFrame frame = trackerPanel.getTFrame();
+		if (frame != null && trackerPanel.isShowing()) {
+			TView[][] views = frame.getTViews(trackerPanel);
+			for (TView[] next : views) {
+				for (TView view : next) {
+					if (view != null && view instanceof TrackChooserTView) {
+						((TrackChooserTView) view).setSelectedTrack(dt);
+					}
+				}
+			}
 		}
 	}
 
@@ -844,11 +847,13 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		removePropertyChangeListener(track);
 		track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_STEP, this);
 		track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_STEPS, this);
-		track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_NAME, this);
 		track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_MASS, this);
-		track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_FOOTPRINT, this);
 		track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_MODELSTART, this);
 		track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_MODELEND, this);
+
+		track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_NAME, this);
+		track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_FOOTPRINT, this);
+
 		if (track instanceof ParticleModel) {
 			TFrame frame = getTFrame();
 			if (frame != null)
@@ -1124,8 +1129,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		firePropertyChange(PROPERTY_TRACKERPANEL_CLEAR, null, null);
 		// remove tracks from TTrack.activeTracks
 		for (int it = 0, n = list.size(); it < n; it++) {
-			TTrack track = list.get(it);
-			TTrack.activeTracks.remove(track.getID());
+			TTrack.activeTracks.remove(list.get(it).getID());
 		}
 		changed = true;
 		//OSPLog.debug("!!! " + Performance.now(t0) + " TrackerPanel.clear");
@@ -2756,15 +2760,15 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			break;
 		case Video.PROPERTY_VIDEO_VIDEOVISIBLE: // from video //$NON-NLS-1$
 			firePropertyChange(PROPERTY_TRACKERPANEL_VIDEOVISIBLE, null, null); // to views //$NON-NLS-1$
-//bh test			TFrame.repaintT(this);
 			break;
 		case ImageCoordSystem.PROPERTY_COORDS_TRANSFORM: // from coords //$NON-NLS-1$
 			changed = true;
 			doSnap = true;
-
+			// pass this on to TView classes
 			firePropertyChange(ImageCoordSystem.PROPERTY_COORDS_TRANSFORM, null, null); // to tracks/views //$NON-NLS-1$
 			break;
 		case ImageCoordSystem.PROPERTY_COORDS_LOCKED: // from coords //$NON-NLS-1$
+			// pass this on
 			firePropertyChange(TTrack.PROPERTY_TTRACK_LOCKED, null, null); // to tracker frame //$NON-NLS-1$
 			break;
 		case VideoPlayer.PROPERTY_VIDEOPLAYER_PLAYING: // from player //$NON-NLS-1$
@@ -2793,9 +2797,8 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			if (getVideo() != null) {
 				getVideo().setProperty("measure", null); //$NON-NLS-1$
 			}
-			// BH added e.newValue  (Boolean.TRUE or Boolean.FALSE)
 			firePropertyChange(TTrack.PROPERTY_TTRACK_DATA, e.getOldValue(), isAdjusting ? e.getNewValue() : null); // to views //$NON-NLS-1$
-			// to particle models
+			// pass this on to particle models
 			firePropertyChange(name, e.getSource(), name == Trackable.PROPERTY_ADJUSTING ? e.getNewValue() : null); 
 			if (getSelectedPoint() != null) {
 				getSelectedPoint().showCoordinates(this);
