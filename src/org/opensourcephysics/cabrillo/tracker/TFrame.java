@@ -907,9 +907,9 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		trackerPanel.setTransferHandler(null);
 
 		// remove property change listeners
-		trackerPanel.removePropertyChangeListener("datafile", this); //$NON-NLS-1$
-		trackerPanel.removePropertyChangeListener("video", this); //$NON-NLS-1$
-		removePropertyChangeListener("radian_angles", trackerPanel); //$NON-NLS-1$
+		trackerPanel.removePropertyChangeListener(VideoPanel.PROPERTY_VIDEOPANEL_DATAFILE, this); //$NON-NLS-1$
+		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_VIDEO, this); //$NON-NLS-1$
+		removePropertyChangeListener(PROPERTY_TFRAME_RADIANANGLES, trackerPanel); //$NON-NLS-1$
 
 		// dispose of the track control, clip inspector and player bar
 //		TrackControl.getControl(trackerPanel).dispose();
