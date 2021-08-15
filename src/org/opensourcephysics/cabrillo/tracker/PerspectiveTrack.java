@@ -35,6 +35,7 @@ import javax.swing.JMenu;
 import org.opensourcephysics.controls.XMLControlElement;
 import org.opensourcephysics.display.DrawingPanel;
 import org.opensourcephysics.display.Interactive;
+import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.media.core.Filter;
 import org.opensourcephysics.media.core.MediaRes;
 import org.opensourcephysics.media.core.PerspectiveFilter;
@@ -46,6 +47,15 @@ import org.opensourcephysics.media.core.TPoint;
  * @author Douglas Brown
  */
 public class PerspectiveTrack extends TTrack {
+
+	private static final String[] filterProps = {
+		Filter.PROPERTY_FILTER_COLOR,
+		Filter.PROPERTY_FILTER_VISIBLE,
+		Filter.PROPERTY_FILTER_ENABLED,
+		Filter.PROPERTY_FILTER_TAB,
+		PerspectiveFilter.PROPERTY_PERSPECTIVEFILTER_CORNERLOCATION,
+		PerspectiveFilter.PROPERTY_PERSPECTIVEFILTER_FIXED,
+	};
 
 	static int n = 0;
 	static HashMap<Filter, PerspectiveTrack> filterMap = new HashMap<Filter, PerspectiveTrack>();
@@ -73,24 +83,14 @@ public class PerspectiveTrack extends TTrack {
 		Step step = new PerspectiveStep(this, 0, 0, 0);
 		step.setFootprint(getFootprint());
 		steps = new StepArray(step);
-		filter.addPropertyChangeListener(Filter.PROPERTY_FILTER_COLOR, this); // $NON-NLS-1$
-		filter.addPropertyChangeListener(Filter.PROPERTY_FILTER_VISIBLE, this); // $NON-NLS-1$
-		filter.addPropertyChangeListener(Filter.PROPERTY_FILTER_ENABLED, this); // $NON-NLS-1$
-		filter.addPropertyChangeListener(Filter.PROPERTY_FILTER_TAB, this); // $NON-NLS-1$
-		filter.addPropertyChangeListener(PerspectiveFilter.PROPERTY_PERSPECTIVEFILTER_CORNERLOCATION, this); // $NON-NLS-1$
-		filter.addPropertyChangeListener(PerspectiveFilter.PROPERTY_PERSPECTIVEFILTER_FIXED, this); // $NON-NLS-1$
+		OSPRuntime.Supported.addListeners(filter, filterProps, this);
 	}
 
 	@Override
 	protected void dispose() {
 		super.dispose();
 		filterMap.remove(filter);
-		filter.removePropertyChangeListener(Filter.PROPERTY_FILTER_COLOR, this); // $NON-NLS-1$
-		filter.removePropertyChangeListener(Filter.PROPERTY_FILTER_ENABLED, this); // $NON-NLS-1$
-		filter.removePropertyChangeListener(Filter.PROPERTY_FILTER_TAB, this); // $NON-NLS-1$
-		filter.removePropertyChangeListener(Filter.PROPERTY_FILTER_VISIBLE, this); // $NON-NLS-1$
-		filter.removePropertyChangeListener(PerspectiveFilter.PROPERTY_PERSPECTIVEFILTER_CORNERLOCATION, this); // $NON-NLS-1$
-		filter.removePropertyChangeListener(PerspectiveFilter.PROPERTY_PERSPECTIVEFILTER_FIXED, this); // $NON-NLS-1$
+		OSPRuntime.Supported.removeListeners(filter, filterProps, this);
 		filter = null;
 	}
 

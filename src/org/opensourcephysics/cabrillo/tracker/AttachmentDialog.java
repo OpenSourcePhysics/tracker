@@ -72,6 +72,13 @@ public class AttachmentDialog extends JDialog implements PropertyChangeListener 
 	protected JLabel startLabel, countLabel;
 	protected boolean refreshing;
 
+	private static final String[] panelProps = new String[] { 
+			TrackerPanel.PROPERTY_TRACKERPANEL_TRACK,
+			TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDTRACK, 
+			TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR, 
+	};
+
+	
 	/**
 	 * Constructs an AttachmentDialog.
 	 *
@@ -83,9 +90,7 @@ public class AttachmentDialog extends JDialog implements PropertyChangeListener 
 		createGUI();
 		setMeasuringTool(track);
 		refreshDropdowns();
-		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this); // $NON-NLS-1$
-		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDTRACK, this); // $NON-NLS-1$
-		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR, this); // $NON-NLS-1$
+		trackerPanel.addListeners(panelProps, this);
 		TFrame frame = trackerPanel.getTFrame();
 		frame.addFollower(this, null);
 		frame.addPropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, this); // $NON-NLS-1$
@@ -178,9 +183,7 @@ public class AttachmentDialog extends JDialog implements PropertyChangeListener 
 	@Override
 	public void dispose() {
 		if (trackerPanel != null) {
-			trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this); //$NON-NLS-1$
-			trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDTRACK, this); //$NON-NLS-1$
-			trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR, this); //$NON-NLS-1$
+			trackerPanel.removeListeners(panelProps, this);
 			for (TTrack p : masses) {
 				p.removeListenerNCF(this);
 			}

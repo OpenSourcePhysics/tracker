@@ -250,6 +250,16 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 	protected int toolbarComponentHeight;
 	private AbstractAction zoomAction;
 
+	private static final String[] panelProps = new String[] { 
+			TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDPOINT,
+			TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDTRACK, 
+			TrackerPanel.PROPERTY_TRACKERPANEL_TRACK,
+			TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR, 
+			TrackerPanel.PROPERTY_TRACKERPANEL_VIDEO,
+			TrackerPanel.PROPERTY_TRACKERPANEL_MAGNIFICATION,
+	};
+
+
 	/**
 	 * TToolBar constructor.
 	 *
@@ -257,12 +267,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 	 */
 	private TToolBar(TrackerPanel panel) {
 		trackerPanel = panel;
-		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this);
-		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR, this);
-		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_VIDEO, this);
-		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_MAGNIFICATION, this);
-		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDTRACK, this);
-		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDPOINT, this);
+		trackerPanel.addListeners(panelProps, this);
 // BH testing final status
 //		createGUI();
 //	}
@@ -1452,12 +1457,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 		refreshTimer = null;
 		toolbars.remove(trackerPanel);
 		removeAll();
-		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this);
-		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR, this);
-		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_VIDEO, this);
-		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_MAGNIFICATION, this);
-		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDTRACK, this);
-		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDPOINT, this);
+		trackerPanel.removeListeners(panelProps, this);
 		for (Integer n : TTrack.activeTracks.keySet()) {
 			TTrack track = TTrack.activeTracks.get(n);
 			track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_LOCKED, this);

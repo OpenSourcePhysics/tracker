@@ -65,6 +65,16 @@ import org.opensourcephysics.tools.FunctionTool;
 @SuppressWarnings("serial")
 public abstract class TrackChooserTView extends JPanel implements TView {
 
+	private static final String[] panelProps = {
+		TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR,
+		ImageCoordSystem.PROPERTY_COORDS_TRANSFORM,
+		TrackerPanel.PROPERTY_TRACKERPANEL_STEPNUMBER,
+		TrackerPanel.PROPERTY_TRACKERPANEL_IMAGE,
+		TTrack.PROPERTY_TTRACK_DATA,
+		TTrack.PROPERTY_TTRACK_FORMAT,
+		TFrame.PROPERTY_TFRAME_RADIANANGLES,
+		FunctionTool.PROPERTY_FUNCTIONTOOL_FUNCTION,
+	};
 	public static boolean ignoreRefresh = false;
 	protected static int viewPanelID;
 	
@@ -280,15 +290,7 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 	@Override
 	public void init() {
 		cleanup();
-		// add this listener to tracker panel
-		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR, this);
-		trackerPanel.addPropertyChangeListener(ImageCoordSystem.PROPERTY_COORDS_TRANSFORM, this);
-		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_STEPNUMBER, this);
-		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_IMAGE, this);
-		trackerPanel.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_DATA, this);
-		trackerPanel.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_FORMAT, this);
-		trackerPanel.addPropertyChangeListener(TFrame.PROPERTY_TFRAME_RADIANANGLES, this);
-		trackerPanel.addPropertyChangeListener(FunctionTool.PROPERTY_FUNCTIONTOOL_FUNCTION, this);
+		trackerPanel.addListeners(panelProps, this);		
 		// add this listener to tracks
 		for (TTrack track : trackerPanel.getTracksTemp()) {
 			track.addListenerNCF(this);
@@ -304,14 +306,7 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 		// remove this listener from tracker panel
 		if (trackerPanel == null)
 			return;
-		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR, this);
-		trackerPanel.removePropertyChangeListener(ImageCoordSystem.PROPERTY_COORDS_TRANSFORM, this);
-		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_STEPNUMBER, this);
-		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_IMAGE, this);
-		trackerPanel.removePropertyChangeListener(FunctionTool.PROPERTY_FUNCTIONTOOL_FUNCTION, this);
-		trackerPanel.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_DATA, this);
-		trackerPanel.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_FORMAT, this);
-		trackerPanel.removePropertyChangeListener(TFrame.PROPERTY_TFRAME_RADIANANGLES, this);
+		trackerPanel.removeListeners(panelProps, this);		
 		// remove this listener from tracks
 		for (Integer n : TTrack.activeTracks.keySet()) {
 			TTrack.activeTracks.get(n).removeListenerNCF(this);

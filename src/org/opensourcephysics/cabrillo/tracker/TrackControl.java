@@ -55,7 +55,15 @@ import org.opensourcephysics.tools.FontSizer;
 public class TrackControl extends JDialog
     implements PropertyChangeListener {
 
-  // static fields
+  private static final String[] panelProps = {
+	TrackerPanel.PROPERTY_TRACKERPANEL_TRACK,
+	TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR,
+	TTrack.PROPERTY_TTRACK_MASS,
+	TTrack.PROPERTY_TTRACK_FOOTPRINT,
+	TTrack.PROPERTY_TTRACK_DATA,  
+  };
+
+// static fields
   protected static Map<TrackerPanel, TrackControl> controls = new HashMap<TrackerPanel, TrackControl>();
 
   // instance fields
@@ -124,12 +132,7 @@ public class TrackControl extends JDialog
     pack();
     popup = new JPopupMenu();
     trackerPanel = panel;
-    trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this); //$NON-NLS-1$
-    trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR, this); //$NON-NLS-1$
-    trackerPanel.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_MASS, this); //$NON-NLS-1$
-    trackerPanel.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_FOOTPRINT, this); //$NON-NLS-1$
-    trackerPanel.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_DATA, this); //$NON-NLS-1$
-//    trackerPanel.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_COLOR, this); //$NON-NLS-1$
+	trackerPanel.addListeners(panelProps, this);		
     TFrame frame = trackerPanel.getTFrame();
     frame.addFollower(this, null);
   }
@@ -213,11 +216,7 @@ public class TrackControl extends JDialog
   @Override
 public void dispose() {
     if (trackerPanel != null) {
-      trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this); //$NON-NLS-1$
-      trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR, this); //$NON-NLS-1$
-      trackerPanel.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_MASS, this); //$NON-NLS-1$
-      trackerPanel.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_FOOTPRINT, this); //$NON-NLS-1$
-      trackerPanel.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_DATA, this); //$NON-NLS-1$
+    	trackerPanel.removeListeners(panelProps, this);		
       TFrame frame = trackerPanel.getTFrame();
       if (frame != null) {
         frame.removePropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, this); //$NON-NLS-1$

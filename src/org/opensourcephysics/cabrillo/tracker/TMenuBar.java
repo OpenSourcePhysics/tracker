@@ -132,6 +132,20 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements PropertyChan
 	protected final static int MENU_WINDOW = 1 << 5;
 	protected final static int MENU_HELP = 1 << 6;
 	protected final static int MENU_ALL = 0b1111111;
+
+	private static final String[] panelProps = {
+		TrackerPanel.PROPERTY_TRACKERPANEL_LOADED,
+		TTrack.PROPERTY_TTRACK_LOCKED,
+		TrackerPanel.PROPERTY_TRACKERPANEL_TRACK,
+		TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR,
+		TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDTRACK,
+		TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDPOINT,
+		TrackerPanel.PROPERTY_TRACKERPANEL_VIDEO,
+		TrackerPanel.PROPERTY_TRACKERPANEL_SIZE,
+		VideoPanel.PROPERTY_VIDEOPANEL_DATAFILE,
+	};
+	
+	
 	private int status = 0;
 
 	private boolean isTainted(int id) {
@@ -367,6 +381,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements PropertyChan
 		setMenuTainted(MENU_ALL, true);
 	}
 
+
 	/**
 	 * Sets the TrackerPanel for this menu bar
 	 *
@@ -376,35 +391,12 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements PropertyChan
 		if (panel == null || panel == trackerPanel)
 			return;
 		if (trackerPanel != null) {
-			removeListeners();
+			trackerPanel.removeListeners(panelProps, this);
 		}
 		trackerPanel = panel;
-		addListeners();
+		trackerPanel.addListeners(panelProps, this);
 	}
 
-	private void addListeners() {
-		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_LOADED, this);
-		trackerPanel.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_LOCKED, this);
-		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this);
-		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR, this);
-		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDTRACK, this);
-		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDPOINT, this);
-		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_VIDEO, this);
-		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_SIZE, this);
-		trackerPanel.addPropertyChangeListener(VideoPanel.PROPERTY_VIDEOPANEL_DATAFILE, this);
-	}
-
-	private void removeListeners() {
-		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_LOADED, this);
-		trackerPanel.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_LOCKED, this);
-		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this);
-		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR, this);
-		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDTRACK, this);
-		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDPOINT, this);
-		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_VIDEO, this);
-		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_SIZE, this);
-		trackerPanel.removePropertyChangeListener(VideoPanel.PROPERTY_VIDEOPANEL_DATAFILE, this);
-	}
 
 	/**
 	 * MenuListener for all menus.
@@ -2623,7 +2615,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements PropertyChan
 	 */
 	public void dispose() {
 		menubars.remove(trackerPanel);
-		removeListeners();
+		trackerPanel.removeListeners(panelProps, this);
 		Video video = trackerPanel.getVideo();
 		if (video != null) {
 			video.getFilterStack().removePropertyChangeListener(FilterStack.PROPERTY_FILTER_FILTER, this);

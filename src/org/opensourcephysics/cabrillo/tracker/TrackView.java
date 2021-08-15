@@ -67,6 +67,12 @@ public abstract class TrackView extends JScrollPane implements PropertyChangeLis
 
 	protected boolean clipAdjusting;
 
+	  private static final String[] panelProps = {
+				TrackerPanel.PROPERTY_TRACKERPANEL_LOADED,
+				TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDPOINT,
+				TrackerPanel.PROPERTY_TRACKERPANEL_UNITS,
+			  };
+
 	
 	// constructor
 	protected TrackView(TTrack track, TrackerPanel panel, TrackChooserTView view, int myType) {
@@ -75,9 +81,7 @@ public abstract class TrackView extends JScrollPane implements PropertyChangeLis
 		this.myType = myType;
 		//System.out.println("TrackView adding listener for " + this);
 		trackerPanel = panel;
-		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_LOADED, this); 
-		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDPOINT, this); 
-		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_UNITS, this); 
+		trackerPanel.addListeners(panelProps, this);
 		viewParent = view;
 	}
 
@@ -85,10 +89,7 @@ public abstract class TrackView extends JScrollPane implements PropertyChangeLis
 		for (Integer n : TTrack.activeTracks.keySet()) {
 			TTrack.activeTracks.get(n).removeStepListener(this);
 		}
-		//System.out.println("TrackView removing listener for " + this);
-		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_LOADED, this); 
-		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDPOINT, this); 
-		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_UNITS, this); 
+		trackerPanel.removeListeners(panelProps, this);
 		trackerPanel = null;
 	}
 

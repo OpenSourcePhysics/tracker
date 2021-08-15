@@ -26,6 +26,7 @@ package org.opensourcephysics.cabrillo.tracker;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Container;
 import java.awt.Cursor;
 import java.awt.Dimension;
@@ -4934,9 +4935,20 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			modelBuilder.setVisible(false);
 	}
 
+	public void addListeners(String[] names, PropertyChangeListener listener) {
+		for (int i = names.length; --i >= 0;)
+			addPropertyChangeListener(names[i], listener);
+	}
+
+	public void removeListeners(String[] names, PropertyChangeListener listener) {
+		for (int i = names.length; --i >= 0;)
+			removePropertyChangeListener(names[i], listener);
+	}
+
 	@Override
 	public String toString() {
 		return "[TrackerPanel " + hashCode() + " " + getTabName() + "]";
 	}
+
 
 }
