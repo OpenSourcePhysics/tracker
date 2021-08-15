@@ -52,6 +52,7 @@ import org.opensourcephysics.display.DataTable;
 import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.media.core.ImageCoordSystem;
 import org.opensourcephysics.tools.FontSizer;
+import org.opensourcephysics.tools.FunctionTool;
 
 /**
  * This displays track views selected from a dropdown list. This is an abstract
@@ -287,7 +288,7 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 		trackerPanel.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_DATA, this);
 		trackerPanel.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_FORMAT, this);
 		trackerPanel.addPropertyChangeListener(TFrame.PROPERTY_TFRAME_RADIANANGLES, this);
-		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_FUNCTION, this);
+		trackerPanel.addPropertyChangeListener(FunctionTool.PROPERTY_FUNCTIONTOOL_FUNCTION, this);
 		// add this listener to tracks
 		for (TTrack track : trackerPanel.getTracksTemp()) {
 			track.addListenerNCF(this);
@@ -307,7 +308,7 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 		trackerPanel.removePropertyChangeListener(ImageCoordSystem.PROPERTY_COORDS_TRANSFORM, this);
 		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_STEPNUMBER, this);
 		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_IMAGE, this);
-		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_FUNCTION, this);
+		trackerPanel.removePropertyChangeListener(FunctionTool.PROPERTY_FUNCTIONTOOL_FUNCTION, this);
 		trackerPanel.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_DATA, this);
 		trackerPanel.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_FORMAT, this);
 		trackerPanel.removePropertyChangeListener(TFrame.PROPERTY_TFRAME_RADIANANGLES, this);
@@ -495,8 +496,7 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 		TTrack track;
 		TFrame frame;
 		TrackView view;
-		String name = e.getPropertyName();
-		switch (name) {
+		switch (e.getPropertyName()) {
 		case TrackerPanel.PROPERTY_TRACKERPANEL_TRACK:
 			// track has been added
 			track = (TTrack) e.getOldValue();
@@ -564,7 +564,7 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 				}
 			}
 			break;
-		case TrackerPanel.PROPERTY_TRACKERPANEL_FUNCTION: // data function has changed
+		case FunctionTool.PROPERTY_FUNCTIONTOOL_FUNCTION: // data function has changed
 		case TFrame.PROPERTY_TFRAME_RADIANANGLES:
 			// angle units have changed
 			// refresh views of all tracks

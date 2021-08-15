@@ -39,6 +39,7 @@ import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.display.DataTable;
 import org.opensourcephysics.tools.FontSizer;
+import org.opensourcephysics.tools.FunctionTool;
 
 /**
  * This JPanel is the only child of TViewChooser viewPanel. It presents a JTable
@@ -218,7 +219,7 @@ public class TableTView extends TrackChooserTView {
 				}
 			}
 			break;
-		case TrackerPanel.PROPERTY_TRACKERPANEL_FUNCTION: //$NON-NLS-1$
+		case FunctionTool.PROPERTY_FUNCTIONTOOL_FUNCTION: //$NON-NLS-1$
 			super.propertyChange(e);
 			if (getSelectedTrack() != null) {
 				TableTrackView trackView = (TableTrackView) getTrackView(selectedTrack);

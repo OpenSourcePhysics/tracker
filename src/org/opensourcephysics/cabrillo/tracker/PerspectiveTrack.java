@@ -95,6 +95,24 @@ public class PerspectiveTrack extends TTrack {
 	}
 
 	/**
+	 * Adds events for TrackerPanel.
+	 * 
+	 * @param panel the new TrackerPanel
+	 */
+	@Override
+	public void setTrackerPanel(TrackerPanel panel) {
+		if (trackerPanel != null) {			
+			trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDPOINT, this);
+			trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDTRACK, this);
+		}
+		super.setTrackerPanel(panel);
+		if (trackerPanel != null) {
+			trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDPOINT, this);
+			trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDTRACK, this);
+		}
+	}
+
+	/**
 	 * Responds to property change events.
 	 *
 	 * @param e the property change event

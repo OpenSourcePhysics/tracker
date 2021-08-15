@@ -389,24 +389,43 @@ public class OffsetOrigin extends TTrack {
 	}
 
 	/**
+	 * Adds events for TrackerPanel.
+	 * 
+	 * @param panel the new TrackerPanel
+	 */
+	@Override
+	public void setTrackerPanel(TrackerPanel panel) {
+		if (trackerPanel != null) {			
+			trackerPanel.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_LOCKED, this);
+		}
+		super.setTrackerPanel(panel);
+		if (trackerPanel != null) {
+			trackerPanel.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_LOCKED, this);
+		}
+	}
+
+	/**
 	 * Responds to property change events. Overrides TTrack method.
 	 *
 	 * @param e the property change event
 	 */
 	@Override
 	public void propertyChange(PropertyChangeEvent e) {
-		String name = e.getPropertyName();
-		if (name.equals(TrackerPanel.PROPERTY_TRACKERPANEL_STEPNUMBER)) { //$NON-NLS-1$
+		switch (e.getPropertyName()) {
+		case TrackerPanel.PROPERTY_TRACKERPANEL_STEPNUMBER:
 			if (trackerPanel.getSelectedTrack() == this) {
 				displayWorldCoordinates();
 				stepValueLabel.setText(e.getNewValue() + ":"); //$NON-NLS-1$
 			}
-		} else if (name.equals("locked")) { //$NON-NLS-1$
+			return;
+		case TTrack.PROPERTY_TTRACK_LOCKED:
 			xField.setEnabled(!isLocked());
 			yField.setEnabled(!isLocked());
-		} else
-			super.propertyChange(e);
+			return;
+		}
+		super.propertyChange(e);
 	}
+	
 
 	/**
 	 * Overrides TTrack method.

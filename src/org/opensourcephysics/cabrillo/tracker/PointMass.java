@@ -351,7 +351,9 @@ public class PointMass extends TTrack {
 	}
 
 	protected final static ArrayList<String> allVariables = createAllVariables(dataVariables, fieldVariables);
-
+	
+	
+	
 	protected static boolean isAutoKeyDown;
 
 	// instance fields
@@ -773,7 +775,7 @@ public class PointMass extends TTrack {
 						if (stepArray[k] != null)
 							stepArray[k].setFootprint(vFootprint);
 				}
-				firePropertyChange(TTrack.PROPERTY_TTRACK_FOOTPRINT, null, vFootprint); // $NON-NLS-1$
+				firePropertyChange(PROPERTY_TTRACK_FOOTPRINT, null, vFootprint); // $NON-NLS-1$
 				repaint();
 				return;
 			}
@@ -835,7 +837,7 @@ public class PointMass extends TTrack {
 							stepArray[k].setFootprint(aFootprint);
 				}
 				repaint();
-				firePropertyChange(TTrack.PROPERTY_TTRACK_FOOTPRINT, null, aFootprint); // $NON-NLS-1$
+				firePropertyChange(PROPERTY_TTRACK_FOOTPRINT, null, aFootprint); // $NON-NLS-1$
 				return;
 			}
 	}
@@ -919,7 +921,7 @@ public class PointMass extends TTrack {
 		mass = Math.abs(mass);
 		mass = Math.max(mass, MINIMUM_MASS);
 		this.mass = mass;
-		firePropertyChange(TTrack.PROPERTY_TTRACK_MASS, null, new Double(mass)); // $NON-NLS-1$
+		firePropertyChange(PROPERTY_TTRACK_MASS, null, new Double(mass)); // $NON-NLS-1$
 		invalidateData(this);// to views
 		// store the mass in the data properties
 		if (datasetManager != null) {
@@ -2444,6 +2446,24 @@ public class PointMass extends TTrack {
 	}
 
 	/**
+	 * Adds events for TrackerPanel.
+	 * 
+	 * @param panel the new TrackerPanel
+	 */
+	@Override
+	public void setTrackerPanel(TrackerPanel panel) {
+		if (trackerPanel != null) {	
+			trackerPanel.removePropertyChangeListener(ImageCoordSystem.PROPERTY_COORDS_TRANSFORM, this);
+			trackerPanel.removePropertyChangeListener(VideoClip.PROPERTY_VIDEOCLIP_STEPSIZE, this);
+		}
+		super.setTrackerPanel(panel);
+		if (trackerPanel != null) {
+			trackerPanel.addPropertyChangeListener(ImageCoordSystem.PROPERTY_COORDS_TRANSFORM, this);
+			trackerPanel.addPropertyChangeListener(VideoClip.PROPERTY_VIDEOCLIP_STEPSIZE, this);
+		}
+	}
+
+	/**
 	 * Responds to property change events.
 	 *
 	 * @param e the property change event
@@ -2451,8 +2471,7 @@ public class PointMass extends TTrack {
 	@Override
 	public void propertyChange(PropertyChangeEvent e) {
 		if (e.getSource() instanceof TrackerPanel) {
-			String name = e.getPropertyName();
-			switch (name) {
+			switch (e.getPropertyName()) {
 			case ImageCoordSystem.PROPERTY_COORDS_TRANSFORM:
 				updateDerivatives();
 				invalidateData(null);

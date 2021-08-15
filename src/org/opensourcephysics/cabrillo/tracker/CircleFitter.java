@@ -1207,11 +1207,22 @@ public class CircleFitter extends TTrack {
 
 //__________________________ protected methods ________________________
 
+	private final static String[] panelEventsCircleFitter = new String[] { 
+			ImageCoordSystem.PROPERTY_COORDS_TRANSFORM, // CircleFitter
+			VideoClip.PROPERTY_VIDEOCLIP_STARTFRAME, // CircleFitter
+			VideoClip.PROPERTY_VIDEOCLIP_STEPCOUNT, // CircleFitter
+			VideoClip.PROPERTY_VIDEOCLIP_STEPSIZE,  // CircleFitter
+	};
+
 	@Override
 	public void setTrackerPanel(TrackerPanel panel) {
+		if (trackerPanel != null)
+			removePanelEvents(panelEventsCircleFitter);
 		super.setTrackerPanel(panel);
-		if (panel != null)
+		if (trackerPanel != null) {
+			addPanelEvents(panelEventsCircleFitter);
 			setFixed(isFixed());
+		}
 	}
 
 	@Override

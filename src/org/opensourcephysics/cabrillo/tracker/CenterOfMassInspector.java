@@ -86,26 +86,31 @@ public class CenterOfMassInspector extends JDialog
     updateDisplay();
   }
 
-  /**
-   * Responds to property change events. This listens for the
-   * following events: TFrame.PROPERTY_TFRAME_TAB.
-   *
-   * @param e the property change event
-   */
-  @Override
-public void propertyChange(PropertyChangeEvent e) {
-    if (e.getPropertyName().equals(TFrame.PROPERTY_TFRAME_TAB)) { //$NON-NLS-1$
-      if (trackerPanel != null && e.getNewValue() == trackerPanel) {
-        setVisible(isVisible);
-      }
-      else {
-        boolean vis = isVisible;
-        setVisible(false);
-        isVisible = vis;
-      }
-    }
-    else updateDisplay();
-  }
+	/**
+	 * Responds to property change events. This listens for the following events:
+	 * TFrame.PROPERTY_TFRAME_TAB.
+	 *
+	 * @param e the property change event
+	 */
+	@Override
+	public void propertyChange(PropertyChangeEvent e) {
+		switch (e.getPropertyName()) {
+		case TFrame.PROPERTY_TFRAME_TAB:
+			if (trackerPanel != null && e.getNewValue() == trackerPanel) {
+				setVisible(isVisible);
+			} else {
+				boolean vis = isVisible;
+				setVisible(false);
+				isVisible = vis;
+			}
+			break;
+		case TrackerPanel.PROPERTY_TRACKERPANEL_TRACK:
+		default:
+			updateDisplay();
+			break;
+		}
+
+	}
 
   /**
    * Overrides JDialog setVisible method.

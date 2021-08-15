@@ -52,6 +52,7 @@ import org.opensourcephysics.media.core.ImageCoordSystem;
 import org.opensourcephysics.media.core.TPoint;
 import org.opensourcephysics.media.core.VideoPlayer;
 import org.opensourcephysics.tools.FontSizer;
+import org.opensourcephysics.tools.FunctionTool;
 
 /**
  * This is a TView of a TrackerPanel drawn in world space.
@@ -237,7 +238,7 @@ public class WorldTView extends TrackerPanel implements TView {
 	public void dispose() {
 		cleanup();
 		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR, this);
-		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_FUNCTION, this);
+		trackerPanel.removePropertyChangeListener(FunctionTool.PROPERTY_FUNCTIONTOOL_FUNCTION, this);
 		coords.removePropertyChangeListener(this);
 		trackerPanel = null;
 		super.dispose();
@@ -342,8 +343,7 @@ public class WorldTView extends TrackerPanel implements TView {
 	 */
 	@Override
 	public void propertyChange(PropertyChangeEvent e) {
-		String name = e.getPropertyName();
-		switch (name) {
+		switch (e.getPropertyName()) {
 		case TrackerPanel.PROPERTY_TRACKERPANEL_TRACK:
 			if (e.getOldValue() != null) { // track removed
 				TTrack removed = (TTrack) e.getOldValue();

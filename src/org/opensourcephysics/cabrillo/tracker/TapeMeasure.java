@@ -1078,6 +1078,13 @@ public class TapeMeasure extends InputTrack {
 
 //__________________________ protected and private methods _______________________
 
+	private final static String[] panelEventsTapeMeasure = new String[] { 
+			ImageCoordSystem.PROPERTY_COORDS_FIXEDSCALE,  // TapeMeasure
+			ImageCoordSystem.PROPERTY_COORDS_TRANSFORM, // TapeMeasure
+			TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDPOINT, // TapeMeasure
+			TTrack.PROPERTY_TTRACK_LOCKED, // TapeMeasure
+	};
+
 	/**
 	 * Overrides TTrack setTrackerPanel method.
 	 *
@@ -1085,12 +1092,17 @@ public class TapeMeasure extends InputTrack {
 	 */
 	@Override
 	public void setTrackerPanel(TrackerPanel panel) {
+		if (trackerPanel != null)
+			removePanelEvents(panelEventsTapeMeasure);
 		super.setTrackerPanel(panel);
 		if (trackerPanel != null) {
+			addPanelEvents(panelEventsTapeMeasure);
 			boolean canBeFixed = !isStickMode() || trackerPanel.getCoords().isFixedScale();
 			setFixedPosition(isFixedPosition() && canBeFixed);
 		}
 	}
+
+
 
 	/**
 	 * Refreshes world lengths at all steps based on current ends and scale.

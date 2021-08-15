@@ -152,8 +152,7 @@ public abstract class TrackView extends JScrollPane implements PropertyChangeLis
 	public void propertyChange(PropertyChangeEvent e) {
 		int stepNumber = Integer.MIN_VALUE;
 		int mode = 0;
-		String name = e.getPropertyName();
-		switch (name) {
+		switch (e.getPropertyName()) {
 		case TTrack.PROPERTY_TTRACK_STEP:
 			stepNumber = (Integer) e.getNewValue();
 			mode = (e.getOldValue() == TTrack.HINT_STEP_ADDED_OR_REMOVED 

@@ -174,9 +174,7 @@ public class TrackControl extends JDialog
 	 */
 	@Override
 	public void propertyChange(PropertyChangeEvent e) {
-		
-		String name = e.getPropertyName();
-		switch (name) {
+		switch (e.getPropertyName()) {
 		case TFrame.PROPERTY_TFRAME_TAB:
 			TrackerPanel p = (TrackerPanel) e.getNewValue();
 			if (p == null)

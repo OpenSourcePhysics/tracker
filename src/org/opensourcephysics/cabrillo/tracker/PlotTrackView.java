@@ -279,20 +279,25 @@ public class PlotTrackView extends TrackView {
 	 */
 	@Override
 	public void propertyChange(PropertyChangeEvent e) {
-		String name = e.getPropertyName();
-		if (name.equals(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK) && e.getNewValue() != null // $NON-NLS-1$ // track
-																								// added
-				&& !(e.getSource() instanceof WorldTView)) {
-			for (TrackPlottingPanel plot : getPlots()) {
-				plot.plotAxes.hideScaleSetter();
-			}
-			for (TrackPlottingPanel plot : plots) {
-				plot.clearPopup();
-			}
-		} else if (name.equals("units")) { // from trackerPanel //$NON-NLS-1$
+		switch (e.getPropertyName()) {
+		case TrackerPanel.PROPERTY_TRACKERPANEL_UNITS:
 			for (TrackPlottingPanel plot : plots) {
 				plot.plotData();
 			}
+			return;
+		case TrackerPanel.PROPERTY_TRACKERPANEL_TRACK:
+			if (e.getNewValue() != null // $NON-NLS-1$
+					&& !(e.getSource() instanceof WorldTView)) {
+				// track added
+				for (TrackPlottingPanel plot : getPlots()) {
+					plot.plotAxes.hideScaleSetter();
+				}
+				for (TrackPlottingPanel plot : plots) {
+					plot.clearPopup();
+				}
+				return;
+			}
+			break;
 		}
 		super.propertyChange(e);
 	}

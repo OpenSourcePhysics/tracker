@@ -110,33 +110,38 @@ public boolean isLocked() {
     return lockEnabled && coords.isLocked();
   }
 
-  /**
-   * Responds to property change events.
-   *
-   * @param e the property change event
-   */
-  @Override
-public void propertyChange(PropertyChangeEvent e) {
-    String name = e.getPropertyName();
-    if (name.equals(TTrack.PROPERTY_TTRACK_STEP) || name.equals(TTrack.PROPERTY_TTRACK_STEPS)) // from PointMass //$NON-NLS-1$ //$NON-NLS-2$
-      setOrigins();
-    else if (name.equals(ImageCoordSystem.PROPERTY_COORDS_TRANSFORM)) {  // from ImageCoordSystem //$NON-NLS-1$
-      Integer integer = (Integer)e.getNewValue();
-      if (integer != null) {
-        int n = integer.intValue();
-        setScaleXY(n, coords.getScaleX(n), coords.getScaleY(n));
-        setCosineSine(n, coords.getCosine(n),  coords.getSine(n));
-        if (originTrack.isEmpty() && n == 0) setOrigins();
-      }
-      else {
-        for (int n = 0; n < coords.getLength(); n++) {
-          setScaleXY(n, coords.getScaleX(n), coords.getScaleY(n));
-          setCosineSine(n, coords.getCosine(n),  coords.getSine(n));
-        }
-        if (originTrack.isEmpty()) setOrigins();
-      }
-    }
-  }
+	/**
+	 * Responds to property change events.
+	 *
+	 * @param e the property change event
+	 */
+	@Override
+	public void propertyChange(PropertyChangeEvent e) {
+		switch (e.getPropertyName()) {
+		case TTrack.PROPERTY_TTRACK_STEP:
+		case TTrack.PROPERTY_TTRACK_STEPS:
+			// from PointMass
+			setOrigins();
+			break;
+		case ImageCoordSystem.PROPERTY_COORDS_TRANSFORM:
+			Integer integer = (Integer) e.getNewValue();
+			if (integer != null) {
+				int n = integer.intValue();
+				setScaleXY(n, coords.getScaleX(n), coords.getScaleY(n));
+				setCosineSine(n, coords.getCosine(n), coords.getSine(n));
+				if (originTrack.isEmpty() && n == 0)
+					setOrigins();
+			} else {
+				for (int n = 0; n < coords.getLength(); n++) {
+					setScaleXY(n, coords.getScaleX(n), coords.getScaleY(n));
+					setCosineSine(n, coords.getCosine(n), coords.getSine(n));
+				}
+				if (originTrack.isEmpty())
+					setOrigins();
+			}
+			break;
+		}
+	}
 
   @Override
   protected void updateAllTransforms() {
@@ -202,7 +207,7 @@ public void propertyChange(PropertyChangeEvent e) {
     }
     firePropChange = true;
     // fire property change for overall updates
-    support.firePropertyChange(PROPERTY_COORDS_TRANSFORM, null, null); //$NON-NLS-1$
+    firePropertyChange(PROPERTY_COORDS_TRANSFORM, null, null); //$NON-NLS-1$
   }
 
 }

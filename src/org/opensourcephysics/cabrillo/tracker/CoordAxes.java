@@ -652,8 +652,7 @@ public class CoordAxes extends TTrack {
 	 */
 	@Override
 	public void propertyChange(PropertyChangeEvent e) {
-		String name = e.getPropertyName();
-		switch (name) {
+		switch (e.getPropertyName()) {
 		case TrackerPanel.PROPERTY_TRACKERPANEL_STEPNUMBER:
 			int n = trackerPanel.getFrameNumber();
 			ImageCoordSystem coords = trackerPanel.getCoords();

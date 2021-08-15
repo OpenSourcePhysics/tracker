@@ -240,8 +240,9 @@ public class ModelBuilder extends FunctionTool {
 		if (e.getPropertyName().equals(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK)) { //$NON-NLS-1$
 			refreshBoosterDropdown();
 			refreshLayout();
-		} else
+		} else {
 			super.propertyChange(e);
+		}
 	}
 
 	@Override

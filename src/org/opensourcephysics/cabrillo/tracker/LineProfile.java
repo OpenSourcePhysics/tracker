@@ -557,6 +557,22 @@ public class LineProfile extends TTrack {
 	}
 
 	/**
+	 * Adds events for TrackerPanel.
+	 * 
+	 * @param panel the new TrackerPanel
+	 */
+	@Override
+	public void setTrackerPanel(TrackerPanel panel) {
+		if (trackerPanel != null) {			
+			trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_IMAGE, this);
+		}
+		super.setTrackerPanel(panel);
+		if (trackerPanel != null) {
+			trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_IMAGE, this);
+		}
+	}
+
+	/**
 	 * Responds to property change events.
 	 *
 	 * @param e the property change event
@@ -564,14 +580,13 @@ public class LineProfile extends TTrack {
 	@Override
 	public void propertyChange(PropertyChangeEvent e) {
 		if (trackerPanel != null) {
-			String name = e.getPropertyName();
-			switch (name) {
+			switch (e.getPropertyName()) {
 			case TrackerPanel.PROPERTY_TRACKERPANEL_STEPNUMBER:
 				invalidateData(Boolean.FALSE);
 				break;
 			case TrackerPanel.PROPERTY_TRACKERPANEL_IMAGE:
 				invalidateData(Boolean.FALSE);
-				support.firePropertyChange(e); // to view
+				firePropertyChange(e); // to view
 				break;
 			case ImageCoordSystem.PROPERTY_COORDS_TRANSFORM:
 				if (!steps.isEmpty()) { // $NON-NLS-1$

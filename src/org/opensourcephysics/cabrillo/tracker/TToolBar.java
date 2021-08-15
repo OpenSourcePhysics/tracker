@@ -1480,8 +1480,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 
 	@Override
 	public void propertyChange(PropertyChangeEvent e) {
-		String name = e.getPropertyName();
-		switch (name) {
+		switch (e.getPropertyName()) {
 		case TrackerPanel.PROPERTY_TRACKERPANEL_VIDEO:
 		case TTrack.PROPERTY_TTRACK_LOCKED:
 		case TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDPOINT:

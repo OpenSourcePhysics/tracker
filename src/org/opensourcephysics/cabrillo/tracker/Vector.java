@@ -354,14 +354,15 @@ public class Vector extends TTrack {
 	 */
 	@Override
 	public void propertyChange(PropertyChangeEvent e) {
-		if (e.getSource() instanceof TrackerPanel) {
-			String name = e.getPropertyName();
-			if (name.equals(Trackable.PROPERTY_ADJUSTING)) { // $NON-NLS-1$
+		switch (e.getPropertyName()) {
+		case Trackable.PROPERTY_ADJUSTING:
+//			if (e.getSource() instanceof TrackerPanel) {
 				refreshDataLater = (Boolean) e.getNewValue();
 				if (!refreshDataLater) { // stopped adjusting
 					firePropertyChange(PROPERTY_TTRACK_DATA, null, null); // $NON-NLS-1$
 				}
-			}
+//			}
+			break;
 		}
 		super.propertyChange(e);
 	}

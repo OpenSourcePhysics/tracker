@@ -2195,8 +2195,8 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements PropertyChan
 //								continue;
 //							if (next instanceof OffsetOrigin && !trackerPanel.isEnabled("calibration.offsetOrigin")) //$NON-NLS-1$
 //								continue;
-//							next.removePropertyChangeListener("locked", this); //$NON-NLS-1$
-//							next.addPropertyChangeListener("locked", this); //$NON-NLS-1$
+//							next.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_LOCKED, this); //$NON-NLS-1$
+//							next.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_LOCKED, this); //$NON-NLS-1$
 //							if (needsSeparator) {
 //								trackMenu.addSeparator();
 //								needsSeparator = false;

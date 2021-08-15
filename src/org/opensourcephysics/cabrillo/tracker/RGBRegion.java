@@ -35,11 +35,11 @@ import javax.swing.border.Border;
 import org.opensourcephysics.display.*;
 import org.opensourcephysics.media.core.*;
 import org.opensourcephysics.tools.FontSizer;
+import org.opensourcephysics.tools.FunctionTool;
 import org.opensourcephysics.controls.*;
 
 /**
- * A RGBRegion measures RGB properties in a circular region
- * of a video image.
+ * A RGBRegion measures RGB properties in a circular region of a video image.
  *
  * @author Douglas Brown
  */
@@ -49,7 +49,7 @@ public class RGBRegion extends TTrack {
 	public String[] getFormatVariables() {
 		return formatVariables;
 	}
-	
+
 	@Override
 	public Map<String, String[]> getFormatMap() {
 		return formatMap;
@@ -59,7 +59,7 @@ public class RGBRegion extends TTrack {
 	public Map<String, String> getFormatDescMap() {
 		return formatDescriptionMap;
 	}
-	
+
 	@Override
 	public String getBaseType() {
 		return "RGBRegion";
@@ -75,196 +75,200 @@ public class RGBRegion extends TTrack {
 		if (vars[7].equals(variable) || vars[8].equals(variable) || vars[9].equals(variable)) {
 			return "I"; //$NON-NLS-1$
 		}
-		if (names[2].equals(variable) || vars[3].equals(variable)
-				|| vars[4].equals(variable) || vars[5].equals(variable) || vars[6].equals(variable)
-				|| vars[10].equals(variable) || vars[11].equals(variable) || vars[12].equals(variable)) {
+		if (names[2].equals(variable) || vars[3].equals(variable) || vars[4].equals(variable)
+				|| vars[5].equals(variable) || vars[6].equals(variable) || vars[10].equals(variable)
+				|| vars[11].equals(variable) || vars[12].equals(variable)) {
 			return "C"; //$NON-NLS-1$
 		}
 		return null;
 	}
 
-  // static fields
-  protected final static int defaultRadius = 10;
-  protected final static int defaultMaxRadius = 100;
-  protected final static String[]	dataVariables;
-  protected final static String[] fieldVariables; // associated with number fields
-  protected final static String[] formatVariables; // used by NumberFormatSetter
-  protected final static Map<String, String[]> formatMap;
-  protected final static Map<String, String> formatDescriptionMap;
+	// static fields
+	protected final static int defaultRadius = 10;
+	protected final static int defaultMaxRadius = 100;
+	protected final static String[] dataVariables;
+	protected final static String[] fieldVariables; // associated with number fields
+	protected final static String[] formatVariables; // used by NumberFormatSetter
+	protected final static Map<String, String[]> formatMap;
+	protected final static Map<String, String> formatDescriptionMap;
 
-  static {
-  	dataVariables = new String[] {"t", "x", "y", "R", //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
-  			"G", "B", "luma", "pixels", "step", "frame", //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$ //$NON-NLS-6$
-  			"Rsd", "Gsd", "Bsd" }; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-  	fieldVariables = new String[] {"t", "x", "y"}; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ 
-  	formatVariables = new String[] {"t", "xy", "RGB"}; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ 
-  	
-  	// assemble format map
-		formatMap = new HashMap<>();		
-		formatMap.put("t", new String[] {"t"});
-		formatMap.put("xy", new String[] {"x", "y"});
-		formatMap.put("RGB", new String[] {"R", "G", "B", "luma", "Rsd", "Gsd", "Bsd" });
-		
+	static {
+		dataVariables = new String[] { "t", "x", "y", "R", //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
+				"G", "B", "luma", "pixels", "step", "frame", //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$ //$NON-NLS-6$
+				"Rsd", "Gsd", "Bsd" }; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+		fieldVariables = new String[] { "t", "x", "y" }; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+		formatVariables = new String[] { "t", "xy", "RGB" }; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
+
+		// assemble format map
+		formatMap = new HashMap<>();
+		formatMap.put("t", new String[] { "t" });
+		formatMap.put("xy", new String[] { "x", "y" });
+		formatMap.put("RGB", new String[] { "R", "G", "B", "luma", "Rsd", "Gsd", "Bsd" });
+
 		// assemble format description map
 		formatDescriptionMap = new HashMap<String, String>();
-		formatDescriptionMap.put(formatVariables[0], TrackerRes.getString("PointMass.Data.Description.0")); //$NON-NLS-1$ 
-		formatDescriptionMap.put(formatVariables[1], TrackerRes.getString("PointMass.Position.Name")); //$NON-NLS-1$ 
-		formatDescriptionMap.put(formatVariables[2], TrackerRes.getString("LineProfile.Description.RGB")); //$NON-NLS-1$ 
+		formatDescriptionMap.put(formatVariables[0], TrackerRes.getString("PointMass.Data.Description.0")); //$NON-NLS-1$
+		formatDescriptionMap.put(formatVariables[1], TrackerRes.getString("PointMass.Position.Name")); //$NON-NLS-1$
+		formatDescriptionMap.put(formatVariables[2], TrackerRes.getString("LineProfile.Description.RGB")); //$NON-NLS-1$
 //		formatDescriptionMap.put(formatVariables[3], TrackerRes.getString("LineProfile.Data.Brightness")); //$NON-NLS-1$ 
 
-  }
+	}
 
-	protected final static ArrayList<String> allVariables = createAllVariables(dataVariables, null); // no new field vars
+	protected final static ArrayList<String> allVariables = createAllVariables(dataVariables, null); // no new field
+																										// vars
 
-  // instance fields
-  protected boolean fixedPosition = true; // region has same position at all times
-  protected boolean fixedRadius = true; // region has same radius at all times
-  protected JCheckBoxMenuItem fixedPositionItem, fixedRadiusItem;
-  protected JLabel radiusLabel;
+	// instance fields
+	protected boolean fixedPosition = true; // region has same position at all times
+	protected boolean fixedRadius = true; // region has same radius at all times
+	protected JCheckBoxMenuItem fixedPositionItem, fixedRadiusItem;
+	protected JLabel radiusLabel;
 	protected int maxRadius = defaultMaxRadius;
-  protected IntegerField radiusField;
-  protected boolean firstTimeRadiusUnfixed = true;
-  protected ArrayList<RGBStep> validSteps = new ArrayList<RGBStep>();
-  protected boolean dataHidden = false;
-  protected boolean loading;
-  protected TreeSet<Integer> radiusKeyFrames = new TreeSet<Integer>();
+	protected IntegerField radiusField;
+	protected boolean firstTimeRadiusUnfixed = true;
+	protected ArrayList<RGBStep> validSteps = new ArrayList<RGBStep>();
+	protected boolean dataHidden = false;
+	protected boolean loading;
+	protected TreeSet<Integer> radiusKeyFrames = new TreeSet<Integer>();
 
-  /**
-   * Constructs a RGBRegion.
-   */
-  public RGBRegion() {
-    super(TYPE_RGBREGION);
-		defaultColors = new Color[] {Color.magenta};
-    // assign a default name
-    setName(TrackerRes.getString("RGBRegion.New.Name")); //$NON-NLS-1$
-    // assign default plot variables
-    setProperty("yVarPlot0", dataVariables[6]); //$NON-NLS-1$
-    setProperty("yMinPlot0", new Double(0)); //$NON-NLS-1$
-    setProperty("yMaxPlot0", new Double(255)); //$NON-NLS-1$
-    // assign default table variables: x, y and luma
-    setProperty("tableVar0", "0"); //$NON-NLS-1$ //$NON-NLS-2$
-    setProperty("tableVar1", "1"); //$NON-NLS-1$ //$NON-NLS-2$
-    setProperty("tableVar2", "5"); //$NON-NLS-1$ //$NON-NLS-2$
-    // set up footprint choices and color
-    setFootprints(new Footprint[]
-       {PointShapeFootprint.getFootprint("Footprint.Circle"), //$NON-NLS-1$
-      	PointShapeFootprint.getFootprint("Footprint.BoldCircle")}); //$NON-NLS-1$
-    defaultFootprint = getFootprint();
-    setColor(defaultColors[0]);
-    // set initial hint
-  	partName = TrackerRes.getString("TTrack.Selected.Hint"); //$NON-NLS-1$
-    hint = TrackerRes.getString("RGBRegion.Unmarked.Hint"); //$NON-NLS-1$
-    // create toolbar components
-    radiusLabel = new JLabel();
-    Border empty = BorderFactory.createEmptyBorder(0, 4, 0, 2);
-    radiusLabel.setBorder(empty);
-    radiusField = new IntegerField(2);
-    radiusField.setMinValue(1);
-    // radius focus listener
-    final FocusListener radiusFocusListener = new FocusAdapter() {
-      @Override
-	public void focusLost(FocusEvent e) {
-      	if (radiusField.getBackground() == Color.yellow) {
-      		setRadius(trackerPanel.getFrameNumber(), radiusField.getIntValue());
-      	}
-      }
-    };
-    radiusField.addFocusListener(radiusFocusListener);
-    radiusField.addActionListener(new ActionListener() {
-      @Override
-	public void actionPerformed(ActionEvent e) {
-      	radiusFocusListener.focusLost(null);
-        radiusField.selectAll();
-        radiusField.requestFocusInWindow();
-      }
-    });
-    radiusField.addMouseListener(formatMouseListener);
-    fixedPositionItem = new JCheckBoxMenuItem(TrackerRes.getString("RGBRegion.MenuItem.Fixed")); //$NON-NLS-1$
-    fixedPositionItem.addItemListener(new ItemListener() {
-      @Override
-	public void itemStateChanged(ItemEvent e) {
-        setFixedPosition(fixedPositionItem.isSelected());
-      }
-    });
-    fixedRadiusItem = new JCheckBoxMenuItem(TrackerRes.getString("RGBRegion.MenuItem.FixedRadius")); //$NON-NLS-1$
-    fixedRadiusItem.addItemListener(new ItemListener() {
-      @Override
-	public void itemStateChanged(ItemEvent e) {
-        setFixedRadius(fixedRadiusItem.isSelected());
-      }
-    });
-    radiusField.setBorder(fieldBorder);
-    // position action
-    Action positionAction = new AbstractAction() {
-      @Override
-	public void actionPerformed(ActionEvent e) {
-      	NumberField field = (NumberField)e.getSource();
-      	if (field.getBackground() == Color.yellow) setPositionFromFields();
-        field.selectAll();
-        field.requestFocusInWindow();
-      }
-    };
-    // position focus listener
-    FocusListener positionFocusListener = new FocusAdapter() {
-      @Override
-	public void focusLost(FocusEvent e) {
-      	NumberField field = (NumberField)e.getSource();
-      	if (field.getBackground() == Color.yellow) setPositionFromFields();
-      }
-    };
-    // add action and focus listeners
-    xField.addActionListener(positionAction);
-    yField.addActionListener(positionAction);
-    xField.addFocusListener(positionFocusListener);
-    yField.addFocusListener(positionFocusListener);
-  }
+	/**
+	 * Constructs a RGBRegion.
+	 */
+	public RGBRegion() {
+		super(TYPE_RGBREGION);
+		defaultColors = new Color[] { Color.magenta };
+		// assign a default name
+		setName(TrackerRes.getString("RGBRegion.New.Name")); //$NON-NLS-1$
+		// assign default plot variables
+		setProperty("yVarPlot0", dataVariables[6]); //$NON-NLS-1$
+		setProperty("yMinPlot0", new Double(0)); //$NON-NLS-1$
+		setProperty("yMaxPlot0", new Double(255)); //$NON-NLS-1$
+		// assign default table variables: x, y and luma
+		setProperty("tableVar0", "0"); //$NON-NLS-1$ //$NON-NLS-2$
+		setProperty("tableVar1", "1"); //$NON-NLS-1$ //$NON-NLS-2$
+		setProperty("tableVar2", "5"); //$NON-NLS-1$ //$NON-NLS-2$
+		// set up footprint choices and color
+		setFootprints(new Footprint[] { PointShapeFootprint.getFootprint("Footprint.Circle"), //$NON-NLS-1$
+				PointShapeFootprint.getFootprint("Footprint.BoldCircle") }); //$NON-NLS-1$
+		defaultFootprint = getFootprint();
+		setColor(defaultColors[0]);
+		// set initial hint
+		partName = TrackerRes.getString("TTrack.Selected.Hint"); //$NON-NLS-1$
+		hint = TrackerRes.getString("RGBRegion.Unmarked.Hint"); //$NON-NLS-1$
+		// create toolbar components
+		radiusLabel = new JLabel();
+		Border empty = BorderFactory.createEmptyBorder(0, 4, 0, 2);
+		radiusLabel.setBorder(empty);
+		radiusField = new IntegerField(2);
+		radiusField.setMinValue(1);
+		// radius focus listener
+		final FocusListener radiusFocusListener = new FocusAdapter() {
+			@Override
+			public void focusLost(FocusEvent e) {
+				if (radiusField.getBackground() == Color.yellow) {
+					setRadius(trackerPanel.getFrameNumber(), radiusField.getIntValue());
+				}
+			}
+		};
+		radiusField.addFocusListener(radiusFocusListener);
+		radiusField.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				radiusFocusListener.focusLost(null);
+				radiusField.selectAll();
+				radiusField.requestFocusInWindow();
+			}
+		});
+		radiusField.addMouseListener(formatMouseListener);
+		fixedPositionItem = new JCheckBoxMenuItem(TrackerRes.getString("RGBRegion.MenuItem.Fixed")); //$NON-NLS-1$
+		fixedPositionItem.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				setFixedPosition(fixedPositionItem.isSelected());
+			}
+		});
+		fixedRadiusItem = new JCheckBoxMenuItem(TrackerRes.getString("RGBRegion.MenuItem.FixedRadius")); //$NON-NLS-1$
+		fixedRadiusItem.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				setFixedRadius(fixedRadiusItem.isSelected());
+			}
+		});
+		radiusField.setBorder(fieldBorder);
+		// position action
+		Action positionAction = new AbstractAction() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				NumberField field = (NumberField) e.getSource();
+				if (field.getBackground() == Color.yellow)
+					setPositionFromFields();
+				field.selectAll();
+				field.requestFocusInWindow();
+			}
+		};
+		// position focus listener
+		FocusListener positionFocusListener = new FocusAdapter() {
+			@Override
+			public void focusLost(FocusEvent e) {
+				NumberField field = (NumberField) e.getSource();
+				if (field.getBackground() == Color.yellow)
+					setPositionFromFields();
+			}
+		};
+		// add action and focus listeners
+		xField.addActionListener(positionAction);
+		yField.addActionListener(positionAction);
+		xField.addFocusListener(positionFocusListener);
+		yField.addFocusListener(positionFocusListener);
+	}
 
-  /**
-   * Sets the fixed position property. When it is fixed, it is in the same
-   * position at all times.
-   *
-   * @param fixed <code>true</code> to fix the position
-   */
-  @Override
+	/**
+	 * Sets the fixed position property. When it is fixed, it is in the same
+	 * position at all times.
+	 *
+	 * @param fixed <code>true</code> to fix the position
+	 */
+	@Override
 	public void setFixedPosition(boolean fixed) {
-  	if (fixedPosition == fixed) return;
-    if (steps.isEmpty()) {
-      fixedPosition = fixed;
-    	return;
-    }
-  	XMLControl control = new XMLControlElement(this);
-    if (trackerPanel != null) {
-    	trackerPanel.changed = true;
-      int n = trackerPanel.getFrameNumber();
-      RGBStep keyStep = (RGBStep)getStep(n);
-      for (Step next: steps.array) {
-      	if (next==null) continue;
-      	RGBStep step = (RGBStep)next;
-      	step.getPosition().setLocation(keyStep.getPosition());
-      }
-    }
-    fixedPosition = fixed;
-    if (fixed) {
-  		keyFrames.clear();
-	    keyFrames.add(0);
-  		clearData();
-  		refreshData(datasetManager, trackerPanel);
-  		firePropertyChange(TTrack.PROPERTY_TTRACK_DATA, null, null); //$NON-NLS-1$
-    }
-    if (!loading) {
-    	Undo.postTrackEdit(this, control);
-    }
-   repaint();
-  }
+		if (fixedPosition == fixed)
+			return;
+		if (steps.isEmpty()) {
+			fixedPosition = fixed;
+			return;
+		}
+		XMLControl control = new XMLControlElement(this);
+		if (trackerPanel != null) {
+			trackerPanel.changed = true;
+			int n = trackerPanel.getFrameNumber();
+			RGBStep keyStep = (RGBStep) getStep(n);
+			for (Step next : steps.array) {
+				if (next == null)
+					continue;
+				RGBStep step = (RGBStep) next;
+				step.getPosition().setLocation(keyStep.getPosition());
+			}
+		}
+		fixedPosition = fixed;
+		if (fixed) {
+			keyFrames.clear();
+			keyFrames.add(0);
+			clearData();
+			refreshData(datasetManager, trackerPanel);
+			firePropertyChange(TTrack.PROPERTY_TTRACK_DATA, null, null); // $NON-NLS-1$
+		}
+		if (!loading) {
+			Undo.postTrackEdit(this, control);
+		}
+		repaint();
+	}
 
-  /**
-   * Gets the fixed position property.
-   *
-   * @return <code>true</code> if image position is fixed
-   */
-  public boolean isFixedPosition() {
-    return fixedPosition;
-  }
+	/**
+	 * Gets the fixed position property.
+	 *
+	 * @return <code>true</code> if image position is fixed
+	 */
+	public boolean isFixedPosition() {
+		return fixedPosition;
+	}
 
 	@Override
 	protected String getTargetDescription(int pointIndex) {
@@ -272,309 +276,315 @@ public class RGBRegion extends TTrack {
 	}
 
 	/**
-   * Sets the fixed radius property. When fixed, it has the same
-   * radius at all times.
-   *
-   * @param fixed <code>true</code> to fix the radius
-   */
-  public void setFixedRadius(boolean fixed) {
-  	if (fixedRadius == fixed) return;
-    if (steps.isEmpty()) {
-    	fixedRadius = fixed;
-    	return;
-    }
-  	XMLControl control = new XMLControlElement(this);
-    if (trackerPanel != null) {
-    	trackerPanel.changed = true;
-      int n = trackerPanel.getFrameNumber();
-      RGBStep keyStep = (RGBStep)getStep(n);
-      for (Step next: steps.array) {
-      	if (next==null) continue;
-      	RGBStep step = (RGBStep)next;
-      	step.setRadius(keyStep.radius);
-      }
-    }
-  	fixedRadius = fixed;
-    if (fixed) {
-	    radiusKeyFrames.clear();
-	    radiusKeyFrames.add(0);
-  		clearData();
-  		refreshData(datasetManager, trackerPanel);
-  		firePropertyChange(TTrack.PROPERTY_TTRACK_DATA, null, null); //$NON-NLS-1$
-    }
-    if (!loading) {
-    	Undo.postTrackEdit(this, control);
-    }
-   repaint();
-  }
+	 * Sets the fixed radius property. When fixed, it has the same radius at all
+	 * times.
+	 *
+	 * @param fixed <code>true</code> to fix the radius
+	 */
+	public void setFixedRadius(boolean fixed) {
+		if (fixedRadius == fixed)
+			return;
+		if (steps.isEmpty()) {
+			fixedRadius = fixed;
+			return;
+		}
+		XMLControl control = new XMLControlElement(this);
+		if (trackerPanel != null) {
+			trackerPanel.changed = true;
+			int n = trackerPanel.getFrameNumber();
+			RGBStep keyStep = (RGBStep) getStep(n);
+			for (Step next : steps.array) {
+				if (next == null)
+					continue;
+				RGBStep step = (RGBStep) next;
+				step.setRadius(keyStep.radius);
+			}
+		}
+		fixedRadius = fixed;
+		if (fixed) {
+			radiusKeyFrames.clear();
+			radiusKeyFrames.add(0);
+			clearData();
+			refreshData(datasetManager, trackerPanel);
+			firePropertyChange(TTrack.PROPERTY_TTRACK_DATA, null, null); // $NON-NLS-1$
+		}
+		if (!loading) {
+			Undo.postTrackEdit(this, control);
+		}
+		repaint();
+	}
 
-  /**
-   * Gets the fixed radius property.
-   *
-   * @return <code>true</code> if radius is fixed
-   */
-  public boolean isFixedRadius() {
-    return fixedRadius;
-  }
+	/**
+	 * Gets the fixed radius property.
+	 *
+	 * @return <code>true</code> if radius is fixed
+	 */
+	public boolean isFixedRadius() {
+		return fixedRadius;
+	}
 
-  /**
-   * Sets the radius of a step and posts an undoable edit
-   *
-   * @param n the frame number
-   * @param r the desired radius
-   */
-  protected void setRadius(int n, int r) {
-    if (isLocked() || r == Integer.MIN_VALUE || trackerPanel == null) return;
-    r = Math.max(r, 0);
-    r = Math.min(r, maxRadius);
-    radiusField.setIntValue(r);
-    
-    RGBStep step = (RGBStep)getStep(n); // target step
-    RGBStep keyStep = step; // key step is target if radius not fixed
-    if (step!=null && step.radius != r) {
-      // deselect selected point to trigger possible undo, then reselect it
-      TPoint selection = trackerPanel.getSelectedPoint();
-      trackerPanel.setSelectedPoint(null);
-      trackerPanel.selectedSteps.clear();
-    	XMLControl state = new XMLControlElement(step);
-    	
-      if (isFixedRadius()) {
-      	keyStep = (RGBStep)steps.getStep(0); // key step is step 0
-    		clearData(); // all data is invalid
-        keyStep.setRadius(r);
-        refreshStep(step);
-      }
-      else {
-      	radiusKeyFrames.add(n); // step is both target and key
-        step.setRadius(r);
-        step.dataValid = false; // only target step's data is invalid      
-    	}      
-    	Undo.postStepEdit(step, state);
-      trackerPanel.setSelectedPoint(selection);
-  		refreshData(datasetManager, trackerPanel);
-      step.repaint();
-      firePropertyChange(PROPERTY_TTRACK_DATA, null, RGBRegion.this); // to views //$NON-NLS-1$
-    }     
-  }
+	/**
+	 * Sets the radius of a step and posts an undoable edit
+	 *
+	 * @param n the frame number
+	 * @param r the desired radius
+	 */
+	protected void setRadius(int n, int r) {
+		if (isLocked() || r == Integer.MIN_VALUE || trackerPanel == null)
+			return;
+		r = Math.max(r, 0);
+		r = Math.min(r, maxRadius);
+		radiusField.setIntValue(r);
 
-  /**
-   * Gets the radius.
-   *
-   * @return the radius
-   */
-  public int getRadius() {
-  	if (isFixedRadius()) {
-	    RGBStep step = (RGBStep)getStep(0);
-	    if (step != null) return step.radius;
-  	}
-  	else if (trackerPanel != null && !fixedRadius) {
-	    int n = trackerPanel.getFrameNumber();
-	    RGBStep step = (RGBStep)getStep(n);
-	    if (step != null) return step.radius;
-    }
-    return defaultRadius;
-  }
+		RGBStep step = (RGBStep) getStep(n); // target step
+		RGBStep keyStep = step; // key step is target if radius not fixed
+		if (step != null && step.radius != r) {
+			// deselect selected point to trigger possible undo, then reselect it
+			TPoint selection = trackerPanel.getSelectedPoint();
+			trackerPanel.setSelectedPoint(null);
+			trackerPanel.selectedSteps.clear();
+			XMLControl state = new XMLControlElement(step);
 
-  /**
-   * Overrides TTrack draw method.
-   *
-   * @param panel the drawing panel requesting the drawing
-   * @param _g the graphics context on which to draw
-   */
-  @Override
-public void draw(DrawingPanel panel, Graphics _g) {
-  	if (isMarking() && !(trackerPanel.getSelectedPoint() instanceof RGBStep.Position))
-  		return;
-  	super.draw(panel, _g);
-  }
+			if (isFixedRadius()) {
+				keyStep = (RGBStep) steps.getStep(0); // key step is step 0
+				clearData(); // all data is invalid
+				keyStep.setRadius(r);
+				refreshStep(step);
+			} else {
+				radiusKeyFrames.add(n); // step is both target and key
+				step.setRadius(r);
+				step.dataValid = false; // only target step's data is invalid
+			}
+			Undo.postStepEdit(step, state);
+			trackerPanel.setSelectedPoint(selection);
+			refreshData(datasetManager, trackerPanel);
+			step.repaint();
+			firePropertyChange(PROPERTY_TTRACK_DATA, null, RGBRegion.this); // to views //$NON-NLS-1$
+		}
+	}
 
-  /**
-   * Overrides TTrack findInteractive method.
-   *
-   * @param panel the drawing panel
-   * @param xpix the x pixel position on the panel
-   * @param ypix the y pixel position on the panel
-   * @return the first step or motion vector that is hit
-   */
-  @Override
-public Interactive findInteractive(
-         DrawingPanel panel, int xpix, int ypix) {
-  	Interactive ia = super.findInteractive(panel, xpix, ypix);
-    if (ia != null) {
-    	partName = TrackerRes.getString("RGBRegion.Position.Name"); //$NON-NLS-1$
-      hint = TrackerRes.getString("RGBRegion.Position.Hint"); //$NON-NLS-1$
-    }
-    else {
-    	partName = TrackerRes.getString("TTrack.Selected.Hint"); //$NON-NLS-1$
-      if (getStep(trackerPanel.getFrameNumber())==null) {
-      	hint = TrackerRes.getString("RGBRegion.Unmarked.Hint"); //$NON-NLS-1$
-      }
-      else hint = TrackerRes.getString("RGBRegion.Hint"); //$NON-NLS-1$
-      if (trackerPanel.getVideo() == null) {
-      	hint += ", "+TrackerRes.getString("TTrack.ImportVideo.Hint"); //$NON-NLS-1$ //$NON-NLS-2$
-      }
-    }
-  	return ia;
-  }
-  
-  /**
-   * Sets the marking flag. Flag should be true when ready to be marked by user.
-   * 
-   * @param marking true when marking
-   */
-  @Override
-  protected void setMarking(boolean marking) {
-  	super.setMarking(marking);
-  	repaint(trackerPanel);
-  }
-  
-  /**
-   * Overrides TTrack setTrailVisible method to keep trails hidden.
-   *
-   * @param visible ignored
-   */
-  @Override
-public void setTrailVisible(boolean visible) {/** empty block */}
+	/**
+	 * Gets the radius.
+	 *
+	 * @return the radius
+	 */
+	public int getRadius() {
+		if (isFixedRadius()) {
+			RGBStep step = (RGBStep) getStep(0);
+			if (step != null)
+				return step.radius;
+		} else if (trackerPanel != null && !fixedRadius) {
+			int n = trackerPanel.getFrameNumber();
+			RGBStep step = (RGBStep) getStep(n);
+			if (step != null)
+				return step.radius;
+		}
+		return defaultRadius;
+	}
 
-  /**
-   * Gets the autoAdvance property. Overrides TTrack method.
-   *
-   * @return <code>false</code>
-   */
-  @Override
-public boolean isAutoAdvance() {
-    return !isFixedPosition();
-  }
+	/**
+	 * Overrides TTrack draw method.
+	 *
+	 * @param panel the drawing panel requesting the drawing
+	 * @param _g    the graphics context on which to draw
+	 */
+	@Override
+	public void draw(DrawingPanel panel, Graphics _g) {
+		if (isMarking() && !(trackerPanel.getSelectedPoint() instanceof RGBStep.Position))
+			return;
+		super.draw(panel, _g);
+	}
 
-  /**
-   * Creates a new step.
-   *
-   * @param n the frame number
-   * @param x the x coordinate in image space
-   * @param y the y coordinate in image space
-   * @return the step
-   */
-  @Override
-public Step createStep(int n, double x, double y) {
-    if (isLocked()) return null;
-  	int frame = isFixedPosition()? 0: n;
-    RGBStep step = (RGBStep)steps.getStep(frame);
-    if (step==null) { // create new step 0 and autofill array
-    	int r = (int)radiusField.getValue();
-    	step = new RGBStep(this, 0, x, y, r);
-      step.setFootprint(getFootprint());
-      steps = new StepArray(step);
-      keyFrames.add(0);
-      radiusKeyFrames.add(0);
-    }
-    else {
-    	XMLControl currentState = new XMLControlElement(this);
-      step.getPosition().setLocation(x, y);
-      keyFrames.add(n);
-  		Undo.postTrackEdit(this, currentState);
-    }
-    firePropertyChange(TTrack.PROPERTY_TTRACK_STEP, HINT_STEP_ADDED_OR_REMOVED, n); //$NON-NLS-1$
-    return getStep(n);
-  }
+	/**
+	 * Overrides TTrack findInteractive method.
+	 *
+	 * @param panel the drawing panel
+	 * @param xpix  the x pixel position on the panel
+	 * @param ypix  the y pixel position on the panel
+	 * @return the first step or motion vector that is hit
+	 */
+	@Override
+	public Interactive findInteractive(DrawingPanel panel, int xpix, int ypix) {
+		Interactive ia = super.findInteractive(panel, xpix, ypix);
+		if (ia != null) {
+			partName = TrackerRes.getString("RGBRegion.Position.Name"); //$NON-NLS-1$
+			hint = TrackerRes.getString("RGBRegion.Position.Hint"); //$NON-NLS-1$
+		} else {
+			partName = TrackerRes.getString("TTrack.Selected.Hint"); //$NON-NLS-1$
+			if (getStep(trackerPanel.getFrameNumber()) == null) {
+				hint = TrackerRes.getString("RGBRegion.Unmarked.Hint"); //$NON-NLS-1$
+			} else
+				hint = TrackerRes.getString("RGBRegion.Hint"); //$NON-NLS-1$
+			if (trackerPanel.getVideo() == null) {
+				hint += ", " + TrackerRes.getString("TTrack.ImportVideo.Hint"); //$NON-NLS-1$ //$NON-NLS-2$
+			}
+		}
+		return ia;
+	}
 
-  /**
-   * Overrides TTrack deleteStep method to prevent deletion.
-   *
-   * @param n the frame number
-   * @return the deleted step
-   */
-  @Override
-public Step deleteStep(int n) {
-    return null;
-  }
+	/**
+	 * Sets the marking flag. Flag should be true when ready to be marked by user.
+	 * 
+	 * @param marking true when marking
+	 */
+	@Override
+	protected void setMarking(boolean marking) {
+		super.setMarking(marking);
+		repaint(trackerPanel);
+	}
 
-  /**
-   * Overrides TTrack getStep method to provide fixed behavior.
-   *
-   * @param n the frame number
-   * @return the step
-   */
-  @Override
-public Step getStep(int n) {
-    RGBStep step = (RGBStep)steps.getStep(n);
+	/**
+	 * Overrides TTrack setTrailVisible method to keep trails hidden.
+	 *
+	 * @param visible ignored
+	 */
+	@Override
+	public void setTrailVisible(boolean visible) {
+		/** empty block */
+	}
+
+	/**
+	 * Gets the autoAdvance property. Overrides TTrack method.
+	 *
+	 * @return <code>false</code>
+	 */
+	@Override
+	public boolean isAutoAdvance() {
+		return !isFixedPosition();
+	}
+
+	/**
+	 * Creates a new step.
+	 *
+	 * @param n the frame number
+	 * @param x the x coordinate in image space
+	 * @param y the y coordinate in image space
+	 * @return the step
+	 */
+	@Override
+	public Step createStep(int n, double x, double y) {
+		if (isLocked())
+			return null;
+		int frame = isFixedPosition() ? 0 : n;
+		RGBStep step = (RGBStep) steps.getStep(frame);
+		if (step == null) { // create new step 0 and autofill array
+			int r = (int) radiusField.getValue();
+			step = new RGBStep(this, 0, x, y, r);
+			step.setFootprint(getFootprint());
+			steps = new StepArray(step);
+			keyFrames.add(0);
+			radiusKeyFrames.add(0);
+		} else {
+			XMLControl currentState = new XMLControlElement(this);
+			step.getPosition().setLocation(x, y);
+			keyFrames.add(n);
+			Undo.postTrackEdit(this, currentState);
+		}
+		firePropertyChange(TTrack.PROPERTY_TTRACK_STEP, HINT_STEP_ADDED_OR_REMOVED, n); // $NON-NLS-1$
+		return getStep(n);
+	}
+
+	/**
+	 * Overrides TTrack deleteStep method to prevent deletion.
+	 *
+	 * @param n the frame number
+	 * @return the deleted step
+	 */
+	@Override
+	public Step deleteStep(int n) {
+		return null;
+	}
+
+	/**
+	 * Overrides TTrack getStep method to provide fixed behavior.
+	 *
+	 * @param n the frame number
+	 * @return the step
+	 */
+	@Override
+	public Step getStep(int n) {
+		RGBStep step = (RGBStep) steps.getStep(n);
 		refreshStep(step);
-    return step;
-  }
+		return step;
+	}
 
-  /**
-   * Gets the length of the steps created by this track.
-   *
-   * @return the footprint length
-   */
-  @Override
-public int getStepLength() {
-  	return RGBStep.getLength();
-  }
+	/**
+	 * Gets the length of the steps created by this track.
+	 *
+	 * @return the footprint length
+	 */
+	@Override
+	public int getStepLength() {
+		return RGBStep.getLength();
+	}
 
-  /**
-   * Used by autoTracker to mark a step at a match target position. 
-   * 
-   * @param n the frame number
-   * @param x the x target coordinate in image space
-   * @param y the y target coordinate in image space
-   * @return the TPoint that was automarked
-   */
-  @Override
-public TPoint autoMarkAt(int n, double x, double y) {
-  	this.setFixedPosition(false);
-  	return super.autoMarkAt(n, x, y);
-  }
-  
-  /**
-   * Determines if any point in this track is autotrackable.
-   *
-   * @return true if autotrackable
-   */
-  @Override
-protected boolean isAutoTrackable() {
-  	return true;
-  }
-  
-  /**
-   * Gets the length of the footprints required by this track.
-   *
-   * @return the footprint length
-   */
-  @Override
-public int getFootprintLength() {
-    return 1;
-  }
+	/**
+	 * Used by autoTracker to mark a step at a match target position.
+	 * 
+	 * @param n the frame number
+	 * @param x the x target coordinate in image space
+	 * @param y the y target coordinate in image space
+	 * @return the TPoint that was automarked
+	 */
+	@Override
+	public TPoint autoMarkAt(int n, double x, double y) {
+		this.setFixedPosition(false);
+		return super.autoMarkAt(n, x, y);
+	}
 
-  /**
-   * Clears the data.
-   */
-  protected void clearData() {
-  	if (datasetManager == null) return;
-  	// clear each dataset
-    for (int i = 0; i < 7; i++) {
-    	Dataset next = datasetManager.getDataset(i);
-    	next.clear();
-    }
-    Step[] steps = getSteps();
-    for (int i = 0; i < steps.length; i++) {
-    	if (steps[i] == null) continue;
-    	steps[i].dataVisible = false;
-    	((RGBStep)steps[i]).dataValid = false;
-    }
-  }
-  	
-  /**
-   * Hides the data.
-   */
-  protected void hideData() {
-    Step[] steps = getSteps();
-    for (int i = 0; i < steps.length; i++) {
-    	if (steps[i] == null) continue;
-    	steps[i].dataVisible = false;
-    }
-    dataHidden = true;
-  }
-  	
+	/**
+	 * Determines if any point in this track is autotrackable.
+	 *
+	 * @return true if autotrackable
+	 */
+	@Override
+	protected boolean isAutoTrackable() {
+		return true;
+	}
+
+	/**
+	 * Gets the length of the footprints required by this track.
+	 *
+	 * @return the footprint length
+	 */
+	@Override
+	public int getFootprintLength() {
+		return 1;
+	}
+
+	/**
+	 * Clears the data.
+	 */
+	protected void clearData() {
+		if (datasetManager == null)
+			return;
+		// clear each dataset
+		for (int i = 0; i < 7; i++) {
+			Dataset next = datasetManager.getDataset(i);
+			next.clear();
+		}
+		Step[] steps = getSteps();
+		for (int i = 0; i < steps.length; i++) {
+			if (steps[i] == null)
+				continue;
+			steps[i].dataVisible = false;
+			((RGBStep) steps[i]).dataValid = false;
+		}
+	}
+
+	/**
+	 * Hides the data.
+	 */
+	protected void hideData() {
+		Step[] steps = getSteps();
+		for (int i = 0; i < steps.length; i++) {
+			if (steps[i] == null)
+				continue;
+			steps[i].dataVisible = false;
+		}
+		dataHidden = true;
+	}
+
 	/**
 	 * Refreshes the data.
 	 *
@@ -683,66 +693,66 @@ public int getFootprintLength() {
 		return menu;
 	}
 
-  /**
-   * Overrides TTrack getToolbarTrackComponents method.
-   *
-   * @param trackerPanel the tracker panel
-   * @return a list of components
-   */
-  @Override
-public ArrayList<Component> getToolbarTrackComponents(TrackerPanel trackerPanel) {
-    ArrayList<Component> list = super.getToolbarTrackComponents(trackerPanel);
-    radiusLabel.setText(TrackerRes.getString("RGBRegion.Label.Radius")); //$NON-NLS-1$
-    list.add(radiusLabel);
-    radiusField.setIntValue(getRadius());
-    radiusField.setEnabled(!isLocked());
-    list.add(radiusField);
-    
-	  int n = trackerPanel.getFrameNumber();
-    Step step = getStep(n);
-    if (step==null) return list;
-    
-    stepLabel.setText(TrackerRes.getString("TTrack.Label.Step")); //$NON-NLS-1$
-  	xLabel.setText(dataVariables[1]); 
-  	yLabel.setText(dataVariables[2]); 
-    xField.setUnits(trackerPanel.getUnits(this, dataVariables[1]));
-    yField.setUnits(trackerPanel.getUnits(this, dataVariables[2]));
+	/**
+	 * Overrides TTrack getToolbarTrackComponents method.
+	 *
+	 * @param trackerPanel the tracker panel
+	 * @return a list of components
+	 */
+	@Override
+	public ArrayList<Component> getToolbarTrackComponents(TrackerPanel trackerPanel) {
+		ArrayList<Component> list = super.getToolbarTrackComponents(trackerPanel);
+		radiusLabel.setText(TrackerRes.getString("RGBRegion.Label.Radius")); //$NON-NLS-1$
+		list.add(radiusLabel);
+		radiusField.setIntValue(getRadius());
+		radiusField.setEnabled(!isLocked());
+		list.add(radiusField);
 
-    xField.setEnabled(!isLocked());
-    yField.setEnabled(!isLocked());
-    
-    // put step number into label
-    stepLabel.setText(TrackerRes.getString("TTrack.Label.Step")); //$NON-NLS-1$
-    VideoClip clip = trackerPanel.getPlayer().getVideoClip();
-    n = clip.frameToStep(n);
-    stepValueLabel.setText(n+":"); //$NON-NLS-1$
+		int n = trackerPanel.getFrameNumber();
+		Step step = getStep(n);
+		if (step == null)
+			return list;
 
-    list.add(stepSeparator);
-    list.add(stepLabel);
-    list.add(stepValueLabel);
-    list.add(tSeparator);
-    list.add(xLabel);
-    list.add(xField);
-    list.add(xSeparator);
-    list.add(yLabel);
-    list.add(yField);
-    list.add(ySeparator);
+		stepLabel.setText(TrackerRes.getString("TTrack.Label.Step")); //$NON-NLS-1$
+		xLabel.setText(dataVariables[1]);
+		yLabel.setText(dataVariables[2]);
+		xField.setUnits(trackerPanel.getUnits(this, dataVariables[1]));
+		yField.setUnits(trackerPanel.getUnits(this, dataVariables[2]));
 
-    return list;
-  }
+		xField.setEnabled(!isLocked());
+		yField.setEnabled(!isLocked());
 
-  /**
-   * Overrides TTrack getToolbarPointComponents method.
-   *
-   * @param trackerPanel the tracker panel
-   * @param point the TPoint
-   * @return a list of components
-   */
-  @Override
-public ArrayList<Component> getToolbarPointComponents(TrackerPanel trackerPanel,
-                                             TPoint point) {
-  	
-    ArrayList<Component> list = super.getToolbarPointComponents(trackerPanel, point);
+		// put step number into label
+		stepLabel.setText(TrackerRes.getString("TTrack.Label.Step")); //$NON-NLS-1$
+		VideoClip clip = trackerPanel.getPlayer().getVideoClip();
+		n = clip.frameToStep(n);
+		stepValueLabel.setText(n + ":"); //$NON-NLS-1$
+
+		list.add(stepSeparator);
+		list.add(stepLabel);
+		list.add(stepValueLabel);
+		list.add(tSeparator);
+		list.add(xLabel);
+		list.add(xField);
+		list.add(xSeparator);
+		list.add(yLabel);
+		list.add(yField);
+		list.add(ySeparator);
+
+		return list;
+	}
+
+	/**
+	 * Overrides TTrack getToolbarPointComponents method.
+	 *
+	 * @param trackerPanel the tracker panel
+	 * @param point        the TPoint
+	 * @return a list of components
+	 */
+	@Override
+	public ArrayList<Component> getToolbarPointComponents(TrackerPanel trackerPanel, TPoint point) {
+
+		ArrayList<Component> list = super.getToolbarPointComponents(trackerPanel, point);
 //    if (getStep(point, trackerPanel)==null) return list;
 //
 //  	xLabel.setText(dataVariables[1]); 
@@ -762,371 +772,392 @@ public ArrayList<Component> getToolbarPointComponents(TrackerPanel trackerPanel,
 //    list.add(yLabel);
 //    list.add(yField);
 //    list.add(ySeparator);
-    return list;
-  }
+		return list;
+	}
 
-  @Override
-  public void setFontLevel(int level) {
-  	super.setFontLevel(level);
-  	Object[] objectsToSize = new Object[]
-  			{radiusLabel};
-    FontSizer.setFonts(objectsToSize, level);
-  }
+	@Override
+	public void setFontLevel(int level) {
+		super.setFontLevel(level);
+		Object[] objectsToSize = new Object[] { radiusLabel };
+		FontSizer.setFonts(objectsToSize, level);
+	}
 
-  /**
-   * Responds to property change events. This listens for the following
-   * events: "stepnumber" & "image" from TrackerPanel.
-   *
-   * @param e the property change event
-   */
-  @Override
-public void propertyChange(PropertyChangeEvent e) {
-  	if (trackerPanel != null) {
-      if (maxRadius==defaultMaxRadius && trackerPanel.getVideo()!=null) {
-    	  setMaxRadius(trackerPanel.getVideo());
-      }
-      String name = e.getPropertyName();
-      if (name.equals(TrackerPanel.PROPERTY_TRACKERPANEL_STEPNUMBER)) { //$NON-NLS-1$
-    	invalidateData(Boolean.FALSE);
-  	    int n = trackerPanel.getFrameNumber();
-  	    RGBStep step = (RGBStep)getStep(n);
-  	    if (step != null) {
-  	    	radiusField.setIntValue(step.radius);
-		      Point2D p = step.position.getWorldPosition(trackerPanel);
-		      xField.setValue(p.getX());
-		      yField.setValue(p.getY());
-  	    }
-  	    radiusField.setEnabled(!isLocked() && step != null);
-	      stepValueLabel.setText(e.getNewValue()+":"); //$NON-NLS-1$
+	/**
+	 * Adds events for TrackerPanel.
+	 * 
+	 * @param panel the new TrackerPanel
+	 */
+	@Override
+	public void setTrackerPanel(TrackerPanel panel) {
+		if (trackerPanel != null) {			
+			trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_IMAGE, this);
+		}
+		super.setTrackerPanel(panel);
+		if (trackerPanel != null) {
+			trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_IMAGE, this);
+		}
+	}
+
+	/**
+	 * Responds to property change events. This listens for the following events:
+	 * "stepnumber" & "image" from TrackerPanel.
+	 *
+	 * @param e the property change event
+	 */
+	@Override
+	public void propertyChange(PropertyChangeEvent e) {
+		if (trackerPanel != null) {
+			if (maxRadius == defaultMaxRadius && trackerPanel.getVideo() != null) {
+				setMaxRadius(trackerPanel.getVideo());
+			}
+			switch (e.getPropertyName()) {
+			case TrackerPanel.PROPERTY_TRACKERPANEL_STEPNUMBER:
+				invalidateData(Boolean.FALSE);
+				int n = trackerPanel.getFrameNumber();
+				RGBStep step = (RGBStep) getStep(n);
+				if (step != null) {
+					radiusField.setIntValue(step.radius);
+					Point2D p = step.position.getWorldPosition(trackerPanel);
+					xField.setValue(p.getX());
+					yField.setValue(p.getY());
+				}
+				radiusField.setEnabled(!isLocked() && step != null);
+				stepValueLabel.setText(e.getNewValue() + ":"); //$NON-NLS-1$
 //        firePropertyChange(e); // to views
-      }
-      else if (name.equals(TrackerPanel.PROPERTY_TRACKERPANEL_IMAGE)) { //$NON-NLS-1$
-      	invalidateData(Boolean.FALSE);
-      	Video vid = trackerPanel.getVideo();
-      	if (vid == null) clearData(); // no video
-      	else if (!vid.isVisible()) // video invisible
-      		hideData();
-      	else if (!dataHidden && vid.isVisible()) // video filters
-      		clearData();
-      	else dataHidden = false;
-      	if (vid!=null) {
-      		setMaxRadius(vid);
-      	}
-        support.firePropertyChange(e); // to views
-      }
-  	}
-    super.propertyChange(e); // handled by TTrack
-  }
+				break;
+			case TrackerPanel.PROPERTY_TRACKERPANEL_IMAGE:
+				invalidateData(Boolean.FALSE);
+				Video vid = trackerPanel.getVideo();
+				if (vid == null)
+					clearData(); // no video
+				else if (!vid.isVisible()) // video invisible
+					hideData();
+				else if (!dataHidden && vid.isVisible()) // video filters
+					clearData();
+				else
+					dataHidden = false;
+				if (vid != null) {
+					setMaxRadius(vid);
+				}
+				firePropertyChange(e); // to views
+				break;
+			}
+		}
+		super.propertyChange(e); // handled by TTrack
+	}
 
 	private void setMaxRadius(Video video) {
 		Dimension d = video.getImageSize();
 		maxRadius = Math.min(d.height / 2, d.width / 2) - 1;
 	}
 
-/**
-   * Overrides Object toString method.
-   *
-   * @return the name of this track
-   */
-  @Override
-public String toString() {
-    return TrackerRes.getString("RGBRegion.Name"); //$NON-NLS-1$
-  }
+	/**
+	 * Overrides Object toString method.
+	 *
+	 * @return the name of this track
+	 */
+	@Override
+	public String toString() {
+		return TrackerRes.getString("RGBRegion.Name"); //$NON-NLS-1$
+	}
 
-  @Override
-  public Map<String, NumberField[]> getNumberFields() {
-  	if (numberFields.isEmpty()) {
-	  	numberFields.put(dataVariables[0], new NumberField[] {tField});
-	  	numberFields.put(dataVariables[1], new NumberField[] {xField});
-	  	numberFields.put(dataVariables[2], new NumberField[] {yField});
-  	}
-  	return numberFields;
-  }
-  
+	@Override
+	public Map<String, NumberField[]> getNumberFields() {
+		if (numberFields.isEmpty()) {
+			numberFields.put(dataVariables[0], new NumberField[] { tField });
+			numberFields.put(dataVariables[1], new NumberField[] { xField });
+			numberFields.put(dataVariables[2], new NumberField[] { yField });
+		}
+		return numberFields;
+	}
+
 //__________________________ private methods ___________________________
 
-  /**
-   * Sets the position of the current step based on the values
-   * in the x and y fields.
-   */
-  private void setPositionFromFields() {
-    double xValue = xField.getValue();
-    double yValue = yField.getValue();
-    int n = trackerPanel.getFrameNumber();
-    RGBStep step = (RGBStep)getStep(n);    
-    if (step != null) {
-    	TPoint p = step.position;
-      ImageCoordSystem coords = trackerPanel.getCoords();
-      double x = coords.worldToImageX(n, xValue, yValue);
-      double y = coords.worldToImageY(n, xValue, yValue);
-      p.setXY(x, y);
-      Point2D worldPt = p.getWorldPosition(trackerPanel);
-      xField.setValue(worldPt.getX());
-      yField.setValue(worldPt.getY());
-    }
-  }
+	/**
+	 * Sets the position of the current step based on the values in the x and y
+	 * fields.
+	 */
+	private void setPositionFromFields() {
+		double xValue = xField.getValue();
+		double yValue = yField.getValue();
+		int n = trackerPanel.getFrameNumber();
+		RGBStep step = (RGBStep) getStep(n);
+		if (step != null) {
+			TPoint p = step.position;
+			ImageCoordSystem coords = trackerPanel.getCoords();
+			double x = coords.worldToImageX(n, xValue, yValue);
+			double y = coords.worldToImageY(n, xValue, yValue);
+			p.setXY(x, y);
+			Point2D worldPt = p.getWorldPosition(trackerPanel);
+			xField.setValue(worldPt.getX());
+			yField.setValue(worldPt.getY());
+		}
+	}
 
-  /**
-   * Refreshes a step by setting it equal to a keyframe step.
-   *
-   * @param step the step to refresh
-   */
-  protected void refreshStep(RGBStep step) {
-  	if (step==null)
-  		return;
-  	// find key steps
-  	int key = 0;
-  	if (!isFixedPosition()) {
-	  	for (int i: keyFrames) {
-	  		if (i<=step.n)
-	  			key = i;
-	  	}
-  	}
-  	int radiusKey = 0;
-  	if (!isFixedRadius()) {
-	  	for (int i: radiusKeyFrames) {
-	  		if (i<=step.n)
-	  			radiusKey = i;
-	  	}
-  	}
-  	// compare step with keySteps and update if needed
-  	RGBStep positionKeyStep = (RGBStep)steps.getStep(key);
-  	double x = positionKeyStep.getPosition().getX();
-    double y = positionKeyStep.getPosition().getY();
-    boolean differentPosition = 
-    			 x!=step.getPosition().getX() 
-    		|| y!=step.getPosition().getY();
-    if (differentPosition) {
-	    step.getPosition().setLocation(x, y);
-	    step.erase();
-	    step.dataValid = false;
-    }
-  	RGBStep radiusKeyStep = (RGBStep)steps.getStep(radiusKey);
-    int r = radiusKeyStep.radius;
-    if (r!=step.radius) {
-	    step.setRadius(r);
-	    step.erase();
-	    step.dataValid = false;
-    }
-  }
+	/**
+	 * Refreshes a step by setting it equal to a keyframe step.
+	 *
+	 * @param step the step to refresh
+	 */
+	protected void refreshStep(RGBStep step) {
+		if (step == null)
+			return;
+		// find key steps
+		int key = 0;
+		if (!isFixedPosition()) {
+			for (int i : keyFrames) {
+				if (i <= step.n)
+					key = i;
+			}
+		}
+		int radiusKey = 0;
+		if (!isFixedRadius()) {
+			for (int i : radiusKeyFrames) {
+				if (i <= step.n)
+					radiusKey = i;
+			}
+		}
+		// compare step with keySteps and update if needed
+		RGBStep positionKeyStep = (RGBStep) steps.getStep(key);
+		double x = positionKeyStep.getPosition().getX();
+		double y = positionKeyStep.getPosition().getY();
+		boolean differentPosition = x != step.getPosition().getX() || y != step.getPosition().getY();
+		if (differentPosition) {
+			step.getPosition().setLocation(x, y);
+			step.erase();
+			step.dataValid = false;
+		}
+		RGBStep radiusKeyStep = (RGBStep) steps.getStep(radiusKey);
+		int r = radiusKeyStep.radius;
+		if (r != step.radius) {
+			step.setRadius(r);
+			step.erase();
+			step.dataValid = false;
+		}
+	}
 
 //__________________________ static methods ___________________________
 
-  /**
-   * Returns the luma (perceived brightness) of a video RGB color.
-   *
-   * @param r red component
-   * @param g green component
-   * @param b blue component
-   * @return the video luma
-   */
-  public static double getLuma(double r, double g, double b) {
-    // following code based on CCIR 601 specs
-    return 0.299*r + 0.587*g + 0.114*b;
-  }
+	/**
+	 * Returns the luma (perceived brightness) of a video RGB color.
+	 *
+	 * @param r red component
+	 * @param g green component
+	 * @param b blue component
+	 * @return the video luma
+	 */
+	public static double getLuma(double r, double g, double b) {
+		// following code based on CCIR 601 specs
+		return 0.299 * r + 0.587 * g + 0.114 * b;
+	}
 
-  /**
-   * Returns an ObjectLoader to save and load data for this class.
-   *
-   * @return the object loader
-   */
-  public static XML.ObjectLoader getLoader() {
-    XML.setLoader(FrameData.class, new FrameDataLoader());
-    return new Loader();
-  }
+	/**
+	 * Returns an ObjectLoader to save and load data for this class.
+	 *
+	 * @return the object loader
+	 */
+	public static XML.ObjectLoader getLoader() {
+		XML.setLoader(FrameData.class, new FrameDataLoader());
+		return new Loader();
+	}
 
-  /**
-   * A class to save and load data for this class.
-   */
-  static class Loader implements XML.ObjectLoader {
+	/**
+	 * A class to save and load data for this class.
+	 */
+	static class Loader implements XML.ObjectLoader {
 
-    /**
-     * Saves an object's data to an XMLControl.
-     *
-     * @param control the control to save to
-     * @param obj the object to save
-     */
-    @Override
-	public void saveObject(XMLControl control, Object obj) {
-    	RGBRegion region = (RGBRegion) obj;
-      // save track data
-      XML.getLoader(TTrack.class).saveObject(control, obj);
-      // save fixed position
-    	control.setValue("fixed", region.isFixedPosition()); //$NON-NLS-1$
-      // save fixed radius
-    	control.setValue("fixed_radius", region.isFixedRadius()); //$NON-NLS-1$
-      // save step data, if any
-    	if (!region.steps.isEmpty()) {
-	      Step[] steps = region.getSteps();
-	      int count = region.isFixedPosition()? 1: steps.length;
-	      FrameData[] data = new FrameData[count];
-	      for (int n = 0; n < count; n++) {
-	      	// save only position key frames
-	        if (steps[n] == null || !region.keyFrames.contains(n)) continue;
-	        data[n] = new FrameData((RGBStep)steps[n]);
-	      }
-	      control.setValue("framedata", data); //$NON-NLS-1$   
-	    	// save radius
-	      count = region.isFixedRadius()? 1: steps.length;
-	      Integer[] radii = new Integer[count];
-	      for (int n = 0; n < count; n++) {
-	      	// save only radius key frames
-	        if (steps[n] == null || !region.radiusKeyFrames.contains(n)) continue;
-	        radii[n] = ((RGBStep)steps[n]).radius;
-	      }
-	      control.setValue("radii", radii); //$NON-NLS-1$
-	      // save RGB values
-	      count = steps.length;
-	      int first = 0;
-	      int last = count-1;
-	      if (region.trackerPanel!=null) {
-	      	first = region.trackerPanel.getPlayer().getVideoClip().getStartFrameNumber();
-	      	last = region.trackerPanel.getPlayer().getVideoClip().getEndFrameNumber();
-	      }
-	      double[][] rgb = new double[last+1][];
-	      double[] stepRGB = new double[5];
-	      for (int n = first; n <= last; n++) {
-	      	// save RGB and pixel count data for all valid frames in clip
-	        if (n>steps.length-1 || steps[n] == null) continue;
-	        if (((RGBStep)steps[n]).dataValid) {
-	        	stepRGB = ((RGBStep)steps[n]).rgbData;
-	        	rgb[n] = new double[4];
-		        System.arraycopy(stepRGB, 0, rgb[n], 0, 3);
-		        System.arraycopy(stepRGB, 4, rgb[n], 3, 1);
-	        }
-	      }
-	      control.setValue("rgb", rgb); //$NON-NLS-1$
-    	}
-    }
+		/**
+		 * Saves an object's data to an XMLControl.
+		 *
+		 * @param control the control to save to
+		 * @param obj     the object to save
+		 */
+		@Override
+		public void saveObject(XMLControl control, Object obj) {
+			RGBRegion region = (RGBRegion) obj;
+			// save track data
+			XML.getLoader(TTrack.class).saveObject(control, obj);
+			// save fixed position
+			control.setValue("fixed", region.isFixedPosition()); //$NON-NLS-1$
+			// save fixed radius
+			control.setValue("fixed_radius", region.isFixedRadius()); //$NON-NLS-1$
+			// save step data, if any
+			if (!region.steps.isEmpty()) {
+				Step[] steps = region.getSteps();
+				int count = region.isFixedPosition() ? 1 : steps.length;
+				FrameData[] data = new FrameData[count];
+				for (int n = 0; n < count; n++) {
+					// save only position key frames
+					if (steps[n] == null || !region.keyFrames.contains(n))
+						continue;
+					data[n] = new FrameData((RGBStep) steps[n]);
+				}
+				control.setValue("framedata", data); //$NON-NLS-1$
+				// save radius
+				count = region.isFixedRadius() ? 1 : steps.length;
+				Integer[] radii = new Integer[count];
+				for (int n = 0; n < count; n++) {
+					// save only radius key frames
+					if (steps[n] == null || !region.radiusKeyFrames.contains(n))
+						continue;
+					radii[n] = ((RGBStep) steps[n]).radius;
+				}
+				control.setValue("radii", radii); //$NON-NLS-1$
+				// save RGB values
+				count = steps.length;
+				int first = 0;
+				int last = count - 1;
+				if (region.trackerPanel != null) {
+					first = region.trackerPanel.getPlayer().getVideoClip().getStartFrameNumber();
+					last = region.trackerPanel.getPlayer().getVideoClip().getEndFrameNumber();
+				}
+				double[][] rgb = new double[last + 1][];
+				double[] stepRGB = new double[5];
+				for (int n = first; n <= last; n++) {
+					// save RGB and pixel count data for all valid frames in clip
+					if (n > steps.length - 1 || steps[n] == null)
+						continue;
+					if (((RGBStep) steps[n]).dataValid) {
+						stepRGB = ((RGBStep) steps[n]).rgbData;
+						rgb[n] = new double[4];
+						System.arraycopy(stepRGB, 0, rgb[n], 0, 3);
+						System.arraycopy(stepRGB, 4, rgb[n], 3, 1);
+					}
+				}
+				control.setValue("rgb", rgb); //$NON-NLS-1$
+			}
+		}
 
-    /**
-     * Creates a new object with data from an XMLControl.
-     *
-     * @param control the control
-     * @return the newly created object
-     */
-    @Override
-	public Object createObject(XMLControl control) {
-    	RGBRegion region = new RGBRegion();
-      return region;
-    }
+		/**
+		 * Creates a new object with data from an XMLControl.
+		 *
+		 * @param control the control
+		 * @return the newly created object
+		 */
+		@Override
+		public Object createObject(XMLControl control) {
+			RGBRegion region = new RGBRegion();
+			return region;
+		}
 
-    /**
-     * Loads an object with data from an XMLControl.
-     *
-     * @param control the control
-     * @param obj the object
-     * @return the loaded object
-     */
-    @Override
-	public Object loadObject(XMLControl control, Object obj) {
-    	RGBRegion region = (RGBRegion) obj;
-      // load track data
-      XML.getLoader(TTrack.class).loadObject(control, obj);
-      boolean locked = region.isLocked();
-      region.setLocked(false);
-      region.loading = true;
-      // load fixed position
-      region.fixedPosition = control.getBoolean("fixed"); //$NON-NLS-1$
-      // load fixed radius
-      region.fixedRadius = control.getBoolean("fixed_radius"); //$NON-NLS-1$
-      // load step data
-      region.keyFrames.clear();
-      region.radiusKeyFrames.clear();
-      Object dataObj = control.getObject("framedata"); //$NON-NLS-1$
-      FrameData[] data = null;
-      if (dataObj instanceof FrameData) { // legacy
-      	data = new FrameData[] {(FrameData)dataObj};
-      }
-      else { // dataObj instanceof FrameData[]
-      	data = (FrameData[])dataObj;
-      }
-      if (data!=null) {
-	      for (int n = 0; n < data.length; n++) {
-	        if (data[n] == null) continue;
-	        RGBStep step = (RGBStep)region.createStep(n, data[n].x, data[n].y);
-	        if (data[n].r != Integer.MIN_VALUE) {
-	        	step.radius = data[n].r;
-	          region.radiusKeyFrames.add(n); // for legacy compatibility
-	        }
-	      }
-      }
-      Integer[] radii = (Integer[])control.getObject("radii"); //$NON-NLS-1$
-      if (radii!=null) {
-        region.radiusKeyFrames.clear();
-	      for (int n = 0; n < radii.length; n++) {
-	        if (radii[n] == null) continue;
-	        RGBStep step = (RGBStep)region.steps.getStep(n);
-	        step.radius = radii[n];
-	        region.radiusKeyFrames.add(n);
-	      }
-      }
-      double[][] rgb = (double[][])control.getObject("rgb"); //$NON-NLS-1$
-      if (rgb!=null) {
-      	for (int n=0; n<rgb.length; n++) {
-      		if (rgb[n]==null) continue;
-	        RGBStep step = (RGBStep)region.steps.getStep(n);
-	        System.arraycopy(rgb[n], 0, step.rgbData, 0, 3);
-	        step.rgbData[0] = rgb[n][0];
-	        step.rgbData[1] = rgb[n][1];
-	        step.rgbData[2] = rgb[n][2];
-	        step.rgbData[3] = RGBRegion.getLuma(rgb[n][0], rgb[n][1], rgb[n][2]);
-	        step.rgbData[4] = rgb[n][3];
-	        region.refreshStep(step);
-	        step.dataValid = true;
-      	}
-      }
-      region.setLocked(locked);
-      region.loading = false;
-      region.repaint();
-      return obj;
-    }
-  }
+		/**
+		 * Loads an object with data from an XMLControl.
+		 *
+		 * @param control the control
+		 * @param obj     the object
+		 * @return the loaded object
+		 */
+		@Override
+		public Object loadObject(XMLControl control, Object obj) {
+			RGBRegion region = (RGBRegion) obj;
+			// load track data
+			XML.getLoader(TTrack.class).loadObject(control, obj);
+			boolean locked = region.isLocked();
+			region.setLocked(false);
+			region.loading = true;
+			// load fixed position
+			region.fixedPosition = control.getBoolean("fixed"); //$NON-NLS-1$
+			// load fixed radius
+			region.fixedRadius = control.getBoolean("fixed_radius"); //$NON-NLS-1$
+			// load step data
+			region.keyFrames.clear();
+			region.radiusKeyFrames.clear();
+			Object dataObj = control.getObject("framedata"); //$NON-NLS-1$
+			FrameData[] data = null;
+			if (dataObj instanceof FrameData) { // legacy
+				data = new FrameData[] { (FrameData) dataObj };
+			} else { // dataObj instanceof FrameData[]
+				data = (FrameData[]) dataObj;
+			}
+			if (data != null) {
+				for (int n = 0; n < data.length; n++) {
+					if (data[n] == null)
+						continue;
+					RGBStep step = (RGBStep) region.createStep(n, data[n].x, data[n].y);
+					if (data[n].r != Integer.MIN_VALUE) {
+						step.radius = data[n].r;
+						region.radiusKeyFrames.add(n); // for legacy compatibility
+					}
+				}
+			}
+			Integer[] radii = (Integer[]) control.getObject("radii"); //$NON-NLS-1$
+			if (radii != null) {
+				region.radiusKeyFrames.clear();
+				for (int n = 0; n < radii.length; n++) {
+					if (radii[n] == null)
+						continue;
+					RGBStep step = (RGBStep) region.steps.getStep(n);
+					step.radius = radii[n];
+					region.radiusKeyFrames.add(n);
+				}
+			}
+			double[][] rgb = (double[][]) control.getObject("rgb"); //$NON-NLS-1$
+			if (rgb != null) {
+				for (int n = 0; n < rgb.length; n++) {
+					if (rgb[n] == null)
+						continue;
+					RGBStep step = (RGBStep) region.steps.getStep(n);
+					System.arraycopy(rgb[n], 0, step.rgbData, 0, 3);
+					step.rgbData[0] = rgb[n][0];
+					step.rgbData[1] = rgb[n][1];
+					step.rgbData[2] = rgb[n][2];
+					step.rgbData[3] = RGBRegion.getLuma(rgb[n][0], rgb[n][1], rgb[n][2]);
+					step.rgbData[4] = rgb[n][3];
+					region.refreshStep(step);
+					step.dataValid = true;
+				}
+			}
+			region.setLocked(locked);
+			region.loading = false;
+			region.repaint();
+			return obj;
+		}
+	}
 
-  /**
-   * Inner class containing the rgb data for a single frame number.
-   */
-  private static class FrameData {
-    double x, y;
-    int r;
-    
-    FrameData() {/** empty block */}
-    
-    FrameData(RGBStep s) {
-      x = s.getPosition().getX();
-      y = s.getPosition().getY();
-      r = s.radius;
-    }
-  }
+	/**
+	 * Inner class containing the rgb data for a single frame number.
+	 */
+	private static class FrameData {
+		double x, y;
+		int r;
 
-  /**
-   * A class to save and load a FrameData.
-   */
-  private static class FrameDataLoader
-      implements XML.ObjectLoader {
+		FrameData() {
+			/** empty block */
+		}
 
-    @Override
-	public void saveObject(XMLControl control, Object obj) {
-      FrameData data = (FrameData) obj;
-      control.setValue("x", data.x); //$NON-NLS-1$
-      control.setValue("y", data.y); //$NON-NLS-1$
-      control.setValue("r", data.r); //$NON-NLS-1$
-    }
+		FrameData(RGBStep s) {
+			x = s.getPosition().getX();
+			y = s.getPosition().getY();
+			r = s.radius;
+		}
+	}
 
-    @Override
-	public Object createObject(XMLControl control) {
-      return new FrameData();
-    }
+	/**
+	 * A class to save and load a FrameData.
+	 */
+	private static class FrameDataLoader implements XML.ObjectLoader {
 
-    @Override
-	public Object loadObject(XMLControl control, Object obj) {
-      FrameData data = (FrameData) obj;
-      data.x = control.getDouble("x"); //$NON-NLS-1$
-      data.y = control.getDouble("y"); //$NON-NLS-1$
-      data.r = control.getInt("r"); //$NON-NLS-1$
-      return obj;
-    }
-  }
+		@Override
+		public void saveObject(XMLControl control, Object obj) {
+			FrameData data = (FrameData) obj;
+			control.setValue("x", data.x); //$NON-NLS-1$
+			control.setValue("y", data.y); //$NON-NLS-1$
+			control.setValue("r", data.r); //$NON-NLS-1$
+		}
+
+		@Override
+		public Object createObject(XMLControl control) {
+			return new FrameData();
+		}
+
+		@Override
+		public Object loadObject(XMLControl control, Object obj) {
+			FrameData data = (FrameData) obj;
+			data.x = control.getDouble("x"); //$NON-NLS-1$
+			data.y = control.getDouble("y"); //$NON-NLS-1$
+			data.r = control.getInt("r"); //$NON-NLS-1$
+			return obj;
+		}
+	}
 
 }
-

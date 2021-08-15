@@ -58,6 +58,7 @@ import org.opensourcephysics.media.core.ImageCoordSystem;
 import org.opensourcephysics.media.core.TPoint;
 import org.opensourcephysics.media.core.Trackable;
 import org.opensourcephysics.media.core.VideoClip;
+import org.opensourcephysics.media.core.VideoPanel;
 import org.opensourcephysics.tools.FunctionEditor;
 import org.opensourcephysics.tools.FunctionTool;
 import org.opensourcephysics.tools.InitialValueEditor;
@@ -242,6 +243,33 @@ abstract public class ParticleModel extends PointMass {
 		}
 	}
 
+	
+	protected void setTracker(TrackerPanel panel) {
+		if (trackerPanel != null) {
+//			trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_FUNCTION, this);
+//			trackerPanel.removePropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, this);
+//			trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDTRACK, this);
+//			trackerPanel.removePropertyChangeListener(VideoClip.PROPERTY_VIDEOCLIP_STARTTIME, this);
+//			trackerPanel.removePropertyChangeListener(ClipControl.PROPERTY_CLIPCONTROL_FRAMEDURATION, this);
+//			trackerPanel.removePropertyChangeListener(DataTrack.PROPERTY_DATATRACK_STARTFRAME, this);
+//			trackerPanel.removePropertyChangeListener(VideoClip.PROPERTY_VIDEOCLIP_STEPSIZE, this);
+//			trackerPanel.removePropertyChangeListener(VideoClip.PROPERTY_VIDEOCLIP_STEPCOUNT, this);
+//			trackerPanel.removePropertyChangeListener(Trackable.PROPERTY_ADJUSTING, this);
+		}
+		super.setTrackerPanel(panel);
+		if (panel != null) {
+//			panel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_FUNCTION, this);
+//			panel.addPropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, this);
+//			panel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDTRACK, this);
+//			panel.addPropertyChangeListener(VideoClip.PROPERTY_VIDEOCLIP_STARTTIME, this);
+//			panel.addPropertyChangeListener(ClipControl.PROPERTY_CLIPCONTROL_FRAMEDURATION, this);
+//			panel.addPropertyChangeListener(DataTrack.PROPERTY_DATATRACK_STARTFRAME, this);
+//			panel.addPropertyChangeListener(VideoClip.PROPERTY_VIDEOCLIP_STEPSIZE, this);
+//			panel.addPropertyChangeListener(VideoClip.PROPERTY_VIDEOCLIP_STEPCOUNT, this);
+//			panel.addPropertyChangeListener(Trackable.PROPERTY_ADJUSTING, this);
+		}
+	}
+
 	/**
 	 * Responds to property change events.
 	 * 
@@ -254,9 +282,7 @@ abstract public class ParticleModel extends PointMass {
 			return;
 		boolean dorefresh = (!refreshing && isModelsVisible());
 		String resetMe = null;
-		String name = e.getPropertyName();
-		switch (name) {
-//		System.out.println(name);
+		switch (e.getPropertyName()) {
 		case FunctionTool.PROPERTY_FUNCTIONTOOL_FUNCTION:
 			if (!loading)
 				trackerPanel.changed = true;
@@ -280,6 +306,7 @@ abstract public class ParticleModel extends PointMass {
 			}
 			break;
 		case TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDTRACK:
+			// from TrackerPnael
 			if (e.getNewValue() == this && modelBuilder != null && !modelBuilder.getSelectedName().equals(getName())) {
 				modelBuilder.setSelectedPanel(getName());
 			}
@@ -300,6 +327,7 @@ abstract public class ParticleModel extends PointMass {
 			}
 			break;
 		case ImageCoordSystem.PROPERTY_COORDS_TRANSFORM: // $NON-NLS-1$
+			// from TrackerPanel
 			// workaround to prevent infinite loop
 			ImageCoordSystem coords = trackerPanel.getCoords();
 			if (!(coords instanceof ReferenceFrame && ((ReferenceFrame) coords).getOriginTrack() == this)) {
@@ -620,6 +648,14 @@ abstract public class ParticleModel extends PointMass {
 		return endFrame;
 	}
 
+	private final static String[] panelEventsParticleModel = new String[] { 
+			ClipControl.PROPERTY_CLIPCONTROL_FRAMEDURATION, // ParticleModel
+			FunctionTool.PROPERTY_FUNCTIONTOOL_FUNCTION, // ParticleModel (also DynamicSystem)
+			VideoClip.PROPERTY_VIDEOCLIP_STARTTIME,  // ParticleModel
+			VideoClip.PROPERTY_VIDEOCLIP_STEPCOUNT, // ParticleModel
+			TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDTRACK, // ParticleModel
+	};
+	
 	/**
 	 * Identifies the controlling TrackerPanel for this track (by default, the first
 	 * TrackerPanel that adds this track to its drawables).
@@ -628,8 +664,11 @@ abstract public class ParticleModel extends PointMass {
 	 */
 	@Override
 	public void setTrackerPanel(TrackerPanel panel) {
+		if (trackerPanel != null)
+			removePanelEvents(panelEventsParticleModel);
 		super.setTrackerPanel(panel);
-		if (panel != null) {
+		if (trackerPanel != null) {
+			addPanelEvents(panelEventsParticleModel);
 			if (startFrameUndefined) {
 				int n = panel.getPlayer().getVideoClip().getStartFrameNumber();
 				setStartFrame(n);

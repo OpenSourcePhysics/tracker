@@ -24,12 +24,10 @@
 package org.opensourcephysics.cabrillo.tracker;
 
 import java.beans.PropertyChangeListener;
-import java.beans.PropertyChangeSupport;
 import java.util.Locale;
 import java.util.MissingResourceException;
 
-import javax.swing.event.SwingPropertyChangeSupport;
-
+import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.tools.ResourceLoader;
 import org.opensourcephysics.tools.ResourceLoader.Bundle;
 
@@ -40,7 +38,7 @@ import org.opensourcephysics.tools.ResourceLoader.Bundle;
  * @version 1.0
  */
 
-public class TrackerRes {
+public class TrackerRes extends OSPRuntime.Supported {
 
 	public static final String PROPERTY_TRACKERRES_LOCALE = "locale"; //$NON-NLS-1$
 	
@@ -52,12 +50,15 @@ public class TrackerRes {
 					"org.opensourcephysics.cabrillo.tracker.resources.tracker",  //$NON-NLS-1$
 					locale);
 
-	static PropertyChangeSupport support = new SwingPropertyChangeSupport(new TrackerRes());
+	static TrackerRes tresObj = new TrackerRes();
 
 	/**
 	 * Private constructor to prevent instantiation.
 	 */
-	private TrackerRes() {/** empty block */}
+	private TrackerRes() {
+		// super creates support object
+		/** empty block */
+	}
 
 	/**
 	 * Gets the localized value of a string. If no localized value is found, the
@@ -92,7 +93,7 @@ public class TrackerRes {
 		org.opensourcephysics.media.core.MediaRes.setLocale(loc);
 		org.opensourcephysics.controls.ControlsRes.setLocale(loc);
 		org.opensourcephysics.tools.ToolsRes.setLocale(loc);
-		support.firePropertyChange(PROPERTY_TRACKERRES_LOCALE, prev, locale); //$NON-NLS-1$
+		tresObj.firePropertyChange(PROPERTY_TRACKERRES_LOCALE, prev, locale); //$NON-NLS-1$
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -104,17 +105,8 @@ public class TrackerRes {
    * @param property the name of the property (only "locale" accepted) 
    * @param listener the object requesting property change notification
    */
-	public static void addPropertyChangeListener(String property, PropertyChangeListener listener) {
-    if (property.equals(PROPERTY_TRACKERRES_LOCALE)) 
-    	support.addPropertyChangeListener(property, listener);
+	public static void addListener(PropertyChangeListener listener) {
+		tresObj.addPropertyChangeListener(listener);
   }
 
-  /**
-   * Removes a PropertyChangeListener.
-   *
-   * @param listener the listener requesting removal
-   */
-	public static void removePropertyChangeListener(String property, PropertyChangeListener listener) {
-    support.removePropertyChangeListener(property, listener);
-  }
 }

@@ -373,7 +373,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			setIconImage(Tracker.TRACKER_ICON.getImage());
 		// set default close operation
 		setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
-		TrackerRes.addPropertyChangeListener("locale", this); //$NON-NLS-1$
+		TrackerRes.addListener(this); //$NON-NLS-1$
 
 		// set size and limit maximized size so taskbar not covered
 		Rectangle screenRect = GraphicsEnvironment.getLocalGraphicsEnvironment().getMaximumWindowBounds();
@@ -1483,8 +1483,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	@Override
 	public void propertyChange(PropertyChangeEvent e) {
 		TrackerPanel trackerPanel;
-		String name = e.getPropertyName();
-		switch (name) {
+		switch (e.getPropertyName()) {
 		case VideoPanel.PROPERTY_VIDEOPANEL_DATAFILE:
 		case TrackerPanel.PROPERTY_TRACKERPANEL_VIDEO: // from TrackerPanel //$NON-NLS-1$
 			trackerPanel = (TrackerPanel) e.getSource();
