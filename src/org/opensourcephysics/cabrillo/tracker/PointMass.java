@@ -78,7 +78,6 @@ import org.opensourcephysics.media.core.Trackable;
 import org.opensourcephysics.media.core.VideoClip;
 import org.opensourcephysics.media.core.VideoPlayer;
 import org.opensourcephysics.tools.FontSizer;
-import org.opensourcephysics.tools.FunctionPanel;
 
 /**
  * A PointMass tracks the position, velocity and acceleration of a point mass.
@@ -1265,13 +1264,7 @@ public class PointMass extends TTrack {
 	@Override
 	protected void dispose() {
 		if (trackerPanel != null) {
-			removePropertyChangeListener(TTrack.PROPERTY_TTRACK_MASS, trackerPanel.massChangeListener); // $NON-NLS-1$
-			if (trackerPanel.dataBuilder != null) {
-				FunctionPanel functionPanel = trackerPanel.dataBuilder.getPanel(getName());
-				if (functionPanel != null) {
-					functionPanel.getParamEditor().removePropertyChangeListener("edit", trackerPanel.massParamListener); //$NON-NLS-1$
-				}
-			}
+			trackerPanel.removePointMassListeners(this);
 		}
 		super.dispose();
 	}

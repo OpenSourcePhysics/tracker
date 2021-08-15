@@ -1244,18 +1244,14 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 			refreshInitialTime();
 			adjustVideoClip();
 			firePropertyChange(PROPERTY_PARTICLEDATATRACK_DATACLIP, null, null); // $NON-NLS-1$
-			setLastValidFrame(-1);
-			repaint();
-			return;
+			break;
 		case TrackerPanel.PROPERTY_TRACKERPANEL_VIDEO:
 			// listen for changes to the video
 			firePropertyChange("videoclip", null, null); //$NON-NLS-1$
-			setLastValidFrame(-1);
-			repaint();
 			break;
 		case TFrame.PROPERTY_TFRAME_WINDOWFOCUS:
 			if (!OSPRuntime.allowAutopaste || !isAutoPasteEnabled())
-				break;
+				return;
 			TFrame frame = (TFrame) e.getSource();
 			// listen for data changes
 			if (trackerPanel != null && trackerPanel == frame.getSelectedPanel()
@@ -1285,8 +1281,18 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 //					setPendingDataString(dataString);
 				}
 			}
-			break;
+			return;
+		case TFrame.PROPERTY_TFRAME_TAB: // $NON-NLS-1$
+			if (trackerPanel != null && trackerPanel.getTFrame() != null
+					&& trackerPanel == e.getNewValue()) {
+				trackerPanel.getTFrame().getClipboardListener().processContents(trackerPanel);
+			}
+			return;
+		default:
+			return;
 		}
+		setLastValidFrame(-1);
+		repaint();
 	}
 
 //	protected void setPendingDataString(String dataString) {

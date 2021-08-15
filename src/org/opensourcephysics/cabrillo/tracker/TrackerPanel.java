@@ -131,6 +131,7 @@ import org.opensourcephysics.tools.DataRefreshTool;
 import org.opensourcephysics.tools.DataTool;
 import org.opensourcephysics.tools.DataToolTab;
 import org.opensourcephysics.tools.FontSizer;
+import org.opensourcephysics.tools.FunctionEditor;
 import org.opensourcephysics.tools.FunctionPanel;
 import org.opensourcephysics.tools.FunctionTool;
 import org.opensourcephysics.tools.LocalJob;
@@ -624,7 +625,10 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		// set trackerPanel property if not yet set
 		if (track.trackerPanel == null) {
 			track.setTrackerPanel(this);
+			// add this TrackerPanel to the track's listener list
+			track.addListener(this);
 		}
+
 		// set angle format of the track
 		if (getTFrame() != null)
 			track.setAnglesInRadians(getTFrame().anglesInRadians);
@@ -695,12 +699,6 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		if (doAddDrawable)
 			super.addDrawable(track);
 		
-		// DB TTrack.setTrackerPanel() now responsible for adding the track to this
-		// TrackerPanel's listeners
-		
-		// here we add this TrackerPanel to the track listeners
-		track.addListener(this);
-
 		// update track control and dataBuilder
 		if (trackControl != null && trackControl.isVisible())
 			trackControl.refresh();
@@ -784,13 +782,13 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	 */
 	protected FunctionPanel createFunctionPanel(TTrack track) {
 		DatasetManager data = track.getData(this);
-		FunctionPanel panel = new DataFunctionPanel(data);
-		panel.setIcon(track.getIcon(21, 16, "point")); //$NON-NLS-1$
-		final ParamEditor paramEditor = panel.getParamEditor();
+		FunctionPanel functionPanel = new DataFunctionPanel(data);
+		functionPanel.setIcon(track.getIcon(21, 16, "point")); //$NON-NLS-1$
+		final ParamEditor paramEditor = functionPanel.getParamEditor();
 		// Check for PointMass and Vector, which might be subclassed
 		switch(track.getBaseType()) {
 		case "PointMass":
-			panel.setDescription(PointMass.class.getName());
+			functionPanel.setDescription(PointMass.class.getName());
 			PointMass pm = (PointMass) track;
 			Parameter param = (Parameter) paramEditor.getObject("m"); //$NON-NLS-1$
 			if (param == null) {
@@ -799,24 +797,27 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				paramEditor.addObject(param, false);
 			}
 			param.setNameEditable(false); // mass name not editable
-			paramEditor.addPropertyChangeListener("edit", massParamListener); //$NON-NLS-1$
+			paramEditor.addPropertyChangeListener(FunctionEditor.PROPERTY_FUNCTIONEDITOR_EDIT, massParamListener); //$NON-NLS-1$
 			pm.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_MASS, massChangeListener); //$NON-NLS-1$
 			break;
 		case "Vector":
-			panel.setDescription(Vector.class.getName());
-		break;
-// BH - unnecessary - these are not subclassed
-//		case "RGBRegion":
-//			panel.setDescription(RGBRegion.class.getName());
-//			break;
-//		case "LineProfile":
-//			panel.setDescription(LineProfile.class.getName());
-//			break;
+			functionPanel.setDescription(Vector.class.getName());
+			break;
 		default:
-			panel.setDescription(track.getClass().getName());
+			functionPanel.setDescription(track.getClass().getName());
 			break;
 		}
-		return panel;
+		return functionPanel;
+	}
+
+	public void removePointMassListeners(PointMass pointMass) {
+		pointMass.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_MASS, massChangeListener);
+		if (dataBuilder != null) {
+			FunctionPanel functionPanel = dataBuilder.getPanel(getName());
+			if (functionPanel != null) {
+				functionPanel.getParamEditor().removePropertyChangeListener(FunctionEditor.PROPERTY_FUNCTIONEDITOR_EDIT, massParamListener); 
+			}
+		}
 	}
 
 	/**
@@ -828,7 +829,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		if (getTrackByName(track.getClass(), track.getName()) == null)
 			return;
 		userTracks = null;
-		removeMyListenerFrom(track);
+		track.removeListener(this);
 		super.removeDrawable(track);
 		if (dataBuilder != null)
 			dataBuilder.removePanel(track.getName());
@@ -839,24 +840,6 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		firePropertyChange(PROPERTY_TRACKERPANEL_TRACK, track, null);
 		TTrack.activeTracks.remove(track.getID());
 		changed = true;
-	}
-
-	private void removeMyListenerFrom(TTrack track) {
-		removePropertyChangeListener(track);
-		track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_STEP, this);
-		track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_STEPS, this);
-		track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_MASS, this);
-		track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_MODELSTART, this);
-		track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_MODELEND, this);
-
-		track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_NAME, this);
-		track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_FOOTPRINT, this);
-
-		if (track instanceof ParticleModel) {
-			TFrame frame = getTFrame();
-			if (frame != null)
-				frame.removePropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, track);
-		}
 	}
 
 	/**
@@ -1073,7 +1056,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			// remove propertyChangeListeners
 			ArrayList<T> removed = getObjectOfClass(c);
 			for (int i = 0, n = removed.size(); i < n; i++) {
-				removeMyListenerFrom((TTrack) removed.get(i));
+				((TTrack) removed.get(i)).removeListener(this);
 			}
 			super.removeObjectsOfClass(c);
 			// notify views
@@ -1101,7 +1084,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		ArrayList<TTrack> list = getTracks();
 			for (int i = 0, n = list.size(); i < n; i++) {
 				TTrack track = list.get(i);
-				removeMyListenerFrom(track);
+				track.removeListener(this);
 				// handle case when track is the origin of current reference frame
 				ImageCoordSystem coords = getCoords();
 				if (andSetCoords && coords instanceof ReferenceFrame && ((ReferenceFrame) coords).getOriginTrack() == track) {

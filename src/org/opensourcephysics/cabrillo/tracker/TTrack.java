@@ -228,8 +228,10 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 	}
 
 	/**
-	 * Identifies the controlling TrackerPanel for this track (by default, the first
-	 * TrackerPanel that adds this track to its drawables).
+	 * Install the controlling TrackerPanel for this track (by default, the first
+	 * TrackerPanel that adds this track to its drawables) and add this track to the
+	 * panel's specific (outgoing) listener lists so that the track can respond to
+	 * external changes.
 	 * 
 	 * This method is overridden to add specific TrackerPanel events for subclasses.
 	 * 
@@ -238,61 +240,66 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 	 */
 	public void setTrackerPanel(TrackerPanel panel) {
 		if (trackerPanel != null) {
-			trackerPanel.removePropertyChangeListener(this);
 			removePanelEvents(panelEventsTTrack);
 		}
 		trackerPanel = panel;
 		if (panel != null) {
 			panel.addPropertyChangeListener(this);
-			removePanelEvents(panelEventsTTrack);
+			addPanelEvents(panelEventsTTrack);
 		}
 	}
 
+	/**
+	 * Add specific (incoming) trackPanel events that the track has to respond to.
+	 * @param events
+	 */
 	protected void addPanelEvents(String[] events) {
 		for (int i = events.length; --i >= 0;)
 			trackerPanel.addPropertyChangeListener(events[i], this);
 	}
 
+	/**
+	 * Remove specific (incoming) trackPanel events that the track was respond to.
+	 * @param events
+	 */
 	protected void removePanelEvents(String[] events) {
 		for (int i = events.length; --i >= 0;)
 			trackerPanel.removePropertyChangeListener(events[i], this);
 	}
 
 	/**
-	 * Add outgoing listeners to the track
-	 * @param c this will be TrackerPanel
+	 * Allow the TrackPanel to respond to specific track (outgoing) property changes.
+	 * 
+	 * @param panel
 	 */
-	public void addListener(PropertyChangeListener c) {
-		addPropertyChangeListener(PROPERTY_TTRACK_FORMAT, c);
-		addPropertyChangeListener(PROPERTY_TTRACK_MASS, c);
-		addPropertyChangeListener(PROPERTY_TTRACK_MODELEND, c);
-		addPropertyChangeListener(PROPERTY_TTRACK_MODELSTART, c);
-
-		addPropertyChangeListener(PROPERTY_TTRACK_NAME, c);
-		addPropertyChangeListener(PROPERTY_TTRACK_FOOTPRINT, c);
-
-		addStepListener(c);
+	public void addListener(TrackerPanel panel) {
+		addPropertyChangeListener(PROPERTY_TTRACK_FORMAT, panel);
+		addPropertyChangeListener(PROPERTY_TTRACK_MASS, panel);
+		addPropertyChangeListener(PROPERTY_TTRACK_MODELEND, panel);
+		addPropertyChangeListener(PROPERTY_TTRACK_MODELSTART, panel);
+		addPropertyChangeListener(PROPERTY_TTRACK_NAME, panel);
+		addPropertyChangeListener(PROPERTY_TTRACK_FOOTPRINT, panel);
+		addStepListener(panel);
 
 	}
 
-	public void removeListener(PropertyChangeListener c) {
-		removePropertyChangeListener(PROPERTY_TTRACK_FORMAT, c);
-		removePropertyChangeListener(PROPERTY_TTRACK_MASS, c);
-		removePropertyChangeListener(PROPERTY_TTRACK_MODELEND, c);
-		removePropertyChangeListener(PROPERTY_TTRACK_MODELSTART, c);
+	/**
+	 * Remove the TrackPanel from specific (outgoing) property change lists.
+	 * 
+	 * @param panel
+	 */
+	public void removeListener(TrackerPanel panel) {
+		removePropertyChangeListener(PROPERTY_TTRACK_FORMAT, panel);
+		removePropertyChangeListener(PROPERTY_TTRACK_MASS, panel);
+		removePropertyChangeListener(PROPERTY_TTRACK_MODELEND, panel);
+		removePropertyChangeListener(PROPERTY_TTRACK_MODELSTART, panel);
+		removePropertyChangeListener(PROPERTY_TTRACK_NAME, panel);
+		removePropertyChangeListener(PROPERTY_TTRACK_FOOTPRINT, panel);
+		removeStepListener(panel);
 
-		removePropertyChangeListener(PROPERTY_TTRACK_NAME, c);
-		removePropertyChangeListener(PROPERTY_TTRACK_FOOTPRINT, c);
+		// this one is in updateListenerVisible only -- WorldTView only
+		removePropertyChangeListener(PROPERTY_TTRACK_VISIBLE, panel);
 
-		// this one is in updateListenerVisible only
-		removePropertyChangeListener(PROPERTY_TTRACK_VISIBLE, c);
-
-		removeStepListener(c);
-
-		// these doesn't make any sense. TTrack objects are not firing TrackerPanel
-		// events.
-//		removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_STEPNUMBER, c); // $NON-NLS-1$
-//		removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_IMAGE, c); // $NON-NLS-1$
 	}
 
 	/**
@@ -333,7 +340,7 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 
 	/**
 	 * TTRACK_VISIBLE is of interest to TToolBar Calibration and Ruler buttons, as
-	 * well as WorldTView. This method safelty adds the listener, first removing an
+	 * well as WorldTView. This method safely adds the listener, first removing an
 	 * existing one by this name if present.
 	 * 
 	 * @param l
@@ -4031,19 +4038,6 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 			}
 		}
 		return menu;
-	}
-
-	public void removePanelListeners(TrackerPanel panel) {
-		// TTrack should take care of this itself ?
-		removePropertyChangeListener(TTrack.PROPERTY_TTRACK_STEP, this);
-		removePropertyChangeListener(TTrack.PROPERTY_TTRACK_STEPS, this);
-		removePropertyChangeListener(TTrack.PROPERTY_TTRACK_MASS, this);
-		removePropertyChangeListener(TTrack.PROPERTY_TTRACK_MODELSTART, this);
-		removePropertyChangeListener(TTrack.PROPERTY_TTRACK_MODELEND, this);
-
-		removePropertyChangeListener(TTrack.PROPERTY_TTRACK_NAME, this);
-		removePropertyChangeListener(TTrack.PROPERTY_TTRACK_FOOTPRINT, this);
-
 	}
 
 }

@@ -58,7 +58,6 @@ import org.opensourcephysics.media.core.ImageCoordSystem;
 import org.opensourcephysics.media.core.TPoint;
 import org.opensourcephysics.media.core.Trackable;
 import org.opensourcephysics.media.core.VideoClip;
-import org.opensourcephysics.media.core.VideoPanel;
 import org.opensourcephysics.tools.FunctionEditor;
 import org.opensourcephysics.tools.FunctionTool;
 import org.opensourcephysics.tools.InitialValueEditor;
@@ -244,32 +243,41 @@ abstract public class ParticleModel extends PointMass {
 	}
 
 	
-	protected void setTracker(TrackerPanel panel) {
+	private final static String[] panelEventsParticleModel = new String[] { 
+			ClipControl.PROPERTY_CLIPCONTROL_FRAMEDURATION, // ParticleModel
+			FunctionTool.PROPERTY_FUNCTIONTOOL_FUNCTION, // ParticleModel (also DynamicSystem)
+			VideoClip.PROPERTY_VIDEOCLIP_STARTTIME,  // ParticleModel
+			VideoClip.PROPERTY_VIDEOCLIP_STEPCOUNT, // ParticleModel
+			TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDTRACK, // ParticleModel
+	};
+	
+	@Override
+	public void setTrackerPanel(TrackerPanel panel) {
 		if (trackerPanel != null) {
-//			trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_FUNCTION, this);
-//			trackerPanel.removePropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, this);
-//			trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDTRACK, this);
-//			trackerPanel.removePropertyChangeListener(VideoClip.PROPERTY_VIDEOCLIP_STARTTIME, this);
-//			trackerPanel.removePropertyChangeListener(ClipControl.PROPERTY_CLIPCONTROL_FRAMEDURATION, this);
-//			trackerPanel.removePropertyChangeListener(DataTrack.PROPERTY_DATATRACK_STARTFRAME, this);
-//			trackerPanel.removePropertyChangeListener(VideoClip.PROPERTY_VIDEOCLIP_STEPSIZE, this);
-//			trackerPanel.removePropertyChangeListener(VideoClip.PROPERTY_VIDEOCLIP_STEPCOUNT, this);
-//			trackerPanel.removePropertyChangeListener(Trackable.PROPERTY_ADJUSTING, this);
+			removePanelEvents(panelEventsParticleModel);
+			// remove this model's listener from the frame that would have been created
+			// when the ModelBuilder was initiated.
+			TFrame frame = trackerPanel.getTFrame();
+			if (frame != null)
+				frame.removePropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, this);
 		}
 		super.setTrackerPanel(panel);
-		if (panel != null) {
-//			panel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_FUNCTION, this);
-//			panel.addPropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, this);
-//			panel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDTRACK, this);
-//			panel.addPropertyChangeListener(VideoClip.PROPERTY_VIDEOCLIP_STARTTIME, this);
-//			panel.addPropertyChangeListener(ClipControl.PROPERTY_CLIPCONTROL_FRAMEDURATION, this);
-//			panel.addPropertyChangeListener(DataTrack.PROPERTY_DATATRACK_STARTFRAME, this);
-//			panel.addPropertyChangeListener(VideoClip.PROPERTY_VIDEOCLIP_STEPSIZE, this);
-//			panel.addPropertyChangeListener(VideoClip.PROPERTY_VIDEOCLIP_STEPCOUNT, this);
-//			panel.addPropertyChangeListener(Trackable.PROPERTY_ADJUSTING, this);
+		if (trackerPanel != null) {
+			addPanelEvents(panelEventsParticleModel);
+			if (startFrameUndefined) {
+				int n = panel.getPlayer().getVideoClip().getStartFrameNumber();
+				setStartFrame(n);
+				startFrameUndefined = false;
+			}
+			if (panel.getTFrame() != null) {
+				boolean radians = panel.getTFrame().anglesInRadians;
+				functionPanel.initEditor.setAnglesInDegrees(!radians);
+			}
 		}
 	}
 
+
+	
 	/**
 	 * Responds to property change events.
 	 * 
@@ -283,11 +291,8 @@ abstract public class ParticleModel extends PointMass {
 		boolean dorefresh = (!refreshing && isModelsVisible());
 		String resetMe = null;
 		switch (e.getPropertyName()) {
-		case FunctionTool.PROPERTY_FUNCTIONTOOL_FUNCTION:
-			if (!loading)
-				trackerPanel.changed = true;
-			resetMe = "repaint";
-			break;
+		default:
+			return;
 		case TFrame.PROPERTY_TFRAME_TAB: // $NON-NLS-1$
 			if (modelBuilder != null) {
 				if (trackerPanel != null && e.getNewValue() == trackerPanel && trackerPanel.isModelBuilderVisible) {
@@ -297,19 +302,32 @@ abstract public class ParticleModel extends PointMass {
 					trackerPanel.isModelBuilderVisible = true;
 				}
 			}
-			if (this instanceof ParticleDataTrack
-//					&& ((ParticleDataTrack)this).isAutoPasteEnabled()
-					&& trackerPanel != null && trackerPanel.getTFrame() != null
-//					&& trackerPanel.getTFrame().clipboardListener!=null
-					&& trackerPanel == e.getNewValue()) {
-				trackerPanel.getTFrame().getClipboardListener().processContents(trackerPanel);
-			}
-			break;
+			return;
 		case TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDTRACK:
 			// from TrackerPnael
 			if (e.getNewValue() == this && modelBuilder != null && !modelBuilder.getSelectedName().equals(getName())) {
 				modelBuilder.setSelectedPanel(getName());
 			}
+			return;
+		case VideoClip.PROPERTY_VIDEOCLIP_STEPCOUNT:
+			// no reset to -1
+			if (dorefresh) {
+				refreshInitialTime();
+				refreshSteps(name);
+			}
+			return;
+		case Trackable.PROPERTY_ADJUSTING: // $NON-NLS-1$
+			if (dorefresh) {
+				refreshStepsLater = (Boolean) e.getNewValue();
+				if (!refreshStepsLater) { // stopped adjusting, so refresh steps
+					refreshSteps(name);
+				}
+			}
+			return;
+		case FunctionTool.PROPERTY_FUNCTIONTOOL_FUNCTION:
+			if (!loading)
+				trackerPanel.changed = true;
+			resetMe = "repaint";
 			break;
 		case VideoClip.PROPERTY_VIDEOCLIP_STARTTIME:
 		case ClipControl.PROPERTY_CLIPCONTROL_FRAMEDURATION:
@@ -319,45 +337,28 @@ abstract public class ParticleModel extends PointMass {
 		case VideoClip.PROPERTY_VIDEOCLIP_STEPSIZE:
 			resetMe = "refresh";
 			break;
-		case VideoClip.PROPERTY_VIDEOCLIP_STEPCOUNT:
-			// no reset to -1
-			if (dorefresh) {
-				refreshInitialTime();
-				refreshSteps(name);
-			}
-			break;
 		case ImageCoordSystem.PROPERTY_COORDS_TRANSFORM: // $NON-NLS-1$
 			// from TrackerPanel
 			// workaround to prevent infinite loop
 			ImageCoordSystem coords = trackerPanel.getCoords();
-			if (!(coords instanceof ReferenceFrame && ((ReferenceFrame) coords).getOriginTrack() == this)) {
-				resetMe = "refresh";
-			}
-			break;
-		case Trackable.PROPERTY_ADJUSTING: // $NON-NLS-1$
-			if (dorefresh) {
-				refreshStepsLater = (Boolean) e.getNewValue();
-				if (!refreshStepsLater) { // stopped adjusting, so refresh steps
-					refreshSteps(name);
-				}
-			}
+			if (coords instanceof ReferenceFrame && ((ReferenceFrame) coords).getOriginTrack() == this)
+				return;
+			resetMe = "refresh";
 			break;
 		}
-		if (resetMe != null) {
-			setLastValidFrame(-1);
-			if (dorefresh) {
-				switch (resetMe) {
-				case "repaint":
-					repaint();
-					break;
-				case "refresh":
-					refreshSteps(name);
-					break;
-				case "time":
-					refreshInitialTime();
-					refreshSteps(name);
-					break;
-				}
+		setLastValidFrame(-1);
+		if (dorefresh) {
+			switch (resetMe) {
+			case "repaint":
+				repaint();
+				break;
+			case "refresh":
+				refreshSteps(name);
+				break;
+			case "time":
+				refreshInitialTime();
+				refreshSteps(name);
+				break;
 			}
 		}
 	}
@@ -648,39 +649,6 @@ abstract public class ParticleModel extends PointMass {
 		return endFrame;
 	}
 
-	private final static String[] panelEventsParticleModel = new String[] { 
-			ClipControl.PROPERTY_CLIPCONTROL_FRAMEDURATION, // ParticleModel
-			FunctionTool.PROPERTY_FUNCTIONTOOL_FUNCTION, // ParticleModel (also DynamicSystem)
-			VideoClip.PROPERTY_VIDEOCLIP_STARTTIME,  // ParticleModel
-			VideoClip.PROPERTY_VIDEOCLIP_STEPCOUNT, // ParticleModel
-			TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDTRACK, // ParticleModel
-	};
-	
-	/**
-	 * Identifies the controlling TrackerPanel for this track (by default, the first
-	 * TrackerPanel that adds this track to its drawables).
-	 *
-	 * @param panel the TrackerPanel
-	 */
-	@Override
-	public void setTrackerPanel(TrackerPanel panel) {
-		if (trackerPanel != null)
-			removePanelEvents(panelEventsParticleModel);
-		super.setTrackerPanel(panel);
-		if (trackerPanel != null) {
-			addPanelEvents(panelEventsParticleModel);
-			if (startFrameUndefined) {
-				int n = panel.getPlayer().getVideoClip().getStartFrameNumber();
-				setStartFrame(n);
-				startFrameUndefined = false;
-			}
-			if (panel.getTFrame() != null) {
-				boolean radians = panel.getTFrame().anglesInRadians;
-				functionPanel.initEditor.setAnglesInDegrees(!radians);
-			}
-		}
-	}
-
 	/**
 	 * Sets the display format for angles.
 	 *
@@ -702,12 +670,6 @@ abstract public class ParticleModel extends PointMass {
 
 	@Override
 	protected void dispose() {
-		if (trackerPanel != null) {
-			trackerPanel.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_DATA, this); // $NON-NLS-1$
-			if (trackerPanel.getTFrame() != null) {
-				trackerPanel.getTFrame().removePropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, this); // $NON-NLS-1$
-			}
-		}
 		if (modelBuilder != null) {
 			getParamEditor().removePropertyChangeListener(massParamListener);
 			getInitEditor().removePropertyChangeListener(timeParamListener);
@@ -1086,7 +1048,7 @@ abstract public class ParticleModel extends PointMass {
 			modelBuilder.addPanel(getName(), functionPanel);
 			modelBuilder.addPropertyChangeListener(this);
 			if (trackerPanel.getTFrame() != null) {
-				trackerPanel.getTFrame().addPropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, this); // $NON-NLS-1$
+				trackerPanel.getTFrame().addPropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, this);
 			}
 			if (getInitEditor().getValues()[0] == 0) {
 				refreshInitialTime();
