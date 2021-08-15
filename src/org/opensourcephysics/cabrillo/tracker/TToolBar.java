@@ -1037,7 +1037,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 		xMassMenuItem.setText(TrackerRes.getString("TToolBar.Menuitem.Xmass.Text"));
 		
 		// refresh stretch and trails menus
-		if (stretchMenu.getMenuComponentCount() != 4) {
+		if (stretchMenu.getItemCount() != 4) {
 			stretchMenu.removeAll();
 			stretchMenu.add(vStretchMenu);
 			stretchMenu.add(aStretchMenu);
@@ -1283,8 +1283,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 		CoordAxes axes = trackerPanel.getAxes();
 		if (axes != null) {
 			axesButton.setSelected(axes.isVisible());
-			axes.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_VISIBLE, this); // $NON-NLS-1$
-			axes.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_VISIBLE, this); // $NON-NLS-1$
+			axes.updateListenerVisible(this);
 		}
 //		ArrayList<TTrack> tracks = trackerPanel.getUserTracks();
 //		trackControlButton.setEnabled(!tracks.isEmpty());
@@ -1932,8 +1931,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 			setToolTipText(TrackerRes.getString("TToolbar.Button.TapeVisible.Tooltip")); //$NON-NLS-1$
 			// add PROPERTY_TTRACK_VISIBLE property change listeners to calibration tools
 			for (TTrack track : trackerPanel.calibrationTools) {
-				track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_VISIBLE, TToolBar.this); // $NON-NLS-1$
-				track.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_VISIBLE, TToolBar.this); // $NON-NLS-1$
+				track.updateListenerVisible(TToolBar.this);
 			}
 			// check visibility of tools and state of menu items
 			boolean toolsVisible = false;
@@ -2094,8 +2092,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 			setToolTipText(TrackerRes.getString("TToolbar.Button.RulerVisible.Tooltip")); //$NON-NLS-1$
 			// add PROPERTY_TTRACK_VISIBLE property change listeners to measuring tools
 			for (TTrack track : trackerPanel.measuringTools) {
-				track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_VISIBLE, TToolBar.this); // $NON-NLS-1$
-				track.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_VISIBLE, TToolBar.this); // $NON-NLS-1$
+				track.updateListenerVisible(TToolBar.this);
 			}
 			// check visibility of tools
 			boolean toolsVisible = false;

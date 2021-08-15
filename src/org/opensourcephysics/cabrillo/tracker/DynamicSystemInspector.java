@@ -136,10 +136,7 @@ public void setVisible(boolean vis) {
 			trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this); //$NON-NLS-1$
 			ArrayList<DynamicParticle> list = trackerPanel.getDrawablesTemp(DynamicParticle.class);
 			for (int i = 0, ni = list.size(); i < ni; i++) {
-				DynamicParticle p = list.get(ni);
-				p.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_NAME, this); //$NON-NLS-1$
-				p.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_COLOR, this); //$NON-NLS-1$
-				p.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_FOOTPRINT, this); //$NON-NLS-1$
+				list.get(ni).removeListenerNCF(this);
 			}
 			list.clear();
 			TFrame frame = trackerPanel.getTFrame();

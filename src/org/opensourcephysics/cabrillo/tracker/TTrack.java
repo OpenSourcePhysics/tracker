@@ -140,28 +140,43 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 
 	public void addListener(PropertyChangeListener c) {
 		addPropertyChangeListener(PROPERTY_TTRACK_FORMAT, c);
-		addPropertyChangeListener(PROPERTY_TTRACK_FOOTPRINT, c);
 		addPropertyChangeListener(PROPERTY_TTRACK_MASS, c);
-		addPropertyChangeListener(PROPERTY_TTRACK_NAME, c);
 		addPropertyChangeListener(PROPERTY_TTRACK_MODELEND, c);
 		addPropertyChangeListener(PROPERTY_TTRACK_MODELSTART, c);
+
+		addPropertyChangeListener(PROPERTY_TTRACK_NAME, c);
+		addPropertyChangeListener(PROPERTY_TTRACK_FOOTPRINT, c);
+
 		addStepListener(c);
 
+	}
+	public void addListenerNCF(PropertyChangeListener l) {
+		addPropertyChangeListener(TTrack.PROPERTY_TTRACK_NAME, l);
+		addPropertyChangeListener(TTrack.PROPERTY_TTRACK_COLOR, l);
+		addPropertyChangeListener(TTrack.PROPERTY_TTRACK_FOOTPRINT, l);
 	}
 
 	public void removeListener(PropertyChangeListener c) {
 //		removePropertyChangeListener(PROPERTY_TTRACK_DATA, c);
 		removePropertyChangeListener(PROPERTY_TTRACK_FORMAT, c);
 		removePropertyChangeListener(PROPERTY_TTRACK_MASS, c);
-		removePropertyChangeListener(PROPERTY_TTRACK_NAME, c);
-		removePropertyChangeListener(PROPERTY_TTRACK_FOOTPRINT, c);
 		removePropertyChangeListener(PROPERTY_TTRACK_MODELEND, c);
 		removePropertyChangeListener(PROPERTY_TTRACK_MODELSTART, c);
+		
+		removePropertyChangeListener(PROPERTY_TTRACK_NAME, c);
+		removePropertyChangeListener(PROPERTY_TTRACK_FOOTPRINT, c);
+
 		removeStepListener(c);
 		// these three are not in add?
-		removePropertyChangeListener(PROPERTY_TTRACK_VISIBLE, c); // $NON-NLS-1$
-		removePropertyChangeListener("stepnumber", c); //$NON-NLS-1$
-		removePropertyChangeListener("image", c); //$NON-NLS-1$
+		removePropertyChangeListener(PROPERTY_TTRACK_VISIBLE, c);
+		removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_STEPNUMBER, c); //$NON-NLS-1$
+		removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_IMAGE, c); //$NON-NLS-1$
+	}
+
+	public void removeListenerNCF(PropertyChangeListener l) {
+		removePropertyChangeListener(TTrack.PROPERTY_TTRACK_NAME, l);
+		removePropertyChangeListener(TTrack.PROPERTY_TTRACK_COLOR, l);
+		removePropertyChangeListener(TTrack.PROPERTY_TTRACK_FOOTPRINT, l);
 	}
 
 	public void addStepListener(PropertyChangeListener c) {
@@ -173,6 +188,12 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 		removePropertyChangeListener(PROPERTY_TTRACK_STEP, c);
 		removePropertyChangeListener(PROPERTY_TTRACK_STEPS, c);
 	}
+
+	public void updateListenerVisible(PropertyChangeListener l) {
+		removePropertyChangeListener(TTrack.PROPERTY_TTRACK_VISIBLE, l);
+		addPropertyChangeListener(TTrack.PROPERTY_TTRACK_VISIBLE, l);
+	}
+
 
 	final public int ttype; 
 	
@@ -262,7 +283,7 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 	protected JCheckBoxMenuItem trailVisibleItem;
 	protected JCheckBoxMenuItem markByDefaultItem;
 	protected JCheckBoxMenuItem autoAdvanceItem;
-	protected JCheckBoxMenuItem lockedItem;
+	protected JCheckBoxMenuItem lockedItem, fixedItem;
 	protected JMenuItem nameItem;
 	protected JMenuItem colorItem;
 	protected JMenuItem deleteTrackItem, deleteStepItem, clearStepsItem;
@@ -2083,8 +2104,7 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 		// add name and description items
 		if (trackerPanel.isEnabled("track.name") || //$NON-NLS-1$
 				trackerPanel.isEnabled("track.description")) { //$NON-NLS-1$
-			if (menu.getItemCount() > 0 && menu.getItem(menu.getItemCount() - 1) != null)
-				menu.addSeparator();
+			TMenuBar.checkAddMenuSep(menu);
 			if (trackerPanel.isEnabled("track.name")) //$NON-NLS-1$
 				menu.add(nameItem);
 			if (trackerPanel.isEnabled("track.description")) //$NON-NLS-1$
@@ -2093,8 +2113,7 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 		// add color and footprint items
 		if (trackerPanel.isEnabled("track.color") || //$NON-NLS-1$
 				trackerPanel.isEnabled("track.footprint")) { //$NON-NLS-1$
-			if (menu.getItemCount() > 0 && menu.getItem(menu.getItemCount() - 1) != null)
-				menu.addSeparator();
+			TMenuBar.checkAddMenuSep(menu);
 			if (trackerPanel.isEnabled("track.color")) //$NON-NLS-1$
 				menu.add(colorItem);
 			if (trackerPanel.isEnabled("track.footprint")) //$NON-NLS-1$
@@ -2103,8 +2122,7 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 		// add visible, trail and locked items
 		if (trackerPanel.isEnabled("track.visible") || //$NON-NLS-1$
 				trackerPanel.isEnabled("track.locked")) { //$NON-NLS-1$
-			if (menu.getItemCount() > 0 && menu.getItem(menu.getItemCount() - 1) != null)
-				menu.addSeparator();
+			TMenuBar.checkAddMenuSep(menu);
 			if (trackerPanel.isEnabled("track.visible")) //$NON-NLS-1$
 				menu.add(visibleItem);
 			if (trackerPanel.isEnabled("track.locked")) //$NON-NLS-1$
@@ -2112,15 +2130,13 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 		}
 		// add dataBuilder item if viewable and enabled
 		if (this.isViewable() && trackerPanel.isEnabled("data.builder")) { //$NON-NLS-1$
-			if (menu.getItemCount() > 0 && menu.getItem(menu.getItemCount() - 1) != null)
-				menu.addSeparator();
+			TMenuBar.checkAddMenuSep(menu);
 			menu.add(dataBuilderItem);
 
 		}
 		// add clear steps and delete items
 		if (trackerPanel.isEnabled("track.delete")) { //$NON-NLS-1$
-			if (menu.getItemCount() > 0 && menu.getItem(menu.getItemCount() - 1) != null)
-				menu.addSeparator();
+			TMenuBar.checkAddMenuSep(menu);
 			menu.add(deleteTrackItem);
 		}
 		return menu;
@@ -3936,5 +3952,42 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 			}
 		}
 	}
-
+	
+	protected void addFixedItem(JMenu menu) {
+		for (int i = menu.getItemCount(); --i >= 0;) {
+			if (menu.getItem(i) == lockedItem) {
+				menu.insert(fixedItem, i + 1);
+				break;
+			}
+		}
+	}
+	
+	/**
+	 * Remove unwanted menu items and separators, then add the top item, a separator
+	 * if needed, then clean out duplicate separators.
+	 * 
+	 * @param menu
+	 * @param topItem
+	 * @return
+	 */
+	protected JMenu assembleMenu(JMenu menu, JMenuItem topItem) {
+		menu.remove(lockedItem);
+		menu.remove(autoAdvanceItem);
+		menu.remove(markByDefaultItem);
+		menu.insert(topItem, 0);
+		if (menu.getItemCount() > 1)
+			menu.insertSeparator(1);
+		Object prevItem = topItem;
+		for (int j = menu.getItemCount(); --j >= 0;) {
+			Object item = menu.getItem(j);
+			if (item == null && prevItem == null) { 
+				// found extra separator
+				menu.remove(j);
+			} else {
+				prevItem = item;
+			}
+		}
+		return menu;
+	}
+	
 }

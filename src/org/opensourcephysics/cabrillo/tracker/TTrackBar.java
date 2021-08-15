@@ -576,9 +576,7 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 				trackButton.setTrack(axes);
 			}
 		} else {
-			track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_NAME, this); // $NON-NLS-1$
-			track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_COLOR, this); // $NON-NLS-1$
-			track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_FOOTPRINT, this); // $NON-NLS-1$
+			track.removeListenerNCF(this);
 		}
 		toolbarComponentHeight = selectButton.getPreferredSize().height;
 		add(selectButton);
@@ -597,9 +595,7 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 			}
 			trackButton.setTrack(track);
 			// listen to tracks for property changes that affect icon or name
-			track.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_NAME, this); // $NON-NLS-1$
-			track.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_COLOR, this); // $NON-NLS-1$
-			track.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_FOOTPRINT, this); // $NON-NLS-1$
+			track.addListenerNCF(this);
 			add(trackButton);
 			ArrayList<Component> list = track.getToolbarTrackComponents(trackerPanel);
 			for (Component c : list) {
@@ -627,11 +623,6 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 			if (testButton != null) {
 //				add(testButton);
 			}
-//			if (Tracker.newerVersion != null) {
-//				String s = TrackerRes.getString("TTrackBar.Button.Version"); //$NON-NLS-1$
-//				newVersionButton.setText(s + " " + Tracker.newerVersion); //$NON-NLS-1$
-//				add(newVersionButton);
-//			}
 		}
 		add(maximizeButton);
 		revalidate();
@@ -714,9 +705,9 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 		case TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDTRACK:
 			refresh();
 			break;
-		case TTrack.PROPERTY_TTRACK_FOOTPRINT:
-		case TTrack.PROPERTY_TTRACK_COLOR:
 		case TTrack.PROPERTY_TTRACK_NAME:
+		case TTrack.PROPERTY_TTRACK_COLOR:
+		case TTrack.PROPERTY_TTRACK_FOOTPRINT:
 			refresh();
 			break;
 		case "selectedpoint":
@@ -730,10 +721,7 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 		case TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR:
 			// tracks have been cleared 
 			for (Integer n : TTrack.activeTracks.keySet()) {
-				TTrack track = TTrack.activeTracks.get(n);
-				track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_NAME, this); // $NON-NLS-1$
-				track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_COLOR, this); // $NON-NLS-1$
-				track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_FOOTPRINT, this); // $NON-NLS-1$
+				TTrack.activeTracks.get(n).removeListenerNCF(this);
 			}
 			if (trackButton != null)
 				trackButton.setTrack(null);
@@ -753,10 +741,7 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDTRACK, this); // $NON-NLS-1$
 		trackerPanel.removePropertyChangeListener("selectedpoint", this); //$NON-NLS-1$
 		for (Integer n : TTrack.activeTracks.keySet()) {
-			TTrack track = TTrack.activeTracks.get(n);
-			track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_NAME, this); // $NON-NLS-1$
-			track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_COLOR, this); // $NON-NLS-1$
-			track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_FOOTPRINT, this); // $NON-NLS-1$
+			TTrack.activeTracks.get(n).removeListenerNCF(this);
 		}
 		if (trackButton != null)
 			trackButton.setTrack(null);

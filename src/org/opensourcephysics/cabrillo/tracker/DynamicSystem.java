@@ -386,9 +386,7 @@ public class DynamicSystem extends DynamicParticlePolar {
 				particle.setLastValidFrame(-1);
 				particle.repaint();
 				if (systemInspector != null) {
-					particle.removePropertyChangeListener(PROPERTY_TTRACK_NAME, systemInspector); //$NON-NLS-1$
-					particle.removePropertyChangeListener(PROPERTY_TTRACK_COLOR, systemInspector); //$NON-NLS-1$
-					particle.removePropertyChangeListener(PROPERTY_TTRACK_FOOTPRINT, systemInspector); //$NON-NLS-1$
+					particle.removeListenerNCF(systemInspector);
 				}
 			}
 		}
@@ -414,12 +412,8 @@ public class DynamicSystem extends DynamicParticlePolar {
 			particles[i].system = this;
 			particles[i].refreshInitialTime();
 			if (systemInspector != null) {
-				particles[i].removePropertyChangeListener(PROPERTY_TTRACK_NAME, systemInspector); //$NON-NLS-1$
-				particles[i].removePropertyChangeListener(PROPERTY_TTRACK_COLOR, systemInspector); //$NON-NLS-1$
-				particles[i].removePropertyChangeListener(PROPERTY_TTRACK_FOOTPRINT, systemInspector); //$NON-NLS-1$
-				particles[i].addPropertyChangeListener(PROPERTY_TTRACK_NAME, systemInspector); //$NON-NLS-1$
-				particles[i].addPropertyChangeListener(PROPERTY_TTRACK_COLOR, systemInspector); //$NON-NLS-1$
-				particles[i].addPropertyChangeListener(PROPERTY_TTRACK_FOOTPRINT, systemInspector); //$NON-NLS-1$
+				particles[i].removeListenerNCF(systemInspector);
+				particles[i].addListenerNCF(systemInspector);
 			}
 		}
 		refreshSystemParameters();
@@ -571,9 +565,7 @@ public class DynamicSystem extends DynamicParticlePolar {
 		if (systemInspector == null) {
 			systemInspector = new DynamicSystemInspector(this);
 			systemInspector.setLocation(200, 200);
-			addPropertyChangeListener(PROPERTY_TTRACK_NAME, systemInspector); //$NON-NLS-1$
-			addPropertyChangeListener(PROPERTY_TTRACK_COLOR, systemInspector); //$NON-NLS-1$
-			addPropertyChangeListener(PROPERTY_TTRACK_FOOTPRINT, systemInspector); //$NON-NLS-1$
+			addListenerNCF(systemInspector);
 		}
 		return systemInspector;
 	}

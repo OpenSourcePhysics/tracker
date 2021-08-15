@@ -269,18 +269,14 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 			return;
 		if (track != null) {
 			track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_STEP, this); // $NON-NLS-1$
-			track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_NAME, this); // $NON-NLS-1$
-			track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_COLOR, this); // $NON-NLS-1$
-			track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_FOOTPRINT, this); // $NON-NLS-1$
+			track.removeListenerNCF(this);
 		}
 		track = newTrack;
 		if (track != null) {
 			trackID = track.getID();
 			trackerPanel.setSelectedTrack(track);
 			track.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_STEP, this); // $NON-NLS-1$
-			track.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_NAME, this); // $NON-NLS-1$
-			track.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_COLOR, this); // $NON-NLS-1$
-			track.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_FOOTPRINT, this); // $NON-NLS-1$
+			track.addListenerNCF(this);
 			track.setVisible(true);
 			TPoint[] searchPts = getPanelFrameData().getSearchPoints(true);
 			if (searchPts != null)

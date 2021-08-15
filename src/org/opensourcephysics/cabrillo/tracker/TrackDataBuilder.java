@@ -60,7 +60,7 @@ public class TrackDataBuilder extends FunctionTool {
 		super(trackerPanel, false, true);
 		this.trackerPanel = trackerPanel;
 		addPropertyChangeListener(PROPERTY_FUNCTIONTOOL_PANEL, trackerPanel); // $NON-NLS-1$
-		addPropertyChangeListener(FunctionTool.PROPERTY_FUNCTIONTOOL_FUNCTION, trackerPanel); // $NON-NLS-1$
+		addPropertyChangeListener(PROPERTY_FUNCTIONTOOL_FUNCTION, trackerPanel); // $NON-NLS-1$
 		addPropertyChangeListener(PROPERTY_FUNCTIONTOOL_VISIBLE, trackerPanel); // $NON-NLS-1$
 		ArrayList<Drawable> nogos = trackerPanel.getSystemDrawables();
 		for (TTrack track : trackerPanel.getTracksTemp()) {
@@ -743,8 +743,8 @@ public class TrackDataBuilder extends FunctionTool {
 	@Override
 	public void dispose() {
 		removePropertyChangeListener(PROPERTY_FUNCTIONTOOL_PANEL, trackerPanel); // $NON-NLS-1$
-		removePropertyChangeListener(FunctionTool.PROPERTY_FUNCTIONTOOL_FUNCTION, trackerPanel); // $NON-NLS-1$
-		removePropertyChangeListener(TTrack.PROPERTY_TTRACK_VISIBLE, trackerPanel); // $NON-NLS-1$
+		removePropertyChangeListener(PROPERTY_FUNCTIONTOOL_FUNCTION, trackerPanel); // $NON-NLS-1$
+		removePropertyChangeListener(PROPERTY_FUNCTIONTOOL_VISIBLE, trackerPanel); // $NON-NLS-1$
 		ToolsRes.removePropertyChangeListener("locale", this); //$NON-NLS-1$
 		if (autoloadManager != null) {
 			autoloadManager.dispose();

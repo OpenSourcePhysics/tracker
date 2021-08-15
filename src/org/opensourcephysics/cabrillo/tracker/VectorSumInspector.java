@@ -115,10 +115,7 @@ public void setVisible(boolean vis) {
 			trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this); //$NON-NLS-1$
 			ArrayList<Vector> list = trackerPanel.getDrawablesTemp(Vector.class);
 			for (int k = 0, n = list.size(); k < n; k++) {
-				Vector v = list.get(k);
-				v.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_NAME, this); //$NON-NLS-1$
-				v.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_COLOR, this); //$NON-NLS-1$
-				v.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_FOOTPRINT, this); //$NON-NLS-1$
+				list.get(k).removeListenerNCF(this);
 			}
 			list.clear();
 			TFrame frame = trackerPanel.getTFrame();
@@ -161,12 +158,8 @@ public void propertyChange(PropertyChangeEvent e) {
 		ArrayList<Vector> list = trackerPanel.getDrawablesTemp(Vector.class);
 		for (int k = 0, n = list.size(); k < n; k++) {
 			Vector v = list.get(k);
-			v.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_NAME, this); //$NON-NLS-1$
-			v.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_COLOR, this); //$NON-NLS-1$
-			v.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_FOOTPRINT, this); //$NON-NLS-1$
-			v.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_NAME, this); //$NON-NLS-1$
-			v.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_COLOR, this); //$NON-NLS-1$
-			v.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_FOOTPRINT, this); //$NON-NLS-1$
+			v.removeListenerNCF(this);
+			v.addListenerNCF(this);
 			if (v instanceof VectorSum)
 				continue; // don't include other sums
 			JCheckBoxMenuItem checkbox = new JCheckBoxMenuItem(v.getName(), v.getFootprint().getIcon(21, 16));
