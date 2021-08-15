@@ -258,6 +258,10 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 			trackerPanel.removePropertyChangeListener(events[i], this);
 	}
 
+	/**
+	 * Add outgoing listeners to the track
+	 * @param c this will be TrackerPanel
+	 */
 	public void addListener(PropertyChangeListener c) {
 		addPropertyChangeListener(PROPERTY_TTRACK_FORMAT, c);
 		addPropertyChangeListener(PROPERTY_TTRACK_MASS, c);
@@ -269,12 +273,6 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 
 		addStepListener(c);
 
-	}
-
-	public void addListenerNCF(PropertyChangeListener l) {
-		addPropertyChangeListener(PROPERTY_TTRACK_NAME, l);
-		addPropertyChangeListener(PROPERTY_TTRACK_COLOR, l);
-		addPropertyChangeListener(PROPERTY_TTRACK_FOOTPRINT, l);
 	}
 
 	public void removeListener(PropertyChangeListener c) {
@@ -297,12 +295,32 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 //		removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_IMAGE, c); // $NON-NLS-1$
 	}
 
+	/**
+	 * The NAME, COLOR, and FOOTPRINT property changes are of interest to
+	 * AutoTracker, DynamicSystemInspector, VectorSumInspector, AttachementDialog,
+	 * TrackChooserTView, TrackControl, and TTrackBar. 
+	 * 
+	 * @param l
+	 */
+	public void addListenerNCF(PropertyChangeListener l) {
+		addPropertyChangeListener(PROPERTY_TTRACK_NAME, l);
+		addPropertyChangeListener(PROPERTY_TTRACK_COLOR, l);
+		addPropertyChangeListener(PROPERTY_TTRACK_FOOTPRINT, l);
+	}
+
 	public void removeListenerNCF(PropertyChangeListener l) {
 		removePropertyChangeListener(PROPERTY_TTRACK_NAME, l);
 		removePropertyChangeListener(PROPERTY_TTRACK_COLOR, l);
 		removePropertyChangeListener(PROPERTY_TTRACK_FOOTPRINT, l);
 	}
 
+	/**
+	 * STEP and STEPS listeners include TrackerPanel, CenterOfMass, CircleFitter,
+	 * DynamicParticle, DynamicSystem, ReferenceFrame, PlotTrackView, and
+	 * TrackChooserTView.
+	 * 
+	 * @param c
+	 */
 	public void addStepListener(PropertyChangeListener c) {
 		addPropertyChangeListener(PROPERTY_TTRACK_STEP, c);
 		addPropertyChangeListener(PROPERTY_TTRACK_STEPS, c);
@@ -313,6 +331,13 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 		removePropertyChangeListener(PROPERTY_TTRACK_STEPS, c);
 	}
 
+	/**
+	 * TTRACK_VISIBLE is of interest to TToolBar Calibration and Ruler buttons, as
+	 * well as WorldTView. This method safelty adds the listener, first removing an
+	 * existing one by this name if present.
+	 * 
+	 * @param l
+	 */
 	public void updateListenerVisible(PropertyChangeListener l) {
 		removePropertyChangeListener(PROPERTY_TTRACK_VISIBLE, l);
 		addPropertyChangeListener(PROPERTY_TTRACK_VISIBLE, l);
