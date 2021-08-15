@@ -2160,7 +2160,7 @@ public class TableTrackView extends TrackView {
 	public void addColumnItems(JPopupMenu popup) {
 		getPopup(); // refreshes menu items
 		popup.add(createTextColumnItem);
-		if (deleteTextColumnMenu.getMenuComponentCount() > 0) {
+		if (deleteTextColumnMenu.getItemCount() > 0) {
 			popup.add(deleteTextColumnMenu);
 			popup.add(renameTextColumnMenu);
 		}

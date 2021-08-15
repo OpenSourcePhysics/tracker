@@ -499,45 +499,18 @@ abstract public class ParticleModel extends PointMass {
 		menu.remove(autotrackItem);
 		menu.remove(deleteStepItem);
 		menu.remove(clearStepsItem);
-		menu.remove(lockedItem);
-		menu.remove(autoAdvanceItem);
-		menu.remove(markByDefaultItem);
-		menu.insert(modelBuilderItem, 0);
-		if (menu.getItemCount() > 1)
-			menu.insertSeparator(1);
 
 		// find acceleration menu and insert stampItem after it
 		if (trackerPanel.isEnabled("model.stamp")) { //$NON-NLS-1$
-			for (int i = 0; i < menu.getMenuComponentCount(); i++) {
+			for (int i = menu.getItemCount(); --i >= 0;) {
 				if (menu.getMenuComponent(i) == accelerationMenu) {
-					menu.insert(stampItem, i + 1);
-					menu.insertSeparator(i + 1);
+					menu.insert(stampItem, ++i);
+					menu.insertSeparator(i);
 					break;
 				}
 			}
 		}
-
-//		// find visible item and insert useDefaultRefFrameItem after it
-//		for (int i=0; i<menu.getMenuComponentCount(); i++) {
-//			if (menu.getMenuComponent(i)==visibleItem) {
-//				menu.insert(useDefaultRefFrameItem, i+1);
-//				break;
-//			}
-//		}
-
-		// eliminate any double separators
-		Object prevItem = modelBuilderItem;
-		int n = menu.getItemCount();
-		for (int j = 1; j < n; j++) {
-			Object item = menu.getItem(j);
-			if (item == null && prevItem == null) { // found extra separator
-				menu.remove(j - 1);
-				j = j - 1;
-				n = n - 1;
-			}
-			prevItem = item;
-		}
-		return menu;
+		return assembleMenu(menu, modelBuilderItem);
 	}
 
 	protected void doStamp() {

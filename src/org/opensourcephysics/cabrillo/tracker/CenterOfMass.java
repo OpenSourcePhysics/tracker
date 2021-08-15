@@ -337,11 +337,11 @@ public void propertyChange(PropertyChangeEvent e) {
 			update(n, false);
 		updateDerivatives();
 		fireStepsChanged();
-		repaint();
 		// update inspector, if visible
 		if (inspector != null && inspector.isVisible()) {
 			inspector.updateDisplay();
 		}
+		repaint();
 	}
 
 	/**
@@ -430,28 +430,7 @@ public JMenu getMenu(TrackerPanel trackerPanel, JMenu menu0) {
         inspector.setVisible(true);
       }
     });
-    // assemble the menu
-    JMenu menu = super.getMenu(trackerPanel, menu0);
-    // remove unwanted menu items and separators
-    menu.remove(lockedItem);
-    menu.remove(autoAdvanceItem);
-    menu.remove(markByDefaultItem);
-    menu.insert(inspectorItem, 0);
-    if (menu.getItemCount() > 1)
-      menu.insertSeparator(1);
-    // eliminate any double separators
-    Object prevItem = inspectorItem;
-    int n = menu.getItemCount();
-    for (int j = 1; j < n; j++) {
-    	Object item = menu.getItem(j);
-      if (item == null && prevItem == null) { // found extra separator
-      	menu.remove(j-1);
-      	j = j-1;
-      	n = n-1;
-      }
-      prevItem = item;
-    }
-    return menu;
+    return assembleMenu(super.getMenu(trackerPanel, menu0), inspectorItem);
   }
 
   /**

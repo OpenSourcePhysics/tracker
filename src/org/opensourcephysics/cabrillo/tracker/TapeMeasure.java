@@ -147,7 +147,7 @@ public class TapeMeasure extends InputTrack {
 	protected Footprint[] tapeFootprints, stickFootprints;
 	protected TreeSet<Integer> lengthKeyFrames = new TreeSet<Integer>(); // applies to sticks only
 	protected JMenuItem attachmentItem;
-	protected JCheckBoxMenuItem fixedPositionItem, fixedLengthItem;
+//	protected JCheckBoxMenuItem fixedLengthItem;
 	protected Double calibrationLength;
 
 	/**
@@ -704,22 +704,17 @@ public class TapeMeasure extends InputTrack {
 
 		// remove end items and last separator
 		menu.remove(deleteTrackItem);
-		menu.remove(menu.getMenuComponent(menu.getMenuComponentCount() - 1));
+		menu.remove(menu.getMenuComponent(menu.getItemCount() - 1));
 
 		TapeStep step = (TapeStep) steps.getStep(0);
 		// add items
 		// put fixed position item after locked item
 		boolean fixedScale = trackerPanel.getCoords().isFixedScale();
 		boolean canBeFixed = !lockedItem.isSelected() && (fixedScale || !isStickMode());
-		fixedPositionItem.setEnabled(canBeFixed && step != null && step.worldLength > 0 && !isAttached());
-		fixedPositionItem.setText(TrackerRes.getString("TapeMeasure.MenuItem.Fixed")); //$NON-NLS-1$
-		fixedPositionItem.setSelected(isFixedPosition() && fixedScale);
-		for (int i = 0; i < menu.getItemCount(); i++) {
-			if (menu.getItem(i) == lockedItem) {
-				menu.insert(fixedPositionItem, i + 1);
-				break;
-			}
-		}
+		fixedItem.setEnabled(canBeFixed && step != null && step.worldLength > 0 && !isAttached());
+		fixedItem.setText(TrackerRes.getString("TapeMeasure.MenuItem.Fixed")); //$NON-NLS-1$
+		fixedItem.setSelected(isFixedPosition() && fixedScale);
+		addFixedItem(menu);
 
 		// insert the attachments dialog item at beginning
 		attachmentItem.setEnabled(step != null && step.worldLength > 0);
@@ -740,23 +735,23 @@ public class TapeMeasure extends InputTrack {
 
 	@Override
 	protected void getMenuItems() {
-		if (fixedPositionItem != null)
+		if (fixedItem != null)
 			return;
 		super.getMenuItems();
-		fixedPositionItem = new JCheckBoxMenuItem(TrackerRes.getString("TapeMeasure.MenuItem.Fixed")); //$NON-NLS-1$
-		fixedPositionItem.addItemListener(new ItemListener() {
+		fixedItem = new JCheckBoxMenuItem(TrackerRes.getString("TapeMeasure.MenuItem.Fixed")); //$NON-NLS-1$
+		fixedItem.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
-				setFixedPosition(fixedPositionItem.isSelected());
+				setFixedPosition(fixedItem.isSelected());
 			}
 		});
-		fixedLengthItem = new JCheckBoxMenuItem(TrackerRes.getString("TapeMeasure.MenuItem.FixedLength")); //$NON-NLS-1$
-		fixedLengthItem.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				setFixedLength(fixedLengthItem.isSelected());
-			}
-		});
+//		fixedLengthItem = new JCheckBoxMenuItem(TrackerRes.getString("TapeMeasure.MenuItem.FixedLength")); //$NON-NLS-1$
+//		fixedLengthItem.addItemListener(new ItemListener() {
+//			@Override
+//			public void itemStateChanged(ItemEvent e) {
+//				setFixedLength(fixedLengthItem.isSelected());
+//			}
+//		});
 		attachmentItem = new JMenuItem(TrackerRes.getString("TapeMeasure.MenuItem.Attach")); //$NON-NLS-1$
 		attachmentItem.addActionListener(new ActionListener() {
 			@Override

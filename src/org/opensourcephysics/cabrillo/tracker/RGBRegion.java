@@ -655,35 +655,33 @@ public int getFootprintLength() {
 		clearColumns(data, count, dataVariables, "RGBRegion.Data.Description.", validData, len);
 	}
 
-/**
-   * Overrides TTrack getMenu method.
-   *
-   * @param trackerPanel the tracker panel
-   * @return a menu
-   */
-  @Override
-public JMenu getMenu(TrackerPanel trackerPanel, JMenu menu0) {
-    JMenu menu = super.getMenu(trackerPanel, menu0);
-	if (menu0 == null)
-		return menu;
+	/**
+	 * Overrides TTrack getMenu method.
+	 *
+	 * @param trackerPanel the tracker panel
+	 * @return a menu
+	 */
+	@Override
+	public JMenu getMenu(TrackerPanel trackerPanel, JMenu menu0) {
+		JMenu menu = super.getMenu(trackerPanel, menu0);
+		if (menu0 == null)
+			return menu;
 
-    fixedPositionItem.setText(TrackerRes.getString("RGBRegion.MenuItem.Fixed")); //$NON-NLS-1$
-    fixedPositionItem.setSelected(isFixedPosition());
-    fixedRadiusItem.setText(TrackerRes.getString("RGBRegion.MenuItem.FixedRadius")); //$NON-NLS-1$
-    fixedRadiusItem.setSelected(isFixedRadius());
-    menu.remove(deleteTrackItem);
-    if (menu.getItemCount() > 0 && menu.getItem(menu.getItemCount()-1) != null)
-      menu.addSeparator();
-    menu.add(fixedPositionItem);
-    menu.add(fixedRadiusItem);
-    // replace delete item
-    if (trackerPanel.isEnabled("track.delete")) { //$NON-NLS-1$
-      if (menu.getItemCount() > 0 && menu.getItem(menu.getItemCount()-1) != null)
-        menu.addSeparator();
-      menu.add(deleteTrackItem);
-    }
-    return menu;
-  }
+		fixedPositionItem.setText(TrackerRes.getString("RGBRegion.MenuItem.Fixed")); //$NON-NLS-1$
+		fixedPositionItem.setSelected(isFixedPosition());
+		fixedRadiusItem.setText(TrackerRes.getString("RGBRegion.MenuItem.FixedRadius")); //$NON-NLS-1$
+		fixedRadiusItem.setSelected(isFixedRadius());
+		menu.remove(deleteTrackItem);
+		TMenuBar.checkAddMenuSep(menu);
+		menu.add(fixedPositionItem);
+		menu.add(fixedRadiusItem);
+		// replace delete item
+		if (trackerPanel.isEnabled("track.delete")) { //$NON-NLS-1$
+			TMenuBar.checkAddMenuSep(menu);
+			menu.add(deleteTrackItem);
+		}
+		return menu;
+	}
 
   /**
    * Overrides TTrack getToolbarTrackComponents method.
@@ -788,7 +786,7 @@ public void propertyChange(PropertyChangeEvent e) {
     	  setMaxRadius(trackerPanel.getVideo());
       }
       String name = e.getPropertyName();
-      if (name.equals("stepnumber")) { //$NON-NLS-1$
+      if (name.equals(TrackerPanel.PROPERTY_TRACKERPANEL_STEPNUMBER)) { //$NON-NLS-1$
     	invalidateData(Boolean.FALSE);
   	    int n = trackerPanel.getFrameNumber();
   	    RGBStep step = (RGBStep)getStep(n);
@@ -802,7 +800,7 @@ public void propertyChange(PropertyChangeEvent e) {
 	      stepValueLabel.setText(e.getNewValue()+":"); //$NON-NLS-1$
 //        firePropertyChange(e); // to views
       }
-      else if (name.equals("image")) { //$NON-NLS-1$
+      else if (name.equals(TrackerPanel.PROPERTY_TRACKERPANEL_IMAGE)) { //$NON-NLS-1$
       	invalidateData(Boolean.FALSE);
       	Video vid = trackerPanel.getVideo();
       	if (vid == null) clearData(); // no video

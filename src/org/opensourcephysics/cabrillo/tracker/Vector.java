@@ -566,28 +566,24 @@ public class Vector extends TTrack {
 		// remove delete item from end
 		if (trackerPanel.isEnabled("track.delete")) { //$NON-NLS-1$
 			menu.remove(deleteTrackItem);
-			if (menu.getItemCount() > 0)
-				menu.remove(menu.getItemCount() - 1); // remove separator
+			TMenuBar.removeLastItem(menu); // remove separator
 		}
 		// add autoAdvance and markByDefault items at end
 		if (trackerPanel.isEnabled("track.autoAdvance") || //$NON-NLS-1$
 				trackerPanel.isEnabled("track.markByDefault")) { //$NON-NLS-1$
-			if (menu.getItemCount() > 0)
-				menu.addSeparator();
+			TMenuBar.checkAddMenuSep(menu);
 			if (trackerPanel.isEnabled("track.autoAdvance")) //$NON-NLS-1$
 				menu.add(autoAdvanceItem);
 			if (trackerPanel.isEnabled("track.markByDefault")) //$NON-NLS-1$
 				menu.add(markByDefaultItem);
 		}
 		// add tailsToOrigin item
-		if (menu.getItemCount() > 0)
-			menu.addSeparator();
+		TMenuBar.checkAddMenuSep(menu);
 		tailsToOriginItem.setText(TrackerRes.getString("Vector.MenuItem.ToOrigin")); //$NON-NLS-1$
 		menu.add(tailsToOriginItem);
 		// replace delete item
 		if (trackerPanel.isEnabled("track.delete")) { //$NON-NLS-1$
-			if (menu.getItemCount() > 0)
-				menu.addSeparator();
+			TMenuBar.checkAddMenuSep(menu);
 			TPoint p = trackerPanel.getSelectedPoint();
 			Step step = getStep(p, trackerPanel);
 			deleteStepItem.setEnabled(step != null);

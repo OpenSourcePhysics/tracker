@@ -334,8 +334,7 @@ public class OffsetOrigin extends TTrack {
 		lockedItem.setEnabled(!trackerPanel.getCoords().isLocked());
 		// remove end items and last separator
 		menu.remove(deleteTrackItem);
-		menu.remove(menu.getMenuComponent(menu.getMenuComponentCount() - 1));
-
+		TMenuBar.removeLastItem(menu); 
 		// add fixed and delete items
 		fixedCoordinatesItem.setText(TrackerRes.getString("OffsetOrigin.MenuItem.Fixed")); //$NON-NLS-1$
 		fixedCoordinatesItem.setSelected(isFixedCoordinates());
@@ -397,7 +396,7 @@ public class OffsetOrigin extends TTrack {
 	@Override
 	public void propertyChange(PropertyChangeEvent e) {
 		String name = e.getPropertyName();
-		if (name.equals("stepnumber")) { //$NON-NLS-1$
+		if (name.equals(TrackerPanel.PROPERTY_TRACKERPANEL_STEPNUMBER)) { //$NON-NLS-1$
 			if (trackerPanel.getSelectedTrack() == this) {
 				displayWorldCoordinates();
 				stepValueLabel.setText(e.getNewValue() + ":"); //$NON-NLS-1$

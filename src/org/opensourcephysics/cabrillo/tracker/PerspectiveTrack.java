@@ -73,8 +73,8 @@ public class PerspectiveTrack extends TTrack {
 		Step step = new PerspectiveStep(this, 0, 0, 0);
 		step.setFootprint(getFootprint());
 		steps = new StepArray(step);
-		filter.addPropertyChangeListener(PROPERTY_TTRACK_COLOR, this); // $NON-NLS-1$
-		filter.addPropertyChangeListener(PROPERTY_TTRACK_VISIBLE, this); // $NON-NLS-1$
+		filter.addPropertyChangeListener(Filter.PROPERTY_FILTER_COLOR, this); // $NON-NLS-1$
+		filter.addPropertyChangeListener(Filter.PROPERTY_FILTER_VISIBLE, this); // $NON-NLS-1$
 		filter.addPropertyChangeListener(Filter.PROPERTY_FILTER_ENABLED, this); // $NON-NLS-1$
 		filter.addPropertyChangeListener(Filter.PROPERTY_FILTER_TAB, this); // $NON-NLS-1$
 		filter.addPropertyChangeListener(PerspectiveFilter.PROPERTY_PERSPECTIVEFILTER_CORNERLOCATION, this); // $NON-NLS-1$
@@ -85,10 +85,10 @@ public class PerspectiveTrack extends TTrack {
 	protected void dispose() {
 		super.dispose();
 		filterMap.remove(filter);
-		filter.removePropertyChangeListener(PROPERTY_TTRACK_COLOR, this); // $NON-NLS-1$
-		filter.removePropertyChangeListener(PROPERTY_TTRACK_VISIBLE, this); // $NON-NLS-1$
+		filter.removePropertyChangeListener(Filter.PROPERTY_FILTER_COLOR, this); // $NON-NLS-1$
 		filter.removePropertyChangeListener(Filter.PROPERTY_FILTER_ENABLED, this); // $NON-NLS-1$
 		filter.removePropertyChangeListener(Filter.PROPERTY_FILTER_TAB, this); // $NON-NLS-1$
+		filter.removePropertyChangeListener(Filter.PROPERTY_FILTER_VISIBLE, this); // $NON-NLS-1$
 		filter.removePropertyChangeListener(PerspectiveFilter.PROPERTY_PERSPECTIVEFILTER_CORNERLOCATION, this); // $NON-NLS-1$
 		filter.removePropertyChangeListener(PerspectiveFilter.PROPERTY_PERSPECTIVEFILTER_FIXED, this); // $NON-NLS-1$
 		filter = null;
@@ -107,7 +107,7 @@ public class PerspectiveTrack extends TTrack {
 			break;
 		case Filter.PROPERTY_FILTER_ENABLED:
 		case Filter.PROPERTY_FILTER_TAB:
-		case PROPERTY_TTRACK_VISIBLE:
+		case Filter.PROPERTY_FILTER_VISIBLE:
 			if (trackerPanel.getSelectedTrack() == this) {
 				trackerPanel.setSelectedPoint(null);
 				trackerPanel.selectedSteps.clear();

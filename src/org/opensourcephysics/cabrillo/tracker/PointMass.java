@@ -2509,8 +2509,7 @@ public class PointMass extends TTrack {
 			JMenuItem item = menu.getItem(menu.getItemCount() - 1);
 			if (item == deleteTrackItem) {
 				menu.remove(deleteTrackItem);
-				if (menu.getItemCount() > 0)
-					menu.remove(menu.getItemCount() - 1); // remove separator
+				TMenuBar.removeLastItem(menu);  // remove separator
 			}
 		}
 		// prepare vector footprint menus
@@ -2587,16 +2586,14 @@ public class PointMass extends TTrack {
 		// add autoAdvance and markByDefault items
 		if (trackerPanel.isEnabled("track.autoAdvance") || //$NON-NLS-1$
 				trackerPanel.isEnabled("track.markByDefault")) { //$NON-NLS-1$
-			if (menu.getItemCount() > 0 && menu.getItem(menu.getItemCount() - 1) != null)
-				menu.addSeparator();
+			TMenuBar.checkAddMenuSep(menu);
 			if (trackerPanel.isEnabled("track.autoAdvance")) //$NON-NLS-1$
 				menu.add(autoAdvanceItem);
 			if (trackerPanel.isEnabled("track.markByDefault")) //$NON-NLS-1$
 				menu.add(markByDefaultItem);
 		}
 		// add velocity and accel menus
-		if (menu.getItemCount() > 0 && menu.getItem(menu.getItemCount() - 1) != null)
-			menu.addSeparator();
+		TMenuBar.checkAddMenuSep(menu);
 		velocityMenu.setText(TrackerRes.getString("PointMass.MenuItem.Velocity")); //$NON-NLS-1$
 		accelerationMenu.setText(TrackerRes.getString("PointMass.MenuItem.Acceleration")); //$NON-NLS-1$
 		vColorItem.setText(TrackerRes.getString("TTrack.MenuItem.Color")); //$NON-NLS-1$
@@ -2611,8 +2608,7 @@ public class PointMass extends TTrack {
 		menu.add(accelerationMenu);
 		// replace delete item
 		if (trackerPanel.isEnabled("track.delete")) { //$NON-NLS-1$
-			if (menu.getItemCount() > 0 && menu.getItem(menu.getItemCount() - 1) != null)
-				menu.addSeparator();
+			TMenuBar.checkAddMenuSep(menu);
 			menu.add(deleteStepItem);
 			menu.add(clearStepsItem);
 			menu.add(deleteTrackItem);

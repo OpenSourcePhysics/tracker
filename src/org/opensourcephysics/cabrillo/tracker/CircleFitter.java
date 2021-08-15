@@ -156,7 +156,6 @@ public class CircleFitter extends TTrack {
 
 	// instance fields
 	protected boolean fixedPosition = true;
-	protected JCheckBoxMenuItem fixedItem;
 	protected JLabel clickToMarkLabel;
 	protected JLabel xDataPointLabel, yDataPointLabel;
 	protected NumberField xDataField, yDataField;
@@ -1066,16 +1065,11 @@ public class CircleFitter extends TTrack {
 		menu.insertSeparator(1);
 
 		// put fixed item after locked item
-		for (int i = 0; i < menu.getItemCount(); i++) {
-			if (menu.getItem(i) == lockedItem) {
-				menu.insert(fixedItem, i + 1);
-				break;
-			}
-		}
+		addFixedItem(menu);
 
 		// remove end items and add new items
 		menu.remove(deleteTrackItem);
-		menu.remove(menu.getMenuComponent(menu.getMenuComponentCount() - 1));
+		TMenuBar.removeLastItem(menu);
 
 		// add originToCenter item and separator below inspector item
 		menu.addSeparator();

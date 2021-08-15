@@ -520,15 +520,13 @@ public class LineProfile extends TTrack {
 		fixedLineItem.setText(TrackerRes.getString("LineProfile.MenuItem.Fixed")); //$NON-NLS-1$
 		fixedLineItem.setSelected(isFixed());
 		menu.remove(deleteTrackItem);
-		if (menu.getItemCount() > 0 && menu.getItem(menu.getItemCount() - 1) != null)
-			menu.addSeparator();
+		TMenuBar.checkAddMenuSep(menu);
 		menu.add(orientationMenu);
 		menu.addSeparator();
 		menu.add(fixedLineItem);
 		// replace delete item
 		if (trackerPanel.isEnabled("track.delete")) { //$NON-NLS-1$
-			if (menu.getItemCount() > 0 && menu.getItem(menu.getItemCount() - 1) != null)
-				menu.addSeparator();
+			TMenuBar.checkAddMenuSep(menu);
 			menu.add(deleteTrackItem);
 		}
 		return menu;
