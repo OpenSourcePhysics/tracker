@@ -28,7 +28,6 @@ import org.opensourcephysics.controls.XMLControlElement;
 import org.opensourcephysics.controls.XMLProperty;
 import org.opensourcephysics.display.Drawable;
 import org.opensourcephysics.display.OSPRuntime;
-import org.opensourcephysics.media.core.ImageCoordSystem;
 import org.opensourcephysics.tools.AbstractAutoloadManager;
 import org.opensourcephysics.tools.DataFunctionPanel;
 import org.opensourcephysics.tools.FontSizer;

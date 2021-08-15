@@ -129,7 +129,7 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 								@Override
 								public void actionPerformed(ActionEvent e) {
 									// test action goes here
-									TrackerPanel trackerPanel = frame.getTrackerPanel(0);									
+//									TrackerPanel trackerPanel = frame.getTrackerPanel(0);									
 									
 //									AutoTracker autoTracker = trackerPanel.getAutoTracker(false);
 //									java.awt.image.BufferedImage image = autoTracker.getTemplateMatcher().getTemplate();
