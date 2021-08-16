@@ -427,8 +427,7 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
 	 */
 	@Override
 	public void propertyChange(PropertyChangeEvent e) {
-		String name = e.getPropertyName();
-		switch (name) {
+		switch (e.getPropertyName()) {
 		case TrackerPanel.PROPERTY_TRACKERPANEL_TRACK:
 		case TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR:
 			for (TView view : tViews) {

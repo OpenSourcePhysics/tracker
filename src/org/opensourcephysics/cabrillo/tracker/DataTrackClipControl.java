@@ -61,7 +61,7 @@ public class DataTrackClipControl extends JPanel implements PropertyChangeListen
 	public DataTrackClipControl(DataTrack model) {
 		super(new BorderLayout());
 		dataTrack = model;
-		dataTrack.addPropertyChangeListener(this);
+//		dataTrack.addPropertyChangeListener(this);
 		createGUI();
 		refreshSpinners();
 		refreshGUI();
@@ -71,127 +71,131 @@ public class DataTrackClipControl extends JPanel implements PropertyChangeListen
 	 * Creates the GUI.
 	 */
 	protected void createGUI() {
-  	// create labels
-  	videoInLabel = new JLabel();
-  	videoInLabel.setBorder(BorderFactory.createEmptyBorder());
-  	dataInLabel = new JLabel();
-  	dataInLabel.setBorder(BorderFactory.createEmptyBorder());
-  	dataClipLengthLabel = new JLabel();
-  	dataClipLengthLabel.setBorder(BorderFactory.createEmptyBorder());
-  	dataStrideLabel = new JLabel();
-  	dataStrideLabel.setBorder(BorderFactory.createEmptyBorder());
-  	
-  	// create spinners
-    videoInSpinner = new MySpinner(new SpinnerNumberModel(0, 0, 20, 1));
-    ChangeListener listener = new ChangeListener() {
-      @Override
-	public void stateChanged(ChangeEvent e) {
-      	if (refreshing) return;
-        int in = (Integer)videoInSpinner.getValue();
-        if (in==dataTrack.getStartFrame()) {
-        	return;
-        }
-        dataTrack.setStartFrame(in);
-        videoInSpinner.setValue(dataTrack.getStartFrame());
-       TFrame.repaintT(DataTrackClipControl.this);
-        videoInSpinner.requestFocusInWindow();
-      }
-  	};
-  	videoInSpinner.addChangeListener(listener);  	
-    dataInSpinner = new MySpinner(new SpinnerNumberModel(0, 0, 20, 1));
-    listener = new ChangeListener() {
-      @Override
-	public void stateChanged(ChangeEvent e) {
-      	if (refreshing) return;
-        int in = (Integer)dataInSpinner.getValue();
-        if (in==dataTrack.getDataClip().getStartIndex()) {
-        	return;
-        }
-        dataTrack.getDataClip().setStartIndex(in);
-        dataInSpinner.setValue(dataTrack.getDataClip().getStartIndex());
-       TFrame.repaintT(DataTrackClipControl.this);
-        dataInSpinner.requestFocusInWindow();
-      }
-  	};
-  	dataInSpinner.addChangeListener(listener);
-  	
-    dataClipLengthSpinner = new MySpinner(new SpinnerNumberModel(1, 1, 20, 1));
-    listener = new ChangeListener() {
-      @Override
-	public void stateChanged(ChangeEvent e) {
-      	if (refreshing) return;
-        int length = (Integer)dataClipLengthSpinner.getValue();
-        if (length==dataTrack.getDataClip().getClipLength()) {
-        	return;
-        }
-        dataTrack.getDataClip().setClipLength(length);
-        dataClipLengthSpinner.setValue(dataTrack.getDataClip().getClipLength());
-       TFrame.repaintT(DataTrackClipControl.this);
-        dataClipLengthSpinner.requestFocusInWindow();
-      }
-  	};
-  	dataClipLengthSpinner.addChangeListener(listener);
+		// create labels
+		videoInLabel = new JLabel();
+		videoInLabel.setBorder(BorderFactory.createEmptyBorder());
+		dataInLabel = new JLabel();
+		dataInLabel.setBorder(BorderFactory.createEmptyBorder());
+		dataClipLengthLabel = new JLabel();
+		dataClipLengthLabel.setBorder(BorderFactory.createEmptyBorder());
+		dataStrideLabel = new JLabel();
+		dataStrideLabel.setBorder(BorderFactory.createEmptyBorder());
 
-    dataStrideSpinner = new MySpinner(new SpinnerNumberModel(1, 1, 10, 1));
-    listener = new ChangeListener() {
-      @Override
-	public void stateChanged(ChangeEvent e) {
-      	if (refreshing) return;
-        int n = (Integer)dataStrideSpinner.getValue();
-        if (n==dataTrack.getDataClip().getStride()) {
-        	return;
-        }
-        dataTrack.getDataClip().setStride(n);
-        dataStrideSpinner.setValue(dataTrack.getDataClip().getStride());
-       TFrame.repaintT(DataTrackClipControl.this);
-        dataStrideSpinner.requestFocusInWindow();
-      }
-  	};
-  	dataStrideSpinner.addChangeListener(listener);
+		// create spinners
+		videoInSpinner = new MySpinner(new SpinnerNumberModel(0, 0, 20, 1));
+		ChangeListener lixstener = new ChangeListener() {
+			@Override
+			public void stateChanged(ChangeEvent e) {
+				if (refreshing)
+					return;
+				int in = (Integer) videoInSpinner.getValue();
+				if (in == dataTrack.getStartFrame()) {
+					return;
+				}
+				dataTrack.setStartFrame(in);
+				videoInSpinner.setValue(dataTrack.getStartFrame());
+				TFrame.repaintT(DataTrackClipControl.this);
+				videoInSpinner.requestFocusInWindow();
+			}
+		};
+		videoInSpinner.addChangeListener((e) -> {
+			if (refreshing)
+				return;
+			int in = (Integer) videoInSpinner.getValue();
+			if (in == dataTrack.getStartFrame()) {
+				return;
+			}
+			dataTrack.setStartFrame(in);
+			videoInSpinner.setValue(dataTrack.getStartFrame());
+			TFrame.repaintT(DataTrackClipControl.this);
+			videoInSpinner.requestFocusInWindow();
+		});
+		dataInSpinner = new MySpinner(new SpinnerNumberModel(0, 0, 20, 1));
+		dataInSpinner.addChangeListener((e) -> {
+			if (refreshing)
+				return;
+			int in = (Integer) dataInSpinner.getValue();
+			if (in == dataTrack.getDataClip().getStartIndex()) {
+				return;
+			}
+			dataTrack.getDataClip().setStartIndex(in);
+			dataInSpinner.setValue(dataTrack.getDataClip().getStartIndex());
+			dataInSpinner.requestFocusInWindow();
+			TFrame.repaintT(DataTrackClipControl.this);
+		});
 
-  	// assemble
-  	drawingPanel = new GraphicPanel();
-  	drawingPanel.setBorder(BorderFactory.createEtchedBorder());
-  	drawingPanel.addDrawable(new MappingGraphic());
-  	add(drawingPanel, BorderLayout.CENTER);
-  	spinnerPanel = new JPanel(new GridLayout(1, 4));
-  	add(spinnerPanel, BorderLayout.SOUTH);  	
-  	
-  	JPanel singleSpinnerPanel = new JPanel(new BorderLayout());
-  	JPanel panel = new JPanel();
-  	panel.add(videoInSpinner);
-  	singleSpinnerPanel.add(panel, BorderLayout.NORTH);
-  	panel = new JPanel();
-   	panel.add(videoInLabel);
-  	singleSpinnerPanel.add(panel, BorderLayout.SOUTH);
-  	spinnerPanel.add(singleSpinnerPanel);
-  	
-  	singleSpinnerPanel = new JPanel(new BorderLayout());
-  	panel = new JPanel();
-  	panel.add(dataClipLengthSpinner);
-  	singleSpinnerPanel.add(panel, BorderLayout.NORTH);
-  	panel = new JPanel();
-   	panel.add(dataClipLengthLabel);
-  	singleSpinnerPanel.add(panel, BorderLayout.SOUTH);
-  	spinnerPanel.add(singleSpinnerPanel);
-  	
-  	singleSpinnerPanel = new JPanel(new BorderLayout());
-  	panel = new JPanel();
-  	panel.add(dataInSpinner);
-  	singleSpinnerPanel.add(panel, BorderLayout.NORTH);
-  	panel = new JPanel();
-   	panel.add(dataInLabel);
-  	singleSpinnerPanel.add(panel, BorderLayout.SOUTH);
-  	spinnerPanel.add(singleSpinnerPanel);
-  	
-  	singleSpinnerPanel = new JPanel(new BorderLayout());
-  	panel = new JPanel();
-  	panel.add(dataStrideSpinner);
-  	singleSpinnerPanel.add(panel, BorderLayout.NORTH);
-  	panel = new JPanel();
-   	panel.add(dataStrideLabel);
-  	singleSpinnerPanel.add(panel, BorderLayout.SOUTH);
-  	spinnerPanel.add(singleSpinnerPanel);
+		dataClipLengthSpinner = new MySpinner(new SpinnerNumberModel(1, 1, 20, 1));
+
+		dataClipLengthSpinner.addChangeListener((e) -> {
+			if (refreshing)
+				return;
+			int length = (Integer) dataClipLengthSpinner.getValue();
+			if (length == dataTrack.getDataClip().getClipLength()) {
+				return;
+			}
+			dataTrack.getDataClip().setClipLength(length);
+			dataClipLengthSpinner.setValue(dataTrack.getDataClip().getClipLength());
+			TFrame.repaintT(DataTrackClipControl.this);
+			dataClipLengthSpinner.requestFocusInWindow();
+		});
+
+		dataStrideSpinner = new MySpinner(new SpinnerNumberModel(1, 1, 10, 1));
+		dataStrideSpinner.addChangeListener((e) -> {
+			if (refreshing)
+				return;
+			int n = (Integer) dataStrideSpinner.getValue();
+			if (n == dataTrack.getDataClip().getStride()) {
+				return;
+			}
+			dataTrack.getDataClip().setStride(n);
+			dataStrideSpinner.setValue(dataTrack.getDataClip().getStride());
+			TFrame.repaintT(DataTrackClipControl.this);
+			dataStrideSpinner.requestFocusInWindow();
+		});
+
+		// assemble
+		drawingPanel = new GraphicPanel();
+		drawingPanel.setBorder(BorderFactory.createEtchedBorder());
+		drawingPanel.addDrawable(new MappingGraphic());
+		add(drawingPanel, BorderLayout.CENTER);
+		spinnerPanel = new JPanel(new GridLayout(1, 4));
+		add(spinnerPanel, BorderLayout.SOUTH);
+
+		JPanel singleSpinnerPanel = new JPanel(new BorderLayout());
+		JPanel panel = new JPanel();
+		panel.add(videoInSpinner);
+		singleSpinnerPanel.add(panel, BorderLayout.NORTH);
+		panel = new JPanel();
+		panel.add(videoInLabel);
+		singleSpinnerPanel.add(panel, BorderLayout.SOUTH);
+		spinnerPanel.add(singleSpinnerPanel);
+
+		singleSpinnerPanel = new JPanel(new BorderLayout());
+		panel = new JPanel();
+		panel.add(dataClipLengthSpinner);
+		singleSpinnerPanel.add(panel, BorderLayout.NORTH);
+		panel = new JPanel();
+		panel.add(dataClipLengthLabel);
+		singleSpinnerPanel.add(panel, BorderLayout.SOUTH);
+		spinnerPanel.add(singleSpinnerPanel);
+
+		singleSpinnerPanel = new JPanel(new BorderLayout());
+		panel = new JPanel();
+		panel.add(dataInSpinner);
+		singleSpinnerPanel.add(panel, BorderLayout.NORTH);
+		panel = new JPanel();
+		panel.add(dataInLabel);
+		singleSpinnerPanel.add(panel, BorderLayout.SOUTH);
+		spinnerPanel.add(singleSpinnerPanel);
+
+		singleSpinnerPanel = new JPanel(new BorderLayout());
+		panel = new JPanel();
+		panel.add(dataStrideSpinner);
+		singleSpinnerPanel.add(panel, BorderLayout.NORTH);
+		panel = new JPanel();
+		panel.add(dataStrideLabel);
+		singleSpinnerPanel.add(panel, BorderLayout.SOUTH);
+		spinnerPanel.add(singleSpinnerPanel);
 
 	}
 	
@@ -264,12 +268,6 @@ public class DataTrackClipControl extends JPanel implements PropertyChangeListen
 	@Override
 	public void propertyChange(PropertyChangeEvent e) {
 		refreshSpinners();
-//		if (e.getPropertyName().equals("dataclip")) { //$NON-NLS-1$
-//			refreshSpinners();
-//		}
-//		else if (e.getPropertyName().equals("videoclip")) { //$NON-NLS-1$
-//			refreshSpinners();
-//		}
 	}
   
   /**

@@ -86,26 +86,31 @@ public class CenterOfMassInspector extends JDialog
     updateDisplay();
   }
 
-  /**
-   * Responds to property change events. This listens for the
-   * following events: TFrame.PROPERTY_TFRAME_TAB.
-   *
-   * @param e the property change event
-   */
-  @Override
-public void propertyChange(PropertyChangeEvent e) {
-    if (e.getPropertyName().equals(TFrame.PROPERTY_TFRAME_TAB)) { //$NON-NLS-1$
-      if (trackerPanel != null && e.getNewValue() == trackerPanel) {
-        setVisible(isVisible);
-      }
-      else {
-        boolean vis = isVisible;
-        setVisible(false);
-        isVisible = vis;
-      }
-    }
-    else updateDisplay();
-  }
+	/**
+	 * Responds to property change events. This listens for the following events:
+	 * TFrame.PROPERTY_TFRAME_TAB.
+	 *
+	 * @param e the property change event
+	 */
+	@Override
+	public void propertyChange(PropertyChangeEvent e) {
+		switch (e.getPropertyName()) {
+		case TFrame.PROPERTY_TFRAME_TAB:
+			if (trackerPanel != null && e.getNewValue() == trackerPanel) {
+				setVisible(isVisible);
+			} else {
+				boolean vis = isVisible;
+				setVisible(false);
+				isVisible = vis;
+			}
+			break;
+		case TrackerPanel.PROPERTY_TRACKERPANEL_TRACK:
+		default:
+			updateDisplay();
+			break;
+		}
+
+	}
 
   /**
    * Overrides JDialog setVisible method.
@@ -132,10 +137,7 @@ public void setVisible(boolean vis) {
 			trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this); //$NON-NLS-1$
 			ArrayList<PointMass> masses = trackerPanel.getDrawablesTemp(PointMass.class);
 			for (int i = 0, n = masses.size(); i < n; i++) {
-				PointMass p = masses.get(i);
-				p.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_NAME, this); //$NON-NLS-1$
-				p.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_COLOR, this); //$NON-NLS-1$
-				p.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_FOOTPRINT, this); //$NON-NLS-1$
+				masses.get(i).removeListenerNCF(this);
 			}
 			masses.clear();
 			TFrame frame = trackerPanel.getTFrame();
@@ -221,12 +223,8 @@ public void setVisible(boolean vis) {
 		ArrayList<PointMass> masses = trackerPanel.getDrawablesTemp(PointMass.class);
 		for (int i = 0, n = masses.size(); i < n; i++) {
 			PointMass m = masses.get(i);
-			m.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_NAME, this); //$NON-NLS-1$
-			m.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_COLOR, this); //$NON-NLS-1$
-			m.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_FOOTPRINT, this); //$NON-NLS-1$
-			m.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_NAME, this); //$NON-NLS-1$
-			m.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_COLOR, this); //$NON-NLS-1$
-			m.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_FOOTPRINT, this); //$NON-NLS-1$
+			m.removeListenerNCF(this);
+			m.addListenerNCF(this);
 			if (m instanceof CenterOfMass)
 				continue; // don't include other cms
 			JCheckBoxMenuItem checkbox = new JCheckBoxMenuItem(m.getName(), m.getFootprint().getIcon(21, 16));

@@ -265,27 +265,47 @@ public boolean isDependent() {
     return true;
   }
 
-  /**
-   * Responds to property change events.
-   *
-   * @param e the property change event
-   */
-  @Override
-public void propertyChange(PropertyChangeEvent e) {
-    String name = e.getPropertyName();
-    if (name.equals(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK) && e.getOldValue()!=null) { // track deleted //$NON-NLS-1$
-      TTrack track = (TTrack)e.getOldValue();
-      if (track instanceof Vector)
-        removeVector((Vector)track);
-    }
-    if (e.getSource() instanceof Vector) {
-      if (name.equals(PROPERTY_TTRACK_STEP)){ //$NON-NLS-1$
-        int n = ((Integer)e.getNewValue()).intValue();
-        update(n);
-      }
-    }
-    else super.propertyChange(e);
-  }
+	/**
+	 * Adds events for TrackerPanel.
+	 * 
+	 * @param panel the new TrackerPanel
+	 */
+	@Override
+	public void setTrackerPanel(TrackerPanel panel) {
+		if (trackerPanel != null) {			
+			trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this);
+		}
+		super.setTrackerPanel(panel);
+		if (trackerPanel != null) {
+			trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this);
+		}
+	}
+
+	/**
+	 * Responds to property change events.
+	 *
+	 * @param e the property change event
+	 */
+	@Override
+	public void propertyChange(PropertyChangeEvent e) {
+		switch (e.getPropertyName()) {
+		case TrackerPanel.PROPERTY_TRACKERPANEL_TRACK:
+			if (e.getOldValue() != null) { // track deleted //$NON-NLS-1$
+				TTrack track = (TTrack) e.getOldValue();
+				if (track instanceof Vector)
+					removeVector((Vector) track);
+			}
+			break;
+		case PROPERTY_TTRACK_STEP:
+			if (e.getSource() instanceof Vector) {
+				int n = ((Integer) e.getNewValue()).intValue();
+				update(n);
+				return;
+			}
+			break;
+		}
+		super.propertyChange(e);
+	}
 
   /**
    * Cleans up associated resources when this track is deleted or cleared.
@@ -394,31 +414,10 @@ public JMenu getMenu(TrackerPanel trackerPanel, JMenu menu0) {
         inspector.setVisible(true);
       }
     });
-    // assemble the menu
-    JMenu menu = super.getMenu(trackerPanel, menu0);
-    // remove unwanted menu items and separators
-    menu.remove(lockedItem);
-    menu.remove(autoAdvanceItem);
-    menu.remove(markByDefaultItem);
-    menu.insert(inspectorItem, 0);
-    if (menu.getItemCount() > 1)
-      menu.insertSeparator(1);
-    // eliminate any double separators
-    Object prevItem = inspectorItem;
-    int n = menu.getItemCount();
-    for (int j = 1; j < n; j++) {
-    	Object item = menu.getItem(j);
-      if (item == null && prevItem == null) { // found extra separator
-      	menu.remove(j-1);
-      	j = j-1;
-      	n = n-1;
-      }
-      prevItem = item;
-    }
-    return menu;
+    return assembleMenu(super.getMenu(trackerPanel, menu0), inspectorItem);
   }
 
-  /**
+/**
    * Overrides TTrack getToolbarPointComponents method.
    *
    * @param trackerPanel the tracker panel

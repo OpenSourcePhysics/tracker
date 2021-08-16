@@ -47,6 +47,7 @@ import org.opensourcephysics.media.core.VideoClip;
 import org.opensourcephysics.media.core.VideoPlayer;
 import org.opensourcephysics.tools.FontSizer;
 import org.opensourcephysics.tools.FunctionEditor;
+import org.opensourcephysics.tools.FunctionTool;
 import org.opensourcephysics.tools.Parameter;
 import org.opensourcephysics.tools.UserFunction;
 import org.opensourcephysics.tools.UserFunctionEditor;
@@ -386,9 +387,7 @@ public class DynamicSystem extends DynamicParticlePolar {
 				particle.setLastValidFrame(-1);
 				particle.repaint();
 				if (systemInspector != null) {
-					particle.removePropertyChangeListener(PROPERTY_TTRACK_NAME, systemInspector); //$NON-NLS-1$
-					particle.removePropertyChangeListener(PROPERTY_TTRACK_COLOR, systemInspector); //$NON-NLS-1$
-					particle.removePropertyChangeListener(PROPERTY_TTRACK_FOOTPRINT, systemInspector); //$NON-NLS-1$
+					particle.removeListenerNCF(systemInspector);
 				}
 			}
 		}
@@ -407,19 +406,15 @@ public class DynamicSystem extends DynamicParticlePolar {
 		points[n] = new Point2D.Double();
 		for (int i = 0; i < n; i++) {
 			points[i] = new Point2D.Double();
-			particles[i].removePropertyChangeListener("mass", this); //$NON-NLS-1$
+			particles[i].removePropertyChangeListener(TTrack.PROPERTY_TTRACK_MASS, this); //$NON-NLS-1$
 			particles[i].removeStepListener(this);
-			particles[i].addPropertyChangeListener("mass", this); //$NON-NLS-1$
+			particles[i].addPropertyChangeListener(TTrack.PROPERTY_TTRACK_MASS, this); //$NON-NLS-1$
 			particles[i].addStepListener(this);
 			particles[i].system = this;
 			particles[i].refreshInitialTime();
 			if (systemInspector != null) {
-				particles[i].removePropertyChangeListener(PROPERTY_TTRACK_NAME, systemInspector); //$NON-NLS-1$
-				particles[i].removePropertyChangeListener(PROPERTY_TTRACK_COLOR, systemInspector); //$NON-NLS-1$
-				particles[i].removePropertyChangeListener(PROPERTY_TTRACK_FOOTPRINT, systemInspector); //$NON-NLS-1$
-				particles[i].addPropertyChangeListener(PROPERTY_TTRACK_NAME, systemInspector); //$NON-NLS-1$
-				particles[i].addPropertyChangeListener(PROPERTY_TTRACK_COLOR, systemInspector); //$NON-NLS-1$
-				particles[i].addPropertyChangeListener(PROPERTY_TTRACK_FOOTPRINT, systemInspector); //$NON-NLS-1$
+				particles[i].removeListenerNCF(systemInspector);
+				particles[i].addListenerNCF(systemInspector);
 			}
 		}
 		refreshSystemParameters();
@@ -529,8 +524,8 @@ public class DynamicSystem extends DynamicParticlePolar {
 	 */
 	@Override
 	public void propertyChange(PropertyChangeEvent e) {
-		String name = e.getPropertyName();
-		if (name.equals(ImageCoordSystem.PROPERTY_COORDS_TRANSFORM)) { //$NON-NLS-1$
+		switch (e.getPropertyName()) {
+		case ImageCoordSystem.PROPERTY_COORDS_TRANSFORM:
 			// workaround to prevent infinite loop
 			ImageCoordSystem coords = trackerPanel.getCoords();
 			if (coords instanceof ReferenceFrame) {
@@ -542,14 +537,21 @@ public class DynamicSystem extends DynamicParticlePolar {
 			}
 			setLastValidFrame(-1);
 			refreshSteps("DynSys.property change transform ");
-		} else
+			break;
+		case PROPERTY_TTRACK_MASS:
+		case FunctionTool.PROPERTY_FUNCTIONTOOL_FUNCTION: 
 			super.propertyChange(e);
-		if (name.equals("mass") || name.equals("function")) { //$NON-NLS-1$ //$NON-NLS-2$
 			refreshSystemParameters();
 			if (trackerPanel != null)
 				TFrame.repaintT(trackerPanel);
-		} else if (name.equals(PROPERTY_TTRACK_NAME)) { //$NON-NLS-1$
+			break;
+		case PROPERTY_TTRACK_NAME:
+			super.propertyChange(e);
 			refreshSystemParameters();
+			break;
+		default:
+			super.propertyChange(e);
+			break;
 		}
 	}
 
@@ -571,9 +573,7 @@ public class DynamicSystem extends DynamicParticlePolar {
 		if (systemInspector == null) {
 			systemInspector = new DynamicSystemInspector(this);
 			systemInspector.setLocation(200, 200);
-			addPropertyChangeListener(PROPERTY_TTRACK_NAME, systemInspector); //$NON-NLS-1$
-			addPropertyChangeListener(PROPERTY_TTRACK_COLOR, systemInspector); //$NON-NLS-1$
-			addPropertyChangeListener(PROPERTY_TTRACK_FOOTPRINT, systemInspector); //$NON-NLS-1$
+			addListenerNCF(systemInspector);
 		}
 		return systemInspector;
 	}
@@ -700,7 +700,7 @@ public class DynamicSystem extends DynamicParticlePolar {
 	@Override
 	protected void dispose() {
 		for (int i = 0; i < particles.length; i++) {
-			particles[i].removePropertyChangeListener("mass", this); //$NON-NLS-1$
+			particles[i].removePropertyChangeListener(TTrack.PROPERTY_TTRACK_MASS, this); //$NON-NLS-1$
 			particles[i].removeStepListener(this);
 			particles[i].system = null;
 		}
@@ -747,7 +747,7 @@ public class DynamicSystem extends DynamicParticlePolar {
 		if (trackerPanel != null) {
 			zeroOmega = 1000 * zeroAngle / trackerPanel.getPlayer().getMeanStepDuration();
 		}
-		String relative = "_" + TrackerRes.getString("DynamicSystem.Parameter.Name.Relative"); //$NON-NLS-1$ //$NON-NLS-2$
+		String relative = "_" + TrackerRes.getString("DynamicSystem.Parameter. fe.Relative"); //$NON-NLS-1$ //$NON-NLS-2$
 		String particleNames = " "; //$NON-NLS-1$
 		if (particles.length > 0) {
 			particleNames += TrackerRes.getString("DynamicSystem.Parameter.Of") + " "; //$NON-NLS-1$ //$NON-NLS-2$

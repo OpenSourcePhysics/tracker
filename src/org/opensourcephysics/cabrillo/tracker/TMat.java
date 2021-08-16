@@ -95,7 +95,7 @@ public class TMat implements Measurable, Trackable, PropertyChangeListener {
   public void setTrackerPanel(TrackerPanel panel) {
   	if (panel==null || trackerPanel==panel) return;
     trackerPanel = panel;
-    trackerPanel.addPropertyChangeListener("coords", this); //$NON-NLS-1$
+    trackerPanel.addPropertyChangeListener(Video.PROPERTY_VIDEO_COORDS, this); //$NON-NLS-1$
     coords = trackerPanel.getCoords();
     coords.addPropertyChangeListener(ImageCoordSystem.PROPERTY_COORDS_TRANSFORM, this); //$NON-NLS-1$
   }
@@ -244,20 +244,22 @@ public boolean isMeasured() {
     return mat.y;
   }
 
-  /**
-   * Responds to property change events.
-   *
-   * @param e the property change event
-   */
-  @Override
-public void propertyChange(PropertyChangeEvent e) {
-    if (e.getPropertyName().equals(ImageCoordSystem.PROPERTY_COORDS_TRANSFORM)) { //$NON-NLS-1$
-      isValidMeasure = false;
-    }
-    else if (e.getPropertyName().equals("coords")) { //$NON-NLS-1$
-      refresh();
-    }
-  }
+	/**
+	 * Responds to property change events.
+	 *
+	 * @param e the property change event
+	 */
+	@Override
+	public void propertyChange(PropertyChangeEvent e) {
+		switch (e.getPropertyName()) {
+		case ImageCoordSystem.PROPERTY_COORDS_TRANSFORM:
+			isValidMeasure = false;
+			break;
+		case Video.PROPERTY_VIDEO_COORDS:
+			refresh();
+			break;
+		}
+	}
 
   /**
    * Cleans up this mat

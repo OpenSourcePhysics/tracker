@@ -354,14 +354,15 @@ public class Vector extends TTrack {
 	 */
 	@Override
 	public void propertyChange(PropertyChangeEvent e) {
-		if (e.getSource() instanceof TrackerPanel) {
-			String name = e.getPropertyName();
-			if (name.equals(Trackable.PROPERTY_ADJUSTING)) { // $NON-NLS-1$
+		switch (e.getPropertyName()) {
+		case Trackable.PROPERTY_ADJUSTING:
+//			if (e.getSource() instanceof TrackerPanel) {
 				refreshDataLater = (Boolean) e.getNewValue();
 				if (!refreshDataLater) { // stopped adjusting
 					firePropertyChange(PROPERTY_TTRACK_DATA, null, null); // $NON-NLS-1$
 				}
-			}
+//			}
+			break;
 		}
 		super.propertyChange(e);
 	}
@@ -566,28 +567,24 @@ public class Vector extends TTrack {
 		// remove delete item from end
 		if (trackerPanel.isEnabled("track.delete")) { //$NON-NLS-1$
 			menu.remove(deleteTrackItem);
-			if (menu.getItemCount() > 0)
-				menu.remove(menu.getItemCount() - 1); // remove separator
+			TMenuBar.removeLastItem(menu); // remove separator
 		}
 		// add autoAdvance and markByDefault items at end
 		if (trackerPanel.isEnabled("track.autoAdvance") || //$NON-NLS-1$
 				trackerPanel.isEnabled("track.markByDefault")) { //$NON-NLS-1$
-			if (menu.getItemCount() > 0)
-				menu.addSeparator();
+			TMenuBar.checkAddMenuSep(menu);
 			if (trackerPanel.isEnabled("track.autoAdvance")) //$NON-NLS-1$
 				menu.add(autoAdvanceItem);
 			if (trackerPanel.isEnabled("track.markByDefault")) //$NON-NLS-1$
 				menu.add(markByDefaultItem);
 		}
 		// add tailsToOrigin item
-		if (menu.getItemCount() > 0)
-			menu.addSeparator();
+		TMenuBar.checkAddMenuSep(menu);
 		tailsToOriginItem.setText(TrackerRes.getString("Vector.MenuItem.ToOrigin")); //$NON-NLS-1$
 		menu.add(tailsToOriginItem);
 		// replace delete item
 		if (trackerPanel.isEnabled("track.delete")) { //$NON-NLS-1$
-			if (menu.getItemCount() > 0)
-				menu.addSeparator();
+			TMenuBar.checkAddMenuSep(menu);
 			TPoint p = trackerPanel.getSelectedPoint();
 			Step step = getStep(p, trackerPanel);
 			deleteStepItem.setEnabled(step != null);

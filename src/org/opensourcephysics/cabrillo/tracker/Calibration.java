@@ -462,7 +462,7 @@ public class Calibration extends TTrack {
 		lockedItem.setEnabled(!trackerPanel.getCoords().isLocked());
 		// remove end items and last separator
 		menu.remove(deleteTrackItem);
-		menu.remove(menu.getMenuComponent(menu.getMenuComponentCount() - 1));
+		TMenuBar.removeLastItem(menu);
 
 		JCheckBoxMenuItem fixedCoordinatesItem = new JCheckBoxMenuItem(
 				TrackerRes.getString("OffsetOrigin.MenuItem.Fixed")); //$NON-NLS-1$
@@ -674,8 +674,7 @@ public class Calibration extends TTrack {
 	 */
 	@Override
 	public void propertyChange(PropertyChangeEvent e) {
-		String name = e.getPropertyName();
-		switch (name) {
+		switch (e.getPropertyName()) {
 		case TrackerPanel.PROPERTY_TRACKERPANEL_STEPNUMBER:
 			if (trackerPanel.getSelectedTrack() == this) {
 				displayWorldCoordinates();
@@ -692,6 +691,22 @@ public class Calibration extends TTrack {
 			break;
 		default:
 			super.propertyChange(e);
+		}
+	}
+
+	/**
+	 * Adds events for TrackerPanel.
+	 * 
+	 * @param panel the new TrackerPanel
+	 */
+	@Override
+	public void setTrackerPanel(TrackerPanel panel) {
+		if (trackerPanel != null) {			
+			trackerPanel.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_LOCKED, this);
+		}
+		super.setTrackerPanel(panel);
+		if (trackerPanel != null) {
+			trackerPanel.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_LOCKED, this);
 		}
 	}
 
@@ -987,4 +1002,6 @@ public class Calibration extends TTrack {
 			return obj;
 		}
 	}
+
+
 }

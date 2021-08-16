@@ -1208,26 +1208,30 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 
 	@Override
 	public void setTrackerPanel(TrackerPanel panel) {
-		if (panel == null && trackerPanel != null) {
-			trackerPanel.getTFrame().checkClipboardListener();
+		if (trackerPanel != null) {
+			trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_VIDEO, this);
+			if (panel == null)
+				trackerPanel.getTFrame().checkClipboardListener();
 		}
 		super.setTrackerPanel(panel);
 		for (TTrack next : morePoints) {
+			// Q: Won't these already be initialized?
 			next.setTrackerPanel(panel);
 		}
-		if (panel == null) {
-			return;
-		}
 
-		VideoClip videoClip = panel.getPlayer().getVideoClip();
-		int length = videoClip.getLastFrameNumber() - videoClip.getFirstFrameNumber() + 1;
-		dataClip.setClipLength(Math.min(length, dataClip.getClipLength()));
-		firePropertyChange("videoclip", null, null); //$NON-NLS-1$
-		if (useDataTime) {
-			panel.getPlayer().getClipControl().setTimeSource(this);
-			firePropertyChange("timedata", null, null); //$NON-NLS-1$
+		if (trackerPanel != null) {
+			trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_VIDEO, this);
+			VideoClip videoClip = panel.getPlayer().getVideoClip();
+			int length = videoClip.getLastFrameNumber() - videoClip.getFirstFrameNumber() + 1;
+			dataClip.setClipLength(Math.min(length, dataClip.getClipLength()));
+			firePropertyChange("videoclip", null, null); //$NON-NLS-1$
+			if (useDataTime) {
+				panel.getPlayer().getClipControl().setTimeSource(this);
+				firePropertyChange("timedata", null, null); //$NON-NLS-1$
+			}
 		}
 	}
+
 
 	@Override
 	public void propertyChange(PropertyChangeEvent e) {
@@ -1240,18 +1244,14 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 			refreshInitialTime();
 			adjustVideoClip();
 			firePropertyChange(PROPERTY_PARTICLEDATATRACK_DATACLIP, null, null); // $NON-NLS-1$
-			setLastValidFrame(-1);
-			repaint();
-			return;
+			break;
 		case TrackerPanel.PROPERTY_TRACKERPANEL_VIDEO:
 			// listen for changes to the video
 			firePropertyChange("videoclip", null, null); //$NON-NLS-1$
-			setLastValidFrame(-1);
-			repaint();
 			break;
 		case TFrame.PROPERTY_TFRAME_WINDOWFOCUS:
 			if (!OSPRuntime.allowAutopaste || !isAutoPasteEnabled())
-				break;
+				return;
 			TFrame frame = (TFrame) e.getSource();
 			// listen for data changes
 			if (trackerPanel != null && trackerPanel == frame.getSelectedPanel()
@@ -1281,8 +1281,18 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 //					setPendingDataString(dataString);
 				}
 			}
-			break;
+			return;
+		case TFrame.PROPERTY_TFRAME_TAB: // $NON-NLS-1$
+			if (trackerPanel != null && trackerPanel.getTFrame() != null
+					&& trackerPanel == e.getNewValue()) {
+				trackerPanel.getTFrame().getClipboardListener().processContents(trackerPanel);
+			}
+			return;
+		default:
+			return;
 		}
+		setLastValidFrame(-1);
+		repaint();
 	}
 
 //	protected void setPendingDataString(String dataString) {

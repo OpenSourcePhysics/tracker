@@ -99,7 +99,8 @@ public class DynamicSystemInspector extends JDialog
 	 */
 	@Override
 	public void propertyChange(PropertyChangeEvent e) {
-		if (e.getPropertyName().equals(TFrame.PROPERTY_TFRAME_TAB)) { // $NON-NLS-1$
+		switch (e.getPropertyName()) {
+		case TFrame.PROPERTY_TFRAME_TAB:
 			if (trackerPanel != null && e.getNewValue() == trackerPanel) {
 				setVisible(isVisible);
 			} else {
@@ -107,13 +108,14 @@ public class DynamicSystemInspector extends JDialog
 				setVisible(false);
 				isVisible = vis;
 			}
-		} else if (e.getPropertyName().equals(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK) // $NON-NLS-1$
-				&& e.getNewValue() instanceof DynamicParticle) {
-			newParticle = (DynamicParticle) e.getNewValue();
-			updateDisplay();
-		} else {
-			updateDisplay();
+			return;
+		case TrackerPanel.PROPERTY_TRACKERPANEL_TRACK:
+			if (e.getNewValue() instanceof DynamicParticle) {
+				newParticle = (DynamicParticle) e.getNewValue();
+			}
+			break;
 		}
+		updateDisplay();
 	}
 
   /**
@@ -136,10 +138,7 @@ public void setVisible(boolean vis) {
 			trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this); //$NON-NLS-1$
 			ArrayList<DynamicParticle> list = trackerPanel.getDrawablesTemp(DynamicParticle.class);
 			for (int i = 0, ni = list.size(); i < ni; i++) {
-				DynamicParticle p = list.get(ni);
-				p.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_NAME, this); //$NON-NLS-1$
-				p.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_COLOR, this); //$NON-NLS-1$
-				p.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_FOOTPRINT, this); //$NON-NLS-1$
+				list.get(ni).removeListenerNCF(this);
 			}
 			list.clear();
 			TFrame frame = trackerPanel.getTFrame();

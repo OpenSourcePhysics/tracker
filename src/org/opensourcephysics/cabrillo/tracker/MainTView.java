@@ -361,8 +361,8 @@ public class MainTView extends JPanel implements TView {
 	@Override
 	public void init() {
 		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this); // $NON-NLS-1$
-		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this); // $NON-NLS-1$
 		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR, this); // $NON-NLS-1$
+		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this); // $NON-NLS-1$
 		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR, this); // $NON-NLS-1$
 		// add this listener to tracks
 		for (TTrack track : trackerPanel.getTracksTemp()) {
@@ -382,8 +382,7 @@ public class MainTView extends JPanel implements TView {
 		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR, this); // $NON-NLS-1$
 		// remove this listener from all tracks
 		for (Integer n : TTrack.activeTracks.keySet()) {
-			TTrack track = TTrack.activeTracks.get(n);
-			track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_COLOR, this); //$NON-NLS-1$
+			TTrack.activeTracks.get(n).removePropertyChangeListener(TTrack.PROPERTY_TTRACK_COLOR, this); //$NON-NLS-1$
 		}
 	}
 
@@ -467,8 +466,7 @@ public class MainTView extends JPanel implements TView {
 	 */
 	@Override
 	public void propertyChange(PropertyChangeEvent e) {
-		String name = e.getPropertyName();
-		switch (name) {
+		switch (e.getPropertyName()) {
 		case TrackerPanel.PROPERTY_TRACKERPANEL_TRACK:
 		case TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR:
 			refresh();

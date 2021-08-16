@@ -242,6 +242,42 @@ abstract public class ParticleModel extends PointMass {
 		}
 	}
 
+	
+	private final static String[] panelEventsParticleModel = new String[] { 
+			ClipControl.PROPERTY_CLIPCONTROL_FRAMEDURATION, // ParticleModel
+			FunctionTool.PROPERTY_FUNCTIONTOOL_FUNCTION, // ParticleModel (also DynamicSystem)
+			VideoClip.PROPERTY_VIDEOCLIP_STARTTIME,  // ParticleModel
+			VideoClip.PROPERTY_VIDEOCLIP_STEPCOUNT, // ParticleModel
+			TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDTRACK, // ParticleModel
+	};
+	
+	@Override
+	public void setTrackerPanel(TrackerPanel panel) {
+		if (trackerPanel != null) {
+			removePanelEvents(panelEventsParticleModel);
+			// remove this model's listener from the frame that would have been created
+			// when the ModelBuilder was initiated.
+			TFrame frame = trackerPanel.getTFrame();
+			if (frame != null)
+				frame.removePropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, this);
+		}
+		super.setTrackerPanel(panel);
+		if (trackerPanel != null) {
+			addPanelEvents(panelEventsParticleModel);
+			if (startFrameUndefined) {
+				int n = panel.getPlayer().getVideoClip().getStartFrameNumber();
+				setStartFrame(n);
+				startFrameUndefined = false;
+			}
+			if (panel.getTFrame() != null) {
+				boolean radians = panel.getTFrame().anglesInRadians;
+				functionPanel.initEditor.setAnglesInDegrees(!radians);
+			}
+		}
+	}
+
+
+	
 	/**
 	 * Responds to property change events.
 	 * 
@@ -254,14 +290,9 @@ abstract public class ParticleModel extends PointMass {
 			return;
 		boolean dorefresh = (!refreshing && isModelsVisible());
 		String resetMe = null;
-		String name = e.getPropertyName();
-		switch (name) {
-//		System.out.println(name);
-		case FunctionTool.PROPERTY_FUNCTIONTOOL_FUNCTION:
-			if (!loading)
-				trackerPanel.changed = true;
-			resetMe = "repaint";
-			break;
+		switch (e.getPropertyName()) {
+		default:
+			return;
 		case TFrame.PROPERTY_TFRAME_TAB: // $NON-NLS-1$
 			if (modelBuilder != null) {
 				if (trackerPanel != null && e.getNewValue() == trackerPanel && trackerPanel.isModelBuilderVisible) {
@@ -271,18 +302,32 @@ abstract public class ParticleModel extends PointMass {
 					trackerPanel.isModelBuilderVisible = true;
 				}
 			}
-			if (this instanceof ParticleDataTrack
-//					&& ((ParticleDataTrack)this).isAutoPasteEnabled()
-					&& trackerPanel != null && trackerPanel.getTFrame() != null
-//					&& trackerPanel.getTFrame().clipboardListener!=null
-					&& trackerPanel == e.getNewValue()) {
-				trackerPanel.getTFrame().getClipboardListener().processContents(trackerPanel);
-			}
-			break;
+			return;
 		case TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDTRACK:
+			// from TrackerPnael
 			if (e.getNewValue() == this && modelBuilder != null && !modelBuilder.getSelectedName().equals(getName())) {
 				modelBuilder.setSelectedPanel(getName());
 			}
+			return;
+		case VideoClip.PROPERTY_VIDEOCLIP_STEPCOUNT:
+			// no reset to -1
+			if (dorefresh) {
+				refreshInitialTime();
+				refreshSteps(name);
+			}
+			return;
+		case Trackable.PROPERTY_ADJUSTING: // $NON-NLS-1$
+			if (dorefresh) {
+				refreshStepsLater = (Boolean) e.getNewValue();
+				if (!refreshStepsLater) { // stopped adjusting, so refresh steps
+					refreshSteps(name);
+				}
+			}
+			return;
+		case FunctionTool.PROPERTY_FUNCTIONTOOL_FUNCTION:
+			if (!loading)
+				trackerPanel.changed = true;
+			resetMe = "repaint";
 			break;
 		case VideoClip.PROPERTY_VIDEOCLIP_STARTTIME:
 		case ClipControl.PROPERTY_CLIPCONTROL_FRAMEDURATION:
@@ -292,44 +337,28 @@ abstract public class ParticleModel extends PointMass {
 		case VideoClip.PROPERTY_VIDEOCLIP_STEPSIZE:
 			resetMe = "refresh";
 			break;
-		case VideoClip.PROPERTY_VIDEOCLIP_STEPCOUNT:
-			// no reset to -1
-			if (dorefresh) {
-				refreshInitialTime();
-				refreshSteps(name);
-			}
-			break;
 		case ImageCoordSystem.PROPERTY_COORDS_TRANSFORM: // $NON-NLS-1$
+			// from TrackerPanel
 			// workaround to prevent infinite loop
 			ImageCoordSystem coords = trackerPanel.getCoords();
-			if (!(coords instanceof ReferenceFrame && ((ReferenceFrame) coords).getOriginTrack() == this)) {
-				resetMe = "refresh";
-			}
-			break;
-		case Trackable.PROPERTY_ADJUSTING: // $NON-NLS-1$
-			if (dorefresh) {
-				refreshStepsLater = (Boolean) e.getNewValue();
-				if (!refreshStepsLater) { // stopped adjusting, so refresh steps
-					refreshSteps(name);
-				}
-			}
+			if (coords instanceof ReferenceFrame && ((ReferenceFrame) coords).getOriginTrack() == this)
+				return;
+			resetMe = "refresh";
 			break;
 		}
-		if (resetMe != null) {
-			setLastValidFrame(-1);
-			if (dorefresh) {
-				switch (resetMe) {
-				case "repaint":
-					repaint();
-					break;
-				case "refresh":
-					refreshSteps(name);
-					break;
-				case "time":
-					refreshInitialTime();
-					refreshSteps(name);
-					break;
-				}
+		setLastValidFrame(-1);
+		if (dorefresh) {
+			switch (resetMe) {
+			case "repaint":
+				repaint();
+				break;
+			case "refresh":
+				refreshSteps(name);
+				break;
+			case "time":
+				refreshInitialTime();
+				refreshSteps(name);
+				break;
 			}
 		}
 	}
@@ -499,45 +528,18 @@ abstract public class ParticleModel extends PointMass {
 		menu.remove(autotrackItem);
 		menu.remove(deleteStepItem);
 		menu.remove(clearStepsItem);
-		menu.remove(lockedItem);
-		menu.remove(autoAdvanceItem);
-		menu.remove(markByDefaultItem);
-		menu.insert(modelBuilderItem, 0);
-		if (menu.getItemCount() > 1)
-			menu.insertSeparator(1);
 
 		// find acceleration menu and insert stampItem after it
 		if (trackerPanel.isEnabled("model.stamp")) { //$NON-NLS-1$
-			for (int i = 0; i < menu.getMenuComponentCount(); i++) {
+			for (int i = menu.getItemCount(); --i >= 0;) {
 				if (menu.getMenuComponent(i) == accelerationMenu) {
-					menu.insert(stampItem, i + 1);
-					menu.insertSeparator(i + 1);
+					menu.insert(stampItem, ++i);
+					menu.insertSeparator(i);
 					break;
 				}
 			}
 		}
-
-//		// find visible item and insert useDefaultRefFrameItem after it
-//		for (int i=0; i<menu.getMenuComponentCount(); i++) {
-//			if (menu.getMenuComponent(i)==visibleItem) {
-//				menu.insert(useDefaultRefFrameItem, i+1);
-//				break;
-//			}
-//		}
-
-		// eliminate any double separators
-		Object prevItem = modelBuilderItem;
-		int n = menu.getItemCount();
-		for (int j = 1; j < n; j++) {
-			Object item = menu.getItem(j);
-			if (item == null && prevItem == null) { // found extra separator
-				menu.remove(j - 1);
-				j = j - 1;
-				n = n - 1;
-			}
-			prevItem = item;
-		}
-		return menu;
+		return assembleMenu(menu, modelBuilderItem);
 	}
 
 	protected void doStamp() {
@@ -648,28 +650,6 @@ abstract public class ParticleModel extends PointMass {
 	}
 
 	/**
-	 * Identifies the controlling TrackerPanel for this track (by default, the first
-	 * TrackerPanel that adds this track to its drawables).
-	 *
-	 * @param panel the TrackerPanel
-	 */
-	@Override
-	public void setTrackerPanel(TrackerPanel panel) {
-		super.setTrackerPanel(panel);
-		if (panel != null) {
-			if (startFrameUndefined) {
-				int n = panel.getPlayer().getVideoClip().getStartFrameNumber();
-				setStartFrame(n);
-				startFrameUndefined = false;
-			}
-			if (panel.getTFrame() != null) {
-				boolean radians = panel.getTFrame().anglesInRadians;
-				functionPanel.initEditor.setAnglesInDegrees(!radians);
-			}
-		}
-	}
-
-	/**
 	 * Sets the display format for angles.
 	 *
 	 * @param radians <code>true</code> for radians, false for degrees
@@ -690,12 +670,6 @@ abstract public class ParticleModel extends PointMass {
 
 	@Override
 	protected void dispose() {
-		if (trackerPanel != null) {
-			trackerPanel.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_DATA, this); // $NON-NLS-1$
-			if (trackerPanel.getTFrame() != null) {
-				trackerPanel.getTFrame().removePropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, this); // $NON-NLS-1$
-			}
-		}
 		if (modelBuilder != null) {
 			getParamEditor().removePropertyChangeListener(massParamListener);
 			getInitEditor().removePropertyChangeListener(timeParamListener);
@@ -1074,7 +1048,7 @@ abstract public class ParticleModel extends PointMass {
 			modelBuilder.addPanel(getName(), functionPanel);
 			modelBuilder.addPropertyChangeListener(this);
 			if (trackerPanel.getTFrame() != null) {
-				trackerPanel.getTFrame().addPropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, this); // $NON-NLS-1$
+				trackerPanel.getTFrame().addPropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, this);
 			}
 			if (getInitEditor().getValues()[0] == 0) {
 				refreshInitialTime();

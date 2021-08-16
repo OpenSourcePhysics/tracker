@@ -24,19 +24,35 @@
 */
 package org.opensourcephysics.cabrillo.tracker;
 
-import java.beans.*;
-import java.util.*;
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.beans.PropertyChangeEvent;
+import java.util.ArrayList;
+import java.util.Iterator;
 
-import javax.swing.*;
+import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.BorderFactory;
+import javax.swing.Icon;
+import javax.swing.JLabel;
+import javax.swing.JMenuItem;
+import javax.swing.JPopupMenu;
 
-import org.opensourcephysics.display.*;
-import org.opensourcephysics.media.core.*;
-import org.opensourcephysics.tools.*;
 import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
+import org.opensourcephysics.display.Drawable;
+import org.opensourcephysics.display.Interactive;
+import org.opensourcephysics.display.OSPRuntime;
+import org.opensourcephysics.media.core.ImageCoordSystem;
+import org.opensourcephysics.media.core.TPoint;
+import org.opensourcephysics.media.core.VideoPlayer;
+import org.opensourcephysics.tools.FontSizer;
+import org.opensourcephysics.tools.FunctionTool;
 
 /**
  * This is a TView of a TrackerPanel drawn in world space.
@@ -69,7 +85,7 @@ public class WorldTView extends TrackerPanel implements TView {
 		setDrawingInImageSpace(false);
 		setPreferredSize(new Dimension(240, 180));
 		setShowCoordinates(false);
-		trackerPanel.panelAndWorldViews.add(this);
+		panelAndWorldViews.add(this);
 		// world view button
 		worldViewLabel = new JLabel();
 		worldViewLabel.setBorder(BorderFactory.createEmptyBorder(2, 6, 2, 0));
@@ -155,14 +171,12 @@ public class WorldTView extends TrackerPanel implements TView {
 		// axes & tape items
 		CoordAxes axes = trackerPanel.getAxes();
 		if (axes != null) {
-			axes.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_VISIBLE, this); // $NON-NLS-1$
-			axes.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_VISIBLE, this); // $NON-NLS-1$
+			axes.updateListenerVisible(this);
 		}
 		if (!trackerPanel.calibrationTools.isEmpty()) {
 			for (TTrack next : trackerPanel.getTracks()) {
 				if (trackerPanel.calibrationTools.contains(next)) {
-					next.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_VISIBLE, this); // $NON-NLS-1$
-					next.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_VISIBLE, this); // $NON-NLS-1$
+					next.updateListenerVisible(this);
 				}
 			}
 		}
@@ -177,6 +191,17 @@ public class WorldTView extends TrackerPanel implements TView {
 		TFrame.repaintT(this);
 	}
 
+	private static final String[] panelProps = new String[] { 
+			TrackerPanel.PROPERTY_TRACKERPANEL_SIZE,
+			TrackerPanel.PROPERTY_TRACKERPANEL_STEPNUMBER, 
+			TrackerPanel.PROPERTY_TRACKERPANEL_VIDEO,
+			TrackerPanel.PROPERTY_TRACKERPANEL_IMAGE, 
+			TrackerPanel.PROPERTY_TRACKERPANEL_VIDEOVISIBLE,
+			TrackerPanel.PROPERTY_TRACKERPANEL_MAGNIFICATION,
+			ImageCoordSystem.PROPERTY_COORDS_TRANSFORM,
+			TTrack.PROPERTY_TTRACK_DATA
+	};
+
 	/**
 	 * Initializes this view
 	 */
@@ -185,16 +210,10 @@ public class WorldTView extends TrackerPanel implements TView {
 		cleanup();
 		// add this view to tracker panel listeners
 		// note "track" and "clear" not needed since forwarded from TViewChooser
-		trackerPanel.addPropertyChangeListener(PROPERTY_TRACKERPANEL_SIZE, this); // $NON-NLS-1$
-		trackerPanel.addPropertyChangeListener(ImageCoordSystem.PROPERTY_COORDS_TRANSFORM, this); // $NON-NLS-1$
-		trackerPanel.addPropertyChangeListener("stepnumber", this); //$NON-NLS-1$
-		trackerPanel.addPropertyChangeListener("video", this); //$NON-NLS-1$
-		trackerPanel.addPropertyChangeListener("image", this); //$NON-NLS-1$
-		trackerPanel.addPropertyChangeListener("videoVisible", this); //$NON-NLS-1$
-		trackerPanel.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_DATA, this); // $NON-NLS-1$
+		trackerPanel.addListeners(panelProps, this);
 		// add this view to track listeners
 		for (TTrack track : trackerPanel.getTracks()) {
-			track.addPropertyChangeListener("color", this); //$NON-NLS-1$
+			track.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_COLOR, this); //$NON-NLS-1$
 		}
 	}
 
@@ -204,17 +223,10 @@ public class WorldTView extends TrackerPanel implements TView {
 	@Override
 	public void cleanup() {
 		// remove this listener from tracker panel
-		trackerPanel.removePropertyChangeListener(PROPERTY_TRACKERPANEL_SIZE, this); // $NON-NLS-1$
-		trackerPanel.removePropertyChangeListener(ImageCoordSystem.PROPERTY_COORDS_TRANSFORM, this); // $NON-NLS-1$
-		trackerPanel.removePropertyChangeListener("stepnumber", this); //$NON-NLS-1$
-		trackerPanel.removePropertyChangeListener("video", this); //$NON-NLS-1$
-		trackerPanel.removePropertyChangeListener("image", this); //$NON-NLS-1$
-		trackerPanel.removePropertyChangeListener("videoVisible", this); //$NON-NLS-1$
-		trackerPanel.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_DATA, this); // $NON-NLS-1$
+		trackerPanel.removeListeners(panelProps, this);
 		// remove this listener from tracks
 		for (Integer n : TTrack.activeTracks.keySet()) {
-			TTrack track = TTrack.activeTracks.get(n);
-			track.removePropertyChangeListener("color", this); //$NON-NLS-1$
+			TTrack.activeTracks.get(n).removePropertyChangeListener(TTrack.PROPERTY_TTRACK_COLOR, this); //$NON-NLS-1$
 		}
 	}
 
@@ -224,9 +236,8 @@ public class WorldTView extends TrackerPanel implements TView {
 	@Override
 	public void dispose() {
 		cleanup();
-		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR, this); // $NON-NLS-1$
-		trackerPanel.removePropertyChangeListener("radian_angles", this); //$NON-NLS-1$
-		trackerPanel.removePropertyChangeListener("function", this); //$NON-NLS-1$
+		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR, this);
+		trackerPanel.removePropertyChangeListener(FunctionTool.PROPERTY_FUNCTIONTOOL_FUNCTION, this);
 		coords.removePropertyChangeListener(this);
 		trackerPanel = null;
 		super.dispose();
@@ -331,34 +342,36 @@ public class WorldTView extends TrackerPanel implements TView {
 	 */
 	@Override
 	public void propertyChange(PropertyChangeEvent e) {
-		String name = e.getPropertyName();
-		if (name.equals(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK)) { // track has been added or removed //$NON-NLS-1$
+		switch (e.getPropertyName()) {
+		case TrackerPanel.PROPERTY_TRACKERPANEL_TRACK:
 			if (e.getOldValue() != null) { // track removed
 				TTrack removed = (TTrack) e.getOldValue();
 				removed.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_COLOR, this); // $NON-NLS-1$
 				removed.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_VISIBLE, this); // $NON-NLS-1$
 			}
 			refresh();
-		} else if (name.equals(TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR)) { // tracks have been cleared //$NON-NLS-1$
+			break;
+		case TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR:
 			for (Integer n : TTrack.activeTracks.keySet()) {
 				TTrack track = TTrack.activeTracks.get(n);
 				track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_COLOR, this); // $NON-NLS-1$
 				track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_VISIBLE, this); // $NON-NLS-1$
 			}
 			refresh();
-		} else if (name.equals("stepnumber") || // stepnumber has changed //$NON-NLS-1$
-				name.equals(TTrack.PROPERTY_TTRACK_COLOR) || // track color changed //$NON-NLS-1$
-				name.equals(TTrack.PROPERTY_TTRACK_VISIBLE) || // tape/axes visibility changed //$NON-NLS-1$
-				name.equals("image") || // video image has changed //$NON-NLS-1$
-				name.equals("video") || // video has changed //$NON-NLS-1$
-				name.equals("videoVisible")) { // video visibility has changed //$NON-NLS-1$
+			break;
+		case TrackerPanel.PROPERTY_TRACKERPANEL_STEPNUMBER:
+		case TrackerPanel.PROPERTY_TRACKERPANEL_IMAGE:
+		case TrackerPanel.PROPERTY_TRACKERPANEL_VIDEO:
+		case TrackerPanel.PROPERTY_TRACKERPANEL_VIDEOVISIBLE:
+		case TTrack.PROPERTY_TTRACK_COLOR:
+		case TTrack.PROPERTY_TTRACK_VISIBLE:
 			TFrame.repaintT(this);
-		} else if (name.equals(ImageCoordSystem.PROPERTY_COORDS_TRANSFORM)) { // coords have changed //$NON-NLS-1$
+			break;
+		case ImageCoordSystem.PROPERTY_COORDS_TRANSFORM:
+		case TrackerPanel.PROPERTY_TRACKERPANEL_SIZE:
+		case TTrack.PROPERTY_TTRACK_DATA:
 			refresh();
-		} else if (name.equals(PROPERTY_TRACKERPANEL_SIZE)) { // image size has changed //$NON-NLS-1$
-			refresh();
-		} else if (name.equals(TTrack.PROPERTY_TTRACK_DATA)) { // data has changed //$NON-NLS-1$
-			refresh();
+			break;
 		}
 	}
 

@@ -55,7 +55,15 @@ import org.opensourcephysics.tools.FontSizer;
 public class TrackControl extends JDialog
     implements PropertyChangeListener {
 
-  // static fields
+  private static final String[] panelProps = {
+	TrackerPanel.PROPERTY_TRACKERPANEL_TRACK,
+	TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR,
+	TTrack.PROPERTY_TTRACK_MASS,
+	TTrack.PROPERTY_TTRACK_FOOTPRINT,
+	TTrack.PROPERTY_TTRACK_DATA,  
+  };
+
+// static fields
   protected static Map<TrackerPanel, TrackControl> controls = new HashMap<TrackerPanel, TrackControl>();
 
   // instance fields
@@ -124,12 +132,7 @@ public class TrackControl extends JDialog
     pack();
     popup = new JPopupMenu();
     trackerPanel = panel;
-    trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this); //$NON-NLS-1$
-    trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR, this); //$NON-NLS-1$
-    trackerPanel.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_MASS, this); //$NON-NLS-1$
-    trackerPanel.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_FOOTPRINT, this); //$NON-NLS-1$
-    trackerPanel.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_DATA, this); //$NON-NLS-1$
-//    trackerPanel.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_COLOR, this); //$NON-NLS-1$
+	trackerPanel.addListeners(panelProps, this);		
     TFrame frame = trackerPanel.getTFrame();
     frame.addFollower(this, null);
   }
@@ -174,9 +177,7 @@ public class TrackControl extends JDialog
 	 */
 	@Override
 	public void propertyChange(PropertyChangeEvent e) {
-		
-		String name = e.getPropertyName();
-		switch (name) {
+		switch (e.getPropertyName()) {
 		case TFrame.PROPERTY_TFRAME_TAB:
 			TrackerPanel p = (TrackerPanel) e.getNewValue();
 			if (p == null)
@@ -192,18 +193,12 @@ public class TrackControl extends JDialog
 		case TrackerPanel.PROPERTY_TRACKERPANEL_TRACK:
 			if (e.getOldValue() != null) {
 			// track has been deleted, so remove all listeners from it
-			TTrack track = (TTrack) e.getOldValue();
-			track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_NAME, this); // $NON-NLS-1$
-			track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_COLOR, this); // $NON-NLS-1$
-			track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_FOOTPRINT, this); // $NON-NLS-1$
+				((TTrack) e.getOldValue()).removeListenerNCF(this);
 			}
 			break;
 		case TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR:																							// //$NON-NLS-1$
 			for (Integer n : TTrack.activeTracks.keySet()) {
-				TTrack track = TTrack.activeTracks.get(n);
-				track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_NAME, this); // $NON-NLS-1$
-				track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_COLOR, this); // $NON-NLS-1$
-				track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_FOOTPRINT, this); // $NON-NLS-1$
+				TTrack.activeTracks.get(n).removeListenerNCF(this);
 			}
 			return;
 		}
@@ -221,11 +216,7 @@ public class TrackControl extends JDialog
   @Override
 public void dispose() {
     if (trackerPanel != null) {
-      trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this); //$NON-NLS-1$
-      trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR, this); //$NON-NLS-1$
-      trackerPanel.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_MASS, this); //$NON-NLS-1$
-      trackerPanel.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_FOOTPRINT, this); //$NON-NLS-1$
-      trackerPanel.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_DATA, this); //$NON-NLS-1$
+    	trackerPanel.removeListeners(panelProps, this);		
       TFrame frame = trackerPanel.getTFrame();
       if (frame != null) {
         frame.removePropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, this); //$NON-NLS-1$
@@ -234,10 +225,7 @@ public void dispose() {
       trackerPanel.trackControl = null;
       trackerPanel = null;
       for (Integer n: TTrack.activeTracks.keySet()) {
-      	TTrack track = TTrack.activeTracks.get(n);
-	      track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_NAME, this); //$NON-NLS-1$
-	      track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_COLOR, this); //$NON-NLS-1$
-	      track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_FOOTPRINT, this); //$NON-NLS-1$
+      	TTrack.activeTracks.get(n).removeListenerNCF(this);
       }
     }
     super.dispose();
@@ -304,12 +292,8 @@ public void dispose() {
     	int barIndex = (trackCount+1) / perbar;
       track = it.next();
       // listen to tracks for property changes that affect icon or name
-      track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_NAME, this); //$NON-NLS-1$
-      track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_COLOR, this); //$NON-NLS-1$
-      track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_FOOTPRINT, this); //$NON-NLS-1$
-      track.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_NAME, this); //$NON-NLS-1$
-      track.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_COLOR, this); //$NON-NLS-1$
-      track.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_FOOTPRINT, this); //$NON-NLS-1$
+      track.removeListenerNCF(this);
+      track.addListenerNCF(this);
       // make the track buttons
       TButton button = new TButton(track);
       button.addKeyListener(shiftKeyListener);

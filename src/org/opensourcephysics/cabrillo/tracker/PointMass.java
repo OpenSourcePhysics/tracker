@@ -78,7 +78,6 @@ import org.opensourcephysics.media.core.Trackable;
 import org.opensourcephysics.media.core.VideoClip;
 import org.opensourcephysics.media.core.VideoPlayer;
 import org.opensourcephysics.tools.FontSizer;
-import org.opensourcephysics.tools.FunctionPanel;
 
 /**
  * A PointMass tracks the position, velocity and acceleration of a point mass.
@@ -351,7 +350,9 @@ public class PointMass extends TTrack {
 	}
 
 	protected final static ArrayList<String> allVariables = createAllVariables(dataVariables, fieldVariables);
-
+	
+	
+	
 	protected static boolean isAutoKeyDown;
 
 	// instance fields
@@ -773,7 +774,7 @@ public class PointMass extends TTrack {
 						if (stepArray[k] != null)
 							stepArray[k].setFootprint(vFootprint);
 				}
-				firePropertyChange(TTrack.PROPERTY_TTRACK_FOOTPRINT, null, vFootprint); // $NON-NLS-1$
+				firePropertyChange(PROPERTY_TTRACK_FOOTPRINT, null, vFootprint); // $NON-NLS-1$
 				repaint();
 				return;
 			}
@@ -835,7 +836,7 @@ public class PointMass extends TTrack {
 							stepArray[k].setFootprint(aFootprint);
 				}
 				repaint();
-				firePropertyChange(TTrack.PROPERTY_TTRACK_FOOTPRINT, null, aFootprint); // $NON-NLS-1$
+				firePropertyChange(PROPERTY_TTRACK_FOOTPRINT, null, aFootprint); // $NON-NLS-1$
 				return;
 			}
 	}
@@ -919,7 +920,7 @@ public class PointMass extends TTrack {
 		mass = Math.abs(mass);
 		mass = Math.max(mass, MINIMUM_MASS);
 		this.mass = mass;
-		firePropertyChange(TTrack.PROPERTY_TTRACK_MASS, null, new Double(mass)); // $NON-NLS-1$
+		firePropertyChange(PROPERTY_TTRACK_MASS, null, new Double(mass)); // $NON-NLS-1$
 		invalidateData(this);// to views
 		// store the mass in the data properties
 		if (datasetManager != null) {
@@ -1263,13 +1264,7 @@ public class PointMass extends TTrack {
 	@Override
 	protected void dispose() {
 		if (trackerPanel != null) {
-			removePropertyChangeListener(TTrack.PROPERTY_TTRACK_MASS, trackerPanel.massChangeListener); // $NON-NLS-1$
-			if (trackerPanel.dataBuilder != null) {
-				FunctionPanel functionPanel = trackerPanel.dataBuilder.getPanel(getName());
-				if (functionPanel != null) {
-					functionPanel.getParamEditor().removePropertyChangeListener("edit", trackerPanel.massParamListener); //$NON-NLS-1$
-				}
-			}
+			trackerPanel.removePointMassListeners(this);
 		}
 		super.dispose();
 	}
@@ -2444,6 +2439,24 @@ public class PointMass extends TTrack {
 	}
 
 	/**
+	 * Adds events for TrackerPanel.
+	 * 
+	 * @param panel the new TrackerPanel
+	 */
+	@Override
+	public void setTrackerPanel(TrackerPanel panel) {
+		if (trackerPanel != null) {	
+			trackerPanel.removePropertyChangeListener(ImageCoordSystem.PROPERTY_COORDS_TRANSFORM, this);
+			trackerPanel.removePropertyChangeListener(VideoClip.PROPERTY_VIDEOCLIP_STEPSIZE, this);
+		}
+		super.setTrackerPanel(panel);
+		if (trackerPanel != null) {
+			trackerPanel.addPropertyChangeListener(ImageCoordSystem.PROPERTY_COORDS_TRANSFORM, this);
+			trackerPanel.addPropertyChangeListener(VideoClip.PROPERTY_VIDEOCLIP_STEPSIZE, this);
+		}
+	}
+
+	/**
 	 * Responds to property change events.
 	 *
 	 * @param e the property change event
@@ -2451,8 +2464,7 @@ public class PointMass extends TTrack {
 	@Override
 	public void propertyChange(PropertyChangeEvent e) {
 		if (e.getSource() instanceof TrackerPanel) {
-			String name = e.getPropertyName();
-			switch (name) {
+			switch (e.getPropertyName()) {
 			case ImageCoordSystem.PROPERTY_COORDS_TRANSFORM:
 				updateDerivatives();
 				invalidateData(null);
@@ -2509,8 +2521,7 @@ public class PointMass extends TTrack {
 			JMenuItem item = menu.getItem(menu.getItemCount() - 1);
 			if (item == deleteTrackItem) {
 				menu.remove(deleteTrackItem);
-				if (menu.getItemCount() > 0)
-					menu.remove(menu.getItemCount() - 1); // remove separator
+				TMenuBar.removeLastItem(menu);  // remove separator
 			}
 		}
 		// prepare vector footprint menus
@@ -2587,16 +2598,14 @@ public class PointMass extends TTrack {
 		// add autoAdvance and markByDefault items
 		if (trackerPanel.isEnabled("track.autoAdvance") || //$NON-NLS-1$
 				trackerPanel.isEnabled("track.markByDefault")) { //$NON-NLS-1$
-			if (menu.getItemCount() > 0 && menu.getItem(menu.getItemCount() - 1) != null)
-				menu.addSeparator();
+			TMenuBar.checkAddMenuSep(menu);
 			if (trackerPanel.isEnabled("track.autoAdvance")) //$NON-NLS-1$
 				menu.add(autoAdvanceItem);
 			if (trackerPanel.isEnabled("track.markByDefault")) //$NON-NLS-1$
 				menu.add(markByDefaultItem);
 		}
 		// add velocity and accel menus
-		if (menu.getItemCount() > 0 && menu.getItem(menu.getItemCount() - 1) != null)
-			menu.addSeparator();
+		TMenuBar.checkAddMenuSep(menu);
 		velocityMenu.setText(TrackerRes.getString("PointMass.MenuItem.Velocity")); //$NON-NLS-1$
 		accelerationMenu.setText(TrackerRes.getString("PointMass.MenuItem.Acceleration")); //$NON-NLS-1$
 		vColorItem.setText(TrackerRes.getString("TTrack.MenuItem.Color")); //$NON-NLS-1$
@@ -2611,8 +2620,7 @@ public class PointMass extends TTrack {
 		menu.add(accelerationMenu);
 		// replace delete item
 		if (trackerPanel.isEnabled("track.delete")) { //$NON-NLS-1$
-			if (menu.getItemCount() > 0 && menu.getItem(menu.getItemCount() - 1) != null)
-				menu.addSeparator();
+			TMenuBar.checkAddMenuSep(menu);
 			menu.add(deleteStepItem);
 			menu.add(clearStepsItem);
 			menu.add(deleteTrackItem);

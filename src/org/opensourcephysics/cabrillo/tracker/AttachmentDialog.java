@@ -72,6 +72,13 @@ public class AttachmentDialog extends JDialog implements PropertyChangeListener 
 	protected JLabel startLabel, countLabel;
 	protected boolean refreshing;
 
+	private static final String[] panelProps = new String[] { 
+			TrackerPanel.PROPERTY_TRACKERPANEL_TRACK,
+			TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDTRACK, 
+			TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR, 
+	};
+
+	
 	/**
 	 * Constructs an AttachmentDialog.
 	 *
@@ -83,9 +90,7 @@ public class AttachmentDialog extends JDialog implements PropertyChangeListener 
 		createGUI();
 		setMeasuringTool(track);
 		refreshDropdowns();
-		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this); // $NON-NLS-1$
-		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDTRACK, this); // $NON-NLS-1$
-		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR, this); // $NON-NLS-1$
+		trackerPanel.addListeners(panelProps, this);
 		TFrame frame = trackerPanel.getTFrame();
 		frame.addFollower(this, null);
 		frame.addPropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, this); // $NON-NLS-1$
@@ -112,9 +117,7 @@ public class AttachmentDialog extends JDialog implements PropertyChangeListener 
 		case TrackerPanel.PROPERTY_TRACKERPANEL_TRACK:
 			TTrack deleted = (TTrack) e.getOldValue();
 			if (deleted != null) {
-				deleted.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_NAME, this); //$NON-NLS-1$
-				deleted.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_COLOR, this); //$NON-NLS-1$
-				deleted.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_FOOTPRINT, this); //$NON-NLS-1$
+				deleted.removeListenerNCF(this);
 				TTrack measuringTool = TTrack.getTrack(trackID);
 				if (measuringTool != null) {
 					if (measuringTool != deleted) {
@@ -146,10 +149,7 @@ public class AttachmentDialog extends JDialog implements PropertyChangeListener 
 			break;
 		case TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR:
 			for (Integer n : TTrack.activeTracks.keySet()) {
-				TTrack next = TTrack.activeTracks.get(n);
-				next.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_NAME, this); //$NON-NLS-1$
-				next.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_COLOR, this); //$NON-NLS-1$
-				next.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_FOOTPRINT, this); //$NON-NLS-1$
+				TTrack.activeTracks.get(n).removeListenerNCF(this);
 			}
 			refreshDropdowns();
 			refreshGUI();
@@ -183,13 +183,9 @@ public class AttachmentDialog extends JDialog implements PropertyChangeListener 
 	@Override
 	public void dispose() {
 		if (trackerPanel != null) {
-			trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this); //$NON-NLS-1$
-			trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDTRACK, this); //$NON-NLS-1$
-			trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR, this); //$NON-NLS-1$
+			trackerPanel.removeListeners(panelProps, this);
 			for (TTrack p : masses) {
-				p.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_NAME, this); //$NON-NLS-1$
-				p.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_COLOR, this); //$NON-NLS-1$
-				p.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_FOOTPRINT, this); //$NON-NLS-1$
+				p.removeListenerNCF(this);
 			}
 			masses.clear();
 			dummyMass.delete();
@@ -452,9 +448,7 @@ public class AttachmentDialog extends JDialog implements PropertyChangeListener 
 	protected void refreshDropdowns() {
 		masses = trackerPanel.getDrawables(PointMass.class);
 		for (TTrack p : masses) {
-			p.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_NAME, this); //$NON-NLS-1$
-			p.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_COLOR, this); //$NON-NLS-1$
-			p.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_FOOTPRINT, this); //$NON-NLS-1$
+			p.removeListenerNCF((PropertyChangeListener)this);
 		}
 		TTrack measuringTool = TTrack.getTrack(trackID);
 		if (measuringTool != null && measuringTool instanceof TapeMeasure) {
@@ -465,9 +459,7 @@ public class AttachmentDialog extends JDialog implements PropertyChangeListener 
 			}
 		}
 		for (TTrack p : masses) {
-			p.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_NAME, this); //$NON-NLS-1$
-			p.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_COLOR, this); //$NON-NLS-1$
-			p.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_FOOTPRINT, this); //$NON-NLS-1$
+			p.addListenerNCF(this);
 		}
 		FontSizer.setFonts(rendererDropdown, FontSizer.getLevel());
 		rendererDropdown.setModel(new AttachmentComboBoxModel());
@@ -482,12 +474,8 @@ public class AttachmentDialog extends JDialog implements PropertyChangeListener 
 		}
 		trackerPanel.clearTemp();
 		for (TTrack p : tools) {
-			p.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_NAME, this); //$NON-NLS-1$
-			p.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_COLOR, this); //$NON-NLS-1$
-			p.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_FOOTPRINT, this); //$NON-NLS-1$
-			p.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_NAME, this); //$NON-NLS-1$
-			p.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_COLOR, this); //$NON-NLS-1$
-			p.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_FOOTPRINT, this); //$NON-NLS-1$
+			p.removeListenerNCF(this);
+			p.addListenerNCF(this);
 		}
 		measuringToolDropdown.setModel(new DefaultComboBoxModel<TTrack>(tools));
 		if (!tools.isEmpty() && measuringTool != null) {

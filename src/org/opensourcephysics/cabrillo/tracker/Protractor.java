@@ -146,7 +146,6 @@ public class Protractor extends InputTrack {
 	protected final static ArrayList<String> allVariables = createAllVariables(dataVariables, null); // no new field vars
 
 	// instance fields
-	protected JCheckBoxMenuItem fixedItem;
 	protected JMenuItem attachmentItem;
 	// for derivatives
 	protected int firstDerivSpill = 1;
@@ -578,16 +577,10 @@ public class Protractor extends InputTrack {
 
 //    // remove end items and last separator
 //    menu.remove(deleteTrackItem);
-//    menu.remove(menu.getMenuComponent(menu.getMenuComponentCount()-1));
+//    menu.remove(menu.getMenuComponent(menu.getItemCount()-1));
 
 		// put fixed item after locked item
-		for (int i = 0; i < menu.getItemCount(); i++) {
-			if (menu.getItem(i) == lockedItem) {
-				menu.insert(fixedItem, i + 1);
-				break;
-			}
-		}
-
+		addFixedItem(menu);
 		// insert the attachments dialog item at beginning
 		attachmentItem.setText(TrackerRes.getString("MeasuringTool.MenuItem.Attach")); //$NON-NLS-1$
 		menu.insert(attachmentItem, 0);

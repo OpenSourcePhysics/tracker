@@ -776,7 +776,7 @@ public class ExportVideoDialog extends JDialog {
 				}
 			};
 
-			playControl.addPropertyChangeListener("stepnumber", listener); //$NON-NLS-1$
+			playControl.addPropertyChangeListener(ClipControl.PROPERTY_CLIPCONTROL_STEPNUMBER, listener); //$NON-NLS-1$
 			// if video is at step 0, add first image and step forward
 			if (playControl.getStepNumber() == 0) {
 				String message = String.format(TrackerRes.getString("TActions.SaveClipAs.ProgressMonitor.Progress") //$NON-NLS-1$
@@ -810,7 +810,7 @@ public class ExportVideoDialog extends JDialog {
 		if (monitor.isCanceled()) {
 			firePropertyChange(PROPERTY_EXPORTVIDEO_VIDEOCANCELED, null, null); //$NON-NLS-1$
 			monitor.close();
-			playControl.removePropertyChangeListener("stepnumber", listener); //$NON-NLS-1$
+			playControl.removePropertyChangeListener(ClipControl.PROPERTY_CLIPCONTROL_STEPNUMBER, listener); //$NON-NLS-1$
 			// restore original magnification and video visibility
 			trackerPanel.setMagnification(magnification);
 			setVideoVisible(videoIsVisible);
@@ -819,7 +819,7 @@ public class ExportVideoDialog extends JDialog {
 			return;
 		}
 		if (done)
-			playControl.removePropertyChangeListener("stepnumber", listener); //$NON-NLS-1$
+			playControl.removePropertyChangeListener(ClipControl.PROPERTY_CLIPCONTROL_STEPNUMBER, listener); //$NON-NLS-1$
 		// paint the view and add frame
 //theView.paintImmediately(theView.getBounds());
 		try {
@@ -869,7 +869,7 @@ public class ExportVideoDialog extends JDialog {
 			JOptionPane.showMessageDialog(trackerPanel, ex.getStackTrace(), "Exception saving video: ", //$NON-NLS-1$
 					JOptionPane.WARNING_MESSAGE);
 			monitor.close();
-			playControl.removePropertyChangeListener("stepnumber", listener); //$NON-NLS-1$
+			playControl.removePropertyChangeListener(ClipControl.PROPERTY_CLIPCONTROL_STEPNUMBER, listener); //$NON-NLS-1$
 			// restore original magnification and video visibility
 			trackerPanel.setMagnification(magnification);
 			setVideoVisible(videoIsVisible);

@@ -30,7 +30,7 @@ public class DataTrackTimeControl extends JPanel implements PropertyChangeListen
 	public DataTrackTimeControl(DataTrack track) {
 		super();
 		dataTrack = track;
-		track.addPropertyChangeListener(this);
+//		track.addPropertyChangeListener(this);
 		createGUI();
 		refreshGUI();
 	}

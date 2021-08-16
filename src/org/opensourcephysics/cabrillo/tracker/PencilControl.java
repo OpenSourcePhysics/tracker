@@ -69,6 +69,7 @@ import javax.swing.undo.UndoableEditSupport;
 import org.opensourcephysics.display.ColorIcon;
 import org.opensourcephysics.display.DrawingPanel;
 import org.opensourcephysics.display.ResizableIcon;
+import org.opensourcephysics.media.core.VideoClip;
 import org.opensourcephysics.tools.FontSizer;
 
 /**
@@ -123,65 +124,65 @@ public class PencilControl extends JDialog {
   JSpinner fontSizeSpinner;
   JCheckBox heavyCheckbox;
 	
-  /**
-   * Constructs a PencilControl for a specified PencilDrawer.
-   * 
-   * @param pencilDrawer the PencilDrawer
-   */
+	/**
+	 * Constructs a PencilControl for a specified PencilDrawer.
+	 * 
+	 * @param pencilDrawer the PencilDrawer
+	 */
 	protected PencilControl(PencilDrawer pencilDrawer) {
 		super(JOptionPane.getFrameForComponent(pencilDrawer.trackerPanel), false);
 		drawer = pencilDrawer;
 		trackerPanel = drawer.trackerPanel;
 		// set up the undo system
-    undoManager = new UndoManager();
-    undoSupport = new UndoableEditSupport();
-    undoSupport.addUndoableEditListener(undoManager);
-		createGUI();  		 		
+		undoManager = new UndoManager();
+		undoSupport = new UndoableEditSupport();
+		undoSupport.addUndoableEditListener(undoManager);
+		createGUI();
 		refreshGUI();
 		pack();
 		// center on screen
-    Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
-    int x = (dim.width - getBounds().width) / 2;
-    int y = (dim.height - getBounds().height) / 2;
-    setLocation(x, y);
-    // create PropertyChangeListeners
+		Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
+		int x = (dim.width - getBounds().width) / 2;
+		int y = (dim.height - getBounds().height) / 2;
+		setLocation(x, y);
+		// create PropertyChangeListeners
 		stepListener = new PropertyChangeListener() {
 			@Override
 			public void propertyChange(PropertyChangeEvent e) {
 				// if selected scene is visible at current frame, do nothing
-				if (selectedScene!=null && selectedScene.includesFrame(trackerPanel.getFrameNumber())) return;
+				if (selectedScene != null && selectedScene.includesFrame(trackerPanel.getFrameNumber()))
+					return;
 				if (isVisible()) {
 					setSelectedScene(drawer.getSceneAtFrame(trackerPanel.getFrameNumber()));
 					refreshGUI();
 				}
-			}			
+			}
 		};
-		trackerPanel.addPropertyChangeListener("stepnumber", stepListener); //$NON-NLS-1$
+		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_STEPNUMBER, stepListener); // $NON-NLS-1$
 		tabListener = new PropertyChangeListener() {
 			@Override
 			public void propertyChange(PropertyChangeEvent e) {
-	      if (e.getNewValue() == trackerPanel) {
-	        setVisible(isVisible);
-	      }
-	      else {
-	        boolean vis = isVisible;
-	        setVisible(false);
-	        isVisible = vis;
-	      }
-			}			
+				if (e.getNewValue() == trackerPanel) {
+					setVisible(isVisible);
+				} else {
+					boolean vis = isVisible;
+					setVisible(false);
+					isVisible = vis;
+				}
+			}
 		};
-    TFrame frame = trackerPanel.getTFrame();
-    if (frame != null) {
-      frame.addPropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, tabListener); //$NON-NLS-1$
-    }
+		TFrame frame = trackerPanel.getTFrame();
+		if (frame != null) {
+			frame.addPropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, tabListener); // $NON-NLS-1$
+		}
 		clipListener = new PropertyChangeListener() {
 			@Override
 			public void propertyChange(PropertyChangeEvent e) {
 				// stepcount has changed
 				refreshGUI();
-			}			
+			}
 		};
-		trackerPanel.addPropertyChangeListener("stepcount", clipListener); //$NON-NLS-1$
+		trackerPanel.addPropertyChangeListener(VideoClip.PROPERTY_VIDEOCLIP_STEPCOUNT, clipListener); // $NON-NLS-1$
 	}
 	
   /**
@@ -726,8 +727,8 @@ public class PencilControl extends JDialog {
 	
 	@Override
   public void dispose() {
-		trackerPanel.removePropertyChangeListener("stepnumber", stepListener); //$NON-NLS-1$
-		trackerPanel.removePropertyChangeListener("stepcount", clipListener); //$NON-NLS-1$
+		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_STEPNUMBER, stepListener); //$NON-NLS-1$
+		trackerPanel.removePropertyChangeListener(VideoClip.PROPERTY_VIDEOCLIP_STEPCOUNT, clipListener); //$NON-NLS-1$
     TFrame frame = trackerPanel.getTFrame();
     if (frame != null) {
       frame.removePropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, tabListener); //$NON-NLS-1$

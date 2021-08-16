@@ -625,27 +625,31 @@ public class DynamicParticle extends ParticleModel implements ODE {
 			if (booster == null)
 				return;
 
-			String propName = e.getPropertyName();
+			String name = e.getPropertyName();
 
-			if (propName.equals(Trackable.PROPERTY_ADJUSTING)) { //$NON-NLS-1$
+			if (name.equals(Trackable.PROPERTY_ADJUSTING)) { //$NON-NLS-1$
 				adjusting = (Boolean) e.getNewValue();
 				// change property to PROPERTY_TTRACK_STEPS so update will be triggered below when adjusting
 				// is false
-				propName =PROPERTY_TTRACK_STEPS; //$NON-NLS-1$
+				name = PROPERTY_TTRACK_STEPS; //$NON-NLS-1$
 			}
+			
 			if (adjusting) {
 				return;
 			}
 
-			if (!(propName == TTrack.PROPERTY_TTRACK_STEP || 
-					propName == TTrack.PROPERTY_TTRACK_STEPS ||
-					propName == TTrack.PROPERTY_TTRACK_DATA)) { //$NON-NLS-1$ //$NON-NLS-2$
+			switch (name) {
+			case TTrack.PROPERTY_TTRACK_STEP:
+			case TTrack.PROPERTY_TTRACK_DATA:
+				break;
+			case TTrack.PROPERTY_TTRACK_STEPS:
+				if (booster instanceof ParticleModel) {
+					DatasetManager data = booster.getData(trackerPanel);
+					booster.refreshData(data, trackerPanel);
+				}
+				break;
+			default:
 				return;
-			}
-
-			if (e.getPropertyName().equals(PROPERTY_TTRACK_STEPS) && booster instanceof ParticleModel) { //$NON-NLS-1$
-				DatasetManager data = booster.getData(trackerPanel);
-				booster.refreshData(data, trackerPanel);
 			}
 
 			boost();

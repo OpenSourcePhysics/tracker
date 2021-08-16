@@ -355,11 +355,12 @@ public class VectorStep extends Step implements PropertyChangeListener {
 		if (attachmentPoint != null)
 			attachmentPoint.removePropertyChangeListener(this);
 		attachmentPoint = pt;
-		if (pt == null)
-			return;
-		pt.addPropertyChangeListener(this);
-		if (pt.getX() != tail.getX() || pt.getY() != tail.getY()) {
-			tail.setXY(pt.getX(), pt.getY());
+		if (pt != null) {
+			// for location change
+			pt.addPropertyChangeListener(this);
+			if (pt.getX() != tail.getX() || pt.getY() != tail.getY()) {
+				tail.setXY(pt.getX(), pt.getY());
+			}
 		}
 	}
 
@@ -604,7 +605,7 @@ public class VectorStep extends Step implements PropertyChangeListener {
 	 */
 	@Override
 	public void propertyChange(PropertyChangeEvent e) {
-		if (e.getSource() == attachmentPoint) // from TPoint
+		if (e.getSource() == attachmentPoint) // from TPoint location
 			tail.setXY(attachmentPoint.getX(), attachmentPoint.getY());
 	}
 

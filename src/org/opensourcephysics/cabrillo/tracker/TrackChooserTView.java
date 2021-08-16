@@ -52,6 +52,7 @@ import org.opensourcephysics.display.DataTable;
 import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.media.core.ImageCoordSystem;
 import org.opensourcephysics.tools.FontSizer;
+import org.opensourcephysics.tools.FunctionTool;
 
 /**
  * This displays track views selected from a dropdown list. This is an abstract
@@ -64,6 +65,16 @@ import org.opensourcephysics.tools.FontSizer;
 @SuppressWarnings("serial")
 public abstract class TrackChooserTView extends JPanel implements TView {
 
+	private static final String[] panelProps = {
+		TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR,
+		ImageCoordSystem.PROPERTY_COORDS_TRANSFORM,
+		TrackerPanel.PROPERTY_TRACKERPANEL_STEPNUMBER,
+		TrackerPanel.PROPERTY_TRACKERPANEL_IMAGE,
+		TTrack.PROPERTY_TTRACK_DATA,
+		TTrack.PROPERTY_TTRACK_FORMAT,
+		TFrame.PROPERTY_TFRAME_RADIANANGLES,
+		FunctionTool.PROPERTY_FUNCTIONTOOL_FUNCTION,
+	};
 	public static boolean ignoreRefresh = false;
 	protected static int viewPanelID;
 	
@@ -279,39 +290,12 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 	@Override
 	public void init() {
 		cleanup();
-		// add this listener to tracker panel
-		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR, this);
-		trackerPanel.addPropertyChangeListener(ImageCoordSystem.PROPERTY_COORDS_TRANSFORM, this);
-		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_STEPNUMBER, this);
-		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_IMAGE, this);
-		trackerPanel.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_DATA, this);
-		trackerPanel.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_FORMAT, this);
-		trackerPanel.addPropertyChangeListener(TFrame.PROPERTY_TFRAME_RADIANANGLES, this);
-		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_FUNCTION, this);
+		trackerPanel.addListeners(panelProps, this);		
 		// add this listener to tracks
 		for (TTrack track : trackerPanel.getTracksTemp()) {
-			addTrackListener(track);
+			track.addListenerNCF(this);
 		}
 		trackerPanel.clearTemp();
-	}
-
-	private void addTrackListener(TTrack track) {
-		// OOPS!
-//		track.addPropertyChangeListener("stepnumber", this);
-//		track.addPropertyChangeListener("image", this);
-		track.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_NAME, this);
-		track.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_COLOR, this);
-		track.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_FOOTPRINT, this);
-//		track.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_DATA, this);
-	}
-
-	private void removeTrackListener(TTrack track) {
-//		track.removePropertyChangeListener("stepnumber", this);
-//		track.removePropertyChangeListener("image", this);
-		track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_NAME, this);
-		track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_COLOR, this);
-		track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_FOOTPRINT, this);
-//		track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_DATA, this);
 	}
 
 	/**
@@ -322,18 +306,10 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 		// remove this listener from tracker panel
 		if (trackerPanel == null)
 			return;
-		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR, this);
-		trackerPanel.removePropertyChangeListener(ImageCoordSystem.PROPERTY_COORDS_TRANSFORM, this);
-		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_STEPNUMBER, this);
-		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_IMAGE, this);
-		trackerPanel.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_DATA, this);
-		trackerPanel.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_FORMAT, this);
-		trackerPanel.removePropertyChangeListener(TFrame.PROPERTY_TFRAME_RADIANANGLES, this);
-		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_FUNCTION, this);
+		trackerPanel.removeListeners(panelProps, this);		
 		// remove this listener from tracks
 		for (Integer n : TTrack.activeTracks.keySet()) {
-			TTrack track = TTrack.activeTracks.get(n);
-			removeTrackListener(track);
+			TTrack.activeTracks.get(n).removeListenerNCF(this);
 		}
 	}
 
@@ -404,8 +380,8 @@ public abstract class TrackChooserTView extends JPanel implements TView {
  		while (it.hasNext()) {
 			Object item = it.next();
 			if (tracks.get(item) == track) {
-				removeTrackListener(track);
-				addTrackListener(track);
+				track.removeListenerNCF(this);
+				track.addListenerNCF(this);
 				// select the track dropdown item
 				trackComboBox.setSelectedItem(item);
 				break;
@@ -515,13 +491,12 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 		TTrack track;
 		TFrame frame;
 		TrackView view;
-		String name = e.getPropertyName();
-		switch (name) {
+		switch (e.getPropertyName()) {
 		case TrackerPanel.PROPERTY_TRACKERPANEL_TRACK:
 			// track has been added
 			track = (TTrack) e.getOldValue();
 			if (track != null) {
-				removeTrackListener(track);
+				track.removeListenerNCF(this);
 				view = trackViews.get(track);
 				if (view != null) {
 					view.dispose();
@@ -540,7 +515,7 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 		case TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR: // tracks have been cleared
 			for (Integer n : TTrack.activeTracks.keySet()) {
 				track = TTrack.activeTracks.get(n);
-				removeTrackListener(track);
+				track.removeListenerNCF(this);
 				if ((view = trackViews.get(track)) != null) {
 					view.dispose();
 					trackViews.remove(track);
@@ -584,7 +559,7 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 				}
 			}
 			break;
-		case TrackerPanel.PROPERTY_TRACKERPANEL_FUNCTION: // data function has changed
+		case FunctionTool.PROPERTY_FUNCTIONTOOL_FUNCTION: // data function has changed
 		case TFrame.PROPERTY_TFRAME_RADIANANGLES:
 			// angle units have changed
 			// refresh views of all tracks
@@ -608,8 +583,8 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 				view.refresh(trackerPanel.getFrameNumber(), DataTable.MODE_TRACK_STEPS);
 			}
 			break;
-		case TTrack.PROPERTY_TTRACK_COLOR:
 		case TTrack.PROPERTY_TTRACK_NAME:
+		case TTrack.PROPERTY_TTRACK_COLOR:
 		case TTrack.PROPERTY_TTRACK_FOOTPRINT:
 			// track property has changed
 			track = (TTrack)e.getSource();

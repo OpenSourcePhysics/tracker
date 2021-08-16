@@ -47,7 +47,6 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.beans.PropertyChangeSupport;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -81,7 +80,6 @@ import javax.swing.WindowConstants;
 import javax.swing.border.Border;
 import javax.swing.event.MenuEvent;
 import javax.swing.event.MenuListener;
-import javax.swing.event.SwingPropertyChangeSupport;
 
 import org.opensourcephysics.cabrillo.tracker.TableTrackView.TrackDataTable;
 import org.opensourcephysics.controls.OSPLog;
@@ -105,6 +103,7 @@ import org.opensourcephysics.media.core.ImageCoordSystem;
 import org.opensourcephysics.media.core.NumberField;
 import org.opensourcephysics.media.core.TPoint;
 import org.opensourcephysics.media.core.Trackable;
+import org.opensourcephysics.media.core.Video;
 import org.opensourcephysics.media.core.VideoClip;
 import org.opensourcephysics.media.core.VideoPanel;
 import org.opensourcephysics.tools.DataTool;
@@ -116,7 +115,7 @@ import org.opensourcephysics.tools.FontSizer;
  *
  * @author Douglas Brown
  */
-public abstract class TTrack implements Interactive, Trackable, PropertyChangeListener {
+public abstract class TTrack extends OSPRuntime.Supported implements Interactive, Trackable, PropertyChangeListener {
 
 	public static final String PROPERTY_TTRACK_FOOTPRINT = "footprint"; //$NON-NLS-1$
 	public static final String PROPERTY_TTRACK_MASS = "mass"; //$NON-NLS-1$
@@ -138,32 +137,197 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 	public static final Integer HINT_STEP_ADDED_OR_REMOVED = -2;
 	public static final Integer HINT_STEPS_SELECTED = -3;
 
-	public void addListener(PropertyChangeListener c) {
-		addPropertyChangeListener(PROPERTY_TTRACK_FORMAT, c);
-		addPropertyChangeListener(PROPERTY_TTRACK_FOOTPRINT, c);
-		addPropertyChangeListener(PROPERTY_TTRACK_MASS, c);
-		addPropertyChangeListener(PROPERTY_TTRACK_NAME, c);
-		addPropertyChangeListener(PROPERTY_TTRACK_MODELEND, c);
-		addPropertyChangeListener(PROPERTY_TTRACK_MODELSTART, c);
-		addStepListener(c);
+// For reference only. BH 2021.08.15
+//
+//	private final static String[] panelEventsOther = new String[] { 
+//			
+//
+// 			Trackable.PROPERTY_ADJUSTING, TTrack(many)
+//			TTrack.PROPERTY_TTRACK_LOCKED, // Calibration
+//
+//			TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, // CenterOfMass
+//
+//			TrackerPanel.PROPERTY_TRACKERPANEL_IMAGE, // LineProfile
+//
+//			TTrack.PROPERTY_TTRACK_LOCKED, // OffsetOrigin
+//
+//	 QUESTION HERE! TrackerPanel.PROPERTY_TRACKERPANEL_VIDEO, // ParticleDataTrack
+//
+//			TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDPOINT, // PerspectiveTrack
+//			TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDTRACK, // PerspectiveTrack
+//
+//			ImageCoordSystem.PROPERTY_COORDS_TRANSFORM, // PointMass (also DynamicSystem,ParticleModel)
+//			VideoClip.PROPERTY_VIDEOCLIP_STEPSIZE,  // PointMass (and ParticleModel)
+//
+//			TrackerPanel.PROPERTY_TRACKERPANEL_IMAGE, // RGBRegion
+//
+//			TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, // VectorSum
+//
+//			//ImageCoordSystem.PROPERTY_COORDS_FIXEDANGLE, 
+//			//ImageCoordSystem.PROPERTY_COORDS_FIXEDORIGIN,
+//			//TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR,
+//			//TrackerPanel.PROPERTY_TRACKERPANEL_LOADED,
+//			//TrackerPanel.PROPERTY_TRACKERPANEL_SIZE,
+//			//TrackerPanel.PROPERTY_TRACKERPANEL_UNITS, 
+//			//TrackerPanel.PROPERTY_TRACKERPANEL_VIDEOVISIBLE, 
+//			//TTrack.PROPERTY_TTRACK_FORMAT,
+//			//TTrack.PROPERTY_TTRACK_MASS, // only if originating in PointMass  
+//			//VideoPanel.PROPERTY_VIDEOPANEL_DATAFILE,
+//	};
+
+	private final static String[] panelEventsTTrack = new String[] { 
+			TFrame.PROPERTY_TFRAME_RADIANANGLES, 
+			TrackerPanel.PROPERTY_TRACKERPANEL_MAGNIFICATION, 
+			TrackerPanel.PROPERTY_TRACKERPANEL_STEPNUMBER, // (Calibration,
+															// CircleFitter,CoordAxes,LineProfile,OffsetOrigin,Protractor,RGBRegion,TapeMeasure)
+			TTrack.PROPERTY_TTRACK_DATA, 
+			Video.PROPERTY_VIDEO_COORDS, 
+			ImageCoordSystem.PROPERTY_COORDS_TRANSFORM,
+			VideoPanel.PROPERTY_VIDEOPANEL_IMAGESPACE, 
+	};
+
+	/**
+	 * Responds to property change events fired in TrackerPanel or VideoPanel.
+	 *
+	 * @param e the property change event
+	 */
+	@Override
+	public void propertyChange(PropertyChangeEvent e) {
+		if (e.getSource() instanceof TrackerPanel) {
+			TrackerPanel trackerPanel = (TrackerPanel) e.getSource();
+			switch (e.getPropertyName()) {
+			case TFrame.PROPERTY_TFRAME_RADIANANGLES:
+				setAnglesInRadians((Boolean) e.getNewValue());
+				break;
+			case TrackerPanel.PROPERTY_TRACKERPANEL_MAGNIFICATION:
+				erase();
+				break;
+			case Trackable.PROPERTY_ADJUSTING:
+			case TrackerPanel.PROPERTY_TRACKERPANEL_STEPNUMBER:
+				// see many subclasses
+				break;
+			case PROPERTY_TTRACK_DATA:
+				dataValid = false;
+				break;
+			case VideoPanel.PROPERTY_VIDEOPANEL_IMAGESPACE:
+				erase(trackerPanel);
+				break;
+			case ImageCoordSystem.PROPERTY_COORDS_TRANSFORM:
+			case Video.PROPERTY_VIDEO_COORDS:
+				if (!(this instanceof PointMass)) {
+					dataValid = false;
+				}
+				erase();
+				TFrame.repaintT(trackerPanel);
+				break;
+			}
+		} else {
+			System.out.println("??? TTRack " + e);
+		}
 
 	}
 
-	public void removeListener(PropertyChangeListener c) {
-//		removePropertyChangeListener(PROPERTY_TTRACK_DATA, c);
-		removePropertyChangeListener(PROPERTY_TTRACK_FORMAT, c);
-		removePropertyChangeListener(PROPERTY_TTRACK_MASS, c);
-		removePropertyChangeListener(PROPERTY_TTRACK_NAME, c);
-		removePropertyChangeListener(PROPERTY_TTRACK_FOOTPRINT, c);
-		removePropertyChangeListener(PROPERTY_TTRACK_MODELEND, c);
-		removePropertyChangeListener(PROPERTY_TTRACK_MODELSTART, c);
-		removeStepListener(c);
-		// these three are not in add?
-		removePropertyChangeListener(PROPERTY_TTRACK_VISIBLE, c); // $NON-NLS-1$
-		removePropertyChangeListener("stepnumber", c); //$NON-NLS-1$
-		removePropertyChangeListener("image", c); //$NON-NLS-1$
+	/**
+	 * Install the controlling TrackerPanel for this track (by default, the first
+	 * TrackerPanel that adds this track to its drawables) and add this track to the
+	 * panel's specific (outgoing) listener lists so that the track can respond to
+	 * external changes.
+	 * 
+	 * This method is overridden to add specific TrackerPanel events for subclasses.
+	 * 
+	 *
+	 * @param panel the TrackerPanel
+	 */
+	public void setTrackerPanel(TrackerPanel panel) {
+		if (trackerPanel != null) {
+			removePanelEvents(panelEventsTTrack);
+		}
+		trackerPanel = panel;
+		if (panel != null) {
+			panel.addPropertyChangeListener(this);
+			addPanelEvents(panelEventsTTrack);
+		}
 	}
 
+	/**
+	 * Add specific (incoming) trackPanel events that the track has to respond to.
+	 * @param events
+	 */
+	protected void addPanelEvents(String[] events) {
+		for (int i = events.length; --i >= 0;)
+			trackerPanel.addPropertyChangeListener(events[i], this);
+	}
+
+	/**
+	 * Remove specific (incoming) trackPanel events that the track was respond to.
+	 * @param events
+	 */
+	protected void removePanelEvents(String[] events) {
+		for (int i = events.length; --i >= 0;)
+			trackerPanel.removePropertyChangeListener(events[i], this);
+	}
+
+	/**
+	 * Allow the TrackPanel to respond to specific track (outgoing) property changes.
+	 * 
+	 * @param panel
+	 */
+	public void addListener(TrackerPanel panel) {
+		addPropertyChangeListener(PROPERTY_TTRACK_FORMAT, panel);
+		addPropertyChangeListener(PROPERTY_TTRACK_MASS, panel);
+		addPropertyChangeListener(PROPERTY_TTRACK_MODELEND, panel);
+		addPropertyChangeListener(PROPERTY_TTRACK_MODELSTART, panel);
+		addPropertyChangeListener(PROPERTY_TTRACK_NAME, panel);
+		addPropertyChangeListener(PROPERTY_TTRACK_FOOTPRINT, panel);
+		addStepListener(panel);
+
+	}
+
+	/**
+	 * Remove the TrackPanel from specific (outgoing) property change lists.
+	 * 
+	 * @param panel
+	 */
+	public void removeListener(TrackerPanel panel) {
+		removePropertyChangeListener(PROPERTY_TTRACK_FORMAT, panel);
+		removePropertyChangeListener(PROPERTY_TTRACK_MASS, panel);
+		removePropertyChangeListener(PROPERTY_TTRACK_MODELEND, panel);
+		removePropertyChangeListener(PROPERTY_TTRACK_MODELSTART, panel);
+		removePropertyChangeListener(PROPERTY_TTRACK_NAME, panel);
+		removePropertyChangeListener(PROPERTY_TTRACK_FOOTPRINT, panel);
+		removeStepListener(panel);
+
+		// this one is in updateListenerVisible only -- WorldTView only
+		removePropertyChangeListener(PROPERTY_TTRACK_VISIBLE, panel);
+
+	}
+
+	/**
+	 * The NAME, COLOR, and FOOTPRINT property changes are of interest to
+	 * AutoTracker, DynamicSystemInspector, VectorSumInspector, AttachementDialog,
+	 * TrackChooserTView, TrackControl, and TTrackBar. 
+	 * 
+	 * @param l
+	 */
+	public void addListenerNCF(PropertyChangeListener l) {
+		addPropertyChangeListener(PROPERTY_TTRACK_NAME, l);
+		addPropertyChangeListener(PROPERTY_TTRACK_COLOR, l);
+		addPropertyChangeListener(PROPERTY_TTRACK_FOOTPRINT, l);
+	}
+
+	public void removeListenerNCF(PropertyChangeListener l) {
+		removePropertyChangeListener(PROPERTY_TTRACK_NAME, l);
+		removePropertyChangeListener(PROPERTY_TTRACK_COLOR, l);
+		removePropertyChangeListener(PROPERTY_TTRACK_FOOTPRINT, l);
+	}
+
+	/**
+	 * STEP and STEPS listeners include TrackerPanel, CenterOfMass, CircleFitter,
+	 * DynamicParticle, DynamicSystem, ReferenceFrame, PlotTrackView, and
+	 * TrackChooserTView.
+	 * 
+	 * @param c
+	 */
 	public void addStepListener(PropertyChangeListener c) {
 		addPropertyChangeListener(PROPERTY_TTRACK_STEP, c);
 		addPropertyChangeListener(PROPERTY_TTRACK_STEPS, c);
@@ -174,8 +338,20 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 		removePropertyChangeListener(PROPERTY_TTRACK_STEPS, c);
 	}
 
-	final public int ttype; 
-	
+	/**
+	 * TTRACK_VISIBLE is of interest to TToolBar Calibration and Ruler buttons, as
+	 * well as WorldTView. This method safely adds the listener, first removing an
+	 * existing one by this name if present.
+	 * 
+	 * @param l
+	 */
+	public void updateListenerVisible(PropertyChangeListener l) {
+		removePropertyChangeListener(PROPERTY_TTRACK_VISIBLE, l);
+		addPropertyChangeListener(PROPERTY_TTRACK_VISIBLE, l);
+	}
+
+	final public int ttype;
+
 	protected static JDialog skippedStepWarningDialog;
 	protected static JTextPane skippedStepWarningTextpane;
 	protected static JCheckBox skippedStepWarningCheckbox;
@@ -198,7 +374,6 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 	protected Footprint defaultFootprint;
 	protected Color[] defaultColors = new Color[] { Color.red };
 	protected StepArray steps = new StepArray();
-	protected PropertyChangeSupport support;
 	protected HashMap<String, Object> properties = new HashMap<String, Object>();
 	protected DatasetManager datasetManager;
 	protected HashMap<TrackerPanel, double[]> worldBounds = new HashMap<TrackerPanel, double[]>();
@@ -262,41 +437,41 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 	protected JCheckBoxMenuItem trailVisibleItem;
 	protected JCheckBoxMenuItem markByDefaultItem;
 	protected JCheckBoxMenuItem autoAdvanceItem;
-	protected JCheckBoxMenuItem lockedItem;
+	protected JCheckBoxMenuItem lockedItem, fixedItem;
 	protected JMenuItem nameItem;
 	protected JMenuItem colorItem;
 	protected JMenuItem deleteTrackItem, deleteStepItem, clearStepsItem;
 	protected JMenuItem descriptionItem;
 	protected JMenuItem dataBuilderItem;
 	/**
-	 * PointMass and Vector are base types for their subtypes; 
-	 * all others are their own type 
+	 * PointMass and Vector are base types for their subtypes; all others are their
+	 * own type
 	 */
-	private final static String[] baseTrackTypes = new String[] { 
-		"Calibaration", // 0
-		"CircleFitter", // 1
-		"CoordAxes",    // 2
-		"LineProfile",  // 3
-		"OffsetOrigin", // 4
-		"PointMass",    // 5 includes CenterOfMass and ParticleModels (Analytical, Dynamic, and ParticleDataTrack
-		"Protractor",   // 6
-		"RGBRegion",    // 7
-		"TapeMeasure",  // 8
-		"Vector",       // 9 includes VectorSum
-		"Perspective"   // 10 for completeness
+	private final static String[] baseTrackTypes = new String[] { "Calibaration", // 0
+			"CircleFitter", // 1
+			"CoordAxes", // 2
+			"LineProfile", // 3
+			"OffsetOrigin", // 4
+			"PointMass", // 5 includes CenterOfMass and ParticleModels (Analytical, Dynamic, and
+							// ParticleDataTrack
+			"Protractor", // 6
+			"RGBRegion", // 7
+			"TapeMeasure", // 8
+			"Vector", // 9 includes VectorSum
+			"Perspective" // 10 for completeness
 	};
-	
+
 	public static String getBaseTrackName(int ttype) {
 		return (ttype >= 0 ? baseTrackTypes[ttype] : null);
 	}
 
 	@SuppressWarnings("unchecked")
 	private final static TreeMap<String, String>[] defaultFormatPatterns = new TreeMap[baseTrackTypes.length];
-	
+
 	public static TreeMap<String, String>[] getDefaultFormatPatterns() {
 		return defaultFormatPatterns;
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	private final static TreeMap<String, String>[] prevDefaultPatterns = new TreeMap[baseTrackTypes.length];
 
@@ -315,27 +490,27 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 		}
 	}
 
-	public final static int TYPE_UNKNOWN      = -1;
-	public final static int TYPE_CALIBRATION  = 0;
+	public final static int TYPE_UNKNOWN = -1;
+	public final static int TYPE_CALIBRATION = 0;
 	public final static int TYPE_CIRCLEFITTER = 1;
-	public final static int TYPE_COORDAXES    = 2;
-	public final static int TYPE_LINEPROFILE  = 3;
+	public final static int TYPE_COORDAXES = 2;
+	public final static int TYPE_LINEPROFILE = 3;
 	public final static int TYPE_OFFSETORIGIN = 4;
-	public final static int TYPE_POINTMASS    = 5;
-	public final static int TYPE_PROTRACTOR   = 6;
-	public final static int TYPE_RGBREGION    = 7;
-	public final static int TYPE_TAPEMEASURE  = 8;
-	public final static int TYPE_VECTOR       = 9;
-	public final static int TYPE_PERSPECTIVE  = 10;
-	
+	public final static int TYPE_POINTMASS = 5;
+	public final static int TYPE_PROTRACTOR = 6;
+	public final static int TYPE_RGBREGION = 7;
+	public final static int TYPE_TAPEMEASURE = 8;
+	public final static int TYPE_VECTOR = 9;
+	public final static int TYPE_PERSPECTIVE = 10;
+
 	/**
 	 * Constructs a TTrack.
-	 * @param type 
+	 * 
+	 * @param type
 	 */
 	protected TTrack(int ttype) {
 		this.ttype = ttype;
 		ID = nextID++;
-		support = new SwingPropertyChangeSupport(this);
 		// create toolbar components
 		stepLabel = new JLabel();
 		stepLabel.setBorder(BorderFactory.createEmptyBorder(0, 4, 0, 0));
@@ -474,9 +649,9 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 		boolean hasUnits = false;
 		String name = getNumberFieldName0(field);
 		if (name != null) {
-				fieldName = new String[] { name };
-				String s = getVariableDimensions(this, name);
-				hasUnits = s.contains("L") || s.contains("M") || s.contains("T"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+			fieldName = new String[] { name };
+			String s = getVariableDimensions(this, name);
+			hasUnits = s.contains("L") || s.contains("M") || s.contains("T"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 		}
 		JPopupMenu popup = new JPopupMenu();
 		if (trackerPanel.isEnabled("number.formats") || trackerPanel.isEnabled("number.units")) { //$NON-NLS-1$ //$NON-NLS-2$
@@ -1592,31 +1767,31 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 	 * @return an ArrayList of names. May be empty.
 	 */
 	protected static ArrayList<String> getAllVariables(int ttype) {
-			switch (ttype) {
-			case TYPE_CALIBRATION:
-				return Calibration.allVariables;
-			case TYPE_CIRCLEFITTER:
-				return CircleFitter.allVariables;
-			case TYPE_COORDAXES:
-				return CoordAxes.allVariables;
-			case TYPE_LINEPROFILE:
-				return LineProfile.allVariables;
-			case TYPE_OFFSETORIGIN:
-				return OffsetOrigin.allVariables;
-			case TYPE_POINTMASS:
-				return PointMass.allVariables;
-			case TYPE_PROTRACTOR:
-				return Protractor.allVariables;
-			case TYPE_RGBREGION:
-				return RGBRegion.allVariables;
-			case TYPE_TAPEMEASURE:
-				return TapeMeasure.allVariables;
-			case TYPE_VECTOR:
-				return Vector.allVariables;
-			default:
-			case TYPE_PERSPECTIVE:
-				return NOVARA;
-			}
+		switch (ttype) {
+		case TYPE_CALIBRATION:
+			return Calibration.allVariables;
+		case TYPE_CIRCLEFITTER:
+			return CircleFitter.allVariables;
+		case TYPE_COORDAXES:
+			return CoordAxes.allVariables;
+		case TYPE_LINEPROFILE:
+			return LineProfile.allVariables;
+		case TYPE_OFFSETORIGIN:
+			return OffsetOrigin.allVariables;
+		case TYPE_POINTMASS:
+			return PointMass.allVariables;
+		case TYPE_PROTRACTOR:
+			return Protractor.allVariables;
+		case TYPE_RGBREGION:
+			return RGBRegion.allVariables;
+		case TYPE_TAPEMEASURE:
+			return TapeMeasure.allVariables;
+		case TYPE_VECTOR:
+			return Vector.allVariables;
+		default:
+		case TYPE_PERSPECTIVE:
+			return NOVARA;
+		}
 	}
 
 	public static int getBaseTypeInt(String type) {
@@ -1858,9 +2033,9 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 			return false;
 		boolean foundAll = true;
 		TTrack[] temp = new TTrack[n];
-	    ArrayList<TTrack> tracks = trackerPanel.getTracksTemp();
+		ArrayList<TTrack> tracks = trackerPanel.getTracksTemp();
 		for (int i = 0; i < n; i++) {
-			// BH 2020.10.17 OK? 
+			// BH 2020.10.17 OK?
 			String name = attachmentNames[i];
 			if (name == null)
 				continue;
@@ -2083,8 +2258,7 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 		// add name and description items
 		if (trackerPanel.isEnabled("track.name") || //$NON-NLS-1$
 				trackerPanel.isEnabled("track.description")) { //$NON-NLS-1$
-			if (menu.getItemCount() > 0 && menu.getItem(menu.getItemCount() - 1) != null)
-				menu.addSeparator();
+			TMenuBar.checkAddMenuSep(menu);
 			if (trackerPanel.isEnabled("track.name")) //$NON-NLS-1$
 				menu.add(nameItem);
 			if (trackerPanel.isEnabled("track.description")) //$NON-NLS-1$
@@ -2093,8 +2267,7 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 		// add color and footprint items
 		if (trackerPanel.isEnabled("track.color") || //$NON-NLS-1$
 				trackerPanel.isEnabled("track.footprint")) { //$NON-NLS-1$
-			if (menu.getItemCount() > 0 && menu.getItem(menu.getItemCount() - 1) != null)
-				menu.addSeparator();
+			TMenuBar.checkAddMenuSep(menu);
 			if (trackerPanel.isEnabled("track.color")) //$NON-NLS-1$
 				menu.add(colorItem);
 			if (trackerPanel.isEnabled("track.footprint")) //$NON-NLS-1$
@@ -2103,8 +2276,7 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 		// add visible, trail and locked items
 		if (trackerPanel.isEnabled("track.visible") || //$NON-NLS-1$
 				trackerPanel.isEnabled("track.locked")) { //$NON-NLS-1$
-			if (menu.getItemCount() > 0 && menu.getItem(menu.getItemCount() - 1) != null)
-				menu.addSeparator();
+			TMenuBar.checkAddMenuSep(menu);
 			if (trackerPanel.isEnabled("track.visible")) //$NON-NLS-1$
 				menu.add(visibleItem);
 			if (trackerPanel.isEnabled("track.locked")) //$NON-NLS-1$
@@ -2112,15 +2284,13 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 		}
 		// add dataBuilder item if viewable and enabled
 		if (this.isViewable() && trackerPanel.isEnabled("data.builder")) { //$NON-NLS-1$
-			if (menu.getItemCount() > 0 && menu.getItem(menu.getItemCount() - 1) != null)
-				menu.addSeparator();
+			TMenuBar.checkAddMenuSep(menu);
 			menu.add(dataBuilderItem);
 
 		}
 		// add clear steps and delete items
 		if (trackerPanel.isEnabled("track.delete")) { //$NON-NLS-1$
-			if (menu.getItemCount() > 0 && menu.getItem(menu.getItemCount() - 1) != null)
-				menu.addSeparator();
+			TMenuBar.checkAddMenuSep(menu);
 			menu.add(deleteTrackItem);
 		}
 		return menu;
@@ -2685,91 +2855,6 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 	}
 
 	/**
-	 * Responds to property change events.
-	 *
-	 * @param e the property change event
-	 */
-	@Override
-	public void propertyChange(PropertyChangeEvent e) {
-		String name = e.getPropertyName();
-		if (e.getSource() instanceof TrackerPanel) {
-			TrackerPanel trackerPanel = (TrackerPanel) e.getSource();
-			switch (name) {
-			case ImageCoordSystem.PROPERTY_COORDS_TRANSFORM:
-			case TrackerPanel.PROPERTY_TRACKERPANEL_COORDS:
-				if (!(this instanceof PointMass)) {
-					dataValid = false;
-				}
-				erase();
-				TFrame.repaintT(trackerPanel);
-				break;
-			case TrackerPanel.PROPERTY_TRACKERPANEL_MAGNIFICATION:
-				erase();
-//				TFrame.repaintT(trackerPanel);
-				break;
-			case VideoPanel.PROPERTY_VIDEOPANEL_IMAGESPACE:
-				erase(trackerPanel);
-				break;
-			case PROPERTY_TTRACK_DATA:
-				dataValid = false;
-				break;
-			case TFrame.PROPERTY_TFRAME_RADIANANGLES:
-				setAnglesInRadians((Boolean) e.getNewValue());
-				break;
-			}
-		}
-	}
-
-	/**
-	 * Adds a PropertyChangeListener. -- never called? BH!
-	 *
-	 * @param listener the object requesting property change notification
-	 */
-	public void addPropertyChangeListener(PropertyChangeListener listener) {
-		support.addPropertyChangeListener(listener);
-	}
-
-	/**
-	 * Fires a property change event.
-	 *
-	 * @param name   the name of the property
-	 * @param oldVal the old value of the property
-	 * @param newVal the new value of the property
-	 */
-	public void firePropertyChange(String name, Object oldVal, Object newVal) {
-		support.firePropertyChange(name, oldVal, newVal);
-	}
-
-	/**
-	 * Adds a PropertyChangeListener for a specified property.
-	 *
-	 * @param property the name of the property of interest to the listener
-	 * @param listener the object requesting property change notification
-	 */
-	public void addPropertyChangeListener(String property, PropertyChangeListener listener) {
-		support.addPropertyChangeListener(property, listener);
-	}
-
-	/**
-	 * Removes a PropertyChangeListener.
-	 *
-	 * @param listener the listener requesting removal
-	 */
-	public void removePropertyChangeListener(PropertyChangeListener listener) {
-		support.removePropertyChangeListener(listener);
-	}
-
-	/**
-	 * Removes a PropertyChangeListener for a specified property.
-	 *
-	 * @param property the name of the property
-	 * @param listener the listener to remove
-	 */
-	public void removePropertyChangeListener(String property, PropertyChangeListener listener) {
-		support.removePropertyChangeListener(property, listener);
-	}
-
-	/**
 	 * Reports whether or not the specified step is visible.
 	 *
 	 * @param step         the step
@@ -2794,24 +2879,6 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 	}
 
 	// ___________________________ protected methods ____________________________
-
-	/**
-	 * Identifies the controlling TrackerPanel for this track (by default, the first
-	 * TrackerPanel that adds this track to its drawables).
-	 *
-	 * @param panel the TrackerPanel
-	 */
-	public void setTrackerPanel(TrackerPanel panel) {
-		// track listens to trackerPanel
-		// DB but should be more carefully controlled
-		if (trackerPanel != null) {
-			trackerPanel.removePropertyChangeListener(this);
-		}
-		trackerPanel = panel;
-		if (trackerPanel != null) {
-			trackerPanel.addPropertyChangeListener(this);
-		}
-	}
 
 	/**
 	 * Gets the world bounds of this track on the specified TrackerPanel.
@@ -3809,8 +3876,7 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 
 		// get pattern from table if no NumberField
 		DataTable table = getDataTable();
-		if (table != null && (val = table.getFormatPattern(name)) != null
-				&& !"".equals(val.trim())) {
+		if (table != null && (val = table.getFormatPattern(name)) != null && !"".equals(val.trim())) {
 			return val;
 		}
 
@@ -3879,7 +3945,7 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 	 * (pixels), C (color 8 bit). Dimensions are often combinations of MLT. May
 	 * return null.
 	 * 
-	 * @param track the track
+	 * @param track    the track
 	 * @param variable the variable name
 	 * @return the dimensions or null if unknown
 	 */
@@ -3914,7 +3980,7 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 	protected void clearColumns(DatasetManager data, int count, String[] dataVariables, String desc,
 			double[][] validData, int len) {
 		String v0 = (dataVariables == null ? null : dataVariables[0]);
-		if (v0 == null || data.getDataset(0).getColumnName(0).equals(v0)) { 
+		if (v0 == null || data.getDataset(0).getColumnName(0).equals(v0)) {
 			for (int i = 0; i < count; i++) {
 				data.getDataset(i).clear();
 			}
@@ -3935,6 +4001,43 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 				data.getDataset(i).append(t, validData[i], len);
 			}
 		}
+	}
+
+	protected void addFixedItem(JMenu menu) {
+		for (int i = menu.getItemCount(); --i >= 0;) {
+			if (menu.getItem(i) == lockedItem) {
+				menu.insert(fixedItem, i + 1);
+				break;
+			}
+		}
+	}
+
+	/**
+	 * Remove unwanted menu items and separators, then add the top item, a separator
+	 * if needed, then clean out duplicate separators.
+	 * 
+	 * @param menu
+	 * @param topItem
+	 * @return
+	 */
+	protected JMenu assembleMenu(JMenu menu, JMenuItem topItem) {
+		menu.remove(lockedItem);
+		menu.remove(autoAdvanceItem);
+		menu.remove(markByDefaultItem);
+		menu.insert(topItem, 0);
+		if (menu.getItemCount() > 1)
+			menu.insertSeparator(1);
+		Object prevItem = topItem;
+		for (int j = menu.getItemCount(); --j >= 0;) {
+			Object item = menu.getItem(j);
+			if (item == null && prevItem == null) {
+				// found extra separator
+				menu.remove(j);
+			} else {
+				prevItem = item;
+			}
+		}
+		return menu;
 	}
 
 }

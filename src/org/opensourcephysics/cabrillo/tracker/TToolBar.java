@@ -252,6 +252,16 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 	protected int toolbarComponentHeight;
 	private AbstractAction zoomAction;
 
+	private static final String[] panelProps = new String[] { 
+			TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDPOINT,
+			TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDTRACK, 
+			TrackerPanel.PROPERTY_TRACKERPANEL_TRACK,
+			TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR, 
+			TrackerPanel.PROPERTY_TRACKERPANEL_VIDEO,
+			TrackerPanel.PROPERTY_TRACKERPANEL_MAGNIFICATION,
+	};
+
+
 	/**
 	 * TToolBar constructor.
 	 *
@@ -259,12 +269,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 	 */
 	private TToolBar(TrackerPanel panel) {
 		trackerPanel = panel;
-		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this);
-		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR, this);
-		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_VIDEO, this);
-		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_MAGNIFICATION, this);
-		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDTRACK, this);
-		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDPOINT, this);
+		trackerPanel.addListeners(panelProps, this);
 // BH testing final status
 //		createGUI();
 //	}
@@ -1049,7 +1054,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 		xMassMenuItem.setText(TrackerRes.getString("TToolBar.Menuitem.Xmass.Text"));
 		
 		// refresh stretch and trails menus
-		if (stretchMenu.getMenuComponentCount() != 4) {
+		if (stretchMenu.getItemCount() != 4) {
 			stretchMenu.removeAll();
 			stretchMenu.add(vStretchMenu);
 			stretchMenu.add(aStretchMenu);
@@ -1295,8 +1300,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 		CoordAxes axes = trackerPanel.getAxes();
 		if (axes != null) {
 			axesButton.setSelected(axes.isVisible());
-			axes.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_VISIBLE, this); // $NON-NLS-1$
-			axes.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_VISIBLE, this); // $NON-NLS-1$
+			axes.updateListenerVisible(this);
 		}
 //		ArrayList<TTrack> tracks = trackerPanel.getUserTracks();
 //		trackControlButton.setEnabled(!tracks.isEmpty());
@@ -1465,12 +1469,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 		refreshTimer = null;
 		toolbars.remove(trackerPanel);
 		removeAll();
-		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this);
-		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR, this);
-		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_VIDEO, this);
-		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_MAGNIFICATION, this);
-		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDTRACK, this);
-		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDPOINT, this);
+		trackerPanel.removeListeners(panelProps, this);
 		for (Integer n : TTrack.activeTracks.keySet()) {
 			TTrack track = TTrack.activeTracks.get(n);
 			track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_LOCKED, this);
@@ -1493,8 +1492,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 
 	@Override
 	public void propertyChange(PropertyChangeEvent e) {
-		String name = e.getPropertyName();
-		switch (name) {
+		switch (e.getPropertyName()) {
 		case TrackerPanel.PROPERTY_TRACKERPANEL_VIDEO:
 		case TTrack.PROPERTY_TTRACK_LOCKED:
 		case TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDPOINT:
@@ -1944,8 +1942,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 			setToolTipText(TrackerRes.getString("TToolbar.Button.TapeVisible.Tooltip")); //$NON-NLS-1$
 			// add PROPERTY_TTRACK_VISIBLE property change listeners to calibration tools
 			for (TTrack track : trackerPanel.calibrationTools) {
-				track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_VISIBLE, TToolBar.this); // $NON-NLS-1$
-				track.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_VISIBLE, TToolBar.this); // $NON-NLS-1$
+				track.updateListenerVisible(TToolBar.this);
 			}
 			// check visibility of tools and state of menu items
 			boolean toolsVisible = false;
@@ -2106,8 +2103,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 			setToolTipText(TrackerRes.getString("TToolbar.Button.RulerVisible.Tooltip")); //$NON-NLS-1$
 			// add PROPERTY_TTRACK_VISIBLE property change listeners to measuring tools
 			for (TTrack track : trackerPanel.measuringTools) {
-				track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_VISIBLE, TToolBar.this); // $NON-NLS-1$
-				track.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_VISIBLE, TToolBar.this); // $NON-NLS-1$
+				track.updateListenerVisible(TToolBar.this);
 			}
 			// check visibility of tools
 			boolean toolsVisible = false;
