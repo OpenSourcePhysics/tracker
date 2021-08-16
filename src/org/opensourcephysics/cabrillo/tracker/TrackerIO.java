@@ -1762,6 +1762,7 @@ public class TrackerIO extends VideoIO {
 		private LibraryBrowser libraryBrowser;
 //		private MonitorDialog monitorDialog;
 		private Loader loader;
+		private int videoCount;
 		
 		/**
 		 * 
@@ -1918,6 +1919,7 @@ public class TrackerIO extends VideoIO {
 				progress = loadTRK(progress);
 				break;
 			case TYPE_VIDEO:
+				videoCount++;
 				progress = loadVideo(progress);
 				break;
 			case TYPE_UNSUPPORTED_VIDEO:
@@ -2145,6 +2147,8 @@ public class TrackerIO extends VideoIO {
 				control.loadObject(trackerPanel, this);
 			}
 			if (trackerPanel.progress < PROGRESS_COMPLETE) {
+				if (trackerPanel.progress == PROGRESS_VIDEO_LOADING)
+					videoCount++;
 				return trackerPanel.progress;
 			}
 			
@@ -2429,7 +2433,7 @@ public class TrackerIO extends VideoIO {
 				return "Video frames loaded: " + getFrameCount();
 			case TYPE_TRK:
 				if (type == TYPE_TRK && progress > PROGRESS_VIDEO_PROCESSING && progress < PROGRESS_VIDEO_READY)
-					return "Video frames loaded: " + trackerPanel.framesLoaded;
+					return "Video " + videoCount + " frames loaded: " + trackerPanel.framesLoaded;
 		    default:
 				return String.format("Completed %d%%.\n", progressPercent);
 			}
