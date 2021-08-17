@@ -2807,11 +2807,11 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements PropertyChan
 	}
 
 	public void checkMatSize() {
-  	boolean isVideoSize = false;
-  	for (Component c: edit_matSizeMenu.getMenuComponents()) {
-  		if (c == edit_matsize_videoSizeItem && edit_matsize_videoSizeItem.isSelected())
-  			isVideoSize = true;
-  	}
+		boolean isVideoSize = false;
+		for (Component c : edit_matSizeMenu.getMenuComponents()) {
+			if (c == edit_matsize_videoSizeItem && edit_matsize_videoSizeItem.isSelected())
+				isVideoSize = true;
+		}
 		if (isVideoSize && trackerPanel.getMat() != null) {
 			Dimension dim = trackerPanel.getMat().mat.getSize();
 			Dimension d = trackerPanel.getVideo().getImageSize();
