@@ -1199,6 +1199,7 @@ sun/util/calendar/CalendarSystem.js
 sun/util/calendar/CalendarUtils.js
 sun/util/calendar/Gregorian.js
 sun/util/calendar/ZoneInfo.js
+sun/util/calendar/ZoneInfoFile.js
 sun/util/locale/BaseLocale.js
 sun/util/locale/LanguageTag.js
 sun/util/locale/LocaleUtils.js
