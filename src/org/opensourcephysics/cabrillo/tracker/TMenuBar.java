@@ -2833,16 +2833,4 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements PropertyChan
 		if (n > 0 && menu.getItem(n - 1) != null)
 			menu.addSeparator();
 	}
-
-	/**
-	 * remove the last item -- presumes this to be a menu separator.
-	 * @param menu
-	 */
-	public static void removeLastItemIfSeparator(JMenu menu) {
-		int n = menu.getItemCount();
-		if (n > 0 && menu.getItem(n - 1) == null) {
-			// not a JMenuItem, so must be a separator
-			menu.remove(n - 1);
-		}
-	}
 }

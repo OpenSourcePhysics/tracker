@@ -703,8 +703,7 @@ public class TapeMeasure extends InputTrack {
 		lockedItem.setEnabled(!trackerPanel.getCoords().isLocked());
 
 		// remove end items and last separator
-		menu.remove(deleteTrackItem);
-		TMenuBar.removeLastItemIfSeparator(menu);
+		removeDeleteTrackItem(menu);
 
 		TapeStep step = (TapeStep) steps.getStep(0);
 		// add items
