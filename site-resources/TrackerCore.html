@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<title>SwingJS test Tracker</title>
+	<meta charset="utf-8" />
+	<script src="swingjs/swingjs2.js"></script>
+	<script>
+		if (!self.SwingJS) alert('swingjs2.js was not found. It needs to be in swingjs folder in the same directory as ' + document.location.href)
+		TrackerInfo = {
+			code: null,
+			main: "org.opensourcephysics.cabrillo.tracker.Tracker",
+			core: "_tracker",
+			assets: { name: "tracker", zipPath: "tracker-assets.zip", classPaths: ["org/opensourcephysics"] },
+			resourceZip: "misc-assets.zip",
+			width: 850,
+			height: 550,
+			readyFunction: null,
+			serverURL: 'https://chemapps.stolaf.edu/jmol/jsmol/php/jsmol.php',
+			j2sPath: 'swingjs/j2s',
+			console: 'sysoutdiv',
+			allowjavascript: true
+		}
+
+		function loadExperiment(expURL) {
+            // alert("loadURL="+expURL);
+			Tracker.app.loadExperimentURL(expURL);
+		}
+	</script>
+</head>
+
+<body>
+	<script>
+		SwingJS.getApplet('Tracker', TrackerInfo)
+		getClassList = function () { J2S._saveFile('_j2sclasslist.txt', Clazz.ClassFilesLoaded.sort().join('\n')) }
+	</script>
+
+	<form>
+		<input type="button" value="Click to load trz or mp4" id="button" onclick="loadExperiment(document.getElementById('loadtext').value)" style="background-color:green" />​ <br />
+		<input type="text" value='https://physlets.org/tracker/library/videos/BallTossOut.mp4'  id="loadtext" style="width: 600px;" />
+	</form>
+
+	<p>
+		<a href="javascript:loadExperiment('examples/CarInLoop.trz')">Relative CarInLoop trz</a>
+	</p>
+
+	<p>
+		<a href="javascript:loadExperiment('examples/FallingToast.trz')">Relative Toast trz</a>
+	</p>
+
+	<p>
+		<a
+			href="javascript:loadExperiment('https://www.compadre.org/osp/document/ServeFile.cfm?ID=15022&DocID=5059&TrackerSet=1')">ComPADRE Car</a>
+	</p>
+
+	<p>
+		<a
+			href="javascript:loadExperiment('https://www.compadre.org/osp/document/ServeFile.cfm?ID=15021&DocID=5058&TrackerSet=1')">ComPADRE Toast</a>
+	</p>
+	
+
+	<div style="position:absolute;left:900px;top:30px;width:600px;height:300px;">
+		<div id="sysoutdiv" contentEditable="true" style="border:1px solid green;width:100%;height:95%;overflow:auto">
+		</div>
+		This is System.out. <a href="javascript:Tracker._clearConsole()">clear it</a> <a
+			href='javascript:J2S.getProfile()'>start/stop profiling</a><br>see <a
+			href=___j2sflags.htm>___j2sflags.htm</a> for SwingJS URL command-line options<br><a
+			href="javascript:getClassList()">get _j2sClassList.txt</a>
+	</div>
+</body>
+
+</html>

@@ -348,7 +348,6 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			}
 		};
 
-		//
 		if (!(this instanceof WorldTView)) {
 			// don't getDataBuilder before adding to TFrame
 //			if (Tracker.haveDataFunctions())
