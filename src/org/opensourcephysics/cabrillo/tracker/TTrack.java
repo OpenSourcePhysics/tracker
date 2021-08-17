@@ -4041,15 +4041,18 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 	}
 
 	/**
-	 * remove the last item, provided that it is a menu separator.
+	 * remove the last item and the separator before it, provided that item is deleteTrackItem.
+	 * 
 	 * @param menu
 	 */
 	protected void removeDeleteTrackItem(JMenu menu) {
-		menu.remove(deleteTrackItem);
 		int n = menu.getItemCount();
-		if (n > 0 && menu.getItem(n - 1) == null) {
-			// not a JMenuItem, so must be a separator
-			menu.remove(n - 1);
+		if (n > 0 && menu.getItem(n - 1) == deleteTrackItem) {
+			menu.remove(--n);
+			if (n > 0 && menu.getItem(n - 1) == null) {
+				// not a JMenuItem, so must be a separator
+				menu.remove(n - 1);
+			}
 		}
 	}
 
