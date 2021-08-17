@@ -567,7 +567,7 @@ public class Vector extends TTrack {
 		// remove delete item from end
 		if (trackerPanel.isEnabled("track.delete")) { //$NON-NLS-1$
 			menu.remove(deleteTrackItem);
-			TMenuBar.removeLastItem(menu); // remove separator
+			TMenuBar.removeLastItemIfSeparator(menu); // remove separator
 		}
 		// add autoAdvance and markByDefault items at end
 		if (trackerPanel.isEnabled("track.autoAdvance") || //$NON-NLS-1$

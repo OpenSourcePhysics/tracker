@@ -2521,7 +2521,7 @@ public class PointMass extends TTrack {
 			JMenuItem item = menu.getItem(menu.getItemCount() - 1);
 			if (item == deleteTrackItem) {
 				menu.remove(deleteTrackItem);
-				TMenuBar.removeLastItem(menu);  // remove separator
+				TMenuBar.removeLastItemIfSeparator(menu);  // remove separator
 			}
 		}
 		// prepare vector footprint menus

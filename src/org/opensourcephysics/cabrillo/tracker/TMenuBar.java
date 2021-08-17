@@ -2824,18 +2824,25 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements PropertyChan
 	}
 
 	/**
-	 * Add a separator if the menu has items and last item is not already a separator
+	 * Add a separator if the menu has items and last item is not already a separator.
 	 * @param menu
 	 */
 	public static void checkAddMenuSep(JMenu menu) {
+		// Note that getItem returns null for a separator
 		int n = menu.getItemCount(); 
-		if (n > 1 && menu.getItem(n - 1) != null)
+		if (n > 0 && menu.getItem(n - 1) != null)
 			menu.addSeparator();
 	}
 
-	public static void removeLastItem(JMenu menu) {
+	/**
+	 * remove the last item -- presumes this to be a menu separator.
+	 * @param menu
+	 */
+	public static void removeLastItemIfSeparator(JMenu menu) {
 		int n = menu.getItemCount();
-		if (n > 0)
-			menu.remove(menu.getMenuComponent(n - 1));
+		if (n > 0 && menu.getItem(n - 1) == null) {
+			// not a JMenuItem, so must be a separator
+			menu.remove(n - 1);
+		}
 	}
 }

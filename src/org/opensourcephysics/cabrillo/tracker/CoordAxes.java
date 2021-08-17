@@ -593,7 +593,7 @@ public class CoordAxes extends TTrack {
 		if (menu0 == null)
 			return menu;
 		menu.remove(deleteTrackItem);
-		TMenuBar.removeLastItem(menu); // remove separator
+		TMenuBar.removeLastItemIfSeparator(menu); // remove separator
 		lockedItem.setEnabled(!trackerPanel.getCoords().isLocked());
 		return menu;
 	}

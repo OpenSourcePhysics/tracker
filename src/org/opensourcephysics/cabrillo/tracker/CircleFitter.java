@@ -1069,7 +1069,7 @@ public class CircleFitter extends TTrack {
 
 		// remove end items and add new items
 		menu.remove(deleteTrackItem);
-		TMenuBar.removeLastItem(menu);
+		TMenuBar.removeLastItemIfSeparator(menu);
 
 		// add originToCenter item and separator below inspector item
 		menu.addSeparator();

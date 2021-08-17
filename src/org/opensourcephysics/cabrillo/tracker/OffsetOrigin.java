@@ -334,7 +334,7 @@ public class OffsetOrigin extends TTrack {
 		lockedItem.setEnabled(!trackerPanel.getCoords().isLocked());
 		// remove end items and last separator
 		menu.remove(deleteTrackItem);
-		TMenuBar.removeLastItem(menu); 
+		TMenuBar.removeLastItemIfSeparator(menu); 
 		// add fixed and delete items
 		fixedCoordinatesItem.setText(TrackerRes.getString("OffsetOrigin.MenuItem.Fixed")); //$NON-NLS-1$
 		fixedCoordinatesItem.setSelected(isFixedCoordinates());

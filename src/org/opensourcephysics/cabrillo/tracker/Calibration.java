@@ -462,7 +462,7 @@ public class Calibration extends TTrack {
 		lockedItem.setEnabled(!trackerPanel.getCoords().isLocked());
 		// remove end items and last separator
 		menu.remove(deleteTrackItem);
-		TMenuBar.removeLastItem(menu);
+		TMenuBar.removeLastItemIfSeparator(menu);
 
 		JCheckBoxMenuItem fixedCoordinatesItem = new JCheckBoxMenuItem(
 				TrackerRes.getString("OffsetOrigin.MenuItem.Fixed")); //$NON-NLS-1$

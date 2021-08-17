@@ -704,7 +704,7 @@ public class TapeMeasure extends InputTrack {
 
 		// remove end items and last separator
 		menu.remove(deleteTrackItem);
-		menu.remove(menu.getMenuComponent(menu.getItemCount() - 1));
+		TMenuBar.removeLastItemIfSeparator(menu);
 
 		TapeStep step = (TapeStep) steps.getStep(0);
 		// add items
