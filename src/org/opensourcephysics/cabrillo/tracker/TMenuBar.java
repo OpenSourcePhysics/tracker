@@ -1393,7 +1393,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements PropertyChan
 				}
 
 				if (trackerPanel.isEnabled("file.open")) { //$NON-NLS-1$
-					TMenuBar.checkAddMenuSep(fileMenu);
+					checkAddMenuSep(fileMenu);
 					fileMenu.add(file_openItem);
 //	    fileMenu.add(openURLItem);
 					if (!OSPRuntime.isJS)
@@ -1401,19 +1401,19 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements PropertyChan
 				}
 				boolean showLib = trackerPanel.isEnabled("file.open") || trackerPanel.isEnabled("file.export"); //$NON-NLS-1$ //$NON-NLS-2$
 				if (showLib && trackerPanel.isEnabled("file.library")) { //$NON-NLS-1$
-					TMenuBar.checkAddMenuSep(fileMenu);
+					checkAddMenuSep(fileMenu);
 					if (trackerPanel.isEnabled("file.open")) //$NON-NLS-1$
 						fileMenu.add(file_openBrowserItem);
 //					if (trackerPanel.isEnabled("file.export")) fileMenu.add(saveZipAsItem); //$NON-NLS-1$
 				}
 				if (trackerPanel.isEnabled("file.close")) { //$NON-NLS-1$
-					TMenuBar.checkAddMenuSep(fileMenu);
+					checkAddMenuSep(fileMenu);
 					fileMenu.add(file_closeItem);
 					fileMenu.add(file_closeAllItem);
 				}
 				if (trackerPanel.isEnabled("file.save") //$NON-NLS-1$
 						|| trackerPanel.isEnabled("file.saveAs")) { //$NON-NLS-1$
-					TMenuBar.checkAddMenuSep(fileMenu);
+					checkAddMenuSep(fileMenu);
 					if (trackerPanel.isEnabled("file.save")) //$NON-NLS-1$
 						fileMenu.add(file_saveItem);
 					if (trackerPanel.isEnabled("file.saveAs")) { //$NON-NLS-1$
@@ -1427,22 +1427,22 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements PropertyChan
 				}
 				if (trackerPanel.isEnabled("file.import") //$NON-NLS-1$
 						|| trackerPanel.isEnabled("file.export")) { //$NON-NLS-1$
-					TMenuBar.checkAddMenuSep(fileMenu);
+					checkAddMenuSep(fileMenu);
 					if (trackerPanel.isEnabled("file.import")) //$NON-NLS-1$
 						fileMenu.add(file_importMenu);
 					if (trackerPanel.isEnabled("file.export")) //$NON-NLS-1$
 						fileMenu.add(file_exportMenu);
 				}
 			//}
-				TMenuBar.checkAddMenuSep(fileMenu);
+				checkAddMenuSep(fileMenu);
 			fileMenu.add(file_propertiesItem);
 			if (trackerPanel.isEnabled("file.print")) { //$NON-NLS-1$
-				TMenuBar.checkAddMenuSep(fileMenu);
+				checkAddMenuSep(fileMenu);
 				fileMenu.add(file_printFrameItem);
 			}
 			// exit menu always added except in applets
 			//if (!OSPRuntime.isApplet) {
-				TMenuBar.checkAddMenuSep(fileMenu);
+				checkAddMenuSep(fileMenu);
 				fileMenu.add(file_exitItem);
 			//}
 			FontSizer.setMenuFonts(fileMenu);
@@ -1730,7 +1730,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements PropertyChan
 			if (trackerPanel.isEnabled("edit.copyData") //$NON-NLS-1$
 					|| trackerPanel.isEnabled("edit.copyImage") //$NON-NLS-1$
 					|| trackerPanel.isEnabled("edit.copyObject")) { //$NON-NLS-1$
-				TMenuBar.checkAddMenuSep(editMenu);
+				checkAddMenuSep(editMenu);
 				if (trackerPanel.isEnabled("edit.copyData")) { //$NON-NLS-1$
 					editMenu.add(edit_copyDataMenu); // refreshed in edit menu mouse listener
 					TreeMap<Integer, TableTrackView> dataViews = getDataViews();
@@ -1756,7 +1756,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements PropertyChan
 
 			// paste and autopaste items
 			if (trackerPanel.isEnabled("edit.paste")) { //$NON-NLS-1$
-				TMenuBar.checkAddMenuSep(editMenu);
+				checkAddMenuSep(editMenu);
 				editMenu.add(edit_pasteItem);
 				TFrame frame = trackerPanel.getTFrame();
 				if (frame != null) {
@@ -1769,14 +1769,14 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements PropertyChan
 
 			// delete and clear menus
 			if (trackerPanel.isEnabled("track.delete")) { //$NON-NLS-1$
-				TMenuBar.checkAddMenuSep(editMenu);
+				checkAddMenuSep(editMenu);
 				if (trackerPanel.isEnabled("track.delete") || hasTracks) { //$NON-NLS-1$
 					editMenu.add(edit_deleteTracksMenu);
 				}
 			}
 			// number menu
 			if (trackerPanel.isEnabled("number.formats") || trackerPanel.isEnabled("number.units")) { //$NON-NLS-1$ //$NON-NLS-2$
-				TMenuBar.checkAddMenuSep(editMenu);
+				checkAddMenuSep(editMenu);
 				editMenu.add(edit_numberMenu);
 				edit_numberMenu.removeAll();
 				if (trackerPanel.isEnabled("number.formats")) //$NON-NLS-1$
@@ -1786,16 +1786,16 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements PropertyChan
 			}
 			// add size menu
 			if (trackerPanel.isEnabled("edit.matSize")) { //$NON-NLS-1$
-				TMenuBar.checkAddMenuSep(editMenu);
+				checkAddMenuSep(editMenu);
 				editMenu.add(edit_matSizeMenu);
 			}
-			TMenuBar.checkAddMenuSep(editMenu);
+			checkAddMenuSep(editMenu);
 			editMenu.add(edit_fontSizeMenu);
 //			refreshMatSizes(trackerPanel.getVideo());
-			TMenuBar.checkAddMenuSep(editMenu);
+			checkAddMenuSep(editMenu);
 			editMenu.add(edit_languageMenu);
 			if (!OSPRuntime.isJS) {
-				TMenuBar.checkAddMenuSep(editMenu);
+				checkAddMenuSep(editMenu);
 				editMenu.add(edit_configItem);
 			}
 			FontSizer.setMenuFonts(editMenu);
@@ -1818,13 +1818,13 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements PropertyChan
 			coordsMenu.removeAll();
 			coordsMenu.add(coords_showUnitDialogItem);
 			if (trackerPanel.isEnabled("coords.locked")) { //$NON-NLS-1$
-				TMenuBar.checkAddMenuSep(coordsMenu);
+				checkAddMenuSep(coordsMenu);
 				coordsMenu.add(coords_lockedCoordsItem);
 			}
 			if (trackerPanel.isEnabled("coords.origin") || //$NON-NLS-1$
 					trackerPanel.isEnabled("coords.angle") || //$NON-NLS-1$
 					trackerPanel.isEnabled("coords.scale")) { //$NON-NLS-1$
-				TMenuBar.checkAddMenuSep(coordsMenu);
+				checkAddMenuSep(coordsMenu);
 				if (trackerPanel.isEnabled("coords.origin")) //$NON-NLS-1$
 					coordsMenu.add(coords_fixedOriginItem);
 				if (trackerPanel.isEnabled("coords.angle")) //$NON-NLS-1$
@@ -1834,7 +1834,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements PropertyChan
 				// coordsMenu.add(applyCurrentFrameToAllItem);
 			}
 			if (trackerPanel.isEnabled("coords.refFrame")) { //$NON-NLS-1$
-				TMenuBar.checkAddMenuSep(coordsMenu);
+				checkAddMenuSep(coordsMenu);
 				coordsMenu.add(coords_refFrameMenu);
 			}
 
@@ -1905,7 +1905,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements PropertyChan
 				if (trackerPanel.isEnabled("video.close")) //$NON-NLS-1$
 					videoMenu.add(video_closeVideoItem);
 			}
-			TMenuBar.checkAddMenuSep(videoMenu);
+			checkAddMenuSep(videoMenu);
 			videoMenu.add(video_clipSettingsItem);
 			videoMenu.add(video_goToItem);
 			videoMenu.addSeparator();
@@ -1935,7 +1935,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements PropertyChan
 				}
 				// video visible and playAllSteps items
 				if (trackerPanel.isEnabled("video.visible")) { //$NON-NLS-1$
-					TMenuBar.checkAddMenuSep(videoMenu);
+					checkAddMenuSep(videoMenu);
 					videoMenu.add(video_videoVisibleItem);
 				}
 				VideoClip clip = trackerPanel.getPlayer().getVideoClip();
@@ -1994,7 +1994,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements PropertyChan
 						video_filtersMenu.addSeparator();
 						video_filtersMenu.add(video_clearFiltersItem);
 					}
-					TMenuBar.checkAddMenuSep(videoMenu);
+					checkAddMenuSep(videoMenu);
 					videoMenu.add(video_filtersMenu);
 					videoMenu.addSeparator();
 //				if (isXtractorType) videoMenu.add(checkDurationsItem);
@@ -2143,7 +2143,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements PropertyChan
 				trackMenu.add(track_cloneMenu);
 
 			if (hasTracks)
-				TMenuBar.checkAddMenuSep(trackMenu);
+				checkAddMenuSep(trackMenu);
 
 			// for each track
 			for (int i = 0, n = userTracks.size(); i < n; i++) {
@@ -2293,7 +2293,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements PropertyChan
 			}
 			if (p.isEnabled("new.vector") || //$NON-NLS-1$
 					p.isEnabled("new.vectorSum")) { //$NON-NLS-1$
-				TMenuBar.checkAddMenuSep(menu);
+				checkAddMenuSep(menu);
 				if (p.isEnabled("new.vector")) //$NON-NLS-1$
 					menu.add(track_newVectorItem);
 				if (p.isEnabled("new.vectorSum")) //$NON-NLS-1$
@@ -2301,7 +2301,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements PropertyChan
 			}
 			if (p.isEnabled("new.lineProfile") || //$NON-NLS-1$
 					p.isEnabled("new.RGBRegion")) { //$NON-NLS-1$
-				TMenuBar.checkAddMenuSep(menu);
+				checkAddMenuSep(menu);
 				if (p.isEnabled("new.lineProfile")) //$NON-NLS-1$
 					menu.add(track_newLineProfileItem);
 				if (p.isEnabled("new.RGBRegion")) //$NON-NLS-1$
@@ -2311,7 +2311,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements PropertyChan
 					|| p.isEnabled("new.dynamicParticle") //$NON-NLS-1$
 					|| p.isEnabled("new.dynamicTwoBody") //$NON-NLS-1$
 					|| p.isEnabled("new.dataTrack")) { //$NON-NLS-1$
-				TMenuBar.checkAddMenuSep(menu);
+				checkAddMenuSep(menu);
 				if (p.isEnabled("new.analyticParticle")) //$NON-NLS-1$
 					menu.add(track_newAnalyticParticleItem);
 				if (p.isEnabled("new.dynamicParticle") //$NON-NLS-1$
@@ -2338,7 +2338,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements PropertyChan
 				if (p.isEnabled("new.tapeMeasure") || //$NON-NLS-1$
 						p.isEnabled("new.protractor") || //$NON-NLS-1$
 						p.isEnabled("new.circleFitter")) { //$NON-NLS-1$
-					TMenuBar.checkAddMenuSep(menu);
+					checkAddMenuSep(menu);
 					menu.add(track_measuringToolsMenu);
 					refreshMeasuringToolsMenu(track_measuringToolsMenu);
 				}
@@ -2347,7 +2347,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements PropertyChan
 						|| p.isEnabled("calibration.tape") //$NON-NLS-1$
 						|| p.isEnabled("calibration.points") //$NON-NLS-1$
 						|| p.isEnabled("calibration.offsetOrigin")) { //$NON-NLS-1$
-					TMenuBar.checkAddMenuSep(menu);
+					checkAddMenuSep(menu);
 					TToolBar toolbar = TToolBar.getToolbar(trackerPanel);
 					TToolBar.CalibrationButton calibrationButton = toolbar.calibrationButton;
 					JMenu calibrationToolsMenu = calibrationButton.getCalibrationToolsMenu();
@@ -2828,8 +2828,8 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements PropertyChan
 	 * @param menu
 	 */
 	public static void checkAddMenuSep(JMenu menu) {
-		int n = menu.getComponentCount(); 
-		if (n > 0 && menu.getItem(n - 1) != null)
+		int n = menu.getItemCount(); 
+		if (n > 1 && menu.getItem(n - 1) != null)
 			menu.addSeparator();
 	}
 
