@@ -1763,6 +1763,7 @@ public class TrackerIO extends VideoIO {
 //		private MonitorDialog monitorDialog;
 		private Loader loader;
 		private int videoCount;
+		private boolean ignoreLowMemory;
 		
 		/**
 		 * 
@@ -1798,6 +1799,7 @@ public class TrackerIO extends VideoIO {
 		}
 
 		private boolean setupLoader() {
+			ignoreLowMemory = false;
 			xmlPath = null;
 			trackerPanel = null;
 			//title = null;
@@ -1947,8 +1949,43 @@ public class TrackerIO extends VideoIO {
 			// if progress < 100, check memory
 			long[] memory = TToolBar.getMemory();
 			double used = ((double) memory[0]) / memory[1];
-			if (used > 0.8) {
-				
+			// set "danger" level
+			boolean danger = used > 0.95 || memory[1] - memory[0] < 20;
+			// set warning level--only once per tab max
+			boolean warn = used > 0.8 && !ignoreLowMemory;
+			String remaining = " "+ (int)(memory[1] - memory[0]) +" of " + (int)memory[1] + " MB = " + (int)((1 - used) * 100) + "%.";
+			if (danger) {
+				String message = TrackerRes.getString("TrackerIO.Dialog.OutOfMemory.Message1") 
+						+ "\n"
+						+ TrackerRes.getString("TrackerIO.Dialog.LowMemory.Remaining")
+						+ remaining + "\n\n"
+						+ TrackerRes.getString("TrackerIO.Dialog.OutOfMemory.Message2");
+				new AsyncDialog().showMessageDialog(theFrame, message,
+						TrackerRes.getString("TrackerIO.Dialog.OutOfMemory.Title"), //$NON-NLS-1$
+						JOptionPane.ERROR_MESSAGE, (e) -> {
+							setCanceled(true);
+							cancelAsync();
+						});
+				TToolBar.refreshMemoryButton(trackerPanel);
+			}
+			else if (warn) {
+				String message = TrackerRes.getString("TrackerIO.Dialog.LowMemory.Message1")
+						+ "\n" + TrackerRes.getString("TrackerIO.Dialog.LowMemory.Remaining")
+						+ remaining + "\n"
+						+ TrackerRes.getString("TrackerIO.Dialog.LowMemory.Message2") + "\n\n"
+						+ TrackerRes.getString("TrackerIO.Dialog.LowMemory.Message3");
+				new AsyncDialog().showConfirmDialog(theFrame, message,
+						TrackerRes.getString("TrackerIO.Dialog.LowMemory.Title"), //$NON-NLS-1$
+						JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, (e) -> {
+							if (e.getID() > 0) {
+								setCanceled(true);
+								cancelAsync();
+							}
+							else {
+								ignoreLowMemory = true;
+							}
+						});
+				TToolBar.refreshMemoryButton(trackerPanel);
 			}
 			return progress;
 		}
