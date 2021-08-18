@@ -2096,8 +2096,6 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			try {
 				LibraryComPADRE.desiredOSPType = "Tracker"; //$NON-NLS-1$
 				
-//    	JDialog dialog = new JDialog(this, false);
-//    	libraryBrowser = LibraryBrowser.getBrowser(dialog);
 				libraryBrowser = LibraryBrowser.getBrowser(null);
 
 				libraryBrowser.addOSPLibrary(LibraryBrowser.TRACKER_LIBRARY);
@@ -2180,13 +2178,6 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		if (helpDialog == null) {
 			helpDialog = new JDialog(this, TrackerRes.getString("TFrame.Dialog.Help.Title"), false); //$NON-NLS-1$
 			String help_path = HELP_PATH + "help_set.xml"; //$NON-NLS-1$
-//      String lang = TrackerRes.locale.getLanguage();
-//      String webHelp = helpPathWeb+"help_"+lang+"/help_set.xml"; //$NON-NLS-1$ //$NON-NLS-2$
-//      Resource res = ResourceLoader.getResource(webHelp);
-//      if (res!=null) { 
-//      	help_path = res.getString(); // open launcher with xml string
-//      }
-//      System.out.println(help_path);
 			helpLauncher = new Launcher(help_path, false, (JPanel) helpDialog.getContentPane());
 			helpLauncher.popupEnabled = false;
 			int level = FontSizer.getLevel();
