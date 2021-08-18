@@ -2800,13 +2800,13 @@ public class Tracker {
 		// set "warning" and "danger" levels
 		long max = m[1];
 		long used = m[0];
-		long diff = max - used;
-		boolean warning = (diff < 100) && !ignoreLowMemory;
-		boolean danger = (diff < 40);
-		String remaining = " " + diff + " MB";
+		long remaining = max - used;
+		boolean warning = (remaining < 100) && !ignoreLowMemory;
+		boolean danger = (remaining < 40);
+		String s = " " + remaining + " MB";
 		if (danger) {
 			String message = TrackerRes.getString("Tracker.Dialog.OutOfMemory.Message1") + "\n"
-					+ TrackerRes.getString("Tracker.Dialog.LowMemory.Remaining") + remaining + "\n\n"
+					+ TrackerRes.getString("Tracker.Dialog.LowMemory.Remaining") + s + "\n\n"
 					+ TrackerRes.getString("Tracker.Dialog.OutOfMemory.Message2");
 			JOptionPane.showConfirmDialog(frame, message, TrackerRes.getString("Tracker.Dialog.OutOfMemory.Title"), //$NON-NLS-1$
 					JOptionPane.ERROR_MESSAGE);
@@ -2814,7 +2814,7 @@ public class Tracker {
 		} 
 		if (warning) {
 			String message = TrackerRes.getString("Tracker.Dialog.LowMemory.Message1") + "\n"
-					+ TrackerRes.getString("Tracker.Dialog.LowMemory.Remaining") + remaining + "\n"
+					+ TrackerRes.getString("Tracker.Dialog.LowMemory.Remaining") + s + "\n"
 					+ TrackerRes.getString("Tracker.Dialog.LowMemory.Message2") + "\n\n"
 					+ TrackerRes.getString("Tracker.Dialog.LowMemory.Message3");
 			return (JOptionPane.showConfirmDialog(frame, message,
