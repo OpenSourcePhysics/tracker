@@ -1083,9 +1083,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		if (tab < 0 || tab >= getTabCount())
 			return;
 		tabbedPane.setSelectedIndex(tab);
-		TrackerPanel trackerPanel = getTrackerPanel(tab);
-		if (trackerPanel != null)
-			trackerPanel.refreshNotesDialog();
+		refreshNotesDialog(getTrackerPanel(tab));
 	}
 
 	/**
@@ -2008,7 +2006,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 				chooser.refreshMenus();
 			}
 		}
-		trackerPanel.refreshNotesDialog();
+		refreshNotesDialog(trackerPanel);
 	}
 
 	/**
@@ -2380,8 +2378,6 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 				}
 			}
 		};
-		JPanel infoContentPane = new JPanel(new BorderLayout());
-		notesDialog.setContentPane(infoContentPane);
 		notesTextPane = new JTextPane();
 		notesTextPane.setBackground(Color.WHITE);
 		notesTextPane.addHyperlinkListener(new HyperlinkListener() {
@@ -2412,10 +2408,6 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 					saveNotesAction.actionPerformed(null);
 			}
 		});
-		JScrollPane textScroller = new JScrollPane(notesTextPane);
-		infoContentPane.add(textScroller, BorderLayout.CENTER);
-		JPanel buttonbar = new JPanel(new FlowLayout());
-		infoContentPane.add(buttonbar, BorderLayout.SOUTH);
 		displayWhenLoadedCheckbox = new JCheckBox(TrackerRes.getString("TFrame.NotesDialog.Checkbox.ShowByDefault")); //$NON-NLS-1$
 		displayWhenLoadedCheckbox.addActionListener(new AbstractAction() {
 			@Override
@@ -2426,6 +2418,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 				}
 			}
 		});
+		JPanel buttonbar = new JPanel(new FlowLayout());
 		buttonbar.add(displayWhenLoadedCheckbox);
 		buttonbar.add(Box.createHorizontalStrut(50));
 		cancelNotesDialogButton = new JButton(TrackerRes.getString("Dialog.Button.Cancel")); //$NON-NLS-1$
@@ -2445,6 +2438,10 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			}
 		});
 		buttonbar.add(closeNotesDialogButton);
+		JPanel infoContentPane = new JPanel(new BorderLayout());
+		infoContentPane.add(new JScrollPane(notesTextPane), BorderLayout.CENTER);
+		infoContentPane.add(buttonbar, BorderLayout.SOUTH);
+		notesDialog.setContentPane(infoContentPane);
 		notesDialog.pack();
 		// create the tabbed pane
 		tabbedPane = new JTabbedPane(SwingConstants.BOTTOM);
@@ -2534,7 +2531,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 				prefsDialog.trackerPanel = newPanel;
 			}
 			// refresh the notes dialog and button
-			newPanel.refreshNotesDialog();
+			refreshNotesDialog(newPanel);
 			JButton notesButton = getToolBar(newPanel).notesButton;
 			notesButton.setSelected(notesDialog.isVisible());
 			// refresh trackbar
@@ -3607,6 +3604,42 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			for (int i = 0; i < c.length; i++)
 				c[i].setEnabled(b);
 		}
+	}
+
+	/**
+	 * Refreshes the TFrame info dialog if visible.
+	 * 
+	 * @param panel the referring panel, not necessary the selected panel
+	 * 
+	 */
+	protected void refreshNotesDialog(TrackerPanel panel) {
+		if (panel == null || !notesDialog.isVisible())
+			return;
+		notesTextPane.setEditable(panel.isEnabled("notes.edit"));
+		saveNotesAction.actionPerformed(null);
+		TTrack track = panel.selectedTrack;
+		if (track != null) {
+			notesTextPane.setText(track.getDescription());
+			notesDialog.setName(track.getName());
+			notesDialog.setTitle(TrackerRes.getString("TActions.Dialog.Description.Title") //$NON-NLS-1$
+					+ " \"" + track.getName() + "\""); //$NON-NLS-1$ //$NON-NLS-2$
+		} else {
+			notesTextPane.setText(panel.getDescription());
+			notesDialog.setName(null);
+			String tabName = getTabTitle(getSelectedTab());
+			notesDialog.setTitle(TrackerRes.getString("TActions.Dialog.Description.Title") //$NON-NLS-1$
+					+ " \"" + tabName + "\""); //$NON-NLS-1$ //$NON-NLS-2$
+		}
+		notesTextPane.setBackground(Color.WHITE);
+		cancelNotesDialogButton.setEnabled(false);
+		closeNotesDialogButton.setEnabled(true);
+		// now check selected panel
+		panel = getSelectedPanel();
+		displayWhenLoadedCheckbox.setEnabled(panel != null);
+		if (panel != null) {
+			displayWhenLoadedCheckbox.setSelected(!panel.hideDescriptionWhenLoaded);
+		}
+
 	}
 
 }
