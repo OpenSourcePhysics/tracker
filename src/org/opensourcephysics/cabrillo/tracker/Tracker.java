@@ -2752,4 +2752,35 @@ public class Tracker {
 		return false;
 	}
 
+	public static void checkMemory(TFrame frame) {
+		String response = GUIUtils.showInputDialog(frame,
+				TrackerRes.getString("TTrackBar.Dialog.SetMemory.Message"), //$NON-NLS-1$
+				TrackerRes.getString("TTrackBar.Dialog.SetMemory.Title"), //$NON-NLS-1$
+				JOptionPane.PLAIN_MESSAGE, String.valueOf(preferredMemorySize));
+		if (response != null && !"".equals(response)) { //$NON-NLS-1$
+			String s = response;
+			try {
+				double d = Double.parseDouble(s);
+				d = Math.rint(d);
+				int n = (int) d;
+				if (n < 0)
+					n = -1; // default
+				else
+					n = Math.max(n, 32); // not less than 32MB
+				if (n != preferredMemorySize) {
+					preferredMemorySize = n;
+					int ans = JOptionPane.showConfirmDialog(frame,
+							TrackerRes.getString("TTrackBar.Dialog.Memory.Relaunch.Message"), //$NON-NLS-1$
+							TrackerRes.getString("TTrackBar.Dialog.Memory.Relaunch.Title"), //$NON-NLS-1$
+							JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+					if (ans == JOptionPane.YES_OPTION) {
+						savePreferences();
+						frame.relaunchCurrentTabs();
+					}
+				}
+			} catch (Exception ex) {
+			}
+		}
+	}
+	
 }

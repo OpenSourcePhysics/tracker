@@ -4948,5 +4948,45 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		return "[TrackerPanel " + hashCode() + " " + getTabName() + "]";
 	}
 
+	/**
+	 * Check for low memory, optionally ignoring a low memory condition
+	 * 
+	 * @param ignoreLowMemory
+	 * @return true if there is no problem
+	 */
+	public boolean checkMemory(boolean ignoreLowMemory) {
+			// if progress < 100, check memory
+		long[] memory = OSPRuntime.getMemory();
+	//	double used = ((double) memory[0]) / memory[1];
+		// set "warning" and "danger" levels
+		boolean warning = memory[1] - memory[0] < 100 && !ignoreLowMemory;
+		boolean danger = memory[1] - memory[0] < 40;
+		String remaining = " "+ (int)(memory[1] - memory[0]) + " MB";
+		boolean ok = true;
+		if (danger) {
+			String message = TrackerRes.getString("TrackerIO.Dialog.OutOfMemory.Message1") 
+					+ "\n"
+					+ TrackerRes.getString("TrackerIO.Dialog.LowMemory.Remaining")
+					+ remaining + "\n\n"
+					+ TrackerRes.getString("TrackerIO.Dialog.OutOfMemory.Message2");
+			JOptionPane.showConfirmDialog(frame, message,
+					TrackerRes.getString("TrackerIO.Dialog.OutOfMemory.Title"), //$NON-NLS-1$
+					JOptionPane.ERROR_MESSAGE);
+			ok = false;
+		} else if (warning) {
+			String message = TrackerRes.getString("TrackerIO.Dialog.LowMemory.Message1")
+					+ "\n" + TrackerRes.getString("TrackerIO.Dialog.LowMemory.Remaining")
+					+ remaining + "\n"
+					+ TrackerRes.getString("TrackerIO.Dialog.LowMemory.Message2") + "\n\n"
+					+ TrackerRes.getString("TrackerIO.Dialog.LowMemory.Message3");
+			ok = (JOptionPane.showConfirmDialog(frame, message,
+					TrackerRes.getString("TrackerIO.Dialog.LowMemory.Title"), //$NON-NLS-1$
+					JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE) == JOptionPane.YES_OPTION);
+		}
+		if (!ok)
+			TToolBar.refreshMemoryButton(this);
+		return ok;	
+	}
+
 
 }

@@ -1944,46 +1944,13 @@ public class TrackerIO extends VideoIO {
 					// remove the empty tab if there is more than 1 tab
 					frame.removeEmptyTabIfTabCountGreaterThan(1);
 				}
-				
-			}
-			// if progress < 100, check memory
-			long[] memory = TToolBar.getMemory();
-//			double used = ((double) memory[0]) / memory[1];
-			// set "warning" and "danger" levels
-			boolean warning = memory[1] - memory[0] < 100 && !ignoreLowMemory;
-			boolean danger = memory[1] - memory[0] < 40;
-			String remaining = " "+ (int)(memory[1] - memory[0]) + " MB";
-			if (danger) {
-				String message = TrackerRes.getString("TrackerIO.Dialog.OutOfMemory.Message1") 
-						+ "\n"
-						+ TrackerRes.getString("TrackerIO.Dialog.LowMemory.Remaining")
-						+ remaining + "\n\n"
-						+ TrackerRes.getString("TrackerIO.Dialog.OutOfMemory.Message2");
-				int ret = JOptionPane.showConfirmDialog(theFrame, message,
-						TrackerRes.getString("TrackerIO.Dialog.OutOfMemory.Title"), //$NON-NLS-1$
-						JOptionPane.ERROR_MESSAGE);
-				setCanceled(true);
-				cancelAsync();
-				TToolBar.refreshMemoryButton(trackerPanel);
-			}
-			else if (warning) {
-				String message = TrackerRes.getString("TrackerIO.Dialog.LowMemory.Message1")
-						+ "\n" + TrackerRes.getString("TrackerIO.Dialog.LowMemory.Remaining")
-						+ remaining + "\n"
-						+ TrackerRes.getString("TrackerIO.Dialog.LowMemory.Message2") + "\n\n"
-						+ TrackerRes.getString("TrackerIO.Dialog.LowMemory.Message3");
-				new AsyncDialog().showConfirmDialog(theFrame, message,
-						TrackerRes.getString("TrackerIO.Dialog.LowMemory.Title"), //$NON-NLS-1$
-						JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, (e) -> {
-							if (e.getID() > 0) {
-								setCanceled(true);
-								cancelAsync();
-							}
-							else {
-								ignoreLowMemory = true;
-							}
-						});
-				TToolBar.refreshMemoryButton(trackerPanel);
+			} else if (!OSPRuntime.isJS) {
+				if (trackerPanel.checkMemory(ignoreLowMemory)) {
+					ignoreLowMemory = true;
+				} else {
+					setCanceled(true);
+					cancelAsync();
+				}
 			}
 			return progress;
 		}

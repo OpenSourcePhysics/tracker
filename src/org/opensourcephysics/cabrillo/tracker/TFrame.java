@@ -2009,7 +2009,6 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			}
 		}
 		trackerPanel.refreshNotesDialog();
-//    checkMemory();
 	}
 
 	/**
@@ -2265,79 +2264,6 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			helpLauncher.clearHistory();
 		helpDialog.setVisible(true);
 	}
-
-//  /**
-//   * Checks the current memory usage. If the total memory being used approaches 
-//   * the max available, this reopens Tracker in a new larger java vm.
-//   */
-//  public void checkMemory() {
-//  	System.gc();
-//  	Runtime runtime = Runtime.getRuntime();
-//  	double total = runtime.totalMemory();
-//  	double max = runtime.maxMemory();
-//  	JOptionPane.showMessageDialog(this, "memory "+total+" of "+max); //$NON-NLS-1$ //$NON-NLS-2$
-//  	if (total/max > 0.6 && OSPRuntime.getLaunchJarPath() != null) {
-//  		int result = JOptionPane.showConfirmDialog(this, "Resize memory to "+2*max+"?"); //$NON-NLS-1$ //$NON-NLS-2$
-//      if (result != JOptionPane.YES_OPTION) return;
-//  		// save trackerPanel fileNames
-//  		ArrayList<File> files = new ArrayList<File>();
-//  		for (int i = 0; i < getTabCount(); i++) {
-//  			File file = getTrackerPanel(i).getDataFile();
-//  			if (file != null) files.add(file);
-//  		}
-//  		// dispose of this frame 
-//  		this.dispose();
-//  		// launch Tracker in new vm
-//      // construct the command to execute
-//      final java.util.Vector<String> cmd = new java.util.Vector<String>();
-//      cmd.add("java"); //$NON-NLS-1$
-//      String classPath = OSPRuntime.getLaunchJarPath();
-//      // convert colons to semicolons
-//      classPath = classPath.replace(':', ';');
-//      // replace semicolons with platform-dependent path separator
-//      char pathSeparator = System.getProperty("path.separator").charAt(0);   //$NON-NLS-1$
-//      classPath = classPath.replace(';', pathSeparator);
-//      cmd.add("-classpath");                                                 //$NON-NLS-1$
-//      cmd.add(classPath);
-//      cmd.add(Tracker.class.getName());
-//      String memoryArg = "-Xmx"+2*max; //$NON-NLS-1$
-//      cmd.add(memoryArg);
-//      memoryArg = "-Xms"+2*max; //$NON-NLS-1$
-//      cmd.add(memoryArg);
-//      Iterator<File> it = files.iterator();
-//      while (it.hasNext()) {
-//      	String arg = it.next().getPath();
-//        cmd.add(arg);
-//      }
-//      // launch thread for new VM
-//      Runnable launchRunner = new Runnable() {
-//         public void run() {
-//            OSPLog.finer(cmd.toString());
-//            String[] cmdarray = cmd.toArray(new String[0]);
-//            try {
-//               Process proc = Runtime.getRuntime().exec(cmdarray);
-//               BufferedInputStream errStream=new BufferedInputStream(proc.getErrorStream());
-//               StringBuffer buff= new StringBuffer();
-//               while(true){
-//                 int datum=errStream.read();
-//                 if(datum==-1) break;
-//                 buff.append((char)datum);
-//               }
-//               errStream.close();
-//               String msg=buff.toString().trim();
-//               if(msg.length()>0){
-//                 OSPLog.info("error buffer: " + buff.toString()); //$NON-NLS-1$
-//               }
-//            } catch(Exception ex) {
-//               ex.printStackTrace();
-//            }
-//         }
-//      };
-//      Thread relauncher = new Thread(launchRunner);
-//      relauncher.setPriority(Thread.NORM_PRIORITY);
-//      relauncher.start();           
-//  	}
-//  }
 
 	/**
 	 * Gets the object array for the specified tracker panel.
