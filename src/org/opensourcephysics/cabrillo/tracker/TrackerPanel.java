@@ -4062,9 +4062,9 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 					control.setValue("track_control_y", y); //$NON-NLS-1$
 				}
 				// save the location of the info dialog if visible
-				if (frame.notesDialog.isVisible()) {
-					int x = frame.notesDialog.getLocation().x - frame.getLocation().x;
-					int y = frame.notesDialog.getLocation().y - frame.getLocation().y;
+				if (frame.notesVisible()) {
+					int x = frame.getNotesDialog().getLocation().x - frame.getLocation().x;
+					int y = frame.getNotesDialog().getLocation().y - frame.getLocation().y;
 					control.setValue("info_x", x); //$NON-NLS-1$
 					control.setValue("info_y", y); //$NON-NLS-1$
 				}
@@ -4916,7 +4916,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 
 	public void refreshNotesDialog() {
 		if (frame != null)
-			frame.refreshNotesDialog(this);
+			frame.updateNotesDialog(this);
 	}
 
 }

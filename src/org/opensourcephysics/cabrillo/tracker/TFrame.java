@@ -51,6 +51,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.awt.font.TextLayout;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -75,6 +76,7 @@ import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
+import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
@@ -241,11 +243,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	private JMenu recentMenu;
 //	private Map<JPanel, Object[]> panelObjects = new HashMap<JPanel, Object[]>();
 	protected JTabbedPane tabbedPane;
-	protected JTextPane notesTextPane;
 	protected Action saveNotesAction;
-	protected JButton cancelNotesDialogButton, closeNotesDialogButton;
-	protected JCheckBox displayWhenLoadedCheckbox;
-	protected JDialog notesDialog;
 	protected JDialog helpDialog;
 	protected LibraryBrowser libraryBrowser;
 	protected Launcher helpLauncher;
@@ -266,6 +264,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	private JMenu languageMenu;
 	protected int maximizedView = -1;
 	private DataDropHandler dataDropHandler;
+
+	private Notes notes;
 
 	/**
 	 * Create a map of known arguments, setting any found arguments to null.
@@ -1083,7 +1083,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		if (tab < 0 || tab >= getTabCount())
 			return;
 		tabbedPane.setSelectedIndex(tab);
-		refreshNotesDialog(getTrackerPanel(tab));
+		updateNotesDialog(getTrackerPanel(tab));
 	}
 
 	/**
@@ -1592,9 +1592,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 				// refresh pencil drawer
 				PencilDrawer.getDrawer(trackerPanel).refresh();
 				// refresh info dialog
-				cancelNotesDialogButton.setText(TrackerRes.getString("Dialog.Button.Cancel")); //$NON-NLS-1$
-				closeNotesDialogButton.setText(TrackerRes.getString("Dialog.Button.Close")); //$NON-NLS-1$
-				displayWhenLoadedCheckbox.setText(TrackerRes.getString("TFrame.NotesDialog.Checkbox.ShowByDefault")); //$NON-NLS-1$
+				if (notesVisible())
+					notes.refreshTextAndFonts();
 			}
 			validate();
 			if (helpLauncher != null) {
@@ -2006,7 +2005,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 				chooser.refreshMenus();
 			}
 		}
-		refreshNotesDialog(trackerPanel);
+		updateNotesDialog(trackerPanel);
 	}
 
 	/**
@@ -2057,8 +2056,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		if (libraryBrowser != null) {
 			libraryBrowser.setFontLevel(level);
 		}
-
-		FontSizer.setFonts(notesDialog, level);
+		if (notesVisible())
+			notes.refreshTextAndFonts();
 		FontSizer.setFonts(OSPLog.getOSPLog(), level);
 		if (Tracker.readmeDialog != null) {
 			FontSizer.setFonts(Tracker.readmeDialog, level);
@@ -2347,102 +2346,11 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		saveNotesAction = new AbstractAction() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				if (notesTextPane.getBackground() == Color.WHITE)
-					return;
-				String desc = notesTextPane.getText();
-				TrackerPanel trackerPanel = getSelectedPanel();
-				if (trackerPanel != null && notesDialog.getName() != "canceled") { //$NON-NLS-1$
-					trackerPanel.changed = true;
-					TTrack track = trackerPanel.getTrack(notesDialog.getName());
-					if (track != null && !desc.equals(track.getDescription())) {
-						track.setDescription(desc);
-					} else if (!desc.equals(trackerPanel.getDescription())) {
-						trackerPanel.setDescription(desc);
-						trackerPanel.hideDescriptionWhenLoaded = !displayWhenLoadedCheckbox.isSelected();
-					}
-				}
-				notesTextPane.setBackground(Color.WHITE);
-				cancelNotesDialogButton.setEnabled(false);
-				closeNotesDialogButton.setEnabled(true);
-				closeNotesDialogButton.setText(TrackerRes.getString("Dialog.Button.Close")); //$NON-NLS-1$
+				getNotes().save();
 			}
 		};
-		notesDialog = new JDialog(this, false) {
-			@Override
-			public void setVisible(boolean vis) {
-				super.setVisible(vis);
-
-				TrackerPanel trackerPanel = getSelectedPanel();
-				if (trackerPanel != null) {
-					getToolBar(trackerPanel).notesButton.setSelected(vis);
-				}
-			}
-		};
-		notesTextPane = new JTextPane();
-		notesTextPane.setBackground(Color.WHITE);
-		notesTextPane.addHyperlinkListener(new HyperlinkListener() {
-			@Override
-			public void hyperlinkUpdate(HyperlinkEvent e) {
-				if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
-					String url = e.getURL().toString();
-					org.opensourcephysics.desktop.OSPDesktop.displayURL(url);
-				}
-			}
-		});
-		notesTextPane.setPreferredSize(new Dimension(420, 200));
-		notesTextPane.addKeyListener(new KeyAdapter() {
-			@Override
-			public void keyPressed(KeyEvent e) {
-				TrackerPanel trackerPanel = getSelectedPanel();
-				if (!trackerPanel.isEnabled("notes.edit")) //$NON-NLS-1$
-					return;
-				notesTextPane.setBackground(YELLOW);
-				closeNotesDialogButton.setText(TrackerRes.getString("PrefsDialog.Button.Save")); //$NON-NLS-1$
-				cancelNotesDialogButton.setEnabled(true);
-			}
-		});
-		notesTextPane.addFocusListener(new FocusAdapter() {
-			@Override
-			public void focusLost(FocusEvent e) {
-				if (e.getOppositeComponent() != cancelNotesDialogButton)
-					saveNotesAction.actionPerformed(null);
-			}
-		});
-		displayWhenLoadedCheckbox = new JCheckBox(TrackerRes.getString("TFrame.NotesDialog.Checkbox.ShowByDefault")); //$NON-NLS-1$
-		displayWhenLoadedCheckbox.addActionListener(new AbstractAction() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				TrackerPanel trackerPanel = getSelectedPanel();
-				if (trackerPanel != null) {
-					trackerPanel.hideDescriptionWhenLoaded = !displayWhenLoadedCheckbox.isSelected();
-				}
-			}
-		});
-		JPanel buttonbar = new JPanel(new FlowLayout());
-		buttonbar.add(displayWhenLoadedCheckbox);
-		buttonbar.add(Box.createHorizontalStrut(50));
-		cancelNotesDialogButton = new JButton(TrackerRes.getString("Dialog.Button.Cancel")); //$NON-NLS-1$
-		cancelNotesDialogButton.addActionListener(new AbstractAction() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				notesDialog.setName("canceled"); //$NON-NLS-1$
-				notesDialog.setVisible(false);
-			}
-		});
-		buttonbar.add(cancelNotesDialogButton);
-		closeNotesDialogButton = new JButton(TrackerRes.getString("Dialog.Button.Close")); //$NON-NLS-1$
-		closeNotesDialogButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				notesDialog.setVisible(false);
-			}
-		});
-		buttonbar.add(closeNotesDialogButton);
-		JPanel infoContentPane = new JPanel(new BorderLayout());
-		infoContentPane.add(new JScrollPane(notesTextPane), BorderLayout.CENTER);
-		infoContentPane.add(buttonbar, BorderLayout.SOUTH);
-		notesDialog.setContentPane(infoContentPane);
-		notesDialog.pack();
+		//createNotesDialog();
+		
 		// create the tabbed pane
 		tabbedPane = new JTabbedPane(SwingConstants.BOTTOM);
 		setContentPane(new JPanel(new BorderLayout()));
@@ -2479,6 +2387,13 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			}
 		});
 	}
+
+	protected Notes getNotes() {
+		if (notes == null)
+			notes = new Notes();
+		return notes;
+	}
+
 
 	protected void doTabStateChanged() {
 		TrackerPanel newPanel = null;
@@ -2531,9 +2446,9 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 				prefsDialog.trackerPanel = newPanel;
 			}
 			// refresh the notes dialog and button
-			refreshNotesDialog(newPanel);
+			updateNotesDialog(newPanel);
 			JButton notesButton = getToolBar(newPanel).notesButton;
-			notesButton.setSelected(notesDialog.isVisible());
+			notesButton.setSelected(notesVisible());
 			// refresh trackbar
 			((TTrackBar) objects[TFRAME_TRACKBAR]).refresh();
 			// refresh and replace menu bar
@@ -3580,7 +3495,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		getContentPane().setVisible(!blocking);
 		if (blocking) {
 			frameBlocker = new Object();
-			notesDialog.setVisible(false);
+			if (notesVisible())
+				setNotesVisible(false);
 			panel = getSelectedPanel();
 			if (panel != null)
 				panel.onBlocked();
@@ -3590,6 +3506,11 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		}
 	}
 	
+	private void setNotesVisible(boolean b) {
+		notes.setVisible(false);
+	}
+
+
 	@Override
 	public void setJMenuBar(JMenuBar bar) {
 		super.setJMenuBar(bar);
@@ -3607,39 +3528,236 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	}
 
 	/**
-	 * Refreshes the TFrame info dialog if visible.
+	 * An inner class for TFrame that handles all notes, including lazy initialization.
+	 * 
+	 * @author hansonr
+	 *
+	 */
+	private class Notes {
+		
+		private JDialog dialog;
+		private JTextPane textPane;
+		private JButton cancelDialogButton, closeDialogButton;
+		private JCheckBox displayWhenLoadedCheckbox;
+		private int thisFontLevel;
+
+		private Notes() {
+			createNotesGUI();
+		}
+
+		private void createNotesGUI() {
+			dialog = new JDialog(TFrame.this, false) {
+				
+				@Override
+				public void setVisible(boolean vis) {
+					super.setVisible(vis);
+
+					TrackerPanel trackerPanel = getSelectedPanel();
+					if (trackerPanel != null) {
+						getToolBar(trackerPanel).notesButton.setSelected(vis);
+					}
+				}
+			};
+			textPane = new JTextPane();
+			textPane.setBackground(Color.WHITE);
+			textPane.addHyperlinkListener(new HyperlinkListener() {
+				@Override
+				public void hyperlinkUpdate(HyperlinkEvent e) {
+					if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
+						String url = e.getURL().toString();
+						org.opensourcephysics.desktop.OSPDesktop.displayURL(url);
+					}
+				}
+			});
+			textPane.setPreferredSize(new Dimension(420, 200));
+			textPane.addKeyListener(new KeyAdapter() {
+				@Override
+				public void keyPressed(KeyEvent e) {
+					TrackerPanel trackerPanel = getSelectedPanel();
+					if (!trackerPanel.isEnabled("notes.edit")) //$NON-NLS-1$
+						return;
+					textPane.setBackground(YELLOW);
+					closeDialogButton.setText(TrackerRes.getString("PrefsDialog.Button.Save")); //$NON-NLS-1$
+					cancelDialogButton.setEnabled(true);
+				}
+			});
+			textPane.addFocusListener(new FocusAdapter() {
+				@Override
+				public void focusLost(FocusEvent e) {
+					if (e.getOppositeComponent() != cancelDialogButton)
+						saveNotesAction.actionPerformed(null);
+				}
+			});
+			displayWhenLoadedCheckbox = new JCheckBox(TrackerRes.getString("TFrame.NotesDialog.Checkbox.ShowByDefault")); //$NON-NLS-1$
+			displayWhenLoadedCheckbox.addActionListener(new AbstractAction() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					TrackerPanel trackerPanel = getSelectedPanel();
+					if (trackerPanel != null) {
+						trackerPanel.hideDescriptionWhenLoaded = !displayWhenLoadedCheckbox.isSelected();
+					}
+				}
+			});
+			JPanel buttonbar = new JPanel(new FlowLayout());
+			buttonbar.add(displayWhenLoadedCheckbox);
+			buttonbar.add(Box.createHorizontalStrut(50));
+			cancelDialogButton = new JButton(TrackerRes.getString("Dialog.Button.Cancel")); //$NON-NLS-1$
+			cancelDialogButton.addActionListener(new AbstractAction() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					dialog.setName("canceled"); //$NON-NLS-1$
+					dialog.setVisible(false);
+				}
+			});
+			buttonbar.add(cancelDialogButton);
+			closeDialogButton = new JButton(TrackerRes.getString("Dialog.Button.Close")); //$NON-NLS-1$
+			closeDialogButton.addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					dialog.setVisible(false);
+				}
+			});
+			buttonbar.add(closeDialogButton);
+			JPanel infoContentPane = new JPanel(new BorderLayout());
+			infoContentPane.add(new JScrollPane(textPane), BorderLayout.CENTER);
+			infoContentPane.add(buttonbar, BorderLayout.SOUTH);
+			dialog.setContentPane(infoContentPane);
+			dialog.pack();
+		}
+
+		private void save() {
+			if (textPane.getBackground() == Color.WHITE)
+				return;
+			String desc = textPane.getText();
+			TrackerPanel trackerPanel = getSelectedPanel();
+			if (trackerPanel != null && dialog.getName() != "canceled") { //$NON-NLS-1$
+				trackerPanel.changed = true;
+				TTrack track = trackerPanel.getTrack(dialog.getName());
+				if (track != null && !desc.equals(track.getDescription())) {
+					track.setDescription(desc);
+				} else if (!desc.equals(trackerPanel.getDescription())) {
+					trackerPanel.setDescription(desc);
+					trackerPanel.hideDescriptionWhenLoaded = !displayWhenLoadedCheckbox.isSelected();
+				}
+			}
+			textPane.setBackground(Color.WHITE);
+			cancelDialogButton.setEnabled(false);
+			closeDialogButton.setEnabled(true);
+			closeDialogButton.setText(TrackerRes.getString("Dialog.Button.Close")); //$NON-NLS-1$
+		}
+		
+		private void setVisible(boolean b) {
+			dialog.setVisible(b);
+		}
+
+		private boolean isVisible() {
+			return dialog.isVisible();
+		}
+
+		private void updateDialog(TrackerPanel panel) {
+			// notesDialog will be present
+			textPane.setEditable(panel.isEnabled("notes.edit"));
+			saveNotesAction.actionPerformed(null);
+			TTrack track = panel.selectedTrack;
+			if (track != null) {
+				textPane.setText(track.getDescription());
+				dialog.setName(track.getName());
+				dialog.setTitle(TrackerRes.getString("TActions.Dialog.Description.Title") //$NON-NLS-1$
+						+ " \"" + track.getName() + "\""); //$NON-NLS-1$ //$NON-NLS-2$
+			} else {
+				textPane.setText(panel.getDescription());
+				dialog.setName(null);
+				String tabName = getTabTitle(getSelectedTab());
+				dialog.setTitle(TrackerRes.getString("TActions.Dialog.Description.Title") //$NON-NLS-1$
+						+ " \"" + tabName + "\""); //$NON-NLS-1$ //$NON-NLS-2$
+			}
+			textPane.setBackground(Color.WHITE);
+			cancelDialogButton.setEnabled(false);
+			closeDialogButton.setEnabled(true);
+			// now check selected panel
+			panel = getSelectedPanel();
+			displayWhenLoadedCheckbox.setEnabled(panel != null);
+			if (panel != null) {
+				displayWhenLoadedCheckbox.setSelected(!panel.hideDescriptionWhenLoaded);
+			}
+			refreshTextAndFonts();
+		}
+
+		private JDialog getDialog() {
+			refreshTextAndFonts();
+			return dialog;
+		}
+
+		private void refreshTextAndFonts() {
+			cancelDialogButton.setText(TrackerRes.getString("Dialog.Button.Cancel")); //$NON-NLS-1$
+			closeDialogButton.setText(TrackerRes.getString("Dialog.Button.Close")); //$NON-NLS-1$
+			displayWhenLoadedCheckbox.setText(TrackerRes.getString("TFrame.NotesDialog.Checkbox.ShowByDefault")); //$NON-NLS-1$
+			int level = FontSizer.getLevel();
+			if (level != thisFontLevel) {
+				thisFontLevel = level;
+				FontSizer.setFonts(dialog, level);
+				dialog.pack();
+			}
+		}
+
+		private void setDialog(TToolBar toolbar, WindowListener infoListener) {
+			dialog.removeWindowListener(infoListener);
+			dialog.addWindowListener(infoListener);
+			TrackerPanel trackerPanel = getSelectedPanel();
+			// position info dialog if first time shown
+			// or if trackerPanel specifies location
+			Point p0 = new JFrame().getLocation();
+			if (trackerPanel.infoX != Integer.MIN_VALUE || dialog.getLocation().x == p0.x) {
+				int x, y;
+				Point p = getLocationOnScreen();
+				if (trackerPanel.infoX != Integer.MIN_VALUE) {
+					Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
+					x = Math.max(p.x + trackerPanel.infoX, 0);
+					x = Math.min(x, dim.width - dialog.getWidth());
+					y = Math.max(p.y + trackerPanel.infoY, 0);
+					y = Math.min(y, dim.height - dialog.getHeight());
+					trackerPanel.infoX = Integer.MIN_VALUE;
+				} else {
+					Point pleft = toolbar.getLocationOnScreen();
+					Dimension dim = dialog.getSize();
+					Dimension wdim = toolbar.getSize();
+					x = pleft.x + (int) (0.5 * (wdim.width - dim.width));
+					y = p.y + 16;
+				}
+				dialog.setLocation(x, y);
+			}
+			dialog.setVisible(!dialog.isVisible());
+			trackerPanel.refreshNotesDialog();
+		}
+		
+	}
+
+	/**
+	 * Check if the notesDialog has been created and is visible
+	 * 
+	 * @return true only if the notesDialog is not null and is visible
+	 */
+	boolean notesVisible() {
+		return (notes != null && notes.isVisible());
+	}
+
+	/**
+	 * Updates the TFrame info dialog if visible.
 	 * 
 	 * @param panel the referring panel, not necessary the selected panel
 	 * 
 	 */
-	protected void refreshNotesDialog(TrackerPanel panel) {
-		if (panel == null || !notesDialog.isVisible())
-			return;
-		notesTextPane.setEditable(panel.isEnabled("notes.edit"));
-		saveNotesAction.actionPerformed(null);
-		TTrack track = panel.selectedTrack;
-		if (track != null) {
-			notesTextPane.setText(track.getDescription());
-			notesDialog.setName(track.getName());
-			notesDialog.setTitle(TrackerRes.getString("TActions.Dialog.Description.Title") //$NON-NLS-1$
-					+ " \"" + track.getName() + "\""); //$NON-NLS-1$ //$NON-NLS-2$
-		} else {
-			notesTextPane.setText(panel.getDescription());
-			notesDialog.setName(null);
-			String tabName = getTabTitle(getSelectedTab());
-			notesDialog.setTitle(TrackerRes.getString("TActions.Dialog.Description.Title") //$NON-NLS-1$
-					+ " \"" + tabName + "\""); //$NON-NLS-1$ //$NON-NLS-2$
-		}
-		notesTextPane.setBackground(Color.WHITE);
-		cancelNotesDialogButton.setEnabled(false);
-		closeNotesDialogButton.setEnabled(true);
-		// now check selected panel
-		panel = getSelectedPanel();
-		displayWhenLoadedCheckbox.setEnabled(panel != null);
-		if (panel != null) {
-			displayWhenLoadedCheckbox.setSelected(!panel.hideDescriptionWhenLoaded);
-		}
+	void updateNotesDialog(TrackerPanel panel) {
+		if (panel != null && notesVisible())
+			notes.updateDialog(panel);
+	}
+	
+	JDialog getNotesDialog() {
+		return (notes == null ? notes = new Notes() : notes).getDialog();	
+	}
 
+	void setNotesDialog(TToolBar toolbar, WindowListener infoListener) {
+		getNotes().setDialog(toolbar, infoListener);
 	}
 
 }

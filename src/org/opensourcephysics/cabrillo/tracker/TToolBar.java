@@ -26,13 +26,11 @@ package org.opensourcephysics.cabrillo.tracker;
 
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
 //import java.awt.Frame;
 import java.awt.Point;
 import java.awt.Rectangle;
-import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
@@ -57,7 +55,6 @@ import javax.swing.ButtonGroup;
 import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JCheckBoxMenuItem;
-import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
@@ -851,33 +848,8 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 	protected void doNotesAction() {
 		TFrame frame = trackerPanel.getTFrame();
 		if (frame != null && frame.getSelectedPanel() == trackerPanel) {
-			frame.notesDialog.removeWindowListener(infoListener);
-			frame.notesDialog.addWindowListener(infoListener);
-			// position info dialog if first time shown
-			// or if trackerPanel specifies location
-			Point p0 = new JFrame().getLocation();
-			if (trackerPanel.infoX != Integer.MIN_VALUE || frame.notesDialog.getLocation().x == p0.x) {
-				int x, y;
-				Point p = frame.getLocationOnScreen();
-				if (trackerPanel.infoX != Integer.MIN_VALUE) {
-					Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
-					x = Math.max(p.x + trackerPanel.infoX, 0);
-					x = Math.min(x, dim.width - frame.notesDialog.getWidth());
-					y = Math.max(p.y + trackerPanel.infoY, 0);
-					y = Math.min(y, dim.height - frame.notesDialog.getHeight());
-					trackerPanel.infoX = Integer.MIN_VALUE;
-				} else {
-					Point pleft = TToolBar.this.getLocationOnScreen();
-					Dimension dim = frame.notesDialog.getSize();
-					Dimension wdim = TToolBar.this.getSize();
-					x = pleft.x + (int) (0.5 * (wdim.width - dim.width));
-					y = p.y + 16;
-				}
-				frame.notesDialog.setLocation(x, y);
-			}
-			notesButton.setSelected(!frame.notesDialog.isVisible());
-			frame.notesDialog.setVisible(notesButton.isSelected());
-			trackerPanel.refreshNotesDialog();
+			frame.setNotesDialog(this, infoListener);
+			notesButton.setSelected(frame.notesVisible());
 		}
 	}
 
