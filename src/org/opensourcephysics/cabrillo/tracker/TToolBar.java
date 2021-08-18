@@ -146,6 +146,8 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 	private static final String REFRESH__CREATE_GUI_TRUE = "create gui";
 	private static final String REFRESH__PROPERTY_TRACK_TRUE = "property track";
 	private static final String REFRESH__PROPERTY_CLEAR_TRUE = "property track clear";
+	
+	protected static long[] memoryStatus = new long[2];
 
 	// instance fields
 	/** effectively final */
@@ -933,13 +935,11 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 		if (OSPRuntime.isJS)
 			return;
 		System.gc();
-		java.lang.management.MemoryMXBean memory = java.lang.management.ManagementFactory.getMemoryMXBean();
-		long cur = memory.getHeapMemoryUsage().getUsed() / (1024 * 1024);
-		long max = memory.getHeapMemoryUsage().getMax() / (1024 * 1024);
+		long[] memory = getMemory();
 		if (TTrackBar.outOfMemory && TTrackBar.showOutOfMemoryDialog) {
 			TTrackBar.outOfMemory = false;
 			TTrackBar.showOutOfMemoryDialog = false;
-			cur = max;
+			memory[0] = memory[1];
 			JOptionPane.showMessageDialog(memoryButton,
 					TrackerRes.getString("Tracker.Dialog.OutOfMemory.Message1") + "\n" //$NON-NLS-1$ //$NON-NLS-2$
 							+ TrackerRes.getString("Tracker.Dialog.OutOfMemory.Message2"), //$NON-NLS-1$
@@ -948,10 +948,22 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 		}
 		String mem = TrackerRes.getString("TTrackBar.Button.Memory") + " "; //$NON-NLS-1$ //$NON-NLS-2$
 		String of = TrackerRes.getString("DynamicSystem.Parameter.Of") + " "; //$NON-NLS-1$ //$NON-NLS-2$
-		memoryButton.setToolTipText(mem + cur + "MB " + of + max + "MB"); //$NON-NLS-1$ //$NON-NLS-2$
+		memoryButton.setToolTipText(mem + memory[0] + "MB " + of + memory[1] + "MB"); //$NON-NLS-1$ //$NON-NLS-2$
 //		memoryButton.setToolTipText(TrackerRes.getString("TTrackBar.Button.Memory.Tooltip")); //$NON-NLS-1$
-		double used = ((double) cur) / max;
+		double used = ((double) memoryStatus[0]) / memoryStatus[1];
 		memoryButton.setIcon(used > 0.8 ? redMemoryIcon : memoryIcon);
+	}
+
+	/**
+	 * Refreshes the memory button.
+	 */
+	protected static long[] getMemory() {
+		if (OSPRuntime.isJS)
+			return null;
+		java.lang.management.MemoryMXBean memory = java.lang.management.ManagementFactory.getMemoryMXBean();
+		memoryStatus[0] = memory.getHeapMemoryUsage().getUsed() / (1024 * 1024);
+		memoryStatus[1] = memory.getHeapMemoryUsage().getMax() / (1024 * 1024);
+		return memoryStatus;
 	}
 
 
