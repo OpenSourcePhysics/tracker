@@ -2801,8 +2801,8 @@ public class Tracker {
 		long max = m[1];
 		long used = m[0];
 		long remaining = max - used;
-		boolean warning = (remaining < 100) && !ignoreLowMemory;
-		boolean danger = (remaining < 40);
+		boolean warning = (remaining < 50) && !ignoreLowMemory;
+		boolean danger = (remaining < 20);
 		String s = " " + remaining + " MB";
 		if (danger) {
 			String message = TrackerRes.getString("Tracker.Dialog.OutOfMemory.Message1") + "\n"
