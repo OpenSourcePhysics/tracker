@@ -2599,7 +2599,9 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements PropertyChan
 		if (!OSPRuntime.isJS) {
 		    JMenuItem checkForUpgradeItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.CheckForUpgrade.Text")); //$NON-NLS-1$
 		    checkForUpgradeItem.addActionListener((e) -> {
+		    	new Thread(()-> {
 		        Tracker.showUpgradeStatus(trackerPanel);
+		    	}).start();
 		    });
 			helpMenu.add(checkForUpgradeItem);
 		}
