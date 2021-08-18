@@ -1959,12 +1959,11 @@ public class TrackerIO extends VideoIO {
 						+ TrackerRes.getString("TrackerIO.Dialog.LowMemory.Remaining")
 						+ remaining + "\n\n"
 						+ TrackerRes.getString("TrackerIO.Dialog.OutOfMemory.Message2");
-				new AsyncDialog().showMessageDialog(theFrame, message,
+				int ret = JOptionPane.showConfirmDialog(theFrame, message,
 						TrackerRes.getString("TrackerIO.Dialog.OutOfMemory.Title"), //$NON-NLS-1$
-						JOptionPane.ERROR_MESSAGE, (e) -> {
-							setCanceled(true);
-							cancelAsync();
-						});
+						JOptionPane.ERROR_MESSAGE);
+				setCanceled(true);
+				cancelAsync();
 				TToolBar.refreshMemoryButton(trackerPanel);
 			}
 			else if (warning) {
