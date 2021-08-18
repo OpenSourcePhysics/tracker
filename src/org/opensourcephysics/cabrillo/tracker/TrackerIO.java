@@ -1948,12 +1948,11 @@ public class TrackerIO extends VideoIO {
 			}
 			// if progress < 100, check memory
 			long[] memory = TToolBar.getMemory();
-			double used = ((double) memory[0]) / memory[1];
-			// set "danger" level
-			boolean danger = used > 0.95 || memory[1] - memory[0] < 20;
-			// set warning level--only once per tab max
-			boolean warn = used > 0.8 && !ignoreLowMemory;
-			String remaining = " "+ (int)(memory[1] - memory[0]) +" of " + (int)memory[1] + " MB = " + (int)((1 - used) * 100) + "%.";
+//			double used = ((double) memory[0]) / memory[1];
+			// set "warning" and "danger" levels
+			boolean warning = memory[1] - memory[0] < 100 && !ignoreLowMemory;
+			boolean danger = memory[1] - memory[0] < 40;
+			String remaining = " "+ (int)(memory[1] - memory[0]) + " MB";
 			if (danger) {
 				String message = TrackerRes.getString("TrackerIO.Dialog.OutOfMemory.Message1") 
 						+ "\n"
@@ -1968,7 +1967,7 @@ public class TrackerIO extends VideoIO {
 						});
 				TToolBar.refreshMemoryButton(trackerPanel);
 			}
-			else if (warn) {
+			else if (warning) {
 				String message = TrackerRes.getString("TrackerIO.Dialog.LowMemory.Message1")
 						+ "\n" + TrackerRes.getString("TrackerIO.Dialog.LowMemory.Remaining")
 						+ remaining + "\n"
