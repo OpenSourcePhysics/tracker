@@ -205,6 +205,10 @@ public class Tracker {
 	static final Level DEFAULT_LOG_LEVEL = ConsoleLevel.OUT_CONSOLE;
 	static final int DEFAULT_TRAIL_LENGTH_INDEX = 2;
 
+    static final int MEMORY_OK     = 0;
+	static final int MEMORY_IGNORE = 1;
+	static final int MEMORY_OUT   = 2;
+
 	// for testing
 	public static boolean timeLogEnabled = false;
 	static boolean testOn = false;
@@ -2753,11 +2757,11 @@ public class Tracker {
 	}
 
 	/**
-	 * Ask about preferred memory size.
+	 * Ask about preferred memory size for TToolBar
 	 * 
 	 * @param frame
 	 */
-	public static void askAboutMemory(TFrame frame) {
+	public static void askToSetMemory(TFrame frame) {
 		String response = GUIUtils.showInputDialog(frame, TrackerRes.getString("TTrackBar.Dialog.SetMemory.Message"), //$NON-NLS-1$
 				TrackerRes.getString("TTrackBar.Dialog.SetMemory.Title"), //$NON-NLS-1$
 				JOptionPane.PLAIN_MESSAGE, String.valueOf(preferredMemorySize));
@@ -2782,13 +2786,13 @@ public class Tracker {
 	}
 
 	/**
-	 * Check the memory status and warn the user if needed.
+	 * Check the memory status for TrackerIO and warn the user if needed.
 	 * 
 	 * @param frame
 	 * @param ignoreLowMemory
-	 * @return true if everything is OK
+	 * @return MEMORY_OK, MEMORY_IGNORE, MEMORY_OUT
 	 */
-	public static boolean checkMemory(TFrame frame, boolean ignoreLowMemory) {
+	public static int checkMemory(TFrame frame, boolean ignoreLowMemory) {
 
 		// if progress < 100, check memory
 		long[] memory = OSPRuntime.getMemory();
@@ -2796,24 +2800,24 @@ public class Tracker {
 		boolean warning = memory[1] - memory[0] < 100 && !ignoreLowMemory;
 		boolean danger = memory[1] - memory[0] < 40;
 		String remaining = " " + (int) (memory[1] - memory[0]) + " MB";
-		boolean ok = true;
 		if (danger) {
 			String message = TrackerRes.getString("TrackerIO.Dialog.OutOfMemory.Message1") + "\n"
 					+ TrackerRes.getString("TrackerIO.Dialog.LowMemory.Remaining") + remaining + "\n\n"
 					+ TrackerRes.getString("TrackerIO.Dialog.OutOfMemory.Message2");
 			JOptionPane.showConfirmDialog(frame, message, TrackerRes.getString("TrackerIO.Dialog.OutOfMemory.Title"), //$NON-NLS-1$
 					JOptionPane.ERROR_MESSAGE);
-			ok = false;
-		} else if (warning) {
+			return MEMORY_OUT;
+		} 
+		if (warning) {
 			String message = TrackerRes.getString("TrackerIO.Dialog.LowMemory.Message1") + "\n"
 					+ TrackerRes.getString("TrackerIO.Dialog.LowMemory.Remaining") + remaining + "\n"
 					+ TrackerRes.getString("TrackerIO.Dialog.LowMemory.Message2") + "\n\n"
 					+ TrackerRes.getString("TrackerIO.Dialog.LowMemory.Message3");
-			ok = (JOptionPane.showConfirmDialog(frame, message,
+			return (JOptionPane.showConfirmDialog(frame, message,
 					TrackerRes.getString("TrackerIO.Dialog.LowMemory.Title"), //$NON-NLS-1$
-					JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE) == JOptionPane.YES_OPTION);
+					JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE) == JOptionPane.YES_OPTION ? MEMORY_IGNORE : MEMORY_OUT);
 		}
-		return ok;
+		return MEMORY_OK;
 	}
 	
 }

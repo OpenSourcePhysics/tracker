@@ -1945,11 +1945,17 @@ public class TrackerIO extends VideoIO {
 					frame.removeEmptyTabIfTabCountGreaterThan(1);
 				}
 			} else if (!OSPRuntime.isJS) {
-				if (trackerPanel.checkMemory(ignoreLowMemory)) {
+				switch (Tracker.checkMemory(frame, ignoreLowMemory)) {
+				case Tracker.MEMORY_OK:
+					break;
+				case Tracker.MEMORY_IGNORE:
 					ignoreLowMemory = true;
-				} else {
+					break;
+				case Tracker.MEMORY_OUT:
 					setCanceled(true);
 					cancelAsync();
+					TToolBar.refreshMemoryButton(trackerPanel);
+					break;
 				}
 			}
 			return progress;

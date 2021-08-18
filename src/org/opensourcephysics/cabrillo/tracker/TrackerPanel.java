@@ -4948,18 +4948,4 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		return "[TrackerPanel " + hashCode() + " " + getTabName() + "]";
 	}
 
-	/**
-	 * Check for low memory, optionally ignoring a low memory condition
-	 * 
-	 * @param ignoreLowMemory
-	 * @return true if there is no problem
-	 */
-	public boolean checkMemory(boolean ignoreLowMemory) {
-		boolean ok = Tracker.checkMemory(frame, ignoreLowMemory);
-		if (!ok)
-			TToolBar.refreshMemoryButton(this);
-		return ok;	
-	}
-
-
 }
