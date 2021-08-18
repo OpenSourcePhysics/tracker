@@ -1948,9 +1948,11 @@ public class TrackerIO extends VideoIO {
 				switch (Tracker.checkMemory(frame, ignoreLowMemory)) {
 				case Tracker.MEMORY_OK:
 					break;
-				case Tracker.MEMORY_IGNORE:
+				case Tracker.MEMORY_LOW_IGNORE:
 					ignoreLowMemory = true;
+					TToolBar.refreshMemoryButton(trackerPanel);
 					break;
+				case Tracker.MEMORY_LOW_DONTIGNORE:
 				case Tracker.MEMORY_OUT:
 					setCanceled(true);
 					cancelAsync();

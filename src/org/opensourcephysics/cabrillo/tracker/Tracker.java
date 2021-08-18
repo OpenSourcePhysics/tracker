@@ -205,9 +205,10 @@ public class Tracker {
 	static final Level DEFAULT_LOG_LEVEL = ConsoleLevel.OUT_CONSOLE;
 	static final int DEFAULT_TRAIL_LENGTH_INDEX = 2;
 
-    static final int MEMORY_OK     = 0;
-	static final int MEMORY_IGNORE = 1;
-	static final int MEMORY_OUT   = 2;
+    static final int MEMORY_OK             = 0;
+	static final int MEMORY_LOW_IGNORE     = 1;
+    static final int MEMORY_LOW_DONTIGNORE = 2;
+	static final int MEMORY_OUT            = 3;
 
 	// for testing
 	public static boolean timeLogEnabled = false;
@@ -2815,7 +2816,7 @@ public class Tracker {
 					+ TrackerRes.getString("TrackerIO.Dialog.LowMemory.Message3");
 			return (JOptionPane.showConfirmDialog(frame, message,
 					TrackerRes.getString("TrackerIO.Dialog.LowMemory.Title"), //$NON-NLS-1$
-					JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE) == JOptionPane.YES_OPTION ? MEMORY_IGNORE : MEMORY_OUT);
+					JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE) == JOptionPane.YES_OPTION ? MEMORY_LOW_IGNORE : MEMORY_LOW_DONTIGNORE);
 		}
 		return MEMORY_OK;
 	}
