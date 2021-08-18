@@ -2802,20 +2802,20 @@ public class Tracker {
 		boolean danger = memory[1] - memory[0] < 40;
 		String remaining = " " + (int) (memory[1] - memory[0]) + " MB";
 		if (danger) {
-			String message = TrackerRes.getString("TrackerIO.Dialog.OutOfMemory.Message1") + "\n"
-					+ TrackerRes.getString("TrackerIO.Dialog.LowMemory.Remaining") + remaining + "\n\n"
-					+ TrackerRes.getString("TrackerIO.Dialog.OutOfMemory.Message2");
-			JOptionPane.showConfirmDialog(frame, message, TrackerRes.getString("TrackerIO.Dialog.OutOfMemory.Title"), //$NON-NLS-1$
+			String message = TrackerRes.getString("Tracker.Dialog.OutOfMemory.Message1") + "\n"
+					+ TrackerRes.getString("Tracker.Dialog.LowMemory.Remaining") + remaining + "\n\n"
+					+ TrackerRes.getString("Tracker.Dialog.OutOfMemory.Message2");
+			JOptionPane.showConfirmDialog(frame, message, TrackerRes.getString("Tracker.Dialog.OutOfMemory.Title"), //$NON-NLS-1$
 					JOptionPane.ERROR_MESSAGE);
 			return MEMORY_OUT;
 		} 
 		if (warning) {
-			String message = TrackerRes.getString("TrackerIO.Dialog.LowMemory.Message1") + "\n"
-					+ TrackerRes.getString("TrackerIO.Dialog.LowMemory.Remaining") + remaining + "\n"
-					+ TrackerRes.getString("TrackerIO.Dialog.LowMemory.Message2") + "\n\n"
-					+ TrackerRes.getString("TrackerIO.Dialog.LowMemory.Message3");
+			String message = TrackerRes.getString("Tracker.Dialog.LowMemory.Message1") + "\n"
+					+ TrackerRes.getString("Tracker.Dialog.LowMemory.Remaining") + remaining + "\n"
+					+ TrackerRes.getString("Tracker.Dialog.LowMemory.Message2") + "\n\n"
+					+ TrackerRes.getString("Tracker.Dialog.LowMemory.Message3");
 			return (JOptionPane.showConfirmDialog(frame, message,
-					TrackerRes.getString("TrackerIO.Dialog.LowMemory.Title"), //$NON-NLS-1$
+					TrackerRes.getString("Tracker.Dialog.LowMemory.Title"), //$NON-NLS-1$
 					JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE) == JOptionPane.YES_OPTION ? MEMORY_LOW_IGNORE : MEMORY_LOW_DONTIGNORE);
 		}
 		return MEMORY_OK;
