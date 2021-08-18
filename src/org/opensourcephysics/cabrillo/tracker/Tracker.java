@@ -2753,11 +2753,11 @@ public class Tracker {
 	}
 
 	/**
-	 * Check for low or critical memory problems.
+	 * Ask about preferred memory size.
 	 * 
 	 * @param frame
 	 */
-	public static void checkMemory(TFrame frame) {
+	public static void askAboutMemory(TFrame frame) {
 		String response = GUIUtils.showInputDialog(frame, TrackerRes.getString("TTrackBar.Dialog.SetMemory.Message"), //$NON-NLS-1$
 				TrackerRes.getString("TTrackBar.Dialog.SetMemory.Title"), //$NON-NLS-1$
 				JOptionPane.PLAIN_MESSAGE, String.valueOf(preferredMemorySize));
@@ -2779,6 +2779,41 @@ public class Tracker {
 			}
 		} catch (Exception ex) {
 		}
+	}
+
+	/**
+	 * Check the memory status and warn the user if needed.
+	 * 
+	 * @param frame
+	 * @param ignoreLowMemory
+	 * @return true if everything is OK
+	 */
+	public static boolean checkMemory(TFrame frame, boolean ignoreLowMemory) {
+
+		// if progress < 100, check memory
+		long[] memory = OSPRuntime.getMemory();
+		// set "warning" and "danger" levels
+		boolean warning = memory[1] - memory[0] < 100 && !ignoreLowMemory;
+		boolean danger = memory[1] - memory[0] < 40;
+		String remaining = " " + (int) (memory[1] - memory[0]) + " MB";
+		boolean ok = true;
+		if (danger) {
+			String message = TrackerRes.getString("TrackerIO.Dialog.OutOfMemory.Message1") + "\n"
+					+ TrackerRes.getString("TrackerIO.Dialog.LowMemory.Remaining") + remaining + "\n\n"
+					+ TrackerRes.getString("TrackerIO.Dialog.OutOfMemory.Message2");
+			JOptionPane.showConfirmDialog(frame, message, TrackerRes.getString("TrackerIO.Dialog.OutOfMemory.Title"), //$NON-NLS-1$
+					JOptionPane.ERROR_MESSAGE);
+			ok = false;
+		} else if (warning) {
+			String message = TrackerRes.getString("TrackerIO.Dialog.LowMemory.Message1") + "\n"
+					+ TrackerRes.getString("TrackerIO.Dialog.LowMemory.Remaining") + remaining + "\n"
+					+ TrackerRes.getString("TrackerIO.Dialog.LowMemory.Message2") + "\n\n"
+					+ TrackerRes.getString("TrackerIO.Dialog.LowMemory.Message3");
+			ok = (JOptionPane.showConfirmDialog(frame, message,
+					TrackerRes.getString("TrackerIO.Dialog.LowMemory.Title"), //$NON-NLS-1$
+					JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE) == JOptionPane.YES_OPTION);
+		}
+		return ok;
 	}
 	
 }

@@ -674,7 +674,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 					memoryItem.addActionListener(new ActionListener() {
 						@Override
 						public void actionPerformed(ActionEvent e) {
-							Tracker.checkMemory((TFrame) memoryButton.getTopLevelAncestor());
+							Tracker.askAboutMemory((TFrame) memoryButton.getTopLevelAncestor());
 						}
 					});
 					FontSizer.setFonts(popup, FontSizer.getLevel());
