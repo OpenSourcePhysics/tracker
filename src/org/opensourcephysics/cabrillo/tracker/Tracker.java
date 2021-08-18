@@ -2808,7 +2808,7 @@ public class Tracker {
 			String message = TrackerRes.getString("Tracker.Dialog.OutOfMemory.Message1") + "\n"
 					+ TrackerRes.getString("Tracker.Dialog.LowMemory.Remaining") + s + "\n\n"
 					+ TrackerRes.getString("Tracker.Dialog.OutOfMemory.Message2");
-			JOptionPane.showConfirmDialog(frame, message, TrackerRes.getString("Tracker.Dialog.OutOfMemory.Title"), //$NON-NLS-1$
+			JOptionPane.showMessageDialog(frame, message, TrackerRes.getString("Tracker.Dialog.OutOfMemory.Title"), //$NON-NLS-1$
 					JOptionPane.ERROR_MESSAGE);
 			return MEMORY_OUT;
 		} 
