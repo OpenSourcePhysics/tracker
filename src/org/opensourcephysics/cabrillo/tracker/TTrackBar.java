@@ -73,7 +73,6 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 	// static fields
 	protected static Map<TrackerPanel, TTrackBar> trackbars = new HashMap<TrackerPanel, TTrackBar>();
 	protected static JButton newVersionButton;
-	protected static boolean outOfMemory = false;
 	protected static Icon selectTrackIcon;
 	protected static JButton testButton;
 	protected static javax.swing.Timer testTimer;
@@ -264,73 +263,15 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 	 * @j2sIgnore
 	 */
 	private static void setJava() {
-		OSPLog.getOSPLog().addPropertyChangeListener("error", new PropertyChangeListener() { //$NON-NLS-1$
+		OSPLog.getOSPLog().addPropertyChangeListener(OSPRuntime.PROPERTY_ERROR_OUTOFMEMORY, new PropertyChangeListener() { //$NON-NLS-1$
 			@Override
 			public void propertyChange(PropertyChangeEvent e) {
-				int type = Integer.parseInt(e.getNewValue().toString());
-				if (type == OSPLog.OUT_OF_MEMORY_ERROR) {
-					outOfMemory = true;
+				if (e.getNewValue().equals(OSPRuntime.OUT_OF_MEMORY_ERROR)) {
+					OSPRuntime.outOfMemory = true;
 				}
 			}
 		});
 
-//		memoryButton = new TButton(memoryIcon) {
-//			@Override
-//			public JPopupMenu getPopup() {
-//				JPopupMenu popup = new JPopupMenu();
-//				JMenuItem memoryItem = new JMenuItem(TrackerRes.getString("TTrackBar.Memory.Menu.SetSize")); //$NON-NLS-1$
-//				popup.add(memoryItem);
-//				memoryItem.addActionListener(new ActionListener() {
-//					@Override
-//					public void actionPerformed(ActionEvent e) {
-//						TFrame frame = (TFrame) memoryButton.getTopLevelAncestor();
-//						String response = GUIUtils.showInputDialog(frame,
-//								TrackerRes.getString("TTrackBar.Dialog.SetMemory.Message"), //$NON-NLS-1$
-//								TrackerRes.getString("TTrackBar.Dialog.SetMemory.Title"), //$NON-NLS-1$
-//								JOptionPane.PLAIN_MESSAGE, String.valueOf(Tracker.preferredMemorySize));
-//						if (response != null && !"".equals(response)) { //$NON-NLS-1$
-//							String s = response;
-//							try {
-//								double d = Double.parseDouble(s);
-//								d = Math.rint(d);
-//								int n = (int) d;
-//								if (n < 0)
-//									n = -1; // default
-//								else
-//									n = Math.max(n, 32); // not less than 32MB
-//								if (n != Tracker.preferredMemorySize) {
-//									Tracker.preferredMemorySize = n;
-//									int ans = JOptionPane.showConfirmDialog(frame,
-//											TrackerRes.getString("TTrackBar.Dialog.Memory.Relaunch.Message"), //$NON-NLS-1$
-//											TrackerRes.getString("TTrackBar.Dialog.Memory.Relaunch.Title"), //$NON-NLS-1$
-//											JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
-//									if (ans == JOptionPane.YES_OPTION) {
-//
-//										Tracker.savePreferences();
-//										frame.relaunchCurrentTabs();
-//									}
-//								}
-//							} catch (Exception ex) {
-//							}
-//						}
-//					}
-//				});
-//				FontSizer.setFonts(popup, FontSizer.getLevel());
-//				return popup;
-//			}
-//		};
-//		Font font = memoryButton.getFont();
-//		memoryButton.setFont(font.deriveFont(Font.PLAIN, font.getSize() - 1));
-//		memoryButton.addMouseListener(new MouseAdapter() {
-//			@Override
-//			public void mouseEntered(MouseEvent e) {
-//				refreshMemoryButton();
-//			}
-//		});
-		
-//		Border space = BorderFactory.createEmptyBorder(1, 4, 1, 4);
-//		Border line = BorderFactory.createLineBorder(Color.GRAY);
-//		memoryButton.setBorder(BorderFactory.createCompoundBorder(line, space));
 		newVersionButton = new TButton() {
 			@Override
 			public JPopupMenu getPopup() {
@@ -347,7 +288,6 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 		Font font = newVersionButton.getFont();
 		newVersionButton.setFont(font.deriveFont(Font.PLAIN, font.getSize() - 1));
 		newVersionButton.setForeground(Color.GREEN.darker());
-//		newVersionButton.setBorder(BorderFactory.createCompoundBorder(line, space));
 	}
 
 	/**
@@ -558,7 +498,6 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 			return;
 		if (selectButton == null)
 			createGUI();
-		//System.out.println("TTrackBar refresh");
 		buildRequested = true;
 		OSPRuntime.postEvent(() -> {
 			rebuild();

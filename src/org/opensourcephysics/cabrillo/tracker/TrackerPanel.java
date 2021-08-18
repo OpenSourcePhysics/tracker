@@ -25,7 +25,6 @@
 package org.opensourcephysics.cabrillo.tracker;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Container;
 import java.awt.Cursor;
 import java.awt.Dimension;
@@ -2160,39 +2159,6 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	}
 
 	/**
-	 * Refreshes the TFrame info dialog if visible.
-	 */
-	protected void refreshNotesDialog() {
-		TFrame frame = getTFrame();
-		if (frame != null && frame.notesDialog.isVisible()) {
-			frame.saveNotesAction.actionPerformed(null);
-			TTrack track = getSelectedTrack();
-			if (track != null) {
-				frame.notesTextPane.setText(track.getDescription());
-				frame.notesDialog.setName(track.getName());
-				frame.notesDialog.setTitle(TrackerRes.getString("TActions.Dialog.Description.Title") //$NON-NLS-1$
-						+ " \"" + track.getName() + "\""); //$NON-NLS-1$ //$NON-NLS-2$
-			} else {
-				frame.notesTextPane.setText(getDescription());
-				frame.notesDialog.setName(null);
-				String tabName = frame.getTabTitle(frame.getSelectedTab());
-				frame.notesDialog.setTitle(TrackerRes.getString("TActions.Dialog.Description.Title") //$NON-NLS-1$
-						+ " \"" + tabName + "\""); //$NON-NLS-1$ //$NON-NLS-2$
-			}
-			frame.notesTextPane.setBackground(Color.WHITE);
-			frame.cancelNotesDialogButton.setEnabled(false);
-			frame.closeNotesDialogButton.setEnabled(true);
-			TrackerPanel panel = frame.getSelectedPanel();
-			frame.displayWhenLoadedCheckbox.setEnabled(panel != null);
-			if (panel != null) {
-				frame.displayWhenLoadedCheckbox.setSelected(!panel.hideDescriptionWhenLoaded);
-			}
-
-			frame.notesTextPane.setEditable(isEnabled("notes.edit")); //$NON-NLS-1$
-		}
-	}
-
-	/**
 	 * Gets the next available name (and color, based on the attached suffix) for a track.
 	 * 
 	 * @param name      the default name with no letter suffix
@@ -4096,9 +4062,9 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 					control.setValue("track_control_y", y); //$NON-NLS-1$
 				}
 				// save the location of the info dialog if visible
-				if (frame.notesDialog.isVisible()) {
-					int x = frame.notesDialog.getLocation().x - frame.getLocation().x;
-					int y = frame.notesDialog.getLocation().y - frame.getLocation().y;
+				if (frame.notesVisible()) {
+					int x = frame.getNotesDialog().getLocation().x - frame.getLocation().x;
+					int y = frame.getNotesDialog().getLocation().y - frame.getLocation().y;
 					control.setValue("info_x", x); //$NON-NLS-1$
 					control.setValue("info_y", y); //$NON-NLS-1$
 				}
@@ -4948,5 +4914,9 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		return "[TrackerPanel " + hashCode() + " " + getTabName() + "]";
 	}
 
+	public void refreshNotesDialog() {
+		if (frame != null)
+			frame.updateNotesDialog(this);
+	}
 
 }

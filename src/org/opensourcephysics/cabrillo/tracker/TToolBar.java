@@ -26,13 +26,11 @@ package org.opensourcephysics.cabrillo.tracker;
 
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
 //import java.awt.Frame;
 import java.awt.Point;
 import java.awt.Rectangle;
-import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
@@ -57,7 +55,6 @@ import javax.swing.ButtonGroup;
 import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JCheckBoxMenuItem;
-import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
@@ -75,7 +72,6 @@ import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.desktop.OSPDesktop;
 import org.opensourcephysics.display.DataTable;
-import org.opensourcephysics.display.GUIUtils;
 import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.display.ResizableIcon;
 import org.opensourcephysics.media.core.ClipInspector;
@@ -147,8 +143,6 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 	private static final String REFRESH__PROPERTY_TRACK_TRUE = "property track";
 	private static final String REFRESH__PROPERTY_CLEAR_TRUE = "property track clear";
 	
-	protected static long[] memoryStatus = new long[2];
-
 	// instance fields
 	/** effectively final */
 	protected TrackerPanel trackerPanel; // manages & displays track data
@@ -677,36 +671,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 					memoryItem.addActionListener(new ActionListener() {
 						@Override
 						public void actionPerformed(ActionEvent e) {
-							TFrame frame = (TFrame) memoryButton.getTopLevelAncestor();
-							String response = GUIUtils.showInputDialog(frame,
-									TrackerRes.getString("TTrackBar.Dialog.SetMemory.Message"), //$NON-NLS-1$
-									TrackerRes.getString("TTrackBar.Dialog.SetMemory.Title"), //$NON-NLS-1$
-									JOptionPane.PLAIN_MESSAGE, String.valueOf(Tracker.preferredMemorySize));
-							if (response != null && !"".equals(response)) { //$NON-NLS-1$
-								String s = response;
-								try {
-									double d = Double.parseDouble(s);
-									d = Math.rint(d);
-									int n = (int) d;
-									if (n < 0)
-										n = -1; // default
-									else
-										n = Math.max(n, 32); // not less than 32MB
-									if (n != Tracker.preferredMemorySize) {
-										Tracker.preferredMemorySize = n;
-										int ans = JOptionPane.showConfirmDialog(frame,
-												TrackerRes.getString("TTrackBar.Dialog.Memory.Relaunch.Message"), //$NON-NLS-1$
-												TrackerRes.getString("TTrackBar.Dialog.Memory.Relaunch.Title"), //$NON-NLS-1$
-												JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
-										if (ans == JOptionPane.YES_OPTION) {
-	
-											Tracker.savePreferences();
-											frame.relaunchCurrentTabs();
-										}
-									}
-								} catch (Exception ex) {
-								}
-							}
+							Tracker.askToSetMemory((TFrame) memoryButton.getTopLevelAncestor());
 						}
 					});
 					FontSizer.setFonts(popup, FontSizer.getLevel());
@@ -883,33 +848,8 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 	protected void doNotesAction() {
 		TFrame frame = trackerPanel.getTFrame();
 		if (frame != null && frame.getSelectedPanel() == trackerPanel) {
-			frame.notesDialog.removeWindowListener(infoListener);
-			frame.notesDialog.addWindowListener(infoListener);
-			// position info dialog if first time shown
-			// or if trackerPanel specifies location
-			Point p0 = new JFrame().getLocation();
-			if (trackerPanel.infoX != Integer.MIN_VALUE || frame.notesDialog.getLocation().x == p0.x) {
-				int x, y;
-				Point p = frame.getLocationOnScreen();
-				if (trackerPanel.infoX != Integer.MIN_VALUE) {
-					Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
-					x = Math.max(p.x + trackerPanel.infoX, 0);
-					x = Math.min(x, dim.width - frame.notesDialog.getWidth());
-					y = Math.max(p.y + trackerPanel.infoY, 0);
-					y = Math.min(y, dim.height - frame.notesDialog.getHeight());
-					trackerPanel.infoX = Integer.MIN_VALUE;
-				} else {
-					Point pleft = TToolBar.this.getLocationOnScreen();
-					Dimension dim = frame.notesDialog.getSize();
-					Dimension wdim = TToolBar.this.getSize();
-					x = pleft.x + (int) (0.5 * (wdim.width - dim.width));
-					y = p.y + 16;
-				}
-				frame.notesDialog.setLocation(x, y);
-			}
-			notesButton.setSelected(!frame.notesDialog.isVisible());
-			frame.notesDialog.setVisible(notesButton.isSelected());
-			trackerPanel.refreshNotesDialog();
+			frame.setNotesDialog(this, infoListener);
+			notesButton.setSelected(frame.notesVisible());
 		}
 	}
 
@@ -922,6 +862,8 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 	 * Refreshes the memory button for a TrackerPanel.
 	 */
 	protected static void refreshMemoryButton(TrackerPanel panel) {
+		if (OSPRuntime.isJS)
+			return;
 		TToolBar toolbar = toolbars.get(panel);
 		if (toolbar != null) {
 			toolbar.refreshMemoryButton();
@@ -929,15 +871,13 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 	}
 	
 	/**
-	 * Refreshes the memory button.
+	 * Refreshes the memory button. Java only, not JavaScript
 	 */
-	protected void refreshMemoryButton() {
-		if (OSPRuntime.isJS)
-			return;
+	private void refreshMemoryButton() {
 		System.gc();
-		long[] memory = getMemory();
-		if (TTrackBar.outOfMemory && TTrackBar.showOutOfMemoryDialog) {
-			TTrackBar.outOfMemory = false;
+		long[] memory = OSPRuntime.getMemory();
+		if (OSPRuntime.outOfMemory && TTrackBar.showOutOfMemoryDialog) {
+			OSPRuntime.outOfMemory = false;
 			TTrackBar.showOutOfMemoryDialog = false;
 			memory[0] = memory[1];
 			JOptionPane.showMessageDialog(memoryButton,
@@ -950,24 +890,10 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 		String of = TrackerRes.getString("DynamicSystem.Parameter.Of") + " "; //$NON-NLS-1$ //$NON-NLS-2$
 		memoryButton.setToolTipText(mem + memory[0] + "MB " + of + memory[1] + "MB"); //$NON-NLS-1$ //$NON-NLS-2$
 //		memoryButton.setToolTipText(TrackerRes.getString("TTrackBar.Button.Memory.Tooltip")); //$NON-NLS-1$
-		double used = ((double) memoryStatus[0]) / memoryStatus[1];
+		double used = ((double) memory[0]) / memory[1];
 		memoryButton.setIcon(used > 0.8 ? redMemoryIcon : memoryIcon);
 	}
 
-	/**
-	 * Refreshes the memory button.
-	 */
-	protected static long[] getMemory() {
-		if (OSPRuntime.isJS)
-			return null;
-		java.lang.management.MemoryMXBean memory = java.lang.management.ManagementFactory.getMemoryMXBean();
-		memoryStatus[0] = memory.getHeapMemoryUsage().getUsed() / (1024 * 1024);
-		memoryStatus[1] = memory.getHeapMemoryUsage().getMax() / (1024 * 1024);
-		return memoryStatus;
-	}
-
-
-	
 	protected JPopupMenu refreshEyePopup() {
 		if (pathVisMenuItem == null) {
 			int gap = 6;

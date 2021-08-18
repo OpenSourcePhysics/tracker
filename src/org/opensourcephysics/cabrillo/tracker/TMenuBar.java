@@ -1170,10 +1170,10 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements PropertyChan
 		window_notesItem = new JCheckBoxMenuItem(TrackerRes.getString("TMenuBar.MenuItem.Description")); //$NON-NLS-1$
 		window_notesItem.addActionListener((e) -> {
 				if (getFrame() != null) {
-					if (frame.notesDialog.isVisible()) {
-						frame.notesDialog.setVisible(false);
+					if (frame.notesVisible()) {
+						frame.getNotesDialog().setVisible(false);
 					} else
-						frame.getToolBar(trackerPanel).notesButton.doClick();
+						frame.getToolBar(trackerPanel).doNotesAction();
 				}
 		});
 		// dataBuilder item
@@ -2384,7 +2384,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements PropertyChan
 		TrackControl tc = TrackControl.getControl(trackerPanel);
 		window_trackControlItem.setSelected(tc.isVisible());
 		window_trackControlItem.setEnabled(!tc.isEmpty());
-		window_notesItem.setSelected(frame.notesDialog.isVisible());
+		window_notesItem.setSelected(frame.notesVisible());
 		window_dataBuilderItem.setSelected(trackerPanel.dataBuilder != null && trackerPanel.dataBuilder.isVisible());
 		window_dataToolItem.setSelected(DataTool.getTool(false) != null && 
 				DataTool.getTool(false).isVisible());
@@ -2599,7 +2599,9 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements PropertyChan
 		if (!OSPRuntime.isJS) {
 		    JMenuItem checkForUpgradeItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.CheckForUpgrade.Text")); //$NON-NLS-1$
 		    checkForUpgradeItem.addActionListener((e) -> {
+		    	new Thread(()-> {
 		        Tracker.showUpgradeStatus(trackerPanel);
+		    	}).start();
 		    });
 			helpMenu.add(checkForUpgradeItem);
 		}

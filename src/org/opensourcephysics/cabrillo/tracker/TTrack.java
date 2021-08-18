@@ -2337,10 +2337,10 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 				if (trackerPanel != null) {
 					TFrame frame = trackerPanel.getTFrame();
 					if (frame != null) {
-						if (frame.notesDialog.isVisible()) {
-							frame.notesDialog.setVisible(true);
+						if (frame.notesVisible()) {
+							frame.getNotesDialog().setVisible(true);
 						} else
-							frame.getToolBar(trackerPanel).notesButton.doClick();
+							frame.getToolBar(trackerPanel).doNotesAction();
 					}
 				}
 			}
