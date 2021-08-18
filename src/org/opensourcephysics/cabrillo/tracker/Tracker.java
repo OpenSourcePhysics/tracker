@@ -2796,11 +2796,14 @@ public class Tracker {
 	public static int checkMemory(TFrame frame, boolean ignoreLowMemory) {
 
 		// if progress < 100, check memory
-		long[] memory = OSPRuntime.getMemory();
+		long[] m = OSPRuntime.getMemory();
 		// set "warning" and "danger" levels
-		boolean warning = memory[1] - memory[0] < 100 && !ignoreLowMemory;
-		boolean danger = memory[1] - memory[0] < 40;
-		String remaining = " " + (int) (memory[1] - memory[0]) + " MB";
+		long max = m[1];
+		long used = m[0];
+		long diff = max - used;
+		boolean warning = (diff < 100) && !ignoreLowMemory;
+		boolean danger = (diff < 40);
+		String remaining = " " + diff + " MB";
 		if (danger) {
 			String message = TrackerRes.getString("Tracker.Dialog.OutOfMemory.Message1") + "\n"
 					+ TrackerRes.getString("Tracker.Dialog.LowMemory.Remaining") + remaining + "\n\n"
