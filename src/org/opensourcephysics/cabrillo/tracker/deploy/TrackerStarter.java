@@ -72,6 +72,7 @@ public class TrackerStarter {
 	public static final String LOG_FILE_NAME = "tracker_start.log"; //$NON-NLS-1$
 	public static final String LOG_DIAGNOSTICS_NAME = "tracker_start_diagnostics.log"; //$NON-NLS-1$
   public static final int DEFAULT_MEMORY_SIZE = 1024;
+	public static final int MINIMUM_MEMORY_SIZE = 64;
 	public static final String PREFS_FILE_NAME = "tracker.prefs"; //$NON-NLS-1$
 	public static final int INDEX_XUGGLE_57 = 0;
 	public static final int INDEX_XUGGLE_34 = 1;

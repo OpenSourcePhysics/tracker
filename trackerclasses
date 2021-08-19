@@ -960,7 +960,6 @@ org/opensourcephysics/media/core/MediaRes.js
 org/opensourcephysics/media/core/NegativeFilter.js
 org/opensourcephysics/media/core/NumberField.js
 org/opensourcephysics/media/core/PerspectiveFilter.js
-org/opensourcephysics/media/core/Playable.js
 org/opensourcephysics/media/core/RadialDistortionFilter.js
 org/opensourcephysics/media/core/ResizeFilter.js
 org/opensourcephysics/media/core/RotateFilter.js

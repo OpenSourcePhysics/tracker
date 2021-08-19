@@ -208,10 +208,10 @@ public class Tracker {
 	static final Level DEFAULT_LOG_LEVEL = ConsoleLevel.OUT_CONSOLE;
 	static final int DEFAULT_TRAIL_LENGTH_INDEX = 2;
 
-	static final int MEMORY_OK = 0;
-	static final int MEMORY_LOW_IGNORE = 1;
-	static final int MEMORY_LOW_DONTIGNORE = 2;
-	static final int MEMORY_OUT = 3;
+    static final int MEMORY_OK             = 0;
+	static final int MEMORY_LOW_IGNORE     = 1;
+    static final int MEMORY_LOW_DONTIGNORE = 2;
+	static final int MEMORY_OUT            = 3;
 	static final int MEMORY_INCREASE       = 4;
 
 	// for testing
@@ -2851,14 +2851,14 @@ public class Tracker {
 			int n = (d < 0 ? -1 : (int) Math.max(d, 32)); // not less than 32MB
 			if (n != preferredMemorySize) {
 				preferredMemorySize = n;
-				int ans = JOptionPane.showConfirmDialog(frame,
+			int ans = JOptionPane.showConfirmDialog(frame,
 						TrackerRes.getString("TTrackBar.Dialog.Memory.Relaunch.Message"), //$NON-NLS-1$
-						TrackerRes.getString("TTrackBar.Dialog.Memory.Relaunch.Title"), //$NON-NLS-1$
-						JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
-				if (ans == JOptionPane.YES_OPTION) {
-					savePreferences();
-					frame.relaunchCurrentTabs();
-				}
+					TrackerRes.getString("TTrackBar.Dialog.Memory.Relaunch.Title"), //$NON-NLS-1$
+					JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+			if (ans == JOptionPane.YES_OPTION) {
+				savePreferences();
+				frame.relaunchCurrentTabs();
+			}
 			}
 		} catch (Exception ex) {
 		}

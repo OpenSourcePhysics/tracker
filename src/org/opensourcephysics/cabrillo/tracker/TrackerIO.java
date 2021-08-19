@@ -1916,6 +1916,12 @@ public class TrackerIO extends VideoIO {
 				cancelAsync();
 				return PROGRESS_COMPLETE;
 			}
+//			try {
+//				Thread.sleep(100);
+//			} catch (InterruptedException e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+//			}
 //			OSPLog.debug(Performance.timeCheckStr("TrackerIO.asyncLoad " + type + " start " + progress + " " + paths,
 //					Performance.TIME_MARK));
 			// type is set in setupLoader, from initAsync()
@@ -1972,7 +1978,6 @@ public class TrackerIO extends VideoIO {
 					cancelAsync();					
 					Tracker.askToSetMemory(frame);
 					break;
-
 				}
 			}
 			return progress;
@@ -2464,8 +2469,8 @@ public class TrackerIO extends VideoIO {
 				return "Video frames loaded: " + getFrameCount();
 			case TYPE_TRK:
 				if (type == TYPE_TRK && progress > PROGRESS_VIDEO_PROCESSING && progress < PROGRESS_VIDEO_READY)
-					return "Video " + videoCount + " frames loaded: " + trackerPanel.framesLoaded;
-		    default:
+					return "Video " + videoCount + ": frames loaded " + trackerPanel.framesLoaded;
+		  default:
 				return String.format("Completed %d%%.\n", progressPercent);
 			}
 		}
