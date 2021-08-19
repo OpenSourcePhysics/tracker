@@ -244,7 +244,6 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 		}
 		trackerPanel = panel;
 		if (panel != null) {
-			panel.addPropertyChangeListener(this);
 			addPanelEvents(panelEventsTTrack);
 		}
 	}

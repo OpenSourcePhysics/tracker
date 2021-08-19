@@ -3350,7 +3350,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		// remove property change listeners
 		removePropertyChangeListener(VideoPanel.PROPERTY_VIDEOPANEL_DATAFILE, frame); // $NON-NLS-1$
 		removePropertyChangeListener(PROPERTY_TRACKERPANEL_VIDEO, frame); // $NON-NLS-1$
-
+		coords.removePropertyChangeListener(this);
 		selectedPoint = null;
 		selectedStep = null;
 		selectedTrack = null;
@@ -5000,4 +5000,5 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		}
 
 	}
+
 }

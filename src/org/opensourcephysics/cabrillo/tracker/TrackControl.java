@@ -223,9 +223,10 @@ public void dispose() {
       }
       controls.remove(trackerPanel);
       trackerPanel.trackControl = null;
+      ArrayList<TTrack> tracks = trackerPanel.getTracks();
       trackerPanel = null;
-      for (Integer n: TTrack.activeTracks.keySet()) {
-      	TTrack.activeTracks.get(n).removeListenerNCF(this);
+      for (int i = tracks.size(); --i >= 0;) { //: TTrack.activeTracks.keySet()) {
+      	tracks.get(i).removeListenerNCF(this);
       }
     }
     super.dispose();
