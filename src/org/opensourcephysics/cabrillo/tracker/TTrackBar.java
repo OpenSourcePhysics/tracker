@@ -36,8 +36,6 @@ import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -71,7 +69,6 @@ import org.opensourcephysics.tools.FontSizer;
 public class TTrackBar extends JToolBar implements PropertyChangeListener {
 
 	// static fields
-	protected static Map<TrackerPanel, TTrackBar> trackbars = new HashMap<TrackerPanel, TTrackBar>();
 	protected static JButton newVersionButton;
 	protected static Icon selectTrackIcon;
 	protected static JButton testButton;
@@ -101,18 +98,32 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 	protected JPopupMenu selectPopup = new JPopupMenu();
 
 	/**
+	 * TTrackBar constructor.
+	 *
+	 * @param panel the tracker panel
+	 */
+	TTrackBar(TrackerPanel panel) {
+		System.out.println("Creating trackbar for " + panel);
+		trackerPanel = panel;
+		trackerPanel.addListeners(panelProps, this);
+//		createGUI();
+//		refresh();
+//		validate();
+	}
+
+	@Override
+	public void finalize() {
+		OSPLog.finalized(this);
+	}
+
+	/**
 	 * Gets the trackbar for the specified tracker panel.
 	 *
 	 * @param panel the tracker panel
 	 * @return the trackbar
 	 */
-	public static synchronized TTrackBar getTrackbar(TrackerPanel panel) {
-		TTrackBar trackbar = trackbars.get(panel);
-		if (trackbar == null) {
-			trackbar = new TTrackBar(panel);
-			trackbars.put(panel, trackbar);
-		}
-		return trackbar;
+	public static TTrackBar getTrackbar(TrackerPanel panel) {
+		return panel.getTFrame().getTrackbar(panel);
 	}
 	
 	private static void setTestOn(boolean on) {
@@ -309,24 +320,6 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 	};
 
 	/**
-	 * TTrackBar constructor.
-	 *
-	 * @param panel the tracker panel
-	 */
-	private TTrackBar(TrackerPanel panel) {
-		trackerPanel = panel;
-		trackerPanel.addListeners(panelProps, this);
-//		createGUI();
-//		refresh();
-//		validate();
-	}
-
-	@Override
-	public void finalize() {
-		OSPLog.finer(getClass().getSimpleName() + " recycled by garbage collector"); //$NON-NLS-1$
-	}
-
-	/**
 	 * Gets the popup menu for the specified track.
 	 *
 	 * @param track the track
@@ -492,6 +485,7 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 	/**
 	 * Refreshes the GUI.
 	 */ 
+	@SuppressWarnings("deprecation")
 	protected void refresh() {
 		// check to see if a build has already been done since the last refresh request
 		if (!trackerPanel.isPaintable() || buildRequested)
@@ -677,7 +671,6 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 	 * Cleans up this trackbar
 	 */
 	public void dispose() {
-		trackbars.remove(trackerPanel);
 		removeAll();
 		trackerPanel.removeListeners(panelProps, this);
 		for (Integer n : TTrack.activeTracks.keySet()) {

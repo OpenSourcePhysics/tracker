@@ -1036,7 +1036,7 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 
 	@Override
 	public void finalize() {
-		OSPLog.finer(getClass().getSimpleName() + " recycled by garbage collector"); //$NON-NLS-1$
+		OSPLog.finalized(this);
 	}
 
 	/**
@@ -2339,7 +2339,7 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 						if (frame.notesVisible()) {
 							frame.getNotesDialog().setVisible(true);
 						} else
-							frame.getToolBar(trackerPanel).doNotesAction();
+							frame.getToolbar(trackerPanel).doNotesAction();
 					}
 				}
 			}

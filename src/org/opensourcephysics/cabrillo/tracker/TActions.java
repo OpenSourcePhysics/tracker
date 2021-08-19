@@ -97,8 +97,12 @@ public class TActions {
 	 * @return the Map
 	 */
 	public static Map<String, AbstractAction> getActions(TrackerPanel trackerPanel) {
+	  return getActions(trackerPanel, false);
+	}
+	
+	public static Map<String, AbstractAction> getActions(TrackerPanel trackerPanel, boolean allowNull) {
 		Map<String, AbstractAction> actions = actionMaps.get(trackerPanel);
-		if (actions != null)
+		if (actions != null || allowNull)
 			return actions;
 		// create new actionMap
 		actions = new HashMap<String, AbstractAction>();
@@ -151,7 +155,6 @@ public class TActions {
 					public void actionPerformed(ActionEvent e) {
 						trackerPanel.setSelectedPoint(null);
 						trackerPanel.selectedSteps.clear();
-						trackerPanel.setMouseCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
 						TFrame frame = trackerPanel.getTFrame();
 						if (frame != null) {
 							frame.doOpenFileFromDialog();
@@ -204,7 +207,7 @@ public class TActions {
 					public void actionPerformed(ActionEvent e) {
 						TFrame frame = trackerPanel.getTFrame();
 						if (frame != null) {
-							frame.removeTab(trackerPanel);
+							frame.doCloseAction(trackerPanel);
 						}
 					}
 				});
@@ -706,8 +709,9 @@ public class TActions {
 
 	protected static void dataTrackActionAsync(TrackerPanel trackerPanel) {
 		// choose file and import data
-		TrackerIO.getChooserFilesAsync("open data", //$NON-NLS-1$
-				(files) -> {
+		TFrame frame = trackerPanel.getTFrame();
+		TrackerIO.getChooserFilesAsync(frame, //$NON-NLS-1$
+				"open data", (files) -> {
 					if (files == null) {
 						return null;
 					}

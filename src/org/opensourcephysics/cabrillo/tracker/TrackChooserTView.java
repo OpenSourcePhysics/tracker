@@ -333,7 +333,7 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 
 	@Override
 	public void finalize() {
-		OSPLog.finest(getClass().getSimpleName() + " recycled by garbage collector");
+		OSPLog.finalized(this);
 	}
 
 	/**

@@ -764,7 +764,7 @@ public class TrackDataBuilder extends FunctionTool {
 
 	@Override
 	public void finalize() {
-		OSPLog.finer(getClass().getSimpleName() + " recycled by garbage collector"); //$NON-NLS-1$
+		OSPLog.finalized(this);
 	}
 
 	/**

@@ -184,7 +184,7 @@ public class ExportDataDialog extends JDialog {
 			public void actionPerformed(ActionEvent e) {
 				JFileChooser chooser = TrackerIO.getChooser();
 				chooser.setSelectedFile(lastTXT); //$NON-NLS-1$
-				TrackerIO.getChooserFilesAsync("save data", new Function<File[], Void>() { // $NON-NLS-1$
+				TrackerIO.getChooserFilesAsync(trackerPanel.getTFrame(), "save data", new Function<File[], Void>() { // $NON-NLS-1$
 
 					@Override
 					public Void apply(File[] files) {

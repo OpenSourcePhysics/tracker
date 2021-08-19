@@ -454,7 +454,7 @@ public class WorldTView extends TrackerPanel implements TView {
 	protected void configure() {
 		// set tiny preferred size so auto zooms to very small
 		setPreferredSize(new Dimension(1, 1));
-		coords.addPropertyChangeListener(this);
+//		coords.addPropertyChangeListener(this);
 		// remove DrawingPanel option controller
 		removeOptionController();
 	}

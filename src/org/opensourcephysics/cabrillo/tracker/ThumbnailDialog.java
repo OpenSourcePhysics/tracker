@@ -174,8 +174,9 @@ public class ThumbnailDialog extends JDialog {
 			chooser.setFileFilter(fileFilters[i]);
 			chooser.addPropertyChangeListener(JFileChooser.FILE_FILTER_CHANGED_PROPERTY, fileChooserListener);
 			String tabName = XML.stripExtension(trackerPanel.getTitle());
+			TFrame frame = trackerPanel.getTFrame();
 			chooser.setSelectedFile(new File(tabName + "_thumbnail." + format)); //$NON-NLS-1$
-			File[] files = TrackerIO.getChooserFilesAsync("save thumbnail", null); //$NON-NLS-1$
+			File[] files = TrackerIO.getChooserFilesAsync(frame, "save thumbnail", null); //$NON-NLS-1$
 			chooser.removePropertyChangeListener(JFileChooser.FILE_FILTER_CHANGED_PROPERTY, fileChooserListener);
 			if (files == null || files.length == 0)
 				return null;

@@ -1108,7 +1108,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 					chooser.setFileFilter(LaunchBuilder.getPDFFilter());
 				}
 
-				TrackerIO.getChooserFilesAsync("open any", new Function<File[], Void>() { //$NON-NLS-1$
+				TrackerIO.getChooserFilesAsync(frame, "open any", new Function<File[], Void>() { //$NON-NLS-1$
 
 					@Override
 					public Void apply(File[] files) {
@@ -1249,7 +1249,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 				chooser.setDialogTitle(TrackerRes.getString("ZipResourceDialog.FileChooser.OpenHTML.Title")); //$NON-NLS-1$
 				chooser.setFileFilter(LaunchBuilder.getHTMLFilter());
 
-				File[] files = TrackerIO.getChooserFilesAsync("open any", new Function<File[], Void>() { //$NON-NLS-1$
+				File[] files = TrackerIO.getChooserFilesAsync(frame, "open any", new Function<File[], Void>() { //$NON-NLS-1$
 
 					@Override
 					public Void apply(File[] files) {

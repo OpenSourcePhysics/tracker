@@ -44,7 +44,6 @@ import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.Map;
 
 import javax.swing.AbstractAction;
@@ -89,7 +88,6 @@ import org.opensourcephysics.tools.FontSizer;
 public class TToolBar extends JToolBar implements PropertyChangeListener {
 
 	// static fields
-	final protected static Map<TrackerPanel, TToolBar> toolbars = new HashMap<TrackerPanel, TToolBar>();
 	final protected static int[] trailLengths = { 1, 4, 15, 0 };
 	final protected static String[] trailLengthNames = { "none", "short", "long", "full" }; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
 	final protected static Icon newTrackIcon, pointmassOffIcon, pointmassOnIcon;
@@ -261,7 +259,8 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 	 *
 	 * @param panel the tracker panel
 	 */
-	private TToolBar(TrackerPanel panel) {
+	TToolBar(TrackerPanel panel) {
+		System.out.println("Creating toolbar for " + panel);
 		trackerPanel = panel;
 		trackerPanel.addListeners(panelProps, this);
 // BH testing final status
@@ -864,7 +863,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 	protected static void refreshMemoryButton(TrackerPanel panel) {
 		if (OSPRuntime.isJS)
 			return;
-		TToolBar toolbar = toolbars.get(panel);
+		TToolBar toolbar = getToolbar(panel);
 		if (toolbar != null) {
 			toolbar.refreshMemoryButton();
 		}
@@ -1393,7 +1392,6 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 		if (refreshTimer != null)
 			refreshTimer.stop();
 		refreshTimer = null;
-		toolbars.remove(trackerPanel);
 		removeAll();
 		trackerPanel.removeListeners(panelProps, this);
 		for (Integer n : TTrack.activeTracks.keySet()) {
@@ -1407,7 +1405,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 
 	@Override
 	public void finalize() {
-		OSPLog.finer(getClass().getSimpleName() + " recycled by garbage collector"); //$NON-NLS-1$
+		OSPLog.finalized(this);
 	}
 
 	/**
@@ -1495,12 +1493,8 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 	 * @return the toolbar
 	 */
 	public static synchronized TToolBar getToolbar(TrackerPanel panel) {
-		TToolBar toolbar = toolbars.get(panel);
-		if (toolbar == null) {
-			toolbar = new TToolBar(panel);
-			toolbars.put(panel, toolbar);
-		}
-		return toolbar;
+		TFrame frame = panel.getTFrame();
+		return (frame == null ? null : frame.getToolbar(panel));
 	}
 
 	/**

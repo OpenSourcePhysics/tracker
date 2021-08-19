@@ -43,7 +43,6 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.Enumeration;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Locale;
 import java.util.Map;
@@ -97,7 +96,6 @@ import org.opensourcephysics.tools.FunctionTool;
  */
 public class TMenuBar extends TFrame.DeactivatingMenuBar implements PropertyChangeListener, MenuListener {
 
-	private static Map<TrackerPanel, TMenuBar> menubars = new HashMap<TrackerPanel, TMenuBar>();
 
 	static final String POPUPMENU_TTOOLBAR_TRACKS = "TToolBar.tracks";
 	static final String POPUPMENU_TFRAME_BOTTOM = "TFrame.bottom";
@@ -329,31 +327,9 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements PropertyChan
 	 * @return a TMenuBar. May return null during instantiation.
 	 */
 	public static TMenuBar getMenuBar(TrackerPanel panel) {
-		if (panel == null)
+		if (panel == null || panel.getTFrame() == null)
 			return null;
-		synchronized (menubars) {
-			if (!menubars.containsKey(panel)) {
-				menubars.put(panel, new TMenuBar(panel));
-			}
-		}
-		return menubars.get(panel);
-	}
-
-	/**
-	 * Returns a new TMenuBar for the specified trackerPanel.
-	 * 
-	 * @param frame
-	 *
-	 * @param panel the tracker panel
-	 * @return a TMenuBar
-	 */
-	public static void newMenuBar(TFrame frame, TrackerPanel panel) {
-		TMenuBar menuBar = new TMenuBar(panel);
-		frame.setMenuBar(panel, menuBar);
-
-		synchronized (menubars) {
-			menubars.put(panel, menuBar);
-		}
+		return (panel.getTFrame().getMenuBar(panel));
 	}
 
 	protected void loadVideoMenu(JMenu vidMenu) {
@@ -361,20 +337,12 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements PropertyChan
 	}
 
 	/**
-	 * Clears all menubars. This forces creation of new menus using new locale.
-	 */
-	public static void clear() {
-		synchronized (menubars) {
-			menubars.clear();
-		}
-	}
-
-	/**
 	 * Constructor specifying the tracker panel.
 	 *
 	 * @param panel the tracker panel
 	 */
-	private TMenuBar(TrackerPanel panel) {
+	TMenuBar(TrackerPanel panel) {
+		System.out.println("Creating menubar for " + panel);
 		setTrackerPanel(panel);
 		actions = TActions.getActions(panel);
 		createGUI();
@@ -1173,7 +1141,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements PropertyChan
 					if (frame.notesVisible()) {
 						frame.getNotesDialog().setVisible(false);
 					} else
-						frame.getToolBar(trackerPanel).doNotesAction();
+						frame.getToolbar(trackerPanel).doNotesAction();
 				}
 		});
 		// dataBuilder item
@@ -2616,7 +2584,6 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements PropertyChan
 	 * Cleans up this menubar
 	 */
 	public void dispose() {
-		menubars.remove(trackerPanel);
 		trackerPanel.removeListeners(panelProps, this);
 		Video video = trackerPanel.getVideo();
 		if (video != null) {
@@ -2637,7 +2604,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements PropertyChan
 
 	@Override
 	public void finalize() {
-		OSPLog.finer(getClass().getSimpleName() + " recycled by garbage collector"); //$NON-NLS-1$
+		OSPLog.finalized(this);
 	}
 
 	/**

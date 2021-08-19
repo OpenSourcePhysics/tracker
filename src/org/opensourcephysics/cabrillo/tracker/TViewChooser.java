@@ -461,6 +461,7 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
 		viewPanel.removeAll();
 		toolbar.removeAll();
 		trackerPanel = null;
+		
 	}
 
 	/**
@@ -675,6 +676,12 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
 	public static boolean isSelectedView(TView view) {
 			TViewChooser c = getChooserParent((Container) view);
 			return (c != null && view == c.getSelectedView());
+	}
+
+	@Override
+	public void finalize() {
+		//		OSPLog.finer
+		System.out.println(getClass().getSimpleName() + " " + getName() + " finalized"); //$NON-NLS-1$
 	}
 
 }

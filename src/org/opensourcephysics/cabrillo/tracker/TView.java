@@ -136,6 +136,8 @@ public interface TView extends PropertyChangeListener {
 		if (tp == null || (tf = tp.getTFrame()) == null || tf.getTabCount() == 0)
 			return false;
 		TView[][] views = tf.getTViews(tp);
+		if (views == null)
+			return false;
 		for (int i = 0; i < views.length; i++) {
 			if (views[i] != null)
 				for (int j = 0; j < views[i].length; j++) {

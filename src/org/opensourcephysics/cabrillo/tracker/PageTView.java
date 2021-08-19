@@ -525,7 +525,7 @@ public class PageTView extends JPanel implements TView {
 
 	@Override
 	public void finalize() {
-		OSPLog.finest(getClass().getSimpleName() + " recycled by garbage collector"); //$NON-NLS-1$
+		OSPLog.finalized(this);
 	}
 
 	/**
