@@ -205,10 +205,11 @@ public class Tracker {
 	static final Level DEFAULT_LOG_LEVEL = ConsoleLevel.OUT_CONSOLE;
 	static final int DEFAULT_TRAIL_LENGTH_INDEX = 2;
 
-    static final int MEMORY_OK             = 0;
+  static final int MEMORY_OK             = 0;
 	static final int MEMORY_LOW_IGNORE     = 1;
-    static final int MEMORY_LOW_DONTIGNORE = 2;
+  static final int MEMORY_LOW_DONTIGNORE = 2;
 	static final int MEMORY_OUT            = 3;
+	static final int MEMORY_INCREASE       = 4;
 
 	// for testing
 	public static boolean timeLogEnabled = false;
@@ -275,7 +276,6 @@ public class Tracker {
 	static String pdfHelpPath = "/tracker_help.pdf"; //$NON-NLS-1$
 	static JButton pdfHelpButton;
 	static ArrayList<String> recentFiles = new ArrayList<String>();
-	static int minimumMemorySize = 32;
 	static int requestedMemorySize = -1, originalMemoryRequest = 0;
 	static long lastMillisChecked;
 	static int maxFontLevel = 6;
@@ -2770,17 +2770,15 @@ public class Tracker {
 			return;
 		try {
 			double d = Math.rint(Double.parseDouble(response));
-			int n = (d < 0 ? -1 : (int) Math.max(d, 32)); // not less than 32MB
-			if (n != preferredMemorySize) {
-				preferredMemorySize = n;
-				int ans = JOptionPane.showConfirmDialog(frame,
-						TrackerRes.getString("TTrackBar.Dialog.Memory.Relaunch.Message"), //$NON-NLS-1$
-						TrackerRes.getString("TTrackBar.Dialog.Memory.Relaunch.Title"), //$NON-NLS-1$
-						JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
-				if (ans == JOptionPane.YES_OPTION) {
-					savePreferences();
-					frame.relaunchCurrentTabs();
-				}
+			preferredMemorySize = (d < 0 ? -1 : (int) Math.max(d, TrackerStarter.MINIMUM_MEMORY_SIZE));
+			int ans = JOptionPane.showConfirmDialog(frame,
+					TrackerRes.getString("TTrackBar.Dialog.Memory.Relaunch.Message") //$NON-NLS-1$
+					+"\n"+TrackerRes.getString("TTrackBar.Dialog.Memory.Relaunch.Message2"), //$NON-NLS-1$
+					TrackerRes.getString("TTrackBar.Dialog.Memory.Relaunch.Title"), //$NON-NLS-1$
+					JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+			if (ans == JOptionPane.YES_OPTION) {
+				savePreferences();
+				frame.relaunchCurrentTabs();
 			}
 		} catch (Exception ex) {
 		}
@@ -2791,30 +2789,41 @@ public class Tracker {
 	 * 
 	 * @param frame
 	 * @param ignoreLowMemory
-	 * @return MEMORY_OK, MEMORY_IGNORE, MEMORY_OUT
+	 * @return MEMORY_OK, MEMORY_IGNORE, MEMORY_DONTIGNORE, MEMORY_OUT, MEMORY_INCREASE
 	 */
 	public static int checkMemory(TFrame frame, boolean ignoreLowMemory) {
 
-		// if progress < 100, check memory
 		long[] m = OSPRuntime.getMemory();
 		// set "warning" and "danger" levels
 		long max = m[1];
 		long used = m[0];
 		long remaining = max - used;
-		boolean warning = (remaining < 50) && !ignoreLowMemory;
+		boolean warning = (remaining < 50) && 1.0 * remaining / max < 0.4 && !ignoreLowMemory;
 		boolean danger = (remaining < 20);
-		String s = " " + remaining + " MB";
+		String remains = " " + remaining + " MB";
+		String limit = " " + max + " MB";
 		if (danger) {
-			String message = TrackerRes.getString("Tracker.Dialog.OutOfMemory.Message1") + "\n"
-					+ TrackerRes.getString("Tracker.Dialog.LowMemory.Remaining") + s + "\n\n"
+			String message = TrackerRes.getString("Tracker.Dialog.OutOfMemory.Message1") + limit 
+					+ "\n"
 					+ TrackerRes.getString("Tracker.Dialog.OutOfMemory.Message2");
-			JOptionPane.showMessageDialog(frame, message, TrackerRes.getString("Tracker.Dialog.OutOfMemory.Title"), //$NON-NLS-1$
-					JOptionPane.ERROR_MESSAGE);
+			String stop = TrackerRes.getString("Tracker.Dialog.OutOfMemory.Stop");
+			String increase = TrackerRes.getString("Tracker.Dialog.OutOfMemory.Increase");
+
+			int response = JOptionPane.showOptionDialog(frame, message, TrackerRes.getString("Tracker.Dialog.OutOfMemory.Title"), //$NON-NLS-1$
+					JOptionPane.DEFAULT_OPTION, 
+					JOptionPane.WARNING_MESSAGE,
+					null,
+					new String[] {stop, increase},
+					increase);
+			if (response == 1) { // increase memory
+				return MEMORY_INCREASE;
+			}
 			return MEMORY_OUT;
 		} 
 		if (warning) {
+			String percent = " (" + (int)(100 * remaining / max) + "%)";
 			String message = TrackerRes.getString("Tracker.Dialog.LowMemory.Message1") + "\n"
-					+ TrackerRes.getString("Tracker.Dialog.LowMemory.Remaining") + s + "\n"
+					+ TrackerRes.getString("Tracker.Dialog.LowMemory.Remaining") + remains + percent + "\n"
 					+ TrackerRes.getString("Tracker.Dialog.LowMemory.Message2") + "\n\n"
 					+ TrackerRes.getString("Tracker.Dialog.LowMemory.Message3");
 			return (JOptionPane.showConfirmDialog(frame, message,

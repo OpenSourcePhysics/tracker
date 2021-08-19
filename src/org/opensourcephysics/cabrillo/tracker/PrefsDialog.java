@@ -766,7 +766,7 @@ public class PrefsDialog extends JDialog {
 			defaultMemoryCheckbox.setOpaque(false);
 			memoryLabel = new JLabel("MB"); //$NON-NLS-1$
 			memoryField = new IntegerField(4);
-			memoryField.setMinValue(Tracker.minimumMemorySize);
+			memoryField.setMinValue(TrackerStarter.MINIMUM_MEMORY_SIZE);
 			memoryField.addFocusListener(new FocusAdapter() {
 				@Override
 				public void focusLost(FocusEvent e) {
