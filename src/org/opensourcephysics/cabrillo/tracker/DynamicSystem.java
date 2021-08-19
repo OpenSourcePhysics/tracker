@@ -698,7 +698,7 @@ public class DynamicSystem extends DynamicParticlePolar {
 //______________________________ protected methods __________________________
 
 	@Override
-	protected void dispose() {
+	public void dispose() {
 		for (int i = 0; i < particles.length; i++) {
 			particles[i].removePropertyChangeListener(TTrack.PROPERTY_TTRACK_MASS, this); //$NON-NLS-1$
 			particles[i].removeStepListener(this);

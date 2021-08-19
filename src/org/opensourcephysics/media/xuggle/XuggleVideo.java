@@ -779,7 +779,11 @@ public class XuggleVideo extends VideoAdapter implements SmoothPlayable, Increme
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
+			raf = null;
 		}
+//		filterStack.dispose();
+//		filterStack = null;
+		
 		if (videoDecoder != null) {
 			videoDecoder.close();
 			videoDecoder.delete();
@@ -799,7 +803,12 @@ public class XuggleVideo extends VideoAdapter implements SmoothPlayable, Increme
 			container.delete();
 			container = null;
 		}
+		newPic = null;
+		
 		streamIndex = firstDisplayPacket = -1;
+		rawImage = null;
+		resampler = null;
+		
 		keyTS0 = /*keyTS1 =*/ Long.MIN_VALUE;
 	}
 

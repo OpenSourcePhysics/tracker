@@ -87,7 +87,7 @@ public class PerspectiveTrack extends TTrack {
 	}
 
 	@Override
-	protected void dispose() {
+	public void dispose() {
 		super.dispose();
 		filterMap.remove(filter);
 		OSPRuntime.Supported.removeListeners(filter, filterProps, this);

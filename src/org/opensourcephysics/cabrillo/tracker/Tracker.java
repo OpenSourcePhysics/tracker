@@ -312,6 +312,8 @@ public class Tracker {
 
 	private static boolean declareLocales = true;//!OSPRuntime.isJS;
 
+	private static TFrame tempFrame;
+
 	// the only instance field!
 	private TFrame frame;
 
@@ -1931,7 +1933,21 @@ public class Tracker {
 		// bypassed in JavaScript
 		if (initializeJava(args))
 			start(args);
+		
+		TFrame tf = tempFrame;
+		while (System.currentTimeMillis() >= 0) {
+			System.gc();
+			try {
+				Thread.currentThread().sleep(100);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+
 	}
+	
+	
 
 	/**
 	 * 
@@ -2100,7 +2116,7 @@ public class Tracker {
 			}
 		}
 
-		final TFrame frame = tracker.getFrame();
+		final TFrame frame = tempFrame = tracker.getFrame();
 		if (!OSPRuntime.isJS)
 			frame.setVisible(true);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);

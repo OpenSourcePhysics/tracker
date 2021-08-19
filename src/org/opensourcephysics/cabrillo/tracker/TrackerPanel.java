@@ -66,8 +66,10 @@ import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
+import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
@@ -259,17 +261,16 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	/**
 	 * Constructs a blank TrackerPanel with a player.
 	 */
-	public TrackerPanel(TFrame frame) {
-		super(null);
-		this.frame = frame;
-		setGUI();
+	public TrackerPanel() {
+		this((Video) null);
 	}
 
 	/**
 	 * Constructs a blank TrackerPanel with a player.
 	 */
-	public TrackerPanel() {
+	public TrackerPanel(TFrame frame) {
 		super(null);
+		this.frame = frame;
 		setGUI();
 	}
 
@@ -284,8 +285,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	}
 	
 	private void setGUI() {
-		displayCoordsOnMouseMoved = true;
-		
+		displayCoordsOnMouseMoved = true;		
 		id = "TP" + ++ids;
 		zoomBox.setShowUndraggedBox(false);
 		// remove the interactive panel mouse controller
@@ -3091,7 +3091,8 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 
 	@Override
 	public void finalize() {
-		OSPLog.finer(getClass().getSimpleName() + " recycled by garbage collector"); //$NON-NLS-1$
+		//		OSPLog.finer
+		System.out.println(getClass().getSimpleName() + " finalized"); //$NON-NLS-1$
 	}
 
 //	protected void addCalibrationTool(String name, TTrack tool) {
@@ -3346,13 +3347,57 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	 */
 	@Override
 	protected void dispose() {
+		// remove property change listeners
+		removePropertyChangeListener(VideoPanel.PROPERTY_VIDEOPANEL_DATAFILE, frame); // $NON-NLS-1$
+		removePropertyChangeListener(PROPERTY_TRACKERPANEL_VIDEO, frame); // $NON-NLS-1$
+		coords.removePropertyChangeListener(this);
+		selectedPoint = null;
+		selectedStep = null;
+		selectedTrack = null;
 
-		//long t0 = Performance.now(0);
-		super.dispose();
+		// inform non-modal dialogs so they close: AutoTracker, CMInspector,
+		// DynamicSystemInspector,
+		// AttachmentDialog, ExportZipDialog, PencilControl, TableTView, TrackControl,
+		// VectorSumInspector
 
-		refreshTimer.stop();
-		zoomTimer.stop();
-		refreshTimer = zoomTimer = null;
+		// clean up mouse handler
+		if (mouseHandler != null) {
+			mouseHandler.selectedTrack = null;
+			mouseHandler.selectedPoint = null;
+			mouseHandler.iad = null;
+		}
+		// clear filter classes
+		clearFilters();
+		// remove transfer handler
+		setTransferHandler(null);
+
+		setScrollPane(null);
+
+		// clear the drawables AFTER disposing of main view
+		ArrayList<TTrack> tracks = getTracks();
+		clear(false);
+		for (TTrack track : tracks) {
+			track.dispose();
+		}
+
+		// dispose of the track control, clip inspector and player bar
+//		TrackControl.getControl(trackerPanel).dispose();
+		ClipInspector ci = getPlayer().getVideoClip().getClipInspector();
+		if (ci != null) {
+			ci.dispose();
+		}
+
+		// set the video to null
+		setVideo(null);
+
+
+		if (frame != null)
+			frame.disposeOf(this);
+		//menuBar.dispose(this);
+		frame = null;
+		coordinateStrBuilder = null;
+		selectedSteps = null;
+		// long t0 = Performance.now(0);
 		offscreenImage = null;
 		workingImage = null;
 
@@ -3362,18 +3407,23 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		removeMouseListener(optionController);
 		removeMouseMotionListener(optionController);
 		optionController = null;
-		VideoClip clip = player.getVideoClip();
-		clip.removePropertyChangeListener(player);
-		clip.removeListener(this);
+		if (player != null) {
+			VideoClip clip = player.getVideoClip();
+			clip.removePropertyChangeListener(player);
+			clip.removeListener(this);
+			ClipControl clipControl = player.getClipControl();
+			clipControl.removePropertyChangeListener(player);
+			player.removeActionListener(this);
+			player.removeFrameListener(this);
+			player.stop();
+			remove(player);
+			player.dispose();
+			player = null;
+
+		}
 		if (video != null) {
 			video.removeListener(this);
 		}
-		ClipControl clipControl = player.getClipControl();
-		clipControl.removePropertyChangeListener(player);
-		player.removeActionListener(this);
-		player.removeFrameListener(this);
-		coords.removePropertyChangeListener(this);
-		coords = null;
 		for (Integer n : TTrack.activeTracks.keySet()) {
 			TTrack track = TTrack.activeTracks.get(n);
 			removePropertyChangeListener(track);
@@ -3381,10 +3431,6 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		}
 		// OSPLog.debug(Performance.timeCheckStr("TrackerPanel.dispose removeListeners",
 		// Performance.TIME_MARK));
-
-		player.stop();
-		remove(player);
-		player = null;
 
 		// OSPLog.debug(Performance.timeCheckStr("TrackerPanel.dispose stop player",
 		// Performance.TIME_MARK));
@@ -3465,10 +3511,18 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 
 		removeAll();
 
+		ArrayList<TTrack> list = getDrawables(TTrack.class);
+		for (int it = 0, n = list.size(); it < n; it++) {
+			TTrack track = list.get(it);
+			track.dispose();
+		}
+
+ 		super.dispose();
+
 		// OSPLog.debug(Performance.timeCheckStr("TrackerPanel.dispose removeall",
 		// Performance.TIME_MARK));
 
-		//OSPLog.debug("!!! " + Performance.now(t0) + " TrackerPanel.dispose");
+		// OSPLog.debug("!!! " + Performance.now(t0) + " TrackerPanel.dispose");
 	}
 
 	/**
@@ -3923,7 +3977,8 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			SwingUtilities.invokeLater(new Runnable() {
 				@Override
 				public void run() {
-					for (TTrack tt : trackerPanel.getTracks()) {
+					ArrayList<TTrack> tracks = trackerPanel.getTracks();
+					for (TTrack tt : tracks) {
 						Data trackData = tt.getData(trackerPanel);
 						if (tab.setOwnedColumnIDs(tt.getName(), trackData)) {
 							// true if track owns one or more columns
@@ -4889,7 +4944,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	}
 	
 	public String getTabName() {
-		return getTFrame().getTabTitle(getTFrame().getTab(this));
+		return (frame == null ? "??" : getTFrame().getTabTitle(getTFrame().getTab(this)));
 	}
 
 	public void onBlocked() {
@@ -4917,6 +4972,33 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	public void refreshNotesDialog() {
 		if (frame != null)
 			frame.updateNotesDialog(this);
+	}
+
+	
+	
+	public static void main(String[] args) {
+
+		int[] i = new int[1];
+
+		TrackerPanel p = new TrackerPanel();
+
+		p.dispose();
+
+		p = null;
+
+		ArrayList<String> a = new ArrayList<String>();
+
+		while (System.currentTimeMillis() >= 0) {
+			i[0]++;
+			System.gc();
+			try {
+				Thread.currentThread().sleep(100);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+
 	}
 
 }
