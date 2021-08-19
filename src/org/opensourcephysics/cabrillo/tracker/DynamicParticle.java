@@ -135,7 +135,7 @@ public class DynamicParticle extends ParticleModel implements ODE {
 	}
 
 	@Override
-	protected void dispose() {
+	public void dispose() {
 		setBooster(null);
 		super.dispose();
 	}

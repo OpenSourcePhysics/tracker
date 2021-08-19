@@ -201,6 +201,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		public void dispose() {
 			trackerPanel = null;
 			objects = null;
+			toolbarBox = null;
+			removeAll();
 		}
 
 	}
@@ -458,14 +460,6 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	public void repaint(long time, int x, int y, int w, int h) {
 		if (!isPaintable())
 			return;
-		//OSPLog.debug("TFrame repaint " + x + " " + y + " " + w + " " + h + " " + isPaintable());
-		// TFrame.addTab -> initialize -> TrackerPanel.addTrack ->
-		// fire(PROPERTY_TRACKERPANEL_TRACK)
-		// -> TViewChooser -> PlotTView -> TFrame.repaint();
-
-		// Window.resize -> BorderLayout.layoutContainer -> JRootPane.reshape ->
-		// TFrame.repaint()
-
 		super.repaint(time, x, y, w, h);
 	}
 
@@ -787,6 +781,9 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			removeTabNow(0);
 			return;
 		}
+		if (notesVisible()) {
+			notes.setVisible(false);
+		}
 		ArrayList<TrackerPanel> panels = new ArrayList<TrackerPanel>();
 		boolean[] cancelled = new boolean[] {false};
 		saveAllTabs(
@@ -847,6 +844,13 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	public void removeTab(TrackerPanel trackerPanel) {
 		if (getTab(trackerPanel) >= 0)
 			trackerPanel.askSaveIfChanged(() -> {
+
+				if (notesVisible()) {
+					notes.setVisible(false);
+				}
+
+				
+				
 				removeTabSynchronously(trackerPanel);
 				//new TabRemover(trackerPanel).executeSynchronously();// was sync
 			}, null);
@@ -880,47 +884,6 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	 * @param tabPanel     the TTabPanel
 	 */
 	private void finishRemoveTab(TrackerPanel trackerPanel, TTabPanel tabPanel) {
-		// remove property change listeners
-		trackerPanel.removePropertyChangeListener(VideoPanel.PROPERTY_VIDEOPANEL_DATAFILE, this); // $NON-NLS-1$
-		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_VIDEO, this); // $NON-NLS-1$
-		removePropertyChangeListener(PROPERTY_TFRAME_RADIANANGLES, trackerPanel); // $NON-NLS-1$
-
-		trackerPanel.selectedPoint = null;
-		trackerPanel.selectedStep = null;
-		trackerPanel.selectedTrack = null;
-
-		// inform non-modal dialogs so they close: AutoTracker, CMInspector,
-		// DynamicSystemInspector,
-		// AttachmentDialog, ExportZipDialog, PencilControl, TableTView, TrackControl,
-		// VectorSumInspector
-		firePropertyChange(PROPERTY_TFRAME_TAB, trackerPanel, null); // $NON-NLS-1$
-
-		// clean up mouse handler
-		if (trackerPanel.mouseHandler != null) {
-			trackerPanel.mouseHandler.selectedTrack = null;
-			trackerPanel.mouseHandler.selectedPoint = null;
-			trackerPanel.mouseHandler.iad = null;
-		}
-		// clear filter classes
-		trackerPanel.clearFilters();
-		// remove transfer handler
-		trackerPanel.setTransferHandler(null);
-
-		// remove property change listeners
-		trackerPanel.removePropertyChangeListener(VideoPanel.PROPERTY_VIDEOPANEL_DATAFILE, this); //$NON-NLS-1$
-		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_VIDEO, this); //$NON-NLS-1$
-		removePropertyChangeListener(PROPERTY_TFRAME_RADIANANGLES, trackerPanel); //$NON-NLS-1$
-
-		// dispose of the track control, clip inspector and player bar
-//		TrackControl.getControl(trackerPanel).dispose();
-		ClipInspector ci = trackerPanel.getPlayer().getVideoClip().getClipInspector();
-		if (ci != null) {
-			ci.dispose();
-		}
-
-		// set the video to null
-		trackerPanel.setVideo(null);
-
 		Object[] objects = tabPanel.getObjects();
 		// dispose of TViewChoosers and TViews
 		TViewChooser[] views = (TViewChooser[]) objects[TFRAME_VIEWCHOOSERS];
@@ -932,14 +895,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		// videoplayer
 		MainTView mainView = (MainTView) objects[TFRAME_MAINVIEW];
 		mainView.dispose();
-		trackerPanel.setScrollPane(null);
-
-		// clear the drawables AFTER disposing of main view
-		ArrayList<TTrack> tracks = trackerPanel.getTracks();
-		trackerPanel.clear(false);
-		for (TTrack track : tracks) {
-			track.dispose();
-		}
+		objects = null;
 
 //		// get the tab panel and remove components from it
 //		TTabPanel tabPanel = (TTabPanel) tabbedPane.getComponentAt(tab);
@@ -987,8 +943,11 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		}
 		Undo.undomap.remove(trackerPanel);
 
+		removePropertyChangeListener(TFrame.PROPERTY_TFRAME_RADIANANGLES, trackerPanel); // $NON-NLS-1$
+		firePropertyChange(PROPERTY_TFRAME_TAB, trackerPanel, null); // $NON-NLS-1$
 		trackerPanel.dispose();
 		tabPanel.dispose();
+		trackerPanel = null;
 
 		// change menubar and show floating player of newly selected tab, if any
 		TTabPanel panel = (TTabPanel) tabbedPane.getSelectedComponent();
@@ -3749,6 +3708,12 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 
 	void setNotesDialog(TToolBar toolbar, WindowListener infoListener) {
 		getNotes().setDialog(toolbar, infoListener);
+	}
+
+
+	public void disposeOf(TrackerPanel trackerPanel) {
+		if (prevPanel == trackerPanel)
+			prevPanel = null;
 	}
 
 }

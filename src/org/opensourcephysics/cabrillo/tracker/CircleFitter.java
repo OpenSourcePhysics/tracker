@@ -629,7 +629,7 @@ public class CircleFitter extends TTrack {
 	}
 
 	@Override
-	protected void dispose() {
+	public void dispose() {
 		for (Integer n : activeTracks.keySet()) {
 			activeTracks.get(n).removeStepListener(this);
 		}

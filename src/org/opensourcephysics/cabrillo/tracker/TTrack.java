@@ -2929,7 +2929,8 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 	/**
 	 * Disposes of resources when this track is deleted or cleared.
 	 */
-	protected void dispose() {
+	@Override
+	public void dispose() {
 		properties.clear();
 		worldBounds.clear();
 		datasetManager = null;
@@ -2953,6 +2954,7 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 		}
 		steps = null;
 		setTrackerPanel(null);
+		super.dispose();
 	}
 
 	/**

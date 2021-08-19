@@ -310,8 +310,8 @@ public boolean isDependent() {
   /**
    * Cleans up associated resources when this track is deleted or cleared.
    */
-  @Override
-protected void dispose() {
+  @Override	
+  public void dispose() {
   	super.dispose();
     for (Vector v: vectors) {
       if (v!=null) {

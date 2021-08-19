@@ -2119,5 +2119,10 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 			return dataTrack;
 		}
 	}
+	
+	@Override
+	public void dispose() {
+	    super.dispose();
+	}
 
 }

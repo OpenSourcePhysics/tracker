@@ -42,7 +42,6 @@ import javax.swing.JLabel;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 
-import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.display.Drawable;
@@ -191,16 +190,11 @@ public class WorldTView extends TrackerPanel implements TView {
 		TFrame.repaintT(this);
 	}
 
-	private static final String[] panelProps = new String[] { 
-			TrackerPanel.PROPERTY_TRACKERPANEL_SIZE,
-			TrackerPanel.PROPERTY_TRACKERPANEL_STEPNUMBER, 
-			TrackerPanel.PROPERTY_TRACKERPANEL_VIDEO,
-			TrackerPanel.PROPERTY_TRACKERPANEL_IMAGE, 
-			TrackerPanel.PROPERTY_TRACKERPANEL_VIDEOVISIBLE,
-			TrackerPanel.PROPERTY_TRACKERPANEL_MAGNIFICATION,
-			ImageCoordSystem.PROPERTY_COORDS_TRANSFORM,
-			TTrack.PROPERTY_TTRACK_DATA
-	};
+	private static final String[] panelProps = new String[] { TrackerPanel.PROPERTY_TRACKERPANEL_SIZE,
+			TrackerPanel.PROPERTY_TRACKERPANEL_STEPNUMBER, TrackerPanel.PROPERTY_TRACKERPANEL_VIDEO,
+			TrackerPanel.PROPERTY_TRACKERPANEL_IMAGE, TrackerPanel.PROPERTY_TRACKERPANEL_VIDEOVISIBLE,
+			TrackerPanel.PROPERTY_TRACKERPANEL_MAGNIFICATION, ImageCoordSystem.PROPERTY_COORDS_TRANSFORM,
+			TTrack.PROPERTY_TTRACK_DATA };
 
 	/**
 	 * Initializes this view
@@ -213,7 +207,7 @@ public class WorldTView extends TrackerPanel implements TView {
 		trackerPanel.addListeners(panelProps, this);
 		// add this view to track listeners
 		for (TTrack track : trackerPanel.getTracks()) {
-			track.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_COLOR, this); //$NON-NLS-1$
+			track.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_COLOR, this); // $NON-NLS-1$
 		}
 	}
 
@@ -226,7 +220,7 @@ public class WorldTView extends TrackerPanel implements TView {
 		trackerPanel.removeListeners(panelProps, this);
 		// remove this listener from tracks
 		for (Integer n : TTrack.activeTracks.keySet()) {
-			TTrack.activeTracks.get(n).removePropertyChangeListener(TTrack.PROPERTY_TTRACK_COLOR, this); //$NON-NLS-1$
+			TTrack.activeTracks.get(n).removePropertyChangeListener(TTrack.PROPERTY_TTRACK_COLOR, this); // $NON-NLS-1$
 		}
 	}
 
@@ -238,14 +232,8 @@ public class WorldTView extends TrackerPanel implements TView {
 		cleanup();
 		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR, this);
 		trackerPanel.removePropertyChangeListener(FunctionTool.PROPERTY_FUNCTIONTOOL_FUNCTION, this);
-		coords.removePropertyChangeListener(this);
 		trackerPanel = null;
 		super.dispose();
-	}
-
-	@Override
-	public void finalize() {
-		OSPLog.finest(getClass().getSimpleName() + " recycled by garbage collector"); //$NON-NLS-1$
 	}
 
 	/**
@@ -286,7 +274,8 @@ public class WorldTView extends TrackerPanel implements TView {
 	 */
 	@Override
 	public void setSelectedTrack(TTrack track) {
-		trackerPanel.setSelectedTrack(track);
+		if (trackerPanel != null)
+			trackerPanel.setSelectedTrack(track);
 	}
 
 	/**
@@ -517,7 +506,7 @@ public class WorldTView extends TrackerPanel implements TView {
 		public Object loadObject(XMLControl control, Object obj) {
 			return obj;
 		}
-	
+
 	}
 
 }

@@ -2835,4 +2835,9 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements PropertyChan
 		if (n > 0 && menu.getItem(n - 1) != null)
 			menu.addSeparator();
 	}
+
+	public void dispose(TrackerPanel trackerPanel) {
+		System.out.println("TMB ");
+		
+	}
 }

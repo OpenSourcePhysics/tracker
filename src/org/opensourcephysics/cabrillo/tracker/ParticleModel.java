@@ -669,7 +669,7 @@ abstract public class ParticleModel extends PointMass {
 	}
 
 	@Override
-	protected void dispose() {
+	public void dispose() {
 		if (modelBuilder != null) {
 			getParamEditor().removePropertyChangeListener(massParamListener);
 			getInitEditor().removePropertyChangeListener(timeParamListener);

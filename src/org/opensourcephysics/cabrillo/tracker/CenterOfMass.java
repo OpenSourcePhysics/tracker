@@ -333,7 +333,7 @@ public class CenterOfMass extends PointMass {
 	 * Cleans up associated resources when this track is deleted or cleared.
 	 */
 	@Override
-	protected void dispose() {
+	public void dispose() {
 		super.dispose();
 		for (int i = 0, n = masses.length; i < n; i++) {
 			PointMass m = masses[i];
