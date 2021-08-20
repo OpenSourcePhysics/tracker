@@ -767,6 +767,7 @@ public class XuggleVideo extends VideoAdapter implements SmoothPlayable, Increme
 	 */
 	@Override
 	public void dispose() {
+		System.out.println("XuggleVideo.dispose");
 		super.dispose();
 		disposeXuggle();
 	}
@@ -781,8 +782,6 @@ public class XuggleVideo extends VideoAdapter implements SmoothPlayable, Increme
 			}
 			raf = null;
 		}
-//		filterStack.dispose();
-//		filterStack = null;
 		
 		if (videoDecoder != null) {
 			videoDecoder.close();
@@ -803,7 +802,28 @@ public class XuggleVideo extends VideoAdapter implements SmoothPlayable, Increme
 			container.delete();
 			container = null;
 		}
-		newPic = null;
+		if (newPic != null) {
+			newPic.delete();
+			newPic = null;
+		}
+		if (converter != null) {
+			converter.delete();
+			converter = null;
+		}
+		if (resampler != null) {
+			resampler.delete();
+			resampler = null;
+		}
+		
+		if (timebase != null) {
+			timebase.delete();
+			timebase = null;
+		}
+		seconds = null;
+		
+		
+		imageCache = null;
+		
 		
 		streamIndex = firstDisplayPacket = -1;
 		rawImage = null;

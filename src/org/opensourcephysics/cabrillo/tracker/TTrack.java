@@ -3430,7 +3430,7 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 		// constructor
 		NameDialog(TrackerPanel panel) {
 			super(panel.getTFrame(), null, true);
-			trackerPanel = panel;
+			trackerPanel = panel.ref(this);
 			setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 			addWindowListener(new WindowAdapter() {
 				@Override

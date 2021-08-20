@@ -168,7 +168,7 @@ public class ExportVideoDialog extends JDialog {
 	 */
 	private ExportVideoDialog(TrackerPanel panel) {
 		super(panel.getTFrame(), true);
-		trackerPanel = panel;
+		trackerPanel = panel.ref(this);
 		setResizable(false);
 		createGUI();
 		refreshGUI();
@@ -580,7 +580,7 @@ public class ExportVideoDialog extends JDialog {
 	}
 
 	public void setTrackerPanel(TrackerPanel panel) {
-		trackerPanel = panel;
+		trackerPanel = panel.ref(this);
 		refreshGUI();
 	}
 

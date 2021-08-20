@@ -70,7 +70,7 @@ public class DynamicSystemInspector extends JDialog
     super(JOptionPane.getFrameForComponent(track.trackerPanel), false);
     system = track;
     particleCount = 2;
-    trackerPanel = system.trackerPanel;
+    trackerPanel = system.trackerPanel.ref(this);
     if (trackerPanel != null) {
     	trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this); //$NON-NLS-1$
       TFrame frame = trackerPanel.getTFrame();

@@ -154,7 +154,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 				String trkPath, String videoTarget, ExportVideoDialog exporter) {
 			this.name = name;
 			this.zipList = zipList;
-			this.panel = panel;
+			this.panel = panel.ref(this);
 			this.originalVideoPath = originalPath;
 			this.videoTarget = videoTarget;
 			this.trkPath = trkPath;
@@ -842,7 +842,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 	 */
 	private ExportZipDialog(TrackerPanel panel) {
 		super(panel.getTFrame(), false);
-		trackerPanel = panel;
+		trackerPanel = panel.ref(this);
 		frame = panel.getTFrame();
 //		videoExporter = ExportVideoDialog.getDialog(panel);
 		createGUI();

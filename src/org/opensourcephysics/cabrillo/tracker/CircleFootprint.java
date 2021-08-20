@@ -424,7 +424,7 @@ public MultiShape getShape(Point[] points, int scale) {
     public CircleDialog(TTrack track) {
       this(track.trackerPanel.getTFrame(), null);
       trackID = track.getID();
-      trackerPanel = track.trackerPanel;
+      trackerPanel = track.trackerPanel.ref(this);
     }
 
     /**

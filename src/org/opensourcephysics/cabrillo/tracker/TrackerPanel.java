@@ -3089,7 +3089,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 
 	@Override
 	public void finalize() {
-		OSPLog.finalized(this);
+		System.out.println("-------------------------------------OSPLog.finalized(this)---------");
 	}
 
 //	protected void addCalibrationTool(String name, TTrack tool) {
@@ -3477,8 +3477,8 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 
 		PencilDrawer.dispose(this);
 		if (TFrame.haveExportDialog && ExportDataDialog.dataExporter != null
-				&& ExportDataDialog.dataExporter.trackerPanel == this) {
-			ExportDataDialog.dataExporter.trackerPanel = null;
+				&& ExportDataDialog.dataExporter.frame == frame) {
+			ExportDataDialog.dataExporter.frame = null;
 			ExportDataDialog.dataExporter.tableDropdown.removeAllItems();
 			ExportDataDialog.dataExporter.tables.clear();
 			ExportDataDialog.dataExporter.trackNames.clear();

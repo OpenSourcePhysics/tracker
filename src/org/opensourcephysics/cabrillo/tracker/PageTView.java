@@ -509,7 +509,7 @@ public class PageTView extends JPanel implements TView {
 		boolean refreshToolbar = false;
 		for (TabView tab : tabs) {
 			tab.pageView = this;
-			tab.data.trackerPanel = trackerPanel;
+			tab.data.trackerPanel = trackerPanel.ref(this);
 			tab.refreshView(false);
 			tabbedPane.addTab(tab.data.title, tab);
 			refreshToolbar = refreshToolbar || tab.data.url != null;

@@ -590,7 +590,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements PropertyChan
 			// export data item
 			file_export_dataItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.Data")); //$NON-NLS-1$
 			file_export_dataItem.addActionListener((e) -> {
-					ExportDataDialog exporter = ExportDataDialog.getDialog(trackerPanel);
+					ExportDataDialog exporter = ExportDataDialog.getDialog(trackerPanel.getTFrame());
 					exporter.setVisible(true);
 			});
 			file_exportMenu.add(file_export_dataItem);

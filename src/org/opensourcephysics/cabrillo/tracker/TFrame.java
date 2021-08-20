@@ -202,7 +202,6 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		}
 
 		public void dispose() {
-			if(true)return;
 			trackerPanel = null;
 			objects = null;
 			toolbarBox = null;
@@ -544,7 +543,6 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			}
 
 
-//TEST_BH
 			trackerPanel.addPropertyChangeListener(VideoPanel.PROPERTY_VIDEOPANEL_DATAFILE, this); // $NON-NLS-1$
 			trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_VIDEO, this); // $NON-NLS-1$
 			// set up trackerPanel to listen for angle format property change
@@ -555,8 +553,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			objects[TFRAME_SPLITPANES] = getSplitPanes(trackerPanel);
 			objects[TFRAME_VIEWCHOOSERS] = createTViews(trackerPanel);
 			objects[TFRAME_TOOLBAR] = getToolbar(trackerPanel);
-//			objects[TFRAME_MENUBAR] = getMenuBar(trackerPanel);
-//			objects[TFRAME_TRACKBAR] = getTrackbar(trackerPanel);
+			objects[TFRAME_MENUBAR] = getMenuBar(trackerPanel);
+			objects[TFRAME_TRACKBAR] = getTrackbar(trackerPanel);
 		}
 
 		// from here on trackerPanel's top level container is this TFrame,
@@ -1893,7 +1891,6 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	}
 
 	public TTrackBar getTrackBar(TrackerPanel panel, boolean allowNull) {
-		if (true)return null;//TEST_BH
 		Object[] objects = getObjects(panel);
 		if (objects != null && objects[TFRAME_TRACKBAR] != null) {
 			return (TTrackBar) objects[TFRAME_TRACKBAR];
@@ -1966,8 +1963,6 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	}
 
 	public TMenuBar getMenuBar(TrackerPanel panel, boolean allowNull) {
-		if (true)return null;//TEST_BH
-		
 		Object[] objects = getObjects(panel);
 		if (objects != null && objects[TFRAME_MENUBAR] != null) {
 			return (TMenuBar) objects[TFRAME_MENUBAR];
@@ -2508,7 +2503,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			prevPanel = newPanel;
 			// update prefsDialog
 			if (prefsDialog != null) {
-				prefsDialog.trackerPanel = newPanel;
+				prefsDialog.trackerPanel = newPanel.ref(this);
 			}
 			// refresh the notes dialog and button
 			updateNotesDialog(newPanel);

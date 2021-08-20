@@ -79,7 +79,7 @@ public class ExportDataDialog extends JDialog {
 	protected static ExportDataDialog dataExporter; // singleton
 
 	// instance fields
-	protected TrackerPanel trackerPanel;
+	protected TFrame frame;
 	protected JButton saveAsButton, closeButton;
 	protected JComponent tablePanel, delimiterPanel, contentPanel, formatPanel;
 	protected JComboBox<String> formatDropdown;
@@ -96,11 +96,13 @@ public class ExportDataDialog extends JDialog {
 	 * @param panel the TrackerPanel
 	 * @return the ExportDataDialog
 	 */
-	public static ExportDataDialog getDialog(TrackerPanel panel) {
+	public static ExportDataDialog getDialog(TFrame frame) {
 		if (dataExporter == null) {
-			dataExporter = new ExportDataDialog(panel);
+			dataExporter = new ExportDataDialog(frame);
 		} else {
-			dataExporter.trackerPanel = panel;
+			// MEMORY LEAK HERE -- permanent static reference to a panel
+			//dataExporter.trackerPanel = panel;
+			dataExporter.frame = frame;
 			dataExporter.refreshGUI();
 		}
 		return dataExporter;
@@ -111,9 +113,9 @@ public class ExportDataDialog extends JDialog {
 	 *
 	 * @param panel a TrackerPanel to supply the images
 	 */
-	private ExportDataDialog(TrackerPanel panel) {
-		super(JOptionPane.getFrameForComponent(panel), true);
-		trackerPanel = panel;
+	private ExportDataDialog(TFrame frame) {
+		super(frame, true);
+		this.frame = frame;
 		setResizable(false);
 		createGUI();
 		refreshGUI();
@@ -184,7 +186,7 @@ public class ExportDataDialog extends JDialog {
 			public void actionPerformed(ActionEvent e) {
 				JFileChooser chooser = TrackerIO.getChooser();
 				chooser.setSelectedFile(lastTXT); //$NON-NLS-1$
-				TrackerIO.getChooserFilesAsync(trackerPanel.getTFrame(), "save data", new Function<File[], Void>() { // $NON-NLS-1$
+				TrackerIO.getChooserFilesAsync(frame, "save data", new Function<File[], Void>() { // $NON-NLS-1$
 
 					@Override
 					public Void apply(File[] files) {
@@ -339,10 +341,10 @@ public class ExportDataDialog extends JDialog {
 		// tables
 		selectedItem = tableDropdown.getSelectedItem();
 		tableDropdown.removeAllItems();
-		TViewChooser[] choosers = trackerPanel.getTFrame().getViewChoosers(trackerPanel);
+		TViewChooser[] choosers = frame.getViewChoosers(frame.getSelectedPanel());
 		boolean hasSelection = false;
 		for (int i = 0; i < choosers.length; i++) {
-			if (trackerPanel.getTFrame().isViewPaneVisible(i, trackerPanel)) {
+			if (frame.isViewPaneVisible(i, frame.getSelectedPanel())) {
 				String number = " (" + (i + 1) + ")"; //$NON-NLS-1$ //$NON-NLS-2$
 				TView view = choosers[i].getSelectedView();
 				if (view.getViewType() == TView.VIEW_TABLE) {
@@ -395,7 +397,7 @@ public class ExportDataDialog extends JDialog {
 	 */
 	public String write(File file, String content) {
 		if (file.exists() && !file.canWrite()) {
-			JOptionPane.showMessageDialog(trackerPanel, ControlsRes.getString("Dialog.ReadOnly.Message"), //$NON-NLS-1$
+			JOptionPane.showMessageDialog(frame, ControlsRes.getString("Dialog.ReadOnly.Message"), //$NON-NLS-1$
 					ControlsRes.getString("Dialog.ReadOnly.Title"), //$NON-NLS-1$
 					JOptionPane.PLAIN_MESSAGE);
 			return null;
