@@ -212,7 +212,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 	 * @param panel the TrackerPanel
 	 */
 	public AutoTracker(TrackerPanel panel) {
-		trackerPanel = panel;
+		trackerPanel = panel.ref(this);
 		trackerPanel.addDrawable(this);
 		trackerPanel.addListeners(panelProps, this);
 		stepper = new Runnable() {
@@ -1285,7 +1285,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 
 	@Override
 	public void finalize() {
-		OSPLog.finer(getClass().getSimpleName() + " recycled by garbage collector"); //$NON-NLS-1$
+		OSPLog.finalized(this);
 	}
 
 	/**

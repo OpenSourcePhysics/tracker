@@ -42,6 +42,7 @@ import javax.swing.JLabel;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 
+import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.display.Drawable;
@@ -78,7 +79,7 @@ public class WorldTView extends TrackerPanel implements TView {
 	 */
 	public WorldTView(TrackerPanel panel) {
 		super(panel.frame);
-		trackerPanel = panel;
+		trackerPanel = panel.ref(this);
 		init();
 		setPlayerVisible(false);
 		setDrawingInImageSpace(false);
@@ -454,7 +455,7 @@ public class WorldTView extends TrackerPanel implements TView {
 	protected void configure() {
 		// set tiny preferred size so auto zooms to very small
 		setPreferredSize(new Dimension(1, 1));
-		coords.addPropertyChangeListener(this);
+//		coords.addPropertyChangeListener(this);
 		// remove DrawingPanel option controller
 		removeOptionController();
 	}
@@ -507,6 +508,16 @@ public class WorldTView extends TrackerPanel implements TView {
 			return obj;
 		}
 
+	}
+
+	@Override
+	public void finalize() {
+		OSPLog.finalized(this);
+	}
+
+	@Override
+	public TrackerPanel getTruePanel() {
+		return trackerPanel;
 	}
 
 }

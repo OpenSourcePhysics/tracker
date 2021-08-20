@@ -43,6 +43,7 @@ import javax.swing.JRadioButtonMenuItem;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 
+import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.display.DataTable;
@@ -157,6 +158,7 @@ public class PlotTrackView extends TrackView {
 
 	@Override
 	protected void dispose() {
+		System.out.println("PlotTrackView.dispose");
 		datasetManager = null;
 		for (TrackPlottingPanel next : plots) {
 			next.dispose();
@@ -546,6 +548,11 @@ public class PlotTrackView extends TrackView {
 	@Override
 	protected boolean isRefreshEnabled() {
 		return super.isRefreshEnabled() && Tracker.allowPlotRefresh;
+	}
+
+	@Override
+	public void finalize() {
+		OSPLog.finalized(this);
 	}
 
 

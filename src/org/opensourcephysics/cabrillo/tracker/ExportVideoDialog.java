@@ -87,7 +87,8 @@ public class ExportVideoDialog extends JDialog {
 	protected static final String PROPERTY_EXPORTVIDEO_VIDEOSAVED = "video_saved";
 	protected static final String PROPERTY_EXPORTVIDEO_VIDEOCANCELED = "video_cancelled";
 	// instance fields
-	protected TrackerPanel trackerPanel;
+	protected TFrame frame;
+	protected Integer panelID;
 	protected JButton saveAsButton, closeButton;
 	protected JComponent sizePanel, viewPanel, contentPanel, formatPanel;
 	protected JComboBox<String> formatDropdown, viewDropdown, sizeDropdown, contentDropdown;
@@ -143,7 +144,7 @@ public class ExportVideoDialog extends JDialog {
 	}
 
 	protected String exportFullSizeVideo(String filePath, String trkPath) {
-		if (trackerPanel.getVideo() == null) {
+		if (frame.getTrackerPanelForID(panelID).getVideo() == null) {
 			return null;
 		}
 		// set dropdowns to Main View, Video only, full size
@@ -168,7 +169,8 @@ public class ExportVideoDialog extends JDialog {
 	 */
 	private ExportVideoDialog(TrackerPanel panel) {
 		super(panel.getTFrame(), true);
-		trackerPanel = panel;
+		frame = panel.getTFrame();
+		panelID = panel.getID();
 		setResizable(false);
 		createGUI();
 		refreshGUI();
@@ -230,7 +232,7 @@ public class ExportVideoDialog extends JDialog {
 				}
 				if (e.getStateChange() == ItemEvent.SELECTED) {
 					JComponent view = views.get(viewDropdown.getSelectedItem());
-					if (view == trackerPanel)
+					if (view == frame.getTrackerPanelForID(panelID))
 						mainViewContentIndex = contentDropdown.getSelectedIndex();
 					else if (view instanceof WorldTView)
 						worldViewContentIndex = contentDropdown.getSelectedIndex();
@@ -315,9 +317,10 @@ public class ExportVideoDialog extends JDialog {
 	private void refreshGUI() {
 		// refresh strings
 		String title = TrackerRes.getString("ExportVideoDialog.Title"); //$NON-NLS-1$
+		TrackerPanel panel = frame.getTrackerPanelForID(panelID);
 		setTitle(title);
 		// clip settings
-		VideoClip clip = trackerPanel.getPlayer().getClipControl().getVideoClip();
+		VideoClip clip = panel.getPlayer().getClipControl().getVideoClip();
 		String framecount = MediaRes.getString("Filter.Sum.Label.FrameCount").toLowerCase(); //$NON-NLS-1$
 		if (framecount.endsWith(":")) //$NON-NLS-1$
 			framecount = framecount.substring(0, framecount.length() - 1);
@@ -361,12 +364,12 @@ public class ExportVideoDialog extends JDialog {
 		// add trackerPanel view
 		String s = TrackerRes.getString("TFrame.View.Main"); //$NON-NLS-1$
 		s += " (0)"; //$NON-NLS-1$
-		views.put(s, trackerPanel);
+		views.put(s, panel);
 		viewDropdown.addItem(s);
 		// add additional open views
-		TViewChooser[] choosers = trackerPanel.getTFrame().getViewChoosers(trackerPanel);
+		TViewChooser[] choosers = panel.getTFrame().getViewChoosers(panel);
 		for (int i = 0; i < choosers.length; i++) {
-			if (trackerPanel.getTFrame().isViewPaneVisible(i, trackerPanel)) {
+			if (panel.getTFrame().isViewPaneVisible(i, panel.getID())) {
 				String number = " (" + (i + 1) + ")"; //$NON-NLS-1$ //$NON-NLS-2$
 				TView tview = choosers[i].getSelectedView();
 				if (tview != null && tview.getViewType() == TView.VIEW_WORLD) {
@@ -393,7 +396,7 @@ public class ExportVideoDialog extends JDialog {
 		}
 		// add tab view
 		s = TrackerRes.getString("TMenuBar.MenuItem.CopyFrame"); //$NON-NLS-1$
-		views.put(s, (JComponent) trackerPanel.getTFrame().getContentPane());
+		views.put(s, (JComponent) panel.getTFrame().getContentPane());
 		viewDropdown.addItem(s);
 		if (selectedView != null)
 			viewDropdown.setSelectedItem(selectedView);
@@ -408,12 +411,12 @@ public class ExportVideoDialog extends JDialog {
 	private void refreshDropdowns() {
 		isRefreshing = true;
 		JComponent view = views.get(viewDropdown.getSelectedItem());
-
+		TrackerPanel panel = frame.getTrackerPanelForID(panelID);
 		// refresh content dropdown
-		Video video = trackerPanel.getVideo();
+		Video video = panel.getVideo();
 		String s = null;
 		contentDropdown.removeAllItems();
-		if (view == trackerPanel) {
+		if (view == panel) {
 			if (video != null) {
 				s = TrackerRes.getString("ExportVideoDialog.Content.VideoAndGraphics"); //$NON-NLS-1$
 				contentDropdown.addItem(s);
@@ -423,7 +426,7 @@ public class ExportVideoDialog extends JDialog {
 			s = TrackerRes.getString("ExportVideoDialog.Content.GraphicsOnly"); //$NON-NLS-1$
 			contentDropdown.addItem(s);
 			if (video != null) {
-				if (trackerPanel.getPlayer().getClipControl().getVideoClip().getStepCount() > 1) {
+				if (panel.getPlayer().getClipControl().getVideoClip().getStepCount() > 1) {
 					s = TrackerRes.getString("ExportVideoDialog.Content.DeinterlacedVideo"); //$NON-NLS-1$
 					contentDropdown.addItem(s);
 				}
@@ -446,10 +449,10 @@ public class ExportVideoDialog extends JDialog {
 		// refresh size dropdown
 		Object selectedItem = sizeDropdown.getSelectedItem();
 		sizeDropdown.removeAllItems();
-		if (view == trackerPanel) {
+		if (view == panel) {
 			int contentIndex = contentDropdown.getSelectedIndex();
 			if (contentIndex == 1 || contentIndex == 3) { // video only or deinterlaced video
-				Dimension d = trackerPanel.getVideo().getImageSize();
+				Dimension d = panel.getVideo().getImageSize();
 				int w = d.width;
 				int h = d.height;
 				fullSize = getAcceptedDimension(w, h);
@@ -458,7 +461,7 @@ public class ExportVideoDialog extends JDialog {
 				sizeDropdown.addItem(s);
 				sizes.put(s, fullSize);
 			} else { // includes graphics
-				Rectangle bounds = trackerPanel.getMat().mat;
+				Rectangle bounds = panel.getMat().mat;
 				fullSize = getAcceptedDimension(bounds.width, bounds.height);
 				s = fullSize.width + "x" + fullSize.height; //$NON-NLS-1$
 
@@ -580,7 +583,8 @@ public class ExportVideoDialog extends JDialog {
 	}
 
 	public void setTrackerPanel(TrackerPanel panel) {
-		trackerPanel = panel;
+		frame = panel.getTFrame();
+		panelID = panel.getID();
 		refreshGUI();
 	}
 
@@ -633,6 +637,7 @@ public class ExportVideoDialog extends JDialog {
 	 * @param visible true to show the video
 	 */
 	private void setVideoVisible(boolean visible) {
+		TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
 		trackerPanel.setVideoVisible(visible);
 	}
 
@@ -651,15 +656,16 @@ public class ExportVideoDialog extends JDialog {
 		setVisible(false);
 		savedFilePath = null;
 		// prepare selected view to produce desired images
-		Video video = trackerPanel.getVideo();
+		TrackerPanel panel = frame.getTrackerPanelForID(panelID);
+		Video video = panel.getVideo();
 		boolean videoIsVisible = video != null && video.isVisible();
-		double magnification = trackerPanel.getMagnification();
+		double magnification = panel.getMagnification();
 		JComponent view = views.get(viewDropdown.getSelectedItem());
-		if (view == trackerPanel && contentDropdown.getSelectedIndex() != 1) { // includes graphics
+		if (view == panel && contentDropdown.getSelectedIndex() != 1) { // includes graphics
 			// change magnification if needed
 			double zoom = size.getWidth() / fullSize.getWidth();
 			if (zoom != magnification) {
-				trackerPanel.setMagnification(zoom);
+				panel.setMagnification(zoom);
 			}
 			// hide/show the video if needed
 			if (contentDropdown.getSelectedIndex() == 0) // graphics and video
@@ -675,7 +681,7 @@ public class ExportVideoDialog extends JDialog {
 			Dimension extent = trackView.getViewport().getExtentSize();
 			Dimension full = trackView.getViewport().getView().getSize();
 			if (!extent.equals(full)) {
-				JOptionPane.showMessageDialog(trackerPanel,
+				JOptionPane.showMessageDialog(panel,
 						TrackerRes.getString("ExportVideo.Dialog.HiddenPlots.Message"), //$NON-NLS-1$
 						TrackerRes.getString("ExportVideo.Dialog.HiddenPlots.Title"), //$NON-NLS-1$
 						JOptionPane.WARNING_MESSAGE);
@@ -685,7 +691,7 @@ public class ExportVideoDialog extends JDialog {
 
 		}
 		// prepare the player, etc
-		VideoPlayer player = trackerPanel.getPlayer();
+		VideoPlayer player = panel.getPlayer();
 		player.stop();
 		player.setEnabled(false);
 		ClipControl playControl = player.getClipControl();
@@ -698,7 +704,7 @@ public class ExportVideoDialog extends JDialog {
 		recorder.setFrameDuration(duration);
 		if (recorder instanceof ScratchVideoRecorder) {
 			ScratchVideoRecorder svr = (ScratchVideoRecorder) recorder;
-			String tabName = XML.stripExtension(trackerPanel.getTitle()).trim();
+			String tabName = XML.stripExtension(panel.getTitle()).trim();
 			String viewName = viewDropdown.getSelectedItem().toString().trim().toLowerCase();
 			int n = viewName.indexOf(" "); //$NON-NLS-1$
 			if (n > -1)
@@ -715,7 +721,7 @@ public class ExportVideoDialog extends JDialog {
 			savedFilePath = recorder.getFileName();
 			if (savedFilePath == null) { // canceled by user
 				// restore original magnification and video visibility
-				trackerPanel.setMagnification(magnification);
+				panel.setMagnification(magnification);
 				setVideoVisible(videoIsVisible);
 				setVisible(true);
 				player.setEnabled(true);
@@ -723,7 +729,7 @@ public class ExportVideoDialog extends JDialog {
 				return;
 			}
 		} catch (IOException ex) {
-			JOptionPane.showMessageDialog(trackerPanel, ex, "Exception error creating video", //$NON-NLS-1$
+			JOptionPane.showMessageDialog(panel, ex, "Exception error creating video", //$NON-NLS-1$
 					JOptionPane.WARNING_MESSAGE);
 		}
 		// deal with special case of single image
@@ -737,7 +743,7 @@ public class ExportVideoDialog extends JDialog {
 					recorder.reset();
 				}
 			} catch (IOException ex) {
-				JOptionPane.showMessageDialog(trackerPanel, ex, "Exception error ading frame", //$NON-NLS-1$
+				JOptionPane.showMessageDialog(panel, ex, "Exception error ading frame", //$NON-NLS-1$
 						JOptionPane.WARNING_MESSAGE);
 			}
 		}
@@ -745,7 +751,7 @@ public class ExportVideoDialog extends JDialog {
 		else {
 			// create progress monitor
 			String description = XML.getName(recorder.getFileName());
-			ProgressMonitor monitor = new ProgressMonitor(trackerPanel.getTFrame(),
+			ProgressMonitor monitor = new ProgressMonitor(panel.getTFrame(),
 					TrackerRes.getString("TActions.SaveClipAs.ProgressMonitor.Message") //$NON-NLS-1$
 							+ " " + description, //$NON-NLS-1$
 					"", 0, taskLength); //$NON-NLS-1$
@@ -789,11 +795,11 @@ public class ExportVideoDialog extends JDialog {
 					System.gc();
 					playControl.step();
 				} catch (Exception ex) {
-					JOptionPane.showMessageDialog(trackerPanel, ex, "Exception error adding image", //$NON-NLS-1$
+					JOptionPane.showMessageDialog(panel, ex, "Exception error adding image", //$NON-NLS-1$
 							JOptionPane.WARNING_MESSAGE);
 					monitor.close();
 					// restore original magnification and video visibility
-					trackerPanel.setMagnification(magnification);
+					panel.setMagnification(magnification);
 					setVideoVisible(videoIsVisible);
 					player.setEnabled(true);
 					recorder.reset();
@@ -812,7 +818,7 @@ public class ExportVideoDialog extends JDialog {
 			monitor.close();
 			playControl.removePropertyChangeListener(ClipControl.PROPERTY_CLIPCONTROL_STEPNUMBER, listener); //$NON-NLS-1$
 			// restore original magnification and video visibility
-			trackerPanel.setMagnification(magnification);
+			frame.getTrackerPanelForID(panelID).setMagnification(magnification);
 			setVideoVisible(videoIsVisible);
 			player.setEnabled(true);
 			recorder.reset();
@@ -822,6 +828,7 @@ public class ExportVideoDialog extends JDialog {
 			playControl.removePropertyChangeListener(ClipControl.PROPERTY_CLIPCONTROL_STEPNUMBER, listener); //$NON-NLS-1$
 		// paint the view and add frame
 //theView.paintImmediately(theView.getBounds());
+		TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
 		try {
 			for (BufferedImage image : getNextImages(size)) {
 				recorder.addFrame(image);
@@ -888,6 +895,7 @@ public class ExportVideoDialog extends JDialog {
 	 */
 	private BufferedImage[] getNextImages(Dimension size) {
 		JComponent view = views.get(viewDropdown.getSelectedItem());
+		TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
 		if (view == trackerPanel) { // main view
 			// if content is video only, get video image and resize
 			if (contentDropdown.getSelectedIndex() == 1) {
@@ -969,6 +977,18 @@ public class ExportVideoDialog extends JDialog {
 		g2.drawImage(source, 0, 0, size.width, size.height, 0, 0, source.getWidth(), source.getHeight(), null);
 		g2.dispose();
 		return newImage;
+	}
+
+	public void clear() {
+		frame = null;
+		panelID = null;
+		views.clear();
+	}
+	
+	@Override
+	public void dispose() {
+		clear();
+		super.dispose();
 	}
 
 }

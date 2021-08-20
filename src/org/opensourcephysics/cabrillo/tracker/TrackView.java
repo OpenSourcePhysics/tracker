@@ -30,6 +30,7 @@ import java.util.*;
 
 import javax.swing.*;
 
+import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.display.DataTable;
 import org.opensourcephysics.display.TeXParser;
 
@@ -80,7 +81,7 @@ public abstract class TrackView extends JScrollPane implements PropertyChangeLis
 		myID = ++TVID;
 		this.myType = myType;
 		//System.out.println("TrackView adding listener for " + this);
-		trackerPanel = panel;
+		trackerPanel = panel.ref(this);
 		trackerPanel.addListeners(panelProps, this);
 		viewParent = view;
 	}
@@ -237,5 +238,13 @@ public abstract class TrackView extends JScrollPane implements PropertyChangeLis
 	public String toString() {
 		return "[" + getClass().getSimpleName() + " " + getTrack().getName() + " " + viewParent + " ]";
 	}
+
+
+
+	@Override
+	public void finalize() {
+		OSPLog.finalized(this);
+	}
+
 
 }

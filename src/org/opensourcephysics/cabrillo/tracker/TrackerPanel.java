@@ -66,10 +66,8 @@ import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
-import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
-import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
@@ -179,6 +177,19 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	public static final String STICK = "Stick", TAPE = "CalibrationTapeMeasure", //$NON-NLS-1$ //$NON-NLS-2$
 			CALIBRATION = "Calibration", OFFSET = "OffsetOrigin"; //$NON-NLS-1$ //$NON-NLS-2$
 
+	
+	
+	
+	private static int panelCount = 0;
+	/**
+	 * a unique identifier for this TrackerPanel
+	 */
+	private Integer panelID; 
+	
+	public Integer getID() {
+		return panelID;
+	}
+	
 	// instance fields
 	protected double defaultImageBorder;
 	protected String description = ""; //$NON-NLS-1$
@@ -253,9 +264,6 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	public NumberFormatDialog numberFormatDialog;
 
 
-	public String id;
-	private static int ids;
-	
 	private ArrayList<TTrack> userTracks;
 
 	/**
@@ -285,8 +293,8 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	}
 	
 	private void setGUI() {
+		panelID = Integer.valueOf(panelCount++ % 256); // IdentityHashMap in PointMass for Integer.valueOf() max 255 for cached object		
 		displayCoordsOnMouseMoved = true;		
-		id = "TP" + ++ids;
 		zoomBox.setShowUndraggedBox(false);
 		// remove the interactive panel mouse controller
 		removeMouseListener(mouseController);
@@ -481,10 +489,6 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				modelBuilder.setLocation(x, y);
 			} catch (Exception ex) {
 				/** empty block */
-			}
-			TFrame frame = getTFrame();
-			if (frame != null) {
-				frame.addFollower(modelBuilder, frame.getLocation());
 			}
 
 		}
@@ -1579,7 +1583,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		}
 		FontSizer.setFonts(inspector, FontSizer.getLevel());
 		inspector.pack();
-		TToolBar toolbar = TToolBar.getToolbar(this);
+		TToolBar toolbar = frame.getToolbar(this);
 		if (!inspector.isPositioned) {
 			inspector.isPositioned = true;
 			// center inspector on the main view
@@ -1736,7 +1740,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		}
 		massUnit = unit;
 		refreshTrackBar();
-		//TTrackBar.getTrackbar(this).refresh();
+		//frame.getTrackbar(this).refresh();
 		firePropertyChange(PROPERTY_TRACKERPANEL_UNITS, false, true);
 		return true;
 	}
@@ -1773,7 +1777,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		}
 		lengthUnit = unit;
 		refreshTrackBar();
-		//TTrackBar.getTrackbar(this).refresh();
+		//frame.getTrackbar(this).refresh();
 		coordStringBuilder.setUnitsAndPatterns(getSelectedTrack(), "x", "y"); //$NON-NLS-1$ //$NON-NLS-2$
 		if (getSelectedPoint() != null) {
 			getSelectedPoint().showCoordinates(this);
@@ -1972,7 +1976,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	protected void refreshDecimalSeparators() {
 		super.refreshDecimalSeparators();
 		// refresh the trackbar decimal separators
-		TTrackBar.getTrackbar(this).refreshDecimalSeparators();
+		frame.getTrackbar(this).refreshDecimalSeparators();
 
 		// refresh all plot and table views
 		// just repaint--no data change at all
@@ -2195,7 +2199,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			if (n < 0)
 				return;
 			if (n == TView.VIEW_MAIN) {
-				TTrackBar.getTrackbar(this).maximizeButton.doClick(0);
+				frame.getTrackbar(this).maximizeButton.doClick(0);
 			}
 			else {
 				TViewChooser viewChooser = frame.getViewChoosers(this)[n];
@@ -2356,7 +2360,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				// show hints
 				else if (getVideo() == null) // no video
 					setMessage(TrackerRes.getString("TrackerPanel.NoVideo.Hint")); //$NON-NLS-1$
-				else if (TToolBar.getToolbar(this).notYetCalibrated) {
+				else if (haveToolBar() && frame.getToolbar(this).notYetCalibrated) {
 					if (getVideo().getWidth() == 720 && getVideo().getFilterStack().isEmpty()) // DV video format
 						setMessage(TrackerRes.getString("TrackerPanel.DVVideo.Hint")); //$NON-NLS-1$
 					else if (getPlayer().getVideoClip().isDefaultState())
@@ -2587,6 +2591,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			Tracker.logTime(getClass().getSimpleName() + hashCode() + " property change " + name); //$NON-NLS-1$
 		TTrack track;
 		ParticleModel model;
+		TMenuBar mbar;
 		switch (name) {
 		case Video.PROPERTY_VIDEO_SIZE:
 			super.propertyChange(e);
@@ -2617,7 +2622,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			TFrame.repaintT(this);
 			if (name == TTrack.PROPERTY_TTRACK_STEPS) {
 				refreshTrackBar();
-//				TTrackBar.getTrackbar(this).refresh();
+//				frame.getTrackbar(this).refresh();
 			}
 			break;
 		case TTrack.PROPERTY_TTRACK_MASS: // from point masses //$NON-NLS-1$
@@ -2695,7 +2700,9 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			break;
 		case Video.PROPERTY_VIDEO_IMAGE: // from video //$NON-NLS-1$
 			firePropertyChange(PROPERTY_TRACKERPANEL_IMAGE, null, null); // to tracks/views //$NON-NLS-1$
-			TMenuBar.getMenuBar(this).checkMatSize();
+			mbar = frame.getMenuBar(this);
+			if (mbar != null)
+				mbar.checkMatSize();
 			TFrame.repaintT(this);
 			break;
 		case Video.PROPERTY_VIDEO_FILTERCHANGED: // from video //$NON-NLS-1$
@@ -2980,11 +2987,11 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 						views[i][j].refresh();
 			}
 		}
-		TTrackBar trackbar = TTrackBar.getTrackbar(this);
+		TTrackBar trackbar = frame.getTrackbar(this);
 		trackbar.setFontLevel(level);
 		refreshTrackBar();
 //		trackbar.refresh();
-//		TToolBar.getToolbar(this).refresh(false);
+//		frame.getToolbar(this).refresh(false);
 		// replace the menubar to get new accelerator fonts
 		// TMenuBar menubar =
 
@@ -3087,12 +3094,6 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	@Override
 	public XYCoordinateStringBuilder getXYCoordinateStringBuilder(TPoint point) {
 		return coordStringBuilder;
-	}
-
-	@Override
-	public void finalize() {
-		//		OSPLog.finer
-		System.out.println(getClass().getSimpleName() + " finalized"); //$NON-NLS-1$
 	}
 
 //	protected void addCalibrationTool(String name, TTrack tool) {
@@ -3347,10 +3348,16 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	 */
 	@Override
 	protected void dispose() {
+		
+		System.out.println("TrackerPanel.dispose");
+		
 		// remove property change listeners
-		removePropertyChangeListener(VideoPanel.PROPERTY_VIDEOPANEL_DATAFILE, frame); // $NON-NLS-1$
-		removePropertyChangeListener(PROPERTY_TRACKERPANEL_VIDEO, frame); // $NON-NLS-1$
-		coords.removePropertyChangeListener(this);
+		if (frame != null) {
+			removePropertyChangeListener(VideoPanel.PROPERTY_VIDEOPANEL_DATAFILE, frame); // $NON-NLS-1$
+			removePropertyChangeListener(PROPERTY_TRACKERPANEL_VIDEO, frame); // $NON-NLS-1$
+		}
+		if (coords != null)
+			coords.removePropertyChangeListener(this);
 		selectedPoint = null;
 		selectedStep = null;
 		selectedTrack = null;
@@ -3396,6 +3403,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		//menuBar.dispose(this);
 		frame = null;
 		coordinateStrBuilder = null;
+		selectedSteps.trackerPanel = null;
 		selectedSteps = null;
 		// long t0 = Performance.now(0);
 		offscreenImage = null;
@@ -3473,38 +3481,27 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 
 		PencilDrawer.dispose(this);
 		if (TFrame.haveExportDialog && ExportDataDialog.dataExporter != null
-				&& ExportDataDialog.dataExporter.trackerPanel == this) {
-			ExportDataDialog.dataExporter.trackerPanel = null;
-			ExportDataDialog.dataExporter.tableDropdown.removeAllItems();
-			ExportDataDialog.dataExporter.tables.clear();
-			ExportDataDialog.dataExporter.trackNames.clear();
+				&& ExportDataDialog.dataExporter.panelID == panelID) {
+			ExportDataDialog.dataExporter.clear();
 		}
 		if (TFrame.haveExportDialog && ExportVideoDialog.videoExporter != null
-				&& ExportVideoDialog.videoExporter.trackerPanel == this) {
-			ExportVideoDialog.videoExporter.trackerPanel = null;
-			ExportVideoDialog.videoExporter.views.clear();
+				&& ExportVideoDialog.videoExporter.panelID == panelID) {
+			ExportVideoDialog.videoExporter.clear();
 		}
 		if (TFrame.haveExportDialog)
-			ExportZipDialog.dispose(this);
+			ExportZipDialog.clear(this);
 
 		// OSPLog.debug(Performance.timeCheckStr("TrackerPanel.dispose export dialogs",
 		// Performance.TIME_MARK));
 
-		if (TFrame.haveThumbnailDialog && ThumbnailDialog.thumbnailDialog != null
-				&& ThumbnailDialog.thumbnailDialog.trackerPanel == this) {
-			ThumbnailDialog.thumbnailDialog.trackerPanel = null;
-		}
-
 		if (numberFormatDialog != null) {
-			numberFormatDialog.setVisible(false);
-			numberFormatDialog.trackerPanel = null;
+			numberFormatDialog.clear();
 		}
 		filterClasses.clear();
 		selectingPanel = null;
 		frame = null;
 		renderedImage = null;
 		matImage = null;
-		selectedSteps = null;
 
 		// OSPLog.debug(Performance.timeCheckStr("TrackerPanel.dispose number, thumbnail
 		// dialogs", Performance.TIME_MARK));
@@ -3518,6 +3515,12 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		}
 
  		super.dispose();
+ 		
+ 		System.gc();
+ 		System.gc();
+ 		System.gc();
+ 		System.gc();
+ 		
 
 		// OSPLog.debug(Performance.timeCheckStr("TrackerPanel.dispose removeall",
 		// Performance.TIME_MARK));
@@ -3877,8 +3880,9 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 					// load the toolbar
 					child = control.getChildControl("toolbar"); //$NON-NLS-1$
 					if (child != null) {
-						TToolBar toolbar = TToolBar.getToolbar(trackerPanel);
+						TToolBar toolbar = new TToolBar(trackerPanel);
 						child.loadObject(toolbar);
+						TFrame.setToolBar(trackerPanel, toolbar);
 					}
 					// load the coords
 					child = control.getChildControl("coords"); //$NON-NLS-1$
@@ -3952,6 +3956,9 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			if (trackerPanel.progress == VideoIO.PROGRESS_COMPLETE && asyncloader != null) {
 				asyncloader.finalized(trackerPanel);
 				asyncloader = null;
+				// clear the object
+				((XMLControlElement)control).dispose();
+				control = null;
 			}
 		}
 
@@ -4106,7 +4113,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				control.setValue("selected_track_views", selectedTrackViews); //$NON-NLS-1$
 
 				// save the toolbar for button states
-				TToolBar toolbar = TToolBar.getToolbar(trackerPanel);
+				TToolBar toolbar = frame.getToolbar(trackerPanel);
 				control.setValue("toolbar", toolbar); //$NON-NLS-1$
 				// save the visibility and location of the track control
 				TrackControl tc = trackerPanel.trackControl;
@@ -4289,7 +4296,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				@Override
 				public void actionPerformed(ActionEvent e) {
 					setMagnification(-1);
-					TToolBar toolbar = TToolBar.getToolbar(TrackerPanel.this);
+					TToolBar toolbar = frame.getToolbar(TrackerPanel.this);
 					toolbar.refreshZoomButton();
 				}
 			});
@@ -4654,7 +4661,8 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		addFilter(RadialDistortionFilter.class);
 	}
 
-	private ArrayList<Drawable> tempA; 
+	private ArrayList<Drawable> tempA;
+	
 	@SuppressWarnings("unchecked")
 	public <T extends Drawable> ArrayList<T> getDrawablesTemp(Class<T> type) {
 		if (tempA == null)
@@ -4680,7 +4688,8 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	}
 
 	public void clearTemp() {
-		tempA.clear();
+		if (tempA != null)
+			tempA.clear();
 	}
 
 
@@ -4707,7 +4716,15 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	}
 
 	protected boolean unTracked() {
-		return TTrackBar.getTrackbar(this).getComponentCount() == 0;
+		return haveTrackBar() && frame.getTrackbar(this).getComponentCount() == 0;
+	}
+
+	private boolean haveToolBar() {
+		return frame.getToolbar(this) != null;
+	}
+
+	private boolean haveTrackBar() {
+		return frame.getTrackbar(this) != null;
 	}
 
 	public void doPaste(String data) {
@@ -4922,9 +4939,15 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		}
 	}
 
+	/**
+	 * Refresh the trackbar; in some cases, this may occur after disposal (from TFrame timer hack)
+	 */
 	void refreshTrackBar() {
-		TTrackBar.getTrackbar(this).refresh();
-//		getTFrame().getTrackBar(this).refresh();
+		if (frame != null) {
+			TTrackBar tbar = frame.getTrackbar(this);
+			if (tbar != null)
+				tbar.refresh();
+		}
 	}
 
 	public void onLoaded() {
@@ -4932,15 +4955,18 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			showTrackControlDelayed = false;
 			TrackControl.getControl(this).setVisible(true);
 		}
-		final JButton button = getTFrame().getToolBar(this).notesButton;
-		TTrack track = getSelectedTrack();
-		if (!hideDescriptionWhenLoaded
-				&& (track == null ? getDescription() != null && getDescription().trim().length() != 0
-				: track.getDescription() != null && track.getDescription().trim().length() > 0)) {
-			if (!button.isSelected())
+		TToolBar tbar = getTFrame().getToolbar(this);
+		if (tbar != null) {
+			final JButton button = tbar.notesButton;
+			TTrack track = getSelectedTrack();
+			if (!hideDescriptionWhenLoaded
+					&& (track == null ? getDescription() != null && getDescription().trim().length() != 0
+							: track.getDescription() != null && track.getDescription().trim().length() > 0)) {
+				if (!button.isSelected())
+					button.doClick();
+			} else if (button.isSelected())
 				button.doClick();
-		} else if (button.isSelected())
-			button.doClick();
+		}
 	}
 	
 	public String getTabName() {
@@ -4966,7 +4992,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 
 	@Override
 	public String toString() {
-		return "[TrackerPanel " + hashCode() + " " + getTabName() + "]";
+		return "[TrackerPanel " + panelID + " " + getTabName() + "]";
 	}
 
 	public void refreshNotesDialog() {
@@ -4978,27 +5004,42 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	
 	public static void main(String[] args) {
 
-		int[] i = new int[1];
-
 		TrackerPanel p = new TrackerPanel();
 
-		p.dispose();
+		try {
 
-		p = null;
+			Thread.sleep(100);
+			p.dispose();
 
-		ArrayList<String> a = new ArrayList<String>();
-
-		while (System.currentTimeMillis() >= 0) {
-			i[0]++;
-			System.gc();
-			try {
-				Thread.currentThread().sleep(100);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+			p = null;
+			
+			Thread.sleep(1000);
+			
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 
 	}
+
+	public TrackerPanel ref(Object o) {
+		System.out.println("TP ref " + (o instanceof String ? o.toString() : o.getClass().getSimpleName())); 
+		return this;
+	}
+
+	@Override
+	public void finalize() {
+		System.out.println("-------HOORAY!!!!!!!------------------------------OSPLog.finalized(this)---------");
+	}
+
+	/**
+	 * Return the actual panel, which in the case of WorldTView is not this.
+	 * 
+	 * @return
+	 */
+	public TrackerPanel getTruePanel() {
+		return this;
+	}
+
 
 }

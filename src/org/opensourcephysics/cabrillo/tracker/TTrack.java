@@ -242,8 +242,10 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 		if (trackerPanel != null) {
 			removePanelEvents(panelEventsTTrack);
 		}
-		trackerPanel = panel;
-		if (panel != null) {
+		if (panel == null) {
+			trackerPanel = null;
+		} else {
+			trackerPanel = panel.ref(this);
 			addPanelEvents(panelEventsTTrack);
 		}
 	}
@@ -1036,7 +1038,7 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 
 	@Override
 	public void finalize() {
-		OSPLog.finer(getClass().getSimpleName() + " recycled by garbage collector"); //$NON-NLS-1$
+		OSPLog.finalized(this);
 	}
 
 	/**
@@ -2339,7 +2341,7 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 						if (frame.notesVisible()) {
 							frame.getNotesDialog().setVisible(true);
 						} else
-							frame.getToolBar(trackerPanel).doNotesAction();
+							frame.getToolbar(trackerPanel).doNotesAction();
 					}
 				}
 			}
@@ -3316,7 +3318,9 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 		public void setText(String t) {
 			super.setText(t);
 			if (trackerPanel != null) {
-				TTrackBar.getTrackbar(trackerPanel).resizeField(this);
+				TTrackBar tbar = TTrackBar.getTrackbar(trackerPanel);
+				if (tbar != null)
+					tbar.resizeField(this);
 			}
 		}
 
@@ -3425,7 +3429,7 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 		// constructor
 		NameDialog(TrackerPanel panel) {
 			super(panel.getTFrame(), null, true);
-			trackerPanel = panel;
+			trackerPanel = panel.ref(this);
 			setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 			addWindowListener(new WindowAdapter() {
 				@Override

@@ -41,10 +41,11 @@ import org.opensourcephysics.tools.FontSizer;
 public class UnitsDialog extends JDialog {
 	
   final static Color _RED = new Color(255, 160, 180);
-  static TFrame frame;
 
   // instance fields
-  private TrackerPanel trackerPanel;
+  private TFrame frame;
+  private Integer panelID;
+  
   private JLabel lengthLabel, massLabel, timeLabel;
   private ArrayList<JLabel> labels;
   private JButton closeButton;
@@ -60,8 +61,8 @@ public class UnitsDialog extends JDialog {
    */
   public UnitsDialog(TrackerPanel trackerPanel) {
     super(JOptionPane.getFrameForComponent(trackerPanel), true);
-  	this.trackerPanel = trackerPanel;
-  	if (frame==null) frame = trackerPanel.getTFrame();
+  	panelID = trackerPanel.getID();
+  	frame = trackerPanel.getTFrame();
     createGUI();
     refreshGUI();
   }
@@ -116,11 +117,12 @@ public class UnitsDialog extends JDialog {
     
     // visible checkbox
     visibleCheckbox = new JCheckBox();
-    visibleCheckbox.setSelected(trackerPanel.isUnitsVisible());
+ 
+    visibleCheckbox.setSelected(frame.getTrackerPanelForID(panelID).isUnitsVisible());
     visibleCheckbox.setAction(new AbstractAction() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				trackerPanel.setUnitsVisible(visibleCheckbox.isSelected());
+				frame.getTrackerPanelForID(panelID).setUnitsVisible(visibleCheckbox.isSelected());
     		refreshGUI();
 			}   	
     });
@@ -174,13 +176,14 @@ public class UnitsDialog extends JDialog {
    * Updates the GUI.
    */
   protected void refreshGUI() {
+	TrackerPanel pane = frame.getTrackerPanelForID(panelID);  
     setTitle(TrackerRes.getString("UnitsDialog.Title")); //$NON-NLS-1$
     closeButton.setText(TrackerRes.getString("Dialog.Button.OK")); //$NON-NLS-1$
   	lengthLabel.setText(TrackerRes.getString("NumberFormatSetter.Help.Dimensions.2")); //$NON-NLS-1$
   	massLabel.setText(TrackerRes.getString("NumberFormatSetter.Help.Dimensions.4")); //$NON-NLS-1$
-  	lengthUnitField.setText(trackerPanel.lengthUnit);
-  	massUnitField.setText(trackerPanel.massUnit);
-  	timeUnitField.setText(trackerPanel.timeUnit);
+  	lengthUnitField.setText(pane.lengthUnit);
+  	massUnitField.setText(pane.massUnit);
+  	timeUnitField.setText(pane.timeUnit);
   	timeLabel.setText(TrackerRes.getString("NumberFormatSetter.Help.Dimensions.3")); //$NON-NLS-1$
     degreesButton.setText(TrackerRes.getString("TMenuBar.MenuItem.Degrees")); //$NON-NLS-1$
     radiansButton.setText(TrackerRes.getString("TMenuBar.MenuItem.Radians")); //$NON-NLS-1$
@@ -189,10 +192,10 @@ public class UnitsDialog extends JDialog {
     unitsBorder.setTitle(TrackerRes.getString("UnitsDialog.Border.LMT.Text")); //$NON-NLS-1$
     angleBorder.setTitle(TrackerRes.getString("NumberFormatSetter.TitledBorder.Units.Text")); //$NON-NLS-1$
     
-    boolean hasLengthUnit = trackerPanel.lengthUnit!=null; 
-    boolean hasMassUnit = trackerPanel.massUnit!=null; 
+    boolean hasLengthUnit = pane.lengthUnit!=null; 
+    boolean hasMassUnit = pane.massUnit!=null; 
   	visibleCheckbox.setText(TrackerRes.getString("UnitsDialog.Checkbox.Visible.Text")); //$NON-NLS-1$
-    visibleCheckbox.setSelected(trackerPanel.isUnitsVisible());
+    visibleCheckbox.setSelected(pane.isUnitsVisible());
     visibleCheckbox.setEnabled(hasLengthUnit && hasMassUnit);
   	visibleCheckbox.setToolTipText(hasLengthUnit && hasMassUnit?
   			TrackerRes.getString("UnitsDialog.Checkbox.Visible.Tooltip"): //$NON-NLS-1$
@@ -236,21 +239,21 @@ public class UnitsDialog extends JDialog {
 		pack();
   }
   
-  /**
-   * Sets the length or mass unit based on the current text in a UnitField
-   * 
-   * @param field the length or mass field
-   */
-  private void setUnit(UnitField field) {
-  	if (field==lengthUnitField) {
-  		trackerPanel.setLengthUnit(field.getText());
-    	refreshGUI();
-  	}
-  	else if (field==massUnitField) {
-  		trackerPanel.setMassUnit(field.getText());
-    	refreshGUI();
-  	}
-  }
+	/**
+	 * Sets the length or mass unit based on the current text in a UnitField
+	 * 
+	 * @param field the length or mass field
+	 */
+	private void setUnit(UnitField field) {
+		TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
+		if (field == lengthUnitField) {
+			trackerPanel.setLengthUnit(field.getText());
+			refreshGUI();
+		} else if (field == massUnitField) {
+			trackerPanel.setMassUnit(field.getText());
+			refreshGUI();
+		}
+	}
   
   /**
    * A JTextField for setting units

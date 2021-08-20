@@ -62,7 +62,7 @@ public class VectorSumInspector extends JDialog
     // nonmodal
     super(JOptionPane.getFrameForComponent(sum.trackerPanel), false);
     this.sum = sum;
-    trackerPanel = sum.trackerPanel;
+    trackerPanel = sum.trackerPanel.ref(this);
     if (trackerPanel != null) {
       trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this); //$NON-NLS-1$
       TFrame frame = trackerPanel.getTFrame();

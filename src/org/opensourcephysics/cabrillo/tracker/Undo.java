@@ -597,7 +597,7 @@ public class Undo {
 		boolean added; // true if original edit was an addImage
 
 		private ImageVideoEdit(TrackerPanel panel, String[] imagePaths, int index, int step, boolean added) {
-			this.panel = panel;
+			this.panel = panel.ref(this);
 			paths = imagePaths;
 			n = index;
 			this.step = step;
@@ -747,7 +747,7 @@ public class Undo {
 		TrackerPanel panel;
 
 		protected TEdit(TrackerPanel panel, Object obj, XMLControl control) {
-			this.panel = panel;
+			this.panel = panel.ref(this);
 			undo = control.toXML();
 			control = new XMLControlElement(obj);
 			redo = control.toXML();
@@ -815,7 +815,7 @@ public class Undo {
 		private TrackDelete(TrackerPanel panel, TTrack track) {
 			XMLControl control = new XMLControlElement(track);
 			xml = control.toXML();
-			this.panel = panel;
+			this.panel = panel.ref(this);
 			String s = track.getClass().getSimpleName();
 			trackType = TrackerRes.getString(s + ".Name"); //$NON-NLS-1$
 			if (trackType.startsWith("!")) { //$NON-NLS-1$
@@ -858,7 +858,7 @@ public class Undo {
 
 		private TrackClear(TrackerPanel trackerPanel, List<String> xml) {
 			this.xml = xml;
-			panel = trackerPanel;
+			panel = trackerPanel.ref(this);
 		}
 
 		@Override
@@ -900,7 +900,7 @@ public class Undo {
 
 		private FilterDelete(TrackerPanel trackerPanel, Filter filter) {
 			xml = new XMLControlElement(filter).toXML();
-			panel = trackerPanel;
+			panel = trackerPanel.ref(this);
 			i = panel.getVideo().getFilterStack().lastIndexRemoved();
 			filterName = filter.getClass().getSimpleName();
 			int j = filterName.indexOf("Filter"); //$NON-NLS-1$
@@ -974,7 +974,7 @@ public class Undo {
 
 		private FilterClear(TrackerPanel trackerPanel, List<String> xml) {
 			this.xml = xml;
-			panel = trackerPanel;
+			panel = trackerPanel.ref(this);
 		}
 
 		@Override

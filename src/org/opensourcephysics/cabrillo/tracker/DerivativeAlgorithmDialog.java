@@ -61,7 +61,7 @@ public class DerivativeAlgorithmDialog extends JDialog {
    */
   public DerivativeAlgorithmDialog(TrackerPanel panel) {
     super(panel.getTFrame(), true);
-    trackerPanel = panel;
+    trackerPanel = panel.ref(this);
     createGUI();
     pack();
     okButton.requestFocusInWindow();

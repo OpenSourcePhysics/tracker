@@ -43,7 +43,6 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.Enumeration;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Locale;
 import java.util.Map;
@@ -97,7 +96,6 @@ import org.opensourcephysics.tools.FunctionTool;
  */
 public class TMenuBar extends TFrame.DeactivatingMenuBar implements PropertyChangeListener, MenuListener {
 
-	private static Map<TrackerPanel, TMenuBar> menubars = new HashMap<TrackerPanel, TMenuBar>();
 
 	static final String POPUPMENU_TTOOLBAR_TRACKS = "TToolBar.tracks";
 	static final String POPUPMENU_TFRAME_BOTTOM = "TFrame.bottom";
@@ -329,31 +327,9 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements PropertyChan
 	 * @return a TMenuBar. May return null during instantiation.
 	 */
 	public static TMenuBar getMenuBar(TrackerPanel panel) {
-		if (panel == null)
+		if (panel == null || panel.getTFrame() == null)
 			return null;
-		synchronized (menubars) {
-			if (!menubars.containsKey(panel)) {
-				menubars.put(panel, new TMenuBar(panel));
-			}
-		}
-		return menubars.get(panel);
-	}
-
-	/**
-	 * Returns a new TMenuBar for the specified trackerPanel.
-	 * 
-	 * @param frame
-	 *
-	 * @param panel the tracker panel
-	 * @return a TMenuBar
-	 */
-	public static void newMenuBar(TFrame frame, TrackerPanel panel) {
-		TMenuBar menuBar = new TMenuBar(panel);
-		frame.setMenuBar(panel, menuBar);
-
-		synchronized (menubars) {
-			menubars.put(panel, menuBar);
-		}
+		return (panel.getTFrame().getMenuBar(panel));
 	}
 
 	protected void loadVideoMenu(JMenu vidMenu) {
@@ -361,20 +337,12 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements PropertyChan
 	}
 
 	/**
-	 * Clears all menubars. This forces creation of new menus using new locale.
-	 */
-	public static void clear() {
-		synchronized (menubars) {
-			menubars.clear();
-		}
-	}
-
-	/**
 	 * Constructor specifying the tracker panel.
 	 *
 	 * @param panel the tracker panel
 	 */
-	private TMenuBar(TrackerPanel panel) {
+	TMenuBar(TrackerPanel panel) {
+		System.out.println("Creating menubar for " + panel);
 		setTrackerPanel(panel);
 		actions = TActions.getActions(panel);
 		createGUI();
@@ -393,7 +361,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements PropertyChan
 		if (trackerPanel != null) {
 			trackerPanel.removeListeners(panelProps, this);
 		}
-		trackerPanel = panel;
+		trackerPanel = panel.ref(this);
 		trackerPanel.addListeners(panelProps, this);
 	}
 
@@ -1173,7 +1141,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements PropertyChan
 					if (frame.notesVisible()) {
 						frame.getNotesDialog().setVisible(false);
 					} else
-						frame.getToolBar(trackerPanel).doNotesAction();
+						frame.getToolbar(trackerPanel).doNotesAction();
 				}
 		});
 		// dataBuilder item
@@ -1378,73 +1346,73 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements PropertyChan
 		if (isTainted(MENU_FILE)) {
 			// refresh file menu
 			fileMenu.removeAll();
-			//if (!OSPRuntime.isApplet) {
-				// update save and close items
-				file_saveItem.setEnabled(trackerPanel.getDataFile() != null);
-				String name = trackerPanel.getTitle();
-				name = " \"" + name + "\""; //$NON-NLS-1$ //$NON-NLS-2$
-				file_closeItem.setText(TrackerRes.getString("TActions.Action.Close") + name); //$NON-NLS-1$
-				file_saveItem.setText(TrackerRes.getString("TActions.Action.Save") + name); //$NON-NLS-1$
-				if (trackerPanel.isEnabled("file.new")) { //$NON-NLS-1$
-					fileMenu.add(file_newTabItem);
-				}
-				if (file_replaceTabItem != null) {
-					fileMenu.add(file_replaceTabItem);
-				}
+			// if (!OSPRuntime.isApplet) {
+			// update save and close items
+			file_saveItem.setEnabled(trackerPanel.getDataFile() != null);
+			String name = trackerPanel.getTitle();
+			name = " \"" + name + "\""; //$NON-NLS-1$ //$NON-NLS-2$
+			file_closeItem.setText(TrackerRes.getString("TActions.Action.Close") + name); //$NON-NLS-1$
+			file_saveItem.setText(TrackerRes.getString("TActions.Action.Save") + name); //$NON-NLS-1$
+			if (trackerPanel.isEnabled("file.new")) { //$NON-NLS-1$
+				fileMenu.add(file_newTabItem);
+			}
+			if (file_replaceTabItem != null) {
+				fileMenu.add(file_replaceTabItem);
+			}
 
-				if (trackerPanel.isEnabled("file.open")) { //$NON-NLS-1$
-					checkAddMenuSep(fileMenu);
-					fileMenu.add(file_openItem);
-//	    fileMenu.add(openURLItem);
-					if (!OSPRuntime.isJS)
-						fileMenu.add(file_openRecentMenu);
-				}
-				boolean showLib = trackerPanel.isEnabled("file.open") || trackerPanel.isEnabled("file.export"); //$NON-NLS-1$ //$NON-NLS-2$
-				if (showLib && trackerPanel.isEnabled("file.library")) { //$NON-NLS-1$
-					checkAddMenuSep(fileMenu);
-					if (trackerPanel.isEnabled("file.open")) //$NON-NLS-1$
-						fileMenu.add(file_openBrowserItem);
-//					if (trackerPanel.isEnabled("file.export")) fileMenu.add(saveZipAsItem); //$NON-NLS-1$
-				}
-				if (trackerPanel.isEnabled("file.close")) { //$NON-NLS-1$
-					checkAddMenuSep(fileMenu);
-					fileMenu.add(file_closeItem);
-					fileMenu.add(file_closeAllItem);
-				}
-				if (trackerPanel.isEnabled("file.save") //$NON-NLS-1$
-						|| trackerPanel.isEnabled("file.saveAs")) { //$NON-NLS-1$
-					checkAddMenuSep(fileMenu);
-					if (trackerPanel.isEnabled("file.save")) //$NON-NLS-1$
-						fileMenu.add(file_saveItem);
-					if (trackerPanel.isEnabled("file.saveAs")) { //$NON-NLS-1$
-						fileMenu.add(file_saveAsItem);
-						if (trackerPanel.getVideo() != null) {
-							fileMenu.add(saveVideoAsItem);
-						}
-						fileMenu.add(file_saveZipAsItem);
-						fileMenu.add(file_saveTabsetAsItem);
-					}
-				}
-				if (trackerPanel.isEnabled("file.import") //$NON-NLS-1$
-						|| trackerPanel.isEnabled("file.export")) { //$NON-NLS-1$
-					checkAddMenuSep(fileMenu);
-					if (trackerPanel.isEnabled("file.import")) //$NON-NLS-1$
-						fileMenu.add(file_importMenu);
-					if (trackerPanel.isEnabled("file.export")) //$NON-NLS-1$
-						fileMenu.add(file_exportMenu);
-				}
-			//}
+			if (trackerPanel.isEnabled("file.open")) { //$NON-NLS-1$
 				checkAddMenuSep(fileMenu);
+				fileMenu.add(file_openItem);
+//	    fileMenu.add(openURLItem);
+				if (!OSPRuntime.isJS)
+					fileMenu.add(file_openRecentMenu);
+			}
+			boolean showLib = trackerPanel.isEnabled("file.open") || trackerPanel.isEnabled("file.export"); //$NON-NLS-1$ //$NON-NLS-2$
+			if (showLib && trackerPanel.isEnabled("file.library")) { //$NON-NLS-1$
+				checkAddMenuSep(fileMenu);
+				if (trackerPanel.isEnabled("file.open")) //$NON-NLS-1$
+					fileMenu.add(file_openBrowserItem);
+//					if (trackerPanel.isEnabled("file.export")) fileMenu.add(saveZipAsItem); //$NON-NLS-1$
+			}
+			if (trackerPanel.isEnabled("file.close")) { //$NON-NLS-1$
+				checkAddMenuSep(fileMenu);
+				fileMenu.add(file_closeItem);
+				fileMenu.add(file_closeAllItem);
+			}
+			if (trackerPanel.isEnabled("file.save") //$NON-NLS-1$
+					|| trackerPanel.isEnabled("file.saveAs")) { //$NON-NLS-1$
+				checkAddMenuSep(fileMenu);
+				if (trackerPanel.isEnabled("file.save")) //$NON-NLS-1$
+					fileMenu.add(file_saveItem);
+				if (trackerPanel.isEnabled("file.saveAs")) { //$NON-NLS-1$
+					fileMenu.add(file_saveAsItem);
+					if (trackerPanel.getVideo() != null) {
+						fileMenu.add(saveVideoAsItem);
+					}
+					fileMenu.add(file_saveZipAsItem);
+					fileMenu.add(file_saveTabsetAsItem);
+				}
+			}
+			if (trackerPanel.isEnabled("file.import") //$NON-NLS-1$
+					|| trackerPanel.isEnabled("file.export")) { //$NON-NLS-1$
+				checkAddMenuSep(fileMenu);
+				if (trackerPanel.isEnabled("file.import")) //$NON-NLS-1$
+					fileMenu.add(file_importMenu);
+				if (trackerPanel.isEnabled("file.export")) //$NON-NLS-1$
+					fileMenu.add(file_exportMenu);
+			}
+			// }
+			checkAddMenuSep(fileMenu);
 			fileMenu.add(file_propertiesItem);
 			if (trackerPanel.isEnabled("file.print")) { //$NON-NLS-1$
 				checkAddMenuSep(fileMenu);
 				fileMenu.add(file_printFrameItem);
 			}
 			// exit menu always added except in applets
-			//if (!OSPRuntime.isApplet) {
-				checkAddMenuSep(fileMenu);
-				fileMenu.add(file_exitItem);
-			//}
+			// if (!OSPRuntime.isApplet) {
+			checkAddMenuSep(fileMenu);
+			fileMenu.add(file_exitItem);
+			// }
 			FontSizer.setMenuFonts(fileMenu);
 			setMenuTainted(MENU_FILE, false);
 		}
@@ -1619,19 +1587,20 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements PropertyChan
 				}
 			}
 			FontSizer.setMenuFonts(edit_copyDataMenu);
-		break;
-		
-		case "image":	
+			break;
+
+		case "image":
 			TViewChooser[] choosers = trackerPanel.getTFrame().getViewChoosers(trackerPanel);
 			if (edit_copyFrameImageItem == null) {
 				edit_copyFrameImageItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.CopyFrame")); //$NON-NLS-1$
-			edit_copyFrameImageItem.addActionListener((e) -> {
-						Component c = trackerPanel.getTFrame();
-						new TrackerIO.ComponentImage(c).copyToClipboard();
+				edit_copyFrameImageItem.addActionListener((e) -> {
+					Component c = trackerPanel.getTFrame();
+					new TrackerIO.ComponentImage(c).copyToClipboard();
 				});
-				edit_copyMainViewImageItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.CopyMainView") + " (0)"); //$NON-NLS-1$ //$NON-NLS-2$
-			edit_copyMainViewImageItem.addActionListener((e) -> {
-						new TrackerIO.ComponentImage(trackerPanel).copyToClipboard();
+				edit_copyMainViewImageItem = new JMenuItem(
+						TrackerRes.getString("TMenuBar.MenuItem.CopyMainView") + " (0)"); //$NON-NLS-1$ //$NON-NLS-2$
+				edit_copyMainViewImageItem.addActionListener((e) -> {
+					new TrackerIO.ComponentImage(trackerPanel).copyToClipboard();
 				});
 				Action copyView = new AbstractAction() {
 					@Override
@@ -1647,15 +1616,15 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements PropertyChan
 					edit_copyViewImageItems[i].setAction(copyView);
 				}
 			}
-
 			edit_copyImageMenu.removeAll();
 			// add menu item for main view
 			edit_copyImageMenu.add(edit_copyMainViewImageItem);
 			// add menu items for open views
+			TViewChooser[] vchoosers = trackerPanel.getTFrame().getVisibleChoosers(trackerPanel.getID());
 			for (int i = 0; i < choosers.length; i++) {
-				if (trackerPanel.getTFrame().isViewPaneVisible(i, trackerPanel)) {
+				if (vchoosers[i] != null) {
 					String viewname = null;
-					TView tview = choosers[i].getSelectedView();
+					TView tview = vchoosers[i].getSelectedView();
 					viewname = tview == null ? TrackerRes.getString("TFrame.View.Unknown") : tview.getViewName();
 					edit_copyViewImageItems[i].setText(viewname + " (" + (i + 1) + ")"); //$NON-NLS-1$ //$NON-NLS-2$
 					String command = String.valueOf(i);
@@ -1669,7 +1638,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements PropertyChan
 			edit_copyImageMenu.add(edit_copyFrameImageItem);
 			FontSizer.setMenuFonts(edit_copyImageMenu);
 			break;
-			
+
 		case "object":
 			edit_copyObjectMenu.removeAll();
 			Action copyObjectAction = new AbstractAction() {
@@ -2364,7 +2333,6 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements PropertyChan
 	 * Refreshes the Window menu for a TrackerPanel.
 	 * 
 	 * @param opening      TODO
-	 * @param trackerPanel the TrackerPanel
 	 */
 	public void refreshWindowMenu(boolean opening) {
 		// long t0 = Performance.now(0);
@@ -2616,7 +2584,6 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements PropertyChan
 	 * Cleans up this menubar
 	 */
 	public void dispose() {
-		menubars.remove(trackerPanel);
 		trackerPanel.removeListeners(panelProps, this);
 		Video video = trackerPanel.getVideo();
 		if (video != null) {
@@ -2637,7 +2604,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements PropertyChan
 
 	@Override
 	public void finalize() {
-		OSPLog.finer(getClass().getSimpleName() + " recycled by garbage collector"); //$NON-NLS-1$
+		OSPLog.finalized(this);
 	}
 
 	/**
@@ -2689,9 +2656,9 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements PropertyChan
 		TreeMap<Integer, TableTrackView> dataViews = new TreeMap<Integer, TableTrackView>();
 		if (trackerPanel.getTFrame() == null)
 			return dataViews;
-		TViewChooser[] choosers = trackerPanel.getTFrame().getViewChoosers(trackerPanel);
+		TViewChooser[] choosers = trackerPanel.getTFrame().getVisibleChoosers(trackerPanel.getID());
 		for (int i = 0; i < choosers.length; i++) {
-			if (choosers[i] != null && trackerPanel.getTFrame().isViewPaneVisible(i, trackerPanel)) {
+			if (choosers[i] != null) {
 				TView tview = choosers[i].getSelectedView();
 				if (tview != null && tview.getViewType() == TView.VIEW_TABLE) {
 					TableTView tableView = (TableTView) tview;

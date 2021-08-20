@@ -128,7 +128,7 @@ public class PageTView extends JPanel implements TView {
 	 * @param panel the tracker panel
 	 */
 	protected PageTView(TrackerPanel panel) {
-		trackerPanel = panel;
+		trackerPanel = panel.ref(this);
 		if (panel == null)
 			return;
 		setBackground(panel.getBackground());
@@ -509,7 +509,7 @@ public class PageTView extends JPanel implements TView {
 		boolean refreshToolbar = false;
 		for (TabView tab : tabs) {
 			tab.pageView = this;
-			tab.data.trackerPanel = trackerPanel;
+			tab.data.trackerPanel = trackerPanel.ref(this);
 			tab.refreshView(false);
 			tabbedPane.addTab(tab.data.title, tab);
 			refreshToolbar = refreshToolbar || tab.data.url != null;
@@ -521,11 +521,6 @@ public class PageTView extends JPanel implements TView {
 		if (trackerPanel != null && refreshToolbar) {
 			TToolBar.getToolbar(trackerPanel).refresh(TToolBar.REFRESH_PAGETVIEW_TABS);
 		}
-	}
-
-	@Override
-	public void finalize() {
-		OSPLog.finest(getClass().getSimpleName() + " recycled by garbage collector"); //$NON-NLS-1$
 	}
 
 	/**
@@ -1116,5 +1111,11 @@ public class PageTView extends JPanel implements TView {
 			return obj;
 		}
 	}
+
+	@Override
+	public void finalize() {
+		OSPLog.finalized(this);
+	}
+
 
 }

@@ -58,7 +58,7 @@ public class PlotGuestDialog extends JDialog {
    */
   public PlotGuestDialog(TrackerPanel panel) {
     super(JOptionPane.getFrameForComponent(panel), true);
-    trackerPanel = panel;
+    trackerPanel = panel.ref(this);
     // listener for the checkboxes
     listener = new ActionListener() {
       @Override

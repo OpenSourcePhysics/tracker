@@ -27,6 +27,8 @@ package org.opensourcephysics.cabrillo.tracker;
 import java.beans.*;
 import java.awt.*;
 import java.awt.geom.*;
+
+import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.display.*;
 import org.opensourcephysics.media.core.*;
 
@@ -92,13 +94,14 @@ public class TMat implements Measurable, Trackable, PropertyChangeListener {
 		g2.dispose();
 	}
   
-  public void setTrackerPanel(TrackerPanel panel) {
-  	if (panel==null || trackerPanel==panel) return;
-    trackerPanel = panel;
-    trackerPanel.addPropertyChangeListener(Video.PROPERTY_VIDEO_COORDS, this); //$NON-NLS-1$
-    coords = trackerPanel.getCoords();
-    coords.addPropertyChangeListener(ImageCoordSystem.PROPERTY_COORDS_TRANSFORM, this); //$NON-NLS-1$
-  }
+	public void setTrackerPanel(TrackerPanel panel) {
+		if (panel == null || trackerPanel == panel)
+			return;
+		trackerPanel = panel.ref(this);
+		trackerPanel.addPropertyChangeListener(Video.PROPERTY_VIDEO_COORDS, this); // $NON-NLS-1$
+		coords = trackerPanel.getCoords();
+		coords.addPropertyChangeListener(ImageCoordSystem.PROPERTY_COORDS_TRANSFORM, this); // $NON-NLS-1$
+	}
 
   /**
    * Gets the paint.
@@ -289,5 +292,13 @@ public boolean isMeasured() {
     }
     isValidMeasure = true;
   }
+
+
+
+	@Override
+	public void finalize() {
+		OSPLog.finalized(this);
+	}
+
 
 }

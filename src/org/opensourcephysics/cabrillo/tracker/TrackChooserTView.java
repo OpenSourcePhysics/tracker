@@ -38,6 +38,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.swing.BorderFactory;
 import javax.swing.JComboBox;
@@ -91,8 +92,7 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 	private JLabel noDataLabel;
 
 	private int id;
-	
-	
+		
 	protected void setNodataLabel(String text) {
 		noDataLabel.setText(text);
 	}
@@ -108,7 +108,7 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 			// just a place-holder 
 			return;
 		}
-		trackerPanel = panel;
+		trackerPanel = panel.ref(this);
 		init();
 		setBackground(panel.getBackground());
 		// create combobox with custom renderer for tracks
@@ -318,11 +318,13 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 	 */
 	@Override
 	public void dispose() {
+		System.out.println("TrackChoserTV.dispose for " + getClass().getSimpleName());
 		cleanup();
 		if (trackViews == null)
 			return;
-		for (TTrack next : trackViews.keySet()) {
-			trackViews.get(next).dispose();
+		for (Entry<TTrack, TrackView> next : trackViews.entrySet()) {
+			next.getValue().dispose();
+			next.getKey().removeListenerNCF(this);
 		}
 		trackViews.clear();
 		tracks.clear();
@@ -333,7 +335,7 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 
 	@Override
 	public void finalize() {
-		OSPLog.finest(getClass().getSimpleName() + " recycled by garbage collector");
+		OSPLog.finalized(this);
 	}
 
 	/**

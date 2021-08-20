@@ -60,7 +60,7 @@ public class CenterOfMassInspector extends JDialog
   public CenterOfMassInspector(CenterOfMass track) {
     super(JOptionPane.getFrameForComponent(track.trackerPanel), false);
     cm = track;
-    trackerPanel = cm.trackerPanel;
+    trackerPanel = cm.trackerPanel.ref(this);
     if (trackerPanel != null) {
     	trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this); //$NON-NLS-1$
       TFrame frame = trackerPanel.getTFrame();

@@ -86,7 +86,8 @@ public class ThumbnailDialog extends JDialog {
 	protected static boolean settingsOnly;
 
 	// instance fields
-	protected TrackerPanel trackerPanel;
+	protected TFrame frame;
+	protected Integer panelID;
 	protected JButton saveAsButton, closeButton;
 	protected JComponent sizePanel, viewPanel, formatPanel;
 	protected JComboBox<String> formatDropdown, viewDropdown, sizeDropdown;
@@ -147,9 +148,8 @@ public class ThumbnailDialog extends JDialog {
 		}
 
 		settingsOnly = !withSaveButton;
-		if (thumbnailDialog.trackerPanel != panel) {
-			thumbnailDialog.trackerPanel = panel;
-		}
+		thumbnailDialog.panelID = panel.getID();
+		thumbnailDialog.frame = panel.getTFrame();
 		thumbnailDialog.refreshGUI();
 		return thumbnailDialog;
 	}
@@ -173,9 +173,11 @@ public class ThumbnailDialog extends JDialog {
 			}
 			chooser.setFileFilter(fileFilters[i]);
 			chooser.addPropertyChangeListener(JFileChooser.FILE_FILTER_CHANGED_PROPERTY, fileChooserListener);
+			TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
 			String tabName = XML.stripExtension(trackerPanel.getTitle());
+			TFrame frame = trackerPanel.getTFrame();
 			chooser.setSelectedFile(new File(tabName + "_thumbnail." + format)); //$NON-NLS-1$
-			File[] files = TrackerIO.getChooserFilesAsync("save thumbnail", null); //$NON-NLS-1$
+			File[] files = TrackerIO.getChooserFilesAsync(frame, "save thumbnail", null); //$NON-NLS-1$
 			chooser.removePropertyChangeListener(JFileChooser.FILE_FILTER_CHANGED_PROPERTY, fileChooserListener);
 			if (files == null || files.length == 0)
 				return null;
@@ -244,6 +246,7 @@ public class ThumbnailDialog extends JDialog {
 	public void setVisible(boolean vis) {
 		super.setVisible(vis);
 		if (!vis && TFrame.haveExportDialog) {
+			TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
 			ExportZipDialog.thumbnailDialogClosed(trackerPanel);
 		}
 	}
@@ -257,7 +260,8 @@ public class ThumbnailDialog extends JDialog {
 	 */
 	private ThumbnailDialog(TrackerPanel panel) {
 		super(panel.getTFrame(), true);
-		trackerPanel = panel;
+		frame = panel.getTFrame();
+		panelID = panel.getID();
 		setResizable(false);
 		createGUI();
 		refreshGUI();
@@ -385,6 +389,7 @@ public class ThumbnailDialog extends JDialog {
 			formatModel.addElement(format);
 		}
 		formatDropdown.setSelectedIndex(index);
+		TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
 		int lastIndex = trackerPanel.getVideo() == null ? viewNames.length - 2 : viewNames.length - 1;
 		index = Math.min(viewDropdown.getSelectedIndex(), lastIndex);
 		index = Math.max(index, 0);
@@ -408,6 +413,7 @@ public class ThumbnailDialog extends JDialog {
 		Object selectedItem = sizeDropdown.getSelectedItem();
 		sizeDropdown.removeAllItems();
 		sizes.clear();
+		TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
 		switch (viewDropdown.getSelectedIndex()) {
 		case 1: // video and graphics
 			Rectangle bounds = trackerPanel.getMat().mat;
@@ -502,6 +508,7 @@ public class ThumbnailDialog extends JDialog {
 	 */
 	private BufferedImage getThumbnailImage(Dimension size) {
 		BufferedImage rawImage;
+		TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
 		switch (viewDropdown.getSelectedIndex()) {
 		case 1: // video and graphics
 			rawImage = trackerPanel.renderMat();
@@ -554,5 +561,15 @@ public class ThumbnailDialog extends JDialog {
 		}
 		return null;
 	}
+
+	@Override
+	public void dispose() {
+		clear();
+		super.dispose();
+	}
+
+	public void clear() {
+	}
+
 
 }

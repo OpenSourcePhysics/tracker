@@ -131,17 +131,20 @@ public interface TView extends PropertyChangeListener {
 	 * @return false
 	 */
 	default public boolean isViewPaneVisible() {
-		TrackerPanel tp = getTrackerPanel();
+		final TrackerPanel trackerPanel = getTrackerPanel();
 		TFrame tf;
-		if (tp == null || (tf = tp.getTFrame()) == null || tf.getTabCount() == 0)
+		if (trackerPanel == null || (tf = trackerPanel.getTFrame()) == null || tf.getTabCount() == 0)
 			return false;
-		TView[][] views = tf.getTViews(tp);
+		Integer id = trackerPanel.getID();
+		TView[][] views = tf.getTViews(trackerPanel);
+		if (views == null)
+			return false;
 		for (int i = 0; i < views.length; i++) {
 			if (views[i] != null)
 				for (int j = 0; j < views[i].length; j++) {
 					if (views[i][j] == this) {
 						int[] order = (TFrame.isPortraitLayout() ? TFrame.PORTRAIT_VIEW_ORDER : TFrame.DEFAULT_ORDER);
-						return tf.isViewPaneVisible(order[i], tp);
+						return tf.isViewPaneVisible(order[i], id);
 					}
 				}
 		}

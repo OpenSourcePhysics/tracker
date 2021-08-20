@@ -53,6 +53,8 @@ public class ModelBuilder extends FunctionTool {
 	private JComboBox<FTObject> boosterDropdown;
 	private JComboBox<String> solverDropdown;
 
+	private ComponentListener myFollower;
+
 	private static String[] solverClassNames = {
 			"org.opensourcephysics.numerics.RK4", 
 			"org.opensourcephysics.numerics.Euler", 
@@ -65,7 +67,12 @@ public class ModelBuilder extends FunctionTool {
 	 */
 	protected ModelBuilder(TrackerPanel trackerPanel) {
 		super(trackerPanel, false, true);
-		this.trackerPanel = trackerPanel;
+		this.trackerPanel = trackerPanel.ref(this);
+		TFrame frame = trackerPanel.getTFrame();
+		if (frame != null) {
+			myFollower = frame.addFollower(this, null);
+		}
+
 	}
 
 	@Override
@@ -243,27 +250,6 @@ public class ModelBuilder extends FunctionTool {
 		} else {
 			super.propertyChange(e);
 		}
-	}
-
-	@Override
-	public void finalize() {
-		OSPLog.finer(getClass().getSimpleName() + " recycled by garbage collector"); //$NON-NLS-1$
-	}
-
-	@Override
-	public void dispose() {
-		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this); //$NON-NLS-1$
-		ToolsRes.removePropertyChangeListener("locale", this); //$NON-NLS-1$
-		removePropertyChangeListener(PROPERTY_FUNCTIONTOOL_PANEL, trackerPanel); //$NON-NLS-1$
-		for (String key : trackFunctionPanels.keySet()) {
-			FunctionPanel next = trackFunctionPanels.get(key);
-			next.setFunctionTool(null);
-		}
-		clearPanels();
-		selectedPanel = null;
-		trackerPanel.modelBuilder = null;
-		trackerPanel = null;
-		super.dispose();
 	}
 
 	/**
@@ -481,5 +467,32 @@ public class ModelBuilder extends FunctionTool {
 			return dim;
 		}
 	}
+
+	@Override
+	public void dispose() {
+		System.out.println("ModelBuilder.dispose");
+		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this); //$NON-NLS-1$
+		ToolsRes.removePropertyChangeListener("locale", this); //$NON-NLS-1$
+		removePropertyChangeListener(PROPERTY_FUNCTIONTOOL_PANEL, trackerPanel); //$NON-NLS-1$
+		for (String key : trackFunctionPanels.keySet()) {
+			FunctionPanel next = trackFunctionPanels.get(key);
+			next.setFunctionTool(null);
+		}
+		clearPanels();
+		selectedPanel = null;
+		trackerPanel.modelBuilder = null;
+		TFrame frame = trackerPanel.getTFrame();
+		if (frame != null)
+			frame.removeComponentListener(myFollower);
+		myFollower = null;
+		trackerPanel = null;
+		super.dispose();
+	}
+
+	@Override
+	public void finalize() {
+		OSPLog.finalized(this);
+	}
+
 
 }

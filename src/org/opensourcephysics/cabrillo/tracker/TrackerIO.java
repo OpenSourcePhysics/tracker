@@ -421,11 +421,6 @@ public class TrackerIO extends VideoIO {
 		return file;
 	}
 
-	private static Runnable resetChooser = () -> {
-			chooser.resetChoosableFileFilters();
-			chooser.setSelectedFile(null);
-	};
-
 	/**
 	 * A Stop-gap method to allow Java-only functionality.
 	 * 
@@ -434,17 +429,18 @@ public class TrackerIO extends VideoIO {
 	 */
 	@Deprecated
 	public static File[] getChooserFiles(String type) {
-		return getChooserFilesAsync(type, null);
+		return getChooserFilesAsync(null, type, null);
 	}
 
 	/**
 	 * Displays a file chooser and returns the chosen files.
-	 *
+	 * @param frame TODO
 	 * @param type may be open, open video, save, insert image, export file, import
 	 *             file, save tabset, open data, open trk
+	 *
 	 * @return the files, or null if no files chosen
 	 */
-	public static File[] getChooserFilesAsync(String type, Function<File[], Void> processFiles) {
+	public static File[] getChooserFilesAsync(TFrame frame, String type, Function<File[], Void> processFiles) {
 
 		// BH Java will run all this synchronously anyway.
 		AsyncFileChooser chooser = getChooser();
@@ -452,7 +448,15 @@ public class TrackerIO extends VideoIO {
 		chooser.setAcceptAllFileFilterUsed(true);
 		chooser.setAccessory(null);
 
+		Runnable resetChooser = () -> {
+			if (frame != null)
+				frame.setCursor(Cursor.getDefaultCursor());
+			chooser.resetChoosableFileFilters();
+			chooser.setSelectedFile(null);
+		};
 		Runnable okOpen = () -> {
+			if (frame != null)
+			frame.setCursor(Cursor.getDefaultCursor());
 			if (processFiles != null) {
 				File[] files = chooser.getSelectedFiles();
 				File file = chooser.getSelectedFile();
@@ -568,7 +572,7 @@ public class TrackerIO extends VideoIO {
 					: fixXML(chooser));
 			break;
 		default:
-			return getChooserFilesAsync(type, processFiles);
+			return getChooserFilesAsync(frame, type, processFiles);
 		}
 		ret = processChoose(chooser, ret, processFiles != null);
 		if (processFiles == null) {
@@ -749,12 +753,13 @@ public class TrackerIO extends VideoIO {
 		// ExportVideoDialog (Java only)
 		//OSPLog.debug("TrackerIO openTabFileAsync " + file); //$NON-NLS-1$
 		if (file == null) {
-			getChooserFilesAsync("open", (files) -> {
+			getChooserFilesAsync(frame, "open", (files) -> {
 					File f = null;
 					if (files != null) {
 						f = files[0];
 					}
 					if (f == null) {
+						frame.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
 						OSPLog.finer("no file to open"); //$NON-NLS-1$
 					} else {
 //						if (!frame.haveContent()) {
@@ -936,7 +941,8 @@ public class TrackerIO extends VideoIO {
 	 * @param trackerPanel the tracker panel
 	 */
 	public static void importFile(TrackerPanel trackerPanel) {
-		getChooserFilesAsync("import file", new Function<File[], Void>() {
+		TFrame frame = trackerPanel.getTFrame();
+		getChooserFilesAsync(frame, "import file", new Function<File[], Void>() {
 
 			@Override
 			public Void apply(File[] files) {
@@ -1009,7 +1015,8 @@ public class TrackerIO extends VideoIO {
 		JFileChooser chooser = getChooser();
 		chooser.setDialogTitle(TrackerRes.getString("TrackerIO.Dialog.ImportVideo.Title")); //$NON-NLS-1$
 		// 2020.04.03 DB changed chooser to async
-		getChooserFilesAsync("open video", new Function<File[], Void>() {//$NON-NLS-1$
+		TFrame frame = trackerPanel.getTFrame();
+		getChooserFilesAsync(frame, "open video", new Function<File[], Void>() {//$NON-NLS-1$
 
 			@Override
 			public Void apply(File[] files) {
@@ -1189,8 +1196,9 @@ public class TrackerIO extends VideoIO {
 	 */
 	public static void insertImagesIntoVideo(TrackerPanel trackerPanel, int startIndex) {
 		JFileChooser chooser = getChooser();
+		TFrame frame = trackerPanel.getTFrame();
 		chooser.setDialogTitle(TrackerRes.getString("TrackerIO.Dialog.AddImage.Title")); //$NON-NLS-1$
-		getChooserFilesAsync("insert images", new Function<File[], Void>() {
+		getChooserFilesAsync(frame, "insert images", new Function<File[], Void>() {
 
 			@Override
 			public Void apply(File[] files) {
@@ -1280,7 +1288,8 @@ public class TrackerIO extends VideoIO {
 
 				getChooser().setSelectedFile(
 						new File(MediaRes.getString("VideoIO.FileName.Untitled") + "." + defaultXMLExt)); //$NON-NLS-1$ $NON-NLS-2$
-				getChooserFilesAsync("export file", (files) -> {
+				TFrame frame = trackerPanel.getTFrame();
+				getChooserFilesAsync(frame, "export file", (files) -> {
 						if (files == null) {
 							return null;
 						}
@@ -1765,6 +1774,11 @@ public class TrackerIO extends VideoIO {
 		private int videoCount;
 		private boolean ignoreLowMemory;
 		
+		@Override
+		public void finalize() {
+			OSPLog.finalized(this);
+		}
+
 		/**
 		 * 
 		 * @param paths         or more paths to load in sequence
@@ -1831,7 +1845,7 @@ public class TrackerIO extends VideoIO {
 			
 			if (isTRZ || path.indexOf("&TrackerSet=") >= 0) {
 				type = TYPE_TRZ;
-				trackerPanel = frame.getCleanTrackerPanel();
+				trackerPanel = frame.getCleanTrackerPanel().ref(this);
 				frame.holdPainting(true);
 				return true;
 			}
@@ -1843,7 +1857,7 @@ public class TrackerIO extends VideoIO {
 			File testFile = new File(XML.getName(path));			
 			if (videoFileFilter.accept(testFile, false)) {
 				type = TYPE_VIDEO;
-				trackerPanel = (existingPanel == null ? frame.getCleanTrackerPanel() : existingPanel);
+				trackerPanel = (existingPanel == null ? frame.getCleanTrackerPanel() : existingPanel).ref(this);
 				panelChanged = trackerPanel.changed;
 				return true;
 			}
@@ -1859,7 +1873,7 @@ public class TrackerIO extends VideoIO {
 			// check for text data files
 			if (delimitedTextFileFilter.accept(testFile, false)) {
 				type = TYPE_TEXT;
-				trackerPanel = (existingPanel == null ? frame.getCleanTrackerPanel() : existingPanel);
+				trackerPanel = (existingPanel == null ? frame.getCleanTrackerPanel() : existingPanel).ref(this);
 				panelChanged = trackerPanel.changed;
 				return true;
 			}
@@ -1877,7 +1891,7 @@ public class TrackerIO extends VideoIO {
 
 			if (TrackerPanel.class.isAssignableFrom(ctype)) {
 				type = TYPE_TRK;
-				trackerPanel = frame.getCleanTrackerPanel();
+				trackerPanel = frame.getCleanTrackerPanel().ref(this);
 				return true;
 			}
 
@@ -1907,12 +1921,12 @@ public class TrackerIO extends VideoIO {
 				cancelAsync();
 				return PROGRESS_COMPLETE;
 			}
-			try {
-				Thread.sleep(100);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+//			try {
+//				Thread.sleep(100);
+//			} catch (InterruptedException e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+//			}
 //			OSPLog.debug(Performance.timeCheckStr("TrackerIO.asyncLoad " + type + " start " + progress + " " + paths,
 //					Performance.TIME_MARK));
 			// type is set in setupLoader, from initAsync()
@@ -2237,8 +2251,10 @@ public class TrackerIO extends VideoIO {
 			checkDone(false);			
 			// remove empty tab if running in Java
 			if (!OSPRuntime.isJS) {
+				TToolBar tbar = frame.getToolbar(trackerPanel);
 				SwingUtilities.invokeLater(()->{
-					frame.getToolBar(trackerPanel).refresh(TToolBar.REFRESH_TFRAME_REFRESH_TRUE);
+					if (tbar != null)
+						tbar.refresh(TToolBar.REFRESH_TFRAME_REFRESH_TRUE);
 					frame.doTabStateChanged();
 				});
 			}
@@ -2324,7 +2340,6 @@ public class TrackerIO extends VideoIO {
 			} else {
 				finalizeVideoLoading(video);
 			}
-//			trackerPanel.openedFromPath = path;
 			// add video path to recent files
 			Tracker.addRecent(ResourceLoader.getNonURIPath(XML.forwardSlash(path)), false); // add at beginning			
 			return PROGRESS_COMPLETE;

@@ -72,6 +72,13 @@ public class MainTView extends JPanel implements TView {
 	private JToolBar playerBar;
 	private MouseAdapter mouseAdapter;
 	KeyAdapter keyAdapter;
+	Dimension lastDim;
+	private ComponentAdapter listener = new ComponentAdapter() {
+		@Override
+		public void componentResized(ComponentEvent e) {
+			doResized();
+		}
+	};
 	
 	/**
 	 * Constructs a main view of a tracker panel.
@@ -79,36 +86,25 @@ public class MainTView extends JPanel implements TView {
 	 * @param panel the tracker panel
 	 */
 	public MainTView(TrackerPanel panel) {
-		trackerPanel = panel;
+		trackerPanel = panel.ref(this);
 		init();
 		setLayout(new BorderLayout());
+		playerBar = new JToolBar();
+		add(playerBar, BorderLayout.SOUTH);
 		scrollPane = new JScrollPane();
-		scrollPane.addComponentListener(new ComponentAdapter() {
-			Dimension lastDim;
-			@Override
-			public void componentResized(ComponentEvent e) {
-				if (!getTopLevelAncestor().isVisible())
-					return;
-				Dimension d;
-				if ((d = scrollPane.getSize()).equals(lastDim))
-					return;
-				lastDim = d;
-				TToolBar.getToolbar(trackerPanel).refreshZoomButton();
-				trackerPanel.eraseAll();
-			//OSPLog.debug("MainTView testing no repaint");	
-			//TFrame.repaintT(trackerPanel);
-			}
-		});
+		scrollPane.addComponentListener(listener);
 		SwingUtilities.replaceUIActionMap(scrollPane, null);
 		add(scrollPane, BorderLayout.CENTER);
 		
 		// add trackbar north
-		add(TTrackBar.getTrackbar(trackerPanel), BorderLayout.NORTH);
+		
+		//TEST_BH MEMORY LEAK HERE
+		TTrackBar tbar = TTrackBar.getTrackbar(trackerPanel);
+		if (tbar != null)
+			add(tbar, BorderLayout.NORTH);
 
 		// add player to the playerBar
-		playerBar = new JToolBar();
 		playerBar.setFloatable(false);
-		add(playerBar, BorderLayout.SOUTH);
 		trackerPanel.getPlayer().setBorder(null);
 		trackerPanel.setPlayerVisible(false);
 		playerBar.add(trackerPanel.getPlayer());
@@ -165,7 +161,7 @@ public class MainTView extends JPanel implements TView {
 		keyAdapter = new KeyAdapter() {
 			@Override
 			public void keyPressed(KeyEvent e) {
-				JButton z = trackerPanel.getTFrame().getToolBar(trackerPanel).zoomButton;
+				JButton z = trackerPanel.getTFrame().getToolbar(trackerPanel).zoomButton;
 				int d = trackerPanel.getSelectedPoint() == null ? 10 : 0;
 				Rectangle rect = scrollPane.getViewport().getViewRect();
 				switch (e.getKeyCode()) {
@@ -239,7 +235,7 @@ public class MainTView extends JPanel implements TView {
 
 			@Override
 			public void keyReleased(final KeyEvent e) {
-				final JButton z = trackerPanel.getTFrame().getToolBar(trackerPanel).zoomButton;
+				final JButton z = trackerPanel.getTFrame().getToolbar(trackerPanel).zoomButton;
 				if (e.getKeyCode() == KeyEvent.VK_Z) {
 					z.setSelected(false);
 					trackerPanel.setCursor(Cursor.getDefaultCursor());
@@ -264,6 +260,19 @@ public class MainTView extends JPanel implements TView {
 		trackerPanel.addMouseWheelListener(mouseAdapter);
 		trackerPanel.addKeyListener(keyAdapter);
 
+	}
+
+	protected void doResized() {
+		if (!getTopLevelAncestor().isVisible())
+			return;
+		Dimension d;
+		if ((d = scrollPane.getSize()).equals(lastDim))
+			return;
+		lastDim = d;
+		TToolBar tbar = TToolBar.getToolbar(trackerPanel);
+		if (tbar != null)
+			tbar.refreshZoomButton();
+		trackerPanel.eraseAll();
 	}
 
 	/**
@@ -401,6 +410,7 @@ public class MainTView extends JPanel implements TView {
 		}
 		playerBar.removeAll();
 		playerBar = null;
+		trackerPanel.clearTemp();
 
 		// DB! maybe don't need below here
 		// remove mouse and key listeners
@@ -408,15 +418,17 @@ public class MainTView extends JPanel implements TView {
 		trackerPanel.removeMouseWheelListener(mouseAdapter);
 		trackerPanel.removeKeyListener(keyAdapter);
 
+		mouseAdapter = null;
+		keyAdapter = null;
+
+		scrollPane.removeComponentListener(listener);
+		trackerPanel.setScrollPane(null);
+
+		listener = null;
 		scrollPane.setViewportView(null);
 		scrollPane = null;
 		removeAll();
 		trackerPanel = null;
-	}
-
-	@Override
-	public void finalize() {
-		OSPLog.finer(getClass().getSimpleName() + " recycled by garbage collector"); //$NON-NLS-1$
 	}
 
 	/**
@@ -610,6 +622,11 @@ public class MainTView extends JPanel implements TView {
 	@Override
 	public void refreshPopup(JPopupMenu popup) {
 		// does nothing
+	}
+
+	@Override
+	public void finalize() {
+		OSPLog.finalized(this);
 	}
 
 

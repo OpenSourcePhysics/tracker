@@ -99,6 +99,7 @@ public class XuggleVideoRecorder extends ScratchVideoRecorder {
    */
 	@Override
   protected void finalize() {
+		//BH ??
   	reset();
   }
   

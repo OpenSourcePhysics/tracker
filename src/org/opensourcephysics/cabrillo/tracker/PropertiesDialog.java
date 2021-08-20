@@ -96,7 +96,7 @@ public class PropertiesDialog extends JDialog {
    */
   public PropertiesDialog(TrackerPanel panel) {
     super(panel.getTFrame(), true);
-    trackerPanel = panel;
+    trackerPanel = panel.ref(this);
     createGUI();
     setFontLevel(FontSizer.getLevel());
     setLabelSizes();

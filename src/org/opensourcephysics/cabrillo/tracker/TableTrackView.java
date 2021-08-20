@@ -33,6 +33,7 @@ import java.awt.GridLayout;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ComponentListener;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 import java.awt.event.KeyAdapter;
@@ -2246,6 +2247,7 @@ public class TableTrackView extends TrackView {
 		};
 
 		private boolean haveGUI;
+		private ComponentListener myFollower;
 
 		private ColumnsDialog(TFrame frame, TTrack track) {
 			super(frame, false);
@@ -2274,7 +2276,7 @@ public class TableTrackView extends TrackView {
 		}
 
 		private void createGUI() {
-			((TFrame) getOwner()).addFollower(this, null);
+			myFollower = ((TFrame) getOwner()).addFollower(this, null);
 			haveGUI = true;
 			columnsPanel = new JPanel();
 			columnsPanel.setBackground(Color.WHITE);
@@ -2440,7 +2442,8 @@ public class TableTrackView extends TrackView {
 		@Override
 		public void dispose() {
 			columnsPanel.removeAll();
-
+			((TFrame) getOwner()).removeComponentListener(myFollower);
+			myFollower = null;
 		}
 
 	}
@@ -2449,5 +2452,11 @@ public class TableTrackView extends TrackView {
 	protected boolean isRefreshEnabled() {
 		return super.isRefreshEnabled() && Tracker.allowTableRefresh;
 	}
+
+	@Override
+	public void finalize() {
+		OSPLog.finalized(this);
+	}
+
 
 }

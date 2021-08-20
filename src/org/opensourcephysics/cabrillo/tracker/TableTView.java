@@ -35,6 +35,7 @@ import javax.swing.JPopupMenu;
 import javax.swing.SwingUtilities;
 import javax.swing.table.TableColumnModel;
 
+import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.display.DataTable;
@@ -485,5 +486,16 @@ public class TableTView extends TrackChooserTView {
 	@Override
 	protected void refreshMenus() {
 	}
+
+	public void dispose() {
+		trackerPanel.getTFrame().removePropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, this); 
+		super.dispose();
+	}
+	
+	@Override
+	public void finalize() {
+		OSPLog.finalized(this);
+	}
+
 
 }

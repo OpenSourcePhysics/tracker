@@ -49,7 +49,7 @@ public class PasteDataDialog extends JDialog {
    */
   public PasteDataDialog(TrackerPanel panel) {
     super(panel.getTFrame(), true);
-    trackerPanel = panel;
+    trackerPanel = panel.ref(this);
     createGUI();
     setFontLevel(FontSizer.getLevel());
     pack();

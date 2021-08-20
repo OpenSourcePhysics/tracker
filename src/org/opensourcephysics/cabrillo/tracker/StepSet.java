@@ -27,6 +27,7 @@ package org.opensourcephysics.cabrillo.tracker;
 import java.util.ArrayList;
 import java.util.HashSet;
 
+import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.controls.XMLControlElement;
@@ -53,7 +54,7 @@ public class StepSet extends HashSet<Step> {
    * @param panel the TrackerPanel that draws the Steps
    */
 	public StepSet(TrackerPanel panel) {
-		trackerPanel = panel;
+		trackerPanel = panel.ref(this);
 	}
 	
   /**
@@ -319,5 +320,10 @@ public class StepSet extends HashSet<Step> {
 			return obj;
 		}
   }
+
+	@Override
+	public void finalize() {
+		OSPLog.finalized(this);
+	}
 
 }

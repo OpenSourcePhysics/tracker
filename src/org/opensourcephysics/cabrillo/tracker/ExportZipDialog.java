@@ -49,7 +49,7 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Random;
@@ -136,7 +136,8 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 	 *
 	 */
 	private class Export {
-		private TrackerPanel panel;
+		private TFrame frame;
+		private Integer panelID;
 
 		private String name;
 		private String originalVideoPath;
@@ -154,7 +155,8 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 				String trkPath, String videoTarget, ExportVideoDialog exporter) {
 			this.name = name;
 			this.zipList = zipList;
-			this.panel = panel;
+			this.panelID = panel.getID();
+			this.frame = panel.getTFrame();
 			this.originalVideoPath = originalPath;
 			this.videoTarget = videoTarget;
 			this.trkPath = trkPath;
@@ -169,7 +171,8 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 			if (exporter != null) {
 				String extension = TrackerIO.videoFormats.get(formatDropdown.getSelectedItem()).getDefaultExtension();
 				videoTarget = getVideoTarget(XML.getName(trkPath), extension);
-				exporter.setTrackerPanel(panel);
+				TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
+				exporter.setTrackerPanel(trackerPanel);
 				exporter.setFormat((String) formatDropdown.getSelectedItem());
 				// listen for cancel or saved events
 				listener = new PropertyChangeListener() {
@@ -197,6 +200,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 			}
 			
 			// if image video, then copy/extract additional image files
+			TrackerPanel panel = frame.getTrackerPanelForID(panelID);
 			Video vid = panel.getVideo();
 			if (vid instanceof ImageVideo) {
 				ImageVideo imageVid = (ImageVideo) vid;
@@ -260,6 +264,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 			}
 
 			// create and modify TrackerPanel XMLControl
+			TrackerPanel panel = frame.getTrackerPanelForID(panelID);
 			XMLControl control = new XMLControlElement(panel);
 			// modify video path, clip settings of XMLControl
 			if (exporter != null) {
@@ -296,6 +301,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 		 * @param control the XMLControl to be modified
 		 */
 		private void modifyControlForClip(XMLControl control) {
+			TrackerPanel panel = frame.getTrackerPanelForID(panelID);
 			VideoPlayer player = panel.getPlayer();
 
 			// videoclip--convert frame count, start frame, step size and frame shift but
@@ -590,7 +596,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 		TFrame.haveExportDialog = true;
 	}
 	// static fields
-	private static Map<TrackerPanel, ExportZipDialog> zipDialogs = new HashMap<TrackerPanel, ExportZipDialog>();
+	private static Map<Integer, ExportZipDialog> zipDialogs = new IdentityHashMap<>();
 	protected static String videoSubdirectory = "videos"; //$NON-NLS-1$
 	protected static String htmlSubdirectory = "html"; //$NON-NLS-1$
 	protected static String imageSubdirectory = "images"; //$NON-NLS-1$
@@ -649,11 +655,11 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 	 * @return the ExportZipDialog
 	 */
 	public static synchronized ExportZipDialog getDialog(TrackerPanel panel) {
-		ExportZipDialog dialog = zipDialogs.get(panel);
+		ExportZipDialog dialog = zipDialogs.get(panel.getID());
 
 		if (dialog == null) {
 			dialog = new ExportZipDialog(panel);
-			zipDialogs.put(panel, dialog);
+			zipDialogs.put(panel.getID(), dialog);
 			dialog.setResizable(false);
 			dialog.frame.addPropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, dialog); // $NON-NLS-1$
 			dialog.setFontLevel(FontSizer.getLevel());
@@ -732,7 +738,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 	 * @return true if the ExportZipDialog exists
 	 */
 	public static boolean hasDialog(TrackerPanel panel) {
-		return zipDialogs.get(panel) != null;
+		return zipDialogs.get(panel.getID()) != null;
 	}
 
 	/**
@@ -798,7 +804,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 				setVisible(isVisible);
 			} else if (e.getNewValue() == null && e.getOldValue() == trackerPanel) {
 				// tab was removed, so dispose
-				dispose(trackerPanel);
+				clear(trackerPanel);
 			} else {
 				boolean vis = isVisible;
 				setVisible(false);
@@ -812,8 +818,8 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 	 * 
 	 * @param panel the TrackerPanel
 	 */
-	public static synchronized void dispose(TrackerPanel panel) {
-		ExportZipDialog dialog = zipDialogs.remove(panel);
+	public static synchronized void clear(TrackerPanel panel) {
+		ExportZipDialog dialog = zipDialogs.remove(panel.getID());
 		if (dialog != null) {
 			dialog.setVisible(false);
 			dialog.frame.removePropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, dialog); // $NON-NLS-1$
@@ -827,9 +833,8 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 	 * @param level the font level
 	 */
 	public static void setFontLevels(int level) {
-		for (TrackerPanel panel : zipDialogs.keySet()) {
-			ExportZipDialog next = zipDialogs.get(panel);
-			next.setFontLevel(level);
+		for (ExportZipDialog d : zipDialogs.values()) {
+			d.setFontLevel(level);
 		}
 	}
 
@@ -842,7 +847,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 	 */
 	private ExportZipDialog(TrackerPanel panel) {
 		super(panel.getTFrame(), false);
-		trackerPanel = panel;
+		trackerPanel = panel.ref(this);
 		frame = panel.getTFrame();
 //		videoExporter = ExportVideoDialog.getDialog(panel);
 		createGUI();
@@ -1108,7 +1113,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 					chooser.setFileFilter(LaunchBuilder.getPDFFilter());
 				}
 
-				TrackerIO.getChooserFilesAsync("open any", new Function<File[], Void>() { //$NON-NLS-1$
+				TrackerIO.getChooserFilesAsync(frame, "open any", new Function<File[], Void>() { //$NON-NLS-1$
 
 					@Override
 					public Void apply(File[] files) {
@@ -1249,7 +1254,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 				chooser.setDialogTitle(TrackerRes.getString("ZipResourceDialog.FileChooser.OpenHTML.Title")); //$NON-NLS-1$
 				chooser.setFileFilter(LaunchBuilder.getHTMLFilter());
 
-				File[] files = TrackerIO.getChooserFilesAsync("open any", new Function<File[], Void>() { //$NON-NLS-1$
+				File[] files = TrackerIO.getChooserFilesAsync(frame, "open any", new Function<File[], Void>() { //$NON-NLS-1$
 
 					@Override
 					public Void apply(File[] files) {

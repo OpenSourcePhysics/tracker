@@ -66,7 +66,7 @@ public class VectorStep extends Step implements PropertyChangeListener {
 	protected static boolean pointSnapEnabled = true;
 	protected static boolean vectorSnapEnabled = true;
 	protected static double snapDistance = 8;
-	private static Map<String, List<VectorStep>> vectors = new HashMap<String, List<VectorStep>>();
+	private static Map<Integer, List<VectorStep>> vectors = new HashMap<>();
 	protected TPoint tipPoint = new TPoint(); // used for layout position
 	protected TPoint tailPoint = new TPoint(); // used for layout position
 
@@ -311,7 +311,7 @@ public class VectorStep extends Step implements PropertyChangeListener {
 			if (getTrack() instanceof VectorSum)
 				return;
 			// try to link to other vectors
-			List<VectorStep> c = vectors.get(trackerPanel.id);
+			List<VectorStep> c = vectors.get(trackerPanel.getID());
 			if (c != null) {
 				for (int i = 0, n = c.size(); i < n; i++) {
 					VectorStep vec = c.get(i);
@@ -418,9 +418,9 @@ public class VectorStep extends Step implements PropertyChangeListener {
 				brandNew = false;
 			}
 			super.draw(trackerPanel, g);
-			List<VectorStep> c = vectors.get(trackerPanel.id);
+			List<VectorStep> c = vectors.get(trackerPanel.getID());
 			if (c == null) {
-				vectors.put(trackerPanel.id, c = new ArrayList<VectorStep>());
+				vectors.put(trackerPanel.getID(), c = new ArrayList<VectorStep>());
 			}
 			if (!c.contains(this))
 				c.add(this);

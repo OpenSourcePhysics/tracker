@@ -68,7 +68,7 @@ public class PencilScene implements Interactive, Trackable, Comparable<PencilSce
 	  	// don't draw on World Views
 	  	if (!trackerPanel.isDrawingInImageSpace()) return;
 	  	if (this.trackerPanel==null) {
-	  		this.trackerPanel = trackerPanel;
+	  		this.trackerPanel = trackerPanel.ref(this);
 	  	}
 	  	if (!includesFrame(trackerPanel.getFrameNumber())) {
 	  		return;

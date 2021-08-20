@@ -107,7 +107,7 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
 		// don't set selectedType here--it is set in setSelectedViewType()
 		//OSPLog.debug(Performance.timeCheckStr("TViewChooser " + type, Performance.TIME_MARK));
 
-		trackerPanel = panel;
+		trackerPanel = panel.ref(this);
 		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this); // $NON-NLS-1$
 		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR, this); // $NON-NLS-1$
 		// viewPanel
@@ -461,6 +461,7 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
 		viewPanel.removeAll();
 		toolbar.removeAll();
 		trackerPanel = null;
+		
 	}
 
 	/**
@@ -675,6 +676,12 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
 	public static boolean isSelectedView(TView view) {
 			TViewChooser c = getChooserParent((Container) view);
 			return (c != null && view == c.getSelectedView());
+	}
+
+	@Override
+	public void finalize() {
+		//		OSPLog.finer
+		System.out.println(getClass().getSimpleName() + " " + getName() + " finalized"); //$NON-NLS-1$
 	}
 
 }

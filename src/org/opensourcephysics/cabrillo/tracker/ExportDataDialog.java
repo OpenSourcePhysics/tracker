@@ -79,7 +79,8 @@ public class ExportDataDialog extends JDialog {
 	protected static ExportDataDialog dataExporter; // singleton
 
 	// instance fields
-	protected TrackerPanel trackerPanel;
+	protected TFrame frame;
+	protected Integer panelID;
 	protected JButton saveAsButton, closeButton;
 	protected JComponent tablePanel, delimiterPanel, contentPanel, formatPanel;
 	protected JComboBox<String> formatDropdown;
@@ -100,7 +101,10 @@ public class ExportDataDialog extends JDialog {
 		if (dataExporter == null) {
 			dataExporter = new ExportDataDialog(panel);
 		} else {
-			dataExporter.trackerPanel = panel;
+			// MEMORY LEAK HERE -- permanent static reference to a panel
+			//dataExporter.trackerPanel = panel;
+			dataExporter.frame = panel.getTFrame();
+			dataExporter.panelID = panel.getID();
 			dataExporter.refreshGUI();
 		}
 		return dataExporter;
@@ -112,8 +116,9 @@ public class ExportDataDialog extends JDialog {
 	 * @param panel a TrackerPanel to supply the images
 	 */
 	private ExportDataDialog(TrackerPanel panel) {
-		super(JOptionPane.getFrameForComponent(panel), true);
-		trackerPanel = panel;
+		super(panel.getTFrame(), true);
+		frame = panel.getTFrame();
+		panelID = panel.getID();
 		setResizable(false);
 		createGUI();
 		refreshGUI();
@@ -184,7 +189,7 @@ public class ExportDataDialog extends JDialog {
 			public void actionPerformed(ActionEvent e) {
 				JFileChooser chooser = TrackerIO.getChooser();
 				chooser.setSelectedFile(lastTXT); //$NON-NLS-1$
-				TrackerIO.getChooserFilesAsync("save data", new Function<File[], Void>() { // $NON-NLS-1$
+				TrackerIO.getChooserFilesAsync(frame, "save data", new Function<File[], Void>() { // $NON-NLS-1$
 
 					@Override
 					public Void apply(File[] files) {
@@ -339,25 +344,25 @@ public class ExportDataDialog extends JDialog {
 		// tables
 		selectedItem = tableDropdown.getSelectedItem();
 		tableDropdown.removeAllItems();
-		TViewChooser[] choosers = trackerPanel.getTFrame().getViewChoosers(trackerPanel);
 		boolean hasSelection = false;
+		TViewChooser[] choosers = frame.getVisibleChoosers(panelID);
 		for (int i = 0; i < choosers.length; i++) {
-			if (trackerPanel.getTFrame().isViewPaneVisible(i, trackerPanel)) {
-				String number = " (" + (i + 1) + ")"; //$NON-NLS-1$ //$NON-NLS-2$
-				TView view = choosers[i].getSelectedView();
-				if (view.getViewType() == TView.VIEW_TABLE) {
-					TableTView tableTView = (TableTView) view;
-					TTrack track = tableTView.getSelectedTrack();
-					if (track != null) {
-						s = track.getName() + number;
-						TableTrackView trackView = (TableTrackView) tableTView.getTrackView(track);
-						trackNames.put(trackView.dataTable, track.getName());
-						tables.put(s, trackView.dataTable);
-						tableDropdown.addItem(s);
-						int[] selectedRows = trackView.dataTable.getSelectedRows();
-						if (selectedRows.length > 0) {
-							hasSelection = true;
-						}
+			if (choosers[i] == null)
+				continue;
+			String number = " (" + (i + 1) + ")"; //$NON-NLS-1$ //$NON-NLS-2$
+			TView view = choosers[i].getSelectedView();
+			if (view.getViewType() == TView.VIEW_TABLE) {
+				TableTView tableTView = (TableTView) view;
+				TTrack track = tableTView.getSelectedTrack();
+				if (track != null) {
+					s = track.getName() + number;
+					TableTrackView trackView = (TableTrackView) tableTView.getTrackView(track);
+					trackNames.put(trackView.dataTable, track.getName());
+					tables.put(s, trackView.dataTable);
+					tableDropdown.addItem(s);
+					int[] selectedRows = trackView.dataTable.getSelectedRows();
+					if (selectedRows.length > 0) {
+						hasSelection = true;
 					}
 				}
 			}
@@ -395,7 +400,7 @@ public class ExportDataDialog extends JDialog {
 	 */
 	public String write(File file, String content) {
 		if (file.exists() && !file.canWrite()) {
-			JOptionPane.showMessageDialog(trackerPanel, ControlsRes.getString("Dialog.ReadOnly.Message"), //$NON-NLS-1$
+			JOptionPane.showMessageDialog(frame, ControlsRes.getString("Dialog.ReadOnly.Message"), //$NON-NLS-1$
 					ControlsRes.getString("Dialog.ReadOnly.Title"), //$NON-NLS-1$
 					JOptionPane.PLAIN_MESSAGE);
 			return null;
@@ -435,4 +440,20 @@ public class ExportDataDialog extends JDialog {
 			return renderer.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
 		}
 	}
+
+	public void clear() {
+		frame = null;
+		panelID = null;
+		tableDropdown.removeAllItems();
+		tables.clear();
+		trackNames.clear();
+	}
+	
+	@Override
+	public void dispose() {
+		clear();
+		super.dispose();
+	}
+
+
 }

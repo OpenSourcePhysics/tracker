@@ -71,6 +71,7 @@ public class AttachmentDialog extends JDialog implements PropertyChangeListener 
 	protected IntegerField startField, countField;
 	protected JLabel startLabel, countLabel;
 	protected boolean refreshing;
+	private ComponentListener myFollower;
 
 	private static final String[] panelProps = new String[] { 
 			TrackerPanel.PROPERTY_TRACKERPANEL_TRACK,
@@ -86,13 +87,13 @@ public class AttachmentDialog extends JDialog implements PropertyChangeListener 
 	 */
 	public AttachmentDialog(TTrack track) {
 		super(JOptionPane.getFrameForComponent(track.trackerPanel), false);
-		trackerPanel = track.trackerPanel;
+		trackerPanel = track.trackerPanel.ref(this);
 		createGUI();
 		setMeasuringTool(track);
 		refreshDropdowns();
 		trackerPanel.addListeners(panelProps, this);
-		TFrame frame = trackerPanel.getTFrame();
-		frame.addFollower(this, null);
+		TFrame frame = trackerPanel.getTFrame();		
+		myFollower = frame.addFollower(this, null);
 		frame.addPropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, this); // $NON-NLS-1$
 		refreshGUI();
 	}
@@ -196,7 +197,9 @@ public class AttachmentDialog extends JDialog implements PropertyChangeListener 
 			}
 			TFrame frame = trackerPanel.getTFrame();
 			if (frame != null) {
-				frame.removePropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, this); //$NON-NLS-1$
+				frame.removePropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, this);
+				frame.removeComponentListener(myFollower);
+				myFollower = null;
 			}
 			trackerPanel.attachmentDialog = null;
 			trackerPanel = null;
