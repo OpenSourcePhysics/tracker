@@ -104,14 +104,6 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 	private static final int VAR_NAME_NULL = Integer.MIN_VALUE;
 	private static final int VAR_NOT_FOUND = -2;
 
-	@Override
-	public void repaint() {
-		if (trackerPanel == null || !trackerPanel.isPaintable()) {
-			return;
-		}
-		super.repaint();
-	}
-
 	// instance fields
 	protected TrackerPanel trackerPanel;
 	protected int trackID;
@@ -1249,22 +1241,6 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 		player.addPropertyChangeListener(VideoPlayer.PROPERTY_VIDEOPLAYER_STEPNUMBER, playerListener); //$NON-NLS-1$
 	}
 
-	@Override
-	protected void dispose() {
-		if (playerListener != null) {
-			plotTrackView.trackerPanel.getPlayer()
-					.removePropertyChangeListener(VideoPlayer.PROPERTY_VIDEOPLAYER_STEPNUMBER, playerListener); // $NON-NLS-1$
-		}
-		for (TTrack guest : guests) {
-			guest.removeStepListener(plotTrackView); // $NON-NLS-1$
-		}
-		guests.clear();
-		guestDatasets.clear();
-		datasetManager = null;
-		plotTrackView = null;
-		trackerPanel = null;
-	}
-
 	/**
 	 * Calculates the mean of a data array.
 	 *
@@ -1946,14 +1922,44 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 	}
 
 	@Override
-	public String toString() {
-		return "[TrackPlottingPanel " + id + " " + TTrack.getTrack(trackID).getName() + " " + yName + " vs. " + xName + " ]"; 
+	public void repaint() {
+		if (trackerPanel == null || !trackerPanel.isPaintable()) {
+			return;
+		}
+		super.repaint();
 	}
-	
+
+
+	@Override
+	protected void dispose() {
+		System.out.println("TrackPlottingPanel.dispose");
+		if (playerListener != null) {
+			plotTrackView.trackerPanel.getPlayer()
+					.removePropertyChangeListener(VideoPlayer.PROPERTY_VIDEOPLAYER_STEPNUMBER, playerListener); // $NON-NLS-1$
+		}
+		for (TTrack guest : guests) {
+			guest.removeStepListener(plotTrackView); // $NON-NLS-1$
+		}
+		guests.clear();
+		guestDatasets.clear();
+		datasetManager = null;
+		plotTrackView = null;
+		trackerPanel = null;
+		
+		// MEMORY LEAK -- was missing super.dispose()
+		super.dispose();
+	}
+
 	@Override
 	public void finalize() {
 		OSPLog.finalized(this);
 	}
 
+	@Override
+	public String toString() {
+		return "[TrackPlottingPanel " + id + " " + TTrack.getTrack(trackID).getName() + " " + yName + " vs. " + xName + " ]"; 
+	}
 
+
+	
 }
