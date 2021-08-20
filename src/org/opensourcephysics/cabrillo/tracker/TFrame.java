@@ -2632,13 +2632,15 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			fileMenu.add(recentMenu);
 			fileMenu.addMenuListener(new MenuListener() {
 
-				@Override
-				public void menuSelected(MenuEvent e) {
-					System.gc();//TEST_BH
+			@Override
+			public void menuSelected(MenuEvent e) {
+				if (!OSPRuntime.isJS) {
+					System.gc();// TEST_BH
 					System.out.println("TFrame " + OSPRuntime.getMemoryStr());
 					System.gc();
-					refreshOpenRecentMenu(recentMenu);
 				}
+				refreshOpenRecentMenu(recentMenu);
+			}
 
 				@Override
 				public void menuDeselected(MenuEvent e) {
