@@ -49,7 +49,7 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Random;
@@ -596,7 +596,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 		TFrame.haveExportDialog = true;
 	}
 	// static fields
-	private static Map<Integer, ExportZipDialog> zipDialogs = new HashMap<>();
+	private static Map<Integer, ExportZipDialog> zipDialogs = new IdentityHashMap<>();
 	protected static String videoSubdirectory = "videos"; //$NON-NLS-1$
 	protected static String htmlSubdirectory = "html"; //$NON-NLS-1$
 	protected static String imageSubdirectory = "images"; //$NON-NLS-1$
