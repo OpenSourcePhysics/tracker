@@ -46,6 +46,7 @@ import java.beans.PropertyChangeEvent;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.IdentityHashMap;
 import java.util.Map;
 import java.util.TreeSet;
 
@@ -362,16 +363,16 @@ public class PointMass extends TTrack {
 	protected Footprint[] aFootprints;
 	protected Footprint aFootprint = LineFootprint.getFootprint("Footprint.Arrow"); //$NON-NLS-1$
 	private ArrayList<TrackerPanel> tList = new ArrayList<>();
-	private Map<String, StepArray> vMap // trackerPanel to StepArray
-			= new HashMap<>();
-	private Map<String, StepArray> aMap // trackerPanel to StepArray
-			= new HashMap<>();
-	private Map<String, Boolean> xVisMap // trackerPanel to Boolean
-			= new HashMap<>();
-	private Map<String, Boolean> vVisMap // trackerPanel to Boolean
-			= new HashMap<>();
-	private Map<String, Boolean> aVisMap // trackerPanel to Boolean
-			= new HashMap<>();
+	private Map<Integer, StepArray> vMap // trackerPanel to StepArray
+			= new IdentityHashMap<>();
+	private Map<Integer, StepArray> aMap // trackerPanel to StepArray
+			= new IdentityHashMap<>();
+	private Map<Integer, Boolean> xVisMap // trackerPanel to Boolean
+			= new IdentityHashMap<>();
+	private Map<Integer, Boolean> vVisMap // trackerPanel to Boolean
+			= new IdentityHashMap<>();
+	private Map<Integer, Boolean> aVisMap // trackerPanel to Boolean
+			= new IdentityHashMap<>();
 	protected boolean xVisibleOnAll = false;
 	protected boolean vVisibleOnAll = false;
 	protected boolean aVisibleOnAll = false;
@@ -1692,7 +1693,7 @@ public class PointMass extends TTrack {
 	public void setVVisible(TrackerPanel trackerPanel, boolean visible) {
 		if (visible == isVVisible(trackerPanel))
 			return;
-		vVisMap.put(trackerPanel.id, Boolean.valueOf(visible));
+		vVisMap.put(trackerPanel.getID(), Boolean.valueOf(visible));
 //    if (visible) updateDerivatives();
 		if (!visible) {
 			Step step = trackerPanel.getSelectedStep();
@@ -1712,13 +1713,11 @@ public class PointMass extends TTrack {
 	public boolean isVVisible(TrackerPanel trackerPanel) {
 		if (vVisibleOnAll)
 			return true;
-		if (trackerPanel instanceof WorldTView) {
-			trackerPanel = ((WorldTView) trackerPanel).getTrackerPanel();
-		}
-		Boolean vis = vVisMap.get(trackerPanel.id);
+		trackerPanel = trackerPanel.getTruePanel();
+		Boolean vis = vVisMap.get(trackerPanel.getID());
 		if (vis == null) {
 			vis = Boolean.valueOf(false); // not visible by default
-			vVisMap.put(trackerPanel.id, vis);
+			vVisMap.put(trackerPanel.getID(), vis);
 		}
 		return vis.booleanValue();
 	}
@@ -1767,10 +1766,10 @@ public class PointMass extends TTrack {
 	 * @param visible      <code>true</code> to show positions
 	 */
 	public void setPositionVisible(TrackerPanel trackerPanel, boolean visible) {
-		Boolean vis = xVisMap.get(trackerPanel.id);
+		Boolean vis = xVisMap.get(trackerPanel.getID());
 		if (vis != null && vis.booleanValue() == visible)
 			return;
-		xVisMap.put(trackerPanel.id, Boolean.valueOf(visible));
+		xVisMap.put(trackerPanel.getID(), Boolean.valueOf(visible));
 		if (!visible) {
 			Step step = trackerPanel.getSelectedStep();
 			if (step != null && step == getStep(step.getFrameNumber())) {
@@ -1789,13 +1788,11 @@ public class PointMass extends TTrack {
 	public boolean isPositionVisible(TrackerPanel trackerPanel) {
 		if (xVisibleOnAll)
 			return true;
-		if (trackerPanel instanceof WorldTView) {
-			trackerPanel = ((WorldTView) trackerPanel).getTrackerPanel();
-		}
-		Boolean vis = xVisMap.get(trackerPanel.id);
+		trackerPanel = trackerPanel.getTruePanel();
+		Boolean vis = xVisMap.get(trackerPanel.getID());
 		if (vis == null) {
 			vis = Boolean.valueOf(true); // positions are visible by default
-			xVisMap.put(trackerPanel.id, vis);
+			xVisMap.put(trackerPanel.getID(), vis);
 		}
 		return vis.booleanValue();
 	}
@@ -1849,7 +1846,7 @@ public class PointMass extends TTrack {
 	public void setAVisible(TrackerPanel trackerPanel, boolean visible) {
 		if (visible == isAVisible(trackerPanel))
 			return;
-		aVisMap.put(trackerPanel.id, Boolean.valueOf(visible));
+		aVisMap.put(trackerPanel.getID(), Boolean.valueOf(visible));
 //    if (visible) updateDerivatives();
 		if (!visible) {
 			Step step = trackerPanel.getSelectedStep();
@@ -1869,13 +1866,11 @@ public class PointMass extends TTrack {
 	public boolean isAVisible(TrackerPanel trackerPanel) {
 		if (aVisibleOnAll)
 			return true;
-		if (trackerPanel instanceof WorldTView) {
-			trackerPanel = ((WorldTView) trackerPanel).getTrackerPanel();
-		}
-		Boolean vis = aVisMap.get(trackerPanel.id);
+		trackerPanel = trackerPanel.getTruePanel();
+		Boolean vis = aVisMap.get(trackerPanel.getID());
 		if (vis == null) {
 			vis = Boolean.valueOf(false); // not visible by default
-			aVisMap.put(trackerPanel.id, vis);
+			aVisMap.put(trackerPanel.getID(), vis);
 		}
 		return vis.booleanValue();
 	}
@@ -2155,7 +2150,7 @@ public class PointMass extends TTrack {
 		}
 
 		// create, delete and/or set components of velocity vectors
-		StepArray array = vMap.get(trackerPanel.id);
+		StepArray array = vMap.get(trackerPanel.getID());
 		int endFrame = startFrame + (stepCount - 1) * clip.getStepSize();
 		int end = Math.min(endFrame, xDeriv1.length - 1);
 		for (int n = startFrame; n <= end; n++) {
@@ -2192,7 +2187,7 @@ public class PointMass extends TTrack {
 		}
 
 		// create, delete and/or set components of accel vectors
-		array = aMap.get(trackerPanel.id);
+		array = aMap.get(trackerPanel.getID());
 		end = Math.min(endFrame, xDeriv2.length - 1);
 		for (int n = startFrame; n <= end; n++) {
 			VectorStep a = (VectorStep) array.getStep(n);
@@ -2369,7 +2364,7 @@ public class PointMass extends TTrack {
 		for (int j = 0; j < trackerPanel.panelAndWorldViews.size(); j++) {
 			TrackerPanel panel = trackerPanel.panelAndWorldViews.get(j);
 			// erase velocity and acceleration steps
-			if (vMap.get(panel.id) != null) {
+			if (vMap.get(panel.getID()) != null) {
 				Step[] stepArray = getVelocities(panel);
 				for (int i = 0; i < stepArray.length; i++)
 					if (stepArray[i] != null)
@@ -3109,7 +3104,7 @@ public class PointMass extends TTrack {
 	 * @return the velocity StepArray
 	 */
 	protected StepArray getVArray(TrackerPanel trackerPanel) {
-		StepArray v = vMap.get(trackerPanel.id);
+		StepArray v = vMap.get(trackerPanel.getID());
 		return (v == null ? createMaps(trackerPanel, Step.TYPE_VELOCITY) : v);
 	}
 
@@ -3120,7 +3115,7 @@ public class PointMass extends TTrack {
 	 * @return the acceleration StepArray
 	 */
 	protected StepArray getAArray(TrackerPanel trackerPanel) {
-		StepArray a = aMap.get(trackerPanel.id);
+		StepArray a = aMap.get(trackerPanel.getID());
 		return (a == null ? createMaps(trackerPanel, Step.TYPE_ACCELERATION) : a);
 	}
 
@@ -3135,9 +3130,9 @@ public class PointMass extends TTrack {
 	private StepArray createMaps(TrackerPanel trackerPanel, int retType) {
 		tList.add(trackerPanel);
 		StepArray v = new StepArray();
-		vMap.put(trackerPanel.id, v);
+		vMap.put(trackerPanel.getID(), v);
 		StepArray a = new StepArray();
-		aMap.put(trackerPanel.id, a);
+		aMap.put(trackerPanel.getID(), a);
 		updateDerivatives(trackerPanel);
 		return (retType == Step.TYPE_VELOCITY ? v : a);
 	}

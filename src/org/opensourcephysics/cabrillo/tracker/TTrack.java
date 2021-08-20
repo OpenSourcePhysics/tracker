@@ -244,7 +244,6 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 		}
 		if (panel == null) {
 			trackerPanel = null;
-			System.out.println("TTrack TP ref cleared for " + this.getClass().getSimpleName());
 		} else {
 			trackerPanel = panel.ref(this);
 			addPanelEvents(panelEventsTTrack);

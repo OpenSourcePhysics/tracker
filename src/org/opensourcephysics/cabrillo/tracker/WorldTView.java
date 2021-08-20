@@ -515,5 +515,9 @@ public class WorldTView extends TrackerPanel implements TView {
 		OSPLog.finalized(this);
 	}
 
+	@Override
+	public TrackerPanel getTruePanel() {
+		return trackerPanel;
+	}
 
 }

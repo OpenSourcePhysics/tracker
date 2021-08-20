@@ -1036,6 +1036,32 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	}
 
 	/**
+	 * Returns the tab index for the specified tracker panel based on panelID, or -1 if no tab is
+	 * found.
+	 *
+	 * @param trackerPanel the tracker panel
+	 * @return the tab index
+	 */
+	public int getTabForID(Integer panelID) {
+		for (int i = 0; i < getTabCount(); i++) {
+			TTabPanel panel = (TTabPanel) tabbedPane.getComponentAt(i);
+			if (panel.getTrackerPanel().getID() == panelID)
+				return i;
+		}
+		return -1;
+	}
+	
+	public TrackerPanel getTrackerPanelForID(Integer panelID) {
+		for (int i = 0; i < getTabCount(); i++) {
+			TrackerPanel panel = ((TTabPanel) tabbedPane.getComponentAt(i)).getTrackerPanel();
+			if (panel.getID() == panelID)
+				return panel;
+		}
+		return null;
+	}
+
+
+	/**
 	 * Returns the tab index for the specified data file, or -1 if no tab is found.
 	 *
 	 * @param dataFile the data file used to load the tab
@@ -1125,11 +1151,6 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			else
 				whenDone.run();
 		});
-	}
-
-	public Object[] getObjects(int tab) {
-		return (tab < 0 || tab >= tabbedPane.getTabCount() ? null
-				: ((TTabPanel) tabbedPane.getComponentAt(tab)).getObjects());
 	}
 
 	/**
@@ -1233,13 +1254,13 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			if (pane.getTopComponent() != c)
 				pane.setTopComponent(c);
 			break;
-		case SPLIT_LEFT:
-			if (pane.getLeftComponent() != c)
-				pane.setLeftComponent(c);
-			break;
 		case SPLIT_RIGHT:
 			if (pane.getRightComponent() != c)
 				pane.setRightComponent(c);
+			break;
+		case SPLIT_LEFT:
+			if (pane.getLeftComponent() != c)
+				pane.setLeftComponent(c);
 			break;
 		case SPLIT_BOTTOM:
 			if (pane.getBottomComponent() != c)
@@ -1380,26 +1401,26 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	/**
 	 * Determines whether a view pane is visible for the specified trackerPanel tab.
 	 *
-	 * @param index the view position index 
+	 * @param position the view position index, a number from 0 to 3 
 	 * @param trackerPanel the trackerPanel
 	 * @return true if it is visible
 	 */
-	public boolean isViewPaneVisible(int index, TrackerPanel trackerPanel) {
-		JSplitPane[] panes = getSplitPanes(trackerPanel);
+	public boolean isViewPaneVisible(int position, Integer panelID) {
+		JSplitPane[] panes = getSplitPanes(panelID);
 		double[] locs = new double[panes.length];
 		for (int i = 0; i < panes.length; i++) {
 			int max = panes[i].getMaximumDividerLocation();
 			locs[i] = 1.0 * panes[i].getDividerLocation() / max;
 		}
-		switch (index) {
-		case 0:
-			return locs[0] < 0.95 && locs[1] > 0.05;
-		case 1:
-			return locs[0] < 0.95 && locs[1] < 0.95;
-		case 2:
-			return locs[2] < 0.92 && locs[3] < 0.95; // BH was 0.95, but on my machine this is 0.926
-		case 3:
-			return locs[2] < 0.95 && locs[3] > 0.05;
+		switch (position) {
+		case SPLIT_MAIN:
+			return locs[SPLIT_MAIN] < 0.95 && locs[SPLIT_RIGHT] > 0.05;
+		case SPLIT_RIGHT:
+			return locs[SPLIT_MAIN] < 0.95 && locs[SPLIT_RIGHT] < 0.95;
+		case SPLIT_LEFT:
+			return locs[SPLIT_LEFT] < 0.92 && locs[SPLIT_BOTTOM] < 0.95; // BH was 0.95, but on my machine this is 0.926
+		case SPLIT_BOTTOM:
+			return locs[SPLIT_LEFT] < 0.95 && locs[SPLIT_BOTTOM] > 0.05;
 		}
 		return false;
 	}
@@ -1745,6 +1766,10 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 				new TViewChooser(trackerPanel, TView.VIEW_WORLD),
 				new TViewChooser(trackerPanel, TView.VIEW_PAGE) 
 		};
+	}
+
+	JSplitPane[] getSplitPanes(Integer panelID) {
+		return getSplitPanes(getTrackerPanelForID(panelID));
 	}
 
 	/**
@@ -2327,6 +2352,12 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		return getObjects(getTab(trackerPanel));
 	}
 
+	public Object[] getObjects(int tab) {
+		return (tab < 0 || tab >= tabbedPane.getTabCount() ? null
+				: ((TTabPanel) tabbedPane.getComponentAt(tab)).getObjects());
+	}
+
+
 	/**
 	 * Gets the (singleton) clipboard listener.
 	 *
@@ -2455,13 +2486,13 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		TrackerPanel newPanel = null;
 		TrackerPanel oldPanel = prevPanel;
 
-		// hide exportZipDialog
-		if (haveExportDialog && ExportVideoDialog.videoExporter != null) {
-			ExportVideoDialog.videoExporter.trackerPanel = null;
-		}
-		if (haveThumbnailDialog && ThumbnailDialog.thumbnailDialog != null) {
-			ThumbnailDialog.thumbnailDialog.trackerPanel = null;
-		}
+//		// hide exportZipDialog
+//		if (haveExportDialog && ExportVideoDialog.videoExporter != null) {
+//			ExportVideoDialog.videoExporter.trackerPanel = null;
+//		}
+//		if (haveThumbnailDialog && ThumbnailDialog.thumbnailDialog != null) {
+//			ThumbnailDialog.thumbnailDialog.trackerPanel = null;
+//		}
 		// update prefsDialog
 		if (prefsDialog != null) {
 			prefsDialog.trackerPanel = null;
@@ -3860,6 +3891,16 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		TrackerPanel panel = getSelectedPanel();
 		if (panel != null)
 			TToolBar.refreshMemoryButton(panel);
+	}
+
+
+	public TViewChooser[] getVisibleChoosers(Integer panelID) {
+		TViewChooser[] choosers = getViewChoosers(getTrackerPanelForID(panelID));
+		TViewChooser[] ret = new TViewChooser[4];
+		for (int i = 0; i < choosers.length; i++) {
+			ret[i] = (isViewPaneVisible(i, panelID) ? choosers[i] : null);
+		}
+		return ret;
 	}
 
 

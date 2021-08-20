@@ -177,6 +177,19 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	public static final String STICK = "Stick", TAPE = "CalibrationTapeMeasure", //$NON-NLS-1$ //$NON-NLS-2$
 			CALIBRATION = "Calibration", OFFSET = "OffsetOrigin"; //$NON-NLS-1$ //$NON-NLS-2$
 
+	
+	
+	
+	private static int panelCount = 0;
+	/**
+	 * a unique identifier for this TrackerPanel
+	 */
+	private Integer panelID; 
+	
+	public Integer getID() {
+		return panelID;
+	}
+	
 	// instance fields
 	protected double defaultImageBorder;
 	protected String description = ""; //$NON-NLS-1$
@@ -251,9 +264,6 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	public NumberFormatDialog numberFormatDialog;
 
 
-	public String id;
-	private static int ids;
-	
 	private ArrayList<TTrack> userTracks;
 
 	/**
@@ -269,7 +279,6 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	public TrackerPanel(TFrame frame) {
 		super(null);
 		this.frame = frame;
-		
 		setGUI();
 	}
 
@@ -284,8 +293,8 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	}
 	
 	private void setGUI() {
+		panelID = Integer.valueOf(panelCount++ % 256); // IdentityHashMap in PointMass for Integer.valueOf() max 255 for cached object		
 		displayCoordsOnMouseMoved = true;		
-		id = "TP" + ++ids;
 		zoomBox.setShowUndraggedBox(false);
 		// remove the interactive panel mouse controller
 		removeMouseListener(mouseController);
@@ -3087,11 +3096,6 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		return coordStringBuilder;
 	}
 
-	@Override
-	public void finalize() {
-		System.out.println("-------------------------------------OSPLog.finalized(this)---------");
-	}
-
 //	protected void addCalibrationTool(String name, TTrack tool) {
 //		calibrationTools.add(tool);
 //		addTrack(tool);
@@ -3477,31 +3481,21 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 
 		PencilDrawer.dispose(this);
 		if (TFrame.haveExportDialog && ExportDataDialog.dataExporter != null
-				&& ExportDataDialog.dataExporter.frame == frame) {
-			ExportDataDialog.dataExporter.frame = null;
-			ExportDataDialog.dataExporter.tableDropdown.removeAllItems();
-			ExportDataDialog.dataExporter.tables.clear();
-			ExportDataDialog.dataExporter.trackNames.clear();
+				&& ExportDataDialog.dataExporter.panelID == panelID) {
+			ExportDataDialog.dataExporter.clear();
 		}
 		if (TFrame.haveExportDialog && ExportVideoDialog.videoExporter != null
-				&& ExportVideoDialog.videoExporter.trackerPanel == this) {
-			ExportVideoDialog.videoExporter.trackerPanel = null;
-			ExportVideoDialog.videoExporter.views.clear();
+				&& ExportVideoDialog.videoExporter.panelID == panelID) {
+			ExportVideoDialog.videoExporter.clear();
 		}
 		if (TFrame.haveExportDialog)
-			ExportZipDialog.dispose(this);
+			ExportZipDialog.clear(this);
 
 		// OSPLog.debug(Performance.timeCheckStr("TrackerPanel.dispose export dialogs",
 		// Performance.TIME_MARK));
 
-		if (TFrame.haveThumbnailDialog && ThumbnailDialog.thumbnailDialog != null
-				&& ThumbnailDialog.thumbnailDialog.trackerPanel == this) {
-			ThumbnailDialog.thumbnailDialog.trackerPanel = null;
-		}
-
 		if (numberFormatDialog != null) {
-			numberFormatDialog.setVisible(false);
-			numberFormatDialog.trackerPanel = null;
+			numberFormatDialog.clear();
 		}
 		filterClasses.clear();
 		selectingPanel = null;
@@ -4667,7 +4661,8 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		addFilter(RadialDistortionFilter.class);
 	}
 
-	private ArrayList<Drawable> tempA; 
+	private ArrayList<Drawable> tempA;
+	
 	@SuppressWarnings("unchecked")
 	public <T extends Drawable> ArrayList<T> getDrawablesTemp(Class<T> type) {
 		if (tempA == null)
@@ -4997,7 +4992,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 
 	@Override
 	public String toString() {
-		return "[TrackerPanel " + hashCode() + " " + getTabName() + "]";
+		return "[TrackerPanel " + panelID + " " + getTabName() + "]";
 	}
 
 	public void refreshNotesDialog() {
@@ -5031,5 +5026,20 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		System.out.println("TP ref " + (o instanceof String ? o.toString() : o.getClass().getSimpleName())); 
 		return this;
 	}
+
+	@Override
+	public void finalize() {
+		System.out.println("-------HOORAY!!!!!!!------------------------------OSPLog.finalized(this)---------");
+	}
+
+	/**
+	 * Return the actual panel, which in the case of WorldTView is not this.
+	 * 
+	 * @return
+	 */
+	public TrackerPanel getTruePanel() {
+		return this;
+	}
+
 
 }

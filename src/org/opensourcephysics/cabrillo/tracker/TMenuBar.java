@@ -590,7 +590,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements PropertyChan
 			// export data item
 			file_export_dataItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.Data")); //$NON-NLS-1$
 			file_export_dataItem.addActionListener((e) -> {
-					ExportDataDialog exporter = ExportDataDialog.getDialog(trackerPanel.getTFrame());
+					ExportDataDialog exporter = ExportDataDialog.getDialog(trackerPanel);
 					exporter.setVisible(true);
 			});
 			file_exportMenu.add(file_export_dataItem);
@@ -1587,19 +1587,20 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements PropertyChan
 				}
 			}
 			FontSizer.setMenuFonts(edit_copyDataMenu);
-		break;
-		
-		case "image":	
+			break;
+
+		case "image":
 			TViewChooser[] choosers = trackerPanel.getTFrame().getViewChoosers(trackerPanel);
 			if (edit_copyFrameImageItem == null) {
 				edit_copyFrameImageItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.CopyFrame")); //$NON-NLS-1$
-			edit_copyFrameImageItem.addActionListener((e) -> {
-						Component c = trackerPanel.getTFrame();
-						new TrackerIO.ComponentImage(c).copyToClipboard();
+				edit_copyFrameImageItem.addActionListener((e) -> {
+					Component c = trackerPanel.getTFrame();
+					new TrackerIO.ComponentImage(c).copyToClipboard();
 				});
-				edit_copyMainViewImageItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.CopyMainView") + " (0)"); //$NON-NLS-1$ //$NON-NLS-2$
-			edit_copyMainViewImageItem.addActionListener((e) -> {
-						new TrackerIO.ComponentImage(trackerPanel).copyToClipboard();
+				edit_copyMainViewImageItem = new JMenuItem(
+						TrackerRes.getString("TMenuBar.MenuItem.CopyMainView") + " (0)"); //$NON-NLS-1$ //$NON-NLS-2$
+				edit_copyMainViewImageItem.addActionListener((e) -> {
+					new TrackerIO.ComponentImage(trackerPanel).copyToClipboard();
 				});
 				Action copyView = new AbstractAction() {
 					@Override
@@ -1615,15 +1616,15 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements PropertyChan
 					edit_copyViewImageItems[i].setAction(copyView);
 				}
 			}
-
 			edit_copyImageMenu.removeAll();
 			// add menu item for main view
 			edit_copyImageMenu.add(edit_copyMainViewImageItem);
 			// add menu items for open views
+			TViewChooser[] vchoosers = trackerPanel.getTFrame().getVisibleChoosers(trackerPanel.getID());
 			for (int i = 0; i < choosers.length; i++) {
-				if (trackerPanel.getTFrame().isViewPaneVisible(i, trackerPanel)) {
+				if (vchoosers[i] != null) {
 					String viewname = null;
-					TView tview = choosers[i].getSelectedView();
+					TView tview = vchoosers[i].getSelectedView();
 					viewname = tview == null ? TrackerRes.getString("TFrame.View.Unknown") : tview.getViewName();
 					edit_copyViewImageItems[i].setText(viewname + " (" + (i + 1) + ")"); //$NON-NLS-1$ //$NON-NLS-2$
 					String command = String.valueOf(i);
@@ -1637,7 +1638,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements PropertyChan
 			edit_copyImageMenu.add(edit_copyFrameImageItem);
 			FontSizer.setMenuFonts(edit_copyImageMenu);
 			break;
-			
+
 		case "object":
 			edit_copyObjectMenu.removeAll();
 			Action copyObjectAction = new AbstractAction() {
@@ -2655,9 +2656,9 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements PropertyChan
 		TreeMap<Integer, TableTrackView> dataViews = new TreeMap<Integer, TableTrackView>();
 		if (trackerPanel.getTFrame() == null)
 			return dataViews;
-		TViewChooser[] choosers = trackerPanel.getTFrame().getViewChoosers(trackerPanel);
+		TViewChooser[] choosers = trackerPanel.getTFrame().getVisibleChoosers(trackerPanel.getID());
 		for (int i = 0; i < choosers.length; i++) {
-			if (choosers[i] != null && trackerPanel.getTFrame().isViewPaneVisible(i, trackerPanel)) {
+			if (choosers[i] != null) {
 				TView tview = choosers[i].getSelectedView();
 				if (tview != null && tview.getViewType() == TView.VIEW_TABLE) {
 					TableTView tableView = (TableTView) tview;

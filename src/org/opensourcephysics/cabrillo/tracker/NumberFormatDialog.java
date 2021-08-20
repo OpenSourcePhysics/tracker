@@ -84,22 +84,29 @@ import org.opensourcephysics.tools.FontSizer;
 @SuppressWarnings("serial")
 public class NumberFormatDialog extends JDialog {
 	
-	
-
 	// static fields
 	protected static String noPattern = TrackerRes.getString("NumberFormatSetter.NoPattern"); //$NON-NLS-1$
 	protected static String mixedPattern = TrackerRes.getString("NumberFormatSetter.MixedPattern"); //$NON-NLS-1$
 	private static Dimension scrollerDimension = new Dimension(200, 60);
+	
+	private static Integer panelID;
+	private static TFrame frame;
 
 	// instance fields
-	TrackerPanel trackerPanel;
+	//TrackerPanel trackerPanel;
 	
+	@Override
 	public void dispose() {
+		clear();
 		super.dispose();
-		trackerPanel = null;
 		
 	}
 
+	public void clear() {
+		setVisible(false);
+		frame = null;
+		panelID = null;
+	}
 	
 	int trackID = -1;
 	JButton closeButton, helpButton, revertButton;
@@ -180,10 +187,11 @@ public class NumberFormatDialog extends JDialog {
 	 *
 	 * @param tPanel a TrackerPanel
 	 */
-	private NumberFormatDialog(TrackerPanel tPanel) {
-		super(tPanel.getTFrame(), true);
-		System.out.println("NumberFormatDialog for " + tPanel.getClass().getSimpleName());
-		trackerPanel = tPanel.ref(this);
+	private NumberFormatDialog(TrackerPanel trackerPanel) {
+		super(trackerPanel.getTFrame(), true);
+		System.out.println("NumberFormatDialog for " + trackerPanel.getClass().getSimpleName());
+		frame = trackerPanel.getTFrame();
+		panelID = trackerPanel.getID();
 		createGUI();
 		refreshGUI();
 	}
@@ -491,18 +499,20 @@ public class NumberFormatDialog extends JDialog {
 	 */
 	private void savePrevious() {
 		// save previous default patterns for all types
+		TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
 		TTrack.savePatterns(trackerPanel);
 		// save previous patterns for all tracks
 		prevTrackPatterns.clear();
-		for (TTrack next : trackerPanel.getTracksTemp()) {
+		TrackerPanel panel = frame.getTrackerPanelForID(panelID);
+		for (TTrack next : panel.getTracksTemp()) {
 			TreeMap<String, String> patterns = new TreeMap<String, String>();
 			for (String name : TTrack.getAllVariables(next.ttype)) {
 				patterns.put(name, next.getVarFormatPattern(name));
 			}
 			prevTrackPatterns.put(next, patterns);
 		}
-		trackerPanel.clearTemp();
-		prevAnglesInRadians = trackerPanel.getTFrame().anglesInRadians;
+		panel.clearTemp();
+		prevAnglesInRadians = panel.getTFrame().anglesInRadians;
 		prevDecimalSeparator = OSPRuntime.getPreferredDecimalSeparator();
 		formatsChanged = false;
 	}
@@ -553,6 +563,7 @@ public class NumberFormatDialog extends JDialog {
 						formatsChanged = true;
 					}
 				}
+				TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
 				trackerPanel.clearTemp();
 			} else { // null dimensions
 						// apply to this track
@@ -599,6 +610,7 @@ public class NumberFormatDialog extends JDialog {
 			track.firePropertyChange(TTrack.PROPERTY_TTRACK_FORMAT, null, null); // $NON-NLS-1$			
 	}
 
+	@Override
 	public void setVisible(boolean b) {
 		super.setVisible(b);
 		if (!b) 
@@ -640,6 +652,7 @@ public class NumberFormatDialog extends JDialog {
 				TTrack track = TTrack.getTrack(trackID);
 				
 				// reset default patterns in trackerPanel.formatPatterns
+				TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
 				TTrack.restorePatterns(trackerPanel);
 
 				// reset track formats
@@ -710,6 +723,7 @@ public class NumberFormatDialog extends JDialog {
 					return;
 				Object[] item = (Object[]) trackDropdown.getSelectedItem();
 				if (item != null) {
+					TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
 					TTrack t = trackerPanel.getTrackByName(TTrack.class, (String) item[1]);
 					if (t != null) {
 						setTrack(t);
@@ -800,6 +814,7 @@ public class NumberFormatDialog extends JDialog {
 				}
 				OSPRuntime.setPreferredDecimalSeparator(separator);
 				showNumberFormatAndSample(variableList.getSelectedIndices());
+				TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
 				trackerPanel.refreshDecimalSeparators();
 				if ((prevDecimalSeparator != null && !prevDecimalSeparator.equals(separator))
 						|| (separator != null && !separator.equals(prevDecimalSeparator))) {
@@ -942,6 +957,7 @@ public class NumberFormatDialog extends JDialog {
 		trackDropdown.setName("refresh"); //$NON-NLS-1$
 		trackDropdown.removeAllItems();
 		TTrack track = TTrack.getTrack(trackID);
+		TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
 		for (TTrack next : trackerPanel.getTracksTemp()) {
 			Icon icon = next.getFootprint().getIcon(21, 16);
 			Object[] item = new Object[] { icon, next.getName() };

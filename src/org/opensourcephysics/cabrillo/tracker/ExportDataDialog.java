@@ -80,6 +80,7 @@ public class ExportDataDialog extends JDialog {
 
 	// instance fields
 	protected TFrame frame;
+	protected Integer panelID;
 	protected JButton saveAsButton, closeButton;
 	protected JComponent tablePanel, delimiterPanel, contentPanel, formatPanel;
 	protected JComboBox<String> formatDropdown;
@@ -96,13 +97,14 @@ public class ExportDataDialog extends JDialog {
 	 * @param panel the TrackerPanel
 	 * @return the ExportDataDialog
 	 */
-	public static ExportDataDialog getDialog(TFrame frame) {
+	public static ExportDataDialog getDialog(TrackerPanel panel) {
 		if (dataExporter == null) {
-			dataExporter = new ExportDataDialog(frame);
+			dataExporter = new ExportDataDialog(panel);
 		} else {
 			// MEMORY LEAK HERE -- permanent static reference to a panel
 			//dataExporter.trackerPanel = panel;
-			dataExporter.frame = frame;
+			dataExporter.frame = panel.getTFrame();
+			dataExporter.panelID = panel.getID();
 			dataExporter.refreshGUI();
 		}
 		return dataExporter;
@@ -113,9 +115,10 @@ public class ExportDataDialog extends JDialog {
 	 *
 	 * @param panel a TrackerPanel to supply the images
 	 */
-	private ExportDataDialog(TFrame frame) {
-		super(frame, true);
-		this.frame = frame;
+	private ExportDataDialog(TrackerPanel panel) {
+		super(panel.getTFrame(), true);
+		frame = panel.getTFrame();
+		panelID = panel.getID();
 		setResizable(false);
 		createGUI();
 		refreshGUI();
@@ -341,25 +344,25 @@ public class ExportDataDialog extends JDialog {
 		// tables
 		selectedItem = tableDropdown.getSelectedItem();
 		tableDropdown.removeAllItems();
-		TViewChooser[] choosers = frame.getViewChoosers(frame.getSelectedPanel());
 		boolean hasSelection = false;
+		TViewChooser[] choosers = frame.getVisibleChoosers(panelID);
 		for (int i = 0; i < choosers.length; i++) {
-			if (frame.isViewPaneVisible(i, frame.getSelectedPanel())) {
-				String number = " (" + (i + 1) + ")"; //$NON-NLS-1$ //$NON-NLS-2$
-				TView view = choosers[i].getSelectedView();
-				if (view.getViewType() == TView.VIEW_TABLE) {
-					TableTView tableTView = (TableTView) view;
-					TTrack track = tableTView.getSelectedTrack();
-					if (track != null) {
-						s = track.getName() + number;
-						TableTrackView trackView = (TableTrackView) tableTView.getTrackView(track);
-						trackNames.put(trackView.dataTable, track.getName());
-						tables.put(s, trackView.dataTable);
-						tableDropdown.addItem(s);
-						int[] selectedRows = trackView.dataTable.getSelectedRows();
-						if (selectedRows.length > 0) {
-							hasSelection = true;
-						}
+			if (choosers[i] == null)
+				continue;
+			String number = " (" + (i + 1) + ")"; //$NON-NLS-1$ //$NON-NLS-2$
+			TView view = choosers[i].getSelectedView();
+			if (view.getViewType() == TView.VIEW_TABLE) {
+				TableTView tableTView = (TableTView) view;
+				TTrack track = tableTView.getSelectedTrack();
+				if (track != null) {
+					s = track.getName() + number;
+					TableTrackView trackView = (TableTrackView) tableTView.getTrackView(track);
+					trackNames.put(trackView.dataTable, track.getName());
+					tables.put(s, trackView.dataTable);
+					tableDropdown.addItem(s);
+					int[] selectedRows = trackView.dataTable.getSelectedRows();
+					if (selectedRows.length > 0) {
+						hasSelection = true;
 					}
 				}
 			}
@@ -437,4 +440,20 @@ public class ExportDataDialog extends JDialog {
 			return renderer.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
 		}
 	}
+
+	public void clear() {
+		frame = null;
+		panelID = null;
+		tableDropdown.removeAllItems();
+		tables.clear();
+		trackNames.clear();
+	}
+	
+	@Override
+	public void dispose() {
+		clear();
+		super.dispose();
+	}
+
+
 }

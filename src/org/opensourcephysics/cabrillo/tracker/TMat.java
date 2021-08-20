@@ -270,7 +270,6 @@ public boolean isMeasured() {
   public void cleanup() {
     trackerPanel.removePropertyChangeListener("coords", this); //$NON-NLS-1$
     coords.removePropertyChangeListener(ImageCoordSystem.PROPERTY_COORDS_TRANSFORM, this); //$NON-NLS-1$
-    System.out.println("TMat JP ref cleared");
     trackerPanel = null;
   }
   
