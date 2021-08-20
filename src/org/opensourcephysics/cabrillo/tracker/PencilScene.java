@@ -43,11 +43,13 @@ import org.opensourcephysics.media.core.Trackable;
  */
 public class PencilScene implements Interactive, Trackable, Comparable<PencilScene> {
 		
+    protected TFrame frame;
+    protected Integer panelID;
+    
 	private PencilCaption caption;
 	private ArrayList<PencilDrawing> drawings = new ArrayList<PencilDrawing>();
 	private boolean visible = true;
 	private boolean heavy;
-  private TrackerPanel trackerPanel;
 	private double margin;
 	boolean isCaptionPositioned;
 	int startframe=0, endframe=Integer.MAX_VALUE;
@@ -62,23 +64,26 @@ public class PencilScene implements Interactive, Trackable, Comparable<PencilSce
 	
 	@Override
 	public void draw(DrawingPanel panel, Graphics g) {
-		if (!visible) return;
+		if (!visible)
+			return;
 		if (panel instanceof TrackerPanel) {
-	  	TrackerPanel trackerPanel = (TrackerPanel)panel;
-	  	// don't draw on World Views
-	  	if (!trackerPanel.isDrawingInImageSpace()) return;
-	  	if (this.trackerPanel==null) {
-	  		this.trackerPanel = trackerPanel.ref(this);
-	  	}
-	  	if (!includesFrame(trackerPanel.getFrameNumber())) {
-	  		return;
-	  	}
+			TrackerPanel trackerPanel = (TrackerPanel) panel;
+			// don't draw on World Views
+			if (!trackerPanel.isDrawingInImageSpace())
+				return;
+			if (panelID== null) {
+				panelID = trackerPanel.getID();
+				frame = trackerPanel.getTFrame();
+			}
+			if (!includesFrame(trackerPanel.getFrameNumber())) {
+				return;
+			}
 		}
-		for (PencilDrawing drawing: drawings) {
+		for (PencilDrawing drawing : drawings) {
 			drawing.draw(panel, g);
 		}
 		caption.draw(panel, g);
-  }
+	}
 	
   /**
    * Gets the drawings.
@@ -281,10 +286,8 @@ public class PencilScene implements Interactive, Trackable, Comparable<PencilSce
 	@Override
 	public Interactive findInteractive(DrawingPanel panel, int xpix, int ypix) {
 		Interactive ia = caption.findInteractive(panel, xpix, ypix);
-		if (ia != null) {
-			if (Tracker.showHints && trackerPanel != null) {
-				trackerPanel.setMessage(TrackerRes.getString("PencilCaption.Hint")); //$NON-NLS-1$
-			}
+		if (ia != null && Tracker.showHints && panelID != null) {
+			frame.getTrackerPanelForID(panelID).setMessage(TrackerRes.getString("PencilCaption.Hint")); //$NON-NLS-1$
 			return ia;
 		}
 		return null;

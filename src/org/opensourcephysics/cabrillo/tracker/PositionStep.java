@@ -127,8 +127,8 @@ public class PositionStep extends Step {
 	@Override
 	public void draw(DrawingPanel panel, Graphics _g) {
 		TTrack track = getTrack();
-		if (track.trackerPanel == panel) {
-			AutoTracker autoTracker = track.trackerPanel.getAutoTracker(false);
+		if (track.tp == panel) {
+			AutoTracker autoTracker = track.tp.getAutoTracker(false);
 			if (autoTracker != null && autoTracker.isInteracting(track))
 				return;
 		}

@@ -160,9 +160,9 @@ public class Calibration extends TTrack {
 			step.setFootprint(getFootprint());
 			steps = new StepArray(step);
 		} else if (step.getPoints()[1] == null) {
-			if (trackerPanel != null && trackerPanel.getSelectedPoint() == step.getPoints()[0]) {
-				trackerPanel.setSelectedPoint(null);
-				trackerPanel.selectedSteps.clear();
+			if (tp != null && tp.getSelectedPoint() == step.getPoints()[0]) {
+				tp.setSelectedPoint(null);
+				tp.selectedSteps.clear();
 			}
 			TPoint p = step.addSecondPoint(x, y); // may be null
 			if (this.isFixedCoordinates()) {
@@ -175,15 +175,15 @@ public class Calibration extends TTrack {
 					}
 				}
 			}
-		} else if (trackerPanel != null) {
-			TPoint p = trackerPanel.getSelectedPoint();
+		} else if (tp != null) {
+			TPoint p = tp.getSelectedPoint();
 			if (p == null) {
 				p = step.getPosition(1);
 			}
 			if (p instanceof CalibrationStep.Position) {
 				XMLControl state = new XMLControlElement(step);
 				p.setLocation(x, y);
-				Point2D pt = p.getWorldPosition(trackerPanel);
+				Point2D pt = p.getWorldPosition(tp);
 
 				if (step.points[0] == p) { // selected position is 0
 					success = step.setWorldCoordinates(pt.getX(), pt.getY(), step.worldX1, step.worldY1);
@@ -232,7 +232,7 @@ public class Calibration extends TTrack {
 	public TPoint autoMarkAt(int n, double x, double y) {
 		CalibrationStep step = (CalibrationStep) getStep(n);
 		int index = getTargetIndex();
-		ImageCoordSystem coords = trackerPanel.getCoords();
+		ImageCoordSystem coords = tp.getCoords();
 		coords.setFixedOrigin(false);
 		coords.setFixedAngle(false);
 		coords.setFixedScale(false);
@@ -245,9 +245,9 @@ public class Calibration extends TTrack {
 			TPoint p = step.getPoints()[index];
 			if (p == null) {
 				// point 2 doesn't exist
-				if (trackerPanel != null && trackerPanel.getSelectedPoint() == step.getPoints()[0]) {
-					trackerPanel.setSelectedPoint(null);
-					trackerPanel.selectedSteps.clear();
+				if (tp != null && tp.getSelectedPoint() == step.getPoints()[0]) {
+					tp.setSelectedPoint(null);
+					tp.selectedSteps.clear();
 				}
 				p = step.addSecondPoint(x, y);
 				if (this.isFixedCoordinates()) {
@@ -263,7 +263,7 @@ public class Calibration extends TTrack {
 				return step.getPoints()[index];
 			}
 			// both points exist, so move target point
-			Mark mark = step.marks.get(trackerPanel);
+			Mark mark = step.marks.get(tp);
 			if (mark == null) {
 				double worldX = index == 0 ? step.worldX0 : step.worldX1;
 				double worldY = index == 0 ? step.worldY0 : step.worldY1;
@@ -300,8 +300,8 @@ public class Calibration extends TTrack {
 	@Override
 	public boolean isLocked() {
 		boolean locked = super.isLocked();
-		if (trackerPanel != null) {
-			locked = locked || trackerPanel.getCoords().isLocked();
+		if (tp != null) {
+			locked = locked || tp.getCoords().isLocked();
 		}
 		return locked;
 	}
@@ -366,14 +366,14 @@ public class Calibration extends TTrack {
 		if (fixedCoordinates == fixed)
 			return;
 		XMLControl control = new XMLControlElement(this);
-		if (trackerPanel != null) {
-			trackerPanel.changed = true;
-			int n = trackerPanel.getFrameNumber();
+		if (tp != null) {
+			tp.changed = true;
+			int n = tp.getFrameNumber();
 			Step step = getStep(n);
 			if (step != null) {
 				steps = new StepArray(getStep(n));
 			}
-			TFrame.repaintT(trackerPanel);
+			TFrame.repaintT(tp);
 		}
 		if (fixed) {
 			keyFrames.clear();
@@ -675,7 +675,7 @@ public class Calibration extends TTrack {
 	public void propertyChange(PropertyChangeEvent e) {
 		switch (e.getPropertyName()) {
 		case TrackerPanel.PROPERTY_TRACKERPANEL_STEPNUMBER:
-			if (trackerPanel.getSelectedTrack() == this) {
+			if (tp.getSelectedTrack() == this) {
 				displayWorldCoordinates();
 				stepValueLabel.setText(e.getNewValue() + ":"); //$NON-NLS-1$
 			}
@@ -700,12 +700,12 @@ public class Calibration extends TTrack {
 	 */
 	@Override
 	public void setTrackerPanel(TrackerPanel panel) {
-		if (trackerPanel != null) {			
-			trackerPanel.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_LOCKED, this);
+		if (tp != null) {			
+			tp.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_LOCKED, this);
 		}
 		super.setTrackerPanel(panel);
-		if (trackerPanel != null) {
-			trackerPanel.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_LOCKED, this);
+		if (tp != null) {
+			tp.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_LOCKED, this);
 		}
 	}
 
@@ -737,7 +737,7 @@ public class Calibration extends TTrack {
 	@Override
 	protected String getTargetDescription(int pointIndex) {
 		String s = TrackerRes.getString("Calibration.Point.Name"); //$NON-NLS-1$
-		int n = trackerPanel.getFrameNumber();
+		int n = tp.getFrameNumber();
 		CalibrationStep step = (CalibrationStep) getStep(n);
 		if (step == null && pointIndex == 1) {
 			return null;
@@ -750,18 +750,18 @@ public class Calibration extends TTrack {
 	 * the currently selected point.
 	 */
 	private void setWorldCoordinatesFromFields() {
-		if (trackerPanel == null)
+		if (tp == null)
 			return;
 		double x1 = xField.getValue();
 		double y1 = yField.getValue();
 		double x2 = x1Field.getValue();
 		double y2 = y1Field.getValue();
-		int n = trackerPanel.getFrameNumber();
+		int n = tp.getFrameNumber();
 		CalibrationStep step = (CalibrationStep) getStep(n);
 		boolean different = step.worldX0 != x1 || step.worldY0 != y1 || step.worldX1 != x2 || step.worldY1 != y2;
 		if (different) {
 			XMLControl trackControl = new XMLControlElement(this);
-			XMLControl coordsControl = new XMLControlElement(trackerPanel.getCoords());
+			XMLControl coordsControl = new XMLControlElement(tp.getCoords());
 			boolean success = step.setWorldCoordinates(x1, y1, x2, y2);
 			if (success) {
 				Undo.postTrackAndCoordsEdit(this, trackControl, coordsControl);
@@ -775,7 +775,7 @@ public class Calibration extends TTrack {
 	 * Displays the world coordinates of the currently selected step.
 	 */
 	protected void displayWorldCoordinates() {
-		int n = trackerPanel == null ? 0 : trackerPanel.getFrameNumber();
+		int n = tp == null ? 0 : tp.getFrameNumber();
 		CalibrationStep step = (CalibrationStep) getStep(n);
 		if (step == null) {
 			xField.setText(null);
@@ -852,20 +852,20 @@ public class Calibration extends TTrack {
 				if (axes == i)
 					return;
 				// check for invalid coords if step is complete
-				if (trackerPanel != null) {
-					int n = trackerPanel.getFrameNumber();
+				if (tp != null) {
+					int n = tp.getFrameNumber();
 					CalibrationStep step = (CalibrationStep) getStep(n);
 					boolean isComplete = step != null && step.getPoints()[1] != null;
 					if (isComplete) {
 						if (i == X_AXIS && step.worldX0 == step.worldX1) {
-							JOptionPane.showMessageDialog(trackerPanel,
+							JOptionPane.showMessageDialog(tp,
 									TrackerRes.getString("Calibration.Dialog.InvalidXCoordinates.Message"), //$NON-NLS-1$
 									TrackerRes.getString("Calibration.Dialog.InvalidCoordinates.Title"), //$NON-NLS-1$
 									JOptionPane.WARNING_MESSAGE);
 							axisDropdown.setSelectedIndex(axes);
 							return;
 						} else if (i == Y_AXIS && step.worldY0 == step.worldY1) {
-							JOptionPane.showMessageDialog(trackerPanel,
+							JOptionPane.showMessageDialog(tp,
 									TrackerRes.getString("Calibration.Dialog.InvalidYCoordinates.Message"), //$NON-NLS-1$
 									TrackerRes.getString("Calibration.Dialog.InvalidCoordinates.Title"), //$NON-NLS-1$
 									JOptionPane.WARNING_MESSAGE);
@@ -875,8 +875,8 @@ public class Calibration extends TTrack {
 					}
 				}
 				setAxisType(i);
-				if (trackerPanel != null) {
-					trackerPanel.refreshTrackBar();
+				if (tp != null) {
+					tp.refreshTrackBar();
 					//trackerPanel.getTFrame().getTrackBar(trackerPanel).refresh();
 				}
 			}

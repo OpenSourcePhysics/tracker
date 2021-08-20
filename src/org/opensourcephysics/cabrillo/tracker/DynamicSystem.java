@@ -147,15 +147,14 @@ public class DynamicSystem extends DynamicParticlePolar {
 	 */
 	@Override
 	public void draw(DrawingPanel panel, Graphics _g) {
-		if (!(panel instanceof TrackerPanel) || trackerPanel == null)
+		if (!(panel instanceof TrackerPanel) || tp == null)
 			return;
 		if (!initialized)
-			initialize(trackerPanel);
+			initialize(tp);
 		getModelBuilder();
-		if (systemInspectorX != Integer.MIN_VALUE && trackerPanel.getTFrame() != null) {
+		if (systemInspectorX != Integer.MIN_VALUE && frame != null) {
 			// set system inspector position
 			getSystemInspector();
-			TFrame frame = trackerPanel.getTFrame();
 			Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
 			int x = Math.max(frame.getLocation().x + systemInspectorX, 0);
 			x = Math.min(x, dim.width - systemInspector.getWidth());
@@ -174,7 +173,7 @@ public class DynamicSystem extends DynamicParticlePolar {
 		if (particles.length == 0) {
 			return;
 		}
-		if (trackerPanel.getFrameNumber() > getLastValidFrame()) {
+		if (tp.getFrameNumber() > getLastValidFrame()) {
 			refreshSteps("DyamSys draw");
 		}
 		for (ParticleModel next : getModels()) {
@@ -360,7 +359,7 @@ public class DynamicSystem extends DynamicParticlePolar {
 						+ TrackerRes.getString("DynamicSystem.Dialog.RemoveBooster.Message2") + " " //$NON-NLS-1$ //$NON-NLS-2$
 						+ problem.getName() + "\n" //$NON-NLS-1$
 						+ TrackerRes.getString("DynamicSystem.Dialog.RemoveBooster.Message3"); //$NON-NLS-1$
-				int response = javax.swing.JOptionPane.showConfirmDialog(trackerPanel.getTFrame(), message,
+				int response = javax.swing.JOptionPane.showConfirmDialog(frame, message,
 						TrackerRes.getString("DynamicSystem.Dialog.RemoveBooster.Title"), //$NON-NLS-1$
 						javax.swing.JOptionPane.OK_CANCEL_OPTION, javax.swing.JOptionPane.WARNING_MESSAGE);
 				if (response == javax.swing.JOptionPane.YES_OPTION) {
@@ -510,8 +509,8 @@ public class DynamicSystem extends DynamicParticlePolar {
 		}
 		if (state != null)
 			initialState[initialState.length - 1] = state[state.length - 1];
-		else if (trackerPanel != null) {
-			double t0 = trackerPanel.getPlayer().getVideoClip().getStartTime();
+		else if (tp != null) {
+			double t0 = tp.getPlayer().getVideoClip().getStartTime();
 			initialState[initialState.length - 1] = t0 / 1000;
 		}
 		return initialState;
@@ -527,7 +526,7 @@ public class DynamicSystem extends DynamicParticlePolar {
 		switch (e.getPropertyName()) {
 		case ImageCoordSystem.PROPERTY_COORDS_TRANSFORM:
 			// workaround to prevent infinite loop
-			ImageCoordSystem coords = trackerPanel.getCoords();
+			ImageCoordSystem coords = tp.getCoords();
 			if (coords instanceof ReferenceFrame) {
 				TTrack track = ((ReferenceFrame) coords).getOriginTrack();
 				if (track == this || (particles.length > 0 && track == particles[0])
@@ -542,8 +541,8 @@ public class DynamicSystem extends DynamicParticlePolar {
 		case FunctionTool.PROPERTY_FUNCTIONTOOL_FUNCTION: 
 			super.propertyChange(e);
 			refreshSystemParameters();
-			if (trackerPanel != null)
-				TFrame.repaintT(trackerPanel);
+			if (tp != null)
+				TFrame.repaintT(tp);
 			break;
 		case PROPERTY_TTRACK_NAME:
 			super.propertyChange(e);
@@ -735,17 +734,17 @@ public class DynamicSystem extends DynamicParticlePolar {
 			polarState = new double[] { 0, 0, 0, 0, 0 };
 		}
 		double zeroPosition = 1E-12;
-		if (trackerPanel != null) {
-			zeroPosition = .001 / trackerPanel.getCoords().getScaleX(0);
+		if (tp != null) {
+			zeroPosition = .001 / tp.getCoords().getScaleX(0);
 		}
 		double zeroVelocity = 1E-11;
-		if (trackerPanel != null) {
-			zeroVelocity = 1000 * zeroPosition / trackerPanel.getPlayer().getMeanStepDuration();
+		if (tp != null) {
+			zeroVelocity = 1000 * zeroPosition / tp.getPlayer().getMeanStepDuration();
 		}
 		double zeroAngle = 1E-5;
 		double zeroOmega = 1E-4;
-		if (trackerPanel != null) {
-			zeroOmega = 1000 * zeroAngle / trackerPanel.getPlayer().getMeanStepDuration();
+		if (tp != null) {
+			zeroOmega = 1000 * zeroAngle / tp.getPlayer().getMeanStepDuration();
 		}
 		String relative = "_" + TrackerRes.getString("DynamicSystem.Parameter. fe.Relative"); //$NON-NLS-1$ //$NON-NLS-2$
 		String particleNames = " "; //$NON-NLS-1$
@@ -971,7 +970,7 @@ public class DynamicSystem extends DynamicParticlePolar {
 		polarState[4] = state[8]; // t
 		double[] toSave = new double[polarState.length];
 		System.arraycopy(polarState, 0, toSave, 0, polarState.length);
-		int frameNum = trackerPanel.getFrameNumber();
+		int frameNum = tp.getFrameNumber();
 		relativeStates.put(frameNum, toSave);
 		return polarState;
 	}
@@ -1023,7 +1022,7 @@ public class DynamicSystem extends DynamicParticlePolar {
 			if (system.systemInspector != null && system.systemInspector.isVisible()) {
 				Point p = system.systemInspector.getLocation();
 				// save location relative to frame
-				TFrame frame = system.trackerPanel.getTFrame();
+				TFrame frame = system.frame;
 				control.setValue("system_inspector_x", p.x - frame.getLocation().x); //$NON-NLS-1$
 				control.setValue("system_inspector_y", p.y - frame.getLocation().y); //$NON-NLS-1$
 			}

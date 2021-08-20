@@ -175,7 +175,6 @@ public class ThumbnailDialog extends JDialog {
 			chooser.addPropertyChangeListener(JFileChooser.FILE_FILTER_CHANGED_PROPERTY, fileChooserListener);
 			TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
 			String tabName = XML.stripExtension(trackerPanel.getTitle());
-			TFrame frame = trackerPanel.getTFrame();
 			chooser.setSelectedFile(new File(tabName + "_thumbnail." + format)); //$NON-NLS-1$
 			File[] files = TrackerIO.getChooserFilesAsync(frame, "save thumbnail", null); //$NON-NLS-1$
 			chooser.removePropertyChangeListener(JFileChooser.FILE_FILTER_CHANGED_PROPERTY, fileChooserListener);
@@ -517,7 +516,6 @@ public class ThumbnailDialog extends JDialog {
 			rawImage = trackerPanel.getVideo().getImage();
 			break;
 		default: // entire frame
-			TFrame frame = trackerPanel.getTFrame();
 			rawImage = (BufferedImage) frame.createImage(fullSize.width, fullSize.height);
 			Graphics2D g2 = rawImage.createGraphics();
 			frame.paint(g2);

@@ -154,7 +154,7 @@ public class Undo {
 	 * @param track the track
 	 */
 	protected static void postTrackDelete(TTrack track) {
-		TrackerPanel panel = track.trackerPanel;
+		TrackerPanel panel = track.tp;
 		if (panel == null)
 			return;
 		UndoableEdit edit = getUndo(panel).new TrackDelete(panel, track);
@@ -181,7 +181,7 @@ public class Undo {
 	 * @param control an XMLControl with the previous state of the track
 	 */
 	protected static void postTrackEdit(TTrack track, XMLControl control) {
-		TrackerPanel panel = track.trackerPanel;
+		TrackerPanel panel = track.tp;
 		if (panel == null)
 			return;
 		UndoableEdit edit = getUndo(panel).new TrackEdit(track, control);
@@ -199,7 +199,7 @@ public class Undo {
 		if (tracksAndXMLControls == null || tracksAndXMLControls.size() == 0)
 			return;
 		TTrack track = (TTrack) tracksAndXMLControls.get(0)[0];
-		TrackerPanel panel = track.trackerPanel;
+		TrackerPanel panel = track.tp;
 		if (panel == null)
 			return;
 
@@ -225,7 +225,7 @@ public class Undo {
 	 * @param control an XMLControl with the previous state of the track
 	 */
 	protected static void postStepEdit(Step step, XMLControl control) {
-		TrackerPanel panel = step.getTrack().trackerPanel;
+		TrackerPanel panel = step.getTrack().tp;
 		if (panel == null)
 			return;
 		UndoableEdit edit = getUndo(panel).new StepEdit(step, control);
@@ -287,7 +287,7 @@ public class Undo {
 	 * @param coordsControl an XMLControl with the previous state of the coords
 	 */
 	protected static void postTrackAndCoordsEdit(TTrack track, XMLControl trackControl, XMLControl coordsControl) {
-		TrackerPanel panel = track.trackerPanel;
+		TrackerPanel panel = track.tp;
 		if (panel == null)
 			return;
 		// coords edit first!
@@ -369,7 +369,7 @@ public class Undo {
 	 * @param control an XMLControl with the previous state of the footprint
 	 */
 	protected static void postTrackDisplayEdit(TTrack track, XMLControl control) {
-		TrackerPanel panel = track.trackerPanel;
+		TrackerPanel panel = track.tp;
 		if (panel == null)
 			return;
 		UndoableEdit edit = getUndo(panel).new TrackDisplayEdit(track, control);
@@ -401,7 +401,7 @@ public class Undo {
 		boolean isTextColumn = false;
 
 		private TrackEdit(TTrack track, XMLControl control) {
-			super(track.trackerPanel, track, control);
+			super(track.tp, track, control);
 			isTextColumn = control.getBoolean("isTextColumn");
 			trackName = track.getName();
 			String s = track.getClass().getSimpleName();
@@ -446,7 +446,7 @@ public class Undo {
 		String trackType;
 
 		private StepEdit(Step step, XMLControl control) {
-			super(step.getTrack().trackerPanel, step, control);
+			super(step.getTrack().tp, step, control);
 			this.step = step;
 			String s = step.getTrack().getClass().getSimpleName();
 			trackType = TrackerRes.getString(s + ".Name"); //$NON-NLS-1$
@@ -481,7 +481,7 @@ public class Undo {
 		String trackName, trackType;
 
 		private TrackDisplayEdit(TTrack track, XMLControl control) {
-			super(track.trackerPanel, new TrackProperties(track), control);
+			super(track.tp, new TrackProperties(track), control);
 			control = new XMLControlElement(undo);
 			TrackProperties props = (TrackProperties) control.loadObject(null);
 			undoName = track.getName();

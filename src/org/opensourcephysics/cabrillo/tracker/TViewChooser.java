@@ -69,10 +69,12 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
 	protected final static Icon DOWN_ARROW_ICON = Tracker.getResourceIcon("triangle_down.gif", true); //$NON-NLS-1$
 
 	// instance fields
-	
+
+	protected TFrame frame;
+    protected Integer panelID;
+
 	// data model
 	
-	protected TrackerPanel trackerPanel;
 	protected TView[] tViews = new TView[4]; // views are null until needed
 	protected TView selectedView;
 
@@ -87,7 +89,7 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
 	private JButton chooserButton;
 	
 	public boolean isMaximized() {
-		return trackerPanel.getTFrame() != null && trackerPanel.getTFrame().maximizedView >= 0;
+		return frame != null && frame.maximizedView >= 0;
 	}
 	
 	// popup menu
@@ -107,9 +109,10 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
 		// don't set selectedType here--it is set in setSelectedViewType()
 		//OSPLog.debug(Performance.timeCheckStr("TViewChooser " + type, Performance.TIME_MARK));
 
-		trackerPanel = panel.ref(this);
-		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this); // $NON-NLS-1$
-		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR, this); // $NON-NLS-1$
+		frame = panel.getTFrame();
+		panelID = panel.getID();
+		panel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this); // $NON-NLS-1$
+		panel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR, this); // $NON-NLS-1$
 		// viewPanel
 		viewPanel = new JPanel(new CardLayout());
 		viewPanel.setBorder(BorderFactory.createEtchedBorder());
@@ -180,16 +183,16 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
 			public void actionPerformed(ActionEvent e) {
 				switch(view.getViewType()) {
 				case TView.VIEW_PAGE:
-					trackerPanel.getTFrame().showHelp("textview", 0); //$NON-NLS-1$
+					frame.showHelp("textview", 0); //$NON-NLS-1$
 					break;
 				case TView.VIEW_TABLE:
-					trackerPanel.getTFrame().showHelp("datatable", 0); //$NON-NLS-1$
+					frame.showHelp("datatable", 0); //$NON-NLS-1$
 					break;
 				case TView.VIEW_PLOT:
-					trackerPanel.getTFrame().showHelp("plot", 0); //$NON-NLS-1$
+					frame.showHelp("plot", 0); //$NON-NLS-1$
 					break;
 				case TView.VIEW_WORLD:
-					trackerPanel.getTFrame().showHelp("GUI", 0); //$NON-NLS-1$
+					frame.showHelp("GUI", 0); //$NON-NLS-1$
 					break;
 				}
 			}
@@ -238,7 +241,7 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
 	 * @return the tracker panel
 	 */
 	public TrackerPanel getTrackerPanel() {
-		return trackerPanel;
+		return frame.getTrackerPanelForID(panelID);
 	}
 
 	/**
@@ -262,6 +265,7 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
 			if (view != null && view.getClass() == c)
 				return view;
 		}
+		TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
 		// create new view
 		if (c == PlotTView.class) {
 			return tViews[TView.VIEW_PLOT] = new PlotTView(trackerPanel);
@@ -315,6 +319,7 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
 			refreshViewPanel();
 		}
 
+		TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
 		trackerPanel.changed = true;
 		TTrack selectedTrack = null;
 		// clean up previously selected view
@@ -369,6 +374,7 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
 		}
 		selectedType = type;
 		
+		TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
 		if (view == null) {
 			// create new TView
 			switch (type) {
@@ -406,7 +412,7 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
 			tViews[viewType] = null;
 			if (viewType == selectedType) {
 				selectedView = null;
-				TViewChooser[] viewChoosers = trackerPanel.getTFrame().getViewChoosers(trackerPanel);
+				TViewChooser[] viewChoosers = frame.getViewChoosers(panelID);
 				for (int i = 0; i < viewChoosers.length; i++) {
 					if (viewChoosers[i] == this) {
 						setSelectedViewType(i);
@@ -456,12 +462,14 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
 		}
 		tViews = null;
 		selectedView = null;
+		
+		TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
 		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this); // $NON-NLS-1$
 		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR, this); // $NON-NLS-1$
 		viewPanel.removeAll();
 		toolbar.removeAll();
-		trackerPanel = null;
-		
+		panelID = null;
+		frame = null;
 	}
 
 	/**
@@ -491,8 +499,8 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
 	public void maximize() {
 		if (isMaximized())
 			return;
-		TFrame frame = trackerPanel.getTFrame();
 		// save divider locations and size
+		TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
 		frame.saveCurrentDividerLocations(trackerPanel);
 		JToolBar player = frame.getMainView(trackerPanel).getPlayerBar();
 		if (player.getTopLevelAncestor()==frame) {
@@ -512,7 +520,7 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
 	 * Restores this chooser and its views.
 	 */
 	public void restore() {
-		TFrame frame = trackerPanel.getTFrame();
+		TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
 		MainTView mainView = frame.getMainView(trackerPanel);
 		JToolBar player = mainView.getPlayerBar();
 		if (player.getParent() == this) {
@@ -637,7 +645,7 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
 
 	@Override
 	public void paint(Graphics g) {
-		if (trackerPanel == null || !trackerPanel.isPaintable()) {
+		if (panelID == null || !frame.getTrackerPanelForID(panelID).isPaintable()) {
 		  return;
 		}
 		super.paint(g);

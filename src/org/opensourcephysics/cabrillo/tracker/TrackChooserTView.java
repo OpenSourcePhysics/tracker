@@ -80,7 +80,14 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 	protected static int viewPanelID;
 	
 	// instance fields
-	protected TrackerPanel trackerPanel;
+
+	protected TFrame frame;
+    protected Integer panelID;
+
+    protected TrackerPanel getPanel() {
+    	return frame.getTrackerPanelForID(panelID);
+    }
+
 	protected Map<Object, TTrack> tracks = new HashMap<Object, TTrack>(); // maps dropdown items to track
 	protected Map<TTrack, TrackView> trackViews; // maps track to its trackView
 	protected TTrack selectedTrack;
@@ -108,7 +115,8 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 			// just a place-holder 
 			return;
 		}
-		trackerPanel = panel.ref(this);
+		frame = panel.getTFrame();
+		panelID = panel.getID();
 		init();
 		setBackground(panel.getBackground());
 		// create combobox with custom renderer for tracks
@@ -150,9 +158,9 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 						@Override
 						public void actionPerformed(ActionEvent e) {
 							if (TrackChooserTView.this.getViewType() == TView.VIEW_TABLE) {
-								trackerPanel.getTFrame().showHelp("datatable", 0); //$NON-NLS-1$
+								frame.showHelp("datatable", 0); //$NON-NLS-1$
 							} else {
-								trackerPanel.getTFrame().showHelp("plot", 0); //$NON-NLS-1$
+								frame.showHelp("plot", 0); //$NON-NLS-1$
 							}
 						}
 					});
@@ -172,6 +180,7 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 		TTrack track = tracks.get(item);
 //if (track==selectedTrack) return;
 		String name = (String) ((Object[]) item)[1];
+		TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
 		if (track != null) {
 			trackerPanel.changed = true;
 			TrackView trackView = getTrackView(track);
@@ -232,6 +241,7 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 		// get previously selected track
 		TTrack selectedTrack = getSelectedTrack();
 		TTrack defaultTrack = null;
+		TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
 		// get views and rebuild for all tracks on trackerPanel
 		Map<TTrack, TrackView> newViews = new HashMap<TTrack, TrackView>();
 		removeAll(); // removes views from card layout
@@ -290,6 +300,7 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 	@Override
 	public void init() {
 		cleanup();
+		TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
 		trackerPanel.addListeners(panelProps, this);		
 		// add this listener to tracks
 		for (TTrack track : trackerPanel.getTracksTemp()) {
@@ -304,9 +315,9 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 	@Override
 	public void cleanup() {
 		// remove this listener from tracker panel
-		if (trackerPanel == null)
+		if (panelID == null)
 			return;
-		trackerPanel.removeListeners(panelProps, this);		
+		getPanel().removeListeners(panelProps, this);		
 		// remove this listener from tracks
 		for (Integer n : TTrack.activeTracks.keySet()) {
 			TTrack.activeTracks.get(n).removeListenerNCF(this);
@@ -330,7 +341,8 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 		tracks.clear();
 		setSelectedTrack(null);
 		remove(noData);
-		trackerPanel = null;
+		frame = null;
+		panelID = null;
 	}
 
 	@Override
@@ -345,7 +357,7 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 	 */
 	@Override
 	public TrackerPanel getTrackerPanel() {
-		return trackerPanel;
+		return getPanel();
 	}
 
 	/**
@@ -367,6 +379,7 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 			setNoData();
 			return;
 		}
+		TrackerPanel trackerPanel = getPanel();
 		if (!trackerPanel.containsTrack(track) || !track.isViewable())
 			return;
 		
@@ -491,8 +504,8 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 		if (ignoreRefresh)
 			return;
 		TTrack track;
-		TFrame frame;
 		TrackView view;
+		TrackerPanel panel = getPanel();
 		switch (e.getPropertyName()) {
 		case TrackerPanel.PROPERTY_TRACKERPANEL_TRACK:
 			// track has been added
@@ -506,7 +519,6 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 				}
 			}
 			refresh();
-			frame = trackerPanel.getTFrame();
 			if (frame != null)
 				TFrame.repaintT(frame);
 			// select a newly added track
@@ -524,7 +536,6 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 				}
 			}
 			refresh();
-			frame = trackerPanel.getTFrame();
 			if (frame != null)
 				TFrame.repaintT(frame);
 			break;
@@ -532,12 +543,12 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 			if ((track = getSelectedTrack()) != null && (view = getTrackView(track)) != null) {
 				// if track is a particle model, ignore if coords are adjusting
 				if (track instanceof ParticleModel) {
-					ImageCoordSystem coords = trackerPanel.getCoords();
+					ImageCoordSystem coords = panel.getCoords();
 					if (coords.isAdjusting())
 						return;
 				}
-				Step step = track.getStep(trackerPanel.getSelectedPoint(), trackerPanel);
-				view.refresh(step == null ? trackerPanel.getFrameNumber() : step.getFrameNumber(),
+				Step step = track.getStep(panel.getSelectedPoint(), panel);
+				view.refresh(step == null ? panel.getFrameNumber() : step.getFrameNumber(),
 						DataTable.MODE_TRACK_TRANSFORM);
 			}
 			break;
@@ -546,7 +557,7 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 			// or clip has been changed (VideoPlayer)
 			view = null;
 			if ((track = getSelectedTrack()) != null && (view = getTrackView(track)) != null) {
-				int frameNo = trackerPanel.getFrameNumber();
+				int frameNo = panel.getFrameNumber();
 				if (e.getNewValue() == Boolean.FALSE) {
 					// VideoClip is telling us user has released the mouse
 					view.setClipAdjusting(frameNo, false);
@@ -565,24 +576,24 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 		case TFrame.PROPERTY_TFRAME_RADIANANGLES:
 			// angle units have changed
 			// refresh views of all tracks
-			for (TTrack t : trackerPanel.getTracks()) {
+			for (TTrack t : panel.getTracks()) {
 				if ((view = getTrackView(t)) != null) {
 					view.refreshGUI();
-					view.refresh(trackerPanel.getFrameNumber(), DataTable.MODE_TRACK_FUNCTION);
+					view.refresh(panel.getFrameNumber(), DataTable.MODE_TRACK_FUNCTION);
 				}
 			}
 			break;
 		case TrackerPanel.PROPERTY_TRACKERPANEL_STEPNUMBER:
 			// step number has changed
 			if ((track = getSelectedTrack()) != null && (view = getTrackView(track)) != null) {
-				view.refresh(trackerPanel.getFrameNumber(), DataTable.MODE_HIGHLIGHT);
+				view.refresh(panel.getFrameNumber(), DataTable.MODE_HIGHLIGHT);
 			}
 			break;
 		case TrackerPanel.PROPERTY_TRACKERPANEL_IMAGE:
 			// video image has changed
 			if ((track = getSelectedTrack()) != null && (view = getTrackView(track)) != null
 					&& (track instanceof LineProfile || track instanceof RGBRegion)) {
-				view.refresh(trackerPanel.getFrameNumber(), DataTable.MODE_TRACK_STEPS);
+				view.refresh(panel.getFrameNumber(), DataTable.MODE_TRACK_STEPS);
 			}
 			break;
 		case TTrack.PROPERTY_TTRACK_NAME:
@@ -614,7 +625,7 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 	 * @return the track
 	 */
 	protected TTrack getTrack(String name) {
-		return trackerPanel.getTrackByName(TTrack.class, name);
+		return getPanel().getTrackByName(TTrack.class, name);
 	}
 
 	@Override
@@ -626,7 +637,7 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 	@Override
 	public void repaint() {
 		// from CardLayout reshape
-		if (trackerPanel != null && trackerPanel.isPaintable())
+		if (panelID != null && getPanel().isPaintable())
 			super.repaint();
 	}
 

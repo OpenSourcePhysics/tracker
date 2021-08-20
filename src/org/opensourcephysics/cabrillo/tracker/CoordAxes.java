@@ -162,11 +162,11 @@ public class CoordAxes extends TTrack {
 		angleField.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				if (trackerPanel == null)
+				if (tp == null)
 					return;
 				double theta = angleField.getValue();
 				// get the origin and handle of the current step
-				int n = trackerPanel.getFrameNumber();
+				int n = tp.getFrameNumber();
 				CoordAxesStep step = (CoordAxesStep) CoordAxes.this.getStep(n);
 				TPoint origin = step.getOrigin();
 				TPoint handle = step.getHandle();
@@ -175,18 +175,18 @@ public class CoordAxes extends TTrack {
 				double x = origin.getX() + d * Math.cos(theta);
 				double y = origin.getY() - d * Math.sin(theta);
 				handle.setXY(x, y);
-				angleField.setValue(trackerPanel.getCoords().getAngle(n));
+				angleField.setValue(tp.getCoords().getAngle(n));
 				angleField.requestFocusInWindow();
 			}
 		});
 		angleField.addFocusListener(new FocusAdapter() {
 			@Override
 			public void focusLost(FocusEvent e) {
-				if (trackerPanel == null)
+				if (tp == null)
 					return;
 				double theta = angleField.getValue();
 				// get the origin and handle of the current step
-				int n = trackerPanel.getFrameNumber();
+				int n = tp.getFrameNumber();
 				CoordAxesStep step = (CoordAxesStep) CoordAxes.this.getStep(n);
 				TPoint origin = step.getOrigin();
 				TPoint handle = step.getHandle();
@@ -195,27 +195,27 @@ public class CoordAxes extends TTrack {
 				double x = origin.getX() + d * Math.cos(theta);
 				double y = origin.getY() - d * Math.sin(theta);
 				handle.setXY(x, y);
-				angleField.setValue(trackerPanel.getCoords().getAngle(n));
+				angleField.setValue(tp.getCoords().getAngle(n));
 			}
 		});
 		originLabel = new JLabel();
 		final Action setOriginAction = new AbstractAction() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				if (trackerPanel == null)
+				if (tp == null)
 					return;
 				double x = xField.getValue();
 				double y = yField.getValue();
-				ImageCoordSystem coords = trackerPanel.getCoords();
-				int n = trackerPanel.getFrameNumber();
+				ImageCoordSystem coords = tp.getCoords();
+				int n = tp.getFrameNumber();
 				coords.setOriginXY(n, x, y);
 				xField.setValue(coords.getOriginX(n));
 				yField.setValue(coords.getOriginY(n));
 				CoordAxesStep step = (CoordAxesStep) CoordAxes.this.getStep(n);
 				TPoint handle = step.getHandle();
-				if (handle == trackerPanel.getSelectedPoint()) {
-					trackerPanel.setSelectedPoint(null);
-					trackerPanel.selectedSteps.clear();
+				if (handle == tp.getSelectedPoint()) {
+					tp.setSelectedPoint(null);
+					tp.selectedSteps.clear();
 				}
 			}
 		};
@@ -258,7 +258,7 @@ public class CoordAxes extends TTrack {
 			@Override
 			public Dimension getMaximumSize() {
 				Dimension dim = super.getMaximumSize();
-				dim.height = TTrackBar.getTrackbar(trackerPanel).toolbarComponentHeight;
+				dim.height = TTrackBar.getTrackbar(tp).toolbarComponentHeight;
 				return dim;
 			}
 
@@ -278,8 +278,8 @@ public class CoordAxes extends TTrack {
 						Color newColor = chooseColor(color, TrackerRes.getString("CoordAxes.Dialog.GridColor.Title")); //$NON-NLS-1$
 						if (newColor != color) {
 							grid.setColor(newColor);
-							for (int i = 0; i < trackerPanel.panelAndWorldViews.size(); i++) {
-								trackerPanel.panelAndWorldViews.get(i).repaint();
+							for (int i = 0; i < tp.panelAndWorldViews.size(); i++) {
+								tp.panelAndWorldViews.get(i).repaint();
 							}
 						}
 					}
@@ -304,19 +304,19 @@ public class CoordAxes extends TTrack {
 							@Override
 							public void stateChanged(ChangeEvent e) {
 								grid.setAlpha(slider.getValue());
-								for (int i = 0; i < trackerPanel.panelAndWorldViews.size(); i++) {
-									trackerPanel.panelAndWorldViews.get(i).repaint();
+								for (int i = 0; i < tp.panelAndWorldViews.size(); i++) {
+									tp.panelAndWorldViews.get(i).repaint();
 								}
 							}
 						});
 
-						int response = JOptionPane.showConfirmDialog(trackerPanel, slider,
+						int response = JOptionPane.showConfirmDialog(tp, slider,
 								TrackerRes.getString("CoordAxes.Dialog.GridOpacity.Title"), //$NON-NLS-1$
 								JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
 						if (response == JOptionPane.CANCEL_OPTION) {
 							grid.setAlpha(alpha);
-							for (int i = 0; i < trackerPanel.panelAndWorldViews.size(); i++) {
-								trackerPanel.panelAndWorldViews.get(i).repaint();
+							for (int i = 0; i < tp.panelAndWorldViews.size(); i++) {
+								tp.panelAndWorldViews.get(i).repaint();
 							}
 						}
 					}
@@ -346,8 +346,8 @@ public class CoordAxes extends TTrack {
 	@Override
 	public boolean isLocked() {
 		boolean locked = super.isLocked();
-		if (trackerPanel != null) {
-			locked = locked || trackerPanel.getCoords().isLocked();
+		if (tp != null) {
+			locked = locked || tp.getCoords().isLocked();
 		}
 		return locked;
 	}
@@ -364,10 +364,10 @@ public class CoordAxes extends TTrack {
 			notyetShown = false;
 			if (grid != null)
 				grid.setVisible(gridVisible);
-			if (trackerPanel != null && 
-					trackerPanel.autoTracker != null && 
-					trackerPanel.autoTracker.getTrack() == null) {
-				trackerPanel.autoTracker.setTrack(this);
+			if (tp != null && 
+					tp.autoTracker != null && 
+					tp.autoTracker.getTrack() == null) {
+				tp.autoTracker.setTrack(this);
 			}
 		} else if (grid != null) {
 			grid.setVisible(false);
@@ -385,9 +385,9 @@ public class CoordAxes extends TTrack {
 		gridVisible = visible;
 		grid.setVisible(gridVisible);
 		gridCheckbox.setSelected(gridVisible);
-		if (trackerPanel != null) {
-			for (int i = 0; i < trackerPanel.panelAndWorldViews.size(); i++) {
-				trackerPanel.panelAndWorldViews.get(i).repaint();
+		if (tp != null) {
+			for (int i = 0; i < tp.panelAndWorldViews.size(); i++) {
+				tp.panelAndWorldViews.get(i).repaint();
 			}
 		}
 	}
@@ -414,7 +414,7 @@ public class CoordAxes extends TTrack {
 	public Step createStep(int n, double x, double y) {
 //    Step step = steps.getStep(n);
 		Step step = getStep(0);
-		if (trackerPanel.getSelectedPoint() instanceof CoordAxesStep.Handle) {
+		if (tp.getSelectedPoint() instanceof CoordAxesStep.Handle) {
 			((CoordAxesStep) step).getHandle().setXY(x, y);
 			;
 		} else
@@ -505,7 +505,7 @@ public class CoordAxes extends TTrack {
 	 */
 	@Override
 	public TPoint autoMarkAt(int n, double x, double y) {
-		ImageCoordSystem coords = trackerPanel.getCoords();
+		ImageCoordSystem coords = tp.getCoords();
 		if (getTargetIndex() == 0) { // origin
 			if (coords.isFixedOrigin()) {
 				coords.setFixedOrigin(false);
@@ -566,7 +566,7 @@ public class CoordAxes extends TTrack {
 		if (coords instanceof ReferenceFrame)
 			return null;
 		// only look at step 0 since getStep(n) returns 0 for every n
-		Interactive ia = getStep(0).findInteractive(trackerPanel, xpix, ypix);
+		Interactive ia = getStep(0).findInteractive(tp, xpix, ypix);
 		if (ia == null) {
 			partName = TrackerRes.getString("TTrack.Selected.Hint"); //$NON-NLS-1$
 			hint = TrackerRes.getString("CoordAxes.Hint"); //$NON-NLS-1$
@@ -654,8 +654,8 @@ public class CoordAxes extends TTrack {
 	public void propertyChange(PropertyChangeEvent e) {
 		switch (e.getPropertyName()) {
 		case TrackerPanel.PROPERTY_TRACKERPANEL_STEPNUMBER:
-			int n = trackerPanel.getFrameNumber();
-			ImageCoordSystem coords = trackerPanel.getCoords();
+			int n = tp.getFrameNumber();
+			ImageCoordSystem coords = tp.getCoords();
 			angleField.setValue(coords.getAngle(n));
 			xField.setValue(coords.getOriginX(n));
 			yField.setValue(coords.getOriginY(n));
@@ -714,13 +714,13 @@ public class CoordAxes extends TTrack {
 
 		@Override
 		public double getX() {
-			ImageCoordSystem coords = trackerPanel.getCoords();
+			ImageCoordSystem coords = tp.getCoords();
 			return coords.getOriginX(frameNum);
 		}
 
 		@Override
 		public double getY() {
-			ImageCoordSystem coords = trackerPanel.getCoords();
+			ImageCoordSystem coords = tp.getCoords();
 			return coords.getOriginY(frameNum);
 		}
 	}

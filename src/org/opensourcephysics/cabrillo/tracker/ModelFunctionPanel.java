@@ -214,8 +214,8 @@ public class ModelFunctionPanel extends FunctionPanel {
 			}
 			break;
 		case FunctionEditor.PROPERTY_FUNCTIONEDITOR_ANGLESINRADIANS:
-			if (model.trackerPanel != null) {
-				model.trackerPanel.getTFrame().setAnglesInRadians((Boolean) e.getNewValue());
+			if (model.tp != null) {
+				model.frame.setAnglesInRadians((Boolean) e.getNewValue());
 				break;
 			}
 		}

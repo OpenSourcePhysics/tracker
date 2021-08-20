@@ -334,9 +334,9 @@ public abstract class Ruler {
 	 * @return the distance in screen pixels
 	 */
 	protected double getScreenDistanceToBase(Point p) {			
-    TPoint[] pts = track.getStep(track.trackerPanel.getFrameNumber()).getPoints();
-		Point p1 = pts[0].getScreenPosition(track.trackerPanel);
-		Point p2 = pts[1].getScreenPosition(track.trackerPanel);
+    TPoint[] pts = track.getStep(track.tp.getFrameNumber()).getPoints();
+		Point p1 = pts[0].getScreenPosition(track.tp);
+		Point p2 = pts[1].getScreenPosition(track.tp);
 		Line2D tapeLine = new Line2D.Double(p1, p2);
 		return tapeLine.ptLineDist(p.x, p.y);
 	}

@@ -105,8 +105,10 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 	private static final int VAR_NOT_FOUND = -2;
 
 	// instance fields
-	protected TrackerPanel trackerPanel;
+	protected TFrame frame;
+	protected Integer panelID;
 	protected int trackID;
+
 	protected DatasetManager datasetManager;
 	protected HighlightableDataset dataset = new HighlightableDataset();
 	protected ArrayList<TTrack> guests = new ArrayList<TTrack>();
@@ -165,7 +167,8 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 	public TrackPlottingPanel(TTrack track, DatasetManager data) {
 		super(" ", " ", " "); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 		displayCoordsOnMouseMoved = false;
-		trackerPanel = track.trackerPanel.ref(this);
+		frame = track.frame;
+		panelID = track.tp.getID();	
 		trackID = track.getID();
 		this.datasetManager = data;
 		dataset.setConnected(true);
@@ -184,6 +187,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 		addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyPressed(KeyEvent e) {
+				TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
 				VideoPlayer player = trackerPanel.getPlayer();
 				if (!player.isEnabled())
 					return;
@@ -212,7 +216,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 				case KeyEvent.VK_DELETE: // delete selected steps
 					trackerPanel.deleteSelectedSteps();
 					if (trackerPanel.selectedPoint != null
-							&& trackerPanel.selectingPanel == trackerPanel) {
+							&& trackerPanel.selectingPanelID == trackerPanel.getID()) {
 						trackerPanel.deletePoint(trackerPanel.selectedPoint);
 					}
 					return;
@@ -270,8 +274,8 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 		getCoordinateStringBuilder().setCoordinateLabels(xStr, yStr);
 		// add units to label
 		TTrack track = TTrack.getTrack(trackID);
-		if (track.trackerPanel != null) {
-			String units = track.trackerPanel.getUnits(track, label);
+		if (track.tp != null) {
+			String units = track.tp.getUnits(track, label);
 			if (!"".equals(units)) { //$NON-NLS-1$
 				label += " (" + units.trim() + ")"; //$NON-NLS-1$ //$NON-NLS-2$
 			}
@@ -302,8 +306,8 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 		getCoordinateStringBuilder().setCoordinateLabels(xStr, yStr);
 		// add units to label
 		TTrack track = TTrack.getTrack(trackID);
-		if (track.trackerPanel != null) {
-			String units = track.trackerPanel.getUnits(track, label);
+		if (track.tp != null) {
+			String units = track.tp.getUnits(track, label);
 			if (!"".equals(units)) { //$NON-NLS-1$
 				label += " (" + units.trim() + ")"; //$NON-NLS-1$ //$NON-NLS-2$
 			}
@@ -437,6 +441,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 		TTrack track = TTrack.getTrack(trackID);
 		Class<? extends TTrack> type = track instanceof PointMass ? PointMass.class
 				: track instanceof Vector ? Vector.class : track.getClass();
+		TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
 		ArrayList<? extends TTrack> tracks = trackerPanel.getDrawablesTemp(type);
 		tracks.removeAll(trackerPanel.calibrationTools);
 		tracks.remove(track);
@@ -583,7 +588,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 			algorithmItem.addActionListener(new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent e) {
-					DerivativeAlgorithmDialog dialog = trackerPanel.getAlgorithmDialog();
+					DerivativeAlgorithmDialog dialog = frame.getTrackerPanelForID(panelID).getAlgorithmDialog();
 					TTrack track = TTrack.getTrack(trackID);
 					if (track instanceof PointMass) {
 						dialog.setTargetMass((PointMass) track);
@@ -610,6 +615,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 				@Override
 				public void actionPerformed(ActionEvent e) {
 					TTrack track = TTrack.getTrack(trackID);
+					TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
 					trackerPanel.getDataBuilder().setSelectedPanel(track.getName());
 					trackerPanel.getDataBuilder().setVisible(true);
 				}
@@ -649,7 +655,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 		guestsItem.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				PlotGuestDialog dialog = trackerPanel.getPlotGuestDialog(TrackPlottingPanel.this);
+				PlotGuestDialog dialog = frame.getTrackerPanelForID(panelID).getPlotGuestDialog(TrackPlottingPanel.this);
 				dialog.setVisible(true);
 			}
 		});
@@ -678,7 +684,8 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 		popupmenu.addSeparator();
 		popupmenu.add(pointsItem);
 		popupmenu.add(linesItem);
-		if (trackerPanel != null) {
+		if (panelID != null) {
+			TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
 			if (trackerPanel.isEnabled("edit.copyImage")) { //$NON-NLS-1$
 				popupmenu.addSeparator();
 				popupmenu.add(copyImageItem);
@@ -739,6 +746,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 			}
 		}
 		// add or remove steps from selectedSteps
+		TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
 		for (int frame : frames) {
 			Step step = track.getStep(frame);
 			if (source == selectPointsItem)
@@ -747,8 +755,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 				trackerPanel.selectedSteps.remove(step);
 			step.erase();
 		}
-		TFrame.repaintT(trackerPanel);
-		track.fireStepsChanged();
+		fireRepaint(track);
 	}
 
 	/**
@@ -892,7 +899,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 	 * Plots the data.
 	 */
 	protected void plotData() {
-		
+
 		removeDrawables(Dataset.class);
 		// refresh the plot titles and determine if angles are being plotted
 		Dataset xData;
@@ -913,8 +920,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 				|| xTitle.startsWith(Tracker.ALPHA);
 		boolean yIsAngle = yTitle.startsWith(Tracker.THETA) || yTitle.startsWith(Tracker.OMEGA)
 				|| yTitle.startsWith(Tracker.ALPHA);
-		boolean degrees = trackerPanel != null && trackerPanel.getTFrame() != null
-				&& !trackerPanel.getTFrame().anglesInRadians;
+		boolean degrees = (panelID != null && frame != null && frame.anglesInRadians);
 
 		// refresh the coordStringBuilder
 		coordStringBuilder.setUnitsAndPatterns(track, xTitle, yTitle);
@@ -927,6 +933,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 		if (n > 0) {
 			// refresh guest datasets
 			// first eliminate any guests that may have been deleted
+			TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
 			ArrayList<TTrack> tracks = trackerPanel.getTracks();
 			// BH count down for removal
 			for (int i = n; --i >= 0;) {
@@ -939,7 +946,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 			tracks.clear();
 			// now add drawables for guests
 			if (n > 0) {
-				DatasetManager manager = track.getData(track.trackerPanel);
+				DatasetManager manager = track.getData(track.tp);
 				for (int i = 0; i < n; i++) {
 					track = guests.get(i);
 					HighlightableDataset dataset = guestDatasets.get(track);
@@ -953,14 +960,13 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 
 		if (track instanceof LineProfile)
 			return; // no highlights on line profile plots since not frame-based data
-		
+
 		// refresh highlighted indices
 		BitSet bsSteps = bsFrameHighlights;
 		if (!track.dataFrames.isEmpty()) {
 			int frameNum = bsSteps.nextSetBit(0);
-			if (bsSteps.cardinality() != 1 || 
-					track.dataFrames.size() <= frameNum || 
-					track.dataFrames.get(frameNum) != frameNum) {
+			if (bsSteps.cardinality() != 1 || track.dataFrames.size() <= frameNum
+					|| track.dataFrames.get(frameNum) != frameNum) {
 				bsSteps = new BitSet();
 				int dataIndex = 0;
 				int end = track.dataFrames.size();
@@ -975,7 +981,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 				}
 			}
 		}
-		dataset.setHighlights(bsSteps);			
+		dataset.setHighlights(bsSteps);
 
 		// refresh plot coordinates
 		int plotIndex = -1;
@@ -1060,7 +1066,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 			double x = dataset.getXPoints()[index];
 			double y = dataset.getYPoints()[index];
 			TTrack track = TTrack.getTrack(trackID);
-			msg = coordStringBuilder.getCoordinateString(track.trackerPanel, x, y);
+			msg = coordStringBuilder.getCoordinateString(track.tp, x, y);
 			setMessage(msg, MessageDrawable.BOTTOM_LEFT);
 		}
 	}
@@ -1076,7 +1082,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 	 */
 	@Override
 	public void setPreferredMinMax(double xmin, double xmax, double ymin, double ymax, boolean invalidateImage) {
-		trackerPanel.changed = true;
+		frame.getTrackerPanelForID(panelID).changed = true;
 		isCustom = true;
 		super.setPreferredMinMax(xmin, xmax, ymin, ymax, invalidateImage);
 		if (plotTrackView != null)
@@ -1091,7 +1097,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 	 */
 	@Override
 	public void setPreferredMinMaxX(double xmin, double xmax) {
-		trackerPanel.changed = true;
+		frame.getTrackerPanelForID(panelID).changed = true;
 		isCustom = true;
 		super.setPreferredMinMaxX(xmin, xmax);
 		if (plotTrackView != null)
@@ -1106,7 +1112,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 	 */
 	@Override
 	public void setPreferredMinMaxY(double ymin, double ymax) {
-		trackerPanel.changed = true;
+		frame.getTrackerPanelForID(panelID).changed = true;
 		isCustom = true;
 		super.setPreferredMinMaxY(ymin, ymax);
 	}
@@ -1226,9 +1232,10 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 					if (clickedStep == null)
 						return;
 					TPoint pt = clickedStep.getDefaultPoint();
-					plotTrackView.trackerPanel.setSelectedPoint(pt);
+					TrackerPanel trackerPanel = getPlotPanel();
+					trackerPanel.setSelectedPoint(pt);
 					if (pt != null) {
-						pt.showCoordinates(plotTrackView.trackerPanel);
+						pt.showCoordinates(trackerPanel);
 					}
 					clickedStep = null;
 					TFrame.repaintT(TrackPlottingPanel.this);
@@ -1236,9 +1243,14 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 			};
 		}
 		plotTrackView = view;
-		VideoPlayer player = plotTrackView.trackerPanel.getPlayer();
+		TrackerPanel trackerPanel = getPlotPanel();
+		VideoPlayer player = trackerPanel.getPlayer();
 		player.removePropertyChangeListener(VideoPlayer.PROPERTY_VIDEOPLAYER_STEPNUMBER, playerListener); //$NON-NLS-1$
 		player.addPropertyChangeListener(VideoPlayer.PROPERTY_VIDEOPLAYER_STEPNUMBER, playerListener); //$NON-NLS-1$
+	}
+
+	private TrackerPanel getPlotPanel() {
+		return plotTrackView.frame.getTrackerPanelForID(plotTrackView.panelID);
 	}
 
 	/**
@@ -1290,7 +1302,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 					setXVariable(item.getText());
 					plotData();
 					isCustom = true;
-					trackerPanel.changed = true;
+					frame.getTrackerPanelForID(panelID).changed = true;
 					repaint();
 				}
 			}
@@ -1303,7 +1315,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 					setYVariable(item.getText());
 					plotData();
 					isCustom = true;
-					trackerPanel.changed = true;
+					frame.getTrackerPanelForID(panelID).changed = true;
 					repaint();
 				}
 			}
@@ -1472,7 +1484,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 //		boolean inside = region == CartesianInteractive.INSIDE
 //				&& getCursor() == Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
 		boolean inside = mouseListener.region == CartesianInteractive.INSIDE;
-		boolean stepSelected = plotTrackView.trackerPanel.selectedSteps.size() == 1;
+		boolean stepSelected = getPlotPanel().selectedSteps.size() == 1;
 		return inside && !stepSelected && showCoordinates;
 	}
 
@@ -1519,7 +1531,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 				}
 			} else {
 				setToolTipText(null);
-				if (plotTrackView.trackerPanel.selectedSteps.size() != 1)
+				if (getPlotPanel().selectedSteps.size() != 1)
 					messages.setMessage(null, 0);
 			}
 		}
@@ -1533,13 +1545,14 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 			TTrack track = TTrack.getTrack(trackID);
 			// if dataset is iad, select data point
 			if (iad == dataset) {
+				TrackerPanel trackerPanel = getPlotPanel();
 				showPlotCoordinates(dataset.getHitIndex());
 				// determine frame number
 				int frame = track.getFrameForData(getXLabel(), getYLabel(),
 						new double[] { dataset.getX(), dataset.getY() });
 				if (frame > -1) {
 					Step step = track.getStep(frame);
-					StepSet steps = plotTrackView.trackerPanel.selectedSteps;
+					StepSet steps = trackerPanel.selectedSteps;
 					if (e.isControlDown()) {
 						// add or remove step
 						if (step != null) {
@@ -1548,20 +1561,18 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 							else
 								steps.add(step);
 							step.erase();
-							TFrame.repaintT(trackerPanel);
-							track.fireStepsChanged();
+							fireRepaint(track);
 						}
 					} else if (step != null ){
-						VideoPlayer player = plotTrackView.trackerPanel.getPlayer();
+						VideoPlayer player = trackerPanel.getPlayer();
 						if (player.getFrameNumber() == frame) {
 							TPoint pt = step.getDefaultPoint();
-							plotTrackView.trackerPanel.setSelectedPoint(pt);
+							trackerPanel.setSelectedPoint(pt);
 							if (pt != null) {
-								pt.showCoordinates(plotTrackView.trackerPanel);
+								pt.showCoordinates(trackerPanel);
 							}
 							step.erase();
-							TFrame.repaintT(trackerPanel);
-							track.fireStepsChanged();							
+							fireRepaint(track);
 						}
 						else {
 							// set clickedStep so TrackPlottingPanel will select it later
@@ -1573,7 +1584,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 					return;
 				}
 			} else if (region == CartesianInteractive.INSIDE && e.getClickCount() == 2
-					&& trackerPanel.isEnabled("data.tool")) { //$NON-NLS-1$ // double click
+					&& frame.getTrackerPanelForID(panelID).isEnabled("data.tool")) { //$NON-NLS-1$ // double click
 				showDataTool();
 			}
 //			displayCoordinates(e);
@@ -1639,6 +1650,11 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 	 */
 	public static XML.ObjectLoader getLoader() {
 		return new Loader();
+	}
+
+	public void fireRepaint(TTrack track) {
+		TFrame.repaintT(frame.getTrackerPanelForID(panelID));
+		track.fireStepsChanged();
 	}
 
 	/**
@@ -1768,7 +1784,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 			}
 			String[] guestnames = (String[]) control.getObject("guests"); //$NON-NLS-1$
 			if (guestnames != null) {
-				TrackerPanel trackerPanel = plot.trackerPanel;
+				TrackerPanel trackerPanel = plot.frame.getTrackerPanelForID(plot.panelID);
 				ArrayList<TTrack> tracks = trackerPanel.getTracks();
 				for (String name : guestnames) {
 					TTrack guest = trackerPanel.getTrack(name, tracks);
@@ -1808,7 +1824,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 				tSet.add(t);
 			}
 			for (TTrack guest : guests) {
-				DatasetManager guestData = guest.getData(guest.trackerPanel);
+				DatasetManager guestData = guest.getData(guest.tp);
 				Dataset nextGuestIn = guestData.getDataset(0);
 				double[] guestTArray = nextGuestIn.getXPoints();
 				for (double t : guestTArray) {
@@ -1857,7 +1873,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 		}
 		// if this plot has guests, send their data too
 		for (TTrack guest : guests) {
-			DatasetManager guestData = guest.getData(guest.trackerPanel);
+			DatasetManager guestData = guest.getData(guest.tp);
 			refresher.addData(guestData);
 			if (xIndex >= 0) {
 				nextIn = guestData.getDataset(xIndex);
@@ -1923,7 +1939,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 
 	@Override
 	public void repaint() {
-		if (trackerPanel == null || !trackerPanel.isPaintable()) {
+		if (panelID == null || !frame.getTrackerPanelForID(panelID).isPaintable()) {
 			return;
 		}
 		super.repaint();
@@ -1934,7 +1950,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 	protected void dispose() {
 		System.out.println("TrackPlottingPanel.dispose");
 		if (playerListener != null) {
-			plotTrackView.trackerPanel.getPlayer()
+			getPlotPanel().getPlayer()
 					.removePropertyChangeListener(VideoPlayer.PROPERTY_VIDEOPLAYER_STEPNUMBER, playerListener); // $NON-NLS-1$
 		}
 		for (TTrack guest : guests) {
@@ -1944,8 +1960,8 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 		guestDatasets.clear();
 		datasetManager = null;
 		plotTrackView = null;
-		trackerPanel = null;
-		
+		panelID = null;
+		frame = null;
 		// MEMORY LEAK -- was missing super.dispose()
 		super.dispose();
 	}

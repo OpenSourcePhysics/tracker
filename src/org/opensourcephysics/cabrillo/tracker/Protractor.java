@@ -197,7 +197,7 @@ public class Protractor extends InputTrack {
 		attachmentItem.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				AttachmentDialog control = trackerPanel.getAttachmentDialog(Protractor.this);
+				AttachmentDialog control = tp.getAttachmentDialog(Protractor.this);
 				control.setVisible(true);
 			}
 		});
@@ -205,7 +205,7 @@ public class Protractor extends InputTrack {
 			@Override
 			public void focusLost(FocusEvent e) {
 				if (angleField.getBackground() == Color.yellow) {
-					int n = trackerPanel.getFrameNumber();
+					int n = tp.getFrameNumber();
 					ProtractorStep step = (ProtractorStep) getStep(n);
 					if (!isFixedPosition()) {
 						keyFrames.add(n);
@@ -219,7 +219,7 @@ public class Protractor extends InputTrack {
 							fireStepsChanged();
 						else
 							firePropertyChange(PROPERTY_TTRACK_STEP, null, new Integer(n));
-						trackerPanel.repaint();
+						tp.repaint();
 					}
 				}
 			}
@@ -237,7 +237,7 @@ public class Protractor extends InputTrack {
 			@Override
 			public void focusLost(FocusEvent e) {
 				NumberField field = (NumberField) e.getSource();
-				int n = trackerPanel.getFrameNumber();
+				int n = tp.getFrameNumber();
 				ProtractorStep step = (ProtractorStep) getStep(n);
 				if (!isFixedPosition()) {
 					keyFrames.add(n);
@@ -252,7 +252,7 @@ public class Protractor extends InputTrack {
 						fireStepsChanged();
 					else
 						firePropertyChange(PROPERTY_TTRACK_STEP, null, new Integer(n)); // $NON-NLS-1$
-					trackerPanel.repaint();
+					tp.repaint();
 				}
 			}
 		};
@@ -278,11 +278,11 @@ public class Protractor extends InputTrack {
 	 */
 	@Override
 	public void propertyChange(PropertyChangeEvent e) {
-		boolean isSelectedTrack = (trackerPanel.getSelectedTrack() == this);
+		boolean isSelectedTrack = (tp.getSelectedTrack() == this);
 		switch (e.getPropertyName()) {
 		case TrackerPanel.PROPERTY_TRACKERPANEL_STEPNUMBER:
 			if (isSelectedTrack) {
-				ProtractorStep step = (ProtractorStep) getStep(trackerPanel.getFrameNumber());
+				ProtractorStep step = (ProtractorStep) getStep(tp.getFrameNumber());
 				step.getProtractorAngle(true); // refreshes angle field
 				step.getFormattedLength(step.end1); // refreshes x field
 				step.getFormattedLength(step.end2); // refreshes y field
@@ -318,14 +318,14 @@ public class Protractor extends InputTrack {
 	public Step createStep(int n, double x, double y) {
 		Step step = steps.getStep(n);
 		TPoint[] pts = step.getPoints();
-		TPoint p = trackerPanel == null ? null : trackerPanel.getSelectedPoint();
+		TPoint p = tp == null ? null : tp.getSelectedPoint();
 		if (p == null) {
 			p = pts[2];
 		}
 		if (p == pts[0] || p == pts[1] || p == pts[2]) {
 			p.setXY(x, y);
-			if (trackerPanel != null) {
-				trackerPanel.setSelectedPoint(p);
+			if (tp != null) {
+				tp.setSelectedPoint(p);
 				step.defaultIndex = p == pts[0] ? 0 : p == pts[1] ? 1 : 2;
 			}
 		}
@@ -498,7 +498,7 @@ public class Protractor extends InputTrack {
 		for (int i = 0; i < validData.length; i++)
 			validData[i] = false;
 		// set up derivative parameters
-		VideoClip clip = trackerPanel.getPlayer().getVideoClip();
+		VideoClip clip = tp.getPlayer().getVideoClip();
 		params[1] = clip.getStartFrameNumber();
 		params[2] = clip.getStepSize();
 		params[3] = clip.getStepCount();
@@ -715,21 +715,20 @@ public class Protractor extends InputTrack {
 		item.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				TFrame frame = trackerPanel.getTFrame();
 				frame.setAnglesInRadians(!radians);
 			}
 		});
 		item.setText(radians ? TrackerRes.getString("TTrack.AngleField.Popup.Degrees") : //$NON-NLS-1$
 				TrackerRes.getString("TTrack.AngleField.Popup.Radians")); //$NON-NLS-1$
 		popup.add(item);
-		if (trackerPanel.isEnabled("number.formats")) { //$NON-NLS-1$
+		if (tp.isEnabled("number.formats")) { //$NON-NLS-1$
 			popup.addSeparator();
 			item = new JMenuItem();
 			final String[] selected = new String[] { Tracker.THETA };
 			item.addActionListener(new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent e) {
-					NumberFormatDialog.getNumberFormatDialog(Protractor.this.trackerPanel, Protractor.this, selected)
+					NumberFormatDialog.getNumberFormatDialog(Protractor.this.tp, Protractor.this, selected)
 							.setVisible(true);
 				}
 			});
@@ -764,7 +763,7 @@ public class Protractor extends InputTrack {
 		super.setAnglesInRadians(radians);
 //    inputField.setDecimalPlaces(radians? 3: 1);
 		inputField.setConversionFactor(radians ? 1.0 : 180 / Math.PI);
-		Step step = getStep(trackerPanel.getFrameNumber());
+		Step step = getStep(tp.getFrameNumber());
 		step.repaint(); // refreshes angle readout
 	}
 
@@ -815,7 +814,7 @@ public class Protractor extends InputTrack {
 
 	@Override
 	protected Rectangle getLayoutBounds(Step step) {
-		return ((ProtractorStep) step).layoutBounds.get(trackerPanel);
+		return ((ProtractorStep) step).layoutBounds.get(tp);
 	}
 
 	@Override

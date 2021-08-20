@@ -43,7 +43,8 @@ public class PlotGuestDialog extends JDialog {
 
   // instance fields
   protected TrackPlottingPanel plot;
-  protected TrackerPanel trackerPanel;
+  protected TFrame frame;
+  protected Integer panelID;
   protected JButton okButton, selectAllButton;
   protected JPanel checkboxPanel;
   protected ActionListener listener;
@@ -58,7 +59,8 @@ public class PlotGuestDialog extends JDialog {
    */
   public PlotGuestDialog(TrackerPanel panel) {
     super(JOptionPane.getFrameForComponent(panel), true);
-    trackerPanel = panel.ref(this);
+	frame = panel.getTFrame();
+	panelID = panel.getID();
     // listener for the checkboxes
     listener = new ActionListener() {
       @Override
@@ -143,8 +145,10 @@ public class PlotGuestDialog extends JDialog {
     // make checkboxes for all similar tracks in trackerPanel
     Class<? extends TTrack> type = track instanceof PointMass? PointMass.class:
     	track instanceof Vector? Vector.class: track.getClass();
-    ArrayList<? extends TTrack> tracks = trackerPanel.getDrawablesTemp(type);
-    tracks.removeAll(trackerPanel.calibrationTools);
+    
+    ArrayList<? extends TTrack> tracks = frame.getTrackerPanelForID(panelID).getDrawablesTemp(type);
+    TrackerPanel panel = frame.getTrackerPanelForID(panelID);
+    tracks.removeAll(panel.calibrationTools);
     tracks.remove(track);
     int tracksPerColumn = 8;
     int cols = 1+(tracks.size()-1)/tracksPerColumn;

@@ -123,7 +123,7 @@ public class DynamicParticle extends ParticleModel implements ODE {
 		// if this is part of a system, warn user
 		if (system != null) {
 			String message = TrackerRes.getString("DynamicParticle.Dialog.Delete.Message"); //$NON-NLS-1$
-			int response = javax.swing.JOptionPane.showConfirmDialog(trackerPanel.getTFrame(), message,
+			int response = javax.swing.JOptionPane.showConfirmDialog(frame, message,
 					TrackerRes.getString("DynamicParticle.Dialog.Delete.Title"), //$NON-NLS-1$
 					javax.swing.JOptionPane.OK_CANCEL_OPTION, javax.swing.JOptionPane.WARNING_MESSAGE);
 			if (response == javax.swing.JOptionPane.YES_OPTION) {
@@ -163,13 +163,13 @@ public class DynamicParticle extends ParticleModel implements ODE {
 		// state is {x, vx, y, vy, t} but may be different in subclasses
 		t0 = state[state.length - 1]; // time at start frame
 		setTracePositions(state);
-		if (trackerPanel != null) {
+		if (tp != null) {
 			erase();
-			dt = trackerPanel.getPlayer().getMeanStepDuration() / (1000 * tracePtsPerStep);
+			dt = tp.getPlayer().getMeanStepDuration() / (1000 * tracePtsPerStep);
 			dt /= iterationsPerStep;
 			solver.initialize(dt);
 			ParticleModel[] models = getModels();
-			VideoClip clip = trackerPanel.getPlayer().getVideoClip();
+			VideoClip clip = tp.getPlayer().getVideoClip();
 			// find last frame included in both model and clip
 			int end = Math.min(getEndFrame(), clip.getLastFrameNumber());
 			while (end > getStartFrame() && !clip.includesFrame(end)) {
@@ -186,8 +186,8 @@ public class DynamicParticle extends ParticleModel implements ODE {
 				for (int i = 0; i < models.length; i++) {
 					models[i].steps.setLength(1);
 					models[i].steps.setStep(0, null);
-					for (int j = 0; j < trackerPanel.panelAndWorldViews.size(); j++) {
-						TrackerPanel panel = trackerPanel.panelAndWorldViews.get(j);
+					for (int j = 0; j < tp.panelAndWorldViews.size(); j++) {
+						TrackerPanel panel = tp.panelAndWorldViews.get(j);
 						models[i].getVArray(panel).setLength(0);
 						models[i].getAArray(panel).setLength(0);
 					}
@@ -202,7 +202,7 @@ public class DynamicParticle extends ParticleModel implements ODE {
 			while (firstFrameInClip < end && !clip.includesFrame(firstFrameInClip)) {
 				firstFrameInClip++;
 			}
-			ImageCoordSystem coords = trackerPanel.getCoords();
+			ImageCoordSystem coords = tp.getCoords();
 			// get underlying coords if appropriate
 			boolean useDefault = isUseDefaultReferenceFrame();
 			while (useDefault && coords instanceof ReferenceFrame) {
@@ -228,8 +228,8 @@ public class DynamicParticle extends ParticleModel implements ODE {
 						models[i].steps.setStep(firstFrameInClip, step);
 					}
 				}
-				for (int j = 0; j < trackerPanel.panelAndWorldViews.size(); j++) {
-					TrackerPanel panel = trackerPanel.panelAndWorldViews.get(j);
+				for (int j = 0; j < tp.panelAndWorldViews.size(); j++) {
+					TrackerPanel panel = tp.panelAndWorldViews.get(j);
 					models[i].getVArray(panel).setLength(0);
 					models[i].getAArray(panel).setLength(0);
 				}
@@ -495,7 +495,7 @@ public class DynamicParticle extends ParticleModel implements ODE {
 	 *         number
 	 */
 	protected double[] getBoostState(PointMass target, int frameNumber) {
-		DatasetManager data = target.getData(trackerPanel);
+		DatasetManager data = target.getData(tp);
 
 		// determine the dataset index for the specified frame number
 		Dataset ds = data.getFrameDataset();
@@ -644,8 +644,8 @@ public class DynamicParticle extends ParticleModel implements ODE {
 				break;
 			case TTrack.PROPERTY_TTRACK_STEPS:
 				if (booster instanceof ParticleModel) {
-					DatasetManager data = booster.getData(trackerPanel);
-					booster.refreshData(data, trackerPanel);
+					DatasetManager data = booster.getData(tp);
+					booster.refreshData(data, tp);
 				}
 				break;
 			default:

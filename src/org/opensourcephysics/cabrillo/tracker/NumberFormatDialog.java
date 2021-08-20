@@ -425,7 +425,7 @@ public class NumberFormatDialog extends JDialog {
 	 * @return array of names to display to the user
 	 */
 	private static ArrayList<String> getDisplayNames(TTrack track) {
-		if (track == null || track.trackerPanel == null)
+		if (track == null || track.tp == null)
 			return new ArrayList<String>();
 		ArrayList<String> names = new ArrayList<String>();
 		String[] vars = track.getFormatVariables();
@@ -438,7 +438,7 @@ public class NumberFormatDialog extends JDialog {
 				}
 			}
 			// add names of data functions found in track data
-			DatasetManager data = track.getData(track.trackerPanel);
+			DatasetManager data = track.getData(track.tp);
 			for (int i = 0, n = data.getDatasetsRaw().size(); i < n; i++) {
 				Dataset dataset = data.getDataset(i);
 				if (!(dataset instanceof DataFunction))
@@ -512,7 +512,7 @@ public class NumberFormatDialog extends JDialog {
 			prevTrackPatterns.put(next, patterns);
 		}
 		panel.clearTemp();
-		prevAnglesInRadians = panel.getTFrame().anglesInRadians;
+		prevAnglesInRadians = frame.anglesInRadians;
 		prevDecimalSeparator = OSPRuntime.getPreferredDecimalSeparator();
 		formatsChanged = false;
 	}
@@ -533,12 +533,12 @@ public class NumberFormatDialog extends JDialog {
 			BitSet known = new BitSet();
 			if (dimensions != null) {
 				// apply to trackerPanel.formatPatterns for future tracks
-				ArrayList<TTrack> tracks = track.trackerPanel.getTracksTemp();
+				ArrayList<TTrack> tracks = track.tp.getTracksTemp();
 				for (TTrack t : tracks) {
 					if (known.get(t.ttype))
 						continue;
 					known.set(t.ttype);
-					TreeMap<String, String> patterns = track.trackerPanel.getFormatPatterns(t.ttype);
+					TreeMap<String, String> patterns = track.tp.getFormatPatterns(t.ttype);
 					for (String nextName : patterns.keySet()) {
 						if (dimensions.equals(TTrack.getVariableDimensions(t, nextName))) {
 							if (!pattern.equals(patterns.get(nextName))) {
@@ -572,7 +572,7 @@ public class NumberFormatDialog extends JDialog {
 					formatsChanged = true;
 				}
 				// apply to all other tracks with variable of same name and null dimensions
-				ArrayList<TTrack> tracks = track.trackerPanel.getTracks();
+				ArrayList<TTrack> tracks = track.tp.getTracks();
 				for (TTrack t : tracks) {
 					for (String var : getDisplayNames(t)) {
 						if (var.equals(displayName) && TTrack.getVariableDimensions(t, displayName) == null) {
@@ -587,7 +587,7 @@ public class NumberFormatDialog extends JDialog {
 		} else if (trackTypeButton.isSelected()) {
 			// apply to the variable in all tracks of same type
 			String trackType = track.getBaseType();
-			ArrayList<TTrack> tracks = track.trackerPanel.getTracks();
+			ArrayList<TTrack> tracks = track.tp.getTracks();
 			for (TTrack t : tracks) {
 				if (t.getBaseType() != trackType)
 					continue;
@@ -597,7 +597,7 @@ public class NumberFormatDialog extends JDialog {
 				}
 			}
 			// set pattern in trackerPanel.formatPatterns
-			TreeMap<String, String> patterns = track.trackerPanel.getFormatPatterns(track.ttype);
+			TreeMap<String, String> patterns = track.tp.getFormatPatterns(track.ttype);
 			patterns.put(displayName, pattern);
 		} else if (track.setFormatPattern(displayName, pattern)) {
 //			track.firePropertyChange(TTrack.PROPERTY_TTRACK_DATA, null, null); // $NON-NLS-1$
@@ -656,7 +656,7 @@ public class NumberFormatDialog extends JDialog {
 				TTrack.restorePatterns(trackerPanel);
 
 				// reset track formats
-				ArrayList<TTrack> tracks = track.trackerPanel.getTracks();
+				ArrayList<TTrack> tracks = track.tp.getTracks();
 				for (TTrack next : tracks) {
 					TreeMap<String, String> patterns = prevTrackPatterns.get(next);
 					if (patterns != null) {
@@ -671,7 +671,7 @@ public class NumberFormatDialog extends JDialog {
 					}
 				}
 				OSPRuntime.setPreferredDecimalSeparator(prevDecimalSeparator);
-				track.trackerPanel.getTFrame().setAnglesInRadians(prevAnglesInRadians);
+				track.frame.setAnglesInRadians(prevAnglesInRadians);
 				showNumberFormatAndSample(variableList.getSelectedIndices());
 				prevPattern = ""; //$NON-NLS-1$
 				formatsChanged = false;
@@ -991,12 +991,12 @@ public class NumberFormatDialog extends JDialog {
 		} else if (selectedIndices.length == 1) {
 			String name = realNames.get(displayedNames[selectedIndices[0]]);
 			String pattern = track.getVarFormatPattern(name);
-			boolean degrees = name.startsWith(Tracker.THETA) && !track.trackerPanel.getTFrame().anglesInRadians;
+			boolean degrees = name.startsWith(Tracker.THETA) && !track.frame.anglesInRadians;
 			showNumberFormatAndSample(pattern, degrees);
 		} else {
 			// do all selected indices have same pattern?
 			String name = realNames.get(displayedNames[selectedIndices[0]]);
-			boolean degrees = name.startsWith(Tracker.THETA) && !track.trackerPanel.getTFrame().anglesInRadians;
+			boolean degrees = name.startsWith(Tracker.THETA) && !track.frame.anglesInRadians;
 			String pattern = track.getVarFormatPattern(name);
 			if (degrees && (pattern == null || "".equals(pattern))) { //$NON-NLS-1$
 				pattern = NumberField.DECIMAL_1_PATTERN;

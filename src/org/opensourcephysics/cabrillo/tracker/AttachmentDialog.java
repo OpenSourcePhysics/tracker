@@ -52,7 +52,10 @@ public class AttachmentDialog extends JDialog implements PropertyChangeListener 
 
 	// instance fields
 	protected int trackID;
-	protected TrackerPanel trackerPanel;
+    protected TFrame frame;
+    protected Integer panelID;
+    
+
 	protected boolean isVisible;
 	protected JButton closeButton, helpButton;
 	protected ArrayList<PointMass> masses;
@@ -86,13 +89,13 @@ public class AttachmentDialog extends JDialog implements PropertyChangeListener 
 	 * @param track the measuring tool
 	 */
 	public AttachmentDialog(TTrack track) {
-		super(JOptionPane.getFrameForComponent(track.trackerPanel), false);
-		trackerPanel = track.trackerPanel.ref(this);
+		super(JOptionPane.getFrameForComponent(track.tp), false);
+		panelID = track.tp.getID();
+		frame = track.frame;
 		createGUI();
 		setMeasuringTool(track);
 		refreshDropdowns();
-		trackerPanel.addListeners(panelProps, this);
-		TFrame frame = trackerPanel.getTFrame();		
+		track.tp.addListeners(panelProps, this);
 		myFollower = frame.addFollower(this, null);
 		frame.addPropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, this); // $NON-NLS-1$
 		refreshGUI();
@@ -107,7 +110,8 @@ public class AttachmentDialog extends JDialog implements PropertyChangeListener 
 	public void propertyChange(PropertyChangeEvent e) {
 		switch (e.getPropertyName()) {
 		case TFrame.PROPERTY_TFRAME_TAB:
-			if (trackerPanel != null && e.getNewValue() == trackerPanel) {
+			TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
+			if (panelID != null && e.getNewValue() == trackerPanel) {
 				setVisible(isVisible);
 			} else {
 				boolean vis = isVisible;
@@ -183,7 +187,8 @@ public class AttachmentDialog extends JDialog implements PropertyChangeListener 
 	 */
 	@Override
 	public void dispose() {
-		if (trackerPanel != null) {
+		if (panelID != null) {
+			TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
 			trackerPanel.removeListeners(panelProps, this);
 			for (TTrack p : masses) {
 				p.removeListenerNCF(this);
@@ -195,14 +200,14 @@ public class AttachmentDialog extends JDialog implements PropertyChangeListener 
 			if (measuringTool instanceof CircleFitter) {
 				measuringTool.removePropertyChangeListener(CircleFitter.PROPERTY_CIRCLEFITTER_DATAPOINT, this); //$NON-NLS-1$
 			}
-			TFrame frame = trackerPanel.getTFrame();
 			if (frame != null) {
 				frame.removePropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, this);
 				frame.removeComponentListener(myFollower);
 				myFollower = null;
 			}
 			trackerPanel.attachmentDialog = null;
-			trackerPanel = null;
+			panelID = null;
+			frame = null;
 		}
 		super.dispose();
 	}
@@ -334,7 +339,7 @@ public class AttachmentDialog extends JDialog implements PropertyChangeListener 
 				fitter.refreshAttachments();
 				DefaultTableModel dm = (DefaultTableModel) table.getModel();
 				dm.fireTableDataChanged();
-				TFrame.repaintT(fitter.trackerPanel);
+				TFrame.repaintT(fitter.tp);
 			}
 		};
 
@@ -401,7 +406,7 @@ public class AttachmentDialog extends JDialog implements PropertyChangeListener 
 				String keyword = measuringTool == null ? "circle" : //$NON-NLS-1$
 				measuringTool instanceof Protractor ? "protractor" : //$NON-NLS-1$
 				measuringTool instanceof TapeMeasure ? "tape" : "circle"; //$NON-NLS-1$ //$NON-NLS-2$
-				trackerPanel.getTFrame().showHelp(keyword + "#attach", 0); //$NON-NLS-1$
+				frame.showHelp(keyword + "#attach", 0); //$NON-NLS-1$
 			}
 		});
 		closeButton = new JButton();
@@ -449,6 +454,7 @@ public class AttachmentDialog extends JDialog implements PropertyChangeListener 
 	 * Refreshes the attachment and measuring tool dropdowns.
 	 */
 	protected void refreshDropdowns() {
+		TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
 		masses = trackerPanel.getDrawables(PointMass.class);
 		for (TTrack p : masses) {
 			p.removeListenerNCF((PropertyChangeListener)this);
@@ -504,6 +510,7 @@ public class AttachmentDialog extends JDialog implements PropertyChangeListener 
 		} else {
 			startField.applyPattern("#;-#"); //$NON-NLS-1$
 		}
+		TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
 		int min = fitter.isRelativeFrameNumbers ? 1 - trackerPanel.getPlayer().getVideoClip().getFrameCount()
 				: trackerPanel.getPlayer().getVideoClip().getFirstFrameNumber();
 		int max = trackerPanel.getPlayer().getVideoClip().getLastFrameNumber();

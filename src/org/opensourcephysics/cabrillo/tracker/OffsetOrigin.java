@@ -136,11 +136,11 @@ public class OffsetOrigin extends TTrack {
 			step.setFootprint(getFootprint());
 			steps = new StepArray(step);
 			firePropertyChange(PROPERTY_TTRACK_STEP, null, new Integer(n)); // $NON-NLS-1$
-		} else if (trackerPanel != null) {
+		} else if (tp != null) {
 			XMLControl currentState = new XMLControlElement(this);
 			TPoint p = step.getPosition();
 			p.setLocation(x, y);
-			Point2D pt = p.getWorldPosition(trackerPanel);
+			Point2D pt = p.getWorldPosition(tp);
 			step.worldX = pt.getX();
 			step.worldY = pt.getY();
 			keyFrames.add(n);
@@ -161,7 +161,7 @@ public class OffsetOrigin extends TTrack {
 	public TPoint autoMarkAt(int n, double x, double y) {
 		OffsetOriginStep step = (OffsetOriginStep) getStep(n);
 		// be sure coords have unfixed origin
-		ImageCoordSystem coords = trackerPanel.getCoords();
+		ImageCoordSystem coords = tp.getCoords();
 		coords.setFixedOrigin(false);
 		if (step == null) {
 			step = (OffsetOriginStep) createStep(n, x, y);
@@ -171,7 +171,7 @@ public class OffsetOrigin extends TTrack {
 		} else {
 			TPoint p = step.getPoints()[0];
 			if (p != null) {
-				Mark mark = step.marks.get(trackerPanel);
+				Mark mark = step.marks.get(tp);
 				if (mark == null) {
 					// set step location to image position of current world coordinates
 					double xx = coords.worldToImageX(n, step.worldX, step.worldY);
@@ -217,11 +217,11 @@ public class OffsetOrigin extends TTrack {
 		if (fixedCoordinates == fixed)
 			return;
 		XMLControl control = new XMLControlElement(this);
-		if (trackerPanel != null) {
-			trackerPanel.changed = true;
-			int n = trackerPanel.getFrameNumber();
+		if (tp != null) {
+			tp.changed = true;
+			int n = tp.getFrameNumber();
 			steps = new StepArray(getStep(n));
-			TFrame.repaintT(trackerPanel);
+			TFrame.repaintT(tp);
 		}
 		if (fixed) {
 			keyFrames.clear();
@@ -255,8 +255,8 @@ public class OffsetOrigin extends TTrack {
 	@Override
 	public boolean isLocked() {
 		boolean locked = super.isLocked();
-		if (trackerPanel != null) {
-			locked = locked || trackerPanel.getCoords().isLocked();
+		if (tp != null) {
+			locked = locked || tp.getCoords().isLocked();
 		}
 		return locked;
 	}
@@ -394,12 +394,12 @@ public class OffsetOrigin extends TTrack {
 	 */
 	@Override
 	public void setTrackerPanel(TrackerPanel panel) {
-		if (trackerPanel != null) {			
-			trackerPanel.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_LOCKED, this);
+		if (tp != null) {			
+			tp.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_LOCKED, this);
 		}
 		super.setTrackerPanel(panel);
-		if (trackerPanel != null) {
-			trackerPanel.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_LOCKED, this);
+		if (tp != null) {
+			tp.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_LOCKED, this);
 		}
 	}
 
@@ -412,7 +412,7 @@ public class OffsetOrigin extends TTrack {
 	public void propertyChange(PropertyChangeEvent e) {
 		switch (e.getPropertyName()) {
 		case TrackerPanel.PROPERTY_TRACKERPANEL_STEPNUMBER:
-			if (trackerPanel.getSelectedTrack() == this) {
+			if (tp.getSelectedTrack() == this) {
 				displayWorldCoordinates();
 				stepValueLabel.setText(e.getNewValue() + ":"); //$NON-NLS-1$
 			}
@@ -513,15 +513,15 @@ public class OffsetOrigin extends TTrack {
 	 * the x and y fields.
 	 */
 	private void setWorldCoordinatesFromFields() {
-		if (trackerPanel == null)
+		if (tp == null)
 			return;
-		OffsetOriginStep step = (OffsetOriginStep) getStep(trackerPanel.getFrameNumber());
+		OffsetOriginStep step = (OffsetOriginStep) getStep(tp.getFrameNumber());
 		boolean different = step.worldX != xField.getValue() || step.worldY != yField.getValue();
 		if (different) {
 			XMLControl trackControl = new XMLControlElement(this);
-			XMLControl coordsControl = new XMLControlElement(trackerPanel.getCoords());
+			XMLControl coordsControl = new XMLControlElement(tp.getCoords());
 			step.setWorldXY(xField.getValue(), yField.getValue());
-			step.getPosition().showCoordinates(trackerPanel);
+			step.getPosition().showCoordinates(tp);
 			Undo.postTrackAndCoordsEdit(this, trackControl, coordsControl);
 		}
 	}
@@ -530,7 +530,7 @@ public class OffsetOrigin extends TTrack {
 	 * Displays the world coordinates of the currently selected step.
 	 */
 	private void displayWorldCoordinates() {
-		int n = trackerPanel == null ? 0 : trackerPanel.getFrameNumber();
+		int n = tp == null ? 0 : tp.getFrameNumber();
 		OffsetOriginStep step = (OffsetOriginStep) getStep(n);
 		if (step == null) {
 			xField.setText(null);

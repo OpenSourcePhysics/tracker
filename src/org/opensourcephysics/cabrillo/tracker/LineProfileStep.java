@@ -332,9 +332,9 @@ public class LineProfileStep extends Step {
 	 * to the x-axis.
 	 */
 	protected void rotate() {
-		if (line.trackerPanel == null)
+		if (line.tp == null)
 			return;
-		double theta_x = line.trackerPanel.getCoords().getAngle(n);
+		double theta_x = line.tp.getCoords().getAngle(n);
 		if (line.isHorizontal)
 			theta_x = 0;
 		double theta_step = lineEnd0.angle(lineEnd1);
@@ -1161,7 +1161,7 @@ public class LineProfileStep extends Step {
 			if (track.isLocked())
 				return;
 			// skip if track has not been added to TrackerPanel (eg when loading)
-			if (track.trackerPanel == null) {
+			if (track.tp == null) {
 				super.setXY(x, y);
 				return;
 			}
@@ -1170,7 +1170,7 @@ public class LineProfileStep extends Step {
 			double dy = y - getY();
 			double hyp = Math.sqrt(dx * dx + dy * dy);
 			// get angles of x-axis and mouse displacement from horizontal
-			double theta1 = -track.trackerPanel.getCoords().getAngle(n);
+			double theta1 = -track.tp.getCoords().getAngle(n);
 			LineProfile profile = (LineProfile) getTrack();
 			if (profile.isHorizontal)
 				theta1 = 0;

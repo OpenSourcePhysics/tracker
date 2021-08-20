@@ -104,7 +104,10 @@ public class PageTView extends JPanel implements TView {
   protected static final Icon PAGEVIEW_ICON =  Tracker.getResourceIcon("html.gif", true); //$NON-NLS-1$;
 
 	// instance fields
-	protected TrackerPanel trackerPanel;
+  
+    protected TFrame frame;
+    protected Integer panelID;
+    
 	protected ArrayList<TabView> tabs = new ArrayList<TabView>();
 	protected JTabbedPane tabbedPane; // each tab is a TabView
 	protected JButton pageButton;
@@ -128,9 +131,10 @@ public class PageTView extends JPanel implements TView {
 	 * @param panel the tracker panel
 	 */
 	protected PageTView(TrackerPanel panel) {
-		trackerPanel = panel.ref(this);
 		if (panel == null)
 			return;
+		frame = panel.getTFrame();
+		panelID = panel.getID();
 		setBackground(panel.getBackground());
 		createGUI();
 		refresh();
@@ -178,12 +182,14 @@ public class PageTView extends JPanel implements TView {
 	@Override
 	public void dispose() {
 		for (TabView tab : tabs) {
-			tab.data.trackerPanel = null;
+			tab.data.panelID = null;
+			tab.data.frame = null;
 		}
 		if (tabbedPane == null)
 			return;
 		tabbedPane.removeAll();
-		trackerPanel = null;
+		frame = null;
+		panelID = null;
 	}
 
 	/**
@@ -193,7 +199,8 @@ public class PageTView extends JPanel implements TView {
 	 */
 	@Override
 	public TrackerPanel getTrackerPanel() {
-		return trackerPanel;
+		return frame.getTrackerPanelForID(panelID);
+
 	}
 
 	/**
@@ -258,8 +265,8 @@ public class PageTView extends JPanel implements TView {
 	 */
 	public void addTab(TabView tab) {
 		tabs.add(tab);
-		if (trackerPanel != null) {
-			trackerPanel.changed = true;
+		if (panelID != null) {
+			frame.getTrackerPanelForID(panelID).changed = true;
 		}
 		refresh();
 	}
@@ -271,8 +278,8 @@ public class PageTView extends JPanel implements TView {
 	 */
 	public void removeTab(TabView tab) {
 		tabs.remove(tab);
-		if (trackerPanel != null) {
-			trackerPanel.changed = true;
+		if (panelID != null) {
+			frame.getTrackerPanelForID(panelID).changed = true;
 		}
 		refresh();
 	}
@@ -338,8 +345,9 @@ public class PageTView extends JPanel implements TView {
 		setPreferredSize(new Dimension(400, 200));
 		setLayout(new BorderLayout());
 		// create the tabbed pane
+		TrackerPanel panel = frame.getTrackerPanelForID(panelID);
 		tabbedPane = new JTabbedPane(SwingConstants.TOP);
-		tabbedPane.setBackground(trackerPanel.getBackground());
+		tabbedPane.setBackground(panel.getBackground());
 		tabbedPane.addChangeListener(new ChangeListener() {
 			@Override
 			public void stateChanged(ChangeEvent e) {
@@ -354,7 +362,7 @@ public class PageTView extends JPanel implements TView {
 					// show popup menu
 					JPopupMenu popup = getPopup(getSelectedTab());
 					popup.show(tabbedPane, e.getX(), e.getY());
-				} else if (e.getClickCount() == 2 && !locked && trackerPanel.isEnabled("pageView.edit")) { //$NON-NLS-1$
+				} else if (e.getClickCount() == 2 && !locked && panel.isEnabled("pageView.edit")) { //$NON-NLS-1$
 					renameTab(getSelectedTab());
 				}
 			}
@@ -372,7 +380,7 @@ public class PageTView extends JPanel implements TView {
 			@Override
 			public JPopupMenu getPopup() {
 				JPopupMenu popup = new JPopupMenu();
-				if (!trackerPanel.isEnabled("pageView.edit")) {//$NON-NLS-1$
+				if (!panel.isEnabled("pageView.edit")) {//$NON-NLS-1$
 					JMenuItem item = new JMenuItem(TrackerRes.getString("TTrack.MenuItem.Locked")); //$NON-NLS-1$
 					item.setEnabled(false);
 					popup.add(item);
@@ -400,7 +408,7 @@ public class PageTView extends JPanel implements TView {
 					public void actionPerformed(ActionEvent e) {
 						AsyncFileChooser chooser = OSPRuntime.getChooser();
 						chooser.setFileFilter(LaunchBuilder.getHTMLFilter());
-						chooser.showOpenDialog(trackerPanel, new Runnable() {
+						chooser.showOpenDialog(panel, new Runnable() {
 							@Override
 							public void run() {
 								File file = chooser.getSelectedFile();
@@ -449,14 +457,14 @@ public class PageTView extends JPanel implements TView {
 					// show popup menu
 					JPopupMenu popup = getPopup(getSelectedTab());
 					popup.show(tabTitleLabel, e.getX(), e.getY());
-				} else if (e.getClickCount() == 2 && !locked && trackerPanel.isEnabled("pageView.edit")) { //$NON-NLS-1$
+				} else if (e.getClickCount() == 2 && !locked && panel.isEnabled("pageView.edit")) { //$NON-NLS-1$
 					renameTab(getSelectedTab());
 				}
 			}
 
 			@Override
 			public void mouseEntered(MouseEvent e) {
-				if (!locked && trackerPanel.isEnabled("pageView.edit")) //$NON-NLS-1$
+				if (!locked && panel.isEnabled("pageView.edit")) //$NON-NLS-1$
 					tabTitleLabel.setBorder(titleBorder);
 			}
 
@@ -489,7 +497,7 @@ public class PageTView extends JPanel implements TView {
 					helpItem.addActionListener(new ActionListener() {
 						@Override
 						public void actionPerformed(ActionEvent e) {
-							trackerPanel.getTFrame().showHelp("textview", 0); //$NON-NLS-1$
+							frame.showHelp("textview", 0); //$NON-NLS-1$
 						}
 					});
 					popup.add(helpItem);
@@ -509,7 +517,8 @@ public class PageTView extends JPanel implements TView {
 		boolean refreshToolbar = false;
 		for (TabView tab : tabs) {
 			tab.pageView = this;
-			tab.data.trackerPanel = trackerPanel.ref(this);
+			tab.data.frame = frame;
+			tab.data.panelID = panelID;
 			tab.refreshView(false);
 			tabbedPane.addTab(tab.data.title, tab);
 			refreshToolbar = refreshToolbar || tab.data.url != null;
@@ -518,8 +527,8 @@ public class PageTView extends JPanel implements TView {
 			tabbedPane.setSelectedComponent(prev);
 		}
 		refreshTitle();
-		if (trackerPanel != null && refreshToolbar) {
-			TToolBar.getToolbar(trackerPanel).refresh(TToolBar.REFRESH_PAGETVIEW_TABS);
+		if (panelID != null && refreshToolbar) {
+			TToolBar.getToolbar(frame.getTrackerPanelForID(panelID)).refresh(TToolBar.REFRESH_PAGETVIEW_TABS);
 		}
 	}
 
@@ -540,7 +549,8 @@ public class PageTView extends JPanel implements TView {
 	protected JPopupMenu getPopup(final TabView tab) {
 		JPopupMenu popup = new JPopupMenu();
 		String s = null;
-		if (trackerPanel.isEnabled("pageView.edit")) { //$NON-NLS-1$
+		TrackerPanel panel = frame.getTrackerPanelForID(panelID);
+		if (panel.isEnabled("pageView.edit")) { //$NON-NLS-1$
 			int keyMask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
 			JMenuItem renameItem = new JMenuItem(TrackerRes.getString("TextTView.MenuItem.SetTitle")); //$NON-NLS-1$
 			renameItem.addActionListener(new ActionListener() {
@@ -557,7 +567,7 @@ public class PageTView extends JPanel implements TView {
 				public void actionPerformed(ActionEvent e) {
 					AsyncFileChooser chooser = OSPRuntime.getChooser();
 					chooser.setFileFilter(LaunchBuilder.getHTMLFilter());
-					chooser.showOpenDialog(trackerPanel, new Runnable() {
+					chooser.showOpenDialog(panel, new Runnable() {
 						@Override
 						public void run() {
 							File file = chooser.getSelectedFile();
@@ -631,7 +641,7 @@ public class PageTView extends JPanel implements TView {
 		helpItem.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				trackerPanel.getTFrame().showHelp("textview", 0); //$NON-NLS-1$
+				frame.showHelp("textview", 0); //$NON-NLS-1$
 			}
 		});
 		popup.add(helpItem);
@@ -757,7 +767,7 @@ public class PageTView extends JPanel implements TView {
 						JPopupMenu popup = pageView.getPopup(pageView.getSelectedTab());
 						popup.show(displayPane, e.getX(), e.getY());
 					} else if (e.getClickCount() == 2 && !pageView.locked
-							&& pageView.trackerPanel.isEnabled("pageView.edit")) { //$NON-NLS-1$
+							&& pageView.frame.getTrackerPanelForID(pageView.panelID).isEnabled("pageView.edit")) { //$NON-NLS-1$
 						editorPane.setBackground(Color.white);
 						refreshView(true);
 						editorPane.selectAll();
@@ -856,12 +866,13 @@ public class PageTView extends JPanel implements TView {
 	 * A class to hold the data for a single tab.
 	 */
 	public static class TabData {
+		public Integer panelID;
+		public TFrame frame;
 		String title;
 		boolean hyperlinksEnabled = true;
 		String text; // may be text for display or url path
 		URL url;
-		TrackerPanel trackerPanel;
-
+		
 		/**
 		 * No-arg constructor.
 		 */
@@ -892,9 +903,10 @@ public class PageTView extends JPanel implements TView {
 			if (title == null)
 				return;
 			this.title = title;
-			if (trackerPanel != null) {
-				trackerPanel.changed = true;
-				TToolBar.getToolbar(trackerPanel).refresh(TToolBar.REFRESH_PAGETVIEW_TITLE);
+			if (panelID != null) {
+				TrackerPanel panel = frame.getTrackerPanelForID(panelID);
+				panel.changed = true;
+				TToolBar.getToolbar(panel).refresh(TToolBar.REFRESH_PAGETVIEW_TITLE);
 			}
 		}
 
@@ -939,9 +951,10 @@ public class PageTView extends JPanel implements TView {
 					url = null;
 				}
 			}
-			if (trackerPanel != null) {
-				trackerPanel.changed = true;
-				TToolBar.getToolbar(trackerPanel).refresh(TToolBar.REFRESH_PAGETVIEW_URL);
+			if (panelID != null) {
+				TrackerPanel panel = frame.getTrackerPanelForID(panelID);
+				panel.changed = true;
+				TToolBar.getToolbar(panel).refresh(TToolBar.REFRESH_PAGETVIEW_URL);
 			}
 		}
 
@@ -1007,8 +1020,7 @@ public class PageTView extends JPanel implements TView {
 			if (data.url == null) {
 				control.setValue("text", data.text); //$NON-NLS-1$
 			} else if (data.url.getProtocol().equals("file")) { //$NON-NLS-1$
-				TrackerPanel panel = data.trackerPanel;
-				File file = panel.getDataFile();
+				File file = data.frame.getTrackerPanelForID(data.panelID).getDataFile();
 				if (file != null) {
 					String path = data.url.getFile();
 					// strip leading slashes from path

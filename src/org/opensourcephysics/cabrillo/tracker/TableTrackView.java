@@ -247,7 +247,7 @@ public class TableTrackView extends TrackView {
 		textColumnModel = new TextColumnTableModel();
 		textColumnEditor = new TextColumnEditor();
 		dataTable = new TrackDataTable();
-		trackDataManager = track.getData(trackerPanel);
+		trackDataManager = track.getData(panel);
 		dataTableManager = new DatasetManager();
 		dataTableManager.setXPointsLinked(true);
 		dataTable.add(dataTableManager.model);
@@ -327,7 +327,7 @@ public class TableTrackView extends TrackView {
 			setVisible(1, true);
 		}
 		// set the default number formats, if any
-		TreeMap<String, String> patterns = trackerPanel.getFormatPatterns(track.ttype);
+		TreeMap<String, String> patterns = panel.getFormatPatterns(track.ttype);
 		DataTable table = getDataTable();
 		for (Entry<String, String> e : patterns.entrySet()) {
 			table.setFormatPattern(e.getKey(), e.getValue());
@@ -383,13 +383,13 @@ public class TableTrackView extends TrackView {
 		// OSPLog.debug("TableTrackView.refresh " + Integer.toHexString(mode) + "
 		// track=" + track);
 		try {
-			trackDataManager = track.getData(trackerPanel);
+			trackDataManager = track.getData(frame.getTrackerPanelForID(panelID));
 			// copy datasets into table data based on checkbox states
 
 			ArrayList<Dataset> datasets = trackDataManager.getDatasetsRaw();
 			int count = datasets.size();
 			dataTable.setUnits(datasets.get(0).getXColumnName(), "", track.getDataDescription(0)); //$NON-NLS-1$
-			boolean degrees = trackerPanel.getTFrame() != null && !trackerPanel.getTFrame().anglesInRadians;
+			boolean degrees = frame != null && !frame.anglesInRadians;
 
 			dataTableManager.clear();
 			int colCount = 0;
@@ -494,6 +494,7 @@ public class TableTrackView extends TrackView {
 //    		TrackerRes.getString("TableTrackView.Button.SkippedFrames.Off")); //$NON-NLS-1$
 		gapsButton.setToolTipText(TrackerRes.getString("TableTrackView.Button.SkippedFrames.ToolTip")); //$NON-NLS-1$
 //    track.dataValid = false; // triggers data refresh
+		TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
 		trackDataManager = track.getData(trackerPanel);
 		// refreshColumnCheckboxes();
 		refresh(trackerPanel.getFrameNumber(), DataTable.MODE_TRACK_REFRESH);
@@ -511,8 +512,7 @@ public class TableTrackView extends TrackView {
 			PointMass p = (PointMass) track;
 			boolean hasGaps = p.getGapCount() > 0;
 			boolean hasSkips = p.skippedSteps.size() > 0;
-			gapsButton.setIcon(!hasGaps ? null : 
-				gapsButton.isSelected() ? SKIPS_ON_ICON : SKIPS_OFF_ICON);
+			gapsButton.setIcon(!hasGaps ? null : gapsButton.isSelected() ? SKIPS_ON_ICON : SKIPS_OFF_ICON);
 			gapsButton.setEnabled(hasGaps || hasSkips);
 		}
 
@@ -561,7 +561,7 @@ public class TableTrackView extends TrackView {
 	public boolean isCustomState() {
 		if (!refreshed) {
 			forceRefresh = true;
-			refresh(trackerPanel.getFrameNumber(), DataTable.MODE_TRACK_REFRESH);
+			refresh(frame.getTrackerPanelForID(panelID).getFrameNumber(), DataTable.MODE_TRACK_REFRESH);
 		}
 		// check displayed data columns--default is columns 0 and 1 only
 		if (!bsCheckBoxes.get(0) || !bsCheckBoxes.get(1) || bsCheckBoxes.cardinality() > 2) {
@@ -596,6 +596,7 @@ public class TableTrackView extends TrackView {
 	 */
 	public void setVisible(int index, boolean visible) {
 		bsCheckBoxes.set(index, visible);
+		TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
 		refresh(trackerPanel.getFrameNumber(), DataTable.MODE_COL_SETVISIBLE);
 	}
 
@@ -1074,6 +1075,7 @@ public class TableTrackView extends TrackView {
 		newAction = new AbstractAction() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
+				TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
 				if (!trackerPanel.getPlayer().isEnabled())
 					return;
 				trackerPanel.getPlayer().back();
@@ -1085,6 +1087,7 @@ public class TableTrackView extends TrackView {
 		newAction = new AbstractAction() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
+				TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
 				if (!trackerPanel.getPlayer().isEnabled())
 					return;
 				int n = trackerPanel.getPlayer().getStepNumber() - 5;
@@ -1097,6 +1100,7 @@ public class TableTrackView extends TrackView {
 		newAction = new AbstractAction() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
+				TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
 				if (!trackerPanel.getPlayer().isEnabled())
 					return;
 				trackerPanel.getPlayer().step();
@@ -1107,6 +1111,7 @@ public class TableTrackView extends TrackView {
 		newAction = new AbstractAction() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
+				TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
 				if (!trackerPanel.getPlayer().isEnabled())
 					return;
 				int n = trackerPanel.getPlayer().getStepNumber() + 5;
@@ -1118,6 +1123,7 @@ public class TableTrackView extends TrackView {
 		newAction = new AbstractAction() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
+				TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
 				if (!trackerPanel.getPlayer().isEnabled())
 					return;
 				trackerPanel.getPlayer().setStepNumber(0);
@@ -1129,6 +1135,7 @@ public class TableTrackView extends TrackView {
 		newAction = new AbstractAction() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
+				TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
 				if (!trackerPanel.getPlayer().isEnabled())
 					return;
 				VideoClip clip = trackerPanel.getPlayer().getVideoClip();
@@ -1217,7 +1224,7 @@ public class TableTrackView extends TrackView {
 			goToFrameItem.setActionCommand(String.valueOf(row));
 			String s = TrackerRes.getString("TableTrackView.Popup.Menuitem.GoToStep"); //$NON-NLS-1$
 			int frameNum = getFrameAtRow(row);
-			VideoClip clip = trackerPanel.getPlayer().getVideoClip();
+			VideoClip clip = frame.getTrackerPanelForID(panelID).getPlayer().getVideoClip();
 			int stepNum = clip.frameToStep(frameNum);
 			s += " " + stepNum; //$NON-NLS-1$
 			goToFrameItem.setText(s);
@@ -1286,6 +1293,7 @@ public class TableTrackView extends TrackView {
 			public void actionPerformed(ActionEvent e) {
 				int index = Integer.parseInt(e.getActionCommand());
 				TTrack track = getTrack();
+				TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
 				FunctionTool tool = trackerPanel.getDataBuilder();
 				FunctionPanel panel = tool.getPanel(track.getName());
 				Dataset dataset = trackDataManager.getDataset(index);
@@ -1303,6 +1311,7 @@ public class TableTrackView extends TrackView {
 					int row = Integer.parseInt(e.getActionCommand());
 					int frameNum = getFrameAtRow(row);
 					if (frameNum > -1) {
+						TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
 						VideoClip clip = trackerPanel.getPlayer().getVideoClip();
 						int stepNum = clip.frameToStep(frameNum);
 						trackerPanel.getPlayer().setStepNumber(stepNum);
@@ -1322,6 +1331,7 @@ public class TableTrackView extends TrackView {
 					String name = dataTable.getColumnName(selected[i]);
 					selectedNames[i] = name;
 				}
+				TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
 				NumberFormatDialog.getNumberFormatDialog(trackerPanel, getTrack(), selectedNames).setVisible(true);
 			}
 		});
@@ -1329,6 +1339,7 @@ public class TableTrackView extends TrackView {
 		showUnitsItem.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
+				TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
 				trackerPanel.setUnitsVisible(!trackerPanel.isUnitsVisible());
 			}
 		});
@@ -1336,6 +1347,7 @@ public class TableTrackView extends TrackView {
 		setUnitsItem.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
+				TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
 				UnitsDialog dialog = trackerPanel.getUnitsDialog();
 				dialog.setVisible(true);
 			}
@@ -1415,6 +1427,7 @@ public class TableTrackView extends TrackView {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				TTrack track = getTrack();
+				TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
 				trackerPanel.getDataBuilder().setSelectedPanel(track.getName());
 				trackerPanel.getDataBuilder().setVisible(true);
 			}
@@ -1444,7 +1457,6 @@ public class TableTrackView extends TrackView {
 		helpItem.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				TFrame frame = trackerPanel.getTFrame();
 				if (frame != null) {
 					frame.showHelp("datatable", 0); //$NON-NLS-1$
 				}
@@ -1565,6 +1577,7 @@ public class TableTrackView extends TrackView {
 		}
 
 		TTrack track = getTrack();
+		TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
 		if (track == null) {
 			if (trackerPanel.isEnabled("number.formats") || trackerPanel.isEnabled("number.units")) { //$NON-NLS-1$ //$NON-NLS-2$
 				if (popup.getComponentCount() > 0)
@@ -1578,13 +1591,13 @@ public class TableTrackView extends TrackView {
 			}
 			return popup;
 		}
-		if (track.trackerPanel != null && track.trackerPanel.isEnabled("edit.copyData")) { //$NON-NLS-1$
+		if (track.tp != null && track.tp.isEnabled("edit.copyData")) { //$NON-NLS-1$
 			if (popup.getComponentCount() > 0)
 				popup.addSeparator();
 			popup.add(copyDataMenu);
 		}
 		if (trackerPanel.isEnabled("number.formats") || trackerPanel.isEnabled("number.units") //$NON-NLS-1$ //$NON-NLS-2$
-				&& track.trackerPanel != null) {
+				&& track.tp != null) {
 			if (popup.getComponentCount() > 0)
 				popup.addSeparator();
 			popup.add(numberMenu);
@@ -1645,20 +1658,20 @@ public class TableTrackView extends TrackView {
 			popup.add(deleteDataFunctionItem);
 		}
 
-		if (track.trackerPanel != null && track.trackerPanel.isEnabled("edit.copyImage")) { //$NON-NLS-1$
+		if (track.tp != null && track.tp.isEnabled("edit.copyImage")) { //$NON-NLS-1$
 			popup.addSeparator();
 			popup.add(copyImageItem);
 			popup.add(snapshotItem);
 		}
-		if (track.trackerPanel != null && (track.trackerPanel.isEnabled("data.builder") //$NON-NLS-1$
-				|| track.trackerPanel.isEnabled("data.tool"))) { //$NON-NLS-1$
+		if (track.tp != null && (track.tp.isEnabled("data.builder") //$NON-NLS-1$
+				|| track.tp.isEnabled("data.tool"))) { //$NON-NLS-1$
 			popup.addSeparator();
-			if (track.trackerPanel.isEnabled("data.builder")) //$NON-NLS-1$
+			if (track.tp.isEnabled("data.builder")) //$NON-NLS-1$
 				popup.add(dataBuilderItem);
-			if (track.trackerPanel.isEnabled("data.tool")) //$NON-NLS-1$
+			if (track.tp.isEnabled("data.tool")) //$NON-NLS-1$
 				popup.add(dataToolItem);
 		}
-		if (track.trackerPanel != null && track.trackerPanel.isEnabled("file.print")) { //$NON-NLS-1$
+		if (track.tp != null && track.tp.isEnabled("file.print")) { //$NON-NLS-1$
 			popup.addSeparator();
 			popup.add(printItem);
 		}
@@ -1681,13 +1694,13 @@ public class TableTrackView extends TrackView {
 		String input = null;
 		TTrack track = getTrack();
 		if (tryAgain) {
-			input = GUIUtils.showInputDialog(track.trackerPanel.getTFrame(),
+			input = GUIUtils.showInputDialog(frame,
 					TrackerRes.getString("TableTrackView.Dialog.NameColumn.TryAgain") + "\n" + //$NON-NLS-1$ //$NON-NLS-2$
 							TrackerRes.getString("TableTrackView.Dialog.NameColumn.Message"), //$NON-NLS-1$
 					TrackerRes.getString("TableTrackView.Dialog.NameColumn.Title"), //$NON-NLS-1$
 					JOptionPane.WARNING_MESSAGE, previous);
 		} else {
-			input = GUIUtils.showInputDialog(track.trackerPanel.getTFrame(),
+			input = GUIUtils.showInputDialog(frame,
 					TrackerRes.getString("TableTrackView.Dialog.NameColumn.Message"), //$NON-NLS-1$
 					TrackerRes.getString("TableTrackView.Dialog.NameColumn.Title"), //$NON-NLS-1$
 					JOptionPane.QUESTION_MESSAGE, previous);
@@ -1872,6 +1885,7 @@ public class TableTrackView extends TrackView {
 			// convert row to frame number
 			// DatasetManager data = track.getData(track.trackerPanel);
 			Dataset frameSet = trackDataManager.getFrameDataset(); // $NON-NLS-1$
+			TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
 			if (frameSet != null) {
 				double frame = frameSet.getYPoints()[row];
 				if (track.setTextColumnEntry(columnName, (int) frame, (String) value)) {
@@ -2031,8 +2045,8 @@ public class TableTrackView extends TrackView {
 				TTrack track = getTrack();
 				if (track instanceof PointMass) {
 					PointMass p = (PointMass) track;
-					if (p.trackerPanel != null) {
-						VideoClip clip = p.trackerPanel.getPlayer().getVideoClip();
+					if (p.tp != null) {
+						VideoClip clip = p.tp.getPlayer().getVideoClip();
 						int frameNum = getFrameAtRow(row);
 						int stepNum = clip.frameToStep(frameNum);
 						for (int i : p.skippedSteps) {
@@ -2121,9 +2135,9 @@ public class TableTrackView extends TrackView {
 		public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus,
 				int row, int col) {
 			TTrack track = getTrack();
-			if (track.trackerPanel != null && value instanceof String) {
+			if (track.tp != null && value instanceof String) {
 				String var = (String) value;// ((JLabel) c).getText();//textLine.getText();
-				String units = track.trackerPanel.getUnits(track, var);
+				String units = track.tp.getUnits(track, var);
 				if (units.length() > 0) {// !"".equals(units)) { //$NON-NLS-1$
 //					if (OSPRuntime.isMac()) {
 //						var = TeXParser.removeSubscripting(var);
@@ -2145,7 +2159,7 @@ public class TableTrackView extends TrackView {
 	public void refreshToolbar() {
 		if (OSPRuntime.isJS)
 			return;
-		if (trackerPanel.getTFrame() != null) {
+		if (frame != null) {
 			TViewChooser owner = getOwner();
 			if (owner != null) {
 				owner.refreshToolbar();
@@ -2168,7 +2182,6 @@ public class TableTrackView extends TrackView {
 	}
 
 	private ColumnsDialog getOrCreateColumnsDialog(TTrack track) {
-		TFrame frame = trackerPanel.getTFrame();
 		if (frame != null) {
 			if (columnsDialog == null)
 				columnsDialog = new ColumnsDialog(frame, track);
@@ -2269,6 +2282,7 @@ public class TableTrackView extends TrackView {
 					break;
 				}
 			}
+			TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
 			trackerPanel.changed = true;
 			if (refreshing)
 				TableTrackView.this.refresh(trackerPanel.getFrameNumber(), DataTable.MODE_TRACK_STATE);
@@ -2304,6 +2318,7 @@ public class TableTrackView extends TrackView {
 				@Override
 				public void actionPerformed(ActionEvent e) {
 					if (track != null) {
+						TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
 						trackerPanel.getDataBuilder().setSelectedPanel(track.getName());
 						trackerPanel.getDataBuilder().setVisible(true);
 					}
@@ -2336,6 +2351,7 @@ public class TableTrackView extends TrackView {
 		private void refreshButtonPanel() {
 			// refresh button panel
 			buttonPanel.removeAll();
+			TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
 			if (trackerPanel.isEnabled("data.builder")) //$NON-NLS-1$
 				buttonPanel.add(defineButton);
 			if (trackerPanel.isEnabled("text.columns")) //$NON-NLS-1$
@@ -2457,6 +2473,5 @@ public class TableTrackView extends TrackView {
 	public void finalize() {
 		OSPLog.finalized(this);
 	}
-
 
 }

@@ -197,19 +197,19 @@ public class LineProfile extends TTrack {
 		horizOrientationItem.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
-				if (trackerPanel == null)
+				if (tp == null)
 					return;
 				XMLControl control = new XMLControlElement(LineProfile.this);
 				isHorizontal = horizOrientationItem.isSelected();
 				if (!steps.isEmpty()) {
-					int n = trackerPanel.getFrameNumber();
+					int n = tp.getFrameNumber();
 					LineProfileStep step = (LineProfileStep) steps.getStep(n);
 					refreshStep(step);
-					TFrame.repaintT(trackerPanel);
+					TFrame.repaintT(tp);
 					if (!loading)
 						Undo.postTrackEdit(LineProfile.this, control);
 				}
-				trackerPanel.getTFrame().getToolbar(trackerPanel).refresh(TToolBar.REFRESH_LINEPROFILE);
+				frame.getToolbar(tp).refresh(TToolBar.REFRESH_LINEPROFILE);
 				invalidateData(null);
 			}
 		});
@@ -235,13 +235,13 @@ public class LineProfile extends TTrack {
 		}
 		XMLControl control = new XMLControlElement(this);
 		fixedLine = fixed;
-		if (trackerPanel != null) {
-			trackerPanel.changed = true;
-			int n = trackerPanel.getFrameNumber();
+		if (tp != null) {
+			tp.changed = true;
+			int n = tp.getFrameNumber();
 			Step step = getStep(n);
 			if (step != null) {
 				steps = new StepArray(getStep(n));
-				TFrame.repaintT(trackerPanel);
+				TFrame.repaintT(tp);
 			}
 		}
 		if (fixed) {
@@ -345,8 +345,8 @@ public class LineProfile extends TTrack {
 			double xx = x2, yy = y2;
 			if (x1 == x2 && y1 == y2) { // occurs when initially mouse-marked
 				// make a step of length 50 for the step array to clone
-				if (trackerPanel != null) {
-					double theta = -trackerPanel.getCoords().getAngle(n);
+				if (tp != null) {
+					double theta = -tp.getCoords().getAngle(n);
 					if (isHorizontal)
 						theta = 0;
 					xx = x1 + 50 * Math.cos(theta);
@@ -361,10 +361,10 @@ public class LineProfile extends TTrack {
 			if (x1 == x2 && y1 == y2) { // mouse-marked step
 				step = (LineProfileStep) getStep(frame);
 				step.getLineEnd1().setLocation(x2, y2);
-				if (trackerPanel != null) {
+				if (tp != null) {
 					step = (LineProfileStep) getStep(n);
 					step.getLineEnd0().setTrackEditTrigger(false);
-					trackerPanel.setSelectedPoint(step.getDefaultPoint());
+					tp.setSelectedPoint(step.getDefaultPoint());
 				}
 			}
 		} else {
@@ -563,12 +563,12 @@ public class LineProfile extends TTrack {
 	 */
 	@Override
 	public void setTrackerPanel(TrackerPanel panel) {
-		if (trackerPanel != null) {			
-			trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_IMAGE, this);
+		if (tp != null) {			
+			tp.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_IMAGE, this);
 		}
 		super.setTrackerPanel(panel);
-		if (trackerPanel != null) {
-			trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_IMAGE, this);
+		if (tp != null) {
+			tp.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_IMAGE, this);
 		}
 	}
 
@@ -579,7 +579,7 @@ public class LineProfile extends TTrack {
 	 */
 	@Override
 	public void propertyChange(PropertyChangeEvent e) {
-		if (trackerPanel != null) {
+		if (tp != null) {
 			switch (e.getPropertyName()) {
 			case TrackerPanel.PROPERTY_TRACKERPANEL_STEPNUMBER:
 				invalidateData(Boolean.FALSE);
@@ -590,7 +590,7 @@ public class LineProfile extends TTrack {
 				break;
 			case ImageCoordSystem.PROPERTY_COORDS_TRANSFORM:
 				if (!steps.isEmpty()) { // $NON-NLS-1$
-					int n = trackerPanel.getFrameNumber();
+					int n = tp.getFrameNumber();
 					LineProfileStep step = (LineProfileStep) steps.getStep(n);
 					refreshStep(step);
 				}

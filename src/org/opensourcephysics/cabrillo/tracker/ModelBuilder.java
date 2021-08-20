@@ -43,8 +43,9 @@ import org.opensourcephysics.tools.*;
 public class ModelBuilder extends FunctionTool {
 
 	// data model
-	
-	private TrackerPanel trackerPanel;
+
+	private TFrame frame;
+	private Integer panelID;
 	
 	// GUI
 	
@@ -67,7 +68,8 @@ public class ModelBuilder extends FunctionTool {
 	 */
 	protected ModelBuilder(TrackerPanel trackerPanel) {
 		super(trackerPanel, false, true);
-		this.trackerPanel = trackerPanel.ref(this);
+		frame = trackerPanel.getTFrame();
+		panelID = trackerPanel.getID();
 		TFrame frame = trackerPanel.getTFrame();
 		if (frame != null) {
 			myFollower = frame.addFollower(this, null);
@@ -94,6 +96,7 @@ public class ModelBuilder extends FunctionTool {
 		startFrameLabel.setBorder(BorderFactory.createEmptyBorder(0, 4, 0, 2));
 		endFrameLabel = new JLabel();
 		endFrameLabel.setBorder(BorderFactory.createEmptyBorder(0, 8, 0, 2));
+		TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
 		int first = trackerPanel.getPlayer().getVideoClip().getFirstFrameNumber();
 		int last = trackerPanel.getPlayer().getVideoClip().getLastFrameNumber();
 		startFrameSpinner = new ModelFrameSpinner(new SpinnerNumberModel(first, first, last, 1));
@@ -170,7 +173,6 @@ public class ModelBuilder extends FunctionTool {
 		setHelpAction(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				TFrame frame = trackerPanel.getTFrame();
 				if (frame != null) {
 					ModelFunctionPanel panel = (ModelFunctionPanel) getSelectedPanel();
 					if (panel instanceof ParticleDataTrackFunctionPanel) {
@@ -185,19 +187,19 @@ public class ModelBuilder extends FunctionTool {
 		});
 	}
 
-	@Override 
+	@Override
 	protected void setTitles() {
-	    dropdownTipText = (TrackerRes.getString("TrackerPanel.ModelBuilder.Spinner.Tooltip")); //$NON-NLS-1$
-	    String title = TrackerRes.getString("TrackerPanel.ModelBuilder.Title"); //$NON-NLS-1$
-	    FunctionPanel panel = getSelectedPanel();
-	    if (panel != null) {
-	      TTrack track = trackerPanel.getTrack(panel.getName());
-	      if (track != null) {
-	        String type = track.getClass().getSimpleName();
-	        title += ": " + TrackerRes.getString(type + ".Builder.Title"); //$NON-NLS-1$ //$NON-NLS-2$
-	      }
-	    }
-	    titleText = title;
+		dropdownTipText = (TrackerRes.getString("TrackerPanel.ModelBuilder.Spinner.Tooltip")); //$NON-NLS-1$
+		String title = TrackerRes.getString("TrackerPanel.ModelBuilder.Title"); //$NON-NLS-1$
+		FunctionPanel panel = getSelectedPanel();
+		if (panel != null) {
+			TTrack track = frame.getTrackerPanelForID(panelID).getTrack(panel.getName());
+			if (track != null) {
+				String type = track.getClass().getSimpleName();
+				title += ": " + TrackerRes.getString(type + ".Builder.Title"); //$NON-NLS-1$ //$NON-NLS-2$
+			}
+		}
+		titleText = title;
 	}
 	
 	/**
@@ -231,7 +233,7 @@ public class ModelBuilder extends FunctionTool {
 	@Override
 	public void setVisible(boolean vis) {
 		super.setVisible(vis);
-		trackerPanel.isModelBuilderVisible = vis;
+		frame.getTrackerPanelForID(panelID).isModelBuilderVisible = vis;
 	}
 
 	@Override
@@ -258,7 +260,7 @@ public class ModelBuilder extends FunctionTool {
 	 * @return the TrackerPanel
 	 */
 	public TrackerPanel getTrackerPanel() {
-		return trackerPanel;
+		return frame.getTrackerPanelForID(panelID);
 	}
 
 	/**
@@ -285,6 +287,7 @@ public class ModelBuilder extends FunctionTool {
 	 * Refreshes the start and end frame spinners.
 	 */
 	protected void refreshSpinners() {
+		TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
 		int last = trackerPanel.getPlayer().getVideoClip().getLastFrameNumber();
 		int first = trackerPanel.getPlayer().getVideoClip().getFirstFrameNumber();
 		FunctionPanel panel = getSelectedPanel();
@@ -341,6 +344,7 @@ public class ModelBuilder extends FunctionTool {
 			FTObject selected = none;
 			boolean targetExists = false;
 			boosterDropdown.removeAllItems();
+			TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
 			ArrayList<PointMass> masses = trackerPanel.getDrawablesTemp(PointMass.class);
 			outer: for (int i = 0, n = masses.size(); i < n; i++) {
 				PointMass m = masses.get(i);
@@ -471,6 +475,7 @@ public class ModelBuilder extends FunctionTool {
 	@Override
 	public void dispose() {
 		System.out.println("ModelBuilder.dispose");
+		TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
 		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this); //$NON-NLS-1$
 		ToolsRes.removePropertyChangeListener("locale", this); //$NON-NLS-1$
 		removePropertyChangeListener(PROPERTY_FUNCTIONTOOL_PANEL, trackerPanel); //$NON-NLS-1$
@@ -485,7 +490,8 @@ public class ModelBuilder extends FunctionTool {
 		if (frame != null)
 			frame.removeComponentListener(myFollower);
 		myFollower = null;
-		trackerPanel = null;
+		panelID = null;
+		frame = null;
 		super.dispose();
 	}
 

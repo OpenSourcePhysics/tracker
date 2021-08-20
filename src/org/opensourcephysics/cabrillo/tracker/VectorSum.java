@@ -110,7 +110,7 @@ public class VectorSum extends Vector {
 			return;
 		for (int i = 0, ni = vectorNames.size(); i < ni; i++) {
 			String name = vectorNames.get(i);
-			Vector v = trackerPanel.getTrackByName(Vector.class, name);
+			Vector v = tp.getTrackByName(Vector.class, name);
 			if (v != null)
 				addVector(v);
 		}
@@ -272,12 +272,12 @@ public boolean isDependent() {
 	 */
 	@Override
 	public void setTrackerPanel(TrackerPanel panel) {
-		if (trackerPanel != null) {			
-			trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this);
+		if (tp != null) {			
+			tp.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this);
 		}
 		super.setTrackerPanel(panel);
-		if (trackerPanel != null) {
-			trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this);
+		if (tp != null) {
+			tp.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this);
 		}
 	}
 
@@ -380,7 +380,7 @@ public boolean isDependent() {
       }
       else {
         newStep = (VectorStep) createStep(n, 0, 0, x, y);
-        newStep.attach(trackerPanel.getSnapPoint());
+        newStep.attach(tp.getSnapPoint());
       }
       newStep.setTipEnabled(false);
       newStep.setDefaultPointIndex(2); // handle

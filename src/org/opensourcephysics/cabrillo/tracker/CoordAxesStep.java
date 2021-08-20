@@ -144,21 +144,21 @@ public class CoordAxesStep extends Step {
 		TrackerPanel trackerPanel = (TrackerPanel) panel;
 		setHitRectCenter(xpix, ypix);
 		TTrack track = getTrack();
-		AutoTracker autoTracker = (track.trackerPanel == null ? null : track.trackerPanel.getAutoTracker(false));
+		AutoTracker autoTracker = (track.tp == null ? null : track.tp.getAutoTracker(false));
 		if (handleEnabled) {
 			Shape hitShape = handleShapes.get(trackerPanel);
 			if (hitShape != null && hitShape.intersects(hitRect)) {
 				return (autoTracker != null 
 						&& autoTracker.getTrack() == track 
 						&& track.getTargetIndex() == 1
-						&& autoTracker.isOnKeyFrame(track.trackerPanel) ? null : handle);
+						&& autoTracker.isOnKeyFrame(track.tp) ? null : handle);
 			}
 		}
 		if (originEnabled && !track.isLocked() && super.findInteractive(panel, xpix, ypix) == origin) {
 			return (autoTracker != null 
 					&& autoTracker.getTrack() == track 
 					&& track.getTargetIndex() == 0
-					&& autoTracker.isOnKeyFrame(track.trackerPanel) ? null : origin); 
+					&& autoTracker.isOnKeyFrame(track.tp) ? null : origin); 
 		}
 		return null;
 	}
@@ -172,8 +172,8 @@ public class CoordAxesStep extends Step {
 	@Override
 	public void draw(DrawingPanel panel, Graphics _g) {
 		TTrack track = getTrack();
-		if (track.trackerPanel == panel) {
-			AutoTracker autoTracker = track.trackerPanel.getAutoTracker(false);
+		if (track.tp == panel) {
+			AutoTracker autoTracker = track.tp.getAutoTracker(false);
 			if (autoTracker != null && autoTracker.isInteracting(track))
 				return;
 		}
@@ -198,8 +198,8 @@ public class CoordAxesStep extends Step {
 			ImageCoordSystem coords = trackerPanel.getCoords();
 			int n = trackerPanel.getFrameNumber();
 			TTrack track = getTrack();
-			if (track.trackerPanel != null)
-				n = track.trackerPanel.getFrameNumber();
+			if (track.tp != null)
+				n = track.tp.getFrameNumber();
 			double x = coords.getOriginX(n);
 			double y = coords.getOriginY(n);
 			origin.setLocation(x, y);
@@ -344,9 +344,9 @@ public class CoordAxesStep extends Step {
 				prevY = y;
 			}
 			super.setXY(x, y);
-			TrackerPanel panel = track.trackerPanel;
+			TrackerPanel panel = track.tp;
 			if (panel != null) {
-				ImageCoordSystem coords = track.trackerPanel.getCoords();
+				ImageCoordSystem coords = track.tp.getCoords();
 				coords.setAdjusting(isAdjusting());
 				int n = panel.getFrameNumber();
 				coords.setOriginXY(n, x, y);
@@ -376,7 +376,7 @@ public class CoordAxesStep extends Step {
 			} else if (!java.lang.Double.isNaN(prevX)) {
 				setXY(prevX, prevY);
 				TTrack track = getTrack();
-				track.firePropertyChange(TTrack.PROPERTY_TTRACK_STEP, null, track.trackerPanel.getFrameNumber()); //$NON-NLS-1$
+				track.firePropertyChange(TTrack.PROPERTY_TTRACK_STEP, null, track.tp.getFrameNumber()); //$NON-NLS-1$
 			}
 		}
 
@@ -402,7 +402,7 @@ public class CoordAxesStep extends Step {
 			if (track.isLocked())
 				return;
 			CoordAxes coordAxes = (CoordAxes) track;
-			if (coordAxes.trackerPanel == null) {
+			if (coordAxes.tp == null) {
 				super.setXY(x, y);
 				return;
 			}
@@ -423,9 +423,9 @@ public class CoordAxesStep extends Step {
 			super.setXY(x, y);
 			double cos = origin.cos(this);
 			double sin = origin.sin(this);
-			ImageCoordSystem coords = coordAxes.trackerPanel.getCoords();
+			ImageCoordSystem coords = coordAxes.tp.getCoords();
 			coords.setAdjusting(isAdjusting());
-			int n = coordAxes.trackerPanel.getFrameNumber();
+			int n = coordAxes.tp.getFrameNumber();
 			coords.setCosineSine(n, cos, sin);
 			coordAxes.angleField.setValue(coords.getAngle(n));
 			angleIncrement = 0;

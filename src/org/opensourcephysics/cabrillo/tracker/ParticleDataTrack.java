@@ -192,7 +192,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 					return;
 				modelFootprintVisible = linesVisibleCheckbox.isSelected();
 				erase();
-				TFrame.repaintT(trackerPanel);
+				TFrame.repaintT(tp);
 			}
 		});
 		linesClosedCheckbox = new JCheckBoxMenuItem();
@@ -205,7 +205,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 				if (f instanceof MultiLineFootprint) {
 					((MultiLineFootprint) f).setClosed(linesClosedCheckbox.isSelected());
 					erase();
-					TFrame.repaintT(trackerPanel);
+					TFrame.repaintT(tp);
 				}
 			}
 		});
@@ -225,7 +225,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 				}
 				getModelFootprint().setColor(c);
 				erase();
-				TFrame.repaintT(trackerPanel);
+				TFrame.repaintT(tp);
 			}
 		});
 		allFootprintsMenu = new JMenu();
@@ -275,9 +275,9 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 			Object[] next = pointData.get(i);
 			double[][] xyArray = (double[][]) next[1];
 			ParticleDataTrack target = new ParticleDataTrack(next, this);
-			target.setTrackerPanel(trackerPanel);
-			if (trackerPanel != null) {
-				trackerPanel.addTrack(target);
+			target.setTrackerPanel(tp);
+			if (tp != null) {
+				tp.addTrack(target);
 			}
 
 			// set target's data
@@ -319,7 +319,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 		}
 		// post edit
 		Undo.postTrackDisplayEdit(this, control);
-		TFrame.repaintT(trackerPanel);
+		TFrame.repaintT(tp);
 	}
 
 	protected void doAllFoot(String footprintName) {
@@ -337,24 +337,24 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 		}
 		// post edit
 		Undo.postTrackDisplayEdit(this, control);
-		TFrame.repaintT(trackerPanel);
+		TFrame.repaintT(tp);
 	}
 
 	@Override
 	protected void delete(boolean postEdit) {
 		if (isLocked() && !isDependent())
 			return;
-		if (trackerPanel != null) {
-			trackerPanel.setSelectedPoint(null);
-			trackerPanel.selectedSteps.clear();
-			trackerPanel.getTFrame().removePropertyChangeListener(TFrame.PROPERTY_TFRAME_WINDOWFOCUS, this); // $NON-NLS-1$
+		if (tp != null) {
+			tp.setSelectedPoint(null);
+			tp.selectedSteps.clear();
+			frame.removePropertyChangeListener(TFrame.PROPERTY_TFRAME_WINDOWFOCUS, this); // $NON-NLS-1$
 
 			// handle case when this is the origin of current reference frame
-			ImageCoordSystem coords = trackerPanel.getCoords();
+			ImageCoordSystem coords = tp.getCoords();
 			if (coords instanceof ReferenceFrame && ((ReferenceFrame) coords).getOriginTrack() == this) {
 				// set coords to underlying coords
 				coords = ((ReferenceFrame) coords).getCoords();
-				trackerPanel.setCoords(coords);
+				tp.setCoords(coords);
 			}
 		}
 		if (postEdit) {
@@ -634,9 +634,8 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 
 	protected void doAutoPaste() {
 		setAutoPasteEnabled(autoPasteCheckbox.isSelected());
-		if (trackerPanel == null)
+		if (tp == null)
 			return;
-		TFrame frame = trackerPanel.getTFrame();
 		if (frame == null)
 			return;
 		if (isAutoPasteEnabled()) {
@@ -653,15 +652,15 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 				}
 			}
 			else if (getSource() instanceof String) {
-				trackerPanel.importDataAsync(getSource().toString(), null, null);
+				tp.importDataAsync(getSource().toString(), null, null);
 			}
 //			getLeader().prevDataString = getLeader().pendingDataString;
 //			getLeader().reloadButton.setEnabled(false);
 //			TTrackBar.getTrackbar(trackerPanel).refresh();
 		}
 
-		if (trackerPanel.getSelectedTrack() == ParticleDataTrack.this) {
-			trackerPanel.refreshTrackBar();
+		if (tp.getSelectedTrack() == ParticleDataTrack.this) {
+			tp.refreshTrackBar();
 			//TTrackBar trackbar = TTrackBar.getTrackbar(trackerPanel);
 			//trackbar.refresh();
 		}
@@ -784,7 +783,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 			modelFootprints[i].setColor(c);
 		}
 		erase();
-		TFrame.repaintT(trackerPanel);
+		TFrame.repaintT(tp);
 	}
 
 	/**
@@ -801,7 +800,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 		}
 		setModelFootprint(footprints[footprints.length - 1]);
 		erase();
-		TFrame.repaintT(trackerPanel);
+		TFrame.repaintT(tp);
 	}
 
 	/**
@@ -860,8 +859,8 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 			modelFootprint.setColor(color);
 			firePropertyChange(TTrack.PROPERTY_TTRACK_COLOR, null, color); // $NON-NLS-1$
 			erase();
-			if (trackerPanel != null) {
-				TFrame.repaintT(trackerPanel);
+			if (tp != null) {
+				TFrame.repaintT(tp);
 			}
 		}
 	}
@@ -922,9 +921,9 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 			// if needed, create new track
 			if (i > morePoints.size()) {
 				ParticleDataTrack target = new ParticleDataTrack(nextPointData, this);
-				target.setTrackerPanel(trackerPanel);
-				if (trackerPanel != null) {
-					trackerPanel.addTrack(target);
+				target.setTrackerPanel(tp);
+				if (tp != null) {
+					tp.addTrack(target);
 				}
 			} else {
 				ParticleDataTrack target = morePoints.get(i - 1);
@@ -1004,10 +1003,10 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 	 * @return the video clip (null if not yet added to TrackerPanel)
 	 */
 	public VideoClip getVideoClip() {
-		if (trackerPanel == null) {
+		if (tp == null) {
 			return null;
 		}
-		return trackerPanel.getPlayer().getVideoClip();
+		return tp.getPlayer().getVideoClip();
 	}
 
 	@Override
@@ -1099,7 +1098,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 		if (n == getStartFrame())
 			return;
 		n = Math.max(n, 0); // not less than zero
-		VideoClip clip = trackerPanel.getPlayer().getVideoClip();
+		VideoClip clip = tp.getPlayer().getVideoClip();
 		int end = clip.getLastFrameNumber();
 		n = Math.min(n, end); // not greater than clip end
 		startFrame = n;
@@ -1109,12 +1108,12 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 		for (ParticleDataTrack next : morePoints) {
 			next.setLastValidFrame(-1);
 		}
-		TFrame.repaintT(trackerPanel);
+		TFrame.repaintT(tp);
 		firePropertyChange(PROPERTY_DATATRACK_STARTFRAME, null, getStartFrame()); // $NON-NLS-1$
-		if (trackerPanel != null) {
-			trackerPanel.getModelBuilder().refreshSpinners();
+		if (tp != null) {
+			tp.getModelBuilder().refreshSpinners();
 			int stepNum = clip.frameToStep(startFrame);
-			trackerPanel.getPlayer().setStepNumber(stepNum);
+			tp.getPlayer().setStepNumber(stepNum);
 		}
 	}
 
@@ -1122,12 +1121,12 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 	public void setEndFrame(int n) {
 		// set dataclip length
 		getDataClip().setClipLength((n - getStartFrame() + 1));
-		trackerPanel.getModelBuilder().refreshSpinners();
+		tp.getModelBuilder().refreshSpinners();
 	}
 
 	@Override
 	protected void refreshInitialTime() {
-		if (trackerPanel == null || trackerPanel.getPlayer() == null) {
+		if (tp == null || tp.getPlayer() == null) {
 			super.refreshInitialTime();
 			return;
 		}
@@ -1137,7 +1136,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 		}
 
 		// this DataTrack is the current time source, so set it again to refresh values
-		ClipControl clipControl = trackerPanel.getPlayer().getClipControl();
+		ClipControl clipControl = tp.getPlayer().getClipControl();
 		clipControl.setTimeSource(this); // refreshes start time and frame duration
 
 		// refresh init editor to show data start time
@@ -1164,7 +1163,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 	public int getEndFrame() {
 		// determine end frame based on start frame and clip length
 		int clipEnd = getStartFrame() + getDataClip().getClipLength() - 1;
-		int videoEnd = trackerPanel.getPlayer().getVideoClip().getLastFrameNumber();
+		int videoEnd = tp.getPlayer().getVideoClip().getLastFrameNumber();
 		return Math.min(clipEnd, videoEnd);
 	}
 
@@ -1186,7 +1185,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 	 * @return the data index, or -1 if none
 	 */
 	protected int getDataIndexAtVideoStepNumber(int videoStepNumber) {
-		VideoClip vidClip = trackerPanel.getPlayer().getVideoClip();
+		VideoClip vidClip = tp.getPlayer().getVideoClip();
 		DataClip dataClip = getDataClip();
 		int len = dataClip.getAvailableClipLength();
 		int frameNum = vidClip.stepToFrame(videoStepNumber);
@@ -1208,10 +1207,10 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 
 	@Override
 	public void setTrackerPanel(TrackerPanel panel) {
-		if (trackerPanel != null) {
-			trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_VIDEO, this);
+		if (tp != null) {
+			tp.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_VIDEO, this);
 			if (panel == null)
-				trackerPanel.getTFrame().checkClipboardListener();
+				frame.checkClipboardListener();
 		}
 		super.setTrackerPanel(panel);
 		for (TTrack next : morePoints) {
@@ -1219,8 +1218,8 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 			next.setTrackerPanel(panel);
 		}
 
-		if (trackerPanel != null) {
-			trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_VIDEO, this);
+		if (tp != null) {
+			tp.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_VIDEO, this);
 			VideoClip videoClip = panel.getPlayer().getVideoClip();
 			int length = videoClip.getLastFrameNumber() - videoClip.getFirstFrameNumber() + 1;
 			dataClip.setClipLength(Math.min(length, dataClip.getClipLength()));
@@ -1252,9 +1251,9 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 		case TFrame.PROPERTY_TFRAME_WINDOWFOCUS:
 			if (!OSPRuntime.allowAutopaste || !isAutoPasteEnabled())
 				return;
-			TFrame frame = (TFrame) e.getSource();
+			//frame = (TFrame) e.getSource();
 			// listen for data changes
-			if (trackerPanel != null && trackerPanel == frame.getSelectedPanel()
+			if (tp != null && tp == frame.getSelectedPanel()
 					&& this == getLeader()) {
 				// get current data string and compare with previous
 				String dataString = null;
@@ -1283,9 +1282,9 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 			}
 			return;
 		case TFrame.PROPERTY_TFRAME_TAB: // $NON-NLS-1$
-			if (trackerPanel != null && trackerPanel.getTFrame() != null
-					&& trackerPanel == e.getNewValue()) {
-				trackerPanel.getTFrame().getClipboardListener().processContents(trackerPanel);
+			if (tp != null && frame != null
+					&& tp == e.getNewValue()) {
+				frame.getClipboardListener().processContents(tp);
 			}
 			return;
 		default:
@@ -1327,7 +1326,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 		}
 
 		// get coordinate system
-		ImageCoordSystem coords = trackerPanel.getCoords();
+		ImageCoordSystem coords = tp.getCoords();
 		// get underlying coords if appropriate
 		boolean useDefault = isUseDefaultReferenceFrame();
 		while (useDefault && coords instanceof ReferenceFrame) {
@@ -1355,13 +1354,13 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 				PositionStep step = createPositionStep(this, i, point.x, point.y);
 				step.setFootprint(getFootprint());
 				steps.setStep(i, step);
-				refreshData(datasetManager, trackerPanel, firstFrameInVideoClip, 1);
+				refreshData(datasetManager, tp, firstFrameInVideoClip, 1);
 			}
 		}
 
 		// reset v and a arrays
-		getVArray(trackerPanel).setLength(0);
-		getAArray(trackerPanel).setLength(0);
+		getVArray(tp).setLength(0);
+		getAArray(tp).setLength(0);
 
 		// reset trace data
 		traceX = new double[] { point.x };
@@ -1378,7 +1377,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 
 	@Override
 	public VideoPanel getVideoPanel() {
-		return trackerPanel;
+		return tp;
 	}
 
 	@Override
@@ -1422,7 +1421,6 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 		int n = oldData[0].length;
 		if (x.length <= n) {
 			// inform user that no new data was found
-			TFrame frame = trackerPanel != null ? trackerPanel.getTFrame() : null;
 			JOptionPane.showMessageDialog(frame, TrackerRes.getString("ParticleDataTrack.Dialog.NoNewData.Message"), //$NON-NLS-1$
 					TrackerRes.getString("ParticleDataTrack.Dialog.NoNewData.Title"), //$NON-NLS-1$
 					JOptionPane.WARNING_MESSAGE);
@@ -1873,11 +1871,11 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 			public void propertyChange(PropertyChangeEvent e) {
 				if (refreshing)
 					return;
-				if ("t".equals(e.getOldValue()) && trackerPanel != null) { //$NON-NLS-1$
+				if ("t".equals(e.getOldValue()) && tp != null) { //$NON-NLS-1$
 					Parameter param = (Parameter) getInitEditor().getObject("t"); //$NON-NLS-1$
-					VideoClip clip = trackerPanel.getPlayer().getVideoClip();
+					VideoClip clip = tp.getPlayer().getVideoClip();
 					double timeOffset = param.getValue() * 1000 - clip.getStartTime();
-					double dt = trackerPanel.getPlayer().getMeanStepDuration();
+					double dt = tp.getPlayer().getMeanStepDuration();
 					int n = clip.getStartFrameNumber();
 					boolean mustRound = timeOffset % dt > 0;
 					n += clip.getStepSize() * (int) Math.round(timeOffset / dt);
@@ -1918,10 +1916,10 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 	 * extra frames past the last frame in the data clip.
 	 */
 	private void adjustVideoClip() {
-		if (trackerPanel == null)
+		if (tp == null)
 			return;
 		// determine if video clip ends at last frame
-		VideoClip vidClip = trackerPanel.getPlayer().getVideoClip();
+		VideoClip vidClip = tp.getPlayer().getVideoClip();
 		int videoEndFrame = vidClip.getEndFrameNumber();
 		boolean isLast = videoEndFrame == vidClip.getLastFrameNumber();
 		int dataEndFrame = getStartFrame() + getDataClip().getAvailableClipLength() - 1;
@@ -2041,10 +2039,10 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 				control.setValue("model_footprint_visible", true); //$NON-NLS-1$
 			}
 			// save inspector size and position
-			if (dataTrack.modelBuilder != null && dataTrack.trackerPanel != null
-					&& dataTrack.trackerPanel.getTFrame() != null) {
+			if (dataTrack.modelBuilder != null && dataTrack.tp != null
+					&& dataTrack.frame != null) {
 				// save inspector location relative to frame
-				TFrame frame = dataTrack.trackerPanel.getTFrame();
+				TFrame frame = dataTrack.frame;
 				int x = dataTrack.modelBuilder.getLocation().x - frame.getLocation().x;
 				int y = dataTrack.modelBuilder.getLocation().y - frame.getLocation().y;
 				control.setValue("inspector_x", x); //$NON-NLS-1$

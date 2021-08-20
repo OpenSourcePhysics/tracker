@@ -92,9 +92,9 @@ public class OffsetOriginStep extends Step {
     	offset.keyFrames.add(n);
   	}            
     
-    if (offset.trackerPanel == null) return;
-    ImageCoordSystem coords = offset.trackerPanel.getCoords();
-    int n = offset.trackerPanel.getFrameNumber();
+    if (offset.tp == null) return;
+    ImageCoordSystem coords = offset.tp.getCoords();
+    int n = offset.tp.getFrameNumber();
     // get the current image position of the origin
     double x0 = coords.getOriginX(n);
     double y0 = coords.getOriginY(n);
@@ -198,10 +198,10 @@ public String toString() {
     public Position(double x, double y) {
       super.setXY(x, y);
       setCoordsEditTrigger(true);
-      if (offset.trackerPanel == null) return;
+      if (offset.tp == null) return;
       // set the world coordinates using x and y
-      ImageCoordSystem coords = offset.trackerPanel.getCoords();
-      int n = offset.trackerPanel.getFrameNumber();
+      ImageCoordSystem coords = offset.tp.getCoords();
+      int n = offset.tp.getFrameNumber();
       worldX = coords.imageToWorldX(n, x, y);
       worldY = coords.imageToWorldY(n, x, y);
     }
@@ -223,10 +223,10 @@ public String toString() {
       double dx = x - getX();
       double dy = y - getY();
       super.setXY(x, y);
-      if (offset.trackerPanel == null) return;      
-      ImageCoordSystem coords = offset.trackerPanel.getCoords();
+      if (offset.tp == null) return;      
+      ImageCoordSystem coords = offset.tp.getCoords();
       coords.setAdjusting(isAdjusting());
-      int n = offset.trackerPanel.getFrameNumber();
+      int n = offset.tp.getFrameNumber();
       // get the current image position of the origin
       double x0 = coords.getOriginX(n);
       double y0 = coords.getOriginY(n);

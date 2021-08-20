@@ -367,9 +367,9 @@ public class ExportVideoDialog extends JDialog {
 		views.put(s, panel);
 		viewDropdown.addItem(s);
 		// add additional open views
-		TViewChooser[] choosers = panel.getTFrame().getViewChoosers(panel);
+		TViewChooser[] choosers = frame.getVisibleChoosers(panelID);
 		for (int i = 0; i < choosers.length; i++) {
-			if (panel.getTFrame().isViewPaneVisible(i, panel.getID())) {
+			if (choosers[i] != null) {
 				String number = " (" + (i + 1) + ")"; //$NON-NLS-1$ //$NON-NLS-2$
 				TView tview = choosers[i].getSelectedView();
 				if (tview != null && tview.getViewType() == TView.VIEW_WORLD) {
@@ -396,7 +396,7 @@ public class ExportVideoDialog extends JDialog {
 		}
 		// add tab view
 		s = TrackerRes.getString("TMenuBar.MenuItem.CopyFrame"); //$NON-NLS-1$
-		views.put(s, (JComponent) panel.getTFrame().getContentPane());
+		views.put(s, (JComponent) frame.getContentPane());
 		viewDropdown.addItem(s);
 		if (selectedView != null)
 			viewDropdown.setSelectedItem(selectedView);
@@ -751,7 +751,7 @@ public class ExportVideoDialog extends JDialog {
 		else {
 			// create progress monitor
 			String description = XML.getName(recorder.getFileName());
-			ProgressMonitor monitor = new ProgressMonitor(panel.getTFrame(),
+			ProgressMonitor monitor = new ProgressMonitor(frame,
 					TrackerRes.getString("TActions.SaveClipAs.ProgressMonitor.Message") //$NON-NLS-1$
 							+ " " + description, //$NON-NLS-1$
 					"", 0, taskLength); //$NON-NLS-1$
@@ -845,7 +845,6 @@ public class ExportVideoDialog extends JDialog {
 				// set VideoIO preferred export format to this one (ie most recent)
 				String extension = XML.getExtension(savedFilePath);
 				VideoIO.setPreferredExportExtension(extension);
-				TFrame frame = trackerPanel.getTFrame();
 				if (showOpenDialog) {
 					int response = javax.swing.JOptionPane.showConfirmDialog(frame,
 							TrackerRes.getString("ExportVideoDialog.Complete.Message1") //$NON-NLS-1$

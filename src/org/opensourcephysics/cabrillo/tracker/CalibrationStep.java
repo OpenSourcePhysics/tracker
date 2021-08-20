@@ -100,7 +100,7 @@ public class CalibrationStep extends Step {
   @Override
 public TPoint getDefaultPoint() {
     if (points[1] == null) return points[0];
-    if (cal.trackerPanel.getSelectedPoint()==points[0]) return points[0];
+    if (cal.tp.getSelectedPoint()==points[0]) return points[0];
     return points[1];
   }
 
@@ -201,7 +201,7 @@ public Object clone() {
     if ((sameX && cal.axes == Calibration.X_AXIS) ||
     		(sameY && cal.axes == Calibration.Y_AXIS) ||
     		(sameX && sameY && cal.axes == Calibration.XY_AXES)) {
-      JOptionPane.showMessageDialog(track.trackerPanel, 
+      JOptionPane.showMessageDialog(track.tp, 
       				TrackerRes.getString("Calibration.Dialog.InvalidCoordinates.Message"),  //$NON-NLS-1$
       				TrackerRes.getString("Calibration.Dialog.InvalidCoordinates.Title"),  //$NON-NLS-1$
       				JOptionPane.WARNING_MESSAGE);
@@ -228,9 +228,9 @@ public Object clone() {
     if (points[1]!=null) {
       updateCoords();
     }
-    else if (cal.trackerPanel!=null) {
-      ImageCoordSystem coords = cal.trackerPanel.getCoords();
-      int n = cal.trackerPanel.getFrameNumber();
+    else if (cal.tp!=null) {
+      ImageCoordSystem coords = cal.tp.getCoords();
+      int n = cal.tp.getFrameNumber();
       // get the current image position of the origin and points[0]
       double x0 = coords.getOriginX(n);
       double y0 = coords.getOriginY(n);
@@ -269,7 +269,7 @@ public String toString() {
    * coordinates of both calibration points.
    */
   private void updateCoords() {
-    if (points[1] == null || cal.trackerPanel == null) return;
+    if (points[1] == null || cal.tp == null) return;
     if (cal.axes == Calibration.X_AXIS) {
     	updateCoordsXOnly();
     	return;
@@ -278,8 +278,8 @@ public String toString() {
     	updateCoordsYOnly();
     	return;
     }
-    ImageCoordSystem coords = cal.trackerPanel.getCoords();
-    int n = cal.trackerPanel.getFrameNumber();
+    ImageCoordSystem coords = cal.tp.getCoords();
+    int n = cal.tp.getFrameNumber();
     // get the world coordinates of both points
     double wx0 = worldX0;
     double wy0 = worldY0;
@@ -317,8 +317,8 @@ public String toString() {
    * x-coordinates of both calibration points.
    */
   private void updateCoordsXOnly() {
-    ImageCoordSystem coords = cal.trackerPanel.getCoords();
-    int n = cal.trackerPanel.getFrameNumber();
+    ImageCoordSystem coords = cal.tp.getCoords();
+    int n = cal.tp.getFrameNumber();
     // get the world coordinates of the points
     double wx0 = worldX0;
     double wy0 = worldY0;
@@ -366,8 +366,8 @@ public String toString() {
    * y-coordinates of both calibration points.
    */
   private void updateCoordsYOnly() {
-    ImageCoordSystem coords = cal.trackerPanel.getCoords();
-    int n = cal.trackerPanel.getFrameNumber();
+    ImageCoordSystem coords = cal.tp.getCoords();
+    int n = cal.tp.getFrameNumber();
     // get the world coordinates of the points
     double wx0 = worldX0;
     double wy0 = worldY0;
@@ -438,9 +438,9 @@ public String toString() {
       super.setXY(x, y);
       setCoordsEditTrigger(true);
       // set the world coordinates using x and y
-      if (cal.trackerPanel != null) {
-	      ImageCoordSystem coords = cal.trackerPanel.getCoords();
-	      int n = cal.trackerPanel.getFrameNumber();
+      if (cal.tp != null) {
+	      ImageCoordSystem coords = cal.tp.getCoords();
+	      int n = cal.tp.getFrameNumber();
 	      if (points[0]==null) { // this is first position created
 	        worldX0 = coords.imageToWorldX(n, x, y);
 	        worldY0 = coords.imageToWorldY(n, x, y);
@@ -477,13 +477,13 @@ public String toString() {
       double dx = x - getX();
       double dy = y - getY();
       super.setXY(x, y);
-      ImageCoordSystem coords = cal.trackerPanel.getCoords();
+      ImageCoordSystem coords = cal.tp.getCoords();
       coords.setAdjusting(isAdjusting());
       if (points[1] != null){
         updateCoords();
       }
-      else if (cal.trackerPanel != null) {
-        int n = cal.trackerPanel.getFrameNumber();
+      else if (cal.tp != null) {
+        int n = cal.tp.getFrameNumber();
         // get the current image position of the origin
         double x0 = coords.getOriginX(n);
         double y0 = coords.getOriginY(n);

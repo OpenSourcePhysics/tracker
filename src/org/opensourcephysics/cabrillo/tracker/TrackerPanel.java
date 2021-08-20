@@ -195,7 +195,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	protected String description = ""; //$NON-NLS-1$
 	protected TPoint selectedPoint;
 	protected Step selectedStep;
-	protected TrackerPanel selectingPanel;
+	protected Integer selectingPanelID;
 	protected TTrack selectedTrack;
 	protected TPoint newlyMarkedPoint;
 	protected Rectangle dirty;
@@ -625,7 +625,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		userTracks = null;
 		TTrack.activeTracks.put(track.getID(), track);
 		// set trackerPanel property if not yet set
-		if (track.trackerPanel == null) {
+		if (track.tp == null) {
 			track.setTrackerPanel(this);
 			// add this TrackerPanel to the track's listener list
 			track.addListener(this);
@@ -1385,7 +1385,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			selectedStep.repaint();
 		if (point == null) {
 			selectedStep = null;
-			selectingPanel = null;
+			selectingPanelID = null;
 			currentState = null;
 			currentCoords = null;
 		} else { // find track and step (if any) associated with selected point
@@ -1428,7 +1428,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 					}
 				}
 			}
-			selectingPanel = this;
+			selectingPanelID = panelID;
 			requestFocusInWindow();
 		}
 		if (selectedStep != null)
@@ -1453,15 +1453,6 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	 */
 	public Step getSelectedStep() {
 		return selectedStep;
-	}
-
-	/**
-	 * Gets the selecting tracker panel.
-	 *
-	 * @return the selecting tracker panel
-	 */
-	public TrackerPanel getSelectingPanel() {
-		return selectingPanel;
 	}
 
 	/**
@@ -2440,7 +2431,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 
 		if (e.getKeyCode() == KeyEvent.VK_DELETE) {
 			// delete selected steps
-			if (selectedPoint != null && selectingPanel == this) {
+			if (selectedPoint != null && selectingPanelID == panelID) {
 				deletePoint(selectedPoint);
 			}
 			else {
@@ -3469,7 +3460,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			attachmentDialog = null;
 		}
 		if (algorithmDialog != null) {
-			algorithmDialog.trackerPanel = null;
+			algorithmDialog.dispose(); // bh changed to dispose -- OK?
 			algorithmDialog = null;
 		}
 		if (guestsDialog != null) {
@@ -3498,7 +3489,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			numberFormatDialog.clear();
 		}
 		filterClasses.clear();
-		selectingPanel = null;
+		selectingPanelID = null;
 		frame = null;
 		renderedImage = null;
 		matImage = null;
@@ -5033,7 +5024,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	}
 
 	/**
-	 * Return the actual panel, which in the case of WorldTView is not this.
+	 * Return the actual panel, which in the case of WorldTView is not this, rather the TrackerPanel it was initialized with.
 	 * 
 	 * @return
 	 */

@@ -165,7 +165,7 @@ public class RGBRegion extends TTrack {
 			@Override
 			public void focusLost(FocusEvent e) {
 				if (radiusField.getBackground() == Color.yellow) {
-					setRadius(trackerPanel.getFrameNumber(), radiusField.getIntValue());
+					setRadius(tp.getFrameNumber(), radiusField.getIntValue());
 				}
 			}
 		};
@@ -236,9 +236,9 @@ public class RGBRegion extends TTrack {
 			return;
 		}
 		XMLControl control = new XMLControlElement(this);
-		if (trackerPanel != null) {
-			trackerPanel.changed = true;
-			int n = trackerPanel.getFrameNumber();
+		if (tp != null) {
+			tp.changed = true;
+			int n = tp.getFrameNumber();
 			RGBStep keyStep = (RGBStep) getStep(n);
 			for (Step next : steps.array) {
 				if (next == null)
@@ -252,7 +252,7 @@ public class RGBRegion extends TTrack {
 			keyFrames.clear();
 			keyFrames.add(0);
 			clearData();
-			refreshData(datasetManager, trackerPanel);
+			refreshData(datasetManager, tp);
 			firePropertyChange(TTrack.PROPERTY_TTRACK_DATA, null, null); // $NON-NLS-1$
 		}
 		if (!loading) {
@@ -289,9 +289,9 @@ public class RGBRegion extends TTrack {
 			return;
 		}
 		XMLControl control = new XMLControlElement(this);
-		if (trackerPanel != null) {
-			trackerPanel.changed = true;
-			int n = trackerPanel.getFrameNumber();
+		if (tp != null) {
+			tp.changed = true;
+			int n = tp.getFrameNumber();
 			RGBStep keyStep = (RGBStep) getStep(n);
 			for (Step next : steps.array) {
 				if (next == null)
@@ -305,7 +305,7 @@ public class RGBRegion extends TTrack {
 			radiusKeyFrames.clear();
 			radiusKeyFrames.add(0);
 			clearData();
-			refreshData(datasetManager, trackerPanel);
+			refreshData(datasetManager, tp);
 			firePropertyChange(TTrack.PROPERTY_TTRACK_DATA, null, null); // $NON-NLS-1$
 		}
 		if (!loading) {
@@ -330,7 +330,7 @@ public class RGBRegion extends TTrack {
 	 * @param r the desired radius
 	 */
 	protected void setRadius(int n, int r) {
-		if (isLocked() || r == Integer.MIN_VALUE || trackerPanel == null)
+		if (isLocked() || r == Integer.MIN_VALUE || tp == null)
 			return;
 		r = Math.max(r, 0);
 		r = Math.min(r, maxRadius);
@@ -340,9 +340,9 @@ public class RGBRegion extends TTrack {
 		RGBStep keyStep = step; // key step is target if radius not fixed
 		if (step != null && step.radius != r) {
 			// deselect selected point to trigger possible undo, then reselect it
-			TPoint selection = trackerPanel.getSelectedPoint();
-			trackerPanel.setSelectedPoint(null);
-			trackerPanel.selectedSteps.clear();
+			TPoint selection = tp.getSelectedPoint();
+			tp.setSelectedPoint(null);
+			tp.selectedSteps.clear();
 			XMLControl state = new XMLControlElement(step);
 
 			if (isFixedRadius()) {
@@ -356,8 +356,8 @@ public class RGBRegion extends TTrack {
 				step.dataValid = false; // only target step's data is invalid
 			}
 			Undo.postStepEdit(step, state);
-			trackerPanel.setSelectedPoint(selection);
-			refreshData(datasetManager, trackerPanel);
+			tp.setSelectedPoint(selection);
+			refreshData(datasetManager, tp);
 			step.repaint();
 			firePropertyChange(PROPERTY_TTRACK_DATA, null, RGBRegion.this); // to views //$NON-NLS-1$
 		}
@@ -373,8 +373,8 @@ public class RGBRegion extends TTrack {
 			RGBStep step = (RGBStep) getStep(0);
 			if (step != null)
 				return step.radius;
-		} else if (trackerPanel != null && !fixedRadius) {
-			int n = trackerPanel.getFrameNumber();
+		} else if (tp != null && !fixedRadius) {
+			int n = tp.getFrameNumber();
 			RGBStep step = (RGBStep) getStep(n);
 			if (step != null)
 				return step.radius;
@@ -390,7 +390,7 @@ public class RGBRegion extends TTrack {
 	 */
 	@Override
 	public void draw(DrawingPanel panel, Graphics _g) {
-		if (isMarking() && !(trackerPanel.getSelectedPoint() instanceof RGBStep.Position))
+		if (isMarking() && !(tp.getSelectedPoint() instanceof RGBStep.Position))
 			return;
 		super.draw(panel, _g);
 	}
@@ -411,11 +411,11 @@ public class RGBRegion extends TTrack {
 			hint = TrackerRes.getString("RGBRegion.Position.Hint"); //$NON-NLS-1$
 		} else {
 			partName = TrackerRes.getString("TTrack.Selected.Hint"); //$NON-NLS-1$
-			if (getStep(trackerPanel.getFrameNumber()) == null) {
+			if (getStep(tp.getFrameNumber()) == null) {
 				hint = TrackerRes.getString("RGBRegion.Unmarked.Hint"); //$NON-NLS-1$
 			} else
 				hint = TrackerRes.getString("RGBRegion.Hint"); //$NON-NLS-1$
-			if (trackerPanel.getVideo() == null) {
+			if (tp.getVideo() == null) {
 				hint += ", " + TrackerRes.getString("TTrack.ImportVideo.Hint"); //$NON-NLS-1$ //$NON-NLS-2$
 			}
 		}
@@ -430,7 +430,7 @@ public class RGBRegion extends TTrack {
 	@Override
 	protected void setMarking(boolean marking) {
 		super.setMarking(marking);
-		repaint(trackerPanel);
+		repaint(tp);
 	}
 
 	/**
@@ -789,12 +789,12 @@ public class RGBRegion extends TTrack {
 	 */
 	@Override
 	public void setTrackerPanel(TrackerPanel panel) {
-		if (trackerPanel != null) {			
-			trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_IMAGE, this);
+		if (tp != null) {			
+			tp.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_IMAGE, this);
 		}
 		super.setTrackerPanel(panel);
-		if (trackerPanel != null) {
-			trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_IMAGE, this);
+		if (tp != null) {
+			tp.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_IMAGE, this);
 		}
 	}
 
@@ -806,18 +806,18 @@ public class RGBRegion extends TTrack {
 	 */
 	@Override
 	public void propertyChange(PropertyChangeEvent e) {
-		if (trackerPanel != null) {
-			if (maxRadius == defaultMaxRadius && trackerPanel.getVideo() != null) {
-				setMaxRadius(trackerPanel.getVideo());
+		if (tp != null) {
+			if (maxRadius == defaultMaxRadius && tp.getVideo() != null) {
+				setMaxRadius(tp.getVideo());
 			}
 			switch (e.getPropertyName()) {
 			case TrackerPanel.PROPERTY_TRACKERPANEL_STEPNUMBER:
 				invalidateData(Boolean.FALSE);
-				int n = trackerPanel.getFrameNumber();
+				int n = tp.getFrameNumber();
 				RGBStep step = (RGBStep) getStep(n);
 				if (step != null) {
 					radiusField.setIntValue(step.radius);
-					Point2D p = step.position.getWorldPosition(trackerPanel);
+					Point2D p = step.position.getWorldPosition(tp);
 					xField.setValue(p.getX());
 					yField.setValue(p.getY());
 				}
@@ -827,7 +827,7 @@ public class RGBRegion extends TTrack {
 				break;
 			case TrackerPanel.PROPERTY_TRACKERPANEL_IMAGE:
 				invalidateData(Boolean.FALSE);
-				Video vid = trackerPanel.getVideo();
+				Video vid = tp.getVideo();
 				if (vid == null)
 					clearData(); // no video
 				else if (!vid.isVisible()) // video invisible
@@ -880,15 +880,15 @@ public class RGBRegion extends TTrack {
 	private void setPositionFromFields() {
 		double xValue = xField.getValue();
 		double yValue = yField.getValue();
-		int n = trackerPanel.getFrameNumber();
+		int n = tp.getFrameNumber();
 		RGBStep step = (RGBStep) getStep(n);
 		if (step != null) {
 			TPoint p = step.position;
-			ImageCoordSystem coords = trackerPanel.getCoords();
+			ImageCoordSystem coords = tp.getCoords();
 			double x = coords.worldToImageX(n, xValue, yValue);
 			double y = coords.worldToImageY(n, xValue, yValue);
 			p.setXY(x, y);
-			Point2D worldPt = p.getWorldPosition(trackerPanel);
+			Point2D worldPt = p.getWorldPosition(tp);
 			xField.setValue(worldPt.getX());
 			yField.setValue(worldPt.getY());
 		}
@@ -1007,9 +1007,9 @@ public class RGBRegion extends TTrack {
 				count = steps.length;
 				int first = 0;
 				int last = count - 1;
-				if (region.trackerPanel != null) {
-					first = region.trackerPanel.getPlayer().getVideoClip().getStartFrameNumber();
-					last = region.trackerPanel.getPlayer().getVideoClip().getEndFrameNumber();
+				if (region.tp != null) {
+					first = region.tp.getPlayer().getVideoClip().getStartFrameNumber();
+					last = region.tp.getPlayer().getVideoClip().getEndFrameNumber();
 				}
 				double[][] rgb = new double[last + 1][];
 				double[] stepRGB = new double[5];

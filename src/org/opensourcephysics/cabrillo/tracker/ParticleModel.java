@@ -150,13 +150,13 @@ abstract public class ParticleModel extends PointMass {
 	 */
 	@Override
 	public void draw(DrawingPanel panel, Graphics _g) {
-		if (!(panel instanceof TrackerPanel) || trackerPanel == null)
+		if (!(panel instanceof TrackerPanel) || tp == null)
 			return;
 		// OSPLog.debug("ParticleModel.draw frame " + trackerPanel.getFrameNumber() +
 		// "/" + lastValidFrame + " " + isVisible() );
 		//long t0 = Performance.now(0);
 
-		if (isVisible() && trackerPanel.getFrameNumber() > lastValidFrame) {
+		if (isVisible() && tp.getFrameNumber() > lastValidFrame) {
 				refreshSteps("draw");
 		}
 		// OSPLog.debug("!!! " + Performance.now(t0) + "
@@ -175,7 +175,7 @@ abstract public class ParticleModel extends PointMass {
 	 */
 	public void drawMe(DrawingPanel panel, Graphics _g) {
 		// position and show model builder if requested during loading
-		if (inspectorX != Integer.MIN_VALUE && trackerPanel != null && trackerPanel.getTFrame() != null) {
+		if (inspectorX != Integer.MIN_VALUE && tp != null && frame != null) {
 			if (showModelBuilder) {
 				SwingUtilities.invokeLater(new Runnable() {
 					@Override
@@ -230,10 +230,10 @@ abstract public class ParticleModel extends PointMass {
 	@Override
 	public void delete() {
 		FunctionTool modelBuilder = null;
-		if (trackerPanel != null && trackerPanel.modelBuilder != null) {
-			ArrayList<ParticleModel> list = trackerPanel.getDrawablesTemp(ParticleModel.class);
+		if (tp != null && tp.modelBuilder != null) {
+			ArrayList<ParticleModel> list = tp.getDrawablesTemp(ParticleModel.class);
 			if (list.size() == 1)
-				modelBuilder = trackerPanel.modelBuilder;
+				modelBuilder = tp.modelBuilder;
 			list.clear();
 		}
 		super.delete();
@@ -253,16 +253,15 @@ abstract public class ParticleModel extends PointMass {
 	
 	@Override
 	public void setTrackerPanel(TrackerPanel panel) {
-		if (trackerPanel != null) {
+		if (tp != null) {
 			removePanelEvents(panelEventsParticleModel);
 			// remove this model's listener from the frame that would have been created
 			// when the ModelBuilder was initiated.
-			TFrame frame = trackerPanel.getTFrame();
 			if (frame != null)
 				frame.removePropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, this);
 		}
 		super.setTrackerPanel(panel);
-		if (trackerPanel != null) {
+		if (tp != null) {
 			addPanelEvents(panelEventsParticleModel);
 			if (startFrameUndefined) {
 				int n = panel.getPlayer().getVideoClip().getStartFrameNumber();
@@ -270,7 +269,7 @@ abstract public class ParticleModel extends PointMass {
 				startFrameUndefined = false;
 			}
 			if (panel.getTFrame() != null) {
-				boolean radians = panel.getTFrame().anglesInRadians;
+				boolean radians = frame.anglesInRadians;
 				functionPanel.initEditor.setAnglesInDegrees(!radians);
 			}
 		}
@@ -286,7 +285,7 @@ abstract public class ParticleModel extends PointMass {
 	@Override
 	public void propertyChange(PropertyChangeEvent e) {
 		super.propertyChange(e);
-		if (trackerPanel == null)
+		if (tp == null)
 			return;
 		boolean dorefresh = (!refreshing && isModelsVisible());
 		String resetMe = null;
@@ -295,11 +294,11 @@ abstract public class ParticleModel extends PointMass {
 			return;
 		case TFrame.PROPERTY_TFRAME_TAB: // $NON-NLS-1$
 			if (modelBuilder != null) {
-				if (trackerPanel != null && e.getNewValue() == trackerPanel && trackerPanel.isModelBuilderVisible) {
+				if (tp != null && e.getNewValue() == tp && tp.isModelBuilderVisible) {
 					modelBuilder.setVisible(true);
 				} else if (modelBuilder.isVisible() && e.getNewValue() != null) {
 					modelBuilder.setVisible(false);
-					trackerPanel.isModelBuilderVisible = true;
+					tp.isModelBuilderVisible = true;
 				}
 			}
 			return;
@@ -326,7 +325,7 @@ abstract public class ParticleModel extends PointMass {
 			return;
 		case FunctionTool.PROPERTY_FUNCTIONTOOL_FUNCTION:
 			if (!loading)
-				trackerPanel.changed = true;
+				tp.changed = true;
 			resetMe = "repaint";
 			break;
 		case VideoClip.PROPERTY_VIDEOCLIP_STARTTIME:
@@ -340,7 +339,7 @@ abstract public class ParticleModel extends PointMass {
 		case ImageCoordSystem.PROPERTY_COORDS_TRANSFORM: // $NON-NLS-1$
 			// from TrackerPanel
 			// workaround to prevent infinite loop
-			ImageCoordSystem coords = trackerPanel.getCoords();
+			ImageCoordSystem coords = tp.getCoords();
 			if (coords instanceof ReferenceFrame && ((ReferenceFrame) coords).getOriginTrack() == this)
 				return;
 			resetMe = "refresh";
@@ -500,7 +499,7 @@ abstract public class ParticleModel extends PointMass {
 				@Override
 				public void actionPerformed(ActionEvent e) {
 					setUseDefaultReferenceFrame(!useDefaultRefFrameItem.isSelected());
-					if (ParticleModel.this.trackerPanel.getCoords() instanceof ReferenceFrame) {
+					if (ParticleModel.this.tp.getCoords() instanceof ReferenceFrame) {
 						setLastValidFrame(-1);
 						refreshSteps("useDefRefFrameItem action");
 					}
@@ -546,7 +545,7 @@ abstract public class ParticleModel extends PointMass {
 		refreshSteps("stampItem action");
 		PointMass pm = new PointMass();
 		String proposed = getName() + " " + TrackerRes.getString("ParticleModel.Stamp.Name") + "1"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-		for (TTrack track : trackerPanel.getTracksTemp()) {
+		for (TTrack track : tp.getTracksTemp()) {
 			if (proposed.equals(track.getName())) {
 				try {
 					int n = Integer.parseInt(proposed.substring(proposed.length() - 1));
@@ -556,18 +555,18 @@ abstract public class ParticleModel extends PointMass {
 				}
 			}
 		}
-		trackerPanel.clearTemp();
+		tp.clearTemp();
 		pm.setName(proposed);
 		pm.setColor(getColor().darker());
-		trackerPanel.addTrack(pm);
+		tp.addTrack(pm);
 		for (Step step : getSteps()) {
 			if (step == null)
 				continue;
 			TPoint pt = step.getPoints()[0];
-			int n = pt.getFrameNumber(trackerPanel);
+			int n = pt.getFrameNumber(tp);
 			pm.createStep(n, pt.x, pt.y);
 		}
-		TFrame.repaintT(trackerPanel);
+		TFrame.repaintT(tp);
 	}
 
 	/**
@@ -594,7 +593,7 @@ abstract public class ParticleModel extends PointMass {
 	 * @param n the desired start frame
 	 */
 	public void setStartFrame(int n) {
-		VideoClip clip = trackerPanel.getPlayer().getVideoClip();
+		VideoClip clip = tp.getPlayer().getVideoClip();
 		n = Math.max(n, clip.getFirstFrameNumber()); // not less than first frame
 		int end = clip.getLastFrameNumber();
 		n = Math.min(n, end); // not greater than last frame
@@ -605,7 +604,7 @@ abstract public class ParticleModel extends PointMass {
 		refreshInitialTime();
 		setLastValidFrame(-1);
 		refreshSteps("setStartFrame " + n);
-		TFrame.repaintT(trackerPanel);
+		TFrame.repaintT(tp);
 		firePropertyChange(PROPERTY_TTRACK_MODELSTART, null, getStartFrame()); // $NON-NLS-1$
 	}
 
@@ -624,7 +623,7 @@ abstract public class ParticleModel extends PointMass {
 	 * @param n the desired end frame
 	 */
 	public void setEndFrame(int n) {
-		VideoClip clip = trackerPanel.getPlayer().getVideoClip();
+		VideoClip clip = tp.getPlayer().getVideoClip();
 		int end = clip.getLastFrameNumber();
 		n = Math.max(n, 0); // not less than zero
 		n = Math.max(n, getStartFrame()); // not less than startFrame
@@ -636,7 +635,7 @@ abstract public class ParticleModel extends PointMass {
 		} else {
 			refreshSteps("setEndFrame " + endFrame);
 		}
-		TFrame.repaintT(trackerPanel);
+		TFrame.repaintT(tp);
 		firePropertyChange(PROPERTY_TTRACK_MODELEND, null, getEndFrame()); // $NON-NLS-1$
 	}
 
@@ -720,8 +719,8 @@ abstract public class ParticleModel extends PointMass {
 
 	protected boolean isModelsVisible() {
 		for (ParticleModel model : getModels()) {
-			if (model.isTraceVisible() || (model.isVisible() && (model.isPositionVisible(trackerPanel)
-					|| model.isVVisible(trackerPanel) || model.isAVisible(trackerPanel)))) {
+			if (model.isTraceVisible() || (model.isVisible() && (model.isPositionVisible(tp)
+					|| model.isVVisible(tp) || model.isAVisible(tp)))) {
 				return true;
 			}
 		}
@@ -732,9 +731,9 @@ abstract public class ParticleModel extends PointMass {
 	 * Refreshes initial time parameter for this model.
 	 */
 	protected void refreshInitialTime() {
-		if (trackerPanel == null)
+		if (tp == null)
 			return;
-		double t0 = trackerPanel.getPlayer().getFrameTime(getStartFrame()) / 1000;
+		double t0 = tp.getPlayer().getFrameTime(getStartFrame()) / 1000;
 		String t = timeFormat.format(t0);
 		Parameter param = (Parameter) getInitEditor().getObject("t"); //$NON-NLS-1$
 		if (param.getValue() != t0) {
@@ -755,13 +754,13 @@ abstract public class ParticleModel extends PointMass {
 		//OSPLog.debug(Performance.timeCheckStr("ParticleModel.refreshSteps00 " + why, Performance.TIME_MARK));
 
 		// return if this is an empty dynamic system
-		if (refreshStepsLater || trackerPanel == null
+		if (refreshStepsLater || tp == null
 				|| this instanceof DynamicSystem && ((DynamicSystem) this).particles.length == 0)
 			return;
-		refreshDerivsLater = trackerPanel.getPlayer().getClipControl().isPlaying();
+		refreshDerivsLater = tp.getPlayer().getClipControl().isPlaying();
 //		trackerPanel.getTFrame().holdPainting(true);
-		int n = trackerPanel.getFrameNumber();
-		VideoClip clip = trackerPanel.getPlayer().getVideoClip();
+		int n = tp.getFrameNumber();
+		VideoClip clip = tp.getPlayer().getVideoClip();
 		// determine last frame to be marked (must satisfy both model and clip)
 		int end = Math.min(getEndFrame(), n);
 		int start = getStartFrame();
@@ -784,7 +783,7 @@ abstract public class ParticleModel extends PointMass {
 					this.getClass().getSimpleName() + this.hashCode() + " refreshing steps " + start + " to " + end); //$NON-NLS-1$ //$NON-NLS-2$
 		boolean singleStep = (end - start == 1);
 		// step forward to end
-		ImageCoordSystem coords = trackerPanel.getCoords();
+		ImageCoordSystem coords = tp.getCoords();
 		// get underlying coords if appropriate
 		boolean useDefault = isUseDefaultReferenceFrame();
 		while (useDefault && coords instanceof ReferenceFrame) {
@@ -823,7 +822,7 @@ abstract public class ParticleModel extends PointMass {
 				if (!valid && !invalidWarningShown) {
 					invalidWarningShown = true;
 					SwingUtilities.invokeLater(() -> {
-						JOptionPane.showMessageDialog(trackerPanel,
+						JOptionPane.showMessageDialog(tp,
 								TrackerRes.getString("ParticleModel.Dialog.Offscreen.Message1") + XML.NEW_LINE //$NON-NLS-1$
 										+ TrackerRes.getString("ParticleModel.Dialog.Offscreen.Message2"), //$NON-NLS-1$
 								TrackerRes.getString("ParticleModel.Dialog.Offscreen.Title"), //$NON-NLS-1$
@@ -855,7 +854,7 @@ abstract public class ParticleModel extends PointMass {
 		for (int m = 0; m < nmodels; m++) {
 			ParticleModel model = models[m];
 			model.steps.setLength(end + 1);
-			coords = trackerPanel.getCoords(); // get active coords
+			coords = tp.getCoords(); // get active coords
 			// special treatment if this is the origin of current reference frame
 			if (coords instanceof ReferenceFrame && ((ReferenceFrame) coords).getOriginTrack() == model) {
 				// set origins of reference frame
@@ -904,11 +903,11 @@ abstract public class ParticleModel extends PointMass {
 		if (!refreshDerivsLater && !singleStep) {
 			fireStepsChanged();
 		}
-		TFrame.repaintT(trackerPanel);
+		TFrame.repaintT(tp);
 	}
 
 	protected void holdPainting(boolean b) {
-		trackerPanel.getTFrame().holdPainting(b);
+		frame.holdPainting(b);
 	}
 
 	@Override
@@ -956,7 +955,7 @@ abstract public class ParticleModel extends PointMass {
 	 */
 	protected void trimSteps() {
 		// return if trimming not needed
-		VideoClip clip = trackerPanel.getPlayer().getVideoClip();
+		VideoClip clip = tp.getPlayer().getVideoClip();
 		int n = clip.getFrameCount() - 1;
 		int end = getEndFrame() == Integer.MAX_VALUE ? n : getEndFrame();
 		while (end > getStartFrame() && !clip.includesFrame(end)) {
@@ -1019,7 +1018,7 @@ abstract public class ParticleModel extends PointMass {
 	 * @return true if the default reference frame is used
 	 */
 	protected boolean isUseDefaultReferenceFrame() {
-		ImageCoordSystem coords = trackerPanel.getCoords();
+		ImageCoordSystem coords = tp.getCoords();
 		if (coords instanceof ReferenceFrame && ((ReferenceFrame) coords).getOriginTrack() == this) {
 			return true;
 		}
@@ -1041,14 +1040,14 @@ abstract public class ParticleModel extends PointMass {
 	 * @return the model builder
 	 */
 	public FunctionTool getModelBuilder() {
-		if (trackerPanel == null)
+		if (tp == null)
 			return null;
 		if (modelBuilder == null) {
-			modelBuilder = trackerPanel.getModelBuilder();
+			modelBuilder = tp.getModelBuilder();
 			modelBuilder.addPanel(getName(), functionPanel);
 			modelBuilder.addPropertyChangeListener(this);
-			if (trackerPanel.getTFrame() != null) {
-				trackerPanel.getTFrame().addPropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, this);
+			if (frame != null) {
+				frame.addPropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, this);
 			}
 			if (getInitEditor().getValues()[0] == 0) {
 				refreshInitialTime();
@@ -1096,11 +1095,11 @@ abstract public class ParticleModel extends PointMass {
 			public void propertyChange(PropertyChangeEvent e) {
 				if (refreshing)
 					return;
-				if ("t".equals(e.getOldValue()) && trackerPanel != null) { //$NON-NLS-1$
-					VideoClip clip = trackerPanel.getPlayer().getVideoClip();
+				if ("t".equals(e.getOldValue()) && tp != null) { //$NON-NLS-1$
+					VideoClip clip = tp.getPlayer().getVideoClip();
 					double timeOffset = ((Parameter) getInitEditor().getObject("t")).getValue() * 1000
 							- clip.getStartTime();
-					double dt = trackerPanel.getPlayer().getMeanStepDuration();
+					double dt = tp.getPlayer().getMeanStepDuration();
 					int n = clip.getStartFrameNumber();
 					boolean mustRound = timeOffset % dt > 0;
 					n += clip.getStepSize() * (int) Math.round(timeOffset / dt);
@@ -1157,7 +1156,6 @@ abstract public class ParticleModel extends PointMass {
 			loading = true; // prevents setting trackerPanel changed flag
 			getModelBuilder();
 			refreshing = loading = false;
-			TFrame frame = trackerPanel.getTFrame();
 			Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
 			if (inspectorH != Integer.MIN_VALUE)
 				modelBuilder.setSize(modelBuilder.getWidth(), Math.min(inspectorH, dim.height));
@@ -1228,11 +1226,10 @@ abstract public class ParticleModel extends PointMass {
 			if (p.endFrame < Integer.MAX_VALUE)
 				control.setValue("end_frame", p.endFrame); //$NON-NLS-1$
 			// save model builder size and position
-			if (p.modelBuilder != null && p.trackerPanel != null && p.trackerPanel.getTFrame() != null) {
+			if (p.modelBuilder != null && p.tp != null && p.frame != null) {
 				// save builder location relative to frame
-				TFrame frame = p.trackerPanel.getTFrame();
-				int x = p.modelBuilder.getLocation().x - frame.getLocation().x;
-				int y = p.modelBuilder.getLocation().y - frame.getLocation().y;
+				int x = p.modelBuilder.getLocation().x - p.frame.getLocation().x;
+				int y = p.modelBuilder.getLocation().y - p.frame.getLocation().y;
 				control.setValue("inspector_x", x); //$NON-NLS-1$
 				control.setValue("inspector_y", y); //$NON-NLS-1$
 				control.setValue("inspector_h", p.modelBuilder.getHeight()); //$NON-NLS-1$

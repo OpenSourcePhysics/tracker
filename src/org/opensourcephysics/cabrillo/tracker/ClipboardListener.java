@@ -43,7 +43,7 @@ class ClipboardListener extends Thread implements ClipboardOwner {
 	private Clipboard sysClip = Toolkit.getDefaultToolkit().getSystemClipboard();
 	private TFrame frame;
 	private boolean running = true;
-	private TrackerPanel targetPanel;
+	private Integer targetPanelID;
 
 	/**
 	 * Constructor
@@ -101,7 +101,7 @@ class ClipboardListener extends Thread implements ClipboardOwner {
 	 * @param target the target TrackerPanel
 	 */
 	public void processContents(TrackerPanel target) {
-		targetPanel = target;
+		targetPanelID = target.getID();
 		processContents(sysClip.getContents(this));
 	}
 
@@ -129,12 +129,12 @@ class ClipboardListener extends Thread implements ClipboardOwner {
 
 	void processContents(String dataString) throws Exception {
 		if (dataString != null) {
-			TrackerPanel trackerPanel;
-			if (targetPanel == null) {
+			TrackerPanel trackerPanel;  
+			if (targetPanelID == null) {
 				trackerPanel = frame.getSelectedPanel();
 			} else {
-				trackerPanel = targetPanel;
-				targetPanel = null;
+				trackerPanel = frame.getTrackerPanelForID(targetPanelID);
+				targetPanelID = null;
 			}
 			if (trackerPanel == null)
 				return;

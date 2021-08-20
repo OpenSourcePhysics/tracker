@@ -86,7 +86,7 @@ public class WorldRuler extends Ruler {
 
 		// make a first approximation for world delta between lines
 		double zoomFactor = trackerPanel.getXPixPerUnit();
-		double delta = rulerLineSpacing / (zoomFactor * track.trackerPanel.getCoords().getScaleX(n));
+		double delta = rulerLineSpacing / (zoomFactor * track.tp.getCoords().getScaleX(n));
 
 		// find power of ten
 		double power = 1;
@@ -115,8 +115,8 @@ public class WorldRuler extends Ruler {
 		
 
 		double formatMinValue = majorSpacing * delta;
-		double coordsCos = track.trackerPanel.getCoords().getCosine(n);
-		double coordsSin = track.trackerPanel.getCoords().getSine(n);
+		double coordsCos = track.tp.getCoords().getCosine(n);
+		double coordsSin = track.tp.getCoords().getSine(n);
 		int prevLabelIndex = 0;
 		double factor = FontSizer.getFactor();
 		// create vertical ruler lines, then rotate
@@ -262,14 +262,14 @@ public class WorldRuler extends Ruler {
 	protected void setHandleXY(double x, double y) {
 		TPoint handle = getHandle();
 		handle.setLocation(x, y);
-		if (track.trackerPanel != null && track.trackerPanel.getSelectedPoint() == handle) {
-			int n = track.trackerPanel.getFrameNumber();
-			Point p = new Point(handle.getScreenPosition(track.trackerPanel));
+		if (track.tp != null && track.tp.getSelectedPoint() == handle) {
+			int n = track.tp.getFrameNumber();
+			Point p = new Point(handle.getScreenPosition(track.tp));
 			
 			// find distance from tape, set ruler width
 			double dist = getScreenDistanceToBase(p);
 			boolean isLeft = isLeft(track.getStep(n).getPoints()[0],
-	    		track.getStep(track.trackerPanel.getFrameNumber()).getPoints()[1],
+	    		track.getStep(track.tp.getFrameNumber()).getPoints()[1],
 	    		handle);
 			
 			setRulerSize(isLeft? 

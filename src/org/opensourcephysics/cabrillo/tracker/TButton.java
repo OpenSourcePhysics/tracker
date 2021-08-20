@@ -57,14 +57,14 @@ public class TButton extends JButton {
     		setBorderPainted(true);
         hidePopup = popup!=null && popup.isVisible();
         TTrack track = getTrack();
-      	if (Tracker.showHints && track!=null && track.trackerPanel!=null) {
-        	if (track.trackerPanel.getSelectedTrack() == track)
-        		track.trackerPanel.setMessage(track.getMessage());
+      	if (Tracker.showHints && track!=null && track.tp!=null) {
+        	if (track.tp.getSelectedTrack() == track)
+        		track.tp.setMessage(track.getMessage());
         	else {
           	String s = track.getClass().getSimpleName()+" " //$NON-NLS-1$
               	+ track.getName() + " (" //$NON-NLS-1$
                 + TrackerRes.getString("TTrack.Unselected.Hint")+")"; //$NON-NLS-1$ //$NON-NLS-2$
-          	track.trackerPanel.setMessage(s);
+          	track.tp.setMessage(s);
         	}
       	}    		
     	}
@@ -77,11 +77,11 @@ public class TButton extends JButton {
     	@Override
 		public void mousePressed(MouseEvent e) {
         TTrack track = getTrack();
-    		if (track!=null && track.trackerPanel!=null
-    				&& track != track.trackerPanel.getSelectedTrack()) {
-    			track.trackerPanel.setSelectedTrack(track);
-    			track.trackerPanel.setSelectedPoint(null);
-          track.trackerPanel.selectedSteps.clear();
+    		if (track!=null && track.tp!=null
+    				&& track != track.tp.getSelectedTrack()) {
+    			track.tp.setSelectedTrack(track);
+    			track.tp.setSelectedPoint(null);
+          track.tp.selectedSteps.clear();
 //        	hidePopup = true;
         }
     	}
@@ -197,8 +197,8 @@ public class TButton extends JButton {
 	 */
 	protected JPopupMenu getPopup() {
 		TTrack track = getTrack();
-		if (track != null && track.trackerPanel != null) {
-			JMenu trackMenu = track.getMenu(track.trackerPanel, new JMenu());
+		if (track != null && track.tp != null) {
+			JMenu trackMenu = track.getMenu(track.tp, new JMenu());
 			FontSizer.setFonts(trackMenu, FontSizer.getLevel());
 			return trackMenu.getPopupMenu();
 		}

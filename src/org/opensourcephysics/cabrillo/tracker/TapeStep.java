@@ -287,7 +287,7 @@ public class TapeStep extends Step {
 	public TPoint getDefaultPoint() {
 		if (tape.isIncomplete)
 			return points[1];
-		TPoint p = tape.trackerPanel.getSelectedPoint();
+		TPoint p = tape.tp.getSelectedPoint();
 		if (p == points[0])
 			return points[0];
 		if (p == points[1])
@@ -421,10 +421,10 @@ public class TapeStep extends Step {
 		double scaleX = 1;
 		double scaleY = 1;
 		double axisTiltAngle = 0;
-		if (tape.trackerPanel != null) {
-			scaleX = tape.trackerPanel.getCoords().getScaleX(n);
-			scaleY = tape.trackerPanel.getCoords().getScaleY(n);
-			axisTiltAngle = tape.trackerPanel.getCoords().getAngle(n);
+		if (tape.tp != null) {
+			scaleX = tape.tp.getCoords().getScaleX(n);
+			scaleY = tape.tp.getCoords().getScaleY(n);
+			axisTiltAngle = tape.tp.getCoords().getAngle(n);
 		}
 		double dx = (end2.getX() - end1.getX()) / scaleX;
 		double dy = (end1.getY() - end2.getY()) / scaleY;
@@ -455,7 +455,7 @@ public class TapeStep extends Step {
 	 * @param length the length in world units
 	 */
 	public void setTapeLength(double length) {
-		if (tape.isLocked() || tape.trackerPanel == null)
+		if (tape.isLocked() || tape.tp == null)
 			return;
 		length = Math.abs(length);
 		length = Math.max(length, TapeMeasure.MIN_LENGTH);
@@ -482,17 +482,17 @@ public class TapeStep extends Step {
 				worldLength = length;
 			}
 		}
-		ImageCoordSystem coords = tape.trackerPanel.getCoords();
+		ImageCoordSystem coords = tape.tp.getCoords();
 		double scaleX = factor * coords.getScaleX(n);
 		double scaleY = factor * coords.getScaleY(n);
-		XMLControl coordsControl = new XMLControlElement(tape.trackerPanel.getCoords());
+		XMLControl coordsControl = new XMLControlElement(tape.tp.getCoords());
 		tape.isStepChangingScale = true;
 		coords.setScaleXY(n, scaleX, scaleY);
 		tape.isStepChangingScale = false;
 		if (tape.isStickMode()) {
 			Undo.postTrackAndCoordsEdit(tape, trackControl, coordsControl);
 		} else {
-			Undo.postCoordsEdit(tape.trackerPanel, coordsControl);
+			Undo.postCoordsEdit(tape.tp, coordsControl);
 		}
 		erase();
 	}
@@ -503,7 +503,7 @@ public class TapeStep extends Step {
 	 * @param theta the angle in radians
 	 */
 	public void setTapeAngle(double theta) {
-		if (tape.isLocked() || tape.trackerPanel == null)
+		if (tape.isLocked() || tape.tp == null)
 			return;
 
 		if (tape.isReadOnly()) {
@@ -517,11 +517,11 @@ public class TapeStep extends Step {
 		}
 		// set coords angle without changing tape
 		double dTheta = theta - xAxisToTapeAngle;
-		ImageCoordSystem coords = tape.trackerPanel.getCoords();
+		ImageCoordSystem coords = tape.tp.getCoords();
 		XMLControl state = new XMLControlElement(coords);
 		double angle = coords.getAngle(n);
 		coords.setAngle(n, angle - dTheta);
-		Undo.postCoordsEdit(tape.trackerPanel, state);
+		Undo.postCoordsEdit(tape.tp, state);
 	}
 
 	/**
@@ -531,7 +531,7 @@ public class TapeStep extends Step {
 	 * @param p the axis of rotate
 	 */
 	private void setTapeAngle(double theta, TPoint p) {
-		if (tape.isLocked() || tape.trackerPanel == null)
+		if (tape.isLocked() || tape.tp == null)
 			return;
 		// change tape angle
 		xAxisToTapeAngle = theta;
@@ -613,12 +613,12 @@ public class TapeStep extends Step {
 			sin = 0;
 			cos = 1;
 			d = 1;
-			double scaleX = tape.trackerPanel.getCoords().getScaleX(n);
+			double scaleX = tape.tp.getCoords().getScaleX(n);
 			factor = worldLength * scaleX;
 		}
 
 		// if either end is selected or attached to a point mass, keep that end fixed
-		TPoint p = tape.trackerPanel.getSelectedPoint();
+		TPoint p = tape.tp.getSelectedPoint();
 		if (end1.isAttached())
 			p = end1;
 		else if (end2.isAttached())
@@ -637,8 +637,8 @@ public class TapeStep extends Step {
 			}
 		} else if (p == handle) {
 			// be sure handle is on line between ends
-			Point screenPt = handle.getScreenPosition(tape.trackerPanel);
-			handle.setPositionOnLine(screenPt.x, screenPt.y, tape.trackerPanel);
+			Point screenPt = handle.getScreenPosition(tape.tp);
+			handle.setPositionOnLine(screenPt.x, screenPt.y, tape.tp);
 			// keep handle fixed
 			d = handle.distance(end1);
 			if (d == 0)
@@ -683,9 +683,9 @@ public class TapeStep extends Step {
 		if (end2.isAttached())
 			p = end2;
 		if (p == null)
-			p = tape.trackerPanel.getSelectedPoint();
+			p = tape.tp.getSelectedPoint();
 		
-		double axisTiltAngle = tape.trackerPanel.getCoords().getAngle(n);
+		double axisTiltAngle = tape.tp.getCoords().getAngle(n);
 		tapeAngle = xAxisToTapeAngle + axisTiltAngle;
 		double sin = Math.sin(tapeAngle);
 		double cos = Math.cos(tapeAngle);
@@ -890,14 +890,14 @@ public class TapeStep extends Step {
 			}
 
 			if (tape.isStickMode() && worldLength > 0) {
-				ImageCoordSystem coords = tape.trackerPanel.getCoords();
+				ImageCoordSystem coords = tape.tp.getCoords();
 				coords.setAdjusting(isAdjusting());
 				double newLength = getTapeLength(true); // newly calculated
 				double factor = newLength / getTapeLength(false); // current worldLength
 				double scaleX = factor * coords.getScaleX(n);
 				double scaleY = factor * coords.getScaleY(n);
 				tape.isStepChangingScale = true;
-				tape.trackerPanel.getCoords().setScaleXY(n, scaleX, scaleY);
+				tape.tp.getCoords().setScaleXY(n, scaleX, scaleY);
 				tape.isStepChangingScale = false;
 				// refresh other 
 			}
@@ -962,13 +962,13 @@ public class TapeStep extends Step {
 				Rotator rotator = this == rotator1? step.rotator1: step.rotator2;
 				rotator.setLocation(x, y);
 				double theta = this == rotator1?  rotator.angle(step.end2): step.end1.angle(rotator);
-				theta += tape.trackerPanel.getCoords().getAngle(0);
+				theta += tape.tp.getCoords().getAngle(0);
 				step.setTapeAngle(-theta, this == rotator1? step.end2: step.end1);
 				step.erase();
 //				tape.refreshStep(TapeStep.this); // sets properties of this step
 			} else {
 				double theta = this == rotator1?  this.angle(end2): end1.angle(this);
-				theta += tape.trackerPanel.getCoords().getAngle(n);
+				theta += tape.tp.getCoords().getAngle(n);
 				setTapeAngle(-theta, this == rotator1? end2: end1);
 				tape.keyFrames.add(n);
 			}
@@ -1001,7 +1001,7 @@ public class TapeStep extends Step {
 		 * @param y
 		 */
     protected void setScreenCoords(int x, int y) {
-    	pt.setScreenPosition(x, y, tape.trackerPanel);
+    	pt.setScreenPosition(x, y, tape.tp);
     	this.setLocation(pt);
     }
     

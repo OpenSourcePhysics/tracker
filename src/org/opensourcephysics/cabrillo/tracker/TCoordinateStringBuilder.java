@@ -73,9 +73,9 @@ public class TCoordinateStringBuilder
   }
   
   public void setUnitsAndPatterns(TTrack track, String xVar, String yVar) {
-  	if (track==null || track.trackerPanel==null) return;
-    xField.setUnits(track.trackerPanel.getUnits(track, xVar));    
-    yField.setUnits(track.trackerPanel.getUnits(track, yVar));
+  	if (track==null || track.tp==null) return;
+    xField.setUnits(track.tp.getUnits(track, xVar));    
+    yField.setUnits(track.tp.getUnits(track, yVar));
     xField.setFixedPattern(track.getVarFormatPattern(xVar));
     yField.setFixedPattern(track.getVarFormatPattern(yVar));
   }

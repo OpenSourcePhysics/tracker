@@ -71,7 +71,7 @@ public class AngleRuler extends Ruler {
 		double baseAngle = -vertex.angle(baseEnd);
 		transform.setToRotation(-baseAngle, screenVertex.x, screenVertex.y);	
 		
-		boolean isDegrees = !track.trackerPanel.getTFrame().anglesInRadians;
+		boolean isDegrees = !track.frame.anglesInRadians;
 
 		// determine world delta between lines
 		double delta = rulerLineSpacing / screenRadius; // radians

@@ -93,6 +93,7 @@ public class PlotTrackView extends TrackView {
 		super(track, panel, view, TView.VIEW_PLOT);
 //		OSPLog.debug(Performance.timeCheckStr("PlotTrackView constr0 for " + track, Performance.TIME_MARK));
 		// get the track data object (DatasetManager)
+		TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
 		datasetManager = track.getData(trackerPanel);
 		// create the GUI
 		createGUI();
@@ -140,6 +141,7 @@ public class PlotTrackView extends TrackView {
 				|| !viewParent.isViewPaneVisible()
 				|| (track = getTrack()) == null)
 			return;
+		TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
 		track.getData(trackerPanel);
 		boolean haveSelection = (trackerPanel.selectedSteps.size() > 0);
 		Color trackColor = track.getColor();
@@ -184,7 +186,7 @@ public class PlotTrackView extends TrackView {
 		plotsButton.setHorizontalTextPosition(SwingConstants.LEADING);
 		plotsButton.setHorizontalAlignment(SwingConstants.LEFT);
 		TTrack track = getTrack();
-		track.getData(trackerPanel); // load the current data
+		track.getData(frame.getTrackerPanelForID(panelID)); // load the current data
 		for (int i = 0; i < plots.length; i++) {
 			boolean custom = plots[i].isCustom;
 			plots[i].setVariables();
@@ -236,7 +238,7 @@ public class PlotTrackView extends TrackView {
 		if (plotCount == mainView.getComponentCount())
 			return;
 		TTrack track = getTrack();
-		track.trackerPanel.changed = true;
+		track.tp.changed = true;
 		plotCount = Math.min(plotCount, plots.length);
 		selectedPlot = plotCount - 1;
 		mainView.removeAll();
@@ -442,7 +444,7 @@ public class PlotTrackView extends TrackView {
 			public void actionPerformed(ActionEvent e) {
 				JMenuItem item = (JMenuItem) e.getSource();
 				setPlotCount(Integer.parseInt(item.getText()));
-				refresh(trackerPanel.getFrameNumber(), 0);
+				refresh(frame.getTrackerPanelForID(panelID).getFrameNumber(), 0);
 			}
 		};
 		// create plotCount menuitems

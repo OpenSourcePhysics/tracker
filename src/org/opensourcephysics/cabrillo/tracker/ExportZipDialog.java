@@ -136,8 +136,6 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 	 *
 	 */
 	private class Export {
-		private TFrame frame;
-		private Integer panelID;
 
 		private String name;
 		private String originalVideoPath;
@@ -151,12 +149,10 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 		
 		private String vidDir;
 
-		protected Export(ArrayList<File> zipList, String name, TrackerPanel panel, String originalPath, 
+		protected Export(ArrayList<File> zipList, String name, String originalPath, 
 				String trkPath, String videoTarget, ExportVideoDialog exporter) {
 			this.name = name;
 			this.zipList = zipList;
-			this.panelID = panel.getID();
-			this.frame = panel.getTFrame();
 			this.originalVideoPath = originalPath;
 			this.videoTarget = videoTarget;
 			this.trkPath = trkPath;
@@ -607,8 +603,9 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 
 	// instance fields
 	protected ExportVideoDialog videoExporter;
-	protected TrackerPanel trackerPanel;
-	protected TFrame frame;
+	private TFrame frame;
+	private Integer panelID;
+
 	protected Icon openIcon;
 	protected JPanel titlePanel, descriptionPanel, tabsPanel, videoPanel, metaPanel, thumbnailPanel, supportFilesPanel,
 			advancedPanel;
@@ -776,7 +773,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 
 	@Override
 	public void setVisible(boolean vis) {
-		if (trackerPanel == null)
+		if (panelID == null)
 			return;
 		if (vis) {
 			refreshGUI();
@@ -800,6 +797,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 	@Override
 	public void propertyChange(PropertyChangeEvent e) {
 		if (e.getPropertyName().equals(TFrame.PROPERTY_TFRAME_TAB)) { // $NON-NLS-1$
+			TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
 			if (e.getNewValue() == trackerPanel) {
 				setVisible(isVisible);
 			} else if (e.getNewValue() == null && e.getOldValue() == trackerPanel) {
@@ -823,7 +821,8 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 		if (dialog != null) {
 			dialog.setVisible(false);
 			dialog.frame.removePropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, dialog); // $NON-NLS-1$
-			dialog.trackerPanel = null;
+			dialog.panelID = null;
+			dialog.frame = null;
 		}
 	}
 
@@ -847,8 +846,8 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 	 */
 	private ExportZipDialog(TrackerPanel panel) {
 		super(panel.getTFrame(), false);
-		trackerPanel = panel.ref(this);
 		frame = panel.getTFrame();
+		panelID = panel.getID();
 //		videoExporter = ExportVideoDialog.getDialog(panel);
 		createGUI();
 		refreshGUI();
@@ -863,6 +862,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 	 * Creates the visible components of this dialog.
 	 */
 	private void createGUI() {
+		TrackerPanel panel = frame.getTrackerPanelForID(panelID);
 		openIcon = Tracker.getResourceIcon("open.gif", true);
 		Color color = UIManager.getColor("Label.disabledForeground"); //$NON-NLS-1$
 		if (color != null)
@@ -1284,14 +1284,14 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 		// author
 		authorLabel = new JLabel();
 		authorField = new EntryField(30);
-		authorField.setText(trackerPanel.author);
+		authorField.setText(panel.author);
 		authorField.setBackground(Color.white);
 		authorField.setAlignmentY(JToolBar.TOP_ALIGNMENT);
 		authorField.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				refreshMetadataGUI();
-				trackerPanel.author = authorField.getText().trim();
+				frame.getTrackerPanelForID(panelID).author = authorField.getText().trim();
 				authorField.requestFocusInWindow();
 			}
 		});
@@ -1305,14 +1305,14 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 		// contact
 		contactLabel = new JLabel();
 		contactField = new EntryField(30);
-		contactField.setText(trackerPanel.contact);
+		contactField.setText(panel.contact);
 		contactField.setBackground(Color.white);
 		contactField.setAlignmentY(JToolBar.TOP_ALIGNMENT);
 		contactField.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				refreshMetadataGUI();
-				trackerPanel.contact = contactField.getText().trim();
+				frame.getTrackerPanelForID(panelID).contact = contactField.getText().trim();
 				contactField.requestFocusInWindow();
 			}
 		});
@@ -1373,7 +1373,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 		thumbnailButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				ThumbnailDialog.getDialog(trackerPanel, false).setVisible(true);
+				ThumbnailDialog.getDialog(frame.getTrackerPanelForID(panelID), false).setVisible(true);
 			}
 		});
 		thumbnailImagePanel = new JPanel();
@@ -1396,7 +1396,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 		if (showThumbnailCheckbox.isSelected()) {
 			thumbnailPanel.add(thumbnailImagePanel, BorderLayout.SOUTH);
 		}
-		ThumbnailDialog dialog = ThumbnailDialog.getDialog(trackerPanel, false);
+		ThumbnailDialog dialog = ThumbnailDialog.getDialog(panel, false);
 		dialog.addPropertyChangeListener("accepted", new PropertyChangeListener() { //$NON-NLS-1$
 			@Override
 			public void propertyChange(PropertyChangeEvent e) {
@@ -1575,7 +1575,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 		urlLabel.setEnabled(res == null);
 		descriptionPane.setEnabled(res == null);
 
-		if (trackerPanel != null) {
+		if (panelID != null) {
 			refreshDescriptionGUI();
 			refreshTabsGUI();
 			refreshVideosGUI();
@@ -1592,6 +1592,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 	 * Refreshes the thumbnail image based on the current ThumbnailDialog settings.
 	 */
 	private void refreshThumbnailImage() {
+		TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
 		ThumbnailDialog thumbnailDialog = ThumbnailDialog.getDialog(trackerPanel, false);
 		BufferedImage image = thumbnailDialog.getThumbnail();
 		thumbnailDisplay.setIcon(new ImageIcon(image));
@@ -1644,6 +1645,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 		String currentTabTitle = null;
 		int currentTabNumber = 0;
 		ArrayList<String> currentTabs = new ArrayList<String>();
+		TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
 		for (int i = 0; i < frame.getTabCount(); i++) {
 			String next = frame.getTabTitle(i);
 			currentTabs.add(next);
@@ -1801,7 +1803,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 		videoInfoLabel.setText(info);
 
 		// enable if any tabs have videos
-		boolean hasVideo = trackerPanel.getVideo() != null;
+		boolean hasVideo = frame.getTrackerPanelForID(panelID).getVideo() != null;
 		for (int i = 0; i < frame.getTabCount(); i++) {
 			hasVideo = hasVideo || (frame.getTrackerPanel(i) != null && frame.getTrackerPanel(i).getVideo() != null);
 		}
@@ -1872,7 +1874,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 		String title = TrackerRes.getString("ZipResourceDialog.Border.Title.Thumbnail"); //$NON-NLS-1$
 		thumbLabel.setText(title + ":"); //$NON-NLS-1$
 
-		Dimension dim = ThumbnailDialog.getDialog(trackerPanel, false).getThumbnailSize();
+		Dimension dim = ThumbnailDialog.getDialog(frame.getTrackerPanelForID(panelID), false).getThumbnailSize();
 		String info = dim.width + " x " + dim.height; //$NON-NLS-1$
 		thumbInfoLabel.setText(info);
 
@@ -2081,7 +2083,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 					}
 				}
 			}
-			exports.add(new Export(zipList, tabTitle, panel, originalPath, trkPath, videoPath, exporter));
+			exports.add(new Export(zipList, tabTitle, originalPath, trkPath, videoPath, exporter));
 		}
 		exportIterator = exports.iterator();
 	}
@@ -2126,6 +2128,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 	 */
 	private void saveZipAs() {
 		String description = descriptionPane.getText().trim();
+		TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
 		if (!"".equals(description) && "".equals(trackerPanel.getDescription())) { //$NON-NLS-1$ //$NON-NLS-2$
 			trackerPanel.setDescription(description);
 			trackerPanel.hideDescriptionWhenLoaded = true;
@@ -2260,6 +2263,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 	 */
 	private void saveZipAction(ArrayList<File> zipList) {
 		// use ThumbnailDialog to write image to temp folder and add to zip list
+		TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
 		ThumbnailDialog dialog = ThumbnailDialog.getDialog(trackerPanel, false);
 		String ext = dialog.getFormat();
 		String thumbPath = getTempDirectory() + targetName + "_thumbnail." + ext; //$NON-NLS-1$

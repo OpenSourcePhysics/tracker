@@ -368,13 +368,13 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 				if (track instanceof ParticleDataTrack) {
 					if (trackButton.context.contains("point")) { //$NON-NLS-1$
 						ParticleDataTrack dt = (ParticleDataTrack) track;
-						JMenu trackMenu = dt.getPointMenu(track.trackerPanel);
+						JMenu trackMenu = dt.getPointMenu(track.tp);
 						FontSizer.setFonts(trackMenu, FontSizer.getLevel());
 						return trackMenu.getPopupMenu();
 					}
 					// else return leader's menu
 					ParticleDataTrack dt = ((ParticleDataTrack) track).getLeader();
-					JMenu trackMenu = dt.getMenu(track.trackerPanel, new JMenu());
+					JMenu trackMenu = dt.getMenu(track.tp, new JMenu());
 					FontSizer.setFonts(trackMenu, FontSizer.getLevel());
 					return trackMenu.getPopupMenu();
 				}

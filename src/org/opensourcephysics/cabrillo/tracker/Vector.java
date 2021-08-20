@@ -207,7 +207,7 @@ public class Vector extends TTrack {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				// snap all vectors to the snapPoint
-				TPoint p = trackerPanel.getSnapPoint();
+				TPoint p = tp.getSnapPoint();
 				Step[] steps = Vector.this.getSteps();
 				for (int i = 0; i < steps.length; i++) {
 					if (steps[i] != null) {
@@ -219,7 +219,7 @@ public class Vector extends TTrack {
 						v.attach(p);
 					}
 				}
-				trackerPanel.repaint();
+				tp.repaint();
 			}
 		});
 		// labels visible item
@@ -370,7 +370,7 @@ public class Vector extends TTrack {
 	@Override
 	protected void setMarking(boolean marking) {
 		super.setMarking(marking);
-		repaint(trackerPanel);
+		repaint(tp);
 	}
 
 	/**
@@ -451,7 +451,7 @@ public class Vector extends TTrack {
 	public Interactive findInteractive(DrawingPanel panel, int xpix, int ypix) {
 		Interactive ia = super.findInteractive(panel, xpix, ypix);
 		if (ia == null) {
-			TPoint p = trackerPanel.getSelectedPoint();
+			TPoint p = tp.getSelectedPoint();
 			if (p != null) {
 				if (p instanceof VectorStep.Handle) {
 					partName = TrackerRes.getString("Vector.Handle.Name"); //$NON-NLS-1$
@@ -464,7 +464,7 @@ public class Vector extends TTrack {
 				}
 			} else {
 				partName = TrackerRes.getString("TTrack.Selected.Hint"); //$NON-NLS-1$
-				if (getStep(trackerPanel.getFrameNumber()) == null)
+				if (getStep(tp.getFrameNumber()) == null)
 					hint = TrackerRes.getString("Vector.Unmarked.Hint"); //$NON-NLS-1$
 				else {
 					hint = TrackerRes.getString("Vector.Remark.Hint"); //$NON-NLS-1$
@@ -756,11 +756,11 @@ public class Vector extends TTrack {
 	 * the x and y fields.
 	 */
 	private void setXYComponents() {
-		TPoint p = trackerPanel.getSelectedPoint();
-		VectorStep step = (VectorStep) getStep(p, trackerPanel);
+		TPoint p = tp.getSelectedPoint();
+		VectorStep step = (VectorStep) getStep(p, tp);
 		if (step != null) {
-			ImageCoordSystem coords = trackerPanel.getCoords();
-			int n = trackerPanel.getFrameNumber();
+			ImageCoordSystem coords = tp.getCoords();
+			int n = tp.getFrameNumber();
 			double x = coords.worldToImageXComponent(n, xField.getValue(), yField.getValue());
 			double y = coords.worldToImageYComponent(n, xField.getValue(), yField.getValue());
 			step.setXYComponents(x, y);
@@ -771,7 +771,7 @@ public class Vector extends TTrack {
 			magField.setValue(Math.sqrt(x * x + y * y));
 			double theta = Math.atan2(y, x);
 			angleField.setValue(theta);
-			p.showCoordinates(trackerPanel);
+			p.showCoordinates(tp);
 		}
 	}
 
@@ -783,11 +783,11 @@ public class Vector extends TTrack {
 		double theta = angleField.getValue();
 		double xval = magField.getValue() * Math.cos(theta);
 		double yval = magField.getValue() * Math.sin(theta);
-		TPoint p = trackerPanel.getSelectedPoint();
-		VectorStep step = (VectorStep) getStep(p, trackerPanel);
+		TPoint p = tp.getSelectedPoint();
+		VectorStep step = (VectorStep) getStep(p, tp);
 		if (step != null) {
-			ImageCoordSystem coords = trackerPanel.getCoords();
-			int n = trackerPanel.getFrameNumber();
+			ImageCoordSystem coords = tp.getCoords();
+			int n = tp.getFrameNumber();
 			double x = coords.worldToImageXComponent(n, xval, yval);
 			double y = coords.worldToImageYComponent(n, xval, yval);
 			step.setXYComponents(x, y);
@@ -798,7 +798,7 @@ public class Vector extends TTrack {
 			magField.setValue(Math.sqrt(x * x + y * y));
 			theta = Math.atan2(y, x);
 			angleField.setValue(theta);
-			p.showCoordinates(trackerPanel);
+			p.showCoordinates(tp);
 		}
 	}
 

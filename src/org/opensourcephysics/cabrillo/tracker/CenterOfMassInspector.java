@@ -41,50 +41,54 @@ import java.beans.PropertyChangeEvent;
  *
  * @author Douglas Brown
  */
-public class CenterOfMassInspector extends JDialog
-    implements PropertyChangeListener {
+public class CenterOfMassInspector extends JDialog implements PropertyChangeListener {
 
-  // instance fields
-  protected CenterOfMass cm;
-  protected TrackerPanel trackerPanel;
-  protected JButton okButton;
-  protected JPanel checkboxPanel;
-  protected ActionListener listener;
-  protected boolean isVisible;
+	// instance fields
+	protected TFrame frame;
+	protected Integer panelID;
+	protected CenterOfMass cm;
+	protected JButton okButton;
+	protected JPanel checkboxPanel;
+	protected ActionListener listener;
+	protected boolean isVisible;
 
-  /**
-   * Constructs a CenterOfMassInspector.
-   *
-   * @param track the center of mass track
-   */
-  public CenterOfMassInspector(CenterOfMass track) {
-    super(JOptionPane.getFrameForComponent(track.trackerPanel), false);
-    cm = track;
-    trackerPanel = cm.trackerPanel.ref(this);
-    if (trackerPanel != null) {
-    	trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this); //$NON-NLS-1$
-      TFrame frame = trackerPanel.getTFrame();
-      if (frame != null) {
-        frame.addPropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, this); //$NON-NLS-1$
-      }
-    }
-    // listener for the point mass checkboxes
-    listener = new ActionListener() {
-      @Override
-	public void actionPerformed(ActionEvent e) {updateCM();}
-    };
-    setResizable(false);
-    createGUI();
-    initialize();
-    pack();
-  }
+	/**
+	 * Constructs a CenterOfMassInspector.
+	 *
+	 * @param track the center of mass track
+	 */
+	public CenterOfMassInspector(CenterOfMass track) {
+		super(JOptionPane.getFrameForComponent(track.tp), false);
+		cm = track;
+		TrackerPanel panel = track.tp; 
+		frame = panel.getTFrame();
+		panelID = panel.getID();
 
-  /**
-   * Initializes this inpector.
-   */
-  public void initialize() {
-    updateDisplay();
-  }
+		if (panel != null) {
+			panel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this); // $NON-NLS-1$
+			if (frame != null) {
+				frame.addPropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, this); // $NON-NLS-1$
+			}
+		}
+		// listener for the point mass checkboxes
+		listener = new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				updateCM();
+			}
+		};
+		setResizable(false);
+		createGUI();
+		initialize();
+		pack();
+	}
+
+	/**
+	 * Initializes this inpector.
+	 */
+	public void initialize() {
+		updateDisplay();
+	}
 
 	/**
 	 * Responds to property change events. This listens for the following events:
@@ -96,7 +100,7 @@ public class CenterOfMassInspector extends JDialog
 	public void propertyChange(PropertyChangeEvent e) {
 		switch (e.getPropertyName()) {
 		case TFrame.PROPERTY_TFRAME_TAB:
-			if (trackerPanel != null && e.getNewValue() == trackerPanel) {
+			if (panelID != null && ((TrackerPanel)e.getNewValue()).getID() == panelID) {
 				setVisible(isVisible);
 			} else {
 				boolean vis = isVisible;
@@ -112,20 +116,20 @@ public class CenterOfMassInspector extends JDialog
 
 	}
 
-  /**
-   * Overrides JDialog setVisible method.
-   *
-   * @param vis true to show this inspector
-   */
-  @Override
-public void setVisible(boolean vis) {
-  	if (vis) {
-	  	FontSizer.setFonts(this, FontSizer.getLevel());
-	  	pack();
-  	}
-    super.setVisible(vis);
-    isVisible = vis;
-  }
+	/**
+	 * Overrides JDialog setVisible method.
+	 *
+	 * @param vis true to show this inspector
+	 */
+	@Override
+	public void setVisible(boolean vis) {
+		if (vis) {
+			FontSizer.setFonts(this, FontSizer.getLevel());
+			pack();
+		}
+		super.setVisible(vis);
+		isVisible = vis;
+	}
 
 	/**
 	 * Disposes of this inspector.
@@ -133,16 +137,16 @@ public void setVisible(boolean vis) {
 	@Override
 	public void dispose() {
 		checkboxPanel.removeAll();
-		if (trackerPanel != null) {
-			trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this); //$NON-NLS-1$
+		if (panelID != null) {
+			TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
+			trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this); // $NON-NLS-1$
 			ArrayList<PointMass> masses = trackerPanel.getDrawablesTemp(PointMass.class);
 			for (int i = 0, n = masses.size(); i < n; i++) {
 				masses.get(i).removeListenerNCF(this);
 			}
 			masses.clear();
-			TFrame frame = trackerPanel.getTFrame();
 			if (frame != null) {
-				frame.removePropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, this); //$NON-NLS-1$
+				frame.removePropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, this); // $NON-NLS-1$
 			}
 			trackerPanel = null;
 		}
@@ -151,66 +155,66 @@ public void setVisible(boolean vis) {
 
 //_____________________________ private methods ____________________________
 
-  /**
-   * Creates the visible components of this panel.
-   */
-  private void createGUI() {
-    JPanel inspectorPanel = new JPanel(new BorderLayout());
-    setContentPane(inspectorPanel);
-    // create checkboxPanel
-    checkboxPanel = new JPanel(new GridLayout(0, 1));
-    Border etched = BorderFactory.createEtchedBorder();
-    TitledBorder title = BorderFactory.createTitledBorder(etched,
-        TrackerRes.getString("CenterOfMassInspector.Border.Title")); //$NON-NLS-1$
-    checkboxPanel.setBorder(title);
-    inspectorPanel.add(checkboxPanel, BorderLayout.CENTER);
-    // create ok button
-    okButton = new JButton(TrackerRes.getString("Dialog.Button.OK")); //$NON-NLS-1$
-    okButton.setForeground(new Color(0, 0, 102));
-    okButton.addActionListener(new ActionListener() {
-      @Override
-	public void actionPerformed(ActionEvent e) {
-        setVisible(false);
-      }
-    });
-    // create buttonbar at bottom
-    JPanel buttonbar = new JPanel(new GridLayout(1, 3));
-    buttonbar.setBorder(BorderFactory.createEmptyBorder(1, 0, 3, 0));
-    inspectorPanel.add(buttonbar, BorderLayout.SOUTH);
-    Box box = Box.createHorizontalBox();
-    buttonbar.add(box);
-    buttonbar.add(okButton);
-    box = Box.createHorizontalBox();
-    buttonbar.add(box);
-  }
+	/**
+	 * Creates the visible components of this panel.
+	 */
+	private void createGUI() {
+		JPanel inspectorPanel = new JPanel(new BorderLayout());
+		setContentPane(inspectorPanel);
+		// create checkboxPanel
+		checkboxPanel = new JPanel(new GridLayout(0, 1));
+		Border etched = BorderFactory.createEtchedBorder();
+		TitledBorder title = BorderFactory.createTitledBorder(etched,
+				TrackerRes.getString("CenterOfMassInspector.Border.Title")); //$NON-NLS-1$
+		checkboxPanel.setBorder(title);
+		inspectorPanel.add(checkboxPanel, BorderLayout.CENTER);
+		// create ok button
+		okButton = new JButton(TrackerRes.getString("Dialog.Button.OK")); //$NON-NLS-1$
+		okButton.setForeground(new Color(0, 0, 102));
+		okButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				setVisible(false);
+			}
+		});
+		// create buttonbar at bottom
+		JPanel buttonbar = new JPanel(new GridLayout(1, 3));
+		buttonbar.setBorder(BorderFactory.createEmptyBorder(1, 0, 3, 0));
+		inspectorPanel.add(buttonbar, BorderLayout.SOUTH);
+		Box box = Box.createHorizontalBox();
+		buttonbar.add(box);
+		buttonbar.add(okButton);
+		box = Box.createHorizontalBox();
+		buttonbar.add(box);
+	}
 
-  /**
-   * Updates the center of mass to reflect the current checkbox states.
-   */
-  private void updateCM() {
-    // get the checkbox array
-    Component[] checkboxes = checkboxPanel.getComponents();
-    for (int i = 0; i < checkboxes.length; i++) {
-      JCheckBoxMenuItem checkbox = (JCheckBoxMenuItem)checkboxes[i];
-      // get the pointmass
-      PointMass m = getPointMass(checkbox.getActionCommand());
-      if (checkbox.isSelected() && !cm.containsMass(m))
-        cm.addMass(m);
-      if (!checkbox.isSelected() && cm.containsMass(m))
-        cm.removeMass(m);
-    }
-    TFrame.repaintT(cm.trackerPanel);
-  }
+	/**
+	 * Updates the center of mass to reflect the current checkbox states.
+	 */
+	private void updateCM() {
+		// get the checkbox array
+		Component[] checkboxes = checkboxPanel.getComponents();
+		for (int i = 0; i < checkboxes.length; i++) {
+			JCheckBoxMenuItem checkbox = (JCheckBoxMenuItem) checkboxes[i];
+			// get the pointmass
+			PointMass m = getPointMass(checkbox.getActionCommand());
+			if (checkbox.isSelected() && !cm.containsMass(m))
+				cm.addMass(m);
+			if (!checkbox.isSelected() && cm.containsMass(m))
+				cm.removeMass(m);
+		}
+		TFrame.repaintT(cm.tp);
+	}
 
-  /**
-   * Gets the point mass with the specified name.
-   *
-   * @param name name of the point mass
-   * @return the point mass
-   */
-  private PointMass getPointMass(String name) {
-	return trackerPanel.getTrackByName(PointMass.class, name);
-  }
+	/**
+	 * Gets the point mass with the specified name.
+	 *
+	 * @param name name of the point mass
+	 * @return the point mass
+	 */
+	private PointMass getPointMass(String name) {
+		return frame.getTrackerPanelForID(panelID).getTrackByName(PointMass.class, name);
+	}
 
 	/**
 	 * Updates this inspector to show cm's current masses.
@@ -220,7 +224,7 @@ public void setVisible(boolean vis) {
 				+ " \"" + cm.getName() + "\""); //$NON-NLS-1$ //$NON-NLS-2$
 		// make checkboxes for all point masses in tracker panel
 		checkboxPanel.removeAll();
-		ArrayList<PointMass> masses = trackerPanel.getDrawablesTemp(PointMass.class);
+		ArrayList<PointMass> masses = frame.getTrackerPanelForID(panelID).getDrawablesTemp(PointMass.class);
 		for (int i = 0, n = masses.size(); i < n; i++) {
 			PointMass m = masses.get(i);
 			m.removeListenerNCF(this);

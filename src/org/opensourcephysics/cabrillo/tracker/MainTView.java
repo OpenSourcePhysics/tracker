@@ -65,7 +65,8 @@ import org.opensourcephysics.media.core.VideoClip;
 public class MainTView extends JPanel implements TView {
 
 	// instance fields
-	private TrackerPanel trackerPanel;
+	private TFrame frame;
+	private Integer panelID;
 	JScrollPane scrollPane;
 	Rectangle scrollRect = new Rectangle();
 	private Point zoomCenter = new Point();
@@ -86,7 +87,8 @@ public class MainTView extends JPanel implements TView {
 	 * @param panel the tracker panel
 	 */
 	public MainTView(TrackerPanel panel) {
-		trackerPanel = panel.ref(this);
+		frame = panel.getTFrame();
+		panelID = panel.getID();
 		init();
 		setLayout(new BorderLayout());
 		playerBar = new JToolBar();
@@ -95,10 +97,11 @@ public class MainTView extends JPanel implements TView {
 		scrollPane.addComponentListener(listener);
 		SwingUtilities.replaceUIActionMap(scrollPane, null);
 		add(scrollPane, BorderLayout.CENTER);
-		
+
+		TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
+
 		// add trackbar north
 		
-		//TEST_BH MEMORY LEAK HERE
 		TTrackBar tbar = TTrackBar.getTrackbar(trackerPanel);
 		if (tbar != null)
 			add(tbar, BorderLayout.NORTH);
@@ -122,6 +125,7 @@ public class MainTView extends JPanel implements TView {
 			@Override
 			public void mouseReleased(MouseEvent e) {
 				// handle zoom actions
+				TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
 				if (Tracker.isZoomOutCursor(trackerPanel.getCursor())) {
 					zoomOut(false);
 				} else if (Tracker.isZoomInCursor(trackerPanel.getCursor())) {
@@ -131,128 +135,19 @@ public class MainTView extends JPanel implements TView {
 
 			@Override
 			public void mouseWheelMoved(MouseWheelEvent e) {
-				boolean invert = e.isControlDown() && !e.isShiftDown();
-				boolean zoom = (!Tracker.scrubMouseWheel && !invert) || (Tracker.scrubMouseWheel && invert);
-				if (zoom)
-					zoomCenter.setLocation(e.getPoint());
-				int n = trackerPanel.getPlayer().getStepNumber();
-				if (e.getWheelRotation() > 0) {
-					if (zoom)
-						zoomOut(true); // zoom by a step
-					else {
-						if (e.isAltDown())
-							trackerPanel.getPlayer().setStepNumber(n - 10);
-						else
-							trackerPanel.getPlayer().back();
-					}
-				} else {
-					if (zoom)
-						zoomIn(true); // zoom by a step
-					else {
-						if (e.isAltDown())
-							trackerPanel.getPlayer().setStepNumber(n + 10);
-						else
-							trackerPanel.getPlayer().step();
-					}
-				}
+				doMouseWheel(e);
 			}
 		};
 
 		keyAdapter = new KeyAdapter() {
 			@Override
 			public void keyPressed(KeyEvent e) {
-				JButton z = trackerPanel.getTFrame().getToolbar(trackerPanel).zoomButton;
-				int d = trackerPanel.getSelectedPoint() == null ? 10 : 0;
-				Rectangle rect = scrollPane.getViewport().getViewRect();
-				switch (e.getKeyCode()) {
-				case KeyEvent.VK_Z:
-					if (!e.isControlDown())
-						z.setSelected(true);
-					break;
-				case KeyEvent.VK_ALT:
-					break;
-				case KeyEvent.VK_PAGE_UP:
-					if (!trackerPanel.getPlayer().isEnabled())
-						return;
-					if (e.isShiftDown()) {
-						int n = trackerPanel.getPlayer().getStepNumber() - 5;
-						trackerPanel.getPlayer().setStepNumber(n);
-					} else
-						trackerPanel.getPlayer().back();
-					break;
-				case KeyEvent.VK_PAGE_DOWN:
-					if (!trackerPanel.getPlayer().isEnabled())
-						return;
-					if (e.isShiftDown()) {
-						int n = trackerPanel.getPlayer().getStepNumber() + 5;
-						trackerPanel.getPlayer().setStepNumber(n);
-					} else
-						trackerPanel.getPlayer().step();
-					break;
-				case KeyEvent.VK_HOME:
-					if (!trackerPanel.getPlayer().isEnabled())
-						return;
-					trackerPanel.getPlayer().setStepNumber(0);
-					break;
-				case KeyEvent.VK_END:
-					if (!trackerPanel.getPlayer().isEnabled())
-						return;
-					VideoClip clip = trackerPanel.getPlayer().getVideoClip();
-					trackerPanel.getPlayer().setStepNumber(clip.getStepCount() - 1);
-					break;
-				case KeyEvent.VK_UP:
-					rect.y -= d;
-					trackerPanel.scrollRectToVisible(rect);
-					break;
-				case KeyEvent.VK_DOWN:
-					rect.y += d;
-					trackerPanel.scrollRectToVisible(rect);
-					break;
-				case KeyEvent.VK_RIGHT:
-					rect.x += d;
-					trackerPanel.scrollRectToVisible(rect);
-					break;
-				case KeyEvent.VK_LEFT:
-					rect.x -= d;
-					trackerPanel.scrollRectToVisible(rect);
-					break;
-				case KeyEvent.VK_A:
-					if (Tracker.enableAutofill && !PointMass.isAutoKeyDown) {
-						PointMass.isAutoKeyDown = true;
-						if (trackerPanel.getSelectedTrack() != null
-								&& trackerPanel.getSelectedTrack() instanceof PointMass) {
-							PointMass m = (PointMass) trackerPanel.getSelectedTrack();
-							m.setAutoFill(!m.isAutofill);
-							trackerPanel.getSelectedTrack().repaint(trackerPanel);
-						}
-					}
-					break;
-				}
-				if (z.isSelected()) {
-					trackerPanel.setCursor(e.isAltDown() ? Tracker.getZoomOutCursor() : Tracker.getZoomInCursor());
-				}
+				doKeyPressed(e);
 			}
 
 			@Override
 			public void keyReleased(final KeyEvent e) {
-				final JButton z = trackerPanel.getTFrame().getToolbar(trackerPanel).zoomButton;
-				if (e.getKeyCode() == KeyEvent.VK_Z) {
-					z.setSelected(false);
-					trackerPanel.setCursor(Cursor.getDefaultCursor());
-				}
-				if (e.getKeyCode() == KeyEvent.VK_A) {
-					PointMass.isAutoKeyDown = false;
-				}
-				if (z.isSelected()) {
-					Runnable runner = new Runnable() {
-						@Override
-						public synchronized void run() {
-							trackerPanel
-									.setCursor(e.isAltDown() ? Tracker.getZoomOutCursor() : Tracker.getZoomInCursor());
-						}
-					};
-					SwingUtilities.invokeLater(runner);
-				}
+				doKeyRelease(e);
 			}
 		};
 		// add mouse and key listeners
@@ -262,6 +157,130 @@ public class MainTView extends JPanel implements TView {
 
 	}
 
+	protected void doKeyPressed(KeyEvent e) {
+		TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
+		JButton z = frame.getToolbar(trackerPanel).zoomButton;
+		int d = trackerPanel.getSelectedPoint() == null ? 10 : 0;
+		Rectangle rect = scrollPane.getViewport().getViewRect();
+		switch (e.getKeyCode()) {
+		case KeyEvent.VK_Z:
+			if (!e.isControlDown())
+				z.setSelected(true);
+			break;
+		case KeyEvent.VK_ALT:
+			break;
+		case KeyEvent.VK_PAGE_UP:
+			if (!trackerPanel.getPlayer().isEnabled())
+				return;
+			if (e.isShiftDown()) {
+				int n = trackerPanel.getPlayer().getStepNumber() - 5;
+				trackerPanel.getPlayer().setStepNumber(n);
+			} else
+				trackerPanel.getPlayer().back();
+			break;
+		case KeyEvent.VK_PAGE_DOWN:
+			if (!trackerPanel.getPlayer().isEnabled())
+				return;
+			if (e.isShiftDown()) {
+				int n = trackerPanel.getPlayer().getStepNumber() + 5;
+				trackerPanel.getPlayer().setStepNumber(n);
+			} else
+				trackerPanel.getPlayer().step();
+			break;
+		case KeyEvent.VK_HOME:
+			if (!trackerPanel.getPlayer().isEnabled())
+				return;
+			trackerPanel.getPlayer().setStepNumber(0);
+			break;
+		case KeyEvent.VK_END:
+			if (!trackerPanel.getPlayer().isEnabled())
+				return;
+			VideoClip clip = trackerPanel.getPlayer().getVideoClip();
+			trackerPanel.getPlayer().setStepNumber(clip.getStepCount() - 1);
+			break;
+		case KeyEvent.VK_UP:
+			rect.y -= d;
+			trackerPanel.scrollRectToVisible(rect);
+			break;
+		case KeyEvent.VK_DOWN:
+			rect.y += d;
+			trackerPanel.scrollRectToVisible(rect);
+			break;
+		case KeyEvent.VK_RIGHT:
+			rect.x += d;
+			trackerPanel.scrollRectToVisible(rect);
+			break;
+		case KeyEvent.VK_LEFT:
+			rect.x -= d;
+			trackerPanel.scrollRectToVisible(rect);
+			break;
+		case KeyEvent.VK_A:
+			if (Tracker.enableAutofill && !PointMass.isAutoKeyDown) {
+				PointMass.isAutoKeyDown = true;
+				if (trackerPanel.getSelectedTrack() != null
+						&& trackerPanel.getSelectedTrack() instanceof PointMass) {
+					PointMass m = (PointMass) trackerPanel.getSelectedTrack();
+					m.setAutoFill(!m.isAutofill);
+					trackerPanel.getSelectedTrack().repaint(trackerPanel);
+				}
+			}
+			break;
+		}
+		if (z.isSelected()) {
+			trackerPanel.setCursor(e.isAltDown() ? Tracker.getZoomOutCursor() : Tracker.getZoomInCursor());
+		}
+	}
+
+	protected void doKeyRelease(KeyEvent e) {
+		TrackerPanel panel = frame.getTrackerPanelForID(panelID);
+		final JButton z = frame.getToolbar(panel).zoomButton;
+		if (e.getKeyCode() == KeyEvent.VK_Z) {
+			z.setSelected(false);
+			panel.setCursor(Cursor.getDefaultCursor());
+		}
+		if (e.getKeyCode() == KeyEvent.VK_A) {
+			PointMass.isAutoKeyDown = false;
+		}
+		if (z.isSelected()) {
+			Runnable runner = new Runnable() {
+				@Override
+				public synchronized void run() {
+					panel
+							.setCursor(e.isAltDown() ? Tracker.getZoomOutCursor() : Tracker.getZoomInCursor());
+				}
+			};
+			SwingUtilities.invokeLater(runner);
+		}
+	}
+
+	protected void doMouseWheel(MouseWheelEvent e) {
+		TrackerPanel panel = frame.getTrackerPanelForID(panelID);
+		boolean invert = e.isControlDown() && !e.isShiftDown();
+		boolean zoom = (!Tracker.scrubMouseWheel && !invert) || (Tracker.scrubMouseWheel && invert);
+		if (zoom)
+			zoomCenter.setLocation(e.getPoint());
+		int n = panel.getPlayer().getStepNumber();
+		if (e.getWheelRotation() > 0) {
+			if (zoom)
+				zoomOut(true); // zoom by a step
+			else {
+				if (e.isAltDown())
+					panel.getPlayer().setStepNumber(n - 10);
+				else
+					panel.getPlayer().back();
+			}
+		} else {
+			if (zoom)
+				zoomIn(true); // zoom by a step
+			else {
+				if (e.isAltDown())
+					panel.getPlayer().setStepNumber(n + 10);
+				else
+					panel.getPlayer().step();
+			}
+		}
+	}
+
 	protected void doResized() {
 		if (!getTopLevelAncestor().isVisible())
 			return;
@@ -269,6 +288,7 @@ public class MainTView extends JPanel implements TView {
 		if ((d = scrollPane.getSize()).equals(lastDim))
 			return;
 		lastDim = d;
+		TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
 		TToolBar tbar = TToolBar.getToolbar(trackerPanel);
 		if (tbar != null)
 			tbar.refreshZoomButton();
@@ -284,7 +304,7 @@ public class MainTView extends JPanel implements TView {
 		//OSPLog.debug("MainTView.getPopupMenu " + Tracker.allowMenuRefresh);
 		if (!Tracker.allowMenuRefresh)
 			return null;
-
+		TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
 		if (Tracker.isZoomInCursor(trackerPanel.getCursor()) || Tracker.isZoomOutCursor(trackerPanel.getCursor())) {
 			return null;
 		}
@@ -329,19 +349,21 @@ public class MainTView extends JPanel implements TView {
 //	    System.out.println("zoom by "+xRatio+" to "+trackerPanel.getMagnification());
 //	    System.out.println("zoom rect "+rect);
 //	    System.out.println("zoom viewport "+ scrollPane.getViewport().getViewRect());
+		TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
 		trackerPanel.scrollRectToVisible(scrollRect);
 		Runnable runner = new Runnable() {
 			@Override
 			public void run() {
+				TrackerPanel panel = frame.getTrackerPanelForID(panelID);
 				Rectangle rect = scrollPane.getViewport().getViewRect();
 //			    System.out.println("zoom rect1 "+rect);
 //			    System.out.println("zoom scrollRect "+ scrollRect);
 //		
 				if (!rect.equals(scrollRect)) {
-					trackerPanel.scrollRectToVisible(scrollRect);
+					panel.scrollRectToVisible(scrollRect);
 				}
-				trackerPanel.eraseAll();
-				TFrame.repaintT(trackerPanel);
+				panel.eraseAll();
+				TFrame.repaintT(panel);
 			}
 		};
 		SwingUtilities.invokeLater(runner);
@@ -369,16 +391,17 @@ public class MainTView extends JPanel implements TView {
 	 */
 	@Override
 	public void init() {
-		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this); // $NON-NLS-1$
-		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR, this); // $NON-NLS-1$
-		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this); // $NON-NLS-1$
-		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR, this); // $NON-NLS-1$
+		TrackerPanel panel = frame.getTrackerPanelForID(panelID);
+		panel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this); // $NON-NLS-1$
+		panel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR, this); // $NON-NLS-1$
+		panel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this); // $NON-NLS-1$
+		panel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR, this); // $NON-NLS-1$
 		// add this listener to tracks
-		for (TTrack track : trackerPanel.getTracksTemp()) {
+		for (TTrack track : panel.getTracksTemp()) {
 			track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_COLOR, this); // $NON-NLS-1$
 			track.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_COLOR, this); // $NON-NLS-1$
 		}
-		trackerPanel.clearTemp();
+		panel.clearTemp();
 	}
 
 	/**
@@ -387,8 +410,9 @@ public class MainTView extends JPanel implements TView {
 	@Override
 	public void cleanup() {
 		// remove this listener from tracker panel
-		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this); // $NON-NLS-1$
-		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR, this); // $NON-NLS-1$
+		TrackerPanel panel = frame.getTrackerPanelForID(panelID);
+		panel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this); // $NON-NLS-1$
+		panel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR, this); // $NON-NLS-1$
 		// remove this listener from all tracks
 		for (Integer n : TTrack.activeTracks.keySet()) {
 			TTrack.activeTracks.get(n).removePropertyChangeListener(TTrack.PROPERTY_TTRACK_COLOR, this); //$NON-NLS-1$
@@ -410,6 +434,7 @@ public class MainTView extends JPanel implements TView {
 		}
 		playerBar.removeAll();
 		playerBar = null;
+		TrackerPanel trackerPanel = this.frame.getTrackerPanelForID(panelID);
 		trackerPanel.clearTemp();
 
 		// DB! maybe don't need below here
@@ -438,7 +463,7 @@ public class MainTView extends JPanel implements TView {
 	 */
 	@Override
 	public TrackerPanel getTrackerPanel() {
-		return trackerPanel;
+		return frame.getTrackerPanelForID(panelID);
 	}
 
 	/**
@@ -495,6 +520,7 @@ public class MainTView extends JPanel implements TView {
 	 * @param step true to zoom by a step
 	 */
 	public void zoomIn(boolean step) {
+		TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
 		DrawingPanel.ZoomBox zoomBox = trackerPanel.getZoomBox();
 		double m1 = trackerPanel.getMagnification(); // initial magnification
 		double m2 = TrackerPanel.ZOOM_STEP * m1;
@@ -589,6 +615,7 @@ public class MainTView extends JPanel implements TView {
 	 * @param step true to zoom by a step
 	 */
 	public void zoomOut(boolean step) {
+		TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
 		double m1 = trackerPanel.getMagnification(); // initial magnification
 		double m2 = m1 / TrackerPanel.ZOOM_STEP;
 		if (step) {

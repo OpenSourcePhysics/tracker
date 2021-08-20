@@ -91,10 +91,10 @@ public class AnalyticParticle extends ParticleModel {
 		super.reset();
 		t0 = getInitialValues()[0]; // time at start frame
 		functions = getFunctionEditor().getMainFunctions();
-		if (trackerPanel != null) {
+		if (tp != null) {
 			erase();
-			dt = trackerPanel.getPlayer().getMeanStepDuration() / (1000 * tracePtsPerStep);
-			VideoClip clip = trackerPanel.getPlayer().getVideoClip();
+			dt = tp.getPlayer().getMeanStepDuration() / (1000 * tracePtsPerStep);
+			VideoClip clip = tp.getPlayer().getVideoClip();
 			// find last frame included in both model and clip
 			int end = Math.min(getEndFrame(), clip.getLastFrameNumber());
 			while (end > getStartFrame() && !clip.includesFrame(end)) {
@@ -105,8 +105,8 @@ public class AnalyticParticle extends ParticleModel {
 				// no frames to be marked, so clear!
 				steps.setLength(1);
 				steps.setStep(0, null);
-				for (int i = 0; i < trackerPanel.panelAndWorldViews.size(); i++) {
-					TrackerPanel panel = trackerPanel.panelAndWorldViews.get(i);
+				for (int i = 0; i < tp.panelAndWorldViews.size(); i++) {
+					TrackerPanel panel = tp.panelAndWorldViews.get(i);
 					getVArray(panel).setLength(0);
 					getAArray(panel).setLength(0);
 				}
@@ -132,10 +132,10 @@ public class AnalyticParticle extends ParticleModel {
 					steps.setStep(firstFrameInClip, step);
 				}
 			}
-			getVArray(trackerPanel).setLength(0);
-			getAArray(trackerPanel).setLength(0);
+			getVArray(tp).setLength(0);
+			getAArray(tp).setLength(0);
 			// set position of step at firstFrameInClip
-			ImageCoordSystem coords = trackerPanel.getCoords();
+			ImageCoordSystem coords = tp.getCoords();
 			// get underlying coords if appropriate
 			boolean useDefault = isUseDefaultReferenceFrame();
 			while (useDefault && coords instanceof ReferenceFrame) {
@@ -144,7 +144,7 @@ public class AnalyticParticle extends ParticleModel {
 			AffineTransform transform = coords.getToImageTransform(firstFrameInClip);
 			UserFunction[] functions = getFunctionEditor().getMainFunctions();
 			// get time at firstFrameInClip
-			time = trackerPanel.getPlayer().getFrameTime(firstFrameInClip) / 1000;
+			time = tp.getPlayer().getFrameTime(firstFrameInClip) / 1000;
 			double x = functions[0].evaluate(time);
 			double y = functions[1].evaluate(time);
 			Point2D.Double point = points[myPoint];

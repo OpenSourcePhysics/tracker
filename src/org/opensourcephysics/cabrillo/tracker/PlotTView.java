@@ -89,7 +89,7 @@ public class PlotTView extends TrackChooserTView {
 	 */
 	@Override
 	protected TrackView createTrackView(TTrack track) {
-		return new PlotTrackView(track, trackerPanel, this);
+		return new PlotTrackView(track, getPanel(), this);
 	}
 
 	/**

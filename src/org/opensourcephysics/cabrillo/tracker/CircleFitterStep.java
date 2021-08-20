@@ -122,10 +122,10 @@ public class CircleFitterStep extends Step {
 			refreshCircle();
 			circleFitter.invalidateData(circleFitter);
 			circleFitter.firePropertyChange(CircleFitter.PROPERTY_CIRCLEFITTER_DATAPOINT, null, circleFitter); // $NON-NLS-1$
-			if (circleFitter.trackerPanel != null) {
-				circleFitter.trackerPanel.changed = true;
+			if (circleFitter.tp != null) {
+				circleFitter.tp.changed = true;
 			}
-			circleFitter.trackerPanel.refreshTrackBar();
+			circleFitter.tp.refreshTrackBar();
 			//TTrackBar.getTrackbar(circleFitter.trackerPanel).refresh();
 			Undo.postStepEdit(this, control);
 		}
@@ -176,11 +176,11 @@ public class CircleFitterStep extends Step {
 		refreshCircle();
 		if (index > -1 && postUndoableEdit) {
 			Undo.postStepEdit(this, control);
-			if (circleFitter.trackerPanel != null) {
-				circleFitter.trackerPanel.changed = true;
+			if (circleFitter.tp != null) {
+				circleFitter.tp.changed = true;
 			}
 		}
-		if (n == circleFitter.trackerPanel.getFrameNumber()) {
+		if (n == circleFitter.tp.getFrameNumber()) {
 			repaint();
 			circleFitter.refreshFields(n);
 		}
@@ -188,9 +188,9 @@ public class CircleFitterStep extends Step {
 		if (fireEvents) {
 			circleFitter.firePropertyChange(CircleFitter.PROPERTY_CIRCLEFITTER_DATAPOINT, null, circleFitter); //$NON-NLS-1$
 		}
-		circleFitter.trackerPanel.setSelectedPoint(null);
-		circleFitter.trackerPanel.selectedSteps.clear();
-		circleFitter.trackerPanel.refreshTrackBar();
+		circleFitter.tp.setSelectedPoint(null);
+		circleFitter.tp.selectedSteps.clear();
+		circleFitter.tp.refreshTrackBar();
 		//TTrackBar.getTrackbar(circleFitter.trackerPanel).refresh();
 		repaint();
 	}
@@ -379,10 +379,10 @@ public class CircleFitterStep extends Step {
 	 */
 	public double getWorldRadius() {
 		int dataCount = getValidDataPoints().size();
-		if (dataCount < 3 || circleFitter.trackerPanel == null) {
+		if (dataCount < 3 || circleFitter.tp == null) {
 			return Double.NaN;
 		}
-		return radius / circleFitter.trackerPanel.getCoords().getScaleX(n);
+		return radius / circleFitter.tp.getCoords().getScaleX(n);
 	}
 
 	/**
@@ -393,10 +393,10 @@ public class CircleFitterStep extends Step {
 	public Point2D getWorldCenter() {
 		int dataCount = getValidDataPoints().size();
 		if (dataCount < 3 || Double.isInfinite(radius) || radius > CircleFitterFootprint.MAX_RADIUS
-				|| circleFitter.trackerPanel == null) {
+				|| circleFitter.tp == null) {
 			return null;
 		}
-		return center.getWorldPosition(circleFitter.trackerPanel);
+		return center.getWorldPosition(circleFitter.tp);
 	}
 
 	/**
@@ -437,16 +437,16 @@ public class CircleFitterStep extends Step {
 			p1 = pts.get(1);
 			DataPoint p2 = pts.get(2);
 			refreshCircle(p0, p1, p2);
-			if (circleFitter.trackerPanel != null) {
-				p = circleFitter.trackerPanel.getSelectedPoint();
+			if (circleFitter.tp != null) {
+				p = circleFitter.tp.getSelectedPoint();
 			}
 			edge.setLocation(p == p1 ? p1 : p == p2 ? p2 : p0);
 			break;
 		default:
 			refreshCircle(pts);
 			if (Double.isInfinite(radius) || radius > CircleFitterFootprint.MAX_RADIUS) {
-				if (circleFitter.trackerPanel != null) {
-					p = circleFitter.trackerPanel.getSelectedPoint();
+				if (circleFitter.tp != null) {
+					p = circleFitter.tp.getSelectedPoint();
 				}
 				p0 = pts.get(0);
 				p1 = pts.get(1);
@@ -457,7 +457,7 @@ public class CircleFitterStep extends Step {
 			}
 		}
 
-		boolean isVisible = circleFitter.trackerPanel != null && n == circleFitter.trackerPanel.getFrameNumber();
+		boolean isVisible = circleFitter.tp != null && n == circleFitter.tp.getFrameNumber();
 		if (radius != prevR || center.x != prevX || center.y != prevY) {
 			if (isVisible) {
 				repaint();
@@ -734,8 +734,8 @@ public class CircleFitterStep extends Step {
       if (doRefresh) circleFitter.refreshFields(n);
  	  	circleFitter.dataValid = false;
 	  	if (doRefresh) circleFitter.firePropertyChange(TTrack.PROPERTY_TTRACK_DATA, null, circleFitter); //$NON-NLS-1$
-			if (circleFitter.trackerPanel != null) {
-				circleFitter.trackerPanel.changed = true;
+			if (circleFitter.tp != null) {
+				circleFitter.tp.changed = true;
 			}
 		}
 		
@@ -767,11 +767,11 @@ public class CircleFitterStep extends Step {
 		public Step getAttachedStep() {
 			TTrack track = getTrack();
 			Step ret = null;
-			if (this.attachedTo != null && track.trackerPanel != null) {
-				ArrayList<PointMass> masses = track.trackerPanel.getDrawablesTemp(PointMass.class);
+			if (this.attachedTo != null && track.tp != null) {
+				ArrayList<PointMass> masses = track.tp.getDrawablesTemp(PointMass.class);
 				for (int i = 0, n = masses.size(); i < n; i++) {
 					PointMass m = masses.get(i);
-					Step step = m.getStep(attachedTo, track.trackerPanel);
+					Step step = m.getStep(attachedTo, track.tp);
 					if (step != null) {
 						ret = step;
 						break;

@@ -47,9 +47,10 @@ public abstract class TrackView extends JScrollPane implements PropertyChangeLis
 	static int TVID = 0;
 	
 	// instance fields
-	protected TrackerPanel trackerPanel;
 	protected TrackChooserTView viewParent;
-	
+	protected TFrame frame;
+	protected Integer panelID;
+
 	private int trackID;
 	protected int myType;
 
@@ -80,9 +81,10 @@ public abstract class TrackView extends JScrollPane implements PropertyChangeLis
 		trackID = track.getID();
 		myID = ++TVID;
 		this.myType = myType;
-		//System.out.println("TrackView adding listener for " + this);
-		trackerPanel = panel.ref(this);
-		trackerPanel.addListeners(panelProps, this);
+		frame = panel.getTFrame();
+		panelID = panel.getID();
+
+		panel.addListeners(panelProps, this);
 		viewParent = view;
 	}
 
@@ -90,8 +92,10 @@ public abstract class TrackView extends JScrollPane implements PropertyChangeLis
 		for (Integer n : TTrack.activeTracks.keySet()) {
 			TTrack.activeTracks.get(n).removeStepListener(this);
 		}
-		trackerPanel.removeListeners(panelProps, this);
-		trackerPanel = null;
+		frame.getTrackerPanelForID(panelID).removeListeners(panelProps, this);
+		frame = null;
+		panelID = null;
+		viewParent = null;
 	}
 
 	abstract void refresh(int frameNumber, int mode);
@@ -123,8 +127,7 @@ public abstract class TrackView extends JScrollPane implements PropertyChangeLis
 	 * @return the TViewChooser. May return null if this is not displayed
 	 */
 	protected TViewChooser getOwner() {
-		TFrame frame = trackerPanel.getTFrame();
-		TViewChooser[] choosers = frame.getViewChoosers(trackerPanel);
+		TViewChooser[] choosers = frame.getViewChoosers(panelID);
 		for (int i = 0; i < choosers.length; i++) {
 			TView tview = (choosers[i] == null ? null : choosers[i].getSelectedView());
 			if (tview == viewParent && viewParent.getTrackView(viewParent.getSelectedTrack()) == this) {
@@ -154,6 +157,7 @@ public abstract class TrackView extends JScrollPane implements PropertyChangeLis
 	public void propertyChange(PropertyChangeEvent e) {
 		int stepNumber = Integer.MIN_VALUE;
 		int mode = 0;
+		TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
 		switch (e.getPropertyName()) {
 		case TTrack.PROPERTY_TTRACK_STEP:
 			stepNumber = (Integer) e.getNewValue();
@@ -182,8 +186,8 @@ public abstract class TrackView extends JScrollPane implements PropertyChangeLis
 	}
 
 	protected boolean isRefreshEnabled() {
-		return trackerPanel.isAutoRefresh() 
-				&& trackerPanel.getTFrame().isPaintable()
+		return frame.isPaintable()
+				&& frame.getTrackerPanelForID(panelID).isAutoRefresh() 
 				&& viewParent.isTrackViewDisplayed(getTrack());
 	}
 
@@ -223,8 +227,9 @@ public abstract class TrackView extends JScrollPane implements PropertyChangeLis
 	 */
 	public void highlightFrames(int frameNumber) {
 		highlightFrames.clear();
-		if (trackerPanel.selectedSteps.size() > 0) {
-			for (Step step : trackerPanel.selectedSteps) {
+		StepSet steps = frame.getTrackerPanelForID(panelID).selectedSteps;
+		if (steps.size() > 0) {
+			for (Step step : steps) {
 				if (step.getTrack() != this.getTrack())
 					continue;
 				highlightFrames.set(step.getFrameNumber());

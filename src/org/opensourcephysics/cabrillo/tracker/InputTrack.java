@@ -108,12 +108,12 @@ public abstract class InputTrack extends TTrack {
 
 	@Override
 	public void setTrackerPanel(TrackerPanel panel) {
-		if (trackerPanel != null) {
-			trackerPanel.removeMouseListener(editListener);
+		if (tp != null) {
+			tp.removeMouseListener(editListener);
 		}
 		super.setTrackerPanel(panel);
-		if (trackerPanel != null) {
-			trackerPanel.addMouseListener(editListener);
+		if (tp != null) {
+			tp.addMouseListener(editListener);
 		}
 	}
 	
@@ -160,7 +160,7 @@ public abstract class InputTrack extends TTrack {
 
 	protected void setEditAction(Step step, Point pt, String rawText) {
 		if (editing) {
-			trackerPanel.setSelectedTrack(this);
+			tp.setSelectedTrack(this);
 			FontSizer.setFonts(inputField, FontSizer.getLevel());
 			inputField.setForeground(footprint.getColor());
 			inputField.setValue(magField.getValue());
@@ -169,7 +169,7 @@ public abstract class InputTrack extends TTrack {
 //			inputField.setBounds(bounds.x - 2, bounds.y - 5, Math.max(50, d.width), d.height);
 			int wid = Math.max(40, bounds.width + 7);
 			inputField.setBounds(bounds.x - 2, bounds.y - 5, wid, d.height);
-			trackerPanel.add(inputField);
+			tp.add(inputField);
 			Border space = BorderFactory.createEmptyBorder(0, 1, 1, 0);
 			Color color = getFootprint().getColor();
 			Border line = BorderFactory.createLineBorder(color);
@@ -178,10 +178,10 @@ public abstract class InputTrack extends TTrack {
 			inputField.requestFocus();
 		} else { // end editing
 			endEditing(step, rawText);
-			trackerPanel.remove(inputField);
+			tp.remove(inputField);
 			invalidateData(null);
-			TFrame.repaintT(trackerPanel);
-			trackerPanel.refreshTrackBar();
+			TFrame.repaintT(tp);
+			tp.refreshTrackBar();
 			//TTrackBar.getTrackbar(trackerPanel).refresh();
 		}
 	}
@@ -204,10 +204,10 @@ public abstract class InputTrack extends TTrack {
 	protected void setFixedPosition(boolean fixed) {
 		if (fixedPosition == fixed)
 			return;
-		if (trackerPanel == null)
+		if (tp == null)
 			return;
 			
-		trackerPanel.changed = true;
+		tp.changed = true;
 		
 		XMLControl control = new XMLControlElement(this); // pre-change state
 		
@@ -218,7 +218,7 @@ public abstract class InputTrack extends TTrack {
 		}
 		
 		// if newly fixed, current step becomes all
-		int n = trackerPanel.getFrameNumber();
+		int n = tp.getFrameNumber();
 		steps = new StepArray(getStep(n));
 		erase();
 
@@ -232,7 +232,7 @@ public abstract class InputTrack extends TTrack {
 		dataValid = false;
 		firePropertyChange(PROPERTY_TTRACK_STEPS, null, null);
 		erase();
-		TFrame.repaintT(trackerPanel);
+		TFrame.repaintT(tp);
 	}
 
 
@@ -321,22 +321,22 @@ public abstract class InputTrack extends TTrack {
 
 	protected void stopEditing() {
 		if (editing)
-			setEditing(false, getStep(trackerPanel.getFrameNumber()), null);
+			setEditing(false, getStep(tp.getFrameNumber()), null);
 	}
 
 	protected void mouseClickedAction(Point pt) {
 		if (isLocked())
 			return;
-		int n = trackerPanel.getFrameNumber();
+		int n = tp.getFrameNumber();
 		if (this instanceof TapeMeasure) {
 			TapeStep step = (TapeStep) getStep(n);
 			if (step == null)
 				return;
-			Rectangle bounds = step.layoutBounds.get(trackerPanel);
+			Rectangle bounds = step.layoutBounds.get(tp);
 			if (bounds != null && bounds.contains(pt)) {
 				// readout was clicked
 				if (isFullyAttached()) {
-					trackerPanel.setSelectedTrack(this);
+					tp.setSelectedTrack(this);
 					return;
 				}
 				setEditing(true, step, pt);
@@ -346,11 +346,11 @@ public abstract class InputTrack extends TTrack {
 			ProtractorStep step = (ProtractorStep) getStep(n);
 			if (step == null)
 				return;
-			Rectangle bounds = step.layoutBounds.get(trackerPanel);
+			Rectangle bounds = step.layoutBounds.get(tp);
 			if (bounds != null && bounds.contains(pt)) {
 				// readout was clicked
 				if (isFullyAttached()) {
-					trackerPanel.setSelectedTrack(this);
+					tp.setSelectedTrack(this);
 					return;
 				}
 				setEditing(true, step, pt);
@@ -361,7 +361,7 @@ public abstract class InputTrack extends TTrack {
 	protected void setMagValue() {
 		inputField.setValue(magField.getValue());
 		// repaint current step
-		int n = trackerPanel.getFrameNumber();
+		int n = tp.getFrameNumber();
 		Step tape = getStep(n);
 		if (tape != null) {
 			tape.repaint();

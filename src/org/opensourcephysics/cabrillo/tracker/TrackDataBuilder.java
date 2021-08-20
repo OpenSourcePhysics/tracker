@@ -47,7 +47,8 @@ public class TrackDataBuilder extends FunctionTool {
 
 	private static Icon openIcon, saveIcon;
 
-	private TrackerPanel trackerPanel;
+	private TFrame frame;
+	private Integer panelID;
 	private JButton loadButton, saveButton, autoloadButton;
 	private AutoloadManager autoloadManager;
 
@@ -58,8 +59,8 @@ public class TrackDataBuilder extends FunctionTool {
 	 */
 	protected TrackDataBuilder(TrackerPanel trackerPanel) {
 		super(trackerPanel, false, true);
-		this.trackerPanel = trackerPanel.ref(this);
-		
+		panelID = trackerPanel.getID();
+		frame = trackerPanel.getTFrame();
 		addPropertyChangeListener(PROPERTY_FUNCTIONTOOL_PANEL, trackerPanel); // $NON-NLS-1$
 		addPropertyChangeListener(PROPERTY_FUNCTIONTOOL_FUNCTION, trackerPanel); // $NON-NLS-1$
 		addPropertyChangeListener(PROPERTY_FUNCTIONTOOL_VISIBLE, trackerPanel); // $NON-NLS-1$
@@ -220,7 +221,7 @@ public class TrackDataBuilder extends FunctionTool {
 				OSPRuntime.chooserDir = chooser.getCurrentDirectory().toString();
 				XMLControl control = new XMLControlElement(chooser.getSelectedFile());
 				if (control.failedToRead()) {
-					JOptionPane.showMessageDialog(trackerPanel.getTFrame(),
+					JOptionPane.showMessageDialog(frame,
 							TrackerRes.getString("Tracker.Dialog.Invalid.Message"), //$NON-NLS-1$
 							TrackerRes.getString("Tracker.Dialog.Invalid.Title"), //$NON-NLS-1$
 							JOptionPane.ERROR_MESSAGE);
@@ -232,7 +233,7 @@ public class TrackDataBuilder extends FunctionTool {
 				} else if (TrackDataBuilder.class.isAssignableFrom(type)) {
 					loadXMLTrackData(control);
 				} else {
-					JOptionPane.showMessageDialog(trackerPanel.getTFrame(),
+					JOptionPane.showMessageDialog(frame,
 							TrackerRes.getString("TrackerPanel.DataBuilder.Dialog.WrongType.Message"), //$NON-NLS-1$
 							TrackerRes.getString("TrackerPanel.DataBuilder.Dialog.WrongType.Title"), //$NON-NLS-1$
 							JOptionPane.ERROR_MESSAGE);
@@ -271,7 +272,7 @@ public class TrackDataBuilder extends FunctionTool {
 			trackType = TrackerRes.getString(XML.getExtension(panelTrackType) + ".Name").toLowerCase(); //$NON-NLS-1$
 
 		if (target == null) {
-			JOptionPane.showMessageDialog(trackerPanel.getTFrame(),
+			JOptionPane.showMessageDialog(frame,
 					TrackerRes.getString("TrackDataBuilder.Dialog.NoFunctionsFound.Message") + " \"" //$NON-NLS-1$ //$NON-NLS-2$
 							+ trackType + ".\"", //$NON-NLS-1$
 					TrackerRes.getString("TrackDataBuilder.Dialog.NoFunctionsFound.Title"), //$NON-NLS-1$
@@ -349,7 +350,7 @@ public class TrackDataBuilder extends FunctionTool {
 
 		if (controlType != panelType) {
 			String targetType = TrackerRes.getString(panelType.getSimpleName() + ".Name").toLowerCase(); //$NON-NLS-1$
-			JOptionPane.showMessageDialog(trackerPanel.getTFrame(),
+			JOptionPane.showMessageDialog(frame,
 					TrackerRes.getString("TrackerPanel.DataBuilder.Dialog.WrongTrackType.Message1") //$NON-NLS-1$
 							+ " \"" + trackType + ".\"" //$NON-NLS-1$ //$NON-NLS-2$
 							+ "\n" //$NON-NLS-1$
@@ -451,6 +452,7 @@ public class TrackDataBuilder extends FunctionTool {
 			return;
 		FontSizer.setFonts(new Object[] { loadButton, saveButton, autoloadButton }, level);
 		if (!trackFunctionPanels.isEmpty()) {
+			TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
 			ArrayList<TTrack> tracks = trackerPanel.getTracksTemp();
 			FunctionPanel panel;
 			TTrack track;
@@ -743,6 +745,7 @@ public class TrackDataBuilder extends FunctionTool {
 	 */
 	@Override
 	public void dispose() {
+		TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
 		removePropertyChangeListener(PROPERTY_FUNCTIONTOOL_PANEL, trackerPanel); // $NON-NLS-1$
 		removePropertyChangeListener(PROPERTY_FUNCTIONTOOL_FUNCTION, trackerPanel); // $NON-NLS-1$
 		removePropertyChangeListener(PROPERTY_FUNCTIONTOOL_VISIBLE, trackerPanel); // $NON-NLS-1$

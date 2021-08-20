@@ -101,14 +101,14 @@ public class PerspectiveTrack extends TTrack {
 	 */
 	@Override
 	public void setTrackerPanel(TrackerPanel panel) {
-		if (trackerPanel != null) {			
-			trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDPOINT, this);
-			trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDTRACK, this);
+		if (tp != null) {			
+			tp.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDPOINT, this);
+			tp.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDTRACK, this);
 		}
 		super.setTrackerPanel(panel);
-		if (trackerPanel != null) {
-			trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDPOINT, this);
-			trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDTRACK, this);
+		if (tp != null) {
+			tp.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDPOINT, this);
+			tp.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDTRACK, this);
 		}
 	}
 
@@ -126,24 +126,24 @@ public class PerspectiveTrack extends TTrack {
 		case Filter.PROPERTY_FILTER_ENABLED:
 		case Filter.PROPERTY_FILTER_TAB:
 		case Filter.PROPERTY_FILTER_VISIBLE:
-			if (trackerPanel.getSelectedTrack() == this) {
-				trackerPanel.setSelectedPoint(null);
-				trackerPanel.selectedSteps.clear();
+			if (tp.getSelectedTrack() == this) {
+				tp.setSelectedPoint(null);
+				tp.selectedSteps.clear();
 			}
 			boolean visible = filter.hasInspector() && filter.getInspector().isVisible();
 			if (visible) {
-				trackerPanel.setSelectedTrack(this);
+				tp.setSelectedTrack(this);
 			} else {
-				trackerPanel.setSelectedTrack(null);
+				tp.setSelectedTrack(null);
 			}
 			break;
 		case PerspectiveFilter.PROPERTY_PERSPECTIVEFILTER_FIXED:
-			Undo.postFilterEdit(trackerPanel, filter, new XMLControlElement((String) e.getOldValue()));
+			Undo.postFilterEdit(tp, filter, new XMLControlElement((String) e.getOldValue()));
 			break;
 		case PerspectiveFilter.PROPERTY_PERSPECTIVEFILTER_CORNERLOCATION:
 			PerspectiveFilter.Corner filtercorner = (PerspectiveFilter.Corner) e.getNewValue();
 			int i = filter.getCornerIndex(filtercorner);
-			int n = trackerPanel.getFrameNumber();
+			int n = tp.getFrameNumber();
 			if (filter.isInputEnabled() && i < 4) {
 				getStep(n).points[i].setXY(filtercorner.getX(), filtercorner.getY());
 			}
@@ -159,7 +159,7 @@ public class PerspectiveTrack extends TTrack {
 			if (e.getOldValue() != null && filterState != null) {
 				TPoint p = (TPoint) e.getOldValue();
 				if (p instanceof PerspectiveFilter.Corner) {
-					Undo.postFilterEdit(trackerPanel, filter, new XMLControlElement(filterState));
+					Undo.postFilterEdit(tp, filter, new XMLControlElement(filterState));
 					filterState = null;
 				}
 			}
@@ -254,11 +254,11 @@ public class PerspectiveTrack extends TTrack {
 	public Step deleteStep(int n) {
 		if (locked)
 			return null;
-		TPoint p = trackerPanel.getSelectedPoint();
+		TPoint p = tp.getSelectedPoint();
 		if (p instanceof PerspectiveFilter.Corner) {
 			PerspectiveFilter.Corner corner = (PerspectiveFilter.Corner) p;
 			filter.deleteKeyFrame(n, corner);
-			TFrame.repaintT(trackerPanel);
+			TFrame.repaintT(tp);
 		}
 		Step step = getStep(n);
 		return step;
@@ -301,7 +301,7 @@ public class PerspectiveTrack extends TTrack {
 	 */
 	@Override
 	protected void setTargetIndex(TPoint p) {
-		Step step = getStep(p, trackerPanel);
+		Step step = getStep(p, tp);
 		if (step != null)
 			setTargetIndex(step.getPointIndex(p));
 	}

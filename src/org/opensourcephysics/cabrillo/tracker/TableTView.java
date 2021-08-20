@@ -73,8 +73,9 @@ public class TableTView extends TrackChooserTView {
 	@Override
 	public void addNotify() {
 		super.addNotify();
-		trackerPanel.getTFrame().removePropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, this); 
-		trackerPanel.getTFrame().addPropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, this); 
+		TrackerPanel trackerPanel = getPanel();
+		frame.removePropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, this); 
+		frame.addPropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, this); 
 	}
 	
 	/**
@@ -82,8 +83,8 @@ public class TableTView extends TrackChooserTView {
 	 */
 	@Override
 	public void removeNotify() {
-		if (trackerPanel != null && trackerPanel.getTFrame() != null) {
-			trackerPanel.getTFrame().removePropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, this); 
+		if (panelID != null && frame != null) {
+			frame.removePropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, this); 
 		}
 		super.removeNotify();
 	}
@@ -135,7 +136,7 @@ public class TableTView extends TrackChooserTView {
 	 */
 	@Override
 	protected TrackView createTrackView(TTrack track) {
-		TableTrackView trackView = new TableTrackView(track, trackerPanel, this);
+		TableTrackView trackView = new TableTrackView(track, getPanel(), this);
 		FontSizer.setFonts(trackView); // for resizable icon only
 //		
 //		addComponentListener(new ComponentListener() {
@@ -201,13 +202,14 @@ public class TableTView extends TrackChooserTView {
 	 */
 	@Override
 	public void propertyChange(PropertyChangeEvent e) {
+		TrackerPanel panel = getPanel();
 		switch (e.getPropertyName()) {
 		case TTrack.PROPERTY_TTRACK_FORMAT:
 			// format has changed
 			TrackView view = null;
 			TTrack track = getSelectedTrack();
 			if (track != null && (view = getTrackView(track)) != null) {
-				int frameNo = trackerPanel.getFrameNumber();
+				int frameNo = panel.getFrameNumber();
 				view.refresh(frameNo, DataTable.MODE_TRACK_REFRESH);
 			}
 			break;
@@ -216,7 +218,7 @@ public class TableTView extends TrackChooserTView {
 				TableTrackView trackview = (TableTrackView) getTrackView(selectedTrack);
 				if (trackview != null) {
 					dialogLastVisible = trackview.setDialogVisible(
-							e.getNewValue() == trackerPanel && isVisible(), dialogLastVisible);
+							e.getNewValue() == panel && isVisible(), dialogLastVisible);
 				}
 			}
 			break;
@@ -240,8 +242,8 @@ public class TableTView extends TrackChooserTView {
 	@Override
 	public void cleanup() {
 		super.cleanup();
-		if (trackerPanel != null && trackerPanel.getTFrame() != null) {
-			trackerPanel.getTFrame().removePropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, this); // $NON-NLS-1$
+		if (panelID != null && frame != null) {
+			frame.removePropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, this); // $NON-NLS-1$
 		}
 	}
 	/**
@@ -476,7 +478,7 @@ public class TableTView extends TrackChooserTView {
 						trackView.setVisible(columns[i], true);
 					}
 					trackView.setRefreshing(true);
-					trackView.refresh(view.trackerPanel.getFrameNumber(), DataTable.MODE_TRACK_LOADER);
+					trackView.refresh(view.getPanel().getFrameNumber(), DataTable.MODE_TRACK_LOADER);
 				}
 			}
 			return obj;
@@ -487,8 +489,9 @@ public class TableTView extends TrackChooserTView {
 	protected void refreshMenus() {
 	}
 
+	@Override
 	public void dispose() {
-		trackerPanel.getTFrame().removePropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, this); 
+		frame.removePropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, this); 
 		super.dispose();
 	}
 	

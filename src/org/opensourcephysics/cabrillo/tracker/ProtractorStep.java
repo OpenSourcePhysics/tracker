@@ -391,7 +391,7 @@ protected Mark getMark(TrackerPanel trackerPanel) {
    */
   public String getFormattedLength(TPoint end) {
   	double length = getArmLength(end);
-    if (protractor.trackerPanel.getFrameNumber()==n) {
+    if (protractor.tp.getFrameNumber()==n) {
 	  	NumberField field = end==end1? getTrack().xField: getTrack().yField;
 	    field.setValue(length);
 	    return field.format(length);
@@ -413,7 +413,7 @@ protected Mark getMark(TrackerPanel trackerPanel) {
     double theta = line2Angle-line1Angle;
     if (theta > Math.PI) theta -= 2*Math.PI;
     if (theta < -Math.PI) theta += 2*Math.PI;
-    if (refreshField && protractor.trackerPanel.getFrameNumber()==n) {    	
+    if (refreshField && protractor.tp.getFrameNumber()==n) {    	
     	protractor.angleField.setValue(theta);
     }
     return theta;
@@ -425,7 +425,7 @@ protected Mark getMark(TrackerPanel trackerPanel) {
    * @param theta the angle in radians
    */
   public void setProtractorAngle(double theta) {
-    if (protractor.isLocked() || protractor.trackerPanel == null) return;
+    if (protractor.isLocked() || protractor.tp == null) return;
     XMLControl state = new XMLControlElement(protractor);
     theta += line1Angle;
     // move line2 to new angle at same distance from vertex
@@ -444,9 +444,9 @@ protected Mark getMark(TrackerPanel trackerPanel) {
    * @return the length in world units
    */
   public double getArmLength(TPoint end) {
-    if (protractor.trackerPanel== null) return 1.0;
-    double scaleX = protractor.trackerPanel.getCoords().getScaleX(n);
-    double scaleY = protractor.trackerPanel.getCoords().getScaleY(n);
+    if (protractor.tp== null) return 1.0;
+    double scaleX = protractor.tp.getCoords().getScaleX(n);
+    double scaleY = protractor.tp.getCoords().getScaleY(n);
     double dx = (vertex.getX() - end.getX()) / scaleX;
     double dy = (end.getY() - vertex.getY()) / scaleY;
   	return Math.sqrt(dx*dx + dy*dy);
@@ -459,11 +459,11 @@ protected Mark getMark(TrackerPanel trackerPanel) {
    * @param length the desired length in world units
    */
   public void setArmLength(TPoint end, double length) {
-    if (protractor.isLocked() || protractor.trackerPanel == null) return;
+    if (protractor.isLocked() || protractor.tp == null) return;
     XMLControl state = new XMLControlElement(protractor);
     // move end to new distance from vertex
-    double scaleX = protractor.trackerPanel.getCoords().getScaleX(n);
-    double scaleY = protractor.trackerPanel.getCoords().getScaleY(n);
+    double scaleX = protractor.tp.getCoords().getScaleX(n);
+    double scaleY = protractor.tp.getCoords().getScaleY(n);
     double dx = length*vertex.cos(end) * scaleX;
     double dy = -length*vertex.sin(end) * scaleY;
     end.setXY(vertex.x+dx, vertex.y+dy);
@@ -478,7 +478,7 @@ protected Mark getMark(TrackerPanel trackerPanel) {
    * @param y
    */
   protected void moveVertexTo(double x, double y) {
-    if (protractor.isLocked() || protractor.trackerPanel == null) return;
+    if (protractor.isLocked() || protractor.tp == null) return;
     // determine how far to move
     double dx = x - vertex.x;
     double dy = y - vertex.y;
@@ -531,8 +531,8 @@ public String toString() {
    * @return the frame number
    */
   public int n() {
-    if (protractor.isFixedPosition() && protractor.trackerPanel != null)
-      return protractor.trackerPanel.getFrameNumber();
+    if (protractor.isFixedPosition() && protractor.tp != null)
+      return protractor.tp.getFrameNumber();
     return n;
   }
 
@@ -825,7 +825,7 @@ public String toString() {
     }
     
     protected void setScreenCoords(int x, int y) {
-    	pt.setScreenPosition(x, y, protractor.trackerPanel);
+    	pt.setScreenPosition(x, y, protractor.tp);
     	this.setLocation(pt);
     }
     

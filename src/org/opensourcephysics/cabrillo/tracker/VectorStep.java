@@ -1076,7 +1076,7 @@ public class VectorStep extends Step implements PropertyChangeListener {
 				step.getTip().setXY(x, y);
 			}
 			if (control.getBoolean("snap")) //$NON-NLS-1$
-				step.snap(step.getTrack().trackerPanel);
+				step.snap(step.getTrack().tp);
 			return obj;
 		}
 	}

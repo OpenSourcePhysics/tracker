@@ -128,8 +128,8 @@ public String toString() {
 	public void setXY(double x, double y) {
   		super.setLocation(x, y);
 	  	PerspectiveTrack ptrack = (PerspectiveTrack)getTrack();
-	  	if (ptrack.trackerPanel!=null) {
-	  		int n = ptrack.trackerPanel.getFrameNumber();
+	  	if (ptrack.tp!=null) {
+	  		int n = ptrack.tp.getFrameNumber();
 	  	  ptrack.firePropertyChange(TTrack.PROPERTY_TTRACK_STEP, null, n); //$NON-NLS-1$	  		
 	  	}
   	}

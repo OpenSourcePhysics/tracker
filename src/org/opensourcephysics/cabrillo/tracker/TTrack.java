@@ -239,13 +239,15 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 	 * @param panel the TrackerPanel
 	 */
 	public void setTrackerPanel(TrackerPanel panel) {
-		if (trackerPanel != null) {
+		if (tp != null) {
 			removePanelEvents(panelEventsTTrack);
 		}
 		if (panel == null) {
-			trackerPanel = null;
+			tp = null;
+			frame = null;
 		} else {
-			trackerPanel = panel.ref(this);
+			tp = panel.ref(this);
+			frame = panel.getTFrame();
 			addPanelEvents(panelEventsTTrack);
 		}
 	}
@@ -256,7 +258,7 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 	 */
 	protected void addPanelEvents(String[] events) {
 		for (int i = events.length; --i >= 0;)
-			trackerPanel.addPropertyChangeListener(events[i], this);
+			tp.addPropertyChangeListener(events[i], this);
 	}
 
 	/**
@@ -265,7 +267,7 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 	 */
 	protected void removePanelEvents(String[] events) {
 		for (int i = events.length; --i >= 0;)
-			trackerPanel.removePropertyChangeListener(events[i], this);
+			tp.removePropertyChangeListener(events[i], this);
 	}
 
 	/**
@@ -389,7 +391,8 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 	protected ActionListener footprintListener, circleFootprintListener;
 
 	protected Font labelFont = new Font("arial", Font.PLAIN, 12); //$NON-NLS-1$
-	protected TrackerPanel trackerPanel;
+	protected TrackerPanel tp; // 900 references!
+	protected TFrame frame;
 	protected XMLProperty dataProp;
 	protected Object[][] constantsLoadedFromXML;
 	protected String[] dataDescriptions;
@@ -619,7 +622,6 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 		item.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				TFrame frame = trackerPanel.getTFrame();
 				frame.setAnglesInRadians(!radians);
 			}
 		});
@@ -628,13 +630,13 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 		popup.add(item);
 		popup.addSeparator();
 
-		if (trackerPanel.isEnabled("number.formats")) { //$NON-NLS-1$
+		if (tp.isEnabled("number.formats")) { //$NON-NLS-1$
 			item = new JMenuItem();
 			final String[] selected = new String[] { getNumberFieldName0(field) };
 			item.addActionListener(new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent e) {
-					NumberFormatDialog.getNumberFormatDialog(trackerPanel, TTrack.this, selected).setVisible(true);
+					NumberFormatDialog.getNumberFormatDialog(tp, TTrack.this, selected).setVisible(true);
 				}
 			});
 			item.setText(TrackerRes.getString("TTrack.MenuItem.NumberFormat")); //$NON-NLS-1$
@@ -655,28 +657,28 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 			hasUnits = s.contains("L") || s.contains("M") || s.contains("T"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 		}
 		JPopupMenu popup = new JPopupMenu();
-		if (trackerPanel.isEnabled("number.formats") || trackerPanel.isEnabled("number.units")) { //$NON-NLS-1$ //$NON-NLS-2$
+		if (tp.isEnabled("number.formats") || tp.isEnabled("number.units")) { //$NON-NLS-1$ //$NON-NLS-2$
 			JMenu numberMenu = new JMenu(TrackerRes.getString("Popup.Menu.Numbers")); //$NON-NLS-1$
 			popup.add(numberMenu);
-			if (trackerPanel.isEnabled("number.formats")) { //$NON-NLS-1$
+			if (tp.isEnabled("number.formats")) { //$NON-NLS-1$
 				JMenuItem item = new JMenuItem();
 				final String[] selected = fieldName;
 				item.addActionListener(new ActionListener() {
 					@Override
 					public void actionPerformed(ActionEvent e) {
-						NumberFormatDialog.getNumberFormatDialog(trackerPanel, TTrack.this, selected).setVisible(true);
+						NumberFormatDialog.getNumberFormatDialog(tp, TTrack.this, selected).setVisible(true);
 					}
 				});
 				item.setText(TrackerRes.getString("Popup.MenuItem.Formats") + "..."); //$NON-NLS-1$ //$NON-NLS-2$
 				numberMenu.add(item);
 			}
 
-			if (hasUnits && trackerPanel.isEnabled("number.units")) { //$NON-NLS-1$
+			if (hasUnits && tp.isEnabled("number.units")) { //$NON-NLS-1$
 				JMenuItem item = new JMenuItem();
 				item.addActionListener(new ActionListener() {
 					@Override
 					public void actionPerformed(ActionEvent e) {
-						UnitsDialog dialog = trackerPanel.getUnitsDialog();
+						UnitsDialog dialog = tp.getUnitsDialog();
 						dialog.setVisible(true);
 					}
 				});
@@ -684,15 +686,15 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 				numberMenu.add(item);
 			}
 		}
-		boolean hasLengthUnit = trackerPanel.lengthUnit != null;
-		boolean hasMassUnit = trackerPanel.massUnit != null;
+		boolean hasLengthUnit = tp.lengthUnit != null;
+		boolean hasMassUnit = tp.massUnit != null;
 		if (hasLengthUnit && hasMassUnit) {
 			JMenuItem item = new JMenuItem();
-			final boolean vis = trackerPanel.isUnitsVisible();
+			final boolean vis = tp.isUnitsVisible();
 			item.addActionListener(new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent e) {
-					trackerPanel.setUnitsVisible(!vis);
+					tp.setUnitsVisible(!vis);
 				}
 			});
 			item.setText(vis ? TrackerRes.getString("TTrack.MenuItem.HideUnits") : //$NON-NLS-1$
@@ -724,8 +726,8 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 		Boolean prev = Boolean.valueOf(this.visible);
 		this.visible = visible;
 		firePropertyChange(PROPERTY_TTRACK_VISIBLE, prev, Boolean.valueOf(visible)); // $NON-NLS-1$
-		if (trackerPanel != null)
-			TFrame.repaintT(trackerPanel);
+		if (tp != null)
+			TFrame.repaintT(tp);
 	}
 
 	/**
@@ -745,22 +747,22 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 	protected void delete(boolean postEdit) {
 		if (isLocked() && !isDependent())
 			return;
-		if (trackerPanel != null) {
-			trackerPanel.setSelectedPoint(null);
-			trackerPanel.selectedSteps.clear();
+		if (tp != null) {
+			tp.setSelectedPoint(null);
+			tp.selectedSteps.clear();
 			// handle case when this is the origin of current reference frame
-			ImageCoordSystem coords = trackerPanel.getCoords();
+			ImageCoordSystem coords = tp.getCoords();
 			if (coords instanceof ReferenceFrame && ((ReferenceFrame) coords).getOriginTrack() == this) {
 				// set coords to underlying coords
 				coords = ((ReferenceFrame) coords).getCoords();
-				trackerPanel.setCoords(coords);
+				tp.setCoords(coords);
 			}
 		}
 		if (postEdit) {
 			Undo.postTrackDelete(this); // posts undoable edit
 		}
-		for (int j = 0; j < trackerPanel.panelAndWorldViews.size(); j++) {
-			TrackerPanel panel = trackerPanel.panelAndWorldViews.get(j);
+		for (int j = 0; j < tp.panelAndWorldViews.size(); j++) {
+			TrackerPanel panel = tp.panelAndWorldViews.get(j);
 			panel.removeTrack(this);
 		}
 		erase();
@@ -895,16 +897,16 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 		for (int i = 0; i < footprints.length; i++)
 			footprints[i].setColor(color);
 		erase();
-		if (trackerPanel != null) {
-			trackerPanel.changed = true;
-			if (trackerPanel.modelBuilder != null) {
-				trackerPanel.modelBuilder.refreshDropdown(null);
+		if (tp != null) {
+			tp.changed = true;
+			if (tp.modelBuilder != null) {
+				tp.modelBuilder.refreshDropdown(null);
 			}
-			if (trackerPanel.dataBuilder != null) {
-				org.opensourcephysics.tools.FunctionPanel panel = trackerPanel.dataBuilder.getPanel(getName());
+			if (tp.dataBuilder != null) {
+				org.opensourcephysics.tools.FunctionPanel panel = tp.dataBuilder.getPanel(getName());
 				if (panel != null) {
 					panel.setIcon(getIcon(21, 16, "track")); //$NON-NLS-1$
-					trackerPanel.dataBuilder.refreshDropdown(null);
+					tp.dataBuilder.refreshDropdown(null);
 				}
 			}
 		}
@@ -993,13 +995,13 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 			String prevName = name;
 			name = newName;
 			repaint();
-			if (trackerPanel != null) {
-				trackerPanel.changed = true;
-				if (trackerPanel.dataBuilder != null) {
-					trackerPanel.dataBuilder.renamePanel(prevName, newName);
+			if (tp != null) {
+				tp.changed = true;
+				if (tp.dataBuilder != null) {
+					tp.dataBuilder.renamePanel(prevName, newName);
 				}
-				if (trackerPanel.modelBuilder != null) {
-					trackerPanel.modelBuilder.refreshBoosterDropdown();
+				if (tp.modelBuilder != null) {
+					tp.modelBuilder.refreshBoosterDropdown();
 				}
 			}
 			firePropertyChange(PROPERTY_TTRACK_NAME, prevName, name); // $NON-NLS-1$
@@ -1176,16 +1178,16 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 					if (stepArray[j] != null)
 						stepArray[j].setFootprint(footprint);
 				repaint();
-				if (trackerPanel != null) {
-					trackerPanel.changed = true;
-					if (trackerPanel.modelBuilder != null) {
-						trackerPanel.modelBuilder.refreshDropdown(null);
+				if (tp != null) {
+					tp.changed = true;
+					if (tp.modelBuilder != null) {
+						tp.modelBuilder.refreshDropdown(null);
 					}
-					if (trackerPanel.dataBuilder != null) {
-						org.opensourcephysics.tools.FunctionPanel panel = trackerPanel.dataBuilder.getPanel(getName());
+					if (tp.dataBuilder != null) {
+						org.opensourcephysics.tools.FunctionPanel panel = tp.dataBuilder.getPanel(getName());
 						if (panel != null) {
 							panel.setIcon(getIcon(21, 16, "track")); //$NON-NLS-1$
-							trackerPanel.dataBuilder.refreshDropdown(null);
+							tp.dataBuilder.refreshDropdown(null);
 						}
 					}
 				}
@@ -1480,7 +1482,7 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 	 * @param p a TPoint associated with a step in this track
 	 */
 	protected void setTargetIndex(TPoint p) {
-		Step step = getStep(p, trackerPanel);
+		Step step = getStep(p, tp);
 		if (step != null)
 			setTargetIndex(step.getPointIndex(p));
 	}
@@ -1857,7 +1859,7 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 		textColumnNames.add(name);
 		textColumnEntries.put(name, new String[0]);
 		Undo.postTrackEdit(this, control);
-		trackerPanel.changed = true;
+		tp.changed = true;
 		firePropertyChange(PROPERTY_TTRACK_TEXTCOLUMN, null, name);
 		return true;
 	}
@@ -1878,7 +1880,7 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 				textColumnEntries.remove(name);
 				textColumnNames.remove(name);
 				Undo.postTrackEdit(this, control);
-				trackerPanel.changed = true;
+				tp.changed = true;
 				firePropertyChange(PROPERTY_TTRACK_TEXTCOLUMN, name, null); // $NON-NLS-1$
 				return true;
 			}
@@ -1916,7 +1918,7 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 				Undo.postTrackEdit(this, control);
 			}
 		}
-		trackerPanel.changed = true;
+		tp.changed = true;
 		firePropertyChange(PROPERTY_TTRACK_TEXTCOLUMN, name, newName); // $NON-NLS-1$
 		return true;
 	}
@@ -1980,7 +1982,7 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 		// change text entry and fire property change
 		entries[frameNumber] = text;
 		Undo.postTrackEdit(this, control);
-		trackerPanel.changed = true;
+		tp.changed = true;
 		firePropertyChange(PROPERTY_TTRACK_TEXTCOLUMN, null, null); // $NON-NLS-1$
 		return true;
 	}
@@ -2034,13 +2036,13 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 			return false;
 		boolean foundAll = true;
 		TTrack[] temp = new TTrack[n];
-		ArrayList<TTrack> tracks = trackerPanel.getTracksTemp();
+		ArrayList<TTrack> tracks = tp.getTracksTemp();
 		for (int i = 0; i < n; i++) {
 			// BH 2020.10.17 OK?
 			String name = attachmentNames[i];
 			if (name == null)
 				continue;
-			TTrack track = trackerPanel.getTrack(name, tracks);
+			TTrack track = tp.getTrack(name, tracks);
 			if (track == null) {
 				foundAll = false;
 				break;
@@ -2073,11 +2075,11 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				// save changed state
-				boolean changed = trackerPanel != null && trackerPanel.changed;
+				boolean changed = tp != null && tp.changed;
 				refreshAttachments();
-				if (trackerPanel != null) {
+				if (tp != null) {
 					// restore changed state
-					trackerPanel.changed = changed;
+					tp.changed = changed;
 				}
 			}
 		});
@@ -2128,7 +2130,7 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 		if (isAttached())
 			setFixedPosition(false);
 
-		VideoClip clip = trackerPanel.getPlayer().getVideoClip();
+		VideoClip clip = tp.getPlayer().getVideoClip();
 		for (int i = 0; i < attachments.length; i++) {
 			TTrack targetTrack = attachments[i];
 			if (targetTrack != null) {
@@ -2162,7 +2164,7 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 				}
 			}
 		}
-		trackerPanel.refreshTrackBar();
+		tp.refreshTrackBar();
 //		TTrackBar.getTrackbar(trackerPanel).refresh();
 //	refreshFields(trackerPanel.getFrameNumber());
 	}
@@ -2335,14 +2337,11 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 		descriptionItem.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				if (trackerPanel != null) {
-					TFrame frame = trackerPanel.getTFrame();
-					if (frame != null) {
-						if (frame.notesVisible()) {
-							frame.getNotesDialog().setVisible(true);
-						} else
-							frame.getToolbar(trackerPanel).doNotesAction();
-					}
+				if (tp != null && frame != null) {
+					if (frame.notesVisible()) {
+						frame.getNotesDialog().setVisible(true);
+					} else
+						frame.getToolbar(tp).doNotesAction();
 				}
 			}
 		});
@@ -2350,9 +2349,9 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 		dataBuilderItem.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				if (trackerPanel != null) {
-					trackerPanel.getDataBuilder().setSelectedPanel(getName());
-					trackerPanel.getDataBuilder().setVisible(true);
+				if (tp != null) {
+					tp.getDataBuilder().setSelectedPanel(getName());
+					tp.getDataBuilder().setVisible(true);
 				}
 			}
 		});
@@ -2368,8 +2367,8 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 			public void itemStateChanged(ItemEvent e) {
 				setTrailVisible(trailVisibleItem.isSelected());
 				if (!TTrack.this.isTrailVisible()) {
-					for (int j = 0; j < trackerPanel.panelAndWorldViews.size(); j++) {
-						TrackerPanel panel = trackerPanel.panelAndWorldViews.get(j);
+					for (int j = 0; j < tp.panelAndWorldViews.size(); j++) {
+						TrackerPanel panel = tp.panelAndWorldViews.get(j);
 						Step step = panel.getSelectedStep();
 						if (step != null && step.getTrack() == TTrack.this) {
 							if (!(step.getFrameNumber() == panel.getFrameNumber())) {
@@ -2409,7 +2408,7 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 		deleteStepItem.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				trackerPanel.deletePoint(trackerPanel.getSelectedPoint());
+				tp.deletePoint(tp.getSelectedPoint());
 			}
 		});
 		clearStepsItem.addActionListener(new ActionListener() {
@@ -2429,14 +2428,14 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 					PointMass p = (PointMass) TTrack.this;
 					p.updateDerivatives();
 				}
-				AutoTracker autoTracker = trackerPanel.getAutoTracker(false);
+				AutoTracker autoTracker = tp.getAutoTracker(false);
 				if (autoTracker != null) {
 					if (autoTracker.getTrack() == TTrack.this)
 						autoTracker.reset();
 					autoTracker.getWizard().setVisible(false);
 				}
 				fireStepsChanged();
-				TFrame.repaintT(trackerPanel);
+				TFrame.repaintT(tp);
 			}
 		});
 
@@ -2501,8 +2500,8 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 		for (int j = 0; j < stepArray.length; j++)
 			if (stepArray[j] != null)
 				stepArray[j].erase();
-		if (trackerPanel != null && trackerPanel.autoTracker != null) {
-			AutoTracker autoTracker = trackerPanel.getAutoTracker(false);
+		if (tp != null && tp.autoTracker != null) {
+			AutoTracker autoTracker = tp.getAutoTracker(false);
 			if (autoTracker != null && autoTracker.getWizard().isVisible() && autoTracker.getTrack() == this) {
 				autoTracker.erase();
 			}
@@ -2523,11 +2522,11 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 	 * Repaints all steps on all panels.
 	 */
 	public void repaint() {
-		if (trackerPanel == null || !trackerPanel.isPaintable())
+		if (tp == null || !tp.isPaintable())
 			return;
 		remark();
-		for (int i = 0; i < trackerPanel.panelAndWorldViews.size(); i++) {
-			trackerPanel.panelAndWorldViews.get(i).repaintDirtyRegion();
+		for (int i = 0; i < tp.panelAndWorldViews.size(); i++) {
+			tp.panelAndWorldViews.get(i).repaintDirtyRegion();
 		}
 	}
 
@@ -2580,8 +2579,8 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 	 * @param step the step
 	 */
 	public void repaint(Step step) {
-		for (int j = 0; j < trackerPanel.panelAndWorldViews.size(); j++) {
-			TrackerPanel panel = trackerPanel.panelAndWorldViews.get(j);
+		for (int j = 0; j < tp.panelAndWorldViews.size(); j++) {
+			TrackerPanel panel = tp.panelAndWorldViews.get(j);
 			step.repaint(panel);
 		}
 	}
@@ -2995,9 +2994,9 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 	}
 
 	int getMarkingCursorType(InputEvent e) {
-		if (e != null && AutoTracker.isAutoTrackTrigger(e) && trackerPanel.getVideo() != null
+		if (e != null && AutoTracker.isAutoTrackTrigger(e) && tp.getVideo() != null
 				&& isAutoTrackable(getTargetIndex())) {
-			Step step = getStep(trackerPanel.getFrameNumber());
+			Step step = getStep(tp.getFrameNumber());
 			if (step == null || step.getPoints()[step.getPoints().length - 1] == null) {
 				return TMouseHandler.STATE_AUTOMARK;
 			}
@@ -3005,9 +3004,9 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 			if (this instanceof CoordAxes || this instanceof PerspectiveTrack || this instanceof TapeMeasure
 					|| this instanceof Protractor) {
 				// BH! requires autotracker?
-				AutoTracker autoTracker = trackerPanel.getAutoTracker(true);
+				AutoTracker autoTracker = tp.getAutoTracker(true);
 				if (autoTracker.getTrack() == null || autoTracker.getTrack() == this) {
-					int n = trackerPanel.getFrameNumber();
+					int n = tp.getFrameNumber();
 					if (autoTracker.getOrCreateFrameData(n).getKeyFrameData() == null)
 						return TMouseHandler.STATE_AUTOMARK;
 				}
@@ -3018,8 +3017,8 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 	}
 
 	protected void createWarningDialog() {
-		if (skippedStepWarningDialog == null && trackerPanel != null && trackerPanel.getTFrame() != null) {
-			skippedStepWarningDialog = new JDialog(trackerPanel.getTFrame(), true);
+		if (skippedStepWarningDialog == null && tp != null && frame != null) {
+			skippedStepWarningDialog = new JDialog(frame, true);
 			skippedStepWarningDialog.addWindowListener(new WindowAdapter() {
 				@Override
 				public void windowClosing(WindowEvent e) {
@@ -3098,12 +3097,12 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 	}
 
 	protected Dataset convertTextToDataColumn(String textColumnName) {
-		if (textColumnName == null || trackerPanel == null)
+		if (textColumnName == null || tp == null)
 			return null;
 		// find named text column
 		String[] entries = this.textColumnEntries.get(textColumnName);
 		if (entries != null && entries.length > 0) {
-			DatasetManager data = getData(trackerPanel);
+			DatasetManager data = getData(tp);
 			double[] x = data.getDataset(0).getXPointsRaw();
 			int len = data.getDataset(0).getIndex();
 			double[] values = new double[len];
@@ -3298,8 +3297,8 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 		@Override
 		public void setText(String t) {
 			super.setText(t);
-			if (trackerPanel != null) {
-				TTrackBar.getTrackbar(trackerPanel).resizeField(this);
+			if (tp != null) {
+				TTrackBar.getTrackbar(tp).resizeField(this);
 			}
 		}
 
@@ -3317,8 +3316,8 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 		@Override
 		public void setText(String t) {
 			super.setText(t);
-			if (trackerPanel != null) {
-				TTrackBar tbar = TTrackBar.getTrackbar(trackerPanel);
+			if (tp != null) {
+				TTrackBar tbar = TTrackBar.getTrackbar(tp);
 				if (tbar != null)
 					tbar.resizeField(this);
 			}
@@ -3530,9 +3529,9 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 				control.setValue("text_column_entries", entries); //$NON-NLS-1$
 			}
 			// data functions
-			if (track.trackerPanel != null) {
+			if (track.tp != null) {
 				ArrayList<Dataset> list = new ArrayList<Dataset>();
-				DatasetManager data = track.getData(track.trackerPanel);
+				DatasetManager data = track.getData(track.tp);
 				ArrayList<Dataset> datasets = data.getDatasetsRaw();
 				for (int i = 0, n = datasets.size(); i < n; i++) {
 					Dataset dataset = datasets.get(i);
@@ -3648,7 +3647,7 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 
 	protected NameDialog getNameDialog() {
 		if (nameDialog == null) {
-			nameDialog = new NameDialog(trackerPanel);
+			nameDialog = new NameDialog(tp);
 			Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
 			int x = (dim.width - nameDialog.getBounds().width) / 2;
 			int y = (dim.height - nameDialog.getBounds().height) / 2;
@@ -3726,10 +3725,10 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 	 * @return array with variable names and custom patterns
 	 */
 	protected String[] getCustomFormatPatterns() {
-		if (trackerPanel == null)
+		if (tp == null)
 			return new String[0];
 		String[] patterns = getFormatPatterns();
-		TreeMap<String, String> defaultPatterns = trackerPanel.getFormatPatterns(ttype);
+		TreeMap<String, String> defaultPatterns = tp.getFormatPatterns(ttype);
 		ArrayList<String> customPatterns = new ArrayList<String>();
 		for (int i = 0; i < patterns.length - 1; i = i + 2) {
 			String name = patterns[i];
@@ -3750,11 +3749,10 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 	 */
 	private ArrayList<TableTrackView> getTableViews() {
 		ArrayList<TableTrackView> tableTrackViews = new ArrayList<TableTrackView>();
-		TFrame frame;
-		if (trackerPanel == null || (frame = trackerPanel.getTFrame()) == null) {
+		if (tp == null || frame == null) {
 			return tableTrackViews;
 		}
-		TViewChooser[] choosers = frame.getViewChoosers(trackerPanel);
+		TViewChooser[] choosers = frame.getViewChoosers(tp);
 		for (int i = 0; i < choosers.length; i++) {
 			if (choosers[i] == null)
 				continue;
@@ -3847,10 +3845,10 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 			}
 		}
 		if (changed && (var.equals("x") || var.equals("y")) //$NON-NLS-1$ //$NON-NLS-2$
-				&& trackerPanel != null && trackerPanel.getSelectedTrack() == this) {
-			trackerPanel.coordStringBuilder.setUnitsAndPatterns(this, "x", "y"); //$NON-NLS-1$ //$NON-NLS-2$
-			if (trackerPanel.getSelectedPoint() != null) {
-				trackerPanel.getSelectedPoint().showCoordinates(trackerPanel);
+				&& tp != null && tp.getSelectedTrack() == this) {
+			tp.coordStringBuilder.setUnitsAndPatterns(this, "x", "y"); //$NON-NLS-1$ //$NON-NLS-2$
+			if (tp.getSelectedPoint() != null) {
+				tp.getSelectedPoint().showCoordinates(tp);
 			}
 		}
 		return changed;
@@ -3893,7 +3891,7 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 		// get pattern for track type
 
 		// look in trackerPanel formatPatterns
-		TreeMap<String, String> patterns = trackerPanel.getFormatPatterns(ttype);
+		TreeMap<String, String> patterns = tp.getFormatPatterns(ttype);
 		if ((val = patterns.get(name)) != null) {
 			return val;
 		}
