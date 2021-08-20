@@ -43,6 +43,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 import java.awt.event.KeyAdapter;
@@ -2926,13 +2927,16 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	 * Adds a component to those following this frame. When the frame is displaced
 	 * the component will be displaced equally.
 	 * 
+	 * THIS WAS A MEMORY LEAK. It is the responsibility of the follower to detach
+	 * itself when appropriate.
+	 * 
 	 * @param c   the component
 	 * @param pt0 the initial location of this frame
 	 * 
 	 */
-	public void addFollower(Component c, Point ignored) {
+	public ComponentListener addFollower(Component c, Point ignored) {
 		Point pt0 = getLocation();
-		addComponentListener(new ComponentAdapter() {
+		ComponentListener listener = new ComponentAdapter() {
 			@Override
 			public void componentMoved(ComponentEvent e) {
 				// determine displacement
@@ -2948,7 +2952,9 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 				p.y += dy;
 				c.setLocation(p);
 			}
-		});
+		};
+		addComponentListener(listener);
+		return listener;
 	}
 
 	public static void addMenuListener(JMenu m, Runnable r) {

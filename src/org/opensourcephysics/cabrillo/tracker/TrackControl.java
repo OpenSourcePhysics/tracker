@@ -27,6 +27,7 @@ package org.opensourcephysics.cabrillo.tracker;
 import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.Point;
+import java.awt.event.ComponentListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
@@ -76,6 +77,8 @@ public class TrackControl extends JDialog
   protected boolean wasVisible;
   protected KeyListener shiftKeyListener;
   protected TButton newTrackButton;
+
+private ComponentListener myFollower;
   
   /**
    * Gets the track control for the specified tracker panel.
@@ -133,8 +136,7 @@ public class TrackControl extends JDialog
     popup = new JPopupMenu();
     trackerPanel = panel.ref(this);
 	trackerPanel.addListeners(panelProps, this);		
-    TFrame frame = trackerPanel.getTFrame();
-    frame.addFollower(this, null);
+	myFollower = trackerPanel.getTFrame().addFollower(this, null);
   }
 
 	@Override
@@ -206,29 +208,6 @@ public class TrackControl extends JDialog
 		refresh();
 	}
 
-  /**
-   * Disposes of this track control.
-   */
-  @Override
-public void dispose() {
-	  System.out.println("TrackControl.dispose");
-    if (trackerPanel != null) {
-    	trackerPanel.removeListeners(panelProps, this);		
-      TFrame frame = trackerPanel.getTFrame();
-      if (frame != null) {
-        frame.removePropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, this); //$NON-NLS-1$
-      }
-      controls.remove(trackerPanel);
-      trackerPanel.trackControl = null;
-      ArrayList<TTrack> tracks = trackerPanel.getTracks();
-      for (int i = tracks.size(); --i >= 0;) { //: TTrack.activeTracks.keySet()) {
-      	tracks.get(i).removeListenerNCF(this);
-      }
-      tracks.clear();
-      trackerPanel = null;
-    }
-    super.dispose();
-  }
 
   /**
    * Return true if this has no track buttons.
@@ -313,6 +292,31 @@ public void dispose() {
       frame.addPropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, this); //$NON-NLS-1$
     }
   }
+
+	/**
+	 * Disposes of this track control.
+	 */
+	@Override
+	public void dispose() {
+		System.out.println("TrackControl.dispose");
+		if (trackerPanel != null) {
+			trackerPanel.removeListeners(panelProps, this);
+			TFrame frame = trackerPanel.getTFrame();
+			if (frame != null) {
+				frame.removePropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, this);
+				frame.removeComponentListener(myFollower);
+				myFollower = null;
+			}
+			controls.remove(trackerPanel);
+			trackerPanel.trackControl = null;
+			ArrayList<TTrack> tracks = trackerPanel.getTracks();
+			for (int i = tracks.size(); --i >= 0;) { // : TTrack.activeTracks.keySet()) {
+				tracks.get(i).removeListenerNCF(this);
+			}
+			trackerPanel = null;
+	 	}
+		super.dispose();
+	}
 
 	@Override
 	public void finalize() {

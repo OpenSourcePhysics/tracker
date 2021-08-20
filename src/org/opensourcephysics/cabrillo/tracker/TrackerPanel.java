@@ -481,10 +481,6 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			} catch (Exception ex) {
 				/** empty block */
 			}
-			TFrame frame = getTFrame();
-			if (frame != null) {
-				frame.addFollower(modelBuilder, frame.getLocation());
-			}
 
 		}
 		return modelBuilder;
