@@ -188,7 +188,7 @@ public class PrefsDialog extends JDialog {
   public PrefsDialog(TrackerPanel panel, TFrame tframe) {
      // non-modal
     super(tframe, false);
-    trackerPanel = panel;
+    trackerPanel = panel.ref(this);
     frame = tframe;
     setTitle(TrackerRes.getString("ConfigInspector.Title")); //$NON-NLS-1$
 		findTrackerJars();

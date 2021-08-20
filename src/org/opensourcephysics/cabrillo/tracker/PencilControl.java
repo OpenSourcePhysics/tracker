@@ -132,7 +132,7 @@ public class PencilControl extends JDialog {
 	protected PencilControl(PencilDrawer pencilDrawer) {
 		super(JOptionPane.getFrameForComponent(pencilDrawer.trackerPanel), false);
 		drawer = pencilDrawer;
-		trackerPanel = drawer.trackerPanel;
+		trackerPanel = drawer.trackerPanel.ref(this);
 		// set up the undo system
 		undoManager = new UndoManager();
 		undoSupport = new UndoableEditSupport();

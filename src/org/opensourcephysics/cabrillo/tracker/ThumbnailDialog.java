@@ -148,7 +148,7 @@ public class ThumbnailDialog extends JDialog {
 
 		settingsOnly = !withSaveButton;
 		if (thumbnailDialog.trackerPanel != panel) {
-			thumbnailDialog.trackerPanel = panel;
+			thumbnailDialog.trackerPanel = panel.ref("ThumbnailDialog");
 		}
 		thumbnailDialog.refreshGUI();
 		return thumbnailDialog;
@@ -258,7 +258,7 @@ public class ThumbnailDialog extends JDialog {
 	 */
 	private ThumbnailDialog(TrackerPanel panel) {
 		super(panel.getTFrame(), true);
-		trackerPanel = panel;
+		trackerPanel = panel.ref(this);
 		setResizable(false);
 		createGUI();
 		refreshGUI();

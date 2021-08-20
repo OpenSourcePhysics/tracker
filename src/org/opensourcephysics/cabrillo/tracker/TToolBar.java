@@ -261,7 +261,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 	 */
 	TToolBar(TrackerPanel panel) {
 		System.out.println("Creating toolbar for " + panel);
-		trackerPanel = panel;
+		trackerPanel = panel.ref(this);
 		trackerPanel.addListeners(panelProps, this);
 // BH testing final status
 //		createGUI();
@@ -863,10 +863,13 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 	protected static void refreshMemoryButton(TrackerPanel panel) {
 		if (OSPRuntime.isJS)
 			return;
-		TToolBar toolbar = getToolbar(panel);
-		if (toolbar != null) {
-			toolbar.refreshMemoryButton();
-		}
+		System.gc();
+		SwingUtilities.invokeLater(() -> {
+			TToolBar toolbar = getToolbar(panel);
+			if (toolbar != null) {
+				toolbar.refreshMemoryButton();
+			}
+		});
 	}
 	
 	/**
@@ -1388,6 +1391,8 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 	 * Disposes of this toolbar
 	 */
 	public void dispose() {
+		System.out.println("TToolBar.dispose");
+		
 		disposed = true;
 		if (refreshTimer != null)
 			refreshTimer.stop();

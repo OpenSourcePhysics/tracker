@@ -242,8 +242,11 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 		if (trackerPanel != null) {
 			removePanelEvents(panelEventsTTrack);
 		}
-		trackerPanel = panel;
-		if (panel != null) {
+		if (panel == null) {
+			trackerPanel = null;
+			System.out.println("TTrack TP ref cleared for " + this.getClass().getSimpleName());
+		} else {
+			trackerPanel = panel.ref(this);
 			addPanelEvents(panelEventsTTrack);
 		}
 	}
@@ -3316,7 +3319,9 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 		public void setText(String t) {
 			super.setText(t);
 			if (trackerPanel != null) {
-				TTrackBar.getTrackbar(trackerPanel).resizeField(this);
+				TTrackBar tbar = TTrackBar.getTrackbar(trackerPanel);
+				if (tbar != null)
+					tbar.resizeField(this);
 			}
 		}
 

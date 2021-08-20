@@ -1774,6 +1774,11 @@ public class TrackerIO extends VideoIO {
 		private int videoCount;
 		private boolean ignoreLowMemory;
 		
+		@Override
+		public void finalize() {
+			OSPLog.finalized(this);
+		}
+
 		/**
 		 * 
 		 * @param paths         or more paths to load in sequence
@@ -1840,7 +1845,7 @@ public class TrackerIO extends VideoIO {
 			
 			if (isTRZ || path.indexOf("&TrackerSet=") >= 0) {
 				type = TYPE_TRZ;
-				trackerPanel = frame.getCleanTrackerPanel();
+				trackerPanel = frame.getCleanTrackerPanel().ref(this);
 				frame.holdPainting(true);
 				return true;
 			}
@@ -1852,7 +1857,7 @@ public class TrackerIO extends VideoIO {
 			File testFile = new File(XML.getName(path));			
 			if (videoFileFilter.accept(testFile, false)) {
 				type = TYPE_VIDEO;
-				trackerPanel = (existingPanel == null ? frame.getCleanTrackerPanel() : existingPanel);
+				trackerPanel = (existingPanel == null ? frame.getCleanTrackerPanel() : existingPanel).ref(this);
 				panelChanged = trackerPanel.changed;
 				return true;
 			}
@@ -1868,7 +1873,7 @@ public class TrackerIO extends VideoIO {
 			// check for text data files
 			if (delimitedTextFileFilter.accept(testFile, false)) {
 				type = TYPE_TEXT;
-				trackerPanel = (existingPanel == null ? frame.getCleanTrackerPanel() : existingPanel);
+				trackerPanel = (existingPanel == null ? frame.getCleanTrackerPanel() : existingPanel).ref(this);
 				panelChanged = trackerPanel.changed;
 				return true;
 			}
@@ -1886,7 +1891,7 @@ public class TrackerIO extends VideoIO {
 
 			if (TrackerPanel.class.isAssignableFrom(ctype)) {
 				type = TYPE_TRK;
-				trackerPanel = frame.getCleanTrackerPanel();
+				trackerPanel = frame.getCleanTrackerPanel().ref(this);
 				return true;
 			}
 
@@ -2246,8 +2251,10 @@ public class TrackerIO extends VideoIO {
 			checkDone(false);			
 			// remove empty tab if running in Java
 			if (!OSPRuntime.isJS) {
+				TToolBar tbar = frame.getToolbar(trackerPanel);
 				SwingUtilities.invokeLater(()->{
-					frame.getToolbar(trackerPanel).refresh(TToolBar.REFRESH_TFRAME_REFRESH_TRUE);
+					if (tbar != null)
+						tbar.refresh(TToolBar.REFRESH_TFRAME_REFRESH_TRUE);
 					frame.doTabStateChanged();
 				});
 			}

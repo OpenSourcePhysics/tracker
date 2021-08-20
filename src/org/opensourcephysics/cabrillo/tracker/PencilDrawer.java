@@ -35,6 +35,8 @@ import java.util.Collections;
 import java.util.HashMap;
 
 import javax.swing.ImageIcon;
+
+import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.display.GUIUtils;
 import org.opensourcephysics.display.Interactive;
 import org.opensourcephysics.display.InteractivePanel;
@@ -80,7 +82,7 @@ public class PencilDrawer {
    * @param panel a TrackerPanel
    */
 	private PencilDrawer(TrackerPanel panel) {
-		trackerPanel = panel;
+		trackerPanel = panel.ref(this);
 	}
 
   /** 
@@ -426,6 +428,7 @@ public class PencilDrawer {
    * Disposes of this drawer and associated PencilControl
    */
   protected void dispose() {
+	  System.out.println("PencilDrawer.dispose");
 		clearScenes();
 		if (drawingControl!=null) drawingControl.dispose();
   	trackerPanel = null;
@@ -441,4 +444,9 @@ public class PencilDrawer {
 		}
   }
 
+
+	@Override
+	public void finalize() {
+		OSPLog.finalized(this);
+	}
 }

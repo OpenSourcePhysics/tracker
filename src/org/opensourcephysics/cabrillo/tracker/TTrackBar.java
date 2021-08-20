@@ -104,7 +104,7 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 	 */
 	TTrackBar(TrackerPanel panel) {
 		System.out.println("Creating trackbar for " + panel);
-		trackerPanel = panel;
+		trackerPanel = panel.ref(this);
 		trackerPanel.addListeners(panelProps, this);
 //		createGUI();
 //		refresh();

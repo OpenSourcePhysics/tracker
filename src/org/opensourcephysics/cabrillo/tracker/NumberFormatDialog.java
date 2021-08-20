@@ -66,6 +66,7 @@ import javax.swing.border.TitledBorder;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
+import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.display.DataFunction;
 import org.opensourcephysics.display.Dataset;
 import org.opensourcephysics.display.DatasetManager;
@@ -92,6 +93,14 @@ public class NumberFormatDialog extends JDialog {
 
 	// instance fields
 	TrackerPanel trackerPanel;
+	
+	public void dispose() {
+		super.dispose();
+		trackerPanel = null;
+		
+	}
+
+	
 	int trackID = -1;
 	JButton closeButton, helpButton, revertButton;
 	JComboBox<Object> trackDropdown;
@@ -173,11 +182,18 @@ public class NumberFormatDialog extends JDialog {
 	 */
 	private NumberFormatDialog(TrackerPanel tPanel) {
 		super(tPanel.getTFrame(), true);
-		trackerPanel = tPanel;
+		System.out.println("NumberFormatDialog for " + tPanel.getClass().getSimpleName());
+		trackerPanel = tPanel.ref(this);
 		createGUI();
 		refreshGUI();
 	}
 
+
+	@Override
+	public void finalize() {
+		OSPLog.finalized(this);
+	}
+	
 	/**
 	 * Sets the variables and initially selected names displayed in this
 	 * NumberFormatDialog.
@@ -583,6 +599,11 @@ public class NumberFormatDialog extends JDialog {
 			track.firePropertyChange(TTrack.PROPERTY_TTRACK_FORMAT, null, null); // $NON-NLS-1$			
 	}
 
+	public void setVisible(boolean b) {
+		super.setVisible(b);
+		if (!b) 
+			dispose();
+	}
 	/**
 	 * Sets the font level of this dialog.
 	 *

@@ -131,7 +131,7 @@ public class TrackControl extends JDialog
     setResizable(false);
     pack();
     popup = new JPopupMenu();
-    trackerPanel = panel;
+    trackerPanel = panel.ref(this);
 	trackerPanel.addListeners(panelProps, this);		
     TFrame frame = trackerPanel.getTFrame();
     frame.addFollower(this, null);
@@ -156,7 +156,8 @@ public class TrackControl extends JDialog
 		super.setVisible(vis);
 		wasVisible = vis;
 		TToolBar toolbar = TToolBar.getToolbar(trackerPanel);
-		toolbar.trackControlButton.setSelected(vis);
+		if (toolbar != null)
+			toolbar.trackControlButton.setSelected(vis);
 	}
 	
 	private void positionForFrame() {
@@ -205,16 +206,12 @@ public class TrackControl extends JDialog
 		refresh();
 	}
 
-  @Override
-  public void finalize() {
-		OSPLog.finalized(this);
-  }
-
   /**
    * Disposes of this track control.
    */
   @Override
 public void dispose() {
+	  System.out.println("TrackControl.dispose");
     if (trackerPanel != null) {
     	trackerPanel.removeListeners(panelProps, this);		
       TFrame frame = trackerPanel.getTFrame();
@@ -224,10 +221,11 @@ public void dispose() {
       controls.remove(trackerPanel);
       trackerPanel.trackControl = null;
       ArrayList<TTrack> tracks = trackerPanel.getTracks();
-      trackerPanel = null;
       for (int i = tracks.size(); --i >= 0;) { //: TTrack.activeTracks.keySet()) {
       	tracks.get(i).removeListenerNCF(this);
       }
+      tracks.clear();
+      trackerPanel = null;
     }
     super.dispose();
   }
@@ -315,6 +313,12 @@ public void dispose() {
       frame.addPropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, this); //$NON-NLS-1$
     }
   }
+
+	@Override
+	public void finalize() {
+		OSPLog.finalized(this);
+	}
+
 
 }
 

@@ -128,7 +128,7 @@ public class PageTView extends JPanel implements TView {
 	 * @param panel the tracker panel
 	 */
 	protected PageTView(TrackerPanel panel) {
-		trackerPanel = panel;
+		trackerPanel = panel.ref(this);
 		if (panel == null)
 			return;
 		setBackground(panel.getBackground());
@@ -521,11 +521,6 @@ public class PageTView extends JPanel implements TView {
 		if (trackerPanel != null && refreshToolbar) {
 			TToolBar.getToolbar(trackerPanel).refresh(TToolBar.REFRESH_PAGETVIEW_TABS);
 		}
-	}
-
-	@Override
-	public void finalize() {
-		OSPLog.finalized(this);
 	}
 
 	/**
@@ -1116,5 +1111,11 @@ public class PageTView extends JPanel implements TView {
 			return obj;
 		}
 	}
+
+	@Override
+	public void finalize() {
+		OSPLog.finalized(this);
+	}
+
 
 }

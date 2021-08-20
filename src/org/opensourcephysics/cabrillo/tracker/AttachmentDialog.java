@@ -86,7 +86,7 @@ public class AttachmentDialog extends JDialog implements PropertyChangeListener 
 	 */
 	public AttachmentDialog(TTrack track) {
 		super(JOptionPane.getFrameForComponent(track.trackerPanel), false);
-		trackerPanel = track.trackerPanel;
+		trackerPanel = track.trackerPanel.ref(this);
 		createGUI();
 		setMeasuringTool(track);
 		refreshDropdowns();

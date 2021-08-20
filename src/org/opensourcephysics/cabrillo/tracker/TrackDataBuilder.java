@@ -58,7 +58,7 @@ public class TrackDataBuilder extends FunctionTool {
 	 */
 	protected TrackDataBuilder(TrackerPanel trackerPanel) {
 		super(trackerPanel, false, true);
-		this.trackerPanel = trackerPanel;
+		this.trackerPanel = trackerPanel.ref(this);
 		
 		addPropertyChangeListener(PROPERTY_FUNCTIONTOOL_PANEL, trackerPanel); // $NON-NLS-1$
 		addPropertyChangeListener(PROPERTY_FUNCTIONTOOL_FUNCTION, trackerPanel); // $NON-NLS-1$

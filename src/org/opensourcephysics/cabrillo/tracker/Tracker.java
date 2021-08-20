@@ -589,7 +589,7 @@ public class Tracker {
 	/**
 	 * watching for finalization of TrackerPanel
 	 */
-	private static boolean testingFinal = false; //TEST_BH
+	private static boolean testingFinal = true; //TEST_BH
 
 	/**
 	 * 
@@ -1951,15 +1951,16 @@ public class Tracker {
 			TFrame frame = start(args);
 
 			if (testingFinal) { // TEST_BH
-				testFinalize(frame);
+				//testFinalize(frame);
 			}
 		}
 	}
 
 	private static void testFinalize(TFrame frame) {
+		
 		new Thread(()->{
 		try {
-			Thread.currentThread().sleep(30500);
+			Thread.currentThread().sleep(5000);
 			TrackerPanel panel = testPanel;
 			if (panel == null)
 				panel = frame.getTrackerPanel(0);

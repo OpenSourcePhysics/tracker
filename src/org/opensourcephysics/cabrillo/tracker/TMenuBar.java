@@ -361,7 +361,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements PropertyChan
 		if (trackerPanel != null) {
 			trackerPanel.removeListeners(panelProps, this);
 		}
-		trackerPanel = panel;
+		trackerPanel = panel.ref(this);
 		trackerPanel.addListeners(panelProps, this);
 	}
 
@@ -1346,73 +1346,73 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements PropertyChan
 		if (isTainted(MENU_FILE)) {
 			// refresh file menu
 			fileMenu.removeAll();
-			//if (!OSPRuntime.isApplet) {
-				// update save and close items
-				file_saveItem.setEnabled(trackerPanel.getDataFile() != null);
-				String name = trackerPanel.getTitle();
-				name = " \"" + name + "\""; //$NON-NLS-1$ //$NON-NLS-2$
-				file_closeItem.setText(TrackerRes.getString("TActions.Action.Close") + name); //$NON-NLS-1$
-				file_saveItem.setText(TrackerRes.getString("TActions.Action.Save") + name); //$NON-NLS-1$
-				if (trackerPanel.isEnabled("file.new")) { //$NON-NLS-1$
-					fileMenu.add(file_newTabItem);
-				}
-				if (file_replaceTabItem != null) {
-					fileMenu.add(file_replaceTabItem);
-				}
+			// if (!OSPRuntime.isApplet) {
+			// update save and close items
+			file_saveItem.setEnabled(trackerPanel.getDataFile() != null);
+			String name = trackerPanel.getTitle();
+			name = " \"" + name + "\""; //$NON-NLS-1$ //$NON-NLS-2$
+			file_closeItem.setText(TrackerRes.getString("TActions.Action.Close") + name); //$NON-NLS-1$
+			file_saveItem.setText(TrackerRes.getString("TActions.Action.Save") + name); //$NON-NLS-1$
+			if (trackerPanel.isEnabled("file.new")) { //$NON-NLS-1$
+				fileMenu.add(file_newTabItem);
+			}
+			if (file_replaceTabItem != null) {
+				fileMenu.add(file_replaceTabItem);
+			}
 
-				if (trackerPanel.isEnabled("file.open")) { //$NON-NLS-1$
-					checkAddMenuSep(fileMenu);
-					fileMenu.add(file_openItem);
-//	    fileMenu.add(openURLItem);
-					if (!OSPRuntime.isJS)
-						fileMenu.add(file_openRecentMenu);
-				}
-				boolean showLib = trackerPanel.isEnabled("file.open") || trackerPanel.isEnabled("file.export"); //$NON-NLS-1$ //$NON-NLS-2$
-				if (showLib && trackerPanel.isEnabled("file.library")) { //$NON-NLS-1$
-					checkAddMenuSep(fileMenu);
-					if (trackerPanel.isEnabled("file.open")) //$NON-NLS-1$
-						fileMenu.add(file_openBrowserItem);
-//					if (trackerPanel.isEnabled("file.export")) fileMenu.add(saveZipAsItem); //$NON-NLS-1$
-				}
-				if (trackerPanel.isEnabled("file.close")) { //$NON-NLS-1$
-					checkAddMenuSep(fileMenu);
-					fileMenu.add(file_closeItem);
-					fileMenu.add(file_closeAllItem);
-				}
-				if (trackerPanel.isEnabled("file.save") //$NON-NLS-1$
-						|| trackerPanel.isEnabled("file.saveAs")) { //$NON-NLS-1$
-					checkAddMenuSep(fileMenu);
-					if (trackerPanel.isEnabled("file.save")) //$NON-NLS-1$
-						fileMenu.add(file_saveItem);
-					if (trackerPanel.isEnabled("file.saveAs")) { //$NON-NLS-1$
-						fileMenu.add(file_saveAsItem);
-						if (trackerPanel.getVideo() != null) {
-							fileMenu.add(saveVideoAsItem);
-						}
-						fileMenu.add(file_saveZipAsItem);
-						fileMenu.add(file_saveTabsetAsItem);
-					}
-				}
-				if (trackerPanel.isEnabled("file.import") //$NON-NLS-1$
-						|| trackerPanel.isEnabled("file.export")) { //$NON-NLS-1$
-					checkAddMenuSep(fileMenu);
-					if (trackerPanel.isEnabled("file.import")) //$NON-NLS-1$
-						fileMenu.add(file_importMenu);
-					if (trackerPanel.isEnabled("file.export")) //$NON-NLS-1$
-						fileMenu.add(file_exportMenu);
-				}
-			//}
+			if (trackerPanel.isEnabled("file.open")) { //$NON-NLS-1$
 				checkAddMenuSep(fileMenu);
+				fileMenu.add(file_openItem);
+//	    fileMenu.add(openURLItem);
+				if (!OSPRuntime.isJS)
+					fileMenu.add(file_openRecentMenu);
+			}
+			boolean showLib = trackerPanel.isEnabled("file.open") || trackerPanel.isEnabled("file.export"); //$NON-NLS-1$ //$NON-NLS-2$
+			if (showLib && trackerPanel.isEnabled("file.library")) { //$NON-NLS-1$
+				checkAddMenuSep(fileMenu);
+				if (trackerPanel.isEnabled("file.open")) //$NON-NLS-1$
+					fileMenu.add(file_openBrowserItem);
+//					if (trackerPanel.isEnabled("file.export")) fileMenu.add(saveZipAsItem); //$NON-NLS-1$
+			}
+			if (trackerPanel.isEnabled("file.close")) { //$NON-NLS-1$
+				checkAddMenuSep(fileMenu);
+				fileMenu.add(file_closeItem);
+				fileMenu.add(file_closeAllItem);
+			}
+			if (trackerPanel.isEnabled("file.save") //$NON-NLS-1$
+					|| trackerPanel.isEnabled("file.saveAs")) { //$NON-NLS-1$
+				checkAddMenuSep(fileMenu);
+				if (trackerPanel.isEnabled("file.save")) //$NON-NLS-1$
+					fileMenu.add(file_saveItem);
+				if (trackerPanel.isEnabled("file.saveAs")) { //$NON-NLS-1$
+					fileMenu.add(file_saveAsItem);
+					if (trackerPanel.getVideo() != null) {
+						fileMenu.add(saveVideoAsItem);
+					}
+					fileMenu.add(file_saveZipAsItem);
+					fileMenu.add(file_saveTabsetAsItem);
+				}
+			}
+			if (trackerPanel.isEnabled("file.import") //$NON-NLS-1$
+					|| trackerPanel.isEnabled("file.export")) { //$NON-NLS-1$
+				checkAddMenuSep(fileMenu);
+				if (trackerPanel.isEnabled("file.import")) //$NON-NLS-1$
+					fileMenu.add(file_importMenu);
+				if (trackerPanel.isEnabled("file.export")) //$NON-NLS-1$
+					fileMenu.add(file_exportMenu);
+			}
+			// }
+			checkAddMenuSep(fileMenu);
 			fileMenu.add(file_propertiesItem);
 			if (trackerPanel.isEnabled("file.print")) { //$NON-NLS-1$
 				checkAddMenuSep(fileMenu);
 				fileMenu.add(file_printFrameItem);
 			}
 			// exit menu always added except in applets
-			//if (!OSPRuntime.isApplet) {
-				checkAddMenuSep(fileMenu);
-				fileMenu.add(file_exitItem);
-			//}
+			// if (!OSPRuntime.isApplet) {
+			checkAddMenuSep(fileMenu);
+			fileMenu.add(file_exitItem);
+			// }
 			FontSizer.setMenuFonts(fileMenu);
 			setMenuTainted(MENU_FILE, false);
 		}
@@ -2332,7 +2332,6 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements PropertyChan
 	 * Refreshes the Window menu for a TrackerPanel.
 	 * 
 	 * @param opening      TODO
-	 * @param trackerPanel the TrackerPanel
 	 */
 	public void refreshWindowMenu(boolean opening) {
 		// long t0 = Performance.now(0);

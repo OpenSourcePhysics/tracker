@@ -86,7 +86,7 @@ public class MainTView extends JPanel implements TView {
 	 * @param panel the tracker panel
 	 */
 	public MainTView(TrackerPanel panel) {
-		trackerPanel = panel;
+		trackerPanel = panel.ref(this);
 		init();
 		setLayout(new BorderLayout());
 		playerBar = new JToolBar();
@@ -99,7 +99,9 @@ public class MainTView extends JPanel implements TView {
 		// add trackbar north
 		
 		//TEST_BH MEMORY LEAK HERE
-		add(TTrackBar.getTrackbar(trackerPanel), BorderLayout.NORTH);
+		TTrackBar tbar = TTrackBar.getTrackbar(trackerPanel);
+		if (tbar != null)
+			add(tbar, BorderLayout.NORTH);
 
 		// add player to the playerBar
 		playerBar.setFloatable(false);
@@ -267,7 +269,9 @@ public class MainTView extends JPanel implements TView {
 		if ((d = scrollPane.getSize()).equals(lastDim))
 			return;
 		lastDim = d;
-		TToolBar.getToolbar(trackerPanel).refreshZoomButton();
+		TToolBar tbar = TToolBar.getToolbar(trackerPanel);
+		if (tbar != null)
+			tbar.refreshZoomButton();
 		trackerPanel.eraseAll();
 	}
 
@@ -425,11 +429,6 @@ public class MainTView extends JPanel implements TView {
 		scrollPane = null;
 		removeAll();
 		trackerPanel = null;
-	}
-
-	@Override
-	public void finalize() {
-		OSPLog.finalized(this);
 	}
 
 	/**
@@ -623,6 +622,11 @@ public class MainTView extends JPanel implements TView {
 	@Override
 	public void refreshPopup(JPopupMenu popup) {
 		// does nothing
+	}
+
+	@Override
+	public void finalize() {
+		OSPLog.finalized(this);
 	}
 
 

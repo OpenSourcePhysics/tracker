@@ -1263,6 +1263,7 @@ public class PointMass extends TTrack {
 
 	@Override
 	public void dispose() {
+		System.out.println("PointMasss.dispose");
 		if (trackerPanel != null) {
 			trackerPanel.removePointMassListeners(this);
 		}

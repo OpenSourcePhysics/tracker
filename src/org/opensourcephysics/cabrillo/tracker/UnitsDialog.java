@@ -60,7 +60,7 @@ public class UnitsDialog extends JDialog {
    */
   public UnitsDialog(TrackerPanel trackerPanel) {
     super(JOptionPane.getFrameForComponent(trackerPanel), true);
-  	this.trackerPanel = trackerPanel;
+  	this.trackerPanel = trackerPanel.ref(this);
   	if (frame==null) frame = trackerPanel.getTFrame();
     createGUI();
     refreshGUI();

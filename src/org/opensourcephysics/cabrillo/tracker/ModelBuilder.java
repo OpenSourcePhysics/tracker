@@ -65,7 +65,7 @@ public class ModelBuilder extends FunctionTool {
 	 */
 	protected ModelBuilder(TrackerPanel trackerPanel) {
 		super(trackerPanel, false, true);
-		this.trackerPanel = trackerPanel;
+		this.trackerPanel = trackerPanel.ref(this);
 	}
 
 	@Override

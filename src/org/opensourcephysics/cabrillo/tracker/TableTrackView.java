@@ -2450,4 +2450,10 @@ public class TableTrackView extends TrackView {
 		return super.isRefreshEnabled() && Tracker.allowTableRefresh;
 	}
 
+	@Override
+	public void finalize() {
+		OSPLog.finalized(this);
+	}
+
+
 }

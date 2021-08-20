@@ -63,6 +63,7 @@ import javax.swing.JViewport;
 import javax.swing.WindowConstants;
 import javax.swing.event.MouseInputAdapter;
 
+import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.controls.XMLControlElement;
@@ -172,7 +173,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 	public TrackPlottingPanel(TTrack track, DatasetManager data) {
 		super(" ", " ", " "); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 		displayCoordsOnMouseMoved = false;
-		trackerPanel = track.trackerPanel;
+		trackerPanel = track.trackerPanel.ref(this);
 		trackID = track.getID();
 		this.datasetManager = data;
 		dataset.setConnected(true);
@@ -1948,4 +1949,11 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 	public String toString() {
 		return "[TrackPlottingPanel " + id + " " + TTrack.getTrack(trackID).getName() + " " + yName + " vs. " + xName + " ]"; 
 	}
+	
+	@Override
+	public void finalize() {
+		OSPLog.finalized(this);
+	}
+
+
 }
