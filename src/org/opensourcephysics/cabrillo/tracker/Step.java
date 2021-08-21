@@ -209,7 +209,7 @@ public abstract class Step implements Cloneable {
 	 * Erases this on all tracker panels.
 	 */
 	public void erase() {
-		if (marks.isEmpty())
+		if (marks.isEmpty() || frame == null)
 			return;
 		Iterator<Integer> it = marks.keySet().iterator();
 		while (it.hasNext())
