@@ -627,13 +627,7 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
 		super.paint(g);
 	}
 	
-	
-	@Override
-	public String toString() {
-		return getName() + " " + Arrays.toString(tViews);
-	}
-
-	public static TViewChooser getChooserParent(Container c) {
+		public static TViewChooser getChooserParent(Container c) {
 		while ((c = c.getParent()) != null && !(c instanceof TViewChooser)) {}
 		return (TViewChooser) c;
 	}
@@ -675,14 +669,14 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
 		CardLayout cl = (CardLayout) viewPanel.getLayout();
 		for (TView view : tViews) {
 			if (view != null) {
-			((Component) view).removePropertyChangeListener("trackview", this); //$NON-NLS-1$
-			cl.removeLayoutComponent((JComponent) view);
-			view.dispose();
-		}
+				((Component) view).removePropertyChangeListener("trackview", this); //$NON-NLS-1$
+				cl.removeLayoutComponent((JComponent) view);
+				view.dispose();
+			}
 		}
 		tViews = null;
 		selectedView = null;
-		
+
 		TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
 		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this); // $NON-NLS-1$
 		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR, this); // $NON-NLS-1$
@@ -692,5 +686,9 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
 		frame = null;
 	}
 
+	@Override
+	public String toString() {
+		return getName() + " " + Arrays.toString(tViews);
+	}
 
 }

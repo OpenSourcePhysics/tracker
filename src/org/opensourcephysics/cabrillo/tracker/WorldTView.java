@@ -223,11 +223,13 @@ public class WorldTView extends TrackerPanel implements TView {
 	@Override
 	public void cleanup() {
 		// remove this listener from tracker panel
-		TrackerPanel trackerPanel = frame.getTrackerPanelForID(displayedPanelID);
-		trackerPanel.removeListeners(panelProps, this);
-		// remove this listener from tracks
-		for (Integer n : TTrack.activeTracks.keySet()) {
-			TTrack.activeTracks.get(n).removePropertyChangeListener(TTrack.PROPERTY_TTRACK_COLOR, this); // $NON-NLS-1$
+		if (displayedPanelID != null) {
+			TrackerPanel trackerPanel = frame.getTrackerPanelForID(displayedPanelID);
+			trackerPanel.removeListeners(panelProps, this);
+			// remove this listener from tracks
+			for (Integer n : TTrack.activeTracks.keySet()) {
+				TTrack.activeTracks.get(n).removePropertyChangeListener(TTrack.PROPERTY_TTRACK_COLOR, this); // $NON-NLS-1$
+			}
 		}
 	}
 
@@ -238,11 +240,14 @@ public class WorldTView extends TrackerPanel implements TView {
 	@Override
 	public void dispose() {
 		cleanup();
-		TrackerPanel trackerPanel = frame.getTrackerPanelForID(displayedPanelID);
-		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR, this);
-		trackerPanel.removePropertyChangeListener(FunctionTool.PROPERTY_FUNCTIONTOOL_FUNCTION, this);
-		displayedPanelID = null;
-		frame = null;
+		if (displayedPanelID != null) {
+			TrackerPanel trackerPanel = frame.getTrackerPanelForID(displayedPanelID);
+			trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR, this);
+			trackerPanel.removePropertyChangeListener(FunctionTool.PROPERTY_FUNCTIONTOOL_FUNCTION, this);
+			displayedPanelID = null;
+		}
+		toolbarComponents = null;
+		frame.removePanelRef(panelID);
 		super.dispose();
 	}
 
@@ -514,11 +519,6 @@ public class WorldTView extends TrackerPanel implements TView {
 			return obj;
 		}
 
-	}
-
-	@Override
-	public void finalize() {
-		OSPLog.finalized(this);
 	}
 
 	@Override

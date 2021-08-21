@@ -3352,7 +3352,7 @@ public class TrackerPanel extends VideoPanel implements TFrame.Disposable, Scrol
 	@Override
 	public void dispose() {
 		
-		System.out.println("TrackerPanel.dispose " + panelID);
+		System.out.println(this.getClass().getSimpleName() + ".dispose " + panelID);
 		
 		// remove property change listeners
 		if (frame != null) {
@@ -5029,10 +5029,6 @@ public class TrackerPanel extends VideoPanel implements TFrame.Disposable, Scrol
 		return this;
 	}
 
-	@Override
-	public void finalize() {
-		System.out.println("-------HOORAY!!!!!!!------------------------------OSPLog.finalized(this)---------");
-	}
 
 	/**
 	 * Return the actual panel, which in the case of WorldTView is not this, rather the TrackerPanel it was initialized with.
@@ -5064,5 +5060,10 @@ public class TrackerPanel extends VideoPanel implements TFrame.Disposable, Scrol
 		return "[" + this.getClass().getSimpleName() + " " + panelID + " " + getTabName() + "]";
 	}
 
+	@Override
+	public void finalize() {
+		System.out.println("-------HOORAY!!!!!!!----------------");
+		OSPLog.finalized(this);
+	}
 
 }
