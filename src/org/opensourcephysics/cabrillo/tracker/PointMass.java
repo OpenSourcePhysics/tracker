@@ -1713,7 +1713,7 @@ public class PointMass extends TTrack {
 	public boolean isVVisible(TrackerPanel trackerPanel) {
 		if (vVisibleOnAll)
 			return true;
-		trackerPanel = trackerPanel.getTruePanel();
+		trackerPanel = trackerPanel.getDisplayedPanel();
 		Boolean vis = vVisMap.get(trackerPanel.getID());
 		if (vis == null) {
 			vis = Boolean.valueOf(false); // not visible by default
@@ -1788,7 +1788,7 @@ public class PointMass extends TTrack {
 	public boolean isPositionVisible(TrackerPanel trackerPanel) {
 		if (xVisibleOnAll)
 			return true;
-		trackerPanel = trackerPanel.getTruePanel();
+		trackerPanel = trackerPanel.getDisplayedPanel();
 		Boolean vis = xVisMap.get(trackerPanel.getID());
 		if (vis == null) {
 			vis = Boolean.valueOf(true); // positions are visible by default
@@ -1866,7 +1866,7 @@ public class PointMass extends TTrack {
 	public boolean isAVisible(TrackerPanel trackerPanel) {
 		if (aVisibleOnAll)
 			return true;
-		trackerPanel = trackerPanel.getTruePanel();
+		trackerPanel = trackerPanel.getDisplayedPanel();
 		Boolean vis = aVisMap.get(trackerPanel.getID());
 		if (vis == null) {
 			vis = Boolean.valueOf(false); // not visible by default

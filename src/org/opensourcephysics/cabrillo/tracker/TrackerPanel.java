@@ -266,19 +266,19 @@ public class TrackerPanel extends VideoPanel implements TFrame.Disposable, Scrol
 
 	/**
 	 * Constructs a blank TrackerPanel with a player.
+	 * 
+	 * We need a frame -  at the very least, new TFrame()
 	 */
 	public TrackerPanel() {
-		this((Video) null);
+		this(null, null);
+		// no gui, no frame, no panelID. 
 	}
 
 	/**
-	 * Constructs a blank TrackerPanel with a player.
+	 * Constructs a blank TrackerPanel with a player and GUI.
 	 */
 	public TrackerPanel(TFrame frame) {
-		super(null);
-		this.frame = frame;
-		selectedSteps = new StepSet(frame, panelID);
-		setGUI();
+		this(frame, null);
 	}
 
 	/**
@@ -286,17 +286,25 @@ public class TrackerPanel extends VideoPanel implements TFrame.Disposable, Scrol
 	 *
 	 * @param video the video
 	 */
-	public TrackerPanel(Video video) {
+	public TrackerPanel(TFrame frame, Video video) {
 		super(video);
+		setTFrame(frame == null ? new TFrame() : frame);
 		setGUI();
 	}
 	
+	public void setTFrame(TFrame frame) {
+		this.frame = frame;
+		panelID = frame.nextPanelID(this); 
+		System.out.println("TrackerPanel " + this + " created");
+		// If have GUI.... what?
+	}
+
 	public Map<String, AbstractAction> getActions() {
 		return actions;
 	}
 	
 	private void setGUI() {
-		panelID = TFrame.nextPanelID(); 	
+		selectedSteps = new StepSet(frame, panelID);
 		actions = TActions.createActions(this);
 		displayCoordsOnMouseMoved = true;		
 		zoomBox.setShowUndraggedBox(false);
@@ -3674,14 +3682,14 @@ public class TrackerPanel extends VideoPanel implements TFrame.Disposable, Scrol
 		public XMLControl control;
 
 		/**
-		 * Creates an object.
+		 * Creates an object having no frame or video (yet)
 		 *
 		 * @param control the control
 		 * @return the newly created object
 		 */
 		@Override
 		public Object createObject(XMLControl control) {
-			return new TrackerPanel();
+			return new TrackerPanel(null, null);
 		}
 
 		/**
@@ -3704,7 +3712,7 @@ public class TrackerPanel extends VideoPanel implements TFrame.Disposable, Scrol
 			this.control = control;
 			switch (trackerPanel.progress) {
 			case VideoIO.PROGRESS_LOAD_INIT:
-				// BH adds early setting of frame.
+				// immediately set the frame
 				trackerPanel.frame = asyncloader.getFrame();
 				trackerPanel.frame.holdPainting(true);
 				// load the dividers
@@ -3879,7 +3887,7 @@ public class TrackerPanel extends VideoPanel implements TFrame.Disposable, Scrol
 					if (child != null) {
 						TToolBar toolbar = new TToolBar(trackerPanel);
 						child.loadObject(toolbar);
-						TFrame.setToolBar(trackerPanel, toolbar);
+						trackerPanel.frame.setToolBar(trackerPanel, toolbar);
 					}
 					// load the coords
 					child = control.getChildControl("coords"); //$NON-NLS-1$
@@ -4538,10 +4546,6 @@ public class TrackerPanel extends VideoPanel implements TFrame.Disposable, Scrol
 		super.setVisible(b);
 	}
 
-	public void setTFrame(TFrame frame) {
-		this.frame = frame;
-	}
-
 	public void notifyLoadingComplete() {
 		setIgnoreRepaint(false);
 		firePropertyChange(PROPERTY_TRACKERPANEL_LOADED, null, null);
@@ -4987,11 +4991,6 @@ public class TrackerPanel extends VideoPanel implements TFrame.Disposable, Scrol
 			removePropertyChangeListener(names[i], listener);
 	}
 
-	@Override
-	public String toString() {
-		return "[TrackerPanel " + panelID + " " + getTabName() + "]";
-	}
-
 	public void refreshNotesDialog() {
 		if (frame != null)
 			frame.updateNotesDialog(this);
@@ -5001,7 +5000,7 @@ public class TrackerPanel extends VideoPanel implements TFrame.Disposable, Scrol
 	
 	public static void main(String[] args) {
 
-		TrackerPanel p = new TrackerPanel();
+		TrackerPanel p = new TrackerPanel(null, null);
 
 		try {
 
@@ -5040,7 +5039,7 @@ public class TrackerPanel extends VideoPanel implements TFrame.Disposable, Scrol
 	 * 
 	 * @return
 	 */
-	public TrackerPanel getTruePanel() {
+	public TrackerPanel getDisplayedPanel() {
 		return this;
 	}
 
@@ -5059,5 +5058,11 @@ public class TrackerPanel extends VideoPanel implements TFrame.Disposable, Scrol
 	public TTrackBar getTrackBar() {
 		return frame.getTrackbar(panelID);
 	}
+
+	@Override
+	public String toString() {
+		return "[" + this.getClass().getSimpleName() + " " + panelID + " " + getTabName() + "]";
+	}
+
 
 }

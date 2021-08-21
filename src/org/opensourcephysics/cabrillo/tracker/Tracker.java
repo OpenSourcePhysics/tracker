@@ -2722,6 +2722,7 @@ public class Tracker {
 						TrackerRes.getString("TrackDataBuilder.Dialog.ConvertAutoload.Title"), //$NON-NLS-1$
 						JOptionPane.YES_NO_OPTION);
 				if (response == JOptionPane.YES_OPTION) {
+					// this panel will not have a frame or 
 					TrackDataBuilder builder = new TrackDataBuilder(new TrackerPanel());
 					int i = 0;
 					for (String next : dataFunctionControlStrings) {

@@ -1844,7 +1844,7 @@ public class TrackerIO extends VideoIO {
 			
 			if (isTRZ || path.indexOf("&TrackerSet=") >= 0) {
 				type = TYPE_TRZ;
-				panelID = frame.getCleanTrackerPanel().getID();
+				// doesn't seem to be necessary? panelID = frame.getCleanTrackerPanel().getID();
 				frame.holdPainting(true);
 				return true;
 			}
@@ -1888,7 +1888,8 @@ public class TrackerIO extends VideoIO {
 
 			if (TrackerPanel.class.isAssignableFrom(ctype)) {
 				type = TYPE_TRK;
-				panelID = frame.getCleanTrackerPanel().getID();
+				if (panelID == null)
+					panelID = frame.getCleanTrackerPanel().getID();
 				return true;
 			}
 

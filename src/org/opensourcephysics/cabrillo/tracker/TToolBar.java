@@ -2082,4 +2082,9 @@ public class TToolBar extends JToolBar implements TFrame.Disposable, PropertyCha
 		return (frame == null ? null : frame.getTrackerPanelForID(panelID));
 	}
 
+	@Override
+	public String toString() {
+		return "[TToolBar " + panelID + "]";
+	}
+
 }

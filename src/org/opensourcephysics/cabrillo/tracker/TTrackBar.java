@@ -697,4 +697,9 @@ public class TTrackBar extends JToolBar implements TFrame.Disposable, PropertyCh
 	}
 
 
+	@Override
+	public String toString() {
+		return "[TTrackBar " + panelID + "]";
+	}
+
 }

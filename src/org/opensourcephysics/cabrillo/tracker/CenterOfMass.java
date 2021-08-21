@@ -110,7 +110,7 @@ public class CenterOfMass extends PointMass {
 	public void initialize(TrackerPanel panel) {
 		if (initialized)
 			return;
-		panel = panel.getTruePanel();
+		panel = panel.getDisplayedPanel();
 		ArrayList<PointMass> masses = panel.getDrawablesTemp(PointMass.class);
 		for (int i = 0, n = massNames.size(); i < n; i++) {
 			String name = massNames.get(i);
