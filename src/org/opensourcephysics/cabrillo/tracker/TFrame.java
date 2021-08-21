@@ -954,20 +954,21 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 
 
 		// change menubar and show floating player of newly selected tab, if any
-		TTabPanel panel = (TTabPanel) tabbedPane.getSelectedComponent();
+		
+		tabPanel = (TTabPanel) tabbedPane.getSelectedComponent();
 		// OSPLog.debug(Performance.timeCheckStr("TFrame.removeTab 8",
 		// Performance.TIME_MARK));
-		objects = (panel == null ? null : panel.getObjects());
+		objects = (tabPanel == null ? null : tabPanel.getObjects());
+		// need id of new tab being displayed, not the one removed
+		id = tabPanel.panelID.intValue(); // not nec., but a reminder that panelID is an Integer not int
 		JMenuBar currentBar = getJMenuBar();
-
 		if (currentBar == defaultMenuBar) {
 		} else if (objects == null) {
 			// show defaultMenuBar
 			setJMenuBar(defaultMenuBar);
-			((TMenuBar) currentBar).dispose();
+			// we need to also remove this menubar from the _amenubars array
+			Disposable.dispose(_amenubars, id);
 		} else {
-			// need id of new tab being displayed, not the one removed
-			id = panel.panelID;
 			setJMenuBar(getMenuBar(id));
 			getTrackbar(id).refresh();
 			playerBar = ((MainTView) objects[TFRAME_MAINVIEW]).getPlayerBar();
