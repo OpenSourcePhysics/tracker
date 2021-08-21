@@ -2582,7 +2582,8 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 	public void repaint(Step step) {
 		for (int j = 0; j < tp.panelAndWorldViews.size(); j++) {
 			TrackerPanel panel = frame.getTrackerPanelForTab(tp.panelAndWorldViews.get(j));
-			step.repaint(panel);
+			if (panel != null)
+				step.repaint(panel);
 		}
 	}
 

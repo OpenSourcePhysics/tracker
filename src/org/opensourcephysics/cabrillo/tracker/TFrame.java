@@ -966,6 +966,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			setJMenuBar(defaultMenuBar);
 			((TMenuBar) currentBar).dispose();
 		} else {
+			// need id of new tab being displayed, not the one removed
+			id = panel.panelID;
 			setJMenuBar(getMenuBar(id));
 			getTrackbar(id).refresh();
 			playerBar = ((MainTView) objects[TFRAME_MAINVIEW]).getPlayerBar();
