@@ -813,12 +813,12 @@ public class Tracker {
 		} else {
 			// use else here for SwingJS.
 			// remove the tabs but don't close if canceled
-			frame.saveAllTabs(new Function<TrackerPanel, Void>() {
+			frame.saveAllTabs(new Function<Integer, Void>() {
 				// for each approved, remove tab
 				@Override
-				public Void apply(TrackerPanel trackerPanel) {
+				public Void apply(Integer panelID) {
 //					frame.new TabRemover(trackerPanel).execute();
-					frame.removeTabSynchronously(trackerPanel);// new TabRemover(trackerPanel).executeSynchronously();
+					frame.removeTabSynchronously(panelID);// new TabRemover(trackerPanel).executeSynchronously();
 					return null;
 				}
 
@@ -1658,7 +1658,7 @@ public class Tracker {
 					TrackerPanel trackerPanel = tFrame.getSelectedPanel();
 					if (trackerPanel != null) {
 						trackerPanel.taintEnabled();
-						TToolBar.getToolbar(trackerPanel).refresh(TToolBar.REFRESH__NEW_VERSION);
+						trackerPanel.getToolBar().refresh(TToolBar.REFRESH__NEW_VERSION);
 //						trackerPanel.refreshTrackBar();
 					}
 				}
@@ -1963,7 +1963,7 @@ public class Tracker {
 			Thread.currentThread().sleep(5000);
 			TrackerPanel panel = testPanel;
 			if (panel == null)
-				panel = frame.getTrackerPanel(0);
+				panel = frame.getTrackerPanelForTab(0);
 			if (panel == null)
 				return;
 			if (!frame.doCloseAction(panel))

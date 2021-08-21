@@ -714,7 +714,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 			String currentTabTitle = ""; //$NON-NLS-1$
 			for (int i = 0; i < dialog.frame.getTabCount(); i++) {
 				String next = dialog.frame.getTabTitle(i);
-				if (dialog.frame.getTrackerPanel(i) == panel) {
+				if (dialog.frame.getTrackerPanelForTab(i) == panel) {
 					currentTabTitle = next;
 				}
 			}
@@ -1649,7 +1649,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 		for (int i = 0; i < frame.getTabCount(); i++) {
 			String next = frame.getTabTitle(i);
 			currentTabs.add(next);
-			if (frame.getTrackerPanel(i) == trackerPanel) {
+			if (frame.getTrackerPanelForTab(i) == trackerPanel) {
 				currentTabTitle = next;
 				currentTabNumber = i;
 			}
@@ -1805,7 +1805,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 		// enable if any tabs have videos
 		boolean hasVideo = frame.getTrackerPanelForID(panelID).getVideo() != null;
 		for (int i = 0; i < frame.getTabCount(); i++) {
-			hasVideo = hasVideo || (frame.getTrackerPanel(i) != null && frame.getTrackerPanel(i).getVideo() != null);
+			hasVideo = hasVideo || (frame.getTrackerPanelForTab(i) != null && frame.getTrackerPanelForTab(i).getVideo() != null);
 		}
 		clipCheckbox.setEnabled(hasVideo);
 		if (!hasVideo) {
@@ -2047,7 +2047,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 			JCheckBox box = tabCheckboxes.get(i);
 			if (!box.isSelected())
 				continue;
-			TrackerPanel panel = frame.getTrackerPanel(i);
+			TrackerPanel panel = frame.getTrackerPanelForTab(i);
 			if (panel == null)
 				return;
 			// get tab title to add to video and TRK names
@@ -2392,7 +2392,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 			JCheckBox box = tabCheckboxes.get(i);
 			if (!box.isSelected())
 				continue;
-			TrackerPanel panel = frame.getTrackerPanel(i);
+			TrackerPanel panel = frame.getTrackerPanelForTab(i);
 			if (panel == null)
 				continue;
 			VideoClip clip = panel.getPlayer().getVideoClip();
@@ -2626,7 +2626,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 		// check that target is not currently open in Tracker--can't overwrite open TRZ
 		if (!OSPRuntime.isJS && chooserFile.exists()) {
 			for (int i = 0; i < frame.getTabCount(); i++) {
-				String path = frame.getTrackerPanel(i).openedFromPath;
+				String path = frame.getTrackerPanelForTab(i).openedFromPath;
 				if (path != null && path.equals(XML.forwardSlash(chooserFile.getPath()))) {
 					javax.swing.JOptionPane.showMessageDialog(frame,
 							TrackerRes.getString("ExportZipDialog.Dialog.CannotOverwrite.Message"), //$NON-NLS-1$

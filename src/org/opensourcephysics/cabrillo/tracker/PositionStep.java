@@ -50,8 +50,8 @@ public class PositionStep extends Step {
 	protected Position p;
 	protected boolean labelVisible;
 	protected boolean rolloverVisible;
-	protected Map<TrackerPanel, TextLayout> textLayouts = new HashMap<TrackerPanel, TextLayout>();
-	protected Map<TrackerPanel, Rectangle> layoutBounds = new HashMap<TrackerPanel, Rectangle>();
+	protected Map<Integer, TextLayout> textLayouts = new HashMap<Integer, TextLayout>();
+	protected Map<Integer, Rectangle> layoutBounds = new HashMap<Integer, Rectangle>();
 	protected CircleFootprint innerCircleFootprint = new CircleFootprint("CircleFootprint.Circle", 2); //$NON-NLS-1$
 //  protected Font font;
 
@@ -137,7 +137,7 @@ public class PositionStep extends Step {
 			super.draw(trackerPanel, _g);
 			Graphics2D g = (Graphics2D) _g;
 			if (isLabelVisible()) {
-				TextLayout layout = textLayouts.get(trackerPanel);
+				TextLayout layout = textLayouts.get(trackerPanel.getID());
 				if (layout == null)
 					return;
 				Point p = getLayoutPosition(trackerPanel);
@@ -184,7 +184,7 @@ public class PositionStep extends Step {
 	 */
 	@Override
 	protected Mark getMark(TrackerPanel trackerPanel) {
-		Mark mark = marks.get(trackerPanel);
+		Mark mark = marks.get(trackerPanel.getID());
 		TPoint selection = null;
 		if (mark == null) {
 			selection = trackerPanel.getSelectedPoint();
@@ -263,7 +263,7 @@ public class PositionStep extends Step {
 					theMark.draw(g, highlighted);
 				}
 			};
-			marks.put(trackerPanel, mark);
+			marks.put(trackerPanel.getID(), mark);
 			// get new text layout
 			String s = ""; //$NON-NLS-1$
 			VideoClip clip = trackerPanel.getPlayer().getVideoClip();
@@ -273,13 +273,13 @@ public class PositionStep extends Step {
 			if (s.length() == 0)
 				s = " "; //$NON-NLS-1$
 			TextLayout layout = new TextLayout(s, TFrame.textLayoutFont, OSPRuntime.frc);
-			textLayouts.put(trackerPanel, layout);
+			textLayouts.put(trackerPanel.getID(), layout);
 			// get layout position (bottom left corner of text)
 			p = getLayoutPosition(trackerPanel);
-			Rectangle bounds = layoutBounds.get(trackerPanel);
+			Rectangle bounds = layoutBounds.get(trackerPanel.getID());
 			if (bounds == null) {
 				bounds = new Rectangle();
-				layoutBounds.put(trackerPanel, bounds);
+				layoutBounds.put(trackerPanel.getID(), bounds);
 			}
 			Rectangle2D rect = layout.getBounds();
 			// set bounds (top left corner and size)
@@ -298,8 +298,8 @@ public class PositionStep extends Step {
 		PositionStep step = (PositionStep) super.clone();
 		if (step != null)
 			step.points[0] = step.p = step.new Position(p.getX(), p.getY());
-		step.textLayouts = new HashMap<TrackerPanel, TextLayout>();
-		step.layoutBounds = new HashMap<TrackerPanel, Rectangle>();
+		step.textLayouts = new HashMap<Integer, TextLayout>();
+		step.layoutBounds = new HashMap<Integer, Rectangle>();
 		return step;
 	}
 

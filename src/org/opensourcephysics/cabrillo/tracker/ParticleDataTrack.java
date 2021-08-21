@@ -554,7 +554,6 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 	public ArrayList<Component> getToolbarTrackComponents(TrackerPanel trackerPanel) {
 		// create reload button here to insure that TFrame is defined
 		if (getLeader().reloadButton == null) {
-			final TFrame frame = trackerPanel.getTFrame();
 			frame.checkClipboardListener();
 			final int h = TTrackBar.getTrackbar(trackerPanel).toolbarComponentHeight;
 			getLeader().reloadButton = new JButton() {

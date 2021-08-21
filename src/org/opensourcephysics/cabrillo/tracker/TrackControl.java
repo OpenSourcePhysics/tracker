@@ -157,7 +157,7 @@ public class TrackControl extends JDialog implements PropertyChangeListener {
 			refresh();
 		super.setVisible(vis);
 		wasVisible = vis;
-		TToolBar toolbar = TToolBar.getToolbar(frame.getTrackerPanelForID(panelID));
+		TToolBar toolbar = frame.getToolbar(panelID);
 		if (toolbar != null)
 			toolbar.trackControlButton.setSelected(vis);
 	}
@@ -297,7 +297,7 @@ public class TrackControl extends JDialog implements PropertyChangeListener {
 	 */
 	@Override
 	public void dispose() {
-		System.out.println("TrackControl.dispose");
+		System.out.println("TrackControl.dispose " + panelID);
 		if (panelID != null) {
 			TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
 			trackerPanel.removeListeners(panelProps, this);

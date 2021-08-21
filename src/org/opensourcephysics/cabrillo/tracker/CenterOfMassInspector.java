@@ -60,15 +60,11 @@ public class CenterOfMassInspector extends JDialog implements PropertyChangeList
 	public CenterOfMassInspector(CenterOfMass track) {
 		super(JOptionPane.getFrameForComponent(track.tp), false);
 		cm = track;
-		TrackerPanel panel = track.tp; 
-		frame = panel.getTFrame();
-		panelID = panel.getID();
-
-		if (panel != null) {
-			panel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this); // $NON-NLS-1$
-			if (frame != null) {
-				frame.addPropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, this); // $NON-NLS-1$
-			}
+		frame = track.tp.getTFrame();
+		panelID = track.tp.getID();
+		track.tp.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this); // $NON-NLS-1$
+		if (frame != null) {
+			frame.addPropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, this); // $NON-NLS-1$
 		}
 		// listener for the point mass checkboxes
 		listener = new ActionListener() {

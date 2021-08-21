@@ -58,7 +58,7 @@ public class CoordAxesStep extends Step {
 	private Handle handle;
 	private boolean originEnabled = true;
 	private boolean handleEnabled = true;
-	private Map<TrackerPanel, Shape> handleShapes = new HashMap<TrackerPanel, Shape>();
+	private Map<Integer, Shape> handleShapes = new HashMap<Integer, Shape>();
 	private GeneralPath path = new GeneralPath();
 
 	/**
@@ -146,7 +146,7 @@ public class CoordAxesStep extends Step {
 		TTrack track = getTrack();
 		AutoTracker autoTracker = (track.tp == null ? null : track.tp.getAutoTracker(false));
 		if (handleEnabled) {
-			Shape hitShape = handleShapes.get(trackerPanel);
+			Shape hitShape = handleShapes.get(trackerPanel.getID());
 			if (hitShape != null && hitShape.intersects(hitRect)) {
 				return (autoTracker != null 
 						&& autoTracker.getTrack() == track 
@@ -191,7 +191,7 @@ public class CoordAxesStep extends Step {
 	 */
 	@Override
 	protected Mark getMark(TrackerPanel trackerPanel) {
-		Mark mark = marks.get(trackerPanel);
+		Mark mark = marks.get(trackerPanel.getID());
 		if (mark == null) {
 			TPoint selection = trackerPanel.getSelectedPoint();
 			// set origin location to coords origin
@@ -217,7 +217,7 @@ public class CoordAxesStep extends Step {
 				axesShape = axesShape.transform(transform);
 				hitShape = transform.createTransformedShape(hitShape);
 			}
-			handleShapes.put(trackerPanel, hitShape);
+			handleShapes.put(trackerPanel.getID(), hitShape);
 			// get selected point shape, if any
 			int scale = FontSizer.getIntegerFactor();
 			Shape selectedShape = null;
@@ -260,7 +260,7 @@ public class CoordAxesStep extends Step {
 					g2.dispose();
 				}
 			};
-			marks.put(trackerPanel, mark);
+			marks.put(trackerPanel.getID(), mark);
 		}
 		return mark;
 	}
@@ -291,7 +291,7 @@ public class CoordAxesStep extends Step {
 	public Object clone() {
 		CoordAxesStep step = (CoordAxesStep) super.clone();
 		if (step != null) {
-			step.handleShapes = new HashMap<TrackerPanel, Shape>();
+			step.handleShapes = new HashMap<Integer, Shape>();
 		}
 		return step;
 	}

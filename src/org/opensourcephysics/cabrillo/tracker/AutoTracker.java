@@ -2380,15 +2380,15 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 		@Override
 		public void setVisible(boolean vis) {
 			super.setVisible(vis);
-			TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
-			TToolBar toolbar = TToolBar.getToolbar(trackerPanel);
+			TrackerPanel panel = frame.getTrackerPanelForID(panelID);
+			TToolBar toolbar = panel.getToolBar();
 			toolbar.autotrackerButton.setSelected(vis);
 			isVisible = vis;
 			if (!vis) {
 				erase();
-				trackerPanel.repaintDirtyRegion();
+				panel.repaintDirtyRegion();
 			} else {
-				TTrack track = trackerPanel.getSelectedTrack();
+				TTrack track = panel.getSelectedTrack();
 				if (track != null)
 					setTrack(track);
 				refreshGUI();
@@ -2399,7 +2399,6 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 						refreshGUI();
 						// place near top right corner of frame
 						Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
-						TFrame frame = trackerPanel.getTFrame();
 						Point frameLoc = frame.getLocationOnScreen();
 						int w = wizard.getWidth() + 8;
 						int x = Math.min(screen.width - w, frameLoc.x + frame.getWidth() - w);
@@ -3977,7 +3976,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 			DecimalFormat yFormat = (DecimalFormat) NumberFormat.getInstance();
 			DataTable table = null;
 			TableCellRenderer xRenderer = null, yRenderer = null;
-			TMenuBar menubar = TMenuBar.getMenuBar(trackerPanel());
+			TMenuBar menubar = frame.getMenuBar(panelID);
 			TreeMap<Integer, TableTrackView> dataViews = menubar.getDataViews();
 			for (int key : dataViews.keySet()) {
 				TableTrackView view = dataViews.get(key);

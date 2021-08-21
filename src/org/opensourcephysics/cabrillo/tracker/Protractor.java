@@ -728,7 +728,7 @@ public class Protractor extends InputTrack {
 			item.addActionListener(new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent e) {
-					NumberFormatDialog.getNumberFormatDialog(Protractor.this.tp, Protractor.this, selected)
+					NumberFormatDialog.getNumberFormatDialog(tp, Protractor.this, selected)
 							.setVisible(true);
 				}
 			});
@@ -814,7 +814,7 @@ public class Protractor extends InputTrack {
 
 	@Override
 	protected Rectangle getLayoutBounds(Step step) {
-		return ((ProtractorStep) step).layoutBounds.get(tp);
+		return ((ProtractorStep) step).layoutBounds.get(tp.getID());
 	}
 
 	@Override

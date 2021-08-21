@@ -69,14 +69,15 @@ public abstract class Step implements Cloneable {
 	}
 
 	// instance fields
+	private TFrame frame;
 	protected int trackID; // ID number of track this belongs to
 	protected int n; // frame number
 	protected Footprint footprint; // determines appearance
 	protected TPoint[] points; // defines image data
 	protected Point[] screenPoints; // for transform conversions
 	protected boolean valid; // invalid until drawn except for point mass
-	protected Map<TrackerPanel, Mark> marks // tracker panel to Mark
-			= new HashMap<TrackerPanel, Mark>();
+	protected Map<Integer, Mark> marks // tracker panel to Mark
+			= new HashMap<Integer, Mark>();
 	protected int defaultIndex = 0; // array index of default TPoint
 	protected boolean dataVisible = true; // true if visible in plots, tables
 	public int type = Step.TYPE_UNKNOWN;
@@ -91,6 +92,7 @@ public abstract class Step implements Cloneable {
 	 * @param n     the frame number
 	 */
 	protected Step(TTrack track, int n) {
+		frame = track.frame;
 		trackID = track.getID();
 		this.n = n;
 	}
@@ -174,10 +176,10 @@ public abstract class Step implements Cloneable {
 	 * @param trackerPanel the tracker panel
 	 */
 	public void erase(TrackerPanel trackerPanel) {
-		if (marks.get(trackerPanel) == null)
+		if (marks.get(trackerPanel.getID()) == null)
 			return; // already dirty
 		trackerPanel.addDirtyRegion(null);//getBounds(trackerPanel)); // old bounds
-		marks.put(trackerPanel, null); // triggers new mark
+		marks.put(trackerPanel.getID(), null); // triggers new mark
 	}
 
 	/**
@@ -209,9 +211,9 @@ public abstract class Step implements Cloneable {
 	public void erase() {
 		if (marks.isEmpty())
 			return;
-		Iterator<TrackerPanel> it = marks.keySet().iterator();
+		Iterator<Integer> it = marks.keySet().iterator();
 		while (it.hasNext())
-			erase(it.next());
+			erase(frame.getTrackerPanelForID(it.next()));
 	}
 
 	/**
@@ -220,18 +222,18 @@ public abstract class Step implements Cloneable {
 	public void remark() {
 		if (marks.isEmpty())
 			return;
-		Iterator<TrackerPanel> it = marks.keySet().iterator();
+		Iterator<Integer> it = marks.keySet().iterator();
 		while (it.hasNext())
-			remark(it.next());
+			remark(frame.getTrackerPanelForID(it.next()));
 	}
 
 	/**
 	 * Repaints this on all tracker panels.
 	 */
 	public void repaint() {
-		Iterator<TrackerPanel> it = marks.keySet().iterator();
+		Iterator<Integer> it = marks.keySet().iterator();
 		while (it.hasNext())
-			repaint(it.next());
+			repaint(frame.getTrackerPanelForID(it.next()));
 	}
 
 	/**
@@ -296,7 +298,7 @@ public abstract class Step implements Cloneable {
 	 * @return the mark
 	 */
 	protected Mark getMark(TrackerPanel trackerPanel) {
-		Mark mark = marks.get(trackerPanel);
+		Mark mark = marks.get(trackerPanel.getID());
 		TPoint selection = null;
 		if (mark == null) {
 			selection = trackerPanel.getSelectedPoint();
@@ -342,7 +344,7 @@ public abstract class Step implements Cloneable {
 					theMark.draw(g, false);
 				}
 			};
-			marks.put(trackerPanel, mark);
+			marks.put(trackerPanel.getID(), mark);
 		}
 		return mark;
 	}
@@ -368,7 +370,7 @@ public abstract class Step implements Cloneable {
 			Step step = (Step) super.clone();
 			step.points = new TPoint[points.length];
 			step.screenPoints = new Point[points.length];
-			step.marks = new HashMap<TrackerPanel, Mark>();
+			step.marks = new HashMap<Integer, Mark>();
 			return step;
 		} catch (CloneNotSupportedException ex) {
 			ex.printStackTrace();

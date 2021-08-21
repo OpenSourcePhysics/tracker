@@ -43,16 +43,24 @@ import org.opensourcephysics.media.core.*;
 public class Undo {
 
 	// static fields
-	protected static Map<TrackerPanel, Undo> undomap = new HashMap<TrackerPanel, Undo>();
+	protected static Map<Integer, Undo> undomap = new HashMap<Integer, Undo>();
 
 	// instance fields
 	protected UndoableEditSupport undoSupport;
 	protected MyUndoManager undoManager;
 
+	private TFrame frame;
+
+	private Integer panelID;
+
 	/**
 	 * Private constructor.
+	 * @param panel 
 	 */
-	private Undo() {
+	private Undo(TrackerPanel panel) {
+		this.frame = panel.frame;
+		this.panelID = panel.getID();
+
 		// set up the undo system
 		undoManager = new MyUndoManager();
 //    undoManager.setLimit(20);
@@ -106,7 +114,7 @@ public class Undo {
 			}
 		}
 		getUndo(panel).undoManager.undo();
-		refreshMenus(panel);
+		panel.refreshMenus(TMenuBar.REFRESH_UNDO);
 		panel.repaint();
 	}
 
@@ -142,7 +150,7 @@ public class Undo {
 	 */
 	public static void redo(TrackerPanel panel) {
 		getUndo(panel).undoManager.redo();
-		refreshMenus(panel);
+		panel.refreshMenus(TMenuBar.REFRESH_UNDO);
 		panel.repaint();
 	}
 
@@ -159,7 +167,7 @@ public class Undo {
 			return;
 		UndoableEdit edit = getUndo(panel).new TrackDelete(panel, track);
 		getUndo(panel).undoSupport.postEdit(edit);
-		refreshMenus(panel);
+		panel.refreshMenus(TMenuBar.REFRESH_UNDO);
 	}
 
 	/**
@@ -171,7 +179,7 @@ public class Undo {
 	protected static void postTrackClear(TrackerPanel panel, List<String> xml) {
 		UndoableEdit edit = getUndo(panel).new TrackClear(panel, xml);
 		getUndo(panel).undoSupport.postEdit(edit);
-		refreshMenus(panel);
+		panel.refreshMenus(TMenuBar.REFRESH_UNDO);
 	}
 
 	/**
@@ -186,7 +194,7 @@ public class Undo {
 			return;
 		UndoableEdit edit = getUndo(panel).new TrackEdit(track, control);
 		getUndo(panel).undoSupport.postEdit(edit);
-		refreshMenus(panel);
+		panel.refreshMenus(TMenuBar.REFRESH_UNDO);
 	}
 
 	/**
@@ -215,7 +223,7 @@ public class Undo {
 			}
 		}
 		getUndo(panel).undoSupport.postEdit(edit);
-		refreshMenus(panel);
+		panel.refreshMenus(TMenuBar.REFRESH_UNDO);
 	}
 
 	/**
@@ -230,7 +238,7 @@ public class Undo {
 			return;
 		UndoableEdit edit = getUndo(panel).new StepEdit(step, control);
 		getUndo(panel).undoSupport.postEdit(edit);
-		refreshMenus(panel);
+		panel.refreshMenus(TMenuBar.REFRESH_UNDO);
 	}
 
 	/**
@@ -240,7 +248,7 @@ public class Undo {
 	 * @param control an XMLControl with the previous state of the StepSet
 	 */
 	protected static void postStepSetEdit(StepSet steps, XMLControl control) {
-		TrackerPanel panel = steps.trackerPanel;
+		TrackerPanel panel = steps.panel();
 		TTrack track = null;
 		boolean singleTrack = true;
 		for (Step step : steps) {
@@ -264,8 +272,7 @@ public class Undo {
 		getUndo(panel).undoSupport.postEdit(edit);
 		steps.setChanged(false); // prevents clear() method from saving another undoable edit
 		steps.clear();
-		refreshMenus(panel);
-	}
+		panel.refreshMenus(TMenuBar.REFRESH_UNDO);	}
 
 	/**
 	 * Posts an undoable edit for a changed coordinate system.
@@ -276,8 +283,7 @@ public class Undo {
 	protected static void postCoordsEdit(TrackerPanel panel, XMLControl control) {
 		UndoableEdit edit = getUndo(panel).new CoordsEdit(panel, control);
 		getUndo(panel).undoSupport.postEdit(edit);
-		refreshMenus(panel);
-	}
+		panel.refreshMenus(TMenuBar.REFRESH_UNDO);	}
 
 	/**
 	 * Posts a compound undoable edit for tracks that control the coords.
@@ -295,8 +301,7 @@ public class Undo {
 		UndoableEdit edit2 = getUndo(panel).new TrackEdit(track, trackControl);
 		UndoableEdit compound = getUndo(panel).new CompoundEdit(edit1, edit2);
 		getUndo(panel).undoSupport.postEdit(compound);
-		refreshMenus(panel);
-	}
+		panel.refreshMenus(TMenuBar.REFRESH_UNDO);	}
 
 	/**
 	 * Posts an undoable edit for an edited image video.
@@ -310,8 +315,7 @@ public class Undo {
 	protected static void postImageVideoEdit(TrackerPanel panel, String[] paths, int index, int step, boolean added) {
 		UndoableEdit edit = getUndo(panel).new ImageVideoEdit(panel, paths, index, step, added);
 		getUndo(panel).undoSupport.postEdit(edit);
-		refreshMenus(panel);
-	}
+		panel.refreshMenus(TMenuBar.REFRESH_UNDO);	}
 
 	/**
 	 * Posts an undoable edit for a replaced video clip.
@@ -322,7 +326,7 @@ public class Undo {
 	protected static void postVideoReplace(TrackerPanel panel, XMLControl control) {
 		UndoableEdit edit = getUndo(panel).new VideoReplace(panel, control);
 		getUndo(panel).undoSupport.postEdit(edit);
-		refreshMenus(panel);
+		panel.refreshMenus(TMenuBar.REFRESH_UNDO);
 	}
 
 	/**
@@ -334,7 +338,7 @@ public class Undo {
 	protected static void postFilterDelete(TrackerPanel panel, Filter filter) {
 		UndoableEdit edit = getUndo(panel).new FilterDelete(panel, filter);
 		getUndo(panel).undoSupport.postEdit(edit);
-		refreshMenus(panel);
+		panel.refreshMenus(TMenuBar.REFRESH_UNDO);
 	}
 
 	/**
@@ -347,7 +351,7 @@ public class Undo {
 	protected static void postFilterEdit(TrackerPanel panel, Filter filter, XMLControl control) {
 		UndoableEdit edit = getUndo(panel).new FilterEdit(panel, filter, control);
 		getUndo(panel).undoSupport.postEdit(edit);
-		refreshMenus(panel);
+		panel.refreshMenus(TMenuBar.REFRESH_UNDO);	
 	}
 
 	/**
@@ -359,7 +363,7 @@ public class Undo {
 	protected static void postFilterClear(TrackerPanel panel, List<String> xml) {
 		UndoableEdit edit = getUndo(panel).new FilterClear(panel, xml);
 		getUndo(panel).undoSupport.postEdit(edit);
-		refreshMenus(panel);
+		panel.refreshMenus(TMenuBar.REFRESH_UNDO);
 	}
 
 	/**
@@ -374,20 +378,16 @@ public class Undo {
 			return;
 		UndoableEdit edit = getUndo(panel).new TrackDisplayEdit(track, control);
 		getUndo(panel).undoSupport.postEdit(edit);
-		refreshMenus(panel);
+		panel.refreshMenus(TMenuBar.REFRESH_UNDO);
 	}
 
 	private static Undo getUndo(TrackerPanel panel) {
-		Undo undo = undomap.get(panel);
+		Undo undo = undomap.get(panel.getID());
 		if (undo == null) {
-			undo = new Undo();
-			undomap.put(panel, undo);
+			undo = new Undo(panel);
+			undomap.put(panel.getID(), undo);
 		}
 		return undo;
-	}
-
-	private static void refreshMenus(TrackerPanel panel) {
-		TMenuBar.refreshMenus(panel, TMenuBar.REFRESH_UNDO);
 	}
 
 //______________________ inner UndoableEdit classes ______________________
@@ -414,7 +414,7 @@ public class Undo {
 		@Override
 		protected void load(String xml) {
 			XMLControl control = new XMLControlElement(xml);
-			TTrack track = panel.getTrack(trackName);
+			TTrack track = panel().getTrack(trackName);
 			if (track == null)
 				return;
 			// turn off view refreshing until finished
@@ -460,7 +460,7 @@ public class Undo {
 			XMLControl control = new XMLControlElement(xml);
 			control.loadObject(step);
 			step.erase();
-			panel.refreshTrackBar();
+			panel().refreshTrackBar();
 			//TTrackBar.getTrackbar(panel).refresh();
 		}
 
@@ -509,7 +509,7 @@ public class Undo {
 		protected void load(String xml) {
 			XMLControl control = new XMLControlElement(xml);
 			TrackProperties props = (TrackProperties) control.loadObject(null);
-			TTrack track = panel.getTrack(trackName);
+			TTrack track = panel().getTrack(trackName);
 			if (track == null)
 				return;
 			track.setName(props.name);
@@ -543,13 +543,13 @@ public class Undo {
 	protected class StepSetEdit extends TEdit {
 
 		private StepSetEdit(StepSet steps, XMLControl control) {
-			super(steps.trackerPanel, steps, control);
+			super(steps.panel(), steps, control);
 		}
 
 		@Override
 		protected void load(String xml) {
 			XMLControl control = new XMLControlElement(xml);
-			StepSet steps = new StepSet(panel);
+			StepSet steps = new StepSet(frame, panelID);
 			control.loadObject(steps);
 		}
 
@@ -573,7 +573,7 @@ public class Undo {
 		@Override
 		protected void load(String xml) {
 			XMLControl control = new XMLControlElement(xml);
-			ImageCoordSystem coords = panel.getCoords();
+			ImageCoordSystem coords = panel().getCoords();
 			control.loadObject(coords);
 		}
 
@@ -591,13 +591,11 @@ public class Undo {
 	protected class ImageVideoEdit extends AbstractUndoableEdit {
 
 		String[] paths; // image path
-		TrackerPanel panel;
 		int n; // add/remove index
 		int step; // post-removal step number
 		boolean added; // true if original edit was an addImage
 
 		private ImageVideoEdit(TrackerPanel panel, String[] imagePaths, int index, int step, boolean added) {
-			this.panel = panel.ref(this);
 			paths = imagePaths;
 			n = index;
 			this.step = step;
@@ -631,6 +629,7 @@ public class Undo {
 					String path = paths[i];
 					if (path == null)
 						continue;
+					TrackerPanel panel = panel();
 					ImageVideo imageVid = (ImageVideo) panel.getVideo();
 					imageVid.insert(path, index, false);
 					VideoClip clip = panel.getPlayer().getVideoClip();
@@ -644,6 +643,7 @@ public class Undo {
 		}
 
 		private void removeImages() {
+			TrackerPanel panel = panel();
 			if (panel.getVideo() instanceof ImageVideo) {
 				ImageVideo imageVid = (ImageVideo) panel.getVideo();
 				for (int i = 0; i < paths.length; i++) {
@@ -680,30 +680,31 @@ public class Undo {
 		@Override
 		public void undo() throws CannotUndoException {
 			// if ImageVideo, save invalid images
-			Video video = panel.getVideo();
+			Video video = panel().getVideo();
 			if (video instanceof ImageVideo) {
 				((ImageVideo) video).saveInvalidImages();
 			}
 			// refresh redo state
-			redo = new XMLControlElement(panel.getPlayer().getVideoClip()).toXML();
+			redo = new XMLControlElement(panel().getPlayer().getVideoClip()).toXML();
 			super.undo();
 		}
 
 		@Override
 		public void redo() throws CannotUndoException {
 			// if ImageVideo, save invalid images
-			Video video = panel.getVideo();
+			Video video = panel().getVideo();
 			if (video instanceof ImageVideo) {
 				((ImageVideo) video).saveInvalidImages();
 			}
 			// refresh undo state
-			undo = new XMLControlElement(panel.getPlayer().getVideoClip()).toXML();
+			undo = new XMLControlElement(panel().getPlayer().getVideoClip()).toXML();
 			super.redo();
 		}
 
 		@Override
 		protected void load(String xml) {
 			// clear filters from old video
+			TrackerPanel panel = panel();
 			Video video = panel.getVideo();
 			if (video != null) {
 				TActions.clearFiltersAction(panel, false);
@@ -744,10 +745,13 @@ public class Undo {
 
 		String undo; // xml string
 		String redo; // xml string
-		TrackerPanel panel;
+
+		protected TFrame frame;
+		protected Integer panelID;
 
 		protected TEdit(TrackerPanel panel, Object obj, XMLControl control) {
-			this.panel = panel.ref(this);
+			this.frame = panel.frame;
+			this.panelID = panel.getID();
 			undo = control.toXML();
 			control = new XMLControlElement(obj);
 			redo = control.toXML();
@@ -809,13 +813,11 @@ public class Undo {
 
 		String xml;
 		int trackID;
-		TrackerPanel panel;
 		String trackType;
 
 		private TrackDelete(TrackerPanel panel, TTrack track) {
 			XMLControl control = new XMLControlElement(track);
 			xml = control.toXML();
-			this.panel = panel.ref(this);
 			String s = track.getClass().getSimpleName();
 			trackType = TrackerRes.getString(s + ".Name"); //$NON-NLS-1$
 			if (trackType.startsWith("!")) { //$NON-NLS-1$
@@ -828,6 +830,7 @@ public class Undo {
 			super.undo();
 			XMLControl control = new XMLControlElement(xml);
 			TTrack track = (TTrack) control.loadObject(null);
+			TrackerPanel panel = panel();
 			panel.addTrack(track);
 			trackID = track.getID();
 			panel.requestFocus();
@@ -854,17 +857,16 @@ public class Undo {
 	protected class TrackClear extends AbstractUndoableEdit {
 
 		List<String> xml;
-		TrackerPanel panel;
 
 		private TrackClear(TrackerPanel trackerPanel, List<String> xml) {
 			this.xml = xml;
-			panel = trackerPanel.ref(this);
 		}
 
 		@Override
 		public void undo() throws CannotUndoException {
 			super.undo();
 			Iterator<String> it = xml.iterator();
+			TrackerPanel panel = panel();
 			while (it.hasNext()) {
 				XMLControl control = new XMLControlElement(it.next());
 				TTrack track = (TTrack) control.loadObject(null);
@@ -876,7 +878,7 @@ public class Undo {
 		@Override
 		public void redo() throws CannotUndoException {
 			super.redo();
-			panel.clearTracks();
+			panel().clearTracks();
 		}
 
 		@Override
@@ -893,15 +895,14 @@ public class Undo {
 	protected class FilterDelete extends AbstractUndoableEdit {
 
 		String xml;
-		TrackerPanel panel;
 		int i;
 		Filter filter;
 		String filterName;
 
 		private FilterDelete(TrackerPanel trackerPanel, Filter filter) {
+			super();
 			xml = new XMLControlElement(filter).toXML();
-			panel = trackerPanel.ref(this);
-			i = panel.getVideo().getFilterStack().lastIndexRemoved();
+			i = panel().getVideo().getFilterStack().lastIndexRemoved();
 			filterName = filter.getClass().getSimpleName();
 			int j = filterName.indexOf("Filter"); //$NON-NLS-1$
 			if (j > 0 && j < filterName.length() - 1) {
@@ -913,6 +914,7 @@ public class Undo {
 		@Override
 		public void undo() throws CannotUndoException {
 			super.undo();
+			TrackerPanel panel = panel();
 			Video video = panel.getVideo();
 			if (video != null) {
 				XMLControl control = new XMLControlElement(xml);
@@ -944,10 +946,10 @@ public class Undo {
 		@Override
 		public void redo() throws CannotUndoException {
 			super.redo();
-			Video video = panel.getVideo();
+			Video video = panel().getVideo();
 			if (video != null) {
 				filter.setVideoPanel(null);
-				TMenuBar menubar = TMenuBar.getMenuBar(panel);
+				TMenuBar menubar = panel().getMenuBar();
 				menubar.refreshing = true; // prevents posting another undoable edit
 				video.getFilterStack().removeFilter(filter);
 				menubar.refreshing = false;
@@ -970,16 +972,15 @@ public class Undo {
 	protected class FilterClear extends AbstractUndoableEdit {
 
 		List<String> xml;
-		TrackerPanel panel;
 
 		private FilterClear(TrackerPanel trackerPanel, List<String> xml) {
 			this.xml = xml;
-			panel = trackerPanel.ref(this);
 		}
 
 		@Override
 		public void undo() throws CannotUndoException {
 			super.undo();
+			TrackerPanel panel = panel();
 			Video video = panel.getVideo();
 			if (video != null) {
 				for (String next : xml) {
@@ -1002,6 +1003,7 @@ public class Undo {
 		@Override
 		public void redo() throws CannotUndoException {
 			super.redo();
+			TrackerPanel panel = panel();
 			Video video = panel.getVideo();
 			if (video != null) {
 				FilterStack stack = video.getFilterStack();
@@ -1048,6 +1050,7 @@ public class Undo {
 		@Override
 		protected void load(String xml) {
 			XMLControl control = new XMLControlElement(xml);
+			TrackerPanel panel = panel();
 			Video video = panel.getVideo();
 			if (video != null) {
 				ArrayList<Filter> filters = video.getFilterStack().getFilters();
@@ -1084,6 +1087,12 @@ public class Undo {
 		}
 		
 	}
+	
+	protected TrackerPanel panel() {
+		return (frame == null ? null : frame.getTrackerPanelForID(panelID));
+	}
+
+
 }
 
 

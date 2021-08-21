@@ -72,12 +72,12 @@ public class TapeStep extends Step {
 	protected boolean endsEnabled = true;
 	protected boolean drawLayoutBounds;
 	protected boolean adjustingTips;
-	protected Map<TrackerPanel, Shape> end1Shapes = new HashMap<TrackerPanel, Shape>();
-	protected Map<TrackerPanel, Shape> end2Shapes = new HashMap<TrackerPanel, Shape>();
-	protected Map<TrackerPanel, Shape> shaftShapes = new HashMap<TrackerPanel, Shape>();
-	protected Map<TrackerPanel, Shape[]> rotatorShapes = new HashMap<TrackerPanel, Shape[]>();
-	protected Map<TrackerPanel, TextLayout> textLayouts = new HashMap<TrackerPanel, TextLayout>();
-	protected Map<TrackerPanel, Rectangle> layoutBounds = new HashMap<TrackerPanel, Rectangle>();
+	protected Map<Integer, Shape> end1Shapes = new HashMap<Integer, Shape>();
+	protected Map<Integer, Shape> end2Shapes = new HashMap<Integer, Shape>();
+	protected Map<Integer, Shape> shaftShapes = new HashMap<Integer, Shape>();
+	protected Map<Integer, Shape[]> rotatorShapes = new HashMap<Integer, Shape[]>();
+	protected Map<Integer, TextLayout> textLayouts = new HashMap<Integer, TextLayout>();
+	protected Map<Integer, Rectangle> layoutBounds = new HashMap<Integer, Rectangle>();
   protected MultiShape[] rotatorDrawShapes = new MultiShape[2];
   protected Shape selectedShape;
 
@@ -181,20 +181,20 @@ public class TapeStep extends Step {
 		Interactive hit = null;
 		// look for ends
 		if (endsEnabled) {
-			hitShape = end1Shapes.get(trackerPanel);
+			hitShape = end1Shapes.get(trackerPanel.getID());
 			if (hitShape != null && hitShape.intersects(hitRect))
 				hit = end1;
-			hitShape = end2Shapes.get(trackerPanel);
+			hitShape = end2Shapes.get(trackerPanel.getID());
 			if (hit == null && hitShape != null && hitShape.intersects(hitRect))
 				hit = end2;
 		}
 		// look for shaft
-		hitShape = shaftShapes.get(trackerPanel);
+		hitShape = shaftShapes.get(trackerPanel.getID());
 		if (hit == null && hitShape != null && hitShape.intersects(hitRect)) {
 			hit = handle;
 		}	
 		// look for rotator hit
-		Shape[] rotatorHitShapes = rotatorShapes.get(trackerPanel);
+		Shape[] rotatorHitShapes = rotatorShapes.get(trackerPanel.getID());
 		if (hit == null && rotatorHitShapes != null) {
 			if (rotatorHitShapes[0].intersects(hitRect) && !end1.isAttached()) {
 				hit = rotator1;
@@ -227,7 +227,7 @@ public class TapeStep extends Step {
     		trackerPanel.getSelectedPoint()!=rotator2) {
     	rotatorDrawShapes[1] = null;
     }
-		Rectangle layoutRect = layoutBounds.get(trackerPanel);
+		Rectangle layoutRect = layoutBounds.get(trackerPanel.getID());
 		if (hit == null && layoutRect != null && layoutRect.intersects(hitRect)) {
 			drawLayout = true;
 			hit = tape;
@@ -264,8 +264,8 @@ public class TapeStep extends Step {
 		g.setPaint(footprint.getColor());
 		// draw the text layout unless editing
 		if (!tape.editing) {
-			TextLayout layout = textLayouts.get(trackerPanel);
-			Rectangle bounds = layoutBounds.get(trackerPanel);
+			TextLayout layout = textLayouts.get(trackerPanel.getID());
+			Rectangle bounds = layoutBounds.get(trackerPanel.getID());
 			Font gfont = g.getFont();
 			g.setFont(TFrame.textLayoutFont);
 			layout.draw(g, bounds.x, bounds.y + bounds.height);
@@ -303,7 +303,7 @@ public class TapeStep extends Step {
 	 */
 	@Override
 	protected Mark getMark(TrackerPanel trackerPanel) {
-		Mark mark = marks.get(trackerPanel);
+		Mark mark = marks.get(trackerPanel.getID());
 		if (mark == null) {
       boolean isWorldView = trackerPanel instanceof WorldTView;
 			// adjust tips if stick mode
@@ -375,15 +375,15 @@ public class TapeStep extends Step {
 				}
 			};
 			
-			marks.put(trackerPanel, mark);
+			marks.put(trackerPanel.getID(), mark);
 
 			// get new hit shapes
 			Shape[] shapes = footprint.getHitShapes();
-			end1Shapes.put(trackerPanel, shapes[0]);
-			end2Shapes.put(trackerPanel, shapes[1]);
-			shaftShapes.put(trackerPanel, shapes[2]);
+			end1Shapes.put(trackerPanel.getID(), shapes[0]);
+			end2Shapes.put(trackerPanel.getID(), shapes[1]);
+			shaftShapes.put(trackerPanel.getID(), shapes[2]);
 			if (shapes.length > 4 && shapes[3] != null && shapes[4] != null) {
-				rotatorShapes.put(trackerPanel, new Shape[] {shapes[3], shapes[4]});
+				rotatorShapes.put(trackerPanel.getID(), new Shape[] {shapes[3], shapes[4]});
 			}
 			
 			// get new text layout
@@ -395,14 +395,14 @@ public class TapeStep extends Step {
 			s += trackerPanel.getUnits(tape, TapeMeasure.dataVariables[1]);
 
 			TextLayout layout = new TextLayout(s, TFrame.textLayoutFont, OSPRuntime.frc);
-			textLayouts.put(trackerPanel, layout);
+			textLayouts.put(trackerPanel.getID(), layout);
 			// get layout position (bottom left corner of text)
 			Rectangle2D rect = layout.getBounds();
 			p = getLayoutPosition(trackerPanel, rect);
-			Rectangle bounds = layoutBounds.get(trackerPanel);
+			Rectangle bounds = layoutBounds.get(trackerPanel.getID());
 			if (bounds == null) {
 				bounds = new Rectangle();
-				layoutBounds.put(trackerPanel, bounds);
+				layoutBounds.put(trackerPanel.getID(), bounds);
 			}
 			// set bounds (top left corner and size)
 			bounds.setRect(p.x, p.y - rect.getHeight(), rect.getWidth(), rect.getHeight());
@@ -558,12 +558,12 @@ public class TapeStep extends Step {
 			step.end1.setTrackEditTrigger(true);
 			step.end2.setTrackEditTrigger(true);
 			step.handle.setTrackEditTrigger(true);
-			step.end1Shapes = new HashMap<TrackerPanel, Shape>();
-			step.end2Shapes = new HashMap<TrackerPanel, Shape>();
-			step.shaftShapes = new HashMap<TrackerPanel, Shape>();
-			step.rotatorShapes = new HashMap<TrackerPanel, Shape[]>();
-			step.textLayouts = new HashMap<TrackerPanel, TextLayout>();
-			step.layoutBounds = new HashMap<TrackerPanel, Rectangle>();
+			step.end1Shapes = new HashMap<Integer, Shape>();
+			step.end2Shapes = new HashMap<Integer, Shape>();
+			step.shaftShapes = new HashMap<Integer, Shape>();
+			step.rotatorShapes = new HashMap<Integer, Shape[]>();
+			step.textLayouts = new HashMap<Integer, TextLayout>();
+			step.layoutBounds = new HashMap<Integer, Rectangle>();
 			step.worldLength = worldLength;
 		}
 		return step;
@@ -774,7 +774,7 @@ public class TapeStep extends Step {
 	}
 	
 	private Point getRotatorLocation(int i, TrackerPanel trackerPanel) {
-		Shape[] rotatorHitShapes = rotatorShapes.get(trackerPanel);		
+		Shape[] rotatorHitShapes = rotatorShapes.get(trackerPanel.getID());		
 		Rectangle bounds = rotatorHitShapes[i].getBounds();
 		return new Point((int) bounds.getCenterX(), (int) bounds.getCenterY());
 	}

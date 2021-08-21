@@ -89,24 +89,11 @@ public class NumberFormatDialog extends JDialog {
 	protected static String mixedPattern = TrackerRes.getString("NumberFormatSetter.MixedPattern"); //$NON-NLS-1$
 	private static Dimension scrollerDimension = new Dimension(200, 60);
 	
-	private static Integer panelID;
-	private static TFrame frame;
+	private Integer panelID;
+	private TFrame frame;
 
 	// instance fields
 	//TrackerPanel trackerPanel;
-	
-	@Override
-	public void dispose() {
-		clear();
-		super.dispose();
-		
-	}
-
-	public void clear() {
-		setVisible(false);
-		frame = null;
-		panelID = null;
-	}
 	
 	int trackID = -1;
 	JButton closeButton, helpButton, revertButton;
@@ -141,7 +128,7 @@ public class NumberFormatDialog extends JDialog {
 			String[] selectedNames) {
 		NumberFormatDialog dialog = trackerPanel.numberFormatDialog;
 		if (dialog == null) {
-			trackerPanel.numberFormatDialog = dialog = new NumberFormatDialog(trackerPanel);
+			trackerPanel.numberFormatDialog = dialog = new NumberFormatDialog(trackerPanel.getTFrame(),trackerPanel.getID());
 			dialog.setFontLevel(FontSizer.getLevel());
 			// center on screen
 			Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
@@ -182,16 +169,10 @@ public class NumberFormatDialog extends JDialog {
 		return dialog;
 	}
 
-	/**
-	 * Private constructor.
-	 *
-	 * @param tPanel a TrackerPanel
-	 */
-	private NumberFormatDialog(TrackerPanel trackerPanel) {
-		super(trackerPanel.getTFrame(), true);
-		System.out.println("NumberFormatDialog for " + trackerPanel.getClass().getSimpleName());
-		frame = trackerPanel.getTFrame();
-		panelID = trackerPanel.getID();
+	private NumberFormatDialog(TFrame frame, Integer panelID) {
+		super(frame, true);
+		this.frame = frame;
+		this.panelID = panelID;
 		createGUI();
 		refreshGUI();
 	}
@@ -1069,5 +1050,19 @@ public class NumberFormatDialog extends JDialog {
 	protected static String getTrackType(TTrack track) {
 		return track.getBaseType();
 	}
+
+	@Override
+	public void dispose() {
+		clear();
+		super.dispose();
+		
+	}
+
+	public void clear() {
+		setVisible(false);
+		frame = null;
+		panelID = null;
+	}
+	
 
 }

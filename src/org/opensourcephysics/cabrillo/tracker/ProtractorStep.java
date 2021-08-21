@@ -57,18 +57,18 @@ public class ProtractorStep extends Step {
   protected boolean endsEnabled = true, drawArcCircle;
   protected boolean drawLayoutBounds, drawLayout1, drawLayout2;
   protected MultiShape vertexCircle;
-  protected Map<TrackerPanel, Shape> vertexShapes = new HashMap<TrackerPanel, Shape>();
-  protected Map<TrackerPanel, Shape> end1Shapes = new HashMap<TrackerPanel, Shape>();
-  protected Map<TrackerPanel, Shape> end2Shapes = new HashMap<TrackerPanel, Shape>();
-  protected Map<TrackerPanel, Shape> line1Shapes = new HashMap<TrackerPanel, Shape>();
-  protected Map<TrackerPanel, Shape> line2Shapes = new HashMap<TrackerPanel, Shape>();
-  protected Map<TrackerPanel, Shape> rotatorShapes = new HashMap<TrackerPanel, Shape>();
-  protected Map<TrackerPanel, TextLayout> textLayouts = new HashMap<TrackerPanel, TextLayout>();
-  protected Map<TrackerPanel, Rectangle> layoutBounds = new HashMap<TrackerPanel, Rectangle>();
-  protected Map<TrackerPanel, TextLayout> textLayouts1 = new HashMap<TrackerPanel, TextLayout>();
-  protected Map<TrackerPanel, Rectangle> layout1Bounds = new HashMap<TrackerPanel, Rectangle>();
-  protected Map<TrackerPanel, TextLayout> textLayouts2 = new HashMap<TrackerPanel, TextLayout>();
-  protected Map<TrackerPanel, Rectangle> layout2Bounds = new HashMap<TrackerPanel, Rectangle>();
+  protected Map<Integer, Shape> vertexShapes = new HashMap<Integer, Shape>();
+  protected Map<Integer, Shape> end1Shapes = new HashMap<Integer, Shape>();
+  protected Map<Integer, Shape> end2Shapes = new HashMap<Integer, Shape>();
+  protected Map<Integer, Shape> line1Shapes = new HashMap<Integer, Shape>();
+  protected Map<Integer, Shape> line2Shapes = new HashMap<Integer, Shape>();
+  protected Map<Integer, Shape> rotatorShapes = new HashMap<Integer, Shape>();
+  protected Map<Integer, TextLayout> textLayouts = new HashMap<Integer, TextLayout>();
+  protected Map<Integer, Rectangle> layoutBounds = new HashMap<Integer, Rectangle>();
+  protected Map<Integer, TextLayout> textLayouts1 = new HashMap<Integer, TextLayout>();
+  protected Map<Integer, Rectangle> layout1Bounds = new HashMap<Integer, Rectangle>();
+  protected Map<Integer, TextLayout> textLayouts2 = new HashMap<Integer, TextLayout>();
+  protected Map<Integer, Rectangle> layout2Bounds = new HashMap<Integer, Rectangle>();
   protected Shape selectedShape;
   
   /**
@@ -149,7 +149,7 @@ public Interactive findInteractive(
     }
     boolean isRulerVisible = protractor.ruler != null && protractor.ruler.isVisible();
     if (endsEnabled) {
-      hitShape = vertexShapes.get(trackerPanel);
+      hitShape = vertexShapes.get(trackerPanel.getID());
       if (!vertex.isAttached() && hitShape != null && hitShape.intersects(hitRect)) {
       	hit = vertex;
       	if (vertexCircle==null && footprint!=null) {
@@ -160,18 +160,18 @@ public Interactive findInteractive(
       if (hit==null && vertexCircle!=null) {
       	vertexCircle = null;
       }
-      hitShape = end1Shapes.get(trackerPanel);
+      hitShape = end1Shapes.get(trackerPanel.getID());
       if (hit == null && hitShape != null && hitShape.intersects(hitRect)) {
         hit = end1;
         draw1 = !isRulerVisible;
       }
-      hitShape = end2Shapes.get(trackerPanel);
+      hitShape = end2Shapes.get(trackerPanel.getID());
       if (hit == null && hitShape != null && hitShape.intersects(hitRect)) {
       	hit = end2;
       	draw2 = !isRulerVisible;
       }
     }
-    hitShape = rotatorShapes.get(trackerPanel);
+    hitShape = rotatorShapes.get(trackerPanel.getID());
     if (!end1.isAttached() && !end2.isAttached() && hit==null && hitShape!=null && hitShape.intersects(hitRect)) {
       hit = rotator;
     }
@@ -183,12 +183,12 @@ public Interactive findInteractive(
       rotator.setScreenCoords(xpix, ypix);
     }
     drawArcCircle = hit==rotator || trackerPanel.getSelectedPoint()==rotator;
-    hitShape = line1Shapes.get(trackerPanel);
+    hitShape = line1Shapes.get(trackerPanel.getID());
     if (hit == null && hitShape != null && hitShape.intersects(hitRect)) {
       hit = handle;
       handle.setHandleEnd(end1);
     }
-    hitShape = line2Shapes.get(trackerPanel);
+    hitShape = line2Shapes.get(trackerPanel.getID());
     if (hit == null && hitShape != null && hitShape.intersects(hitRect)) {
       hit = handle;
       handle.setHandleEnd(end2);
@@ -196,7 +196,7 @@ public Interactive findInteractive(
 		if (hit == null && protractor.ruler != null && protractor.ruler.isVisible()) {
 			hit = protractor.ruler.findInteractive(trackerPanel, hitRect);
 		}
-    Rectangle layoutRect = layoutBounds.get(trackerPanel);
+    Rectangle layoutRect = layoutBounds.get(trackerPanel.getID());
     if (hit == null && layoutRect != null 
     		&& layoutRect.intersects(hitRect)) {
       drawLayout = true;
@@ -232,8 +232,8 @@ public void draw(DrawingPanel panel, Graphics _g) {
     g.setFont(TFrame.textLayoutFont);
     // draw the text layout if not editing and not world view
     if (!protractor.editing && !isWorldView) {
-	    TextLayout layout = textLayouts.get(trackerPanel);
-			Rectangle bounds = layoutBounds.get(trackerPanel);
+	    TextLayout layout = textLayouts.get(trackerPanel.getID());
+			Rectangle bounds = layoutBounds.get(trackerPanel.getID());
 			g.setFont(TFrame.textLayoutFont);
 			layout.draw(g, bounds.x, bounds.y + bounds.height);
 			g.setFont(gfont);
@@ -250,12 +250,12 @@ public void draw(DrawingPanel panel, Graphics _g) {
     
     // draw arm length layouts if visible
     if (drawLayout1 && !isWorldView) {
-	    TextLayout layout = textLayouts1.get(trackerPanel);
+	    TextLayout layout = textLayouts1.get(trackerPanel.getID());
 	    Point p = getLayoutPosition(trackerPanel, layout, end1);
 	    layout.draw(g, p.x, p.y);
     }
     if (drawLayout2 && !isWorldView) {
-	    TextLayout layout = textLayouts2.get(trackerPanel);
+	    TextLayout layout = textLayouts2.get(trackerPanel.getID());
 	    Point p = getLayoutPosition(trackerPanel, layout, end2);
 	    layout.draw(g, p.x, p.y);
     }
@@ -272,7 +272,7 @@ public void draw(DrawingPanel panel, Graphics _g) {
    */
   @Override
 protected Mark getMark(TrackerPanel trackerPanel) {
-    Mark mark = marks.get(trackerPanel);
+    Mark mark = marks.get(trackerPanel.getID());
     if (mark == null) {
       getProtractorAngle(true); // updates angle display
       ProtractorFootprint pFootprint = (ProtractorFootprint)footprint;
@@ -334,26 +334,26 @@ protected Mark getMark(TrackerPanel trackerPanel) {
 					g.setStroke(gstroke);
         }
       };
-      marks.put(trackerPanel, mark);
+      marks.put(trackerPanel.getID(), mark);
       
       // get new hit shapes
       Shape[] shapes = footprint.getHitShapes();
-      vertexShapes.put(trackerPanel, shapes[0]);
-      end1Shapes.put(trackerPanel, shapes[1]);
-      end2Shapes.put(trackerPanel, shapes[2]);
-      line1Shapes.put(trackerPanel, shapes[3]);
-      line2Shapes.put(trackerPanel, shapes[4]);
-      rotatorShapes.put(trackerPanel, shapes[5]);
+      vertexShapes.put(trackerPanel.getID(), shapes[0]);
+      end1Shapes.put(trackerPanel.getID(), shapes[1]);
+      end2Shapes.put(trackerPanel.getID(), shapes[2]);
+      line1Shapes.put(trackerPanel.getID(), shapes[3]);
+      line2Shapes.put(trackerPanel.getID(), shapes[4]);
+      rotatorShapes.put(trackerPanel.getID(), shapes[5]);
       // get new text layouts
       String s = protractor.angleField.getText();
       TextLayout layout = new TextLayout(s, TFrame.textLayoutFont, OSPRuntime.frc);
-      textLayouts.put(trackerPanel, layout);
+      textLayouts.put(trackerPanel.getID(), layout);
       // get layout position (bottom left corner of text)
       p = getLayoutPosition(trackerPanel, layout, vertex);
-      Rectangle bounds = layoutBounds.get(trackerPanel);
+      Rectangle bounds = layoutBounds.get(trackerPanel.getID());
       if (bounds == null) {
         bounds = new Rectangle();
-        layoutBounds.put(trackerPanel, bounds);
+        layoutBounds.put(trackerPanel.getID(), bounds);
       }
       Rectangle2D rect = layout.getBounds();
       // set bounds (top left corner and size)
@@ -362,17 +362,17 @@ protected Mark getMark(TrackerPanel trackerPanel) {
       
       for (int k=0; k<2; k++) {
       	TPoint end = k==0? end1: end2;
-      	Map<TrackerPanel, TextLayout> layouts = k==0? textLayouts1: textLayouts2;
-        Map<TrackerPanel, Rectangle> lBounds = k==0? layout1Bounds: layout2Bounds;
+      	Map<Integer, TextLayout> layouts = k==0? textLayouts1: textLayouts2;
+        Map<Integer, Rectangle> lBounds = k==0? layout1Bounds: layout2Bounds;
 	      s = getFormattedLength(end);
 	      s += trackerPanel.getUnits(protractor, Protractor.dataVariables[2+k]);    
 	      layout = new TextLayout(s, TFrame.textLayoutFont, OSPRuntime.frc);
-	      layouts.put(trackerPanel, layout);
+	      layouts.put(trackerPanel.getID(), layout);
 	      p = getLayoutPosition(trackerPanel, layout, end);
-	      bounds = lBounds.get(trackerPanel);
+	      bounds = lBounds.get(trackerPanel.getID());
 	      if (bounds == null) {
 	        bounds = new Rectangle();
-	        lBounds.put(trackerPanel, bounds);
+	        lBounds.put(trackerPanel.getID(), bounds);
 	      }
 	      rect = layout.getBounds();
 	      // set bounds (top left corner and size)
@@ -503,14 +503,14 @@ public Object clone() {
       step.end1.setTrackEditTrigger(true);
       step.end2.setTrackEditTrigger(true);
       step.handle.setTrackEditTrigger(true);
-      step.vertexShapes = new HashMap<TrackerPanel, Shape>();
-      step.end1Shapes = new HashMap<TrackerPanel, Shape>();
-      step.end2Shapes = new HashMap<TrackerPanel, Shape>();
-      step.line1Shapes = new HashMap<TrackerPanel, Shape>();
-      step.line2Shapes = new HashMap<TrackerPanel, Shape>();
-      step.rotatorShapes = new HashMap<TrackerPanel, Shape>();
-      step.textLayouts = new HashMap<TrackerPanel, TextLayout>();
-      step.layoutBounds = new HashMap<TrackerPanel, Rectangle>();
+      step.vertexShapes = new HashMap<Integer, Shape>();
+      step.end1Shapes = new HashMap<Integer, Shape>();
+      step.end2Shapes = new HashMap<Integer, Shape>();
+      step.line1Shapes = new HashMap<Integer, Shape>();
+      step.line2Shapes = new HashMap<Integer, Shape>();
+      step.rotatorShapes = new HashMap<Integer, Shape>();
+      step.textLayouts = new HashMap<Integer, TextLayout>();
+      step.layoutBounds = new HashMap<Integer, Rectangle>();
     }
     return step;
   }

@@ -112,7 +112,7 @@ public TPoint getDefaultPoint() {
    */
   @Override
 protected Mark getMark(TrackerPanel trackerPanel) {
-    Mark mark = marks.get(trackerPanel);
+    Mark mark = marks.get(trackerPanel.getID());
     TPoint selection = null;
     if (mark == null) {
       ImageCoordSystem coords = trackerPanel.getCoords();
@@ -160,7 +160,7 @@ protected Mark getMark(TrackerPanel trackerPanel) {
           g.setPaint(gpaint);
         }
       };
-      marks.put(trackerPanel, mark);
+      marks.put(trackerPanel.getID(), mark);
     }
     return mark;
   }

@@ -70,7 +70,6 @@ public class ModelBuilder extends FunctionTool {
 		super(trackerPanel, false, true);
 		frame = trackerPanel.getTFrame();
 		panelID = trackerPanel.getID();
-		TFrame frame = trackerPanel.getTFrame();
 		if (frame != null) {
 			myFollower = frame.addFollower(this, null);
 		}
@@ -474,7 +473,7 @@ public class ModelBuilder extends FunctionTool {
 
 	@Override
 	public void dispose() {
-		System.out.println("ModelBuilder.dispose");
+		System.out.println("ModelBuilder.dispose " + panelID);
 		TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
 		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this); //$NON-NLS-1$
 		ToolsRes.removePropertyChangeListener("locale", this); //$NON-NLS-1$
@@ -486,7 +485,6 @@ public class ModelBuilder extends FunctionTool {
 		clearPanels();
 		selectedPanel = null;
 		trackerPanel.modelBuilder = null;
-		TFrame frame = trackerPanel.getTFrame();
 		if (frame != null)
 			frame.removeComponentListener(myFollower);
 		myFollower = null;

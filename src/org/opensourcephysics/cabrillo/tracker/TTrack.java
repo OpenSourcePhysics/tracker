@@ -379,7 +379,7 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 	protected StepArray steps = new StepArray();
 	protected HashMap<String, Object> properties = new HashMap<String, Object>();
 	protected DatasetManager datasetManager;
-	protected HashMap<TrackerPanel, double[]> worldBounds = new HashMap<TrackerPanel, double[]>();
+	protected HashMap<Integer, double[]> worldBounds = new HashMap<Integer, double[]>();
 	protected final Point2D.Double[] points = new Point2D.Double[] { new Point2D.Double() };
 	protected ArrayList<Component> toolbarTrackComponents = new ArrayList<Component>();
 	protected ArrayList<Component> toolbarPointComponents = new ArrayList<Component>();
@@ -762,7 +762,7 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 			Undo.postTrackDelete(this); // posts undoable edit
 		}
 		for (int j = 0; j < tp.panelAndWorldViews.size(); j++) {
-			TrackerPanel panel = tp.panelAndWorldViews.get(j);
+			TrackerPanel panel = frame.getTrackerPanelForID(tp.panelAndWorldViews.get(j));
 			panel.removeTrack(this);
 		}
 		erase();
@@ -2341,7 +2341,7 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 					if (frame.notesVisible()) {
 						frame.getNotesDialog().setVisible(true);
 					} else
-						frame.getToolbar(tp).doNotesAction();
+						tp.getToolBar().doNotesAction();
 				}
 			}
 		});
@@ -2368,7 +2368,7 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 				setTrailVisible(trailVisibleItem.isSelected());
 				if (!TTrack.this.isTrailVisible()) {
 					for (int j = 0; j < tp.panelAndWorldViews.size(); j++) {
-						TrackerPanel panel = tp.panelAndWorldViews.get(j);
+						TrackerPanel panel = frame.getTrackerPanelForID(tp.panelAndWorldViews.get(j));
 						Step step = panel.getSelectedStep();
 						if (step != null && step.getTrack() == TTrack.this) {
 							if (!(step.getFrameNumber() == panel.getFrameNumber())) {
@@ -2526,7 +2526,7 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 			return;
 		remark();
 		for (int i = 0; i < tp.panelAndWorldViews.size(); i++) {
-			tp.panelAndWorldViews.get(i).repaintDirtyRegion();
+			frame.getTrackerPanelForID(tp.panelAndWorldViews.get(i)).repaintDirtyRegion();
 		}
 	}
 
@@ -2580,7 +2580,7 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 	 */
 	public void repaint(Step step) {
 		for (int j = 0; j < tp.panelAndWorldViews.size(); j++) {
-			TrackerPanel panel = tp.panelAndWorldViews.get(j);
+			TrackerPanel panel = frame.getTrackerPanelForTab(tp.panelAndWorldViews.get(j));
 			step.repaint(panel);
 		}
 	}
@@ -2887,7 +2887,7 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 	 * @return a double[] containing xMax, yMax, xMin, yMin
 	 */
 	protected double[] getWorldBounds(TrackerPanel panel) {
-		double[] bounds = worldBounds.get(panel);
+		double[] bounds = worldBounds.get(panel.getID());
 		// if (bounds != null) return bounds;
 		// make a rectangle containing the world positions of the TPoints in this track
 		// then convert it into world units
@@ -2909,7 +2909,7 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 		bounds[1] = rect.getY() + 1.05 * rect.getHeight(); // yMax
 		bounds[2] = rect.getX() - 0.05 * rect.getWidth(); // xMin
 		bounds[3] = rect.getY() - 0.05 * rect.getHeight(); // yMin
-		worldBounds.put(panel, bounds);
+		worldBounds.put(panel.getID(), bounds);
 		return bounds;
 	}
 
@@ -3418,24 +3418,24 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 	/**
 	 * A dialog used to set the name of a track.
 	 */
-	protected static class NameDialog extends JDialog {
+	protected class NameDialog extends JDialog {
 
 		JLabel nameLabel;
 		JTextField nameField;
 		TTrack target;
-		TrackerPanel trackerPanel;
 
+		
 		// constructor
-		NameDialog(TrackerPanel panel) {
-			super(panel.getTFrame(), null, true);
-			trackerPanel = panel.ref(this);
+		NameDialog() {
+			super(frame, null, true);
+			
 			setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 			addWindowListener(new WindowAdapter() {
 				@Override
 				public void windowClosing(WindowEvent e) {
 					String newName = nameField.getText();
 					if (target != null)
-						trackerPanel.setTrackName(target, newName, true);
+						tp.setTrackName(target, newName, true);
 				}
 			});
 			nameField = new JTextField(20);
@@ -3444,7 +3444,7 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 				public void actionPerformed(ActionEvent e) {
 					String newName = nameField.getText();
 					if (target != null)
-						trackerPanel.setTrackName(target, newName, true);
+						tp.setTrackName(target, newName, true);
 				}
 			});
 			nameLabel = new JLabel();
@@ -3647,7 +3647,7 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 
 	protected NameDialog getNameDialog() {
 		if (nameDialog == null) {
-			nameDialog = new NameDialog(tp);
+			nameDialog = new NameDialog();
 			Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
 			int x = (dim.width - nameDialog.getBounds().width) / 2;
 			int y = (dim.height - nameDialog.getBounds().height) / 2;

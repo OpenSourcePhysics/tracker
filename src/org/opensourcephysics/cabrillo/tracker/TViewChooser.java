@@ -449,30 +449,6 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
 	}
 
 	/**
-	 * Disposes of this chooser
-	 */
-	public void dispose() {
-		CardLayout cl = (CardLayout) viewPanel.getLayout();
-		for (TView view : tViews) {
-			if (view != null) {
-			((Component) view).removePropertyChangeListener("trackview", this); //$NON-NLS-1$
-			cl.removeLayoutComponent((JComponent) view);
-			view.dispose();
-		}
-		}
-		tViews = null;
-		selectedView = null;
-		
-		TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
-		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this); // $NON-NLS-1$
-		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR, this); // $NON-NLS-1$
-		viewPanel.removeAll();
-		toolbar.removeAll();
-		panelID = null;
-		frame = null;
-	}
-
-	/**
 	 * Refreshes this chooser and its current view.
 	 */
 	public void refresh() {
@@ -691,5 +667,30 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
 		//		OSPLog.finer
 		System.out.println(getClass().getSimpleName() + " " + getName() + " finalized"); //$NON-NLS-1$
 	}
+
+	/**
+	 * Disposes of this chooser
+	 */
+	public void dispose() {
+		CardLayout cl = (CardLayout) viewPanel.getLayout();
+		for (TView view : tViews) {
+			if (view != null) {
+			((Component) view).removePropertyChangeListener("trackview", this); //$NON-NLS-1$
+			cl.removeLayoutComponent((JComponent) view);
+			view.dispose();
+		}
+		}
+		tViews = null;
+		selectedView = null;
+		
+		TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
+		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this); // $NON-NLS-1$
+		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR, this); // $NON-NLS-1$
+		viewPanel.removeAll();
+		toolbar.removeAll();
+		panelID = null;
+		frame = null;
+	}
+
 
 }

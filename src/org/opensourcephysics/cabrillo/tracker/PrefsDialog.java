@@ -1196,7 +1196,7 @@ public class PrefsDialog extends JDialog {
 				@Override
 				public void actionPerformed(ActionEvent e) {
 					Tracker.recentFiles.clear();
-					TMenuBar.refreshMenus(frame.getTrackerPanelForID(panelID), TMenuBar.REFRESH_PREFS_CLEARRECENT);
+					frame.refreshMenus(frame.getTrackerPanelForID(panelID), TMenuBar.REFRESH_PREFS_CLEARRECENT);
 					clearRecentButton.setEnabled(false);
 				}
 			});
@@ -1808,7 +1808,7 @@ public class PrefsDialog extends JDialog {
 			Tracker.preferredTrailLengthIndex = trailLengthDropdown.getSelectedIndex();
 			// refresh the toolbar
 			if (panelID != null) {
-				TToolBar toolbar = TToolBar.getToolbar(trackerPanel);
+				TToolBar toolbar = trackerPanel.getToolBar();
 				toolbar.trailButton.setSelected(toolbar.trailLengthIndex != 0);
 				toolbar.refresh(TToolBar.REFRESH_PREFS_TRUE);
 			}
@@ -1820,7 +1820,7 @@ public class PrefsDialog extends JDialog {
 			// update recent menu
 			Integer val = (Integer) recentSizeSpinner.getValue();
 			Tracker.setRecentSize(val);
-			TMenuBar.refreshMenus(trackerPanel, TMenuBar.REFRESH_PREFS_APPLYPREFS);
+			trackerPanel.refreshMenus(TMenuBar.REFRESH_PREFS_APPLYPREFS);
 			// update configuration
 			updateConfig();
 			Tracker.isXuggleFast = xuggleFastButton.isSelected();

@@ -171,7 +171,7 @@ public class OffsetOrigin extends TTrack {
 		} else {
 			TPoint p = step.getPoints()[0];
 			if (p != null) {
-				Mark mark = step.marks.get(tp);
+				Mark mark = step.marks.get(tp.getID());
 				if (mark == null) {
 					// set step location to image position of current world coordinates
 					double xx = coords.worldToImageX(n, step.worldX, step.worldY);

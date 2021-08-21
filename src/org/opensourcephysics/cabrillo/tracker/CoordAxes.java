@@ -279,7 +279,7 @@ public class CoordAxes extends TTrack {
 						if (newColor != color) {
 							grid.setColor(newColor);
 							for (int i = 0; i < tp.panelAndWorldViews.size(); i++) {
-								tp.panelAndWorldViews.get(i).repaint();
+								frame.getTrackerPanelForID(tp.panelAndWorldViews.get(i)).repaint();
 							}
 						}
 					}
@@ -305,7 +305,7 @@ public class CoordAxes extends TTrack {
 							public void stateChanged(ChangeEvent e) {
 								grid.setAlpha(slider.getValue());
 								for (int i = 0; i < tp.panelAndWorldViews.size(); i++) {
-									tp.panelAndWorldViews.get(i).repaint();
+									frame.getTrackerPanelForID(tp.panelAndWorldViews.get(i)).repaint();
 								}
 							}
 						});
@@ -316,7 +316,7 @@ public class CoordAxes extends TTrack {
 						if (response == JOptionPane.CANCEL_OPTION) {
 							grid.setAlpha(alpha);
 							for (int i = 0; i < tp.panelAndWorldViews.size(); i++) {
-								tp.panelAndWorldViews.get(i).repaint();
+								frame.getTrackerPanelForID(tp.panelAndWorldViews.get(i)).repaint();
 							}
 						}
 					}
@@ -387,7 +387,7 @@ public class CoordAxes extends TTrack {
 		gridCheckbox.setSelected(gridVisible);
 		if (tp != null) {
 			for (int i = 0; i < tp.panelAndWorldViews.size(); i++) {
-				tp.panelAndWorldViews.get(i).repaint();
+				frame.getTrackerPanelForID(tp.panelAndWorldViews.get(i)).repaint();
 			}
 		}
 	}

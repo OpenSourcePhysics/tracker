@@ -99,7 +99,6 @@ import org.opensourcephysics.media.core.Video;
 import org.opensourcephysics.media.core.VideoClip;
 import org.opensourcephysics.media.core.VideoFileFilter;
 import org.opensourcephysics.media.core.VideoIO;
-import org.opensourcephysics.media.core.VideoPanel;
 import org.opensourcephysics.media.core.VideoType;
 import org.opensourcephysics.tools.FontSizer;
 import org.opensourcephysics.tools.LibraryBrowser;
@@ -348,7 +347,7 @@ public class TrackerIO extends VideoIO {
 		chooser.setAcceptAllFileFilterUsed(true);
 		if (isNew && file != null) {
 			Tracker.addRecent(XML.getAbsolutePath(file), false); // add at beginning
-			TMenuBar.refreshMenus(trackerPanel, TMenuBar.REFRESH_TRACKERIO_SAVE);
+			trackerPanel.refreshMenus(TMenuBar.REFRESH_TRACKERIO_SAVE);
 		}
 		return file;
 	}
@@ -365,7 +364,7 @@ public class TrackerIO extends VideoIO {
 		// count tabs with data files or unchanged (newly opened) videos
 		int n = 0;
 		for (int i = 0; i < frame.getTabCount(); i++) {
-			TrackerPanel trackerPanel = frame.getTrackerPanel(i);
+			TrackerPanel trackerPanel = frame.getTrackerPanelForTab(i);
 			if (trackerPanel.getDataFile() != null) {
 				n++;
 				continue;
@@ -417,7 +416,7 @@ public class TrackerIO extends VideoIO {
 		XMLControl xmlControl = new XMLControlElement(frame);
 		xmlControl.write(XML.getAbsolutePath(file));
 		Tracker.addRecent(XML.getAbsolutePath(file), false); // add at beginning
-		TMenuBar.refreshMenus(frame.getSelectedPanel(), TMenuBar.REFRESH_TRACKERIO_SAVETABSET);
+		frame.getSelectedPanel().refreshMenus(TMenuBar.REFRESH_TRACKERIO_SAVETABSET);
 		return file;
 	}
 
@@ -1000,7 +999,7 @@ public class TrackerIO extends VideoIO {
 		boolean success = ResourceLoader.copyAllFiles(new File(source), file);
 		if (success) {
 			Tracker.addRecent(XML.getAbsolutePath(file), false); // add at beginning
-			TMenuBar.refreshMenus(trackerPanel, TMenuBar.REFRESH_TRACKERIO_SAVEVIDEO);
+			trackerPanel.frame.refreshMenus(trackerPanel, TMenuBar.REFRESH_TRACKERIO_SAVEVIDEO);
 			return file;
 		}
 		return null;
@@ -1738,8 +1737,9 @@ public class TrackerIO extends VideoIO {
 	static class AsyncLoader extends AsyncSwingWorker implements TrackerMonitor {
 
 		private final List<String> paths;
-		private final TrackerPanel existingPanel;
+		private final Integer existingPanelID;
 		private final TFrame frame;
+		private Integer panelID;
 		private final ArrayList<String> desktopFiles = new ArrayList<>();
 //		private final long t0;
 
@@ -1754,7 +1754,6 @@ public class TrackerIO extends VideoIO {
 		private static final int TYPE_TEXT = 6;
 
 		private boolean panelChanged;
-		private TrackerPanel trackerPanel;
 		private Video video;
 		private String rawPath;
 		private String nonURIPath;
@@ -1766,7 +1765,7 @@ public class TrackerIO extends VideoIO {
 //		private String title; // BH TODO
 		private String xmlPath, xmlPath0;
 		private Runnable whenDone;
-		private Set<VideoPanel> panelList = new HashSet<>();
+		private Set<Integer> panelList = new HashSet<>();
 
 		private LibraryBrowser libraryBrowser;
 //		private MonitorDialog monitorDialog;
@@ -1797,7 +1796,7 @@ public class TrackerIO extends VideoIO {
 			path = path0 = name = paths.remove(0);
 			this.paths = paths;
 			isAsync = (delayMillis > 0);
-			this.existingPanel = existingPanel;
+			this.existingPanelID = (existingPanel == null ? null : existingPanel.getID());
 			this.frame = frame;
 			this.libraryBrowser = libraryBrowser;
 			this.whenDone = whenDone;
@@ -1815,7 +1814,7 @@ public class TrackerIO extends VideoIO {
 		private boolean setupLoader() {
 			ignoreLowMemory = false;
 			xmlPath = null;
-			trackerPanel = null;
+			panelID = null;
 			//title = null;
 			panelChanged = false;
 			nonURIPath = null;
@@ -1845,7 +1844,7 @@ public class TrackerIO extends VideoIO {
 			
 			if (isTRZ || path.indexOf("&TrackerSet=") >= 0) {
 				type = TYPE_TRZ;
-				trackerPanel = frame.getCleanTrackerPanel().ref(this);
+				panelID = frame.getCleanTrackerPanel().getID();
 				frame.holdPainting(true);
 				return true;
 			}
@@ -1857,8 +1856,7 @@ public class TrackerIO extends VideoIO {
 			File testFile = new File(XML.getName(path));			
 			if (videoFileFilter.accept(testFile, false)) {
 				type = TYPE_VIDEO;
-				trackerPanel = (existingPanel == null ? frame.getCleanTrackerPanel() : existingPanel).ref(this);
-				panelChanged = trackerPanel.changed;
+				newPanel();
 				return true;
 			}
 			
@@ -1873,8 +1871,7 @@ public class TrackerIO extends VideoIO {
 			// check for text data files
 			if (delimitedTextFileFilter.accept(testFile, false)) {
 				type = TYPE_TEXT;
-				trackerPanel = (existingPanel == null ? frame.getCleanTrackerPanel() : existingPanel).ref(this);
-				panelChanged = trackerPanel.changed;
+				newPanel();
 				return true;
 			}
 			
@@ -1891,7 +1888,7 @@ public class TrackerIO extends VideoIO {
 
 			if (TrackerPanel.class.isAssignableFrom(ctype)) {
 				type = TYPE_TRK;
-				trackerPanel = frame.getCleanTrackerPanel().ref(this);
+				panelID = frame.getCleanTrackerPanel().getID();
 				return true;
 			}
 
@@ -1901,11 +1898,11 @@ public class TrackerIO extends VideoIO {
 			}
 			// FAILURE
 			if (control.failedToRead()) {
-				JOptionPane.showMessageDialog(trackerPanel.getTFrame(),
+				JOptionPane.showMessageDialog(frame,
 						MediaRes.getString("VideoIO.Dialog.BadFile.Message") + //$NON-NLS-1$
 								ResourceLoader.getNonURIPath(path));
 			} else {
-				JOptionPane.showMessageDialog(trackerPanel.getTFrame(), "\"" + XML.getName(path) + "\" " + //$NON-NLS-1$ //$NON-NLS-2$
+				JOptionPane.showMessageDialog(frame, "\"" + XML.getName(path) + "\" " + //$NON-NLS-1$ //$NON-NLS-2$
 						MediaRes.getString("VideoIO.Dialog.XMLMismatch.Message"), //$NON-NLS-1$
 						MediaRes.getString("VideoIO.Dialog.XMLMismatch.Title"), //$NON-NLS-1$
 						JOptionPane.WARNING_MESSAGE);
@@ -1915,6 +1912,12 @@ public class TrackerIO extends VideoIO {
 			return false;
 		}
 		
+		private void newPanel() {
+			panelID = (existingPanelID == null ? frame.getCleanTrackerPanel().getID() 
+					: existingPanelID);
+			panelChanged = panel().changed;
+		}
+
 		@Override
 		public int doInBackgroundAsync(int progress) {
 			if (isCanceled()) {
@@ -1945,7 +1948,7 @@ public class TrackerIO extends VideoIO {
 				progress = loadVideo(progress);
 				break;
 			case TYPE_UNSUPPORTED_VIDEO:
-				handleUnsupportedVideo(path, XML.getExtension(path), null, trackerPanel, "TrackerIO.unsupp video-asyncLoad");
+				handleUnsupportedVideo(path, XML.getExtension(path), null, panel(), "TrackerIO.unsupp video-asyncLoad");
 				return PROGRESS_COMPLETE;
 			case TYPE_TEXT:
 				progress = loadData(progress);
@@ -1970,13 +1973,13 @@ public class TrackerIO extends VideoIO {
 					break;
 				case Tracker.MEMORY_LOW_IGNORE:
 					ignoreLowMemory = true;
-					TToolBar.refreshMemoryButton(trackerPanel);
+					TToolBar.refreshMemoryButton(panel());
 					break;
 				case Tracker.MEMORY_LOW_DONTIGNORE:
 				case Tracker.MEMORY_OUT:
 					setCanceled(true);
 					cancelAsync();
-					TToolBar.refreshMemoryButton(trackerPanel);
+					TToolBar.refreshMemoryButton(panel());
 					break;
 				case Tracker.MEMORY_INCREASE:
 					setCanceled(true);
@@ -1986,6 +1989,10 @@ public class TrackerIO extends VideoIO {
 				}
 			}
 			return progress;
+		}
+
+		private TrackerPanel panel() {
+			return frame.getTrackerPanelForID(panelID);
 		}
 
 		@Override
@@ -2181,7 +2188,8 @@ public class TrackerIO extends VideoIO {
 		}
 
 		private int loadTRK(int progress) {
-			panelList.add(trackerPanel);
+			panelList.add(panelID);
+			TrackerPanel trackerPanel = panel();
 			if (loader != null && loader.control == control) {
 				loader.loadObject(control, trackerPanel);
 			} else {
@@ -2251,7 +2259,7 @@ public class TrackerIO extends VideoIO {
 			checkDone(false);			
 			// remove empty tab if running in Java
 			if (!OSPRuntime.isJS) {
-				TToolBar tbar = frame.getToolbar(trackerPanel);
+				TToolBar tbar = trackerPanel.getToolBar();
 				SwingUtilities.invokeLater(()->{
 					if (tbar != null)
 						tbar.refresh(TToolBar.REFRESH_TFRAME_REFRESH_TRUE);
@@ -2262,7 +2270,7 @@ public class TrackerIO extends VideoIO {
 		}
 
 		void checkDone(boolean b) {
-			if (b == (trackerPanel.getVideo() instanceof AsyncVideoI)) {
+			if (b == (panel().getVideo() instanceof AsyncVideoI)) {
 				if (panelList.size() == 0 && paths.size() == 0)
 					doneLoading();
 			}
@@ -2270,8 +2278,8 @@ public class TrackerIO extends VideoIO {
 		
 		private int loadData(int progress) {
 			// was refresh
-			frame.addTab(trackerPanel, TFrame.ADD_SELECT | TFrame.ADD_NOREFRESH, null);
-			trackerPanel.importDataAsync(path, null, null);
+			frame.addTab(panel(), TFrame.ADD_SELECT | TFrame.ADD_NOREFRESH, null);
+			panel().importDataAsync(path, null, null);
 			return PROGRESS_COMPLETE;
 		}
 
@@ -2279,7 +2287,7 @@ public class TrackerIO extends VideoIO {
 			boolean logConsole = OSPLog.isConsoleMessagesLogged();
 			if (progress == 0) {
 				// check for unsupported MP4 videos
-				if (!checkMP4(path, libraryBrowser, trackerPanel))
+				if (!checkMP4(path, libraryBrowser, panel()))
 					return PROGRESS_COMPLETE;
 				//trackerPanel.setTFrame(frame);
 	//			OSPLog.debug("TrackerIO opening video path " + path); //$NON-NLS-1$
@@ -2323,7 +2331,7 @@ public class TrackerIO extends VideoIO {
 				if (frame.libraryBrowser != null) 
 					frame.libraryBrowser.setMessage(null, null);
 				String codec = getVideoCodec(path);
-				handleUnsupportedVideo(path, XML.getExtension(path), codec, trackerPanel, "OpenTabPathVideo null video");
+				handleUnsupportedVideo(path, XML.getExtension(path), codec, panel(), "OpenTabPathVideo null video");
 				cancelAsync();
 				return PROGRESS_COMPLETE;
 			}
@@ -2346,6 +2354,7 @@ public class TrackerIO extends VideoIO {
 		}
 
 		private void finalizeVideoLoading(Video video) {
+			TrackerPanel trackerPanel = panel();
 			frame.addTab(trackerPanel, TFrame.ADD_NOSELECT | TFrame.ADD_NOREFRESH, null);
 			JSplitPane pane = frame.getSplitPane(trackerPanel, 0);
 			pane.setDividerLocation(TFrame.DEFAULT_RIGHT_DIVIDER);
@@ -2353,12 +2362,12 @@ public class TrackerIO extends VideoIO {
 			// BH ?? TMenuBar.refreshMenus(trackerPanel, TMenuBar.REFRESH_BEFORESETVIDEO);
 			trackerPanel.setVideo(video);
 			// panel is changed if video imported into existing trackerPanel
-			panelChanged = (trackerPanel == existingPanel);
+			panelChanged = (trackerPanel.getID() == existingPanelID);
 			if (video.getFrameCount() == 1) {
 				trackerPanel.getPlayer().getVideoClip().setStepCount(10);
 			}
 			// if new trackerPanel, move coords origin to center of video
-			if (existingPanel == null) {
+			if (existingPanelID == null) {
 				ImageCoordSystem coords = trackerPanel.getCoords();
 				coords.setAllOriginsXY(video.getWidth() / 2, video.getHeight() / 2);
 			}
@@ -2370,14 +2379,15 @@ public class TrackerIO extends VideoIO {
 			// show dialog only if bad frames found, and include "don't show again" button
 		}
 
-		public void finalized(VideoPanel trackerPanel) {
-			panelList.remove(trackerPanel);
+		public void finalized(TrackerPanel trackerPanel) {
+			panelList.remove(trackerPanel.getID());
 			if (panelList.size() == 0 && paths.size() == 0 && trackerPanel.getVideo() instanceof AsyncVideoI) {
 				doneLoading();
 			}
 		}
 
 		private void doneLoading() {
+			TrackerPanel trackerPanel = panel();
 			frame.setFrameBlocker(false, trackerPanel);
 			if (xmlPath0 != null && !ResourceLoader.isJarZipTrz(xmlPath0,  true)) { //$NON-NLS-1$
 				Tracker.addRecent(ResourceLoader.getNonURIPath(XML.forwardSlash(xmlPath0)), false); // add at beginning
@@ -2423,6 +2433,7 @@ public class TrackerIO extends VideoIO {
 		@Override
 		public void cancelAsync() {
 			super.cancelAsync();
+			TrackerPanel trackerPanel = panel();
 			frame.clearHoldPainting();
 			frame.setFrameBlocker(false, trackerPanel);
 			frame.setCursor(Cursor.getDefaultCursor());
@@ -2432,8 +2443,8 @@ public class TrackerIO extends VideoIO {
 			trackerPanel.releaseResources();
 			if (type == TYPE_VIDEO) {
 				// remove existingPanel if clean and removable
-				if (existingPanel != null) {
-					int tab = frame.getRemovableTabNumber(existingPanel);
+				if (existingPanelID != null) {
+					int tab = frame.getRemovableTabNumber(existingPanelID);
 					if (tab > -1)
 						frame.removeTabNow(tab);
 				}
@@ -2476,7 +2487,7 @@ public class TrackerIO extends VideoIO {
 				return "Video frames loaded: " + getFrameCount();
 			case TYPE_TRK:
 				if (type == TYPE_TRK && progress > PROGRESS_VIDEO_PROCESSING && progress < PROGRESS_VIDEO_READY)
-					return "Video " + videoCount + ": frames loaded " + trackerPanel.framesLoaded;
+					return "Video " + videoCount + ": frames loaded " + panel().framesLoaded;
 		  default:
 				return String.format("Completed %d%%.\n", progressPercent);
 			}

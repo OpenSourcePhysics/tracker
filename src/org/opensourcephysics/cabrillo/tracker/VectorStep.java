@@ -78,8 +78,8 @@ public class VectorStep extends Step implements PropertyChangeListener {
 	protected VisibleTip visibleTip;
 	protected int dx, dy; // used when snapped to origin
 	protected boolean tipEnabled = true;
-	protected Map<TrackerPanel, Shape> tipShapes = new HashMap<TrackerPanel, Shape>();
-	protected Map<TrackerPanel, Shape> shaftShapes = new HashMap<TrackerPanel, Shape>();
+	protected Map<Integer, Shape> tipShapes = new HashMap<Integer, Shape>();
+	protected Map<Integer, Shape> shaftShapes = new HashMap<Integer, Shape>();
 	protected TPoint attachmentPoint; // tail is attached to this pt
 	protected VectorChain chain;
 	protected boolean brandNew = true;
@@ -87,8 +87,8 @@ public class VectorStep extends Step implements PropertyChangeListener {
 	protected boolean labelVisible = true;
 	protected boolean rolloverVisible = false;
 	protected boolean valid;
-	protected Map<TrackerPanel, TextLayout> textLayouts = new HashMap<TrackerPanel, TextLayout>();
-	protected Map<TrackerPanel, Rectangle> layoutBounds = new HashMap<TrackerPanel, Rectangle>();
+	protected Map<Integer, TextLayout> textLayouts = new HashMap<Integer, TextLayout>();
+	protected Map<Integer, Rectangle> layoutBounds = new HashMap<Integer, Rectangle>();
 
 	/**
 	 * Constructs a VectorStep with specified imagespace tail coordinates and vector
@@ -425,7 +425,7 @@ public class VectorStep extends Step implements PropertyChangeListener {
 			if (!c.contains(this))
 				c.add(this);
 			if (labelVisible) {
-				TextLayout layout = textLayouts.get(trackerPanel);
+				TextLayout layout = textLayouts.get(trackerPanel.getID());
 				Point p = getLayoutPosition(trackerPanel, layout);
 				Paint gpaint = g.getPaint();
 				Font gfont = g.getFont();
@@ -455,7 +455,7 @@ public class VectorStep extends Step implements PropertyChangeListener {
 		if (hitRect.contains(origin))
 			return null;
 		// look for shaft hit
-		Shape hitShape = shaftShapes.get(trackerPanel);
+		Shape hitShape = shaftShapes.get(trackerPanel.getID());
 		if (hitShape != null && hitShape.intersects(hitRect)) {
 			if (rolloverVisible && !labelVisible) {
 				labelVisible = true;
@@ -467,7 +467,7 @@ public class VectorStep extends Step implements PropertyChangeListener {
 		}
 		if (tipEnabled) {
 			// look for tip hit
-			hitShape = tipShapes.get(trackerPanel);
+			hitShape = tipShapes.get(trackerPanel.getID());
 			if (hitShape != null && hitShape.intersects(hitRect)) {
 				return visibleTip;
 			}
@@ -487,7 +487,7 @@ public class VectorStep extends Step implements PropertyChangeListener {
 	 */
 	@Override
 	protected Mark getMark(TrackerPanel trackerPanel) {
-		Mark mark = marks.get(trackerPanel);
+		Mark mark = marks.get(trackerPanel.getID());
 		TPoint selection = null;
 		if (mark == null) {
 			tip.setLocation(tip.getX(), tip.getY()); // sets visible tip position
@@ -522,11 +522,8 @@ public class VectorStep extends Step implements PropertyChangeListener {
 			}
 			// get new text layout
 			// determine whether to show xMass
-			TrackerPanel panel = trackerPanel;
-			if (panel instanceof WorldTView) {
-				panel = ((WorldTView) panel).getTrackerPanel();
-			}
-			boolean xMass = TToolBar.getToolbar(panel).xMassButton.isSelected();
+			TrackerPanel panel = trackerPanel.getTruePanel();
+			boolean xMass = panel.getToolBar().xMassButton.isSelected();
 			TTrack track = getTrack();
 			String s = track.getName() + " "; //$NON-NLS-1$
 			if (track instanceof PointMass) {
@@ -544,13 +541,13 @@ public class VectorStep extends Step implements PropertyChangeListener {
 				s += clip.frameToStep(getFrameNumber());
 			}
 			TextLayout layout = new TextLayout(s, TFrame.textLayoutFont, OSPRuntime.frc);
-			textLayouts.put(trackerPanel, layout);
+			textLayouts.put(trackerPanel.getID(), layout);
 			// get layout position (bottom left corner of text)
 			Point lp = getLayoutPosition(trackerPanel, layout);
-			Rectangle bounds = layoutBounds.get(trackerPanel);
+			Rectangle bounds = layoutBounds.get(trackerPanel.getID());
 			if (bounds == null) {
 				bounds = new Rectangle();
-				layoutBounds.put(trackerPanel, bounds);
+				layoutBounds.put(trackerPanel.getID(), bounds);
 			}
 			Rectangle2D rect = layout.getBounds();
 			// set bounds (top left corner and size)
@@ -587,11 +584,11 @@ public class VectorStep extends Step implements PropertyChangeListener {
 					theMark.draw(g, highlighted);
 				}
 			};
-			marks.put(trackerPanel, mark);
+			marks.put(trackerPanel.getID(), mark);
 			if (valid) {
 				Shape[] shapes = footprint.getHitShapes();
-				tipShapes.put(trackerPanel, shapes[0]);
-				shaftShapes.put(trackerPanel, shapes[2]);
+				tipShapes.put(trackerPanel.getID(), shapes[0]);
+				shaftShapes.put(trackerPanel.getID(), shapes[2]);
 			}
 		}
 		return mark;
@@ -638,10 +635,10 @@ public class VectorStep extends Step implements PropertyChangeListener {
 					return VectorStep.this.n;
 				}
 			};
-			step.tipShapes = new HashMap<TrackerPanel, Shape>();
-			step.shaftShapes = new HashMap<TrackerPanel, Shape>();
-			step.textLayouts = new HashMap<TrackerPanel, TextLayout>();
-			step.layoutBounds = new HashMap<TrackerPanel, Rectangle>();
+			step.tipShapes = new HashMap<Integer, Shape>();
+			step.shaftShapes = new HashMap<Integer, Shape>();
+			step.textLayouts = new HashMap<Integer, TextLayout>();
+			step.layoutBounds = new HashMap<Integer, Rectangle>();
 			step.setFirePropertyChangeEvents(firePropertyChangeEvents);
 		}
 		return step;
@@ -880,7 +877,7 @@ public class VectorStep extends Step implements PropertyChangeListener {
 					x = x / (dt * dt);
 					y = y / (dt * dt);
 				}
-				if (TToolBar.getToolbar(trackerPanel).xMassButton.isSelected()) {
+				if (trackerPanel.getToolBar().xMassButton.isSelected()) {
 					x = m.getMass() * x;
 					y = m.getMass() * y;
 				}

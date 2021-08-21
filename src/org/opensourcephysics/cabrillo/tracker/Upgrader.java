@@ -267,10 +267,11 @@ public class Upgrader {
 						// launch new Tracker version
 						final String jarPath = jarFile.getAbsolutePath();
 						final ArrayList<String> filenames = new ArrayList<String>();
-						frame.saveAllTabs(new Function<TrackerPanel, Void>() {
+						frame.saveAllTabs(new Function<Integer, Void>() {
 							// for each approved
 							@Override
-							public Void apply(TrackerPanel trackerPanel) {
+							public Void apply(Integer panelID) {
+								TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
 								File datafile = trackerPanel.getDataFile();
 								if (datafile == null) {
 									String path = trackerPanel.openedFromPath;

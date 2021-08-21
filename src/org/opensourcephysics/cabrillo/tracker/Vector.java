@@ -133,7 +133,7 @@ public class Vector extends TTrack {
 	// instance fields
 	protected JMenuItem tailsToOriginItem = new JMenuItem();
 	protected JCheckBoxMenuItem labelsVisibleItem;
-	protected Map<TrackerPanel, Boolean> visMap = new HashMap<TrackerPanel, Boolean>();
+	protected Map<Integer, Boolean> visMap = new HashMap<Integer, Boolean>();
 
 	/**
 	 * Constructs a Vector.
@@ -524,7 +524,7 @@ public class Vector extends TTrack {
 	public void setVectorsVisible(TrackerPanel panel, boolean visible) {
 		if (visible == isVectorsVisible(panel))
 			return;
-		visMap.put(panel, Boolean.valueOf(visible));
+		visMap.put(panel.getID(), Boolean.valueOf(visible));
 		if (!visible) {
 			Step step = panel.getSelectedStep();
 			if (step != null && step == getStep(step.getFrameNumber())) {
@@ -541,13 +541,11 @@ public class Vector extends TTrack {
 	 * @return <code>true</code> if positions are visible
 	 */
 	public boolean isVectorsVisible(TrackerPanel trackerPanel) {
-		if (trackerPanel instanceof WorldTView) {
-			trackerPanel = ((WorldTView) trackerPanel).getTrackerPanel();
-		}
-		Boolean vis = visMap.get(trackerPanel);
+		trackerPanel = trackerPanel.getTruePanel();
+		Boolean vis = visMap.get(trackerPanel.getID());
 		if (vis == null) {
 			vis = Boolean.valueOf(true); // vectors are visible by default
-			visMap.put(trackerPanel, vis);
+			visMap.put(trackerPanel.getID(), vis);
 		}
 		return vis.booleanValue();
 	}

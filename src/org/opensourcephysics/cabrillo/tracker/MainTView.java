@@ -159,7 +159,7 @@ public class MainTView extends JPanel implements TView {
 
 	protected void doKeyPressed(KeyEvent e) {
 		TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
-		JButton z = frame.getToolbar(trackerPanel).zoomButton;
+		JButton z = trackerPanel.getToolBar().zoomButton;
 		int d = trackerPanel.getSelectedPoint() == null ? 10 : 0;
 		Rectangle rect = scrollPane.getViewport().getViewRect();
 		switch (e.getKeyCode()) {
@@ -233,7 +233,7 @@ public class MainTView extends JPanel implements TView {
 
 	protected void doKeyRelease(KeyEvent e) {
 		TrackerPanel panel = frame.getTrackerPanelForID(panelID);
-		final JButton z = frame.getToolbar(panel).zoomButton;
+		final JButton z = panel.getToolBar().zoomButton;
 		if (e.getKeyCode() == KeyEvent.VK_Z) {
 			z.setSelected(false);
 			panel.setCursor(Cursor.getDefaultCursor());
@@ -289,7 +289,7 @@ public class MainTView extends JPanel implements TView {
 			return;
 		lastDim = d;
 		TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
-		TToolBar tbar = TToolBar.getToolbar(trackerPanel);
+		TToolBar tbar = trackerPanel.getToolBar();
 		if (tbar != null)
 			tbar.refreshZoomButton();
 		trackerPanel.eraseAll();

@@ -160,7 +160,7 @@ public class PlotTrackView extends TrackView {
 
 	@Override
 	protected void dispose() {
-		System.out.println("PlotTrackView.dispose");
+		System.out.println("PlotTrackView.dispose " + panelID);
 		datasetManager = null;
 		for (TrackPlottingPanel next : plots) {
 			next.dispose();
