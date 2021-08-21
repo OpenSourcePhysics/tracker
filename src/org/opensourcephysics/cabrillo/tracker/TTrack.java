@@ -571,16 +571,17 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 
 		// create labels and fields
 		xLabel = new TextLineLabel();
-		xField = new TrackNumberField();
 		yLabel = new TextLineLabel();
-		yField = new TrackNumberField();
 		magLabel = new TextLineLabel();
+		angleLabel = new TextLineLabel();
+		
+		xField = new TrackNumberField();
+		yField = new TrackNumberField();
 		magField = new TrackNumberField();
 		magField.setMinValue(0);
 		xField.addMouseListener(formatMouseListener);
 		yField.addMouseListener(formatMouseListener);
 		magField.addMouseListener(formatMouseListener);
-		angleLabel = new TextLineLabel();
 		angleField = new TrackDecimalField(1);
 		angleField.addMouseListener(formatAngleMouseListener);
 		Border empty = BorderFactory.createEmptyBorder(0, 3, 0, 3);
@@ -2952,6 +2953,11 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 				step.dispose();
 			}
 		}
+		xLabel.dispose();
+		yLabel.dispose();
+		magLabel.dispose();
+		angleLabel.dispose();
+
 		steps = null;
 		setTrackerPanel(null);
 		super.dispose();

@@ -1947,7 +1947,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 
 
 	@Override
-	protected void dispose() {
+	public void dispose() {
 		System.out.println("TrackPlottingPanel.dispose " + panelID);
 		if (playerListener != null) {
 			getPlotPanel().getPlayer()
