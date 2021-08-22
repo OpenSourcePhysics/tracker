@@ -558,7 +558,6 @@ public class XuggleVideo extends VideoAdapter implements SmoothPlayable, Increme
 				// save valid buffered images for cache
 				if (picture.isComplete() && imageList.size() < CACHE_MAX - firstDisplayPacket) {
 					imageList.add(getBufferedImage());
-					System.out.println("pig "+imageList.size());
 				}
 				
 //				dumpImage(containerFrame, getBufferedImage(), "C");				
