@@ -490,7 +490,8 @@ public class XuggleVideo extends VideoAdapter implements SmoothPlayable, Increme
 			startTimes[i] = seconds.get(i) * 1000;
 		}
 
-		setImage(imageCache[firstDisplayPacket]);
+		if (imageCache.length > firstDisplayPacket)
+			setImage(imageCache[firstDisplayPacket]);
 		seekToStart();
 		container.readNextPacket(packet);
 //
@@ -557,6 +558,7 @@ public class XuggleVideo extends VideoAdapter implements SmoothPlayable, Increme
 				// save valid buffered images for cache
 				if (picture.isComplete() && imageList.size() < CACHE_MAX - firstDisplayPacket) {
 					imageList.add(getBufferedImage());
+					System.out.println("pig "+imageList.size());
 				}
 				
 //				dumpImage(containerFrame, getBufferedImage(), "C");				
@@ -1318,4 +1320,8 @@ public class XuggleVideo extends VideoAdapter implements SmoothPlayable, Increme
 		return endFrameNumber + 1;
 	}
 
+	@Override
+	public void setLoadableFrameCount(int n) {
+		endFrameNumber = n - 1;
+	}
 }
