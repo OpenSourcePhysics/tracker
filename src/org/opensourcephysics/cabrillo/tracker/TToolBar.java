@@ -72,6 +72,7 @@ import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.desktop.OSPDesktop;
 import org.opensourcephysics.display.DataTable;
 import org.opensourcephysics.display.OSPRuntime;
+import org.opensourcephysics.display.OSPRuntime.Disposable;
 import org.opensourcephysics.display.ResizableIcon;
 import org.opensourcephysics.media.core.ClipInspector;
 import org.opensourcephysics.media.core.MediaRes;
@@ -84,7 +85,7 @@ import org.opensourcephysics.tools.FontSizer;
  *
  * @author Douglas Brown
  */
-public class TToolBar extends JToolBar implements TFrame.Disposable, PropertyChangeListener {
+public class TToolBar extends JToolBar implements Disposable, PropertyChangeListener {
 
 	// static fields
 	final protected static int[] trailLengths = { 1, 4, 15, 0 };

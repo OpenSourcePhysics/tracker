@@ -25,10 +25,13 @@
 package org.opensourcephysics.cabrillo.tracker;
 
 import java.awt.Component;
-import java.beans.*;
-import java.util.*;
+import java.beans.PropertyChangeListener;
+import java.util.ArrayList;
 
-import javax.swing.*;
+import javax.swing.Icon;
+import javax.swing.JPopupMenu;
+
+import org.opensourcephysics.display.OSPRuntime;
 
 /**
  * This is a view of a tracker panel that can be added to a TViewChooser.
@@ -36,7 +39,7 @@ import javax.swing.*;
  *
  * @author Douglas Brown
  */
-public interface TView extends PropertyChangeListener {
+public interface TView extends PropertyChangeListener, OSPRuntime.Disposable {
 	
 	String PROPERTY_TVIEW_TRACKVIEW = "trackview";
 

@@ -117,6 +117,7 @@ import org.opensourcephysics.display.DataTable;
 import org.opensourcephysics.display.GUIUtils;
 import org.opensourcephysics.display.OSPFrame;
 import org.opensourcephysics.display.OSPRuntime;
+import org.opensourcephysics.display.OSPRuntime.Disposable;
 import org.opensourcephysics.media.core.ClipInspector;
 import org.opensourcephysics.media.core.DataTrack;
 import org.opensourcephysics.media.core.MediaRes;
@@ -156,7 +157,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 
 	// static fields
 
-	class TTabPanel extends JPanel {
+	class TTabPanel extends JPanel implements Disposable {
 
 		private Object[] objects;
 		Integer panelID;
@@ -790,8 +791,9 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	 * Removes all tabs.
 	 */
 	public void removeAllTabs() {
-		if (!haveContent()) {
+		if (!haveContent() && getTabCount() == 1) {
 			removeTabNow(0);
+			Disposable.dump();
 			return;
 		}
 		hideNotes();
@@ -808,6 +810,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 				removeTabSynchronously(getTrackerPanelForID(panels.get(i)));
 //					new TabRemover(panels.get(i)).executeSynchronously();
 			}
+			Disposable.dump();
 		}, () -> {
 			// if cancelled
 			cancelled[0] = true;
@@ -883,7 +886,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		// BH 2020.11.24 thread lock
 		// BH 2021.08.13 removed
 		if (trackerPanel.trackControl != null) {
-			trackerPanel.trackControl.dispose();
+			deallocate(trackerPanel.trackControl);
 		}
 
 		Object[] objects = tabPanel.getObjects();
@@ -892,16 +895,15 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		TViewChooser[] sideViews = (TViewChooser[]) objects[TFRAME_VIEWCHOOSERS];
 		if (sideViews != null)
 			for (int i = 0; i < sideViews.length; i++) {
-				sideViews[i].dispose();
+				deallocate(sideViews[i]);
 				sideViews[i] = null;
 			}
 		objects[TFRAME_VIEWCHOOSERS] = null;
 
 		// clean up main view--this is important as it disposes of floating JToolBar
 		// videoplayer
-		MainTView mainView = (MainTView) objects[TFRAME_MAINVIEW];
-		if (mainView != null)
-			mainView.dispose();
+		if (objects[TFRAME_MAINVIEW] != null)
+			deallocate((Disposable) objects[TFRAME_MAINVIEW]);
 		objects[TFRAME_MAINVIEW] = null;
 
 		// BH MEMORY LEAK WAS HERE. By setting objects == null, toolbar, menubar, and
@@ -911,9 +913,9 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 
 		// dispose of trackbar, toolbar, menubar AFTER removing tab
 
-		Disposable.dispose(_atoolbars, id);
-		Disposable.dispose(_atrackbars, id);
-		Disposable.dispose(_amenubars, id);
+		Disposable.deallocate(_atoolbars, id);
+		Disposable.deallocate(_atrackbars, id);
+		Disposable.deallocate(_amenubars, id);
 
 		JSplitPane[] panes = (JSplitPane[]) objects[TFRAME_SPLITPANES];
 		for (int i = 0; i < panes.length; i++) {
@@ -932,11 +934,10 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		}
 		Undo.undomap.remove(panelID);
 		
-		trackerPanel.dispose();
-		Disposable.dispose(_apanels, id);		
-		removePanelRef(panelID);
+		Disposable.deallocate(_apanels, id);		
+		deallocatePanelID(panelID);
 		System.gc();
-		tabPanel.dispose();
+		Disposable.deallocate(tabPanel);
 
 		try {
 //			synchronized (tabbedPane) {
@@ -965,7 +966,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			// show defaultMenuBar
 			setJMenuBar(defaultMenuBar);
 			// we need to also remove this menubar from the _amenubars array
-			Disposable.dispose(_amenubars, id);
+			Disposable.deallocate(_amenubars, id);
 		} else {
 			// need id of new tab being displayed, not the one removed
 			id = tabPanel.panelID.intValue(); // not nec., but a reminder that panelID is an Integer not int
@@ -1485,7 +1486,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			break;
 		case TrackerRes.PROPERTY_TRACKERRES_LOCALE: // from TrackerRes //$NON-NLS-1$
 			// clear the existing menubars and actions
-			Disposable.dispose(_amenubars, _bsPanelIDs);
+			Disposable.deallocate(_amenubars, _bsPanelIDs);
 			// create new actions
 			Tracker.createActions();
 			// create new default menubar
@@ -1498,7 +1499,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 				panelID = panel.getID();
 				boolean changed = panel.changed; // save changed state and restore below
 				// replace the stored menubar
-				Disposable.dispose(_amenubars, panelID.intValue());
+				Disposable.deallocate(_amenubars, panelID.intValue());
 				getMenuBar(panelID);
 				CoordAxes axes = panel.getAxes();
 				if (axes != null) {
@@ -1703,9 +1704,15 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			// OSPLog.debug("TFrame allowViews is false");
 			return new TViewChooser[4];
 		}
-		return new TViewChooser[] { new TViewChooser(trackerPanel, TView.VIEW_PLOT),
-				new TViewChooser(trackerPanel, TView.VIEW_TABLE), new TViewChooser(trackerPanel, TView.VIEW_WORLD),
-				new TViewChooser(trackerPanel, TView.VIEW_PAGE) };
+		return new TViewChooser[] { newTViewChooser(trackerPanel, TView.VIEW_PLOT),
+				newTViewChooser(trackerPanel, TView.VIEW_TABLE), newTViewChooser(trackerPanel, TView.VIEW_WORLD),
+				newTViewChooser(trackerPanel, TView.VIEW_PAGE) };
+	}
+
+	private static TViewChooser newTViewChooser(TrackerPanel trackerPanel, int view) {
+		TViewChooser c = new TViewChooser(trackerPanel, view);
+		Disposable.allocate(c);
+		return c;
 	}
 
 	JSplitPane[] getSplitPanes(Integer panelID) {
@@ -1894,7 +1901,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		int i = trackerPanel.getID();
 		TToolBar old = _atoolbars[i];
 		if (old != null)
-			old.dispose();
+			Disposable.deallocate(old);
 		_atoolbars[i] = toolbar;
 	}
 
@@ -3865,30 +3872,11 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		}
 	}
 
-	interface Disposable {
-		public void dispose();
-
-		static void dispose(Disposable[] objs, BitSet bs) {
-			for (int i = bs.nextSetBit(0); i >= 0; i++) {
-				dispose(objs, i);
-			}
-		}
-
-		static void dispose(Disposable[] objs, int i) {
-			Disposable mb = objs[i];
-			if (mb != null) {
-				mb.dispose();
-				objs[i] = null;
-			}
-		}
-
-	};
-
 	private final BitSet _bsPanelIDs = new BitSet();
 
 	private final static int MAX_PID = 127;
 
-	public Integer nextPanelID(TrackerPanel trackerPanel) {
+	public Integer allocatePanel(TrackerPanel trackerPanel) {
 		int i = _bsPanelIDs.nextClearBit(0);
 		if (i > MAX_PID) {
 			System.err.println("MAX_PID EXCEEDED");
@@ -3900,11 +3888,29 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		return Integer.valueOf(i);
 	}
 
+
+	public void deallocatePanelID(Integer panelID) {
+		int i = panelID.intValue();
+		_apanels[i] = null;
+		_bsPanelIDs.clear(i);
+	}
+	
+	public void deallocate(Disposable obj) {
+		Disposable.deallocate(obj);
+	}
+
 	private TrackerPanel[] _apanels = new TrackerPanel[MAX_PID];
 	private TMenuBar[] _amenubars = new TMenuBar[MAX_PID];
 	private TTrackBar[] _atrackbars = new TTrackBar[MAX_PID];
 	private TToolBar[] _atoolbars = new TToolBar[MAX_PID];
-
+ 
+	{
+		Disposable.allocate(_apanels, "_apanels");
+		Disposable.allocate(_amenubars, "_amenubars");
+		Disposable.allocate(_atrackbars, "_atrackbars");
+		Disposable.allocate(_atoolbars, "_atoolbars");
+	}
+	
 	public TrackerPanel getTrackerPanelForID(Integer panelID) {
 		return (panelID == null ? null : _apanels[panelID.intValue()]);
 	}
@@ -3920,9 +3926,4 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		System.exit(0);
 	}
 
-	public void removePanelRef(Integer panelID) {
-		int i = panelID.intValue();
-		_apanels[i] = null;
-		_bsPanelIDs.clear(i);
-	}
 }

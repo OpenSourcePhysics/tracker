@@ -56,6 +56,7 @@ import org.opensourcephysics.cabrillo.tracker.TTrack.TextLineLabel;
 import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.desktop.OSPDesktop;
 import org.opensourcephysics.display.OSPRuntime;
+import org.opensourcephysics.display.OSPRuntime.Disposable;
 import org.opensourcephysics.media.core.NumberField;
 import org.opensourcephysics.media.core.TPoint;
 import org.opensourcephysics.tools.FontSizer;
@@ -66,7 +67,7 @@ import org.opensourcephysics.tools.FontSizer;
  *
  * @author Douglas Brown
  */
-public class TTrackBar extends JToolBar implements TFrame.Disposable, PropertyChangeListener {
+public class TTrackBar extends JToolBar implements Disposable, PropertyChangeListener {
 
 	// static fields
 	protected static JButton newVersionButton;

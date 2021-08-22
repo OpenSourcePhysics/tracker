@@ -149,7 +149,7 @@ import javajs.async.AsyncDialog;
  * @author Douglas Brown
  */
 @SuppressWarnings("serial")
-public class TrackerPanel extends VideoPanel implements TFrame.Disposable, Scrollable {
+public class TrackerPanel extends VideoPanel implements Scrollable {
 
 	public static final String PROPERTY_TRACKERPANEL_CLEAR = "clear";
 	public static final String PROPERTY_TRACKERPANEL_IMAGE = "image";
@@ -294,7 +294,7 @@ public class TrackerPanel extends VideoPanel implements TFrame.Disposable, Scrol
 	
 	public void setTFrame(TFrame frame) {
 		this.frame = frame;
-		panelID = frame.nextPanelID(this); 
+		panelID = frame.allocatePanel(this); 
 		System.out.println("TrackerPanel " + this + " created");
 		// If have GUI.... what?
 	}
@@ -2703,7 +2703,7 @@ public class TrackerPanel extends VideoPanel implements TFrame.Disposable, Scrol
 			break;
 		case Video.PROPERTY_VIDEO_IMAGE: // from video //$NON-NLS-1$
 			firePropertyChange(PROPERTY_TRACKERPANEL_IMAGE, null, null); // to tracks/views //$NON-NLS-1$
-			mbar = getMenuBar();
+			mbar = (hasMenuBar() ? getMenuBar() : null);
 			if (mbar != null)
 				mbar.checkMatSize();
 			TFrame.repaintT(this);
@@ -3398,8 +3398,13 @@ public class TrackerPanel extends VideoPanel implements TFrame.Disposable, Scrol
 			ci.dispose();
 		}
 
-		// set the video to null
-		setVideo(null);
+		if (video != null) {
+			// WAS MEMORY LEAK
+			video.dispose();
+			video = null;
+			// set the video to null
+			//setVideo(null);
+		}
 
 
 		if (frame != null)
@@ -4722,6 +4727,10 @@ public class TrackerPanel extends VideoPanel implements TFrame.Disposable, Scrol
 
 	boolean hasToolBar() {
 		return (frame.getToolBar(panelID, true) != null);
+	}
+
+	boolean hasMenuBar() {
+		return (frame.getMenuBar(panelID, true) != null);
 	}
 
 	private boolean haveTrackBar() {

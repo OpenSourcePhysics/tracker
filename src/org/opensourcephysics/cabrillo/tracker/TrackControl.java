@@ -45,6 +45,7 @@ import javax.swing.JPopupMenu;
 import javax.swing.JToolBar;
 
 import org.opensourcephysics.controls.OSPLog;
+import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.display.ResizableIcon;
 import org.opensourcephysics.tools.FontSizer;
 
@@ -53,7 +54,7 @@ import org.opensourcephysics.tools.FontSizer;
  *
  * @author Douglas Brown
  */
-public class TrackControl extends JDialog implements PropertyChangeListener {
+public class TrackControl extends JDialog implements OSPRuntime.Disposable, PropertyChangeListener {
 
 	private static final String[] panelProps = { TrackerPanel.PROPERTY_TRACKERPANEL_TRACK,
 			TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR, TTrack.PROPERTY_TTRACK_MASS, TTrack.PROPERTY_TTRACK_FOOTPRINT,

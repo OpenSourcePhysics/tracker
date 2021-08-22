@@ -74,6 +74,7 @@ import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.controls.XMLControlElement;
 import org.opensourcephysics.desktop.OSPDesktop;
 import org.opensourcephysics.display.OSPRuntime;
+import org.opensourcephysics.display.OSPRuntime.Disposable;
 import org.opensourcephysics.display.ResizableIcon;
 import org.opensourcephysics.media.core.Filter;
 import org.opensourcephysics.media.core.FilterStack;
@@ -94,7 +95,7 @@ import org.opensourcephysics.tools.FunctionTool;
  *
  * @author Douglas Brown
  */
-public class TMenuBar extends TFrame.DeactivatingMenuBar implements TFrame.Disposable, PropertyChangeListener, MenuListener {
+public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, PropertyChangeListener, MenuListener {
 
 
 	static final String POPUPMENU_TTOOLBAR_TRACKS = "TToolBar.tracks";
@@ -1402,6 +1403,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements TFrame.Dispo
 		}
 		if (opening) {
 			if (frame != null) {
+				System.out.println("TMenuBar mem test " + OSPRuntime.getMemoryStr()); //TEST_BH
 				frame.refreshOpenRecentMenu(file_openRecentMenu);
 			}
 			// disable export data menu if no tables to export
