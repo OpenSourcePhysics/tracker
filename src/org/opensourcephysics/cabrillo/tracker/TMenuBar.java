@@ -1163,7 +1163,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 				}
 				// send some data to the tool
 				boolean sent = false;
-				TView[][] views = frame.getTViews(panel());
+				TView[][] views = frame.getTViews(panel(), false);
 				int[] selectedTypes = frame.getSelectedViewTypes(panel());
 				for (int i = 0; i < selectedTypes.length; i++) {
 					if (selectedTypes[i] == TView.VIEW_PLOT) { // $NON-NLS-1$
@@ -2483,7 +2483,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 					TrackerPanel p = frame.getSelectedPanel();
 					if (p != null) {
 						p.setCursorForMarking(false, null);
-						TView[][] views = frame.getTViews(p);
+						TView[][] views = frame.getTViews(p, false);
 						for (TView[] next : views) {
 							for (TView view : next) {
 								if (view != null && view.getViewType() == TView.VIEW_PLOT) {

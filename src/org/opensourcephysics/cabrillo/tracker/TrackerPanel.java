@@ -493,7 +493,6 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			try {
 				// place near top right corner of frame
 				Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
-				TFrame frame = getTFrame();
 				Point frameLoc = frame.getLocationOnScreen();
 				int w = modelBuilder.getWidth() + 8;
 				int x = Math.min(screen.width - w, frameLoc.x + frame.getWidth() - w);
@@ -644,8 +643,8 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		}
 
 		// set angle format of the track
-		if (getTFrame() != null)
-			track.setAnglesInRadians(getTFrame().anglesInRadians);
+		if (frame != null)
+			track.setAnglesInRadians(frame.anglesInRadians);
 		showTrackControlDelayed = true;
 		boolean doAddDrawable = true;
 		if (track instanceof ParticleDataTrack) {
@@ -654,7 +653,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			super.addDrawable(pdt);
 			if (pdt.morePoints.size() > 0) {
 				SwingUtilities.invokeLater(() -> {
-					addDataTrackPoints(pdt, this);
+					addDataTrackPoints(pdt);
 				});
 			}
 			doAddDrawable = false;
@@ -735,7 +734,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		firePropertyChange(PROPERTY_TRACKERPANEL_TRACK, null, track); // to views //$NON-NLS-1$
 
 		// set default NumberField format patterns
-		if (getTFrame() != null) {
+		if (frame != null) {
 			track.setInitialFormatPatterns(this);
 		}
 
@@ -746,20 +745,12 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		}
 	}
 
-	private static void addDataTrackPoints(ParticleDataTrack dt, TrackerPanel trackerPanel) {
+	private void addDataTrackPoints(ParticleDataTrack dt) {
 		for (ParticleDataTrack child : dt.morePoints) {
-			trackerPanel.addTrack(child);
+			addTrack(child);
 		}
-		TFrame frame = trackerPanel.getTFrame();
-		if (frame != null && trackerPanel.isShowing()) {
-			TView[][] views = frame.getTViews(trackerPanel);
-			for (TView[] next : views) {
-				for (TView view : next) {
-					if (view != null && view instanceof TrackChooserTView) {
-						((TrackChooserTView) view).setSelectedTrack(dt);
-					}
-				}
-			}
+		if (frame != null && isShowing()) {
+			TrackChooserTView.setAllSelected(frame.getTViews(this, false), dt);
 		}
 	}
 
@@ -773,7 +764,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	protected boolean isTrackViewDisplayed(TTrack track) {
 		TFrame frame = getTFrame();
 		if (frame != null && TrackerPanel.this.isShowing()) {
-			TView[][] views = frame.getTViews(TrackerPanel.this);
+			TView[][] views = frame.getTViews(this, false);
 			for (TView[] next : views) {
 				for (int i = 0; i < next.length; i++) {
 					TView view = next[i];
@@ -2980,7 +2971,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		if (getTFrame() == null)
 			return;
 		// refresh views
-		TView[][] views = frame.getTViews(this);
+		TView[][] views = frame.getTViews(this, false);
 		if (views == null)
 			return;
 		for (int i = 0, n = views.length; i < n; i++) {

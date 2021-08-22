@@ -1245,7 +1245,7 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 		// refresh pageViewTabs list
 		pageViewTabs.clear();
 		if (frame != null) {
-			TView[][] views = frame.getTViews(panel());
+			TView[][] views = frame.getTViews(panel(), false);
 			for (TView[] next : views) {
 				if (next == null)
 					continue;

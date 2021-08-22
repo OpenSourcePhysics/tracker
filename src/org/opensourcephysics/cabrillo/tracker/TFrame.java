@@ -200,6 +200,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			super.paintComponent(g);
 		}
 
+		@Override
 		public void dispose() {
 			panelID = null;
 			objects = null;
@@ -1272,17 +1273,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			setDividerLocation(trackerPanel, SPLIT_BOTTOM, DEFAULT_BOTTOM_DIVIDER);
 		});
 	}
-
-	/**
-	 * Gets the views for the specified tracker panel.
-	 *
-	 * @param trackerPanel the tracker panel
-	 * @return an array of views
-	 */
-	public TView[][] getTViews(TrackerPanel trackerPanel) {
-		return getTViews(trackerPanel, false);
-	}
-
+	
+	
 	/**
 	 * Gets the TViews for the specified tracker panel.
 	 *
@@ -2968,10 +2960,6 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	 * Remove the first tab if it is empty and there are at least n tabs (1 or 2)
 	 */
 	public void removeEmptyTabIfTabCountGreaterThan(int n) {
-		if (true) {// TEST_BH
-			System.out.println("TFRame not removing empty tab");
-			return;
-		}
 		if (getTabCount() > n && !haveContent())
 			removeTabNow(0);
 	}

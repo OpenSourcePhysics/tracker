@@ -648,5 +648,14 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 				+ " views=" + (trackViews == null ? 0 : trackViews.size()) 
 				+ " tracks=" + tracks.size() + "]";
 	}
+	public static void setAllSelected(TView[][] views, ParticleDataTrack dt) {
+		for (TView[] next : views) {
+			for (TView view : next) {
+				if (view != null && view instanceof TrackChooserTView) {
+					((TrackChooserTView) view).setSelectedTrack(dt);
+				}
+			}
+		}
+	}
 
 }

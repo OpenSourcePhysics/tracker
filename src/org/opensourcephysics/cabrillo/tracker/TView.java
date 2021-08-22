@@ -139,7 +139,7 @@ public interface TView extends PropertyChangeListener, OSPRuntime.Disposable {
 		if (trackerPanel == null || (tf = trackerPanel.getTFrame()) == null || tf.getTabCount() == 0)
 			return false;
 		Integer id = trackerPanel.getID();
-		TView[][] views = tf.getTViews(trackerPanel);
+		TView[][] views = tf.getTViews(trackerPanel, false);
 		if (views == null)
 			return false;
 		for (int i = 0; i < views.length; i++) {
