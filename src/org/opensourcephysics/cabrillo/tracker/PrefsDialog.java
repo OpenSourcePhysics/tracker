@@ -1808,7 +1808,7 @@ public class PrefsDialog extends JDialog {
 			Tracker.preferredTrailLengthIndex = trailLengthDropdown.getSelectedIndex();
 			// refresh the toolbar
 			if (panelID != null) {
-				TToolBar toolbar = trackerPanel.getToolBar();
+				TToolBar toolbar = trackerPanel.getToolBar(true);
 				toolbar.trailButton.setSelected(toolbar.trailLengthIndex != 0);
 				toolbar.refresh(TToolBar.REFRESH_PREFS_TRUE);
 			}

@@ -158,7 +158,7 @@ public class TrackControl extends JDialog implements OSPRuntime.Disposable, Prop
 			refresh();
 		super.setVisible(vis);
 		wasVisible = vis;
-		TToolBar toolbar = frame.getToolbar(panelID);
+		TToolBar toolbar = frame.getToolBar(panelID, false);
 		if (toolbar != null)
 			toolbar.trackControlButton.setSelected(vis);
 	}

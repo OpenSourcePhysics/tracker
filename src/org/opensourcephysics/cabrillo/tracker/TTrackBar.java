@@ -121,16 +121,6 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 		OSPLog.finalized(this);
 	}
 
-	/**
-	 * Gets the trackbar for the specified tracker panel.
-	 *
-	 * @param panel the tracker panel
-	 * @return the trackbar
-	 */
-	public static TTrackBar getTrackbar(TrackerPanel panel) {
-		return panel.getTFrame().getTrackbar(panel.getID());
-	}
-	
 	private static void setTestOn(boolean on) {
 		if (on) {
 			testButton = new JButton("test"); //$NON-NLS-1$
@@ -266,7 +256,7 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 				TrackerPanel trackerPanel = (frame == null ? null : frame.getSelectedPanel());
 				if (trackerPanel != null) {
 					trackerPanel.taintEnabled();
-					trackerPanel.getToolBar().refresh(TToolBar.REFRESH__NEW_VERSION);
+					trackerPanel.getToolBar(true).refresh(TToolBar.REFRESH__NEW_VERSION);
 				}
 			}
 		});

@@ -1586,7 +1586,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		}
 		FontSizer.setFonts(inspector, FontSizer.getLevel());
 		inspector.pack();
-		TToolBar toolbar = frame.getToolbar(panelID);
+		TToolBar toolbar = getToolBar(true);
 		if (!inspector.isPositioned) {
 			inspector.isPositioned = true;
 			// center inspector on the main view
@@ -1979,7 +1979,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	protected void refreshDecimalSeparators() {
 		super.refreshDecimalSeparators();
 		// refresh the trackbar decimal separators
-		getTrackBar().refreshDecimalSeparators();
+		getTrackBar(true).refreshDecimalSeparators();
 
 		// refresh all plot and table views
 		// just repaint--no data change at all
@@ -2202,7 +2202,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			if (n < 0)
 				return;
 			if (n == TView.VIEW_MAIN) {
-				getTrackBar().maximizeButton.doClick(0);
+				getTrackBar(true).maximizeButton.doClick(0);
 			}
 			else {
 				TViewChooser viewChooser = frame.getViewChoosers(this)[n];
@@ -2363,7 +2363,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				// show hints
 				else if (getVideo() == null) // no video
 					setMessage(TrackerRes.getString("TrackerPanel.NoVideo.Hint")); //$NON-NLS-1$
-				else if (hasToolBar() && frame.getToolbar(panelID).notYetCalibrated) {
+				else if (hasToolBar() && getToolBar(true).notYetCalibrated) {
 					if (getVideo().getWidth() == 720 && getVideo().getFilterStack().isEmpty()) // DV video format
 						setMessage(TrackerRes.getString("TrackerPanel.DVVideo.Hint")); //$NON-NLS-1$
 					else if (getPlayer().getVideoClip().isDefaultState())
@@ -2703,7 +2703,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			break;
 		case Video.PROPERTY_VIDEO_IMAGE: // from video //$NON-NLS-1$
 			firePropertyChange(PROPERTY_TRACKERPANEL_IMAGE, null, null); // to tracks/views //$NON-NLS-1$
-			mbar = (hasMenuBar() ? getMenuBar() : null);
+			mbar = getMenuBar(false);
 			if (mbar != null)
 				mbar.checkMatSize();
 			TFrame.repaintT(this);
@@ -2990,8 +2990,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 						views[i][j].refresh();
 			}
 		}
-		TTrackBar trackbar = getTrackBar();
-		trackbar.setFontLevel(level);
+		getTrackBar(true).setFontLevel(level);
 		refreshTrackBar();
 //		trackbar.refresh();
 //		frame.getToolbar(panelID).refresh(false);
@@ -4123,7 +4122,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				control.setValue("selected_track_views", selectedTrackViews); //$NON-NLS-1$
 
 				// save the toolbar for button states
-				TToolBar toolbar = frame.getToolbar(trackerPanel.getID());
+				TToolBar toolbar = trackerPanel.getToolBar(true);
 				control.setValue("toolbar", toolbar); //$NON-NLS-1$
 				// save the visibility and location of the track control
 				TrackControl tc = trackerPanel.trackControl;
@@ -4306,8 +4305,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				@Override
 				public void actionPerformed(ActionEvent e) {
 					setMagnification(-1);
-					TToolBar toolbar = frame.getToolbar(panelID);
-					toolbar.refreshZoomButton();
+					getToolBar(true).refreshZoomButton();
 				}
 			});
 
@@ -4721,22 +4719,6 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 //		Performance.TIME_MARK));
 	}
 
-	protected boolean unTracked() {
-		return haveTrackBar() && getTrackBar().getComponentCount() == 0;
-	}
-
-	boolean hasToolBar() {
-		return (frame.getToolBar(panelID, true) != null);
-	}
-
-	boolean hasMenuBar() {
-		return (frame.getMenuBar(panelID, true) != null);
-	}
-
-	private boolean haveTrackBar() {
-		return getTrackBar() != null;
-	}
-
 	public void doPaste(String data) {
 		if (data != null && !pasteXML(data))
 			importDataAsync(data, null, null);
@@ -4954,7 +4936,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	 */
 	void refreshTrackBar() {
 		if (frame != null) {
-			TTrackBar tbar = getTrackBar();
+			TTrackBar tbar = getTrackBar(false);
 			if (tbar != null)
 				tbar.refresh();
 		}
@@ -4965,7 +4947,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			showTrackControlDelayed = false;
 			TrackControl.getControl(this).setVisible(true);
 		}
-		TToolBar tbar = (hasToolBar() ? getToolBar() : null);
+		TToolBar tbar = getToolBar(false);
 		if (tbar != null) {
 			final JButton button = tbar.notesButton;
 			TTrack track = getSelectedTrack();
@@ -5052,16 +5034,32 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		frame.refreshMenus(this, why);
 	}
 
-	public TMenuBar getMenuBar() {
-		return frame.getMenuBar(panelID);
-	}
-	
-	public TToolBar getToolBar() {
-		return frame.getToolbar(panelID);
+	protected boolean unTracked() {
+		return hasTrackBar() && getTrackBar(true).getComponentCount() == 0;
 	}
 
-	public TTrackBar getTrackBar() {
-		return frame.getTrackbar(panelID);
+	boolean hasToolBar() {
+		return (frame.getToolBar(panelID, false) != null);
+	}
+
+	boolean hasMenuBar() {
+		return (frame.getMenuBar(panelID, false) != null);
+	}
+
+	boolean hasTrackBar() {
+		return (frame.getTrackBar(panelID, false) != null);
+	}
+
+	public TMenuBar getMenuBar(boolean forceNew) {
+		return frame.getMenuBar(panelID, forceNew);
+	}
+
+	public TToolBar getToolBar(boolean forceNew) {
+		return frame.getToolBar(panelID, forceNew);
+	}
+
+	public TTrackBar getTrackBar(boolean forceNew) {
+		return frame.getTrackBar(panelID, forceNew);
 	}
 
 	@Override

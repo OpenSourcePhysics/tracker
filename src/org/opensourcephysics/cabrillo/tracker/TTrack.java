@@ -2342,7 +2342,7 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 					if (frame.notesVisible()) {
 						frame.getNotesDialog().setVisible(true);
 					} else
-						tp.getToolBar().doNotesAction();
+						tp.getToolBar(true).doNotesAction();
 				}
 			}
 		});
@@ -3310,7 +3310,7 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 		public void setText(String t) {
 			super.setText(t);
 			if (tp != null) {
-				TTrackBar.getTrackbar(tp).resizeField(this);
+				tp.getTrackBar(true).resizeField(this);
 			}
 		}
 
@@ -3329,7 +3329,7 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 		public void setText(String t) {
 			super.setText(t);
 			if (tp != null) {
-				TTrackBar tbar = TTrackBar.getTrackbar(tp);
+				TTrackBar tbar = tp.getTrackBar(false);
 				if (tbar != null)
 					tbar.resizeField(this);
 			}

@@ -1133,7 +1133,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 					if (frame.notesVisible()) {
 						frame.getNotesDialog().setVisible(false);
 					} else
-						panel().getToolBar().doNotesAction();
+						panel().getToolBar(true).doNotesAction();
 				}
 		});
 		// dataBuilder item
@@ -2301,7 +2301,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 						|| p.isEnabled("calibration.points") //$NON-NLS-1$
 						|| p.isEnabled("calibration.offsetOrigin")) { //$NON-NLS-1$
 					checkAddMenuSep(menu);
-					TToolBar toolbar = panel().getToolBar();
+					TToolBar toolbar = panel().getToolBar(true);
 					TToolBar.CalibrationButton calibrationButton = toolbar.calibrationButton;
 					JMenu calibrationToolsMenu = calibrationButton.getCalibrationToolsMenu();
 					calibrationToolsMenu.setText(TrackerRes.getString("TMenuBar.Menu.CalibrationTools")); //$NON-NLS-1$
@@ -2661,7 +2661,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 	}
 
 	public static void refreshPopup(TrackerPanel panel, String item, JPopupMenu menu) {
-		TMenuBar menubar = panel.getMenuBar();
+		TMenuBar menubar = panel.getMenuBar(false);
 		if (menubar != null) {
 			switch (item) {
 			case POPUPMENU_TTOOLBAR_TRACKS:
@@ -2679,7 +2679,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 	}
 
 	public static void refreshMeasuringToolsMenu(TrackerPanel panel, JMenu menu) {
-		TMenuBar menubar = panel.getMenuBar();
+		TMenuBar menubar = panel.getMenuBar(false);
 		if (menubar != null)
 			menubar.refreshMeasuringToolsMenu(menu);	
 	}

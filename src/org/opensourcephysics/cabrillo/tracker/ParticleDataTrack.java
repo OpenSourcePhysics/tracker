@@ -555,7 +555,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 		// create reload button here to insure that TFrame is defined
 		if (getLeader().reloadButton == null) {
 			frame.checkClipboardListener();
-			final int h = TTrackBar.getTrackbar(trackerPanel).toolbarComponentHeight;
+			final int h = trackerPanel.getTrackBar(true).toolbarComponentHeight;
 			getLeader().reloadButton = new JButton() {
 				@Override
 				public Dimension getMaximumSize() {

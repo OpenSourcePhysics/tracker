@@ -861,7 +861,7 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 		SwingUtilities.invokeLater(() -> {
 			TrackerPanel panel = frame.getTrackerPanelForID(panelID);
 			if (panel != null && panel.hasToolBar())
-				panel.getToolBar().refreshMemoryButton();
+				panel.getToolBar(true).refreshMemoryButton();
 		});
 	}
 	

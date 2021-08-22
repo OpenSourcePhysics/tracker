@@ -645,7 +645,6 @@ public class Tracker {
 			splash.setVisible(showSplash && !OSPRuntime.isJS);
 		}
 		frame = createFrame(TFrame.parseArgs(args));
-		setProgress(5);
 		if (args != null) {
 			// parse file names
 			for (int i = 0; i < args.length; i++) {
@@ -666,13 +665,11 @@ public class Tracker {
 			// add an empty tab if requested
 
 			TrackerPanel panel = frame.getCleanTrackerPanel();
-//TEST_BH			Tracker.testPanel = panel;
 			frame.addTab(panel, TFrame.ADD_NOSELECT | TFrame.ADD_REFRESH, () -> {
 				if (showHints) {
 					startupHintShown = true;
 					panel.setMessage(TrackerRes.getString("Tracker.Startup.Hint")); //$NON-NLS-1$
 				}
-				setProgress(100);
 			});
 		}
 	}
@@ -1658,7 +1655,7 @@ public class Tracker {
 					TrackerPanel trackerPanel = tFrame.getSelectedPanel();
 					if (trackerPanel != null) {
 						trackerPanel.taintEnabled();
-						trackerPanel.getToolBar().refresh(TToolBar.REFRESH__NEW_VERSION);
+						trackerPanel.getToolBar(true).refresh(TToolBar.REFRESH__NEW_VERSION);
 //						trackerPanel.refreshTrackBar();
 					}
 				}
@@ -2334,16 +2331,6 @@ public class Tracker {
 
 	}
 
-	/**
-	 * Sets the progress in percent for splash display.
-	 * 
-	 * @param progress a number from 0 (start) to 100 (done)
-	 */
-	protected static void setProgress(int progress) {
-		// BH 2020.02.11 Allow for multiple identifyable cycles
-//		if (progress > STATE_INIT && progress < STATE_DONE)
-//			progressBar.setValue(progress % 1000);
-	}
 
 	/**
 	 * Logs the current time (to milliseconds) with a message.
