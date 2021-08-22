@@ -69,7 +69,6 @@ public abstract class Step implements Cloneable {
 	}
 
 	// instance fields
-	private TFrame frame;
 	protected int trackID; // ID number of track this belongs to
 	protected int n; // frame number
 	protected Footprint footprint; // determines appearance
@@ -92,7 +91,6 @@ public abstract class Step implements Cloneable {
 	 * @param n     the frame number
 	 */
 	protected Step(TTrack track, int n) {
-		frame = track.frame;
 		trackID = track.getID();
 		this.n = n;
 	}
@@ -209,11 +207,11 @@ public abstract class Step implements Cloneable {
 	 * Erases this on all tracker panels.
 	 */
 	public void erase() {
-		if (marks.isEmpty() || frame == null)
+		if (marks.isEmpty())
 			return;
 		Iterator<Integer> it = marks.keySet().iterator();
 		while (it.hasNext())
-			erase(frame.getTrackerPanelForID(it.next()));
+			erase(getTrack().panel(it.next()));
 	}
 
 	/**
@@ -224,7 +222,7 @@ public abstract class Step implements Cloneable {
 			return;
 		Iterator<Integer> it = marks.keySet().iterator();
 		while (it.hasNext())
-			remark(frame.getTrackerPanelForID(it.next()));
+			remark(getTrack().panel(it.next()));
 	}
 
 	/**
@@ -233,7 +231,7 @@ public abstract class Step implements Cloneable {
 	public void repaint() {
 		Iterator<Integer> it = marks.keySet().iterator();
 		while (it.hasNext())
-			repaint(frame.getTrackerPanelForID(it.next()));
+			repaint(getTrack().panel(it.next()));
 	}
 
 	/**

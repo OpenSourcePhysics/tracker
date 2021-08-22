@@ -253,7 +253,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	protected String lengthUnit = "m", massUnit = "kg", timeUnit = "s"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 	protected boolean unitsVisible = true; // visible by default
 	protected TCoordinateStringBuilder coordStringBuilder;
-	protected ArrayList<Integer> panelAndWorldViews = new ArrayList<Integer>();
+	protected ArrayList<Integer> andWorld = new ArrayList<Integer>();
 	protected double[] dividerFractions = new double[4];
 
 	private int enabledCount;
@@ -289,7 +289,9 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	public TrackerPanel(TFrame frame, Video video) {
 		super(video);
 		setTFrame(frame == null ? new TFrame() : frame);
+		andWorld.add(panelID);
 		setGUI();
+		configure();
 	}
 	
 	public void setTFrame(TFrame frame) {
@@ -366,15 +368,6 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				}
 			}
 		};
-
-		if (!(this instanceof WorldTView)) {
-			// don't getDataBuilder before adding to TFrame
-//			if (Tracker.haveDataFunctions())
-//				getDataBuilder(); 
-//			// so autoloaded datafunctions are available to tracks
-			panelAndWorldViews.add(panelID);
-		}
-		configure();
 	}
 
 	/**
@@ -2255,7 +2248,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 							setMouseCursor(Cursor.getDefaultCursor());
 							if (clone != null) {
 								setSelectedPoint(clone.getDefaultPoint());
-								selectedTrack.repaint(clone);
+								selectedTrack.repaintStep(clone);
 							}
 						}
 					}
@@ -5013,7 +5006,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	 * 
 	 * @return
 	 */
-	public TrackerPanel getDisplayedPanel() {
+	public TrackerPanel getMainPanel() {
 		return this;
 	}
 

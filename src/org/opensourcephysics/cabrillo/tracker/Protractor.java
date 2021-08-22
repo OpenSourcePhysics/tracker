@@ -715,7 +715,7 @@ public class Protractor extends InputTrack {
 		item.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				frame.setAnglesInRadians(!radians);
+				tframe.setAnglesInRadians(!radians);
 			}
 		});
 		item.setText(radians ? TrackerRes.getString("TTrack.AngleField.Popup.Degrees") : //$NON-NLS-1$

@@ -123,7 +123,7 @@ public class DynamicParticle extends ParticleModel implements ODE {
 		// if this is part of a system, warn user
 		if (system != null) {
 			String message = TrackerRes.getString("DynamicParticle.Dialog.Delete.Message"); //$NON-NLS-1$
-			int response = javax.swing.JOptionPane.showConfirmDialog(frame, message,
+			int response = javax.swing.JOptionPane.showConfirmDialog(tframe, message,
 					TrackerRes.getString("DynamicParticle.Dialog.Delete.Title"), //$NON-NLS-1$
 					javax.swing.JOptionPane.OK_CANCEL_OPTION, javax.swing.JOptionPane.WARNING_MESSAGE);
 			if (response == javax.swing.JOptionPane.YES_OPTION) {
@@ -186,8 +186,8 @@ public class DynamicParticle extends ParticleModel implements ODE {
 				for (int i = 0; i < models.length; i++) {
 					models[i].steps.setLength(1);
 					models[i].steps.setStep(0, null);
-					for (int j = 0; j < tp.panelAndWorldViews.size(); j++) {
-						TrackerPanel panel = frame.getTrackerPanelForID(tp.panelAndWorldViews.get(j));
+					for (int j = 0; j < tp.andWorld.size(); j++) {
+						TrackerPanel panel = panel(tp.andWorld.get(j));
 						models[i].getVArray(panel).setLength(0);
 						models[i].getAArray(panel).setLength(0);
 					}
@@ -228,8 +228,8 @@ public class DynamicParticle extends ParticleModel implements ODE {
 						models[i].steps.setStep(firstFrameInClip, step);
 					}
 				}
-				for (int j = 0; j < tp.panelAndWorldViews.size(); j++) {
-					TrackerPanel panel = frame.getTrackerPanelForID(tp.panelAndWorldViews.get(j));
+				for (int j = 0; j < tp.andWorld.size(); j++) {
+					TrackerPanel panel = panel(tp.andWorld.get(j));
 					models[i].getVArray(panel).setLength(0);
 					models[i].getAArray(panel).setLength(0);
 				}

@@ -768,8 +768,8 @@ public class PointMass extends TTrack {
 				vFootprint = vFootprints[i];
 				if (tp == null)
 					return;
-				for (int j = 0; j < tp.panelAndWorldViews.size(); j++) {
-					TrackerPanel panel = frame.getTrackerPanelForID(tp.panelAndWorldViews.get(j));
+				for (int j = 0; j < tp.andWorld.size(); j++) {
+					TrackerPanel panel = panel(tp.andWorld.get(j));
 					Step[] stepArray = getVArray(panel).array;
 					for (int k = 0; k < stepArray.length; k++)
 						if (stepArray[k] != null)
@@ -829,8 +829,8 @@ public class PointMass extends TTrack {
 				aFootprint = aFootprints[i];
 				if (tp == null)
 					return;
-				for (int j = 0; j < tp.panelAndWorldViews.size(); j++) {
-					TrackerPanel panel = frame.getTrackerPanelForID(tp.panelAndWorldViews.get(j));
+				for (int j = 0; j < tp.andWorld.size(); j++) {
+					TrackerPanel panel = panel(tp.andWorld.get(j));
 					Step[] stepArray = getAArray(panel).array;
 					for (int k = 0; k < stepArray.length; k++)
 						if (stepArray[k] != null)
@@ -1713,7 +1713,7 @@ public class PointMass extends TTrack {
 	public boolean isVVisible(TrackerPanel trackerPanel) {
 		if (vVisibleOnAll)
 			return true;
-		trackerPanel = trackerPanel.getDisplayedPanel();
+		trackerPanel = trackerPanel.getMainPanel();
 		Boolean vis = vVisMap.get(trackerPanel.getID());
 		if (vis == null) {
 			vis = Boolean.valueOf(false); // not visible by default
@@ -1788,7 +1788,7 @@ public class PointMass extends TTrack {
 	public boolean isPositionVisible(TrackerPanel trackerPanel) {
 		if (xVisibleOnAll)
 			return true;
-		trackerPanel = trackerPanel.getDisplayedPanel();
+		trackerPanel = trackerPanel.getMainPanel();
 		Boolean vis = xVisMap.get(trackerPanel.getID());
 		if (vis == null) {
 			vis = Boolean.valueOf(true); // positions are visible by default
@@ -1866,7 +1866,7 @@ public class PointMass extends TTrack {
 	public boolean isAVisible(TrackerPanel trackerPanel) {
 		if (aVisibleOnAll)
 			return true;
-		trackerPanel = trackerPanel.getDisplayedPanel();
+		trackerPanel = trackerPanel.getMainPanel();
 		Boolean vis = aVisMap.get(trackerPanel.getID());
 		if (vis == null) {
 			vis = Boolean.valueOf(false); // not visible by default
@@ -1939,8 +1939,8 @@ public class PointMass extends TTrack {
 				step.setRolloverVisible(!visible);
 			}
 		}
-		for (int j = 0; j < tp.panelAndWorldViews.size(); j++) {
-			TrackerPanel next = frame.getTrackerPanelForID(tp.panelAndWorldViews.get(j));
+		for (int j = 0; j < tp.andWorld.size(); j++) {
+			TrackerPanel next = panel(tp.andWorld.get(j));
 			if (next instanceof WorldTView) {
 				WorldTView view = (WorldTView) next;
 				if (view.getTrackerPanel() == panel) {
@@ -2030,7 +2030,7 @@ public class PointMass extends TTrack {
 			Tracker.logTime(this.getClass().getSimpleName() + this.hashCode() + " update derivatives " + startFrame //$NON-NLS-1$
 					+ " steps " + stepCount); //$NON-NLS-1$
 		for (int i = tList.size(); --i >= 0;) {
-			updateDerivatives(frame.getTrackerPanelForID(tList.get(i)), startFrame, stepCount);
+			updateDerivatives(panel(tList.get(i)), startFrame, stepCount);
 		}
 //		OSPLog.debug(Performance.timeCheckStr(
 //				"ParticleModel.updateDerivatives1 " + startFrame + " tList=" + tList.size() + " stepcount=" + stepCount,
@@ -2361,8 +2361,8 @@ public class PointMass extends TTrack {
 		if (tp == null)
 			return;
 		super.erase(); // erases all steps on all panels
-		for (int j = 0; j < tp.panelAndWorldViews.size(); j++) {
-			TrackerPanel panel = frame.getTrackerPanelForID(tp.panelAndWorldViews.get(j));
+		for (int j = 0; j < tp.andWorld.size(); j++) {
+			TrackerPanel panel = panel(tp.andWorld.get(j));
 			// erase velocity and acceleration steps
 			if (vMap.get(panel.getID()) != null) {
 				Step[] stepArray = getVelocities(panel);
@@ -2383,8 +2383,8 @@ public class PointMass extends TTrack {
 	@Override
 	public void remark() {
 		super.remark();
-		for (int j = 0; j < tp.panelAndWorldViews.size(); j++) {
-			TrackerPanel panel = frame.getTrackerPanelForID(tp.panelAndWorldViews.get(j));
+		for (int j = 0; j < tp.andWorld.size(); j++) {
+			TrackerPanel panel = panel(tp.andWorld.get(j));
 			Step[] stepArray = getVelocities(panel);
 			for (int i = 0; i < stepArray.length; i++)
 				if (stepArray[i] != null) {
@@ -3052,8 +3052,8 @@ public class PointMass extends TTrack {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
 				// set velocity visibility on all panels that draw this
-				for (int j = 0; j < tp.panelAndWorldViews.size(); j++) {
-					TrackerPanel panel = frame.getTrackerPanelForID(tp.panelAndWorldViews.get(j));
+				for (int j = 0; j < tp.andWorld.size(); j++) {
+					TrackerPanel panel = panel(tp.andWorld.get(j));
 					setVVisible(panel, vVisibleItem.isSelected());
 					panel.repaint();
 				}
@@ -3063,8 +3063,8 @@ public class PointMass extends TTrack {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
 				// set accel visibility on all panels
-				for (int j = 0; j < tp.panelAndWorldViews.size(); j++) {
-					TrackerPanel panel = frame.getTrackerPanelForID(tp.panelAndWorldViews.get(j));
+				for (int j = 0; j < tp.andWorld.size(); j++) {
+					TrackerPanel panel = panel(tp.andWorld.get(j));
 					setAVisible(panel, aVisibleItem.isSelected());
 					panel.repaint();
 				}
@@ -3195,7 +3195,7 @@ public class PointMass extends TTrack {
 					if (split[i].equals(tp.getMassUnit())) {
 						tp.setUnitsVisible(true);
 					} else {
-						int response = JOptionPane.showConfirmDialog(frame,
+						int response = JOptionPane.showConfirmDialog(tframe,
 								TrackerRes.getString("PointMass.Dialog.ChangeMassUnit.Message") //$NON-NLS-1$
 										+ " \"" + split[i] + "\" ?", //$NON-NLS-1$ //$NON-NLS-2$
 								TrackerRes.getString("PointMass.Dialog.ChangeMassUnit.Title"), //$NON-NLS-1$
@@ -3233,9 +3233,7 @@ public class PointMass extends TTrack {
 				a.attach(p);
 			}
 		}
-		for (int j = 0; j < tp.panelAndWorldViews.size(); j++) {
-			frame.getTrackerPanelForID(tp.panelAndWorldViews.get(j)).repaint();
-		}
+		repaintAll();
 		if (type.equals("v")) //$NON-NLS-1$
 			vAtOrigin = true;
 		else
@@ -3263,9 +3261,7 @@ public class PointMass extends TTrack {
 				v.attach(p.getPosition());
 			}
 		}
-		for (int j = 0; j < tp.panelAndWorldViews.size(); j++) {
-			frame.getTrackerPanelForID(tp.panelAndWorldViews.get(j)).repaint();
-		}
+		repaintAll();
 		if (type.equals("v")) //$NON-NLS-1$
 			vAtOrigin = false;
 		else

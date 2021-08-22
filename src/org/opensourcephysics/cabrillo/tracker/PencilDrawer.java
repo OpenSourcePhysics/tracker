@@ -448,7 +448,7 @@ public class PencilDrawer {
 	 * Disposes of this drawer and associated PencilControl
 	 */
 	protected void dispose() {
-		System.out.println("PencilDrawer.dispose");
+		System.out.println("PencilDrawer.dispose panelID=" + panelID);
 		clearScenes();
 		if (drawingControl != null)
 			drawingControl.dispose();

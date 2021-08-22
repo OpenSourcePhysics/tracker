@@ -278,9 +278,7 @@ public class CoordAxes extends TTrack {
 						Color newColor = chooseColor(color, TrackerRes.getString("CoordAxes.Dialog.GridColor.Title")); //$NON-NLS-1$
 						if (newColor != color) {
 							grid.setColor(newColor);
-							for (int i = 0; i < tp.panelAndWorldViews.size(); i++) {
-								frame.getTrackerPanelForID(tp.panelAndWorldViews.get(i)).repaint();
-							}
+							repaintAll();
 						}
 					}
 				});
@@ -304,8 +302,8 @@ public class CoordAxes extends TTrack {
 							@Override
 							public void stateChanged(ChangeEvent e) {
 								grid.setAlpha(slider.getValue());
-								for (int i = 0; i < tp.panelAndWorldViews.size(); i++) {
-									frame.getTrackerPanelForID(tp.panelAndWorldViews.get(i)).repaint();
+								for (int i = 0; i < tp.andWorld.size(); i++) {
+									panel(tp.andWorld.get(i)).repaint();
 								}
 							}
 						});
@@ -315,8 +313,8 @@ public class CoordAxes extends TTrack {
 								JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
 						if (response == JOptionPane.CANCEL_OPTION) {
 							grid.setAlpha(alpha);
-							for (int i = 0; i < tp.panelAndWorldViews.size(); i++) {
-								frame.getTrackerPanelForID(tp.panelAndWorldViews.get(i)).repaint();
+							for (int i = 0; i < tp.andWorld.size(); i++) {
+								panel(tp.andWorld.get(i)).repaint();
 							}
 						}
 					}
@@ -327,6 +325,11 @@ public class CoordAxes extends TTrack {
 			}
 
 		};
+	}
+
+	public void repaintAll() {
+		// TODO Auto-generated method stub
+		
 	}
 
 	/**
@@ -386,9 +389,7 @@ public class CoordAxes extends TTrack {
 		grid.setVisible(gridVisible);
 		gridCheckbox.setSelected(gridVisible);
 		if (tp != null) {
-			for (int i = 0; i < tp.panelAndWorldViews.size(); i++) {
-				frame.getTrackerPanelForID(tp.panelAndWorldViews.get(i)).repaint();
-			}
+			repaintAll();
 		}
 	}
 

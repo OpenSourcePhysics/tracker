@@ -757,7 +757,7 @@ public class TapeMeasure extends InputTrack {
 			public void actionPerformed(ActionEvent e) {
 				ImageCoordSystem coords = TapeMeasure.this.tp.getCoords();
 				if (TapeMeasure.this.isStickMode() && coords.isFixedScale()) {
-					int result = JOptionPane.showConfirmDialog(TapeMeasure.this.frame,
+					int result = JOptionPane.showConfirmDialog(tframe,
 							TrackerRes.getString("TapeMeasure.Alert.UnfixScale.Message1") + "\n" + //$NON-NLS-1$ //$NON-NLS-2$
 					TrackerRes.getString("TapeMeasure.Alert.UnfixScale.Message2"), //$NON-NLS-1$
 							TrackerRes.getString("TapeMeasure.Alert.UnfixScale.Title"), //$NON-NLS-1$
@@ -1125,7 +1125,7 @@ public class TapeMeasure extends InputTrack {
 					if (split[i].equals(tp.getLengthUnit())) {
 						tp.setUnitsVisible(true);
 					} else {
-						int response = JOptionPane.showConfirmDialog(frame,
+						int response = JOptionPane.showConfirmDialog(tframe,
 								TrackerRes.getString("TapeMeasure.Dialog.ChangeLengthUnit.Message") //$NON-NLS-1$
 										+ " \"" + split[i] + "\" ?", //$NON-NLS-1$ //$NON-NLS-2$
 								TrackerRes.getString("TapeMeasure.Dialog.ChangeLengthUnit.Title"), //$NON-NLS-1$

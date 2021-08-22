@@ -342,7 +342,7 @@ public boolean isDependent() {
       VectorStep deletedStep = (VectorStep)deleteStep(n);
       if (deletedStep != null) {
         deletedStep.attach(null);
-        repaint(deletedStep);
+        repaintStep(deletedStep);
       }
       locked = true;
       return;
@@ -357,7 +357,7 @@ public boolean isDependent() {
           VectorStep deletedStep = (VectorStep)deleteStep(n);
           tails.put(new Integer(n), deletedStep.getTail());
           deletedStep.attach(null);
-          repaint(deletedStep);
+          repaintStep(deletedStep);
           locked = true;
         }
         return;
@@ -384,7 +384,7 @@ public boolean isDependent() {
       }
       newStep.setTipEnabled(false);
       newStep.setDefaultPointIndex(2); // handle
-      repaint(newStep);
+      repaintStep(newStep);
       locked = true;
     }
     // or set components of existing step

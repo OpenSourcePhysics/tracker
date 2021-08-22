@@ -167,7 +167,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 	public TrackPlottingPanel(TTrack track, DatasetManager data) {
 		super(" ", " ", " "); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 		displayCoordsOnMouseMoved = false;
-		frame = track.frame;
+		frame = track.tframe;
 		panelID = track.tp.getID();	
 		trackID = track.getID();
 		this.datasetManager = data;

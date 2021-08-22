@@ -64,7 +64,7 @@ public class VectorSumInspector extends JDialog implements PropertyChangeListene
 		// nonmodal
 		super(JOptionPane.getFrameForComponent(sum.tp), false);
 		this.sum = sum;
-		frame = sum.frame;
+		frame = sum.tframe;
 		panelID = sum.tp.getID();
 		if (panelID != null) {
 			sum.tp.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this); // $NON-NLS-1$

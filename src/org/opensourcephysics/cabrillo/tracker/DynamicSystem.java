@@ -152,13 +152,13 @@ public class DynamicSystem extends DynamicParticlePolar {
 		if (!initialized)
 			initialize(tp);
 		getModelBuilder();
-		if (systemInspectorX != Integer.MIN_VALUE && frame != null) {
+		if (systemInspectorX != Integer.MIN_VALUE && tframe != null) {
 			// set system inspector position
 			getSystemInspector();
 			Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
-			int x = Math.max(frame.getLocation().x + systemInspectorX, 0);
+			int x = Math.max(tframe.getLocation().x + systemInspectorX, 0);
 			x = Math.min(x, dim.width - systemInspector.getWidth());
-			int y = Math.max(frame.getLocation().y + systemInspectorY, 0);
+			int y = Math.max(tframe.getLocation().y + systemInspectorY, 0);
 			y = Math.min(y, dim.height - systemInspector.getHeight());
 			systemInspector.setLocation(x, y);
 			systemInspectorX = Integer.MIN_VALUE;
@@ -359,7 +359,7 @@ public class DynamicSystem extends DynamicParticlePolar {
 						+ TrackerRes.getString("DynamicSystem.Dialog.RemoveBooster.Message2") + " " //$NON-NLS-1$ //$NON-NLS-2$
 						+ problem.getName() + "\n" //$NON-NLS-1$
 						+ TrackerRes.getString("DynamicSystem.Dialog.RemoveBooster.Message3"); //$NON-NLS-1$
-				int response = javax.swing.JOptionPane.showConfirmDialog(frame, message,
+				int response = javax.swing.JOptionPane.showConfirmDialog(tframe, message,
 						TrackerRes.getString("DynamicSystem.Dialog.RemoveBooster.Title"), //$NON-NLS-1$
 						javax.swing.JOptionPane.OK_CANCEL_OPTION, javax.swing.JOptionPane.WARNING_MESSAGE);
 				if (response == javax.swing.JOptionPane.YES_OPTION) {
@@ -1022,7 +1022,7 @@ public class DynamicSystem extends DynamicParticlePolar {
 			if (system.systemInspector != null && system.systemInspector.isVisible()) {
 				Point p = system.systemInspector.getLocation();
 				// save location relative to frame
-				TFrame frame = system.frame;
+				TFrame frame = system.tframe;
 				control.setValue("system_inspector_x", p.x - frame.getLocation().x); //$NON-NLS-1$
 				control.setValue("system_inspector_y", p.y - frame.getLocation().y); //$NON-NLS-1$
 			}

@@ -665,6 +665,7 @@ public class TViewChooser extends JPanel implements PropertyChangeListener, OSPR
 	/**
 	 * Disposes of this chooser
 	 */
+	@Override
 	public void dispose() {
 		CardLayout cl = (CardLayout) viewPanel.getLayout();
 		for (TView view : tViews) {

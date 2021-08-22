@@ -135,7 +135,7 @@ public class TMouseHandler implements InteractiveMouseHandler {
 						&& autoTracker.getTrack() == selectedTrack) {
 					Step step = selectedTrack.getStep(frameNumber);
 					if (step != null) {
-						selectedTrack.repaint(step);
+						selectedTrack.repaintStep(step);
 					}
 				}
 			}
@@ -423,7 +423,7 @@ public class TMouseHandler implements InteractiveMouseHandler {
 		if (step != null && !autotrackTrigger) {
 			trackerPanel.setMouseCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 			trackerPanel.setSelectedPoint(step.getDefaultPoint());
-			selectedTrack.repaint(step);
+			selectedTrack.repaintStep(step);
 			iad = selectedPoint = trackerPanel.getSelectedPoint();
 			stepCreated = keyFrameData == null;
 		}

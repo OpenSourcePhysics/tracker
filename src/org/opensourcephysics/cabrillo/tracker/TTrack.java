@@ -244,10 +244,10 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 		}
 		if (panel == null) {
 			tp = null;
-			frame = null;
+			tframe = null;
 		} else {
 			tp = panel.ref(this);
-			frame = panel.getTFrame();
+			tframe = panel.getTFrame();
 			addPanelEvents(panelEventsTTrack);
 		}
 	}
@@ -392,7 +392,7 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 
 	protected Font labelFont = new Font("arial", Font.PLAIN, 12); //$NON-NLS-1$
 	protected TrackerPanel tp; // 900 references!
-	protected TFrame frame;
+	protected TFrame tframe;
 	protected XMLProperty dataProp;
 	protected Object[][] constantsLoadedFromXML;
 	protected String[] dataDescriptions;
@@ -623,7 +623,7 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 		item.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				frame.setAnglesInRadians(!radians);
+				tframe.setAnglesInRadians(!radians);
 			}
 		});
 		item.setText(radians ? TrackerRes.getString("TTrack.AngleField.Popup.Degrees") : //$NON-NLS-1$
@@ -762,12 +762,16 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 		if (postEdit) {
 			Undo.postTrackDelete(this); // posts undoable edit
 		}
-		for (int j = 0; j < tp.panelAndWorldViews.size(); j++) {
-			TrackerPanel panel = frame.getTrackerPanelForID(tp.panelAndWorldViews.get(j));
+		for (int j = 0; j < tp.andWorld.size(); j++) {
+			TrackerPanel panel = panel(tp.andWorld.get(j));
 			panel.removeTrack(this);
 		}
 		erase();
 		dispose();
+	}
+
+    TrackerPanel panel(Integer panelID) {
+		return tframe.getTrackerPanelForID(panelID);
 	}
 
 	/**
@@ -2338,9 +2342,9 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 		descriptionItem.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				if (tp != null && frame != null) {
-					if (frame.notesVisible()) {
-						frame.getNotesDialog().setVisible(true);
+				if (tp != null && tframe != null) {
+					if (tframe.notesVisible()) {
+						tframe.getNotesDialog().setVisible(true);
 					} else
 						tp.getToolBar(true).doNotesAction();
 				}
@@ -2368,8 +2372,8 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 			public void itemStateChanged(ItemEvent e) {
 				setTrailVisible(trailVisibleItem.isSelected());
 				if (!TTrack.this.isTrailVisible()) {
-					for (int j = 0; j < tp.panelAndWorldViews.size(); j++) {
-						TrackerPanel panel = frame.getTrackerPanelForID(tp.panelAndWorldViews.get(j));
+					for (int j = 0; j < tp.andWorld.size(); j++) {
+						TrackerPanel panel = panel(tp.andWorld.get(j));
 						Step step = panel.getSelectedStep();
 						if (step != null && step.getTrack() == TTrack.this) {
 							if (!(step.getFrameNumber() == panel.getFrameNumber())) {
@@ -2526,10 +2530,21 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 		if (tp == null || !tp.isPaintable())
 			return;
 		remark();
-		for (int i = 0; i < tp.panelAndWorldViews.size(); i++) {
-			frame.getTrackerPanelForID(tp.panelAndWorldViews.get(i)).repaintDirtyRegion();
+		for (int i = 0; i < tp.andWorld.size(); i++) {
+			panel(tp.andWorld.get(i)).repaintDirtyRegion();
 		}
 	}
+	
+	/**
+	 * Schedule repainting of all panel and world views associated with this track.
+	 */
+	protected void repaintAll() {
+		if (tp != null)
+			for (int i = 0; i < tp.andWorld.size(); i++) {
+				panel(tp.andWorld.get(i)).repaint();
+			}
+	}
+
 
 	/**
 	 * Erases all steps on the specified panel.
@@ -2579,14 +2594,9 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 	 *
 	 * @param step the step
 	 */
-	public void repaint(Step step) {
-		for (int j = 0; j < tp.panelAndWorldViews.size(); j++) {
-			TrackerPanel panel = frame.getTrackerPanelForTab(tp.panelAndWorldViews.get(j));
-			if (panel == null) {
-				System.err.println("TTrack failure for step with panel null ");
-			} else {
-				step.repaint(panel);
-			}
+	public void repaintStep(Step step) {
+		for (int j = 0; j < tp.andWorld.size(); j++) {
+			step.repaint(panel(tp.andWorld.get(j)));
 		}
 	}
 
@@ -3029,8 +3039,8 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 	}
 
 	protected void createWarningDialog() {
-		if (skippedStepWarningDialog == null && tp != null && frame != null) {
-			skippedStepWarningDialog = new JDialog(frame, true);
+		if (skippedStepWarningDialog == null && tp != null && tframe != null) {
+			skippedStepWarningDialog = new JDialog(tframe, true);
 			skippedStepWarningDialog.addWindowListener(new WindowAdapter() {
 				@Override
 				public void windowClosing(WindowEvent e) {
@@ -3439,7 +3449,7 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 		
 		// constructor
 		NameDialog() {
-			super(frame, null, true);
+			super(tframe, null, true);
 			
 			setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 			addWindowListener(new WindowAdapter() {
@@ -3761,10 +3771,10 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 	 */
 	private ArrayList<TableTrackView> getTableViews() {
 		ArrayList<TableTrackView> tableTrackViews = new ArrayList<TableTrackView>();
-		if (tp == null || frame == null) {
+		if (tp == null || tframe == null) {
 			return tableTrackViews;
 		}
-		TViewChooser[] choosers = frame.getViewChoosers(tp);
+		TViewChooser[] choosers = tframe.getViewChoosers(tp);
 		for (int i = 0; i < choosers.length; i++) {
 			if (choosers[i] == null)
 				continue;

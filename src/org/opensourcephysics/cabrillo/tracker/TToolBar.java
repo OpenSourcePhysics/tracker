@@ -1332,8 +1332,8 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 			}
 		}
 		if (doRepaint) {
-			for (int i = 0; i < panel.panelAndWorldViews.size(); i++) {
-				frame.getTrackerPanelForID(panel.panelAndWorldViews.get(i)).repaint();
+			for (int i = 0; i < panel.andWorld.size(); i++) {
+				frame.getTrackerPanelForID(panel.andWorld.get(i)).repaint();
 			}
 		}
 	}

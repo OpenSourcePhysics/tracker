@@ -468,7 +468,7 @@ public class TapeStep extends Step {
 //      tape.lengthKeyFrames.add(n);
 			worldLength = length;
 			adjustTipsToLength();
-			tape.repaint(this);
+			tape.repaintStep(this);
 			Undo.postTrackEdit(tape, trackControl);
 			return;
 		}
@@ -511,7 +511,7 @@ public class TapeStep extends Step {
 			XMLControl trackControl = new XMLControlElement(tape);
 			xAxisToTapeAngle = theta;
 			adjustTipsToAngle(null);
-			tape.repaint(this);
+			tape.repaintStep(this);
 			Undo.postTrackEdit(tape, trackControl);
 			return;
 		}
@@ -536,7 +536,7 @@ public class TapeStep extends Step {
 		// change tape angle
 		xAxisToTapeAngle = theta;
 		adjustTipsToAngle(p);
-		tape.repaint(this);
+		tape.repaintStep(this);
 		return;
 	}
 

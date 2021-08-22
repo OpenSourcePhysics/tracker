@@ -540,7 +540,7 @@ public class Vector extends TTrack {
 	 * @return <code>true</code> if positions are visible
 	 */
 	public boolean isVectorsVisible(TrackerPanel trackerPanel) {
-		trackerPanel = trackerPanel.getDisplayedPanel();
+		trackerPanel = trackerPanel.getMainPanel();
 		Boolean vis = visMap.get(trackerPanel.getID());
 		if (vis == null) {
 			vis = Boolean.valueOf(true); // vectors are visible by default

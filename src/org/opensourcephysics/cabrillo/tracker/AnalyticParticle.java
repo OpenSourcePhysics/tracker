@@ -105,8 +105,8 @@ public class AnalyticParticle extends ParticleModel {
 				// no frames to be marked, so clear!
 				steps.setLength(1);
 				steps.setStep(0, null);
-				for (int i = 0; i < tp.panelAndWorldViews.size(); i++) {
-					TrackerPanel panel = frame.getTrackerPanelForID(tp.panelAndWorldViews.get(i));
+				for (int i = 0; i < tp.andWorld.size(); i++) {
+					TrackerPanel panel = panel(tp.andWorld.get(i));
 					getVArray(panel).setLength(0);
 					getAArray(panel).setLength(0);
 				}

@@ -347,7 +347,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 		if (tp != null) {
 			tp.setSelectedPoint(null);
 			tp.selectedSteps.clear();
-			frame.removePropertyChangeListener(TFrame.PROPERTY_TFRAME_WINDOWFOCUS, this); // $NON-NLS-1$
+			tframe.removePropertyChangeListener(TFrame.PROPERTY_TFRAME_WINDOWFOCUS, this); // $NON-NLS-1$
 
 			// handle case when this is the origin of current reference frame
 			ImageCoordSystem coords = tp.getCoords();
@@ -554,7 +554,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 	public ArrayList<Component> getToolbarTrackComponents(TrackerPanel trackerPanel) {
 		// create reload button here to insure that TFrame is defined
 		if (getLeader().reloadButton == null) {
-			frame.checkClipboardListener();
+			tframe.checkClipboardListener();
 			final int h = trackerPanel.getTrackBar(true).toolbarComponentHeight;
 			getLeader().reloadButton = new JButton() {
 				@Override
@@ -590,7 +590,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 //					}
 //				}
 //			});
-			frame.addPropertyChangeListener(TFrame.PROPERTY_TFRAME_WINDOWFOCUS, getLeader()); // $NON-NLS-1$
+			tframe.addPropertyChangeListener(TFrame.PROPERTY_TFRAME_WINDOWFOCUS, getLeader()); // $NON-NLS-1$
 		}
 		if (autoPasteCheckbox == null && OSPRuntime.allowAutopaste) {
 			// also create autoPasteCheckbox
@@ -635,11 +635,11 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 		setAutoPasteEnabled(autoPasteCheckbox.isSelected());
 		if (tp == null)
 			return;
-		if (frame == null)
+		if (tframe == null)
 			return;
 		if (isAutoPasteEnabled()) {
 			if (getSource() == null) {
-				ClipboardListener clipboardListener = frame.getClipboardListener();
+				ClipboardListener clipboardListener = tframe.getClipboardListener();
 				String s = OSPRuntime.paste(null);
 				if (s != null) {
 					if (getImportableDataName(s) != null) {
@@ -1209,7 +1209,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 		if (tp != null) {
 			tp.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_VIDEO, this);
 			if (panel == null)
-				frame.checkClipboardListener();
+				tframe.checkClipboardListener();
 		}
 		super.setTrackerPanel(panel);
 		for (TTrack next : morePoints) {
@@ -1252,7 +1252,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 				return;
 			//frame = (TFrame) e.getSource();
 			// listen for data changes
-			if (tp != null && tp == frame.getSelectedPanel()
+			if (tp != null && tp == tframe.getSelectedPanel()
 					&& this == getLeader()) {
 				// get current data string and compare with previous
 				String dataString = null;
@@ -1281,9 +1281,9 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 			}
 			return;
 		case TFrame.PROPERTY_TFRAME_TAB: // $NON-NLS-1$
-			if (tp != null && frame != null
+			if (tp != null && tframe != null
 					&& tp == e.getNewValue()) {
-				frame.getClipboardListener().processContents(tp);
+				tframe.getClipboardListener().processContents(tp);
 			}
 			return;
 		default:
@@ -1420,7 +1420,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 		int n = oldData[0].length;
 		if (x.length <= n) {
 			// inform user that no new data was found
-			JOptionPane.showMessageDialog(frame, TrackerRes.getString("ParticleDataTrack.Dialog.NoNewData.Message"), //$NON-NLS-1$
+			JOptionPane.showMessageDialog(tframe, TrackerRes.getString("ParticleDataTrack.Dialog.NoNewData.Message"), //$NON-NLS-1$
 					TrackerRes.getString("ParticleDataTrack.Dialog.NoNewData.Title"), //$NON-NLS-1$
 					JOptionPane.WARNING_MESSAGE);
 			return;
@@ -2039,9 +2039,9 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 			}
 			// save inspector size and position
 			if (dataTrack.modelBuilder != null && dataTrack.tp != null
-					&& dataTrack.frame != null) {
+					&& dataTrack.tframe != null) {
 				// save inspector location relative to frame
-				TFrame frame = dataTrack.frame;
+				TFrame frame = dataTrack.tframe;
 				int x = dataTrack.modelBuilder.getLocation().x - frame.getLocation().x;
 				int y = dataTrack.modelBuilder.getLocation().y - frame.getLocation().y;
 				control.setValue("inspector_x", x); //$NON-NLS-1$

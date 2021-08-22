@@ -110,7 +110,7 @@ public class CenterOfMass extends PointMass {
 	public void initialize(TrackerPanel panel) {
 		if (initialized)
 			return;
-		panel = panel.getDisplayedPanel();
+		panel = panel.getMainPanel();
 		ArrayList<PointMass> masses = panel.getDrawablesTemp(PointMass.class);
 		for (int i = 0, n = massNames.size(); i < n; i++) {
 			String name = massNames.get(i);
@@ -393,7 +393,7 @@ public class CenterOfMass extends PointMass {
 					if (firePropertyChange) {
 						locked = false;
 						Step deletedStep = deleteStep(n);
-						repaint(deletedStep);
+						repaintStep(deletedStep);
 					} else {
 						steps.setStep(n, null);
 					}
@@ -416,7 +416,7 @@ public class CenterOfMass extends PointMass {
 			if (firePropertyChange) {
 				locked = false;
 				cmStep = (PositionStep) createStep(n, x, y);
-				repaint(cmStep);
+				repaintStep(cmStep);
 			} else {
 				cmStep = new PositionStep(this, n, x, y);
 				steps.setStep(n, cmStep);

@@ -175,7 +175,7 @@ abstract public class ParticleModel extends PointMass {
 	 */
 	public void drawMe(DrawingPanel panel, Graphics _g) {
 		// position and show model builder if requested during loading
-		if (inspectorX != Integer.MIN_VALUE && tp != null && frame != null) {
+		if (inspectorX != Integer.MIN_VALUE && tp != null && tframe != null) {
 			if (showModelBuilder) {
 				SwingUtilities.invokeLater(new Runnable() {
 					@Override
@@ -257,8 +257,8 @@ abstract public class ParticleModel extends PointMass {
 			removePanelEvents(panelEventsParticleModel);
 			// remove this model's listener from the frame that would have been created
 			// when the ModelBuilder was initiated.
-			if (frame != null)
-				frame.removePropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, this);
+			if (tframe != null)
+				tframe.removePropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, this);
 		}
 		super.setTrackerPanel(panel);
 		if (tp != null) {
@@ -268,8 +268,8 @@ abstract public class ParticleModel extends PointMass {
 				setStartFrame(n);
 				startFrameUndefined = false;
 			}
-			if (frame != null) {
-				boolean radians = frame.anglesInRadians;
+			if (tframe != null) {
+				boolean radians = tframe.anglesInRadians;
 				functionPanel.initEditor.setAnglesInDegrees(!radians);
 			}
 		}
@@ -907,7 +907,7 @@ abstract public class ParticleModel extends PointMass {
 	}
 
 	protected void holdPainting(boolean b) {
-		frame.holdPainting(b);
+		tframe.holdPainting(b);
 	}
 
 	@Override
@@ -1046,8 +1046,8 @@ abstract public class ParticleModel extends PointMass {
 			modelBuilder = tp.getModelBuilder();
 			modelBuilder.addPanel(getName(), functionPanel);
 			modelBuilder.addPropertyChangeListener(this);
-			if (frame != null) {
-				frame.addPropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, this);
+			if (tframe != null) {
+				tframe.addPropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, this);
 			}
 			if (getInitEditor().getValues()[0] == 0) {
 				refreshInitialTime();
@@ -1159,9 +1159,9 @@ abstract public class ParticleModel extends PointMass {
 			Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
 			if (inspectorH != Integer.MIN_VALUE)
 				modelBuilder.setSize(modelBuilder.getWidth(), Math.min(inspectorH, dim.height));
-			int x = Math.max(frame.getLocation().x + inspectorX, 0);
+			int x = Math.max(tframe.getLocation().x + inspectorX, 0);
 			x = Math.min(x, dim.width - modelBuilder.getWidth());
-			int y = Math.max(frame.getLocation().y + inspectorY, 0);
+			int y = Math.max(tframe.getLocation().y + inspectorY, 0);
 			y = Math.min(y, dim.height - modelBuilder.getHeight());
 			modelBuilder.setLocation(x, y);
 			inspectorX = Integer.MIN_VALUE;
@@ -1226,10 +1226,10 @@ abstract public class ParticleModel extends PointMass {
 			if (p.endFrame < Integer.MAX_VALUE)
 				control.setValue("end_frame", p.endFrame); //$NON-NLS-1$
 			// save model builder size and position
-			if (p.modelBuilder != null && p.tp != null && p.frame != null) {
+			if (p.modelBuilder != null && p.tp != null && p.tframe != null) {
 				// save builder location relative to frame
-				int x = p.modelBuilder.getLocation().x - p.frame.getLocation().x;
-				int y = p.modelBuilder.getLocation().y - p.frame.getLocation().y;
+				int x = p.modelBuilder.getLocation().x - p.tframe.getLocation().x;
+				int y = p.modelBuilder.getLocation().y - p.tframe.getLocation().y;
 				control.setValue("inspector_x", x); //$NON-NLS-1$
 				control.setValue("inspector_y", y); //$NON-NLS-1$
 				control.setValue("inspector_h", p.modelBuilder.getHeight()); //$NON-NLS-1$

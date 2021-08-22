@@ -428,7 +428,7 @@ public class CircleFootprint implements Footprint, Cloneable {
 		 * @param track the track
 		 */
 		public CircleDialog(TTrack track) {
-			this(track.frame, null);
+			this(track.tframe, null);
 			trackID = track.getID();
 			this.panelID = track.tp.getID();
 		}
