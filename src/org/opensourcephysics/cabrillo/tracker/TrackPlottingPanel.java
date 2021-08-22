@@ -1532,7 +1532,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 			} else {
 				setToolTipText(null);
 				if (getPlotPanel().selectedSteps.size() != 1)
-					messages.setMessage(null, 0);
+					setMessage(null, 0);
 			}
 		}
 

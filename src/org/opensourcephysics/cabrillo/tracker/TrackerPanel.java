@@ -3638,7 +3638,7 @@ public class TrackerPanel extends VideoPanel implements TFrame.Disposable, Scrol
 			super.mouseExited(e);
 			isShiftKeyDown = false;
 			if (getSelectedPoint() == null) {
-				messages.setMessage(null, 0); // BL message box
+				setMessage(null, 0); // BL message box
 			}
 			setMouseCursor(Cursor.getDefaultCursor());
 		}
