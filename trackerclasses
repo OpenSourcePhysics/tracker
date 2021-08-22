@@ -171,6 +171,7 @@ java/awt/print/Printable.js
 java/beans/ChangeListenerMap.js
 java/beans/PropertyChangeEvent.js
 java/beans/PropertyChangeListener.js
+java/beans/PropertyChangeListenerProxy.js
 java/beans/PropertyChangeSupport.js
 java/io/BufferedInputStream.js
 java/io/BufferedOutputStream.js
@@ -311,6 +312,7 @@ java/util/Deque.js
 java/util/Dictionary.js
 java/util/Enumeration.js
 java/util/EventListener.js
+java/util/EventListenerProxy.js
 java/util/EventObject.js
 java/util/Formatter.js
 java/util/GregorianCalendar.js
