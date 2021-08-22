@@ -959,8 +959,6 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		// OSPLog.debug(Performance.timeCheckStr("TFrame.removeTab 8",
 		// Performance.TIME_MARK));
 		objects = (tabPanel == null ? null : tabPanel.getObjects());
-		// need id of new tab being displayed, not the one removed
-		id = tabPanel.panelID.intValue(); // not nec., but a reminder that panelID is an Integer not int
 		JMenuBar currentBar = getJMenuBar();
 		if (currentBar == defaultMenuBar) {
 		} else if (objects == null) {
@@ -969,6 +967,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			// we need to also remove this menubar from the _amenubars array
 			Disposable.dispose(_amenubars, id);
 		} else {
+			// need id of new tab being displayed, not the one removed
+			id = tabPanel.panelID.intValue(); // not nec., but a reminder that panelID is an Integer not int
 			setJMenuBar(getMenuBar(id));
 			getTrackbar(id).refresh();
 			playerBar = ((MainTView) objects[TFRAME_MAINVIEW]).getPlayerBar();

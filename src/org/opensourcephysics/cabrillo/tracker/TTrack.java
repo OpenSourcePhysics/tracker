@@ -2957,10 +2957,12 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 				step.dispose();
 			}
 		}
-		xLabel.dispose();
-		yLabel.dispose();
-		magLabel.dispose();
-		angleLabel.dispose();
+
+// shouldn't be necessary now that DrawingPanel.messages has lazy initialization
+//		xLabel.dispose();
+//		yLabel.dispose();
+//		magLabel.dispose();
+//		angleLabel.dispose();
 
 		steps = null;
 		setTrackerPanel(null);
