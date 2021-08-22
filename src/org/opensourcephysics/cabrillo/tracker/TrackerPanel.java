@@ -1084,6 +1084,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	}
 	
 	synchronized void clear(boolean andSetCoords) {
+		isDisposed = true; // stop all firing of events
 		//long t0 = Performance.now(0);
 		setSelectedTrack(null);
 		selectedPoint = null;

@@ -1758,7 +1758,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 
 	private static TViewChooser newTViewChooser(TrackerPanel trackerPanel, int view) {
 		TViewChooser c = new TViewChooser(trackerPanel, view);
-		Disposable.allocate(c);
+//		Disposable.allocate(c);
 		return c;
 	}
 
