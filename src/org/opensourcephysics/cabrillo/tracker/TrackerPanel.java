@@ -1492,7 +1492,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			d = new Dimension(w, h);
 		}
 		setPreferredSize(d);
-		firePropertyChange(PROPERTY_TRACKERPANEL_MAGNIFICATION, prevZoom, getMagnification());
+		firePropertyChange(PROPERTY_TRACKERPANEL_MAGNIFICATION, Double.valueOf(prevZoom), Double.valueOf(getMagnification()));
 		// scroll and revalidate
 		MainTView view = (getTFrame() == null ? null : getTFrame().getMainView(this));
 		if (view != null) {
