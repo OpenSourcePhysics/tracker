@@ -381,7 +381,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 			rebuildEditFontSizeMenu();
 			break;
 		case "edit_lang":
-			frame.setLangMenu(edit_languageMenu);
+			setLangMenu(edit_languageMenu, frame);
 			break;
 		case "edit_size":
 			rebuildEditMatSizeMenu();
@@ -2563,7 +2563,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 	 */
 	@Override
 	public void dispose() {
-		System.out.println("creating TMenuBar for " + panelID);
+		System.out.println("disposing TMenuBar for " + panelID);
 		TrackerPanel panel = panel();
 		panel.removeListeners(panelProps, this);
 		Video video = panel.getVideo();
@@ -2573,9 +2573,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		for (Integer n : TTrack.activeTracks.keySet()) {
 			TTrack.activeTracks.get(n).removePropertyChangeListener(TTrack.PROPERTY_TTRACK_LOCKED, this);
 		}
-		actions.clear();
 		actions = null;
-		TActions.actionMaps.remove(panel.getID());
 		if (edit_copyViewImageItems != null)
 			for (int i = 0; i < edit_copyViewImageItems.length; i++) {
 				edit_copyViewImageItems[i] = null;
@@ -2765,6 +2763,57 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		}
 	}
 
+	public static void setLangMenu(JMenu menu, TFrame frame) {
+		Action languageAction = new AbstractAction() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				frame.setLanguage(e.getActionCommand());
+			}
+		};
+		menu.removeAll();
+		ButtonGroup languageGroup = new ButtonGroup();
+		JMenuItem selected = null;
+		Locale[] locales = Tracker.getLocales();
+		for (int i = 0; i < locales.length; i++) {
+			Locale loc = locales[i];
+			String lang = OSPRuntime.getDisplayLanguage(loc);
+			String co = loc.getCountry();
+			// special handling for portuguese BR and PT
+			if (co != null && co != "") {
+				lang += " (" + co + ")"; //$NON-NLS-1$ //$NON-NLS-2$
+			} else if (!OSPRuntime.isJS && loc.getLanguage().equals("ko")) {
+				lang = "Korean";// BH characters not working in Java
+			}
+			JMenuItem item = new JRadioButtonMenuItem(lang);
+			item.setActionCommand(loc.toString());
+			item.addActionListener(languageAction);
+			menu.add(item);
+			languageGroup.add(item);
+			if (loc.equals(TrackerRes.locale)) {
+				selected = item;
+			}
+		}
+		// add "other" language item at end
+		// the following item and message is purposely not translated
+		JMenuItem otherLanguageItem = new JMenuItem("Other"); //$NON-NLS-1$
+		menu.addSeparator();
+		menu.add(otherLanguageItem);
+		otherLanguageItem.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				JOptionPane.showMessageDialog(frame, "Do you speak a language not yet available in Tracker?" //$NON-NLS-1$
+						+ "\nTo learn more about translating Tracker into your language" //$NON-NLS-1$
+						+ "\nplease contact Douglas Brown at dobrown@cabrillo.edu.", //$NON-NLS-1$
+						"New Translation", //$NON-NLS-1$
+						JOptionPane.INFORMATION_MESSAGE);
+			}
+		});
+		(selected == null ? menu.getItem(0) : selected).setSelected(true);
+		FontSizer.setMenuFonts(menu);
+	}
+
+
+
 	/**
 	 * Add a separator if the menu has items and last item is not already a separator.
 	 * @param menu
@@ -2794,4 +2843,5 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 	}
 
 
+	
 }

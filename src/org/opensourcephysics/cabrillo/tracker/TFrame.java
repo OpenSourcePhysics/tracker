@@ -108,6 +108,7 @@ import javax.swing.event.MenuListener;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.text.Document;
 
+import org.opensourcephysics.cabrillo.tracker.TFrame.DefaultMenuBar;
 import org.opensourcephysics.cabrillo.tracker.deploy.TrackerStarter;
 import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.controls.XML;
@@ -249,7 +250,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	private JToolBar playerBar;
 	private JPopupMenu popup = new JPopupMenu();
 	private JMenuItem closeItem;
-	private JMenuBar defaultMenuBar;
+	private DefaultMenuBar defaultMenuBar;
 	private JMenu recentMenu;
 //	private Map<JPanel, Object[]> panelObjects = new HashMap<JPanel, Object[]>();
 	protected JTabbedPane tabbedPane;
@@ -270,8 +271,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	protected PrefsDialog prefsDialog;
 	protected ClipboardListener clipboardListener;
 	protected boolean alwaysListenToClipboard;
-	private String mylang = "en";
-	private JMenu languageMenu;
+	String mylang = "en";
 	protected int maximizedView = -1;
 	private DataDropHandler dataDropHandler;
 
@@ -1092,6 +1092,10 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		updateNotesDialog(getTrackerPanelForTab(tab));
 	}
 
+	public void setSelectedTab(File dataFile) {
+		setSelectedTab(getTab(dataFile));
+	}
+
 	/**
 	 * Sets the selected tab specified by tracker panel.
 	 *
@@ -1537,7 +1541,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			// create new actions
 			Tracker.createActions();
 			// create new default menubar
-			createDefaultMenuBar();
+			checkLocale();
+			setJMenuBar(defaultMenuBar = new DefaultMenuBar());
 			// replace and refresh the stored menubars and toolbars
 			for (int i = getTabCount(); --i >= 0;) {
 				Object[] objects = getObjects(i);
@@ -2395,7 +2400,9 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		setContentPane(new JPanel(new BorderLayout()));
 		getContentPane().add(tabbedPane, BorderLayout.CENTER);
 		// create the default menubar
-		createDefaultMenuBar();
+//		TrackerRes.locale = Locale.forLanguageTag("es");
+		checkLocale();
+		setJMenuBar(defaultMenuBar = new DefaultMenuBar());
 		// add listener to change menubar, toolbar, track control when tab changes
 		tabbedPane.addChangeListener(new ChangeListener() {
 			@Override
@@ -2548,231 +2555,6 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			}
 		}
 		isLayoutChanged = false;
-	}
-
-	private void createDefaultMenuBar() {
-		// create the default (empty) menubar
-		int keyMask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
-		defaultMenuBar = new DeactivatingMenuBar();
-		setJMenuBar(defaultMenuBar);
-		// file menu
-		JMenu fileMenu = new JMenu(TrackerRes.getString("TMenuBar.Menu.File")); //$NON-NLS-1$
-		defaultMenuBar.add(fileMenu);
-		// new tab item
-		JMenuItem newItem = new JMenuItem(TrackerRes.getString("TActions.Action.NewTab")); //$NON-NLS-1$
-		newItem.setAccelerator(KeyStroke.getKeyStroke('N', keyMask));
-		newItem.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				addTrackerPanel(false, null);
-			}
-		});
-		fileMenu.add(newItem);
-		// if (!OSPRuntime.isApplet) {
-		fileMenu.addSeparator();
-		// open file item
-		Icon icon = Tracker.getResourceIcon("open.gif", true); //$NON-NLS-1$
-		JMenuItem openItem = new JMenuItem(TrackerRes.getString("TActions.Action.Open"), icon); //$NON-NLS-1$
-		openItem.setAccelerator(KeyStroke.getKeyStroke('O', keyMask));
-		openItem.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				doOpenFileFromDialog();
-			}
-		});
-		fileMenu.add(openItem);
-		// open recent menu
-		recentMenu = new JMenu();
-		fileMenu.add(recentMenu);
-		fileMenu.addMenuListener(new MenuListener() {
-
-			@Override
-			public void menuSelected(MenuEvent e) {
-				checkMemTest();
-				refreshOpenRecentMenu(recentMenu);
-			}
-
-			@Override
-			public void menuDeselected(MenuEvent e) {
-			}
-
-			@Override
-			public void menuCanceled(MenuEvent e) {
-			}
-
-		});
-
-		fileMenu.addSeparator();
-		// openBrowser item
-		icon = Tracker.getResourceIcon("open_catalog.gif", true); //$NON-NLS-1$
-		JMenuItem openBrowserItem = new JMenuItem(TrackerRes.getString("TActions.Action.OpenBrowser"), icon); //$NON-NLS-1$
-		openBrowserItem.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				getLibraryBrowser().setVisible(true);
-			}
-		});
-		fileMenu.add(openBrowserItem);
-		fileMenu.addSeparator();
-		// exit item
-		JMenuItem exitItem = new JMenuItem(TrackerRes.getString("TActions.Action.Exit")); //$NON-NLS-1$
-		exitItem.setAccelerator(KeyStroke.getKeyStroke('Q', keyMask));
-		exitItem.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				Tracker.exit();
-			}
-		});
-		fileMenu.add(exitItem);
-		// }
-		// edit menu
-		JMenu editMenu = new JMenu(TrackerRes.getString("TMenuBar.Menu.Edit")); //$NON-NLS-1$
-		defaultMenuBar.add(editMenu);
-		// language menu
-		languageMenu = new JMenu(TrackerRes.getString("TMenuBar.MenuItem.Language")); //$NON-NLS-1$
-		languageMenu.addMenuListener(new MenuListener() {
-
-			@Override
-			public void menuSelected(MenuEvent e) {
-				setLangMenu(languageMenu);
-			}
-
-			@Override
-			public void menuDeselected(MenuEvent e) {
-			}
-
-			@Override
-			public void menuCanceled(MenuEvent e) {
-			}
-
-		});
-		editMenu.add(languageMenu);
-		checkLocale();
-		// preferences item
-		JMenuItem prefsItem = new JMenuItem(TrackerRes.getString("TActions.Action.Config")); //$NON-NLS-1$
-		prefsItem.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				showPrefsDialog();
-			}
-		});
-		editMenu.addSeparator();
-		editMenu.add(prefsItem);
-
-//		// video menu
-//		JMenu videoMenu = new JMenu(TrackerRes.getString("TMenuBar.Menu.Video")); //$NON-NLS-1$
-//		videoMenu.setEnabled(false);
-//		defaultMenuBar.add(videoMenu);
-//		// tracks menu
-//		JMenu tracksMenu = new JMenu(TrackerRes.getString("TMenuBar.Menu.Tracks")); //$NON-NLS-1$
-//		tracksMenu.setEnabled(false);
-//		defaultMenuBar.add(tracksMenu);
-//		// coords menu
-//		JMenu coordsMenu = new JMenu(TrackerRes.getString("TMenuBar.Menu.Coords")); //$NON-NLS-1$
-//		coordsMenu.setEnabled(false);
-//		defaultMenuBar.add(coordsMenu);
-		// help menu
-		defaultMenuBar.add(TMenuBar.getTrackerHelpMenu(null, null));
-	}
-
-	private void checkLocale() {
-		if (TrackerRes.locale != Locale.ENGLISH && TrackerRes.locale != Locale.US) {
-			// try for exact match (unlikely)
-			Locale[] locales = Tracker.getLocales();
-			for (int i = 0; i < locales.length; i++) {
-				Locale loc = locales[i];
-				if (loc.equals(TrackerRes.locale)) {
-					setLanguage(loc.toString());
-					return;
-				}
-			}
-			// match just country
-			for (int i = 0; i < locales.length; i++) {
-				Locale loc = locales[i];
-				if (loc.getLanguage().equals(TrackerRes.locale.getLanguage())) {
-					setLanguage(loc.getLanguage());
-					return;
-				}
-			}
-		}
-
-	}
-
-	public void setLangMenu(JMenu languageMenu) {
-		Action languageAction = new AbstractAction() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				setLanguage(e.getActionCommand());
-			}
-		};
-		languageMenu.removeAll();
-		ButtonGroup languageGroup = new ButtonGroup();
-		JMenuItem selected = null;
-		Locale[] locales = Tracker.getLocales();
-		for (int i = 0; i < locales.length; i++) {
-			Locale loc = locales[i];
-			String lang = OSPRuntime.getDisplayLanguage(loc);
-			String co = loc.getCountry();
-			// special handling for portuguese BR and PT
-			if (co != null && co != "") {
-				lang += " (" + co + ")"; //$NON-NLS-1$ //$NON-NLS-2$
-			} else if (!OSPRuntime.isJS && loc.getLanguage().equals("ko")) {
-				lang = "Korean";// BH characters not working in Java
-			}
-			JMenuItem item = new JRadioButtonMenuItem(lang);
-			item.setActionCommand(loc.toString());
-			item.addActionListener(languageAction);
-			languageMenu.add(item);
-			languageGroup.add(item);
-			if (loc.equals(TrackerRes.locale)) {
-				selected = item;
-			}
-		}
-		// add "other" language item at end
-		// the following item and message is purposely not translated
-		JMenuItem otherLanguageItem = new JMenuItem("Other"); //$NON-NLS-1$
-		languageMenu.addSeparator();
-		languageMenu.add(otherLanguageItem);
-		otherLanguageItem.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				JOptionPane.showMessageDialog(TFrame.this, "Do you speak a language not yet available in Tracker?" //$NON-NLS-1$
-						+ "\nTo learn more about translating Tracker into your language" //$NON-NLS-1$
-						+ "\nplease contact Douglas Brown at dobrown@cabrillo.edu.", //$NON-NLS-1$
-						"New Translation", //$NON-NLS-1$
-						JOptionPane.INFORMATION_MESSAGE);
-			}
-		});
-		(selected == null ? languageMenu.getItem(0) : selected).setSelected(true);
-		FontSizer.setMenuFonts(languageMenu);
-	}
-
-	protected void setLanguage(String language) {
-		if (language.equals(mylang))
-			return;
-		mylang = language;
-		Locale[] locales = Tracker.getLocales();
-		for (int i = 0; i < Tracker.incompleteLocales.length; i++) {
-			if (language.equals(Tracker.incompleteLocales[i][0].toString())) {
-				Locale locale = (Locale) Tracker.incompleteLocales[i][0];
-				String lang = OSPRuntime.getDisplayLanguage(locale);
-				// the following message is purposely not translated
-				JOptionPane.showMessageDialog(this,
-						"This translation has not been updated since " + Tracker.incompleteLocales[i][1] //$NON-NLS-1$
-								+ ".\nIf you speak " + lang + " and would like to help translate" //$NON-NLS-1$ //$NON-NLS-2$
-								+ "\nplease contact Douglas Brown at dobrown@cabrillo.edu.", //$NON-NLS-1$
-						"Incomplete Translation: " + lang, //$NON-NLS-1$
-						JOptionPane.WARNING_MESSAGE);
-				break;
-			}
-		}
-
-		for (int i = 0; i < locales.length; i++) {
-			if (language.equals(locales[i].toString())) {
-				TrackerRes.setLocale(locales[i]);
-				return;
-			}
-		}
 	}
 
 	DataDropHandler getDataDropHandler() {
@@ -3358,172 +3140,6 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			frame.setSelectedTab(dataFile);
 			return frame;
 		}
-
-		// BH 2020.04.16 just a sketch; not implemented yet.
-
-//		/**
-//		 * The same as above, just asynchronous (untested).
-//		 * 
-//		 * @param control
-//		 * @param frame
-//		 * @param whenDone
-//		 */
-//		public synchronized void loadObjectAsync(XMLControl control, TFrame frame, Function<Object, Void> whenDone) {
-//			Object tabs = control.getObject("tabs"); //$NON-NLS-1$
-//			if (tabs == null) {
-//				loadObjectFinally(frame, null, whenDone);
-//				return;
-//			}
-//			new State(control, frame, whenDone, (String[][]) tabs).start();
-//		}
-//
-//		/**
-//		 * The essential SwingJS state machine works in Java and JavaScript and consists
-//		 * of:
-//		 * 
-//		 * 1) a set of all possible states (as final static int) Typically, these are
-//		 * INIT, LOOP (or NEXT), and DONE, but they could be far more complex.
-//		 * 
-//		 * 2) a set of final and nonfinal fields that persist only as long as the state
-//		 * exists.
-//		 * 
-//		 * 3) at least one loop defining the course of actions for the state.
-//		 * 
-//		 * Action starts with starting of a StateHelper dedicated to this State. When
-//		 * complete, you can provide a "whenDone" Function or Runnable. Or configure it
-//		 * any way you want.
-//		 * 
-//		 * Action can be interrupted (reversibly) any time by calling
-//		 * stateHelper.interrupt().
-//		 * 
-//		 * Action can be made synchronous or restarted using stateHelper.next(STATE_XXX)
-//		 * or asynchronous using stateHelper.delayedState(ms, STATE_XXX).
-//		 * 
-//		 * @author hansonr
-//		 *
-//		 */
-//		private class State implements StateMachine {
-//
-//			// possible states
-//
-//			final static int STATE_IDLE = -1; // used sometimes for animation holds; not used in this class
-//
-//			final static int STATE_INIT = 0;
-//			final static int STATE_NEXT = 1;
-//			final static int STATE_DONE = 2;
-//
-//			private final StateHelper stateHelper;
-//			private final TFrame frame;
-//			private final String[][] tabs;
-//			private final String base;
-//			private final VideoFileFilter videoFilter;
-//			private final boolean wasLoadThread;
-//			private final Function<Object, Void> whenDone;
-//
-//			private int index;
-//			private File dataFile;
-//
-//			public State(XMLControl control, TFrame frame, Function<Object, Void> whenDone, String[][] tabs) {
-//
-//				this.whenDone = whenDone;
-//				this.frame = frame;
-//				this.base = control.getString("basepath"); //$NON-NLS-1$
-//				this.tabs = tabs;
-//				videoFilter = new VideoFileFilter();
-//				wasLoadThread = TrackerIO.isLoadInSeparateThread();
-//				stateHelper = new StateHelper(this);
-//				TrackerIO.setLoadInSeparateThread("TFrame.State0", false);
-//			}
-//
-//			public void start() {
-//				stateHelper.next(STATE_INIT);
-//
-//			}
-//
-//			@Override
-//			public synchronized boolean stateLoop() {
-//
-//				while (stateHelper.isAlive()) {
-//					switch (stateHelper.getState()) {
-//					case STATE_INIT:
-//						index = 0;
-//						stateHelper.setState(STATE_NEXT);
-//						continue;
-//					case STATE_NEXT:
-//						// for (String[] next : tabs) {
-//						if (index >= tabs.length)
-//							return stateHelper.next(STATE_DONE);
-//						String[] next = tabs[index];
-//						File file = null;
-//						Resource res = null;
-//						if (base != null) {
-//							file = new File(base, next[1]); // next[1] is relative path
-//							res = ResourceLoader.getResource(file.getPath());
-//						}
-//						if (res == null) {
-//							file = new File(XML.getUserDirectory(), next[1]);
-//							res = ResourceLoader.getResource(file.getPath());
-//						}
-//						if (res == null && next[0] != null) {
-//							file = new File(next[0]); // next[0] is absolute path
-//							res = ResourceLoader.getResource(file.getPath());
-//						}
-//						if (res != null) {
-//							processResource(res, file);
-//							continue; // STATE_NEXT
-//						}
-//						int i = JOptionPane.showConfirmDialog(frame, "\"" + next[1] + "\" " //$NON-NLS-1$ //$NON-NLS-2$
-//								+ MediaRes.getString("VideoClip.Dialog.VideoNotFound.Message"), //$NON-NLS-1$
-//								TrackerRes.getString("TFrame.Dialog.FileNotFound.Title"), //$NON-NLS-1$
-//								JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
-//						if (i != JOptionPane.YES_OPTION) {
-//							continue;
-//						}
-//						TrackerIO.getChooser().setSelectedFile(file);
-//						TrackerIO.getChooserFilesAsync("open", new Function<File[], Void>() {
-//
-//							@Override
-//							public Void apply(File[] files) {
-//								if (files != null) {
-//									File file = files[0];
-//									// BH makes more sense to me...
-//									processResource(null, file);
-//								}
-//								stateHelper.next(STATE_NEXT);
-//								return null;
-//							}
-//						});
-//						// } // end for
-//						break;
-//					case STATE_DONE:
-//						TrackerIO.setLoadInSeparateThread("TFrame.State1", wasLoadThread);
-//						loadObjectFinally(frame, dataFile, whenDone);
-//						break;
-//					default:
-//					case STATE_IDLE:
-//						break;
-//					}
-//				}
-//				return false;
-//			}
-//
-//			private void processResource(Resource res, File file) {
-//				if (res != null && !videoFilter.accept(file)) {
-//					if (dataFile == null)
-//						dataFile = file;
-//					TrackerIO.openTabFileAsync(file, frame, null);
-//				}
-//			}
-//
-//		}
-
-	}
-
-	public void setSelectedTab(File dataFile) {
-		int n = getTab(dataFile);
-		// OSPLog.finest("TFrame selecting first tabset tab at index " + n);
-		// //$NON-NLS-1$
-		setSelectedTab(n);
 	}
 
 	public class DataDropHandler extends TransferHandler {
@@ -3590,6 +3206,169 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 				c[i].setEnabled(b);
 		}
 	}
+	
+	public class DefaultMenuBar extends DeactivatingMenuBar {
+		DefaultMenuBar() {
+			int keyMask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
+			// file menu
+			JMenu fileMenu = new JMenu(TrackerRes.getString("TMenuBar.Menu.File")); //$NON-NLS-1$
+			add(fileMenu);
+			// new tab item
+			JMenuItem newItem = new JMenuItem(TrackerRes.getString("TActions.Action.NewTab")); //$NON-NLS-1$
+			newItem.setAccelerator(KeyStroke.getKeyStroke('N', keyMask));
+			newItem.addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					addTrackerPanel(false, null);
+				}
+			});
+			fileMenu.add(newItem);
+			// if (!OSPRuntime.isApplet) {
+			fileMenu.addSeparator();
+			// open file item
+			Icon icon = Tracker.getResourceIcon("open.gif", true); //$NON-NLS-1$
+			JMenuItem openItem = new JMenuItem(TrackerRes.getString("TActions.Action.Open"), icon); //$NON-NLS-1$
+			openItem.setAccelerator(KeyStroke.getKeyStroke('O', keyMask));
+			openItem.addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					doOpenFileFromDialog();
+				}
+			});
+			fileMenu.add(openItem);
+			// open recent menu
+			recentMenu = new JMenu();
+			fileMenu.add(recentMenu);
+			fileMenu.addMenuListener(new MenuListener() {
+
+				@Override
+				public void menuSelected(MenuEvent e) {
+					checkMemTest();
+					refreshOpenRecentMenu(recentMenu);
+				}
+
+				@Override
+				public void menuDeselected(MenuEvent e) {
+				}
+
+				@Override
+				public void menuCanceled(MenuEvent e) {
+				}
+
+			});
+
+			fileMenu.addSeparator();
+			// openBrowser item
+			icon = Tracker.getResourceIcon("open_catalog.gif", true); //$NON-NLS-1$
+			JMenuItem openBrowserItem = new JMenuItem(TrackerRes.getString("TActions.Action.OpenBrowser"), icon); //$NON-NLS-1$
+			openBrowserItem.addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					getLibraryBrowser().setVisible(true);
+				}
+			});
+			fileMenu.add(openBrowserItem);
+			fileMenu.addSeparator();
+			// exit item
+			JMenuItem exitItem = new JMenuItem(TrackerRes.getString("TActions.Action.Exit")); //$NON-NLS-1$
+			exitItem.setAccelerator(KeyStroke.getKeyStroke('Q', keyMask));
+			exitItem.addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					Tracker.exit();
+				}
+			});
+			fileMenu.add(exitItem);
+			// }
+			// edit menu
+			JMenu editMenu = new JMenu(TrackerRes.getString("TMenuBar.Menu.Edit")); //$NON-NLS-1$
+			add(editMenu);
+			// language menu
+			JMenu languageMenu = new JMenu(TrackerRes.getString("TMenuBar.MenuItem.Language")); //$NON-NLS-1$
+			languageMenu.addMenuListener(new MenuListener() {
+
+				@Override
+				public void menuSelected(MenuEvent e) {
+					TMenuBar.setLangMenu(languageMenu, TFrame.this);
+				}
+
+				@Override
+				public void menuDeselected(MenuEvent e) {
+				}
+
+				@Override
+				public void menuCanceled(MenuEvent e) {
+				}
+
+			});
+			editMenu.add(languageMenu);
+			// preferences item
+			JMenuItem prefsItem = new JMenuItem(TrackerRes.getString("TActions.Action.Config")); //$NON-NLS-1$
+			prefsItem.addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					showPrefsDialog();
+				}
+			});
+			editMenu.addSeparator();
+			editMenu.add(prefsItem);
+			add(TMenuBar.getTrackerHelpMenu(null, null));
+		}
+		
+
+	}
+
+	protected void checkLocale() {
+		if (TrackerRes.locale != Locale.ENGLISH && TrackerRes.locale != Locale.US) {
+			// try for exact match (unlikely)
+			Locale[] locales = Tracker.getLocales();
+			for (int i = 0; i < locales.length; i++) {
+				Locale loc = locales[i];
+				if (loc.equals(TrackerRes.locale)) {
+					setLanguage(loc.toString());
+					return;
+				}
+			}
+			// match just country
+			for (int i = 0; i < locales.length; i++) {
+				Locale loc = locales[i];
+				if (loc.getLanguage().equals(TrackerRes.locale.getLanguage())) {
+					setLanguage(loc.getLanguage());
+					return;
+				}
+			}
+		}
+
+	}
+
+	protected void setLanguage(String language) {
+		if (language.equals(mylang))
+			return;
+		mylang = language;
+		Locale[] locales = Tracker.getLocales();
+		for (int i = 0; i < Tracker.incompleteLocales.length; i++) {
+			if (language.equals(Tracker.incompleteLocales[i][0].toString())) {
+				Locale locale = (Locale) Tracker.incompleteLocales[i][0];
+				String lang = OSPRuntime.getDisplayLanguage(locale);
+				// the following message is purposely not translated
+				JOptionPane.showMessageDialog(this,
+						"This translation has not been updated since " + Tracker.incompleteLocales[i][1] //$NON-NLS-1$
+								+ ".\nIf you speak " + lang + " and would like to help translate" //$NON-NLS-1$ //$NON-NLS-2$
+								+ "\nplease contact Douglas Brown at dobrown@cabrillo.edu.", //$NON-NLS-1$
+						"Incomplete Translation: " + lang, //$NON-NLS-1$
+						JOptionPane.WARNING_MESSAGE);
+				break;
+			}
+		}
+
+		for (int i = 0; i < locales.length; i++) {
+			if (language.equals(locales[i].toString())) {
+				TrackerRes.setLocale(locales[i]);
+				return;
+			}
+		}
+	}
+
 
 	/**
 	 * An inner class for TFrame that handles all notes, including lazy
@@ -3949,5 +3728,6 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		System.out.println(f.getTrackerPanelForID(tp.getID()));
 		System.exit(0);
 	}
+
 
 }

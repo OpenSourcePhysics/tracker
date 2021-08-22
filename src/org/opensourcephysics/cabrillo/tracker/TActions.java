@@ -60,8 +60,6 @@ public class TActions {
 	 * maps trackerPanel to actions
 	 * 
 	 */
-	static Map<Integer, Map<String, AbstractAction>> actionMaps = new HashMap<Integer, Map<String, AbstractAction>>(); 
-																																	// map
 	static String newline = System.getProperty("line.separator", "\n"); //$NON-NLS-1$ //$NON-NLS-2$
 
 	protected TFrame frame;
@@ -88,6 +86,7 @@ public class TActions {
 	}
 
 	private Map<String, AbstractAction> getActions() {
+		
 		HashMap<String, AbstractAction> actions = new HashMap<String, AbstractAction>();
 
 		// clear tracks
