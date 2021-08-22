@@ -476,7 +476,7 @@ public class ModelBuilder extends FunctionTool {
 		System.out.println("ModelBuilder.dispose " + panelID);
 		TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
 		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this); //$NON-NLS-1$
-		ToolsRes.removePropertyChangeListener("locale", this); //$NON-NLS-1$
+		ToolsRes.removePropertyChangeListener(ToolsRes.OSP_PROPERTY_LOCALE, this); //$NON-NLS-1$
 		removePropertyChangeListener(PROPERTY_FUNCTIONTOOL_PANEL, trackerPanel); //$NON-NLS-1$
 		for (String key : trackFunctionPanels.keySet()) {
 			FunctionPanel next = trackFunctionPanels.get(key);

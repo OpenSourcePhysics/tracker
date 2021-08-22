@@ -749,7 +749,7 @@ public class TrackDataBuilder extends FunctionTool {
 		removePropertyChangeListener(PROPERTY_FUNCTIONTOOL_PANEL, trackerPanel); // $NON-NLS-1$
 		removePropertyChangeListener(PROPERTY_FUNCTIONTOOL_FUNCTION, trackerPanel); // $NON-NLS-1$
 		removePropertyChangeListener(PROPERTY_FUNCTIONTOOL_VISIBLE, trackerPanel); // $NON-NLS-1$
-		ToolsRes.removePropertyChangeListener("locale", this); //$NON-NLS-1$
+		ToolsRes.removePropertyChangeListener(ToolsRes.OSP_PROPERTY_LOCALE, this); //$NON-NLS-1$
 		if (autoloadManager != null) {
 			autoloadManager.dispose();
 		}

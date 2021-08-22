@@ -138,6 +138,7 @@ import org.opensourcephysics.tools.LibraryResource;
 import org.opensourcephysics.tools.LibraryTreePanel;
 import org.opensourcephysics.tools.Resource;
 import org.opensourcephysics.tools.ResourceLoader;
+import org.opensourcephysics.tools.ToolsRes;
 
 /**
  * This is the main frame for Tracker.
@@ -1535,7 +1536,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 				TrackerIO.closeMonitor(fileName);
 			}
 			break;
-		case TrackerRes.PROPERTY_TRACKERRES_LOCALE: // from TrackerRes //$NON-NLS-1$
+		case ToolsRes.OSP_PROPERTY_LOCALE: // from TrackerRes //$NON-NLS-1$
 			// clear the existing menubars and actions
 			Disposable.deallocate(_amenubars, _bsPanelIDs);
 			// create new actions

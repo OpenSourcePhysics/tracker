@@ -30,6 +30,7 @@ import java.util.MissingResourceException;
 import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.tools.ResourceLoader;
 import org.opensourcephysics.tools.ResourceLoader.Bundle;
+import org.opensourcephysics.tools.ToolsRes;
 
 /**
  * String resources for tracker classes.
@@ -40,8 +41,6 @@ import org.opensourcephysics.tools.ResourceLoader.Bundle;
 
 public class TrackerRes extends OSPRuntime.Supported {
 
-	public static final String PROPERTY_TRACKERRES_LOCALE = "locale"; //$NON-NLS-1$
-	
 	// static fields
 	static Locale locale = Locale.getDefault();
 	// BH 2020.04.13 using explicit FORMAT_PROPERTIES here to avoid three attempts
@@ -93,7 +92,7 @@ public class TrackerRes extends OSPRuntime.Supported {
 		org.opensourcephysics.media.core.MediaRes.setLocale(loc);
 		org.opensourcephysics.controls.ControlsRes.setLocale(loc);
 		org.opensourcephysics.tools.ToolsRes.setLocale(loc);
-		tresObj.firePropertyChange(PROPERTY_TRACKERRES_LOCALE, prev, locale); //$NON-NLS-1$
+		tresObj.firePropertyChange(ToolsRes.OSP_PROPERTY_LOCALE, prev, locale); //$NON-NLS-1$
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

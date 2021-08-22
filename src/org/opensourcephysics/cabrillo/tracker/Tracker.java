@@ -111,6 +111,7 @@ import org.opensourcephysics.tools.JREFinder;
 import org.opensourcephysics.tools.LaunchNode;
 import org.opensourcephysics.tools.Resource;
 import org.opensourcephysics.tools.ResourceLoader;
+import org.opensourcephysics.tools.ToolsRes;
 
 import javajs.async.AsyncSwingWorker;
 import javajs.async.SwingJSUtils.Performance;
