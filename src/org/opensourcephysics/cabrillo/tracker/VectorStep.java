@@ -523,7 +523,7 @@ public class VectorStep extends Step implements PropertyChangeListener {
 			// get new text layout
 			// determine whether to show xMass
 			TrackerPanel panel = trackerPanel.getDisplayedPanel();
-			boolean xMass = panel.getToolBar().xMassButton.isSelected();
+			boolean xMass = panel.getToolBar(true).xMassButton.isSelected();
 			TTrack track = getTrack();
 			String s = track.getName() + " "; //$NON-NLS-1$
 			if (track instanceof PointMass) {
@@ -877,7 +877,7 @@ public class VectorStep extends Step implements PropertyChangeListener {
 					x = x / (dt * dt);
 					y = y / (dt * dt);
 				}
-				if (trackerPanel.getToolBar().xMassButton.isSelected()) {
+				if (trackerPanel.getToolBar(true).xMassButton.isSelected()) {
 					x = m.getMass() * x;
 					y = m.getMass() * y;
 				}

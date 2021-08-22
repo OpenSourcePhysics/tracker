@@ -2260,7 +2260,7 @@ public class TrackerIO extends VideoIO {
 			checkDone(false);			
 			// remove empty tab if running in Java
 			if (!OSPRuntime.isJS) {
-				TToolBar tbar = trackerPanel.getToolBar();
+				TToolBar tbar = trackerPanel.getToolBar(false);
 				SwingUtilities.invokeLater(()->{
 					if (tbar != null)
 						tbar.refresh(TToolBar.REFRESH_TFRAME_REFRESH_TRUE);

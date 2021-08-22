@@ -949,7 +949,7 @@ public class Undo {
 			Video video = panel().getVideo();
 			if (video != null) {
 				filter.setVideoPanel(null);
-				TMenuBar menubar = panel().getMenuBar();
+				TMenuBar menubar = panel().getMenuBar(true);
 				menubar.refreshing = true; // prevents posting another undoable edit
 				video.getFilterStack().removeFilter(filter);
 				menubar.refreshing = false;

@@ -209,7 +209,7 @@ public class LineProfile extends TTrack {
 					if (!loading)
 						Undo.postTrackEdit(LineProfile.this, control);
 				}
-				tp.getToolBar().refresh(TToolBar.REFRESH_LINEPROFILE);
+				tp.getToolBar(true).refresh(TToolBar.REFRESH_LINEPROFILE);
 				invalidateData(null);
 			}
 		});

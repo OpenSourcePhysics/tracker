@@ -60,7 +60,7 @@ import org.opensourcephysics.tools.FontSizer;
  *
  * @author Douglas Brown
  */
-public class TViewChooser extends JPanel implements PropertyChangeListener {
+public class TViewChooser extends JPanel implements PropertyChangeListener, OSPRuntime.Disposable {
 
 	// static fields
 
@@ -671,7 +671,7 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
 			if (view != null) {
 				((Component) view).removePropertyChangeListener("trackview", this); //$NON-NLS-1$
 				cl.removeLayoutComponent((JComponent) view);
-				view.dispose();
+				OSPRuntime.Disposable.deallocate(view);
 			}
 		}
 		tViews = null;

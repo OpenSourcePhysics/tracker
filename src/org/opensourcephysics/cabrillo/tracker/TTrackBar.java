@@ -56,6 +56,7 @@ import org.opensourcephysics.cabrillo.tracker.TTrack.TextLineLabel;
 import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.desktop.OSPDesktop;
 import org.opensourcephysics.display.OSPRuntime;
+import org.opensourcephysics.display.OSPRuntime.Disposable;
 import org.opensourcephysics.media.core.NumberField;
 import org.opensourcephysics.media.core.TPoint;
 import org.opensourcephysics.tools.FontSizer;
@@ -66,7 +67,7 @@ import org.opensourcephysics.tools.FontSizer;
  *
  * @author Douglas Brown
  */
-public class TTrackBar extends JToolBar implements TFrame.Disposable, PropertyChangeListener {
+public class TTrackBar extends JToolBar implements Disposable, PropertyChangeListener {
 
 	// static fields
 	protected static JButton newVersionButton;
@@ -120,16 +121,6 @@ public class TTrackBar extends JToolBar implements TFrame.Disposable, PropertyCh
 		OSPLog.finalized(this);
 	}
 
-	/**
-	 * Gets the trackbar for the specified tracker panel.
-	 *
-	 * @param panel the tracker panel
-	 * @return the trackbar
-	 */
-	public static TTrackBar getTrackbar(TrackerPanel panel) {
-		return panel.getTFrame().getTrackbar(panel.getID());
-	}
-	
 	private static void setTestOn(boolean on) {
 		if (on) {
 			testButton = new JButton("test"); //$NON-NLS-1$
@@ -265,7 +256,7 @@ public class TTrackBar extends JToolBar implements TFrame.Disposable, PropertyCh
 				TrackerPanel trackerPanel = (frame == null ? null : frame.getSelectedPanel());
 				if (trackerPanel != null) {
 					trackerPanel.taintEnabled();
-					trackerPanel.getToolBar().refresh(TToolBar.REFRESH__NEW_VERSION);
+					trackerPanel.getToolBar(true).refresh(TToolBar.REFRESH__NEW_VERSION);
 				}
 			}
 		});

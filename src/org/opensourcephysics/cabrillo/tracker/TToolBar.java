@@ -44,6 +44,7 @@ import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 
 import javax.swing.AbstractAction;
@@ -72,6 +73,7 @@ import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.desktop.OSPDesktop;
 import org.opensourcephysics.display.DataTable;
 import org.opensourcephysics.display.OSPRuntime;
+import org.opensourcephysics.display.OSPRuntime.Disposable;
 import org.opensourcephysics.display.ResizableIcon;
 import org.opensourcephysics.media.core.ClipInspector;
 import org.opensourcephysics.media.core.MediaRes;
@@ -84,7 +86,7 @@ import org.opensourcephysics.tools.FontSizer;
  *
  * @author Douglas Brown
  */
-public class TToolBar extends JToolBar implements TFrame.Disposable, PropertyChangeListener {
+public class TToolBar extends JToolBar implements Disposable, PropertyChangeListener {
 
 	// static fields
 	final protected static int[] trailLengths = { 1, 4, 15, 0 };
@@ -860,7 +862,7 @@ public class TToolBar extends JToolBar implements TFrame.Disposable, PropertyCha
 		SwingUtilities.invokeLater(() -> {
 			TrackerPanel panel = frame.getTrackerPanelForID(panelID);
 			if (panel != null && panel.hasToolBar())
-				panel.getToolBar().refreshMemoryButton();
+				panel.getToolBar(true).refreshMemoryButton();
 		});
 	}
 	
@@ -1230,7 +1232,8 @@ public class TToolBar extends JToolBar implements TFrame.Disposable, PropertyCha
 		if (refreshTracks) {
 			refreshTracks();
 		}
-		//OSPLog.debug(Performance.timeCheckStr("TToolBar refreshAsync tracks", Performance.TIME_MARK));
+		// OSPLog.debug(Performance.timeCheckStr("TToolBar refreshAsync tracks",
+		// Performance.TIME_MARK));
 		TPoint pt = panel().getSelectedPoint();
 		if (pt != null)
 			pt.showCoordinates(panel());
@@ -1244,26 +1247,19 @@ public class TToolBar extends JToolBar implements TFrame.Disposable, PropertyCha
 		// refresh pageViewTabs list
 		pageViewTabs.clear();
 		if (frame != null) {
-			TView[][] views = frame.getTViews(panel());
-			for (TView[] next : views) {
-				if (next == null)
-					continue;
-				for (TView view : next) {
-					if (view == null)
-						continue;
-					if (view.getViewType() == TView.VIEW_PAGE) {
-						PageTView page = (PageTView) view;
-						for (TabView tab : page.tabs) {
-							if (tab.data.url != null) {
-								pageViewTabs.add(tab.data);
-							}
-						}
+			List<TView> views = frame.getTViews(panelID, TView.VIEW_PAGE, null);
+			for (int i = 0; i < views.size(); i++) {
+				PageTView page = (PageTView) views.get(i);
+				for (TabView tab : page.tabs) {
+					if (tab.data.url != null) {
+						pageViewTabs.add(tab.data);
 					}
 				}
 			}
 			sortPageViewTabs();
 		}
-		//OSPLog.debug(Performance.timeCheckStr("TToolBar refreshAsync sortPageView", Performance.TIME_MARK));
+		// OSPLog.debug(Performance.timeCheckStr("TToolBar refreshAsync sortPageView",
+		// Performance.TIME_MARK));
 
 		boolean hasPageURLs = !pageViewTabs.isEmpty();
 		desktopButton.setEnabled(hasPageURLs || !panel().supplementalFilePaths.isEmpty());

@@ -2381,7 +2381,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 		public void setVisible(boolean vis) {
 			super.setVisible(vis);
 			TrackerPanel panel = frame.getTrackerPanelForID(panelID);
-			TToolBar toolbar = panel.getToolBar();
+			TToolBar toolbar = panel.getToolBar(true);
 			toolbar.autotrackerButton.setSelected(vis);
 			isVisible = vis;
 			if (!vis) {
@@ -3976,7 +3976,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 			DecimalFormat yFormat = (DecimalFormat) NumberFormat.getInstance();
 			DataTable table = null;
 			TableCellRenderer xRenderer = null, yRenderer = null;
-			TMenuBar menubar = frame.getMenuBar(panelID);
+			TMenuBar menubar = frame.getMenuBar(panelID, true);
 			TreeMap<Integer, TableTrackView> dataViews = menubar.getDataViews();
 			for (int key : dataViews.keySet()) {
 				TableTrackView view = dataViews.get(key);

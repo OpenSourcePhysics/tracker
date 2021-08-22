@@ -1970,7 +1970,7 @@ public class PointMass extends TTrack {
 	protected NumberField[] getNumberFieldsForStep(Step step) {
 		NumberField[] fields;
 		String var;
-		boolean xMass = tp.getToolBar().xMassButton.isSelected();
+		boolean xMass = tp.getToolBar(true).xMassButton.isSelected();
 		if (isVelocity(step)) {
 			fields = xMass ? vectorFields[2] : vectorFields[0];
 			var = xMass ? formatVariables[5] : formatVariables[3];
@@ -2654,7 +2654,7 @@ public class PointMass extends TTrack {
 		n = trackerPanel.getPlayer().getVideoClip().frameToStep(n);
 		NumberField[] fields = getNumberFieldsForStep(step);
 		if (step instanceof VectorStep) {
-			boolean xMass = trackerPanel.getToolBar().xMassButton.isSelected();
+			boolean xMass = trackerPanel.getToolBar(true).xMassButton.isSelected();
 			if (isVelocity(step)) {
 				if (xMass) {
 					xLabel.setText(dataVariables[18]);

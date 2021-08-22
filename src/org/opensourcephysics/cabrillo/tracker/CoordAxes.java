@@ -258,7 +258,7 @@ public class CoordAxes extends TTrack {
 			@Override
 			public Dimension getMaximumSize() {
 				Dimension dim = super.getMaximumSize();
-				dim.height = TTrackBar.getTrackbar(tp).toolbarComponentHeight;
+				dim.height = tp.getTrackBar(true).toolbarComponentHeight;
 				return dim;
 			}
 

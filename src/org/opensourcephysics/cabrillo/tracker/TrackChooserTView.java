@@ -648,5 +648,4 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 				+ " views=" + (trackViews == null ? 0 : trackViews.size()) 
 				+ " tracks=" + tracks.size() + "]";
 	}
-
 }

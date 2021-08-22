@@ -528,7 +528,7 @@ public class PageTView extends JPanel implements TView {
 		}
 		refreshTitle();
 		if (panelID != null && refreshToolbar) {
-			frame.getToolbar(panelID).refresh(TToolBar.REFRESH_PAGETVIEW_TABS);
+			frame.getToolBar(panelID, true).refresh(TToolBar.REFRESH_PAGETVIEW_TABS);
 		}
 	}
 
@@ -906,7 +906,7 @@ public class PageTView extends JPanel implements TView {
 			if (panelID != null) {
 				TrackerPanel panel = frame.getTrackerPanelForID(panelID);
 				panel.changed = true;
-				panel.getToolBar().refresh(TToolBar.REFRESH_PAGETVIEW_TITLE);
+				panel.getToolBar(true).refresh(TToolBar.REFRESH_PAGETVIEW_TITLE);
 			}
 		}
 
@@ -954,7 +954,7 @@ public class PageTView extends JPanel implements TView {
 			if (panelID != null) {
 				TrackerPanel panel = frame.getTrackerPanelForID(panelID);
 				panel.changed = true;
-				panel.getToolBar().refresh(TToolBar.REFRESH_PAGETVIEW_URL);
+				panel.getToolBar(true).refresh(TToolBar.REFRESH_PAGETVIEW_URL);
 			}
 		}
 

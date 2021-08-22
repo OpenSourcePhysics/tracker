@@ -571,16 +571,17 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 
 		// create labels and fields
 		xLabel = new TextLineLabel();
-		xField = new TrackNumberField();
 		yLabel = new TextLineLabel();
-		yField = new TrackNumberField();
 		magLabel = new TextLineLabel();
+		angleLabel = new TextLineLabel();
+		
+		xField = new TrackNumberField();
+		yField = new TrackNumberField();
 		magField = new TrackNumberField();
 		magField.setMinValue(0);
 		xField.addMouseListener(formatMouseListener);
 		yField.addMouseListener(formatMouseListener);
 		magField.addMouseListener(formatMouseListener);
-		angleLabel = new TextLineLabel();
 		angleField = new TrackDecimalField(1);
 		angleField.addMouseListener(formatAngleMouseListener);
 		Border empty = BorderFactory.createEmptyBorder(0, 3, 0, 3);
@@ -2341,7 +2342,7 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 					if (frame.notesVisible()) {
 						frame.getNotesDialog().setVisible(true);
 					} else
-						tp.getToolBar().doNotesAction();
+						tp.getToolBar(true).doNotesAction();
 				}
 			}
 		});
@@ -2581,8 +2582,11 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 	public void repaint(Step step) {
 		for (int j = 0; j < tp.panelAndWorldViews.size(); j++) {
 			TrackerPanel panel = frame.getTrackerPanelForTab(tp.panelAndWorldViews.get(j));
-			if (panel != null)
+			if (panel == null) {
+				System.err.println("TTrack failure for step with panel null ");
+			} else {
 				step.repaint(panel);
+			}
 		}
 	}
 
@@ -2953,6 +2957,13 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 				step.dispose();
 			}
 		}
+
+// shouldn't be necessary now that DrawingPanel.messages has lazy initialization
+//		xLabel.dispose();
+//		yLabel.dispose();
+//		magLabel.dispose();
+//		angleLabel.dispose();
+
 		steps = null;
 		setTrackerPanel(null);
 		super.dispose();
@@ -3299,7 +3310,7 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 		public void setText(String t) {
 			super.setText(t);
 			if (tp != null) {
-				TTrackBar.getTrackbar(tp).resizeField(this);
+				tp.getTrackBar(true).resizeField(this);
 			}
 		}
 
@@ -3318,7 +3329,7 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 		public void setText(String t) {
 			super.setText(t);
 			if (tp != null) {
-				TTrackBar tbar = TTrackBar.getTrackbar(tp);
+				TTrackBar tbar = tp.getTrackBar(false);
 				if (tbar != null)
 					tbar.resizeField(this);
 			}

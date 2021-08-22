@@ -687,7 +687,7 @@ public class PencilControl extends JDialog {
 	public void setVisible(boolean vis) {
 		super.setVisible(vis);
 		TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
-		TToolBar toolbar = trackerPanel.getToolBar();
+		TToolBar toolbar = trackerPanel.getToolBar(true);
 		toolbar.drawingButton.setSelected(vis);
 		if (Tracker.showHints) {
 			trackerPanel.setMessage(vis ? TrackerRes.getString("PencilDrawer.Hint") : null); //$NON-NLS-1$

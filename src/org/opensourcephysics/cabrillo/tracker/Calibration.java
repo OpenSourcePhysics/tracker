@@ -819,6 +819,9 @@ public class Calibration extends TTrack {
 				}
 			}
 		};
+		x1Label = new TextLineLabel();
+		y1Label = new TextLineLabel();
+
 		x1Field = new TrackNumberField();
 		x1Field.setBorder(fieldBorder);
 		y1Field = new TrackNumberField();
@@ -837,8 +840,6 @@ public class Calibration extends TTrack {
 		point2MissingLabel = new JLabel();
 		point1MissingLabel.setBorder(xLabel.getBorder());
 		point2MissingLabel.setBorder(yLabel.getBorder());
-		x1Label = new TextLineLabel();
-		y1Label = new TextLineLabel();
 		x1Label.setBorder(xLabel.getBorder());
 		y1Label.setBorder(yLabel.getBorder());
 		fieldSeparators[0] = Box.createRigidArea(new Dimension(4, 4));

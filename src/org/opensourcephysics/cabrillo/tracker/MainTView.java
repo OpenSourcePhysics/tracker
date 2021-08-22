@@ -97,23 +97,19 @@ public class MainTView extends JPanel implements TView {
 		scrollPane.addComponentListener(listener);
 		SwingUtilities.replaceUIActionMap(scrollPane, null);
 		add(scrollPane, BorderLayout.CENTER);
-
-		TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
-
-		// add trackbar north
-		
-		TTrackBar tbar = TTrackBar.getTrackbar(trackerPanel);
+		// add trackbar north		
+		TTrackBar tbar = panel.getTrackBar(false);
 		if (tbar != null)
 			add(tbar, BorderLayout.NORTH);
 
 		// add player to the playerBar
 		playerBar.setFloatable(false);
-		trackerPanel.getPlayer().setBorder(null);
-		trackerPanel.setPlayerVisible(false);
-		playerBar.add(trackerPanel.getPlayer());
+		panel.getPlayer().setBorder(null);
+		panel.setPlayerVisible(false);
+		playerBar.add(panel.getPlayer());
 		// add trackerPanel to scrollPane
-		scrollPane.setViewportView(trackerPanel);
-		trackerPanel.setScrollPane(scrollPane);
+		scrollPane.setViewportView(panel);
+		panel.setScrollPane(scrollPane);
 
 		mouseAdapter = new MouseAdapter() {
 
@@ -151,15 +147,15 @@ public class MainTView extends JPanel implements TView {
 			}
 		};
 		// add mouse and key listeners
-		trackerPanel.addMouseListener(mouseAdapter);
-		trackerPanel.addMouseWheelListener(mouseAdapter);
-		trackerPanel.addKeyListener(keyAdapter);
+		panel.addMouseListener(mouseAdapter);
+		panel.addMouseWheelListener(mouseAdapter);
+		panel.addKeyListener(keyAdapter);
 
 	}
 
 	protected void doKeyPressed(KeyEvent e) {
 		TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
-		JButton z = trackerPanel.getToolBar().zoomButton;
+		JButton z = trackerPanel.getToolBar(true).zoomButton;
 		int d = trackerPanel.getSelectedPoint() == null ? 10 : 0;
 		Rectangle rect = scrollPane.getViewport().getViewRect();
 		switch (e.getKeyCode()) {
@@ -233,7 +229,7 @@ public class MainTView extends JPanel implements TView {
 
 	protected void doKeyRelease(KeyEvent e) {
 		TrackerPanel panel = frame.getTrackerPanelForID(panelID);
-		final JButton z = panel.getToolBar().zoomButton;
+		final JButton z = panel.getToolBar(true).zoomButton;
 		if (e.getKeyCode() == KeyEvent.VK_Z) {
 			z.setSelected(false);
 			panel.setCursor(Cursor.getDefaultCursor());
@@ -289,7 +285,7 @@ public class MainTView extends JPanel implements TView {
 			return;
 		lastDim = d;
 		TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
-		TToolBar tbar = trackerPanel.getToolBar();
+		TToolBar tbar = trackerPanel.getToolBar(false);
 		if (tbar != null)
 			tbar.refreshZoomButton();
 		trackerPanel.eraseAll();
