@@ -44,6 +44,7 @@ import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
@@ -1163,30 +1164,27 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 				}
 				// send some data to the tool
 				boolean sent = false;
-				TView[][] views = frame.getTViews(panel(), false);
-				int[] selectedTypes = frame.getSelectedViewTypes(panel());
-				for (int i = 0; i < selectedTypes.length; i++) {
-					if (selectedTypes[i] == TView.VIEW_PLOT) { // $NON-NLS-1$
-						PlotTView v = (PlotTView) views[i][TView.VIEW_PLOT];
-						PlotTrackView plotView = (PlotTrackView) v.getTrackView(v.getSelectedTrack());
-						if (plotView != null) {
-							for (TrackPlottingPanel plot : plotView.getPlots()) {
-								plot.showDataTool();
-								sent = true;
-							}
+				List<TView> views = frame.getTViews(panelID, TView.VIEW_PLOT, null);
+				for (int i = 0; i < views.size(); i++) {
+					PlotTView v = (PlotTView) views.get(i);
+					PlotTrackView view = (PlotTrackView) v.getTrackView(v.getSelectedTrack());
+					if (view != null) {
+						for (TrackPlottingPanel plot : view.getPlots()) {
+							plot.showDataTool();
+							sent = true;
 						}
 					}
 				}
 				// no plot views were visible, so look for table views
 				if (!sent) {
-					for (int i = 0; i < selectedTypes.length; i++) {
-						if (selectedTypes[i] == TView.VIEW_TABLE) { // $NON-NLS-1$
-							TableTView v = (TableTView) views[i][TView.VIEW_TABLE];
+					views.clear();
+					views = frame.getTViews(panelID, TView.VIEW_TABLE, views);
+					for (int i = 0; i < views.size(); i++) {
+						TableTView v = (TableTView) views.get(i);
 							TableTrackView tableView = (TableTrackView) v.getTrackView(v.getSelectedTrack());
 							if (tableView != null) {
 								tableView.dataToolAction();
 							}
-						}
 					}
 				}
 				tool.setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
@@ -2415,8 +2413,8 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		// Tracker help items
 		JMenuItem startItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.GettingStarted") + "..."); //$NON-NLS-1$ //$NON-NLS-2$
 		startItem.addActionListener((e) -> {
-				String quickStartURL = "https://www.youtube.com/watch?v=n4Eqy60yYUY"; //$NON-NLS-1$
-				OSPDesktop.displayURL(quickStartURL);
+			String quickStartURL = "https://www.youtube.com/watch?v=n4Eqy60yYUY"; //$NON-NLS-1$
+			OSPDesktop.displayURL(quickStartURL);
 //        Container c = helpMenu.getTopLevelAncestor();
 //        if (c instanceof TFrame) {
 //          TFrame frame = (TFrame) c;
@@ -2427,44 +2425,44 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		JMenuItem helpItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.TrackerHelp")); //$NON-NLS-1$
 		helpItem.setAccelerator(KeyStroke.getKeyStroke('H', keyMask));
 		helpItem.addActionListener((e) -> {
-				Container c = helpMenu.getTopLevelAncestor();
-				if (c instanceof TFrame) {
-					TFrame frame = (TFrame) c;
-					frame.showHelp(null, 0);
-				}
+			Container c = helpMenu.getTopLevelAncestor();
+			if (c instanceof TFrame) {
+				TFrame frame = (TFrame) c;
+				frame.showHelp(null, 0);
+			}
 		});
 		helpMenu.add(helpItem);
 		JMenuItem onlineHelpItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.OnlineHelp") + "..."); //$NON-NLS-1$ //$NON-NLS-2$
 		onlineHelpItem.addActionListener((e) -> {
-				String lang = TrackerRes.locale.getLanguage();
-				if ("en".equals(lang)) { //$NON-NLS-1$
+			String lang = TrackerRes.locale.getLanguage();
+			if ("en".equals(lang)) { //$NON-NLS-1$
+				OSPDesktop.displayURL("https://" + Tracker.trackerWebsite + "/help/frameset.html"); //$NON-NLS-1$ //$NON-NLS-2$
+			} else {
+				String english = Locale.ENGLISH.getDisplayLanguage(TrackerRes.locale);
+				String language = TrackerRes.locale.getDisplayLanguage(TrackerRes.locale);
+				String message = TrackerRes.getString("TMenuBar.Dialog.Translate.Message1") //$NON-NLS-1$
+						+ "\n" + TrackerRes.getString("TMenuBar.Dialog.Translate.Message2") + " " + language + "." //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
+						+ "\n" + TrackerRes.getString("TMenuBar.Dialog.Translate.Message3"); //$NON-NLS-1$ //$NON-NLS-2$
+				TFrame frame = trackerPanel == null ? null : trackerPanel.getTFrame();
+				int response = javax.swing.JOptionPane.showOptionDialog(frame, message,
+						TrackerRes.getString("TMenuBar.Dialog.Translate.Title"), //$NON-NLS-1$
+						JOptionPane.YES_NO_CANCEL_OPTION, javax.swing.JOptionPane.QUESTION_MESSAGE, null,
+						new String[] { english, language, TrackerRes.getString("Dialog.Button.Cancel") }, //$NON-NLS-1$
+						language);
+				if (response == 1) { // language translation
+					String helpURL = "https://translate.google.com/translate?hl=en&sl=en&tl=" + lang //$NON-NLS-1$
+							+ "&u=https://physlets.org/tracker/help/frameset.html"; //$NON-NLS-1$
+					OSPDesktop.displayURL(helpURL);
+				} else if (response == 0) { // english
 					OSPDesktop.displayURL("https://" + Tracker.trackerWebsite + "/help/frameset.html"); //$NON-NLS-1$ //$NON-NLS-2$
-				} else {
-					String english = Locale.ENGLISH.getDisplayLanguage(TrackerRes.locale);
-					String language = TrackerRes.locale.getDisplayLanguage(TrackerRes.locale);
-					String message = TrackerRes.getString("TMenuBar.Dialog.Translate.Message1") //$NON-NLS-1$
-							+ "\n" + TrackerRes.getString("TMenuBar.Dialog.Translate.Message2") + " " + language + "." //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
-							+ "\n" + TrackerRes.getString("TMenuBar.Dialog.Translate.Message3"); //$NON-NLS-1$ //$NON-NLS-2$
-					TFrame frame = trackerPanel == null ? null : trackerPanel.getTFrame();
-					int response = javax.swing.JOptionPane.showOptionDialog(frame, message,
-							TrackerRes.getString("TMenuBar.Dialog.Translate.Title"), //$NON-NLS-1$
-							JOptionPane.YES_NO_CANCEL_OPTION, javax.swing.JOptionPane.QUESTION_MESSAGE, null,
-							new String[] { english, language, TrackerRes.getString("Dialog.Button.Cancel") }, //$NON-NLS-1$
-							language);
-					if (response == 1) { // language translation
-						String helpURL = "https://translate.google.com/translate?hl=en&sl=en&tl=" + lang //$NON-NLS-1$
-								+ "&u=https://physlets.org/tracker/help/frameset.html"; //$NON-NLS-1$
-						OSPDesktop.displayURL(helpURL);
-					} else if (response == 0) { // english
-						OSPDesktop.displayURL("https://" + Tracker.trackerWebsite + "/help/frameset.html"); //$NON-NLS-1$ //$NON-NLS-2$
-					}
 				}
+			}
 		});
 		helpMenu.add(onlineHelpItem);
 		JMenuItem discussionHelpItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.ForumHelp") + "..."); //$NON-NLS-1$ //$NON-NLS-2$
 		discussionHelpItem.addActionListener((e) -> {
-				String helpURL = "https://www.compadre.org/osp/bulletinboard/ForumDetails.cfm?FID=57"; //$NON-NLS-1$
-				OSPDesktop.displayURL(helpURL);
+			String helpURL = "https://www.compadre.org/osp/bulletinboard/ForumDetails.cfm?FID=57"; //$NON-NLS-1$
+			OSPDesktop.displayURL(helpURL);
 		});
 		helpMenu.add(discussionHelpItem);
 
@@ -2475,31 +2473,27 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		final JMenuItem hintsItem = new JCheckBoxMenuItem(TrackerRes.getString("Tracker.MenuItem.Hints")); //$NON-NLS-1$
 		hintsItem.setSelected(Tracker.showHints);
 		hintsItem.addActionListener((e) -> {
-				Tracker.showHints = hintsItem.isSelected();
-				Tracker.startupHintShown = false;
-				Container c = helpMenu.getTopLevelAncestor();
-				if (c instanceof TFrame) {
-					TFrame frame = (TFrame) c;
-					TrackerPanel p = frame.getSelectedPanel();
-					if (p != null) {
-						p.setCursorForMarking(false, null);
-						TView[][] views = frame.getTViews(p, false);
-						for (TView[] next : views) {
-							for (TView view : next) {
-								if (view != null && view.getViewType() == TView.VIEW_PLOT) {
-									PlotTView v = (PlotTView) view;
-									TrackView trackView = v.getTrackView(v.getSelectedTrack());
-									PlotTrackView plotView = (PlotTrackView) trackView;
-									if (plotView != null) {
-										for (TrackPlottingPanel plot : plotView.getPlots()) {
-											plot.plotData();
-										}
-									}
-								}
+			Tracker.showHints = hintsItem.isSelected();
+			Tracker.startupHintShown = false;
+			Container c = helpMenu.getTopLevelAncestor();
+			if (c instanceof TFrame) {
+				TFrame frame = (TFrame) c;
+				TrackerPanel p = frame.getSelectedPanel();
+				if (p != null) {
+					p.setCursorForMarking(false, null);
+					List<TView> views = frame.getTViews(trackerPanel.getID(), TView.VIEW_PLOT, null);
+					for (int i = 0; i < views.size(); i++) {
+						PlotTView v = (PlotTView) views.get(i);
+						TrackView trackView = v.getTrackView(v.getSelectedTrack());
+						PlotTrackView plotView = (PlotTrackView) trackView;
+						if (plotView != null) {
+							for (TrackPlottingPanel plot : plotView.getPlots()) {
+								plot.plotData();
 							}
 						}
 					}
 				}
+			}
 		});
 		if (!org.opensourcephysics.display.OSPRuntime.isMac()) {
 			helpMenu.addSeparator();
@@ -2516,17 +2510,17 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 			JMenuItem logItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.MessageLog")); //$NON-NLS-1$
 			logItem.setAccelerator(KeyStroke.getKeyStroke('L', keyMask));
 			logItem.addActionListener((e) -> {
-					Point p = new JFrame().getLocation(); // default location of new frame or dialog
-					OSPLog log = OSPLog.getOSPLog();
-					FontSizer.setFonts(log, FontSizer.getLevel());
-					if (log.getLocation().x == p.x && log.getLocation().y == p.y) {
-						// center on screen
-						Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
-						int x = (dim.width - log.getBounds().width) / 2;
-						int y = (dim.height - log.getBounds().height) / 2;
-						log.setLocation(x, y);
-					}
-					log.setVisible(true);
+				Point p = new JFrame().getLocation(); // default location of new frame or dialog
+				OSPLog log = OSPLog.getOSPLog();
+				FontSizer.setFonts(log, FontSizer.getLevel());
+				if (log.getLocation().x == p.x && log.getLocation().y == p.y) {
+					// center on screen
+					Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
+					int x = (dim.width - log.getBounds().width) / 2;
+					int y = (dim.height - log.getBounds().height) / 2;
+					log.setLocation(x, y);
+				}
+				log.setVisible(true);
 			});
 			diagMenu.add(logItem);
 			if (Tracker.startLogAction != null) {
@@ -2548,12 +2542,13 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 
 		helpMenu.addSeparator();
 		if (!OSPRuntime.isJS) {
-		    JMenuItem checkForUpgradeItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.CheckForUpgrade.Text")); //$NON-NLS-1$
-		    checkForUpgradeItem.addActionListener((e) -> {
-		    	new Thread(()-> {
-		        Tracker.showUpgradeStatus(trackerPanel);
-		    	}).start();
-		    });
+			JMenuItem checkForUpgradeItem = new JMenuItem(
+					TrackerRes.getString("TMenuBar.MenuItem.CheckForUpgrade.Text")); //$NON-NLS-1$
+			checkForUpgradeItem.addActionListener((e) -> {
+				new Thread(() -> {
+					Tracker.showUpgradeStatus(trackerPanel);
+				}).start();
+			});
 			helpMenu.add(checkForUpgradeItem);
 		}
 

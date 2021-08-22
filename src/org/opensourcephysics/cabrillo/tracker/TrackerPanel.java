@@ -750,7 +750,11 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			addTrack(child);
 		}
 		if (frame != null && isShowing()) {
-			TrackChooserTView.setAllSelected(frame.getTViews(this, false), dt);
+			List<TView> views = frame.getTViews(panelID, TView.VIEW_PLOT, null);
+			frame.getTViews(panelID, TView.VIEW_TABLE, views);
+			for (int i = 0; i < views.size(); i++) {
+				((TrackChooserTView) views.get(i)).setSelectedTrack(dt);
+			}
 		}
 	}
 
@@ -764,15 +768,12 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	protected boolean isTrackViewDisplayed(TTrack track) {
 		TFrame frame = getTFrame();
 		if (frame != null && TrackerPanel.this.isShowing()) {
-			TView[][] views = frame.getTViews(this, false);
-			for (TView[] next : views) {
-				for (int i = 0; i < next.length; i++) {
-					TView view = next[i];
-					if (view != null
-							&& (view.getViewType() == TView.VIEW_PLOT || view.getViewType() == TView.VIEW_TABLE)
-							&& ((TrackChooserTView) view).isTrackViewDisplayed(track)) {
-						return true;
-					}
+			List<TView> views = frame.getTViews(panelID, TView.VIEW_PLOT, null);
+			frame.getTViews(panelID, TView.VIEW_TABLE, views);
+			for (int i = 0; i < views.size(); i++) {
+				TView view = views.get(i);
+				if (((TrackChooserTView) view).isTrackViewDisplayed(track)) {
+					return true;
 				}
 			}
 		}
@@ -2971,15 +2972,9 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		if (getTFrame() == null)
 			return;
 		// refresh views
-		TView[][] views = frame.getTViews(this, false);
-		if (views == null)
-			return;
-		for (int i = 0, n = views.length; i < n; i++) {
-			if (views[i] != null) {
-				for (int j = 0, nj = views[i].length; j < nj; j++)
-					if (views[i][j] != null)
-						views[i][j].refresh();
-			}
+		List<TView> views = frame.getTViews(panelID, TView.VIEW_UNSET, null);
+		for (int i = views.size(); --i >= 0;) {
+			views.get(i).refresh();
 		}
 		getTrackBar(true).setFontLevel(level);
 		refreshTrackBar();
@@ -4090,9 +4085,9 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				int[] order = TFrame.isPortraitLayout() ? TFrame.PORTRAIT_DIVIDER_ORDER : TFrame.DEFAULT_ORDER;
 				for (int i = 0; i < dividerLocations.length; i++) {
 					JSplitPane pane = frame.getSplitPane(trackerPanel, i);
-					if (i == TFrame.SPLIT_MAIN)
+					if (i == TFrame.SPLIT_MAIN_RIGHT)
 						w = pane.getMaximumDividerLocation();
-					int max = i == TFrame.SPLIT_BOTTOM ? w : pane.getMaximumDividerLocation();
+					int max = i == TFrame.SPLIT_WORLD_PAGE ? w : pane.getMaximumDividerLocation();
 					double loc = Math.min(1.0, 1.0 * pane.getDividerLocation() / max);
 					dividerLocations[order[i]] = frame.getConvertedDividerLoc(order[i], loc);
 				}
