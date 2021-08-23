@@ -367,12 +367,13 @@ public class PointMass extends TTrack {
 			= new IdentityHashMap<>();
 	private Map<Integer, StepArray> panelAMap // trackerPanel to StepArray
 			= new IdentityHashMap<>();
-	private Map<Integer, Boolean> panelXVisMap // trackerPanel to Boolean
-			= new IdentityHashMap<>();
-	private Map<Integer, Boolean> panelVVisMap // trackerPanel to Boolean
-			= new IdentityHashMap<>();
-	private Map<Integer, Boolean> panelAVisMap // trackerPanel to Boolean
-			= new IdentityHashMap<>();
+//	private Map<Integer, Boolean> panelXVisMap // trackerPanel to Boolean
+//			= new IdentityHashMap<>();
+//	private Map<Integer, Boolean> panelVVisMap // trackerPanel to Boolean
+//			= new IdentityHashMap<>();
+//	private Map<Integer, Boolean> panelAVisMap // trackerPanel to Boolean
+//			= new IdentityHashMap<>();
+	boolean xvis = true, vvis = false, avis = false;
 	protected boolean xVisibleOnAll = false;
 	protected boolean vVisibleOnAll = false;
 	protected boolean aVisibleOnAll = false;
@@ -1693,7 +1694,8 @@ public class PointMass extends TTrack {
 	public void setVVisible(TrackerPanel trackerPanel, boolean visible) {
 		if (visible == isVVisible(trackerPanel))
 			return;
-		panelVVisMap.put(trackerPanel.getID(), Boolean.valueOf(visible));
+		vvis = visible;
+		//panelVVisMap.put(trackerPanel.getID(), Boolean.valueOf(visible));
 //    if (visible) updateDerivatives();
 		if (!visible) {
 			Step step = trackerPanel.getSelectedStep();
@@ -1713,13 +1715,15 @@ public class PointMass extends TTrack {
 	public boolean isVVisible(TrackerPanel trackerPanel) {
 		if (vVisibleOnAll)
 			return true;
-		trackerPanel = trackerPanel.getMainPanel();
-		Boolean vis = panelVVisMap.get(trackerPanel.getID());
-		if (vis == null) {
-			vis = Boolean.valueOf(false); // not visible by default
-			panelVVisMap.put(trackerPanel.getID(), vis);
-		}
-		return vis.booleanValue();
+		return vvis;
+//		trackerPanel = trackerPanel.getMainPanel();
+//		
+//		Boolean vis = panelVVisMap.get(trackerPanel.getID());
+//		if (vis == null) {
+//			vis = Boolean.valueOf(false); // not visible by default
+//			panelVVisMap.put(trackerPanel.getID(), vis);
+//		}
+//		return vis.booleanValue();
 	}
 
 	/**
@@ -1766,10 +1770,11 @@ public class PointMass extends TTrack {
 	 * @param visible      <code>true</code> to show positions
 	 */
 	public void setPositionVisible(TrackerPanel trackerPanel, boolean visible) {
-		Boolean vis = panelXVisMap.get(trackerPanel.getID());
-		if (vis != null && vis.booleanValue() == visible)
-			return;
-		panelXVisMap.put(trackerPanel.getID(), Boolean.valueOf(visible));
+		xvis = visible;
+//		Boolean vis = panelXVisMap.get(trackerPanel.getID());
+//		if (vis != null && vis.booleanValue() == visible)
+//			return;
+//		panelXVisMap.put(trackerPanel.getID(), Boolean.valueOf(visible));
 		if (!visible) {
 			Step step = trackerPanel.getSelectedStep();
 			if (step != null && step == getStep(step.getFrameNumber())) {
@@ -1788,13 +1793,14 @@ public class PointMass extends TTrack {
 	public boolean isPositionVisible(TrackerPanel trackerPanel) {
 		if (xVisibleOnAll)
 			return true;
-		trackerPanel = trackerPanel.getMainPanel();
-		Boolean vis = panelXVisMap.get(trackerPanel.getID());
-		if (vis == null) {
-			vis = Boolean.valueOf(true); // positions are visible by default
-			panelXVisMap.put(trackerPanel.getID(), vis);
-		}
-		return vis.booleanValue();
+		return xvis;
+//		trackerPanel = trackerPanel.getMainPanel();
+//		Boolean vis = panelXVisMap.get(trackerPanel.getID());
+//		if (vis == null) {
+//			vis = Boolean.valueOf(true); // positions are visible by default
+//			panelXVisMap.put(trackerPanel.getID(), vis);
+//		}
+//		return vis.booleanValue();
 	}
 
 	/**
@@ -1846,8 +1852,9 @@ public class PointMass extends TTrack {
 	public void setAVisible(TrackerPanel trackerPanel, boolean visible) {
 		if (visible == isAVisible(trackerPanel))
 			return;
-		panelAVisMap.put(trackerPanel.getID(), Boolean.valueOf(visible));
-//    if (visible) updateDerivatives();
+		avis = visible;
+//		panelAVisMap.put(trackerPanel.getID(), Boolean.valueOf(visible));
+		//if (visible) updateDerivatives();
 		if (!visible) {
 			Step step = trackerPanel.getSelectedStep();
 			if (step != null && isAcceleration(step)) {
@@ -1866,13 +1873,14 @@ public class PointMass extends TTrack {
 	public boolean isAVisible(TrackerPanel trackerPanel) {
 		if (aVisibleOnAll)
 			return true;
-		trackerPanel = trackerPanel.getMainPanel();
-		Boolean vis = panelAVisMap.get(trackerPanel.getID());
-		if (vis == null) {
-			vis = Boolean.valueOf(false); // not visible by default
-			panelAVisMap.put(trackerPanel.getID(), vis);
-		}
-		return vis.booleanValue();
+		return avis;
+//		trackerPanel = trackerPanel.getMainPanel();
+//		Boolean vis = panelAVisMap.get(trackerPanel.getID());
+//		if (vis == null) {
+//			vis = Boolean.valueOf(false); // not visible by default
+//			panelAVisMap.put(trackerPanel.getID(), vis);
+//		}
+//		return vis.booleanValue();
 	}
 
 	/**
