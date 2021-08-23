@@ -4927,7 +4927,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			showTrackControlDelayed = false;
 			TrackControl.getControl(this).setVisible(true);
 		}
-		TToolBar tbar = getToolBar(false);
+		TToolBar tbar = getToolBar(true);
 		if (tbar != null) {
 			final JButton button = tbar.notesButton;
 			TTrack track = getSelectedTrack();

@@ -549,7 +549,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 
 			getToolBar(panelID, true);
 			getMenuBar(panelID, true);
-			getTrackBar(panelID, true);
+			//getTrackBar(panelID, true);
 		}
 
 		// from here on trackerPanel's top level container is this TFrame,
@@ -808,9 +808,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			return null;
 		}, () -> {
 			// when all approved remove tabs synchronously
-			for (int i = 0; i < panels.size(); i++) {
-				removeTabSynchronously(getTrackerPanelForID(panels.get(i)));
-//					new TabRemover(panels.get(i)).executeSynchronously();
+			while (panels.size() > 0) {
+				removeTabSynchronously(getTrackerPanelForID(panels.remove(0)));
 			}
 			Disposable.dump();
 			checkMemTest();

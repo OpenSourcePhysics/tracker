@@ -98,7 +98,7 @@ public class MainTView extends JPanel implements TView {
 		SwingUtilities.replaceUIActionMap(scrollPane, null);
 		add(scrollPane, BorderLayout.CENTER);
 		// add trackbar north		
-		TTrackBar tbar = panel.getTrackBar(false);
+		TTrackBar tbar = panel.getTrackBar(true);
 		if (tbar != null)
 			add(tbar, BorderLayout.NORTH);
 
