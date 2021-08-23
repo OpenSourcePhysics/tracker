@@ -105,6 +105,15 @@ public abstract class Step implements Cloneable {
 	}
 
 	/**
+	 * Gets the TFrame.
+	 *
+	 * @return the frame
+	 */
+	public TFrame getTFrame() {
+		return getTrack().tframe;
+	}
+
+	/**
 	 * Sets the footprint.
 	 *
 	 * @param footprint the footprint
@@ -211,7 +220,7 @@ public abstract class Step implements Cloneable {
 			return;
 		Iterator<Integer> it = panelMarks.keySet().iterator();
 		while (it.hasNext())
-			erase(getTrack().panel(it.next()));
+			erase(getTFrame().getTrackerPanelForID(it.next()));
 	}
 
 	/**
@@ -222,7 +231,7 @@ public abstract class Step implements Cloneable {
 			return;
 		Iterator<Integer> it = panelMarks.keySet().iterator();
 		while (it.hasNext())
-			remark(getTrack().panel(it.next()));
+			remark(getTFrame().getTrackerPanelForID(it.next()));
 	}
 
 	/**
@@ -231,7 +240,7 @@ public abstract class Step implements Cloneable {
 	public void repaint() {
 		Iterator<Integer> it = panelMarks.keySet().iterator();
 		while (it.hasNext())
-			repaint(getTrack().panel(it.next()));
+			repaint(getTFrame().getTrackerPanelForID(it.next()));
 	}
 
 	/**
