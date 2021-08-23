@@ -82,6 +82,7 @@ public class WorldTView extends TrackerPanel implements TView {
 	public WorldTView(TrackerPanel panel) {
 		super(panel.frame);
 		andWorld.clear();
+		System.out.println("WorldTView init " + this + " " + panel);
 		panel.andWorld.add(panelID);
 		mainPanelID = panel.getID();
 		init();

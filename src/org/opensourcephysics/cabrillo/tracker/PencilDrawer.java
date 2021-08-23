@@ -96,10 +96,12 @@ public class PencilDrawer {
 	 * @return the PencilDrawer
 	 */
 	protected static PencilDrawer getDrawer(TrackerPanel panel) {
-		PencilDrawer drawer = panelDrawers.get(panel.getID());
+		Integer panelID = panel.getID();
+		PencilDrawer drawer = panelDrawers.get(panelID);
+		System.out.println("PencilDrawer " + panel + " " + drawer);
 		if (drawer == null) {
 			drawer = new PencilDrawer(panel);
-			panelDrawers.put(drawer.panelID, drawer);
+			panelDrawers.put(panelID, drawer);
 		}
 		return drawer;
 	}
@@ -140,6 +142,7 @@ public class PencilDrawer {
 	 * @param panel the TrackerPanel
 	 */
 	protected static void dispose(TrackerPanel panel) {
+		System.out.println("PencilDrawer.dispose " + panel);
 		PencilDrawer drawer = panelDrawers.get(panel.getID());
 		if (drawer != null) {
 			drawer.dispose();
@@ -160,14 +163,16 @@ public class PencilDrawer {
 	 * Sets the visibility of all scenes.
 	 * 
 	 * @param vis true to show all scenes
+	 * @param andRepaint TODO
 	 */
-	public void setDrawingsVisible(boolean vis) {
+	public void setDrawingsVisible(boolean vis, boolean andRepaint) {
 		drawingsVisible = vis;
 		for (PencilScene scene : scenes) {
 			scene.setVisible(vis);
 		}
-		TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
-		TFrame.repaintT(trackerPanel);
+		if (andRepaint) {
+			TFrame.repaintT(panel());
+		}
 	}
 
 	/**
@@ -185,8 +190,7 @@ public class PencilDrawer {
 		drawing.setStroke(scene.isHeavy() ? heavyStroke : lightStroke);
 		drawing.setStyle(style);
 		if (style == PencilDrawing.STYLE_ARROW) {
-			TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
-			int w = trackerPanel.getMat().mat.width;
+			int w = panel().getMat().mat.width;
 			drawing.setArrowheadLength(w / 30);
 		}
 		scene.getDrawings().add(drawing);
@@ -206,9 +210,12 @@ public class PencilDrawer {
 			scene = addNewScene();
 		}
 		scene.getDrawings().add(drawing);
-		TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
-		trackerPanel.changed = true;
+		panel().changed = true;
 		return drawing;
+	}
+
+	private TrackerPanel panel() {
+		return frame.getTrackerPanelForID(panelID);
 	}
 
 	/**
@@ -226,15 +233,18 @@ public class PencilDrawer {
 
 	/**
 	 * Removes all scenes.
+	 * @param andRepaint TODO
 	 */
-	protected void clearScenes() {
-		TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
+	protected void clearScenes(boolean andRepaint) {
+		TrackerPanel trackerPanel = panel();
 		for (PencilScene scene : scenes) {
 			trackerPanel.removeDrawable(scene);
 		}
 		scenes.clear();
-		trackerPanel.changed = true;
-		TFrame.repaintT(trackerPanel);
+		if (andRepaint) {
+			trackerPanel.changed = true;
+			TFrame.repaintT(trackerPanel);
+		}
 	}
 
 	/**
@@ -245,7 +255,7 @@ public class PencilDrawer {
 	protected void removeScene(PencilScene scene) {
 		if (scene == null)
 			return;
-		TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
+		TrackerPanel trackerPanel = panel();
 		trackerPanel.removeDrawable(scene);
 		scenes.remove(scene);
 		trackerPanel.changed = true;
@@ -260,7 +270,7 @@ public class PencilDrawer {
 	protected void addScene(PencilScene scene) {
 		if (scene == null)
 			return;
-		TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
+		TrackerPanel trackerPanel = panel();
 		trackerPanel.addDrawable(scene);
 		scenes.add(scene);
 		Collections.sort(scenes);
@@ -275,7 +285,7 @@ public class PencilDrawer {
 	 */
 	protected PencilScene addNewScene() {
 		PencilScene scene = new PencilScene();
-		TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
+		TrackerPanel trackerPanel = panel();
 		scene.setStartFrame(trackerPanel.getFrameNumber());
 		trackerPanel.addDrawable(scene);
 		scenes.add(scene);
@@ -302,11 +312,11 @@ public class PencilDrawer {
 		if (pencilScenes == null || pencilScenes == scenes)
 			return;
 		// remove existing scenes
-		clearScenes();
+		clearScenes(true);
 		// add new scenes
 		scenes = new ArrayList<PencilScene>(pencilScenes);
 		Collections.sort(scenes);
-		TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
+		TrackerPanel trackerPanel = panel();
 		for (PencilScene scene : scenes) {
 			trackerPanel.addDrawable(scene);
 		}
@@ -388,7 +398,7 @@ public class PencilDrawer {
 	protected void handleMouseAction(MouseEvent e) {
 
 		// PencilCaption actions handled by PencilCaption
-		TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
+		TrackerPanel trackerPanel = panel();
 		Interactive ia = trackerPanel.getInteractive();
 		if (ia instanceof PencilCaption) {
 			if (((PencilCaption) ia).handleMouseAction(e, trackerPanel)) {
@@ -449,7 +459,7 @@ public class PencilDrawer {
 	 */
 	protected void dispose() {
 		System.out.println("PencilDrawer.dispose panelID=" + panelID);
-		clearScenes();
+		clearScenes(false);
 		if (drawingControl != null)
 			drawingControl.dispose();
 		panelID = null;

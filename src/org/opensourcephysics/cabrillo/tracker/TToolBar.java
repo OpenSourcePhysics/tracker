@@ -2023,7 +2023,7 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 					panel().setSelectedPoint(null);
 					panel().selectedSteps.clear();
 					PencilDrawer drawer = PencilDrawer.getDrawer(panel());
-					drawer.setDrawingsVisible(drawingVisibleCheckbox.isSelected());
+					drawer.setDrawingsVisible(drawingVisibleCheckbox.isSelected(), true);
 					TFrame.repaintT(panel());
 			});
 			popup = new JPopupMenu();
@@ -2056,7 +2056,7 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 					PencilScene scene = drawer.getSceneAtFrame(panel().getFrameNumber());
 					drawer.getDrawingControl().setSelectedScene(scene);
 				}
-				drawer.setDrawingsVisible(true);
+				drawer.setDrawingsVisible(true, true);
 			}
 		}
 

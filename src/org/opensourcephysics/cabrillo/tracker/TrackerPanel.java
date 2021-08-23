@@ -3386,10 +3386,6 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		}
 
 
-		if (frame != null)
-			frame.disposeOf(this);
-		//menuBar.dispose(this);
-		frame = null;
 		coordinateStrBuilder = null;
 		if (selectedSteps != null)
 			selectedSteps.dispose();
@@ -3491,6 +3487,10 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		frame = null;
 		renderedImage = null;
 		matImage = null;
+		if (frame != null)
+			frame.disposeOf(this);
+		//menuBar.dispose(this);
+		frame = null;
 
 		// OSPLog.debug(Performance.timeCheckStr("TrackerPanel.dispose number, thumbnail
 		// dialogs", Performance.TIME_MARK));
@@ -3909,7 +3909,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 					ArrayList<PencilScene> scenes = (ArrayList<PencilScene>) control.getObject("drawing_scenes"); //$NON-NLS-1$
 					if (scenes != null) {
 						PencilDrawer drawer = PencilDrawer.getDrawer(trackerPanel);
-						drawer.setDrawingsVisible(control.getBoolean("drawings_visible")); //$NON-NLS-1$
+						drawer.setDrawingsVisible(control.getBoolean("drawings_visible"), false); //$NON-NLS-1$
 						// replace previous scenes
 						drawer.setScenes(scenes);
 					}
@@ -3917,9 +3917,9 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 					ArrayList<PencilDrawing> drawings = (ArrayList<PencilDrawing>) control.getObject("drawings"); //$NON-NLS-1$
 					if (drawings != null) {
 						PencilDrawer drawer = PencilDrawer.getDrawer(trackerPanel);
-						drawer.setDrawingsVisible(control.getBoolean("drawings_visible")); //$NON-NLS-1$
+						drawer.setDrawingsVisible(control.getBoolean("drawings_visible"), false); //$NON-NLS-1$
 						// clear previous scenes and add drawings to new one
-						drawer.clearScenes();
+						drawer.clearScenes(false);
 						for (int i = 0, n = drawings.size(); i < n; i++) {
 							drawer.addDrawingtoSelectedScene(drawings.get(i));
 						}
@@ -5049,7 +5049,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 
 	@Override
 	public void finalize() {
-		System.out.println("-------HOORAY!!!!!!!----------------");
+		System.out.println("-------HOORAY!!!!!!!----finalized!------------ " + this);
 		OSPLog.finalized(this);
 	}
 

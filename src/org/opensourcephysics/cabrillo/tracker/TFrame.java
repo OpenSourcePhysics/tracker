@@ -2443,7 +2443,6 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	}
 
 	protected void doTabStateChanged() {
-		Integer oldPanelID = prevPanelID;
 		TrackerPanel oldPanel = getTrackerPanelForID(prevPanelID);
 
 //		// hide exportZipDialog
@@ -2463,7 +2462,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			if (frame != null && frame != this)
 				frame.setVisible(false);
 		}
-		if (oldPanelID != null) {
+		if (oldPanel != null) {
 			if (oldPanel.dataBuilder != null) {
 				boolean vis = oldPanel.dataToolVisible;
 				oldPanel.dataBuilder.setVisible(false);
@@ -2948,9 +2947,11 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		}
 		setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
 		TrackerIO.openURL(url, this, () -> {
+			// MEMORY LEAK - selected may have been destroyed!
 			setCursor(Cursor.getDefaultCursor());
-			if (selected != null) {
-				selected.setMouseCursor(Cursor.getDefaultCursor());
+			TrackerPanel panel = getSelectedPanel();
+			if (panel != null) {
+				panel.setMouseCursor(Cursor.getDefaultCursor());
 			}
 		});
 	}

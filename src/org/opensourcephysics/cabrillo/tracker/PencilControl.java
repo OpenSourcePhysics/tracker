@@ -272,7 +272,7 @@ public class PencilControl extends JDialog {
 			if (PencilDrawer.hasDrawings(trackerPanel)) {
 				postClearEdit(drawer.scenes);
 			}
-			drawer.clearScenes();
+			drawer.clearScenes(true);
 			setSelectedScene(null);
 			refreshGUI();
 		});
@@ -983,7 +983,7 @@ public class PencilControl extends JDialog {
 		@Override
 		public void redo() throws CannotUndoException {
 			super.redo();
-			drawer.clearScenes();
+			drawer.clearScenes(true);
 			setSelectedScene(null);
 			refreshGUI();
 		}
