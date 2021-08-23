@@ -24,18 +24,28 @@
  */
 package org.opensourcephysics.cabrillo.tracker;
 
-import java.util.*;
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Paint;
+import java.awt.Point;
+import java.awt.Shape;
 import java.awt.event.InputEvent;
-import java.awt.geom.*;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Point2D;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.swing.SwingUtilities;
 
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.controls.XMLControlElement;
-import org.opensourcephysics.display.*;
-import org.opensourcephysics.media.core.*;
+import org.opensourcephysics.display.DrawingPanel;
+import org.opensourcephysics.display.Interactive;
+import org.opensourcephysics.media.core.TPoint;
+import org.opensourcephysics.media.core.VideoPanel;
 import org.opensourcephysics.tools.FontSizer;
 
 /**
@@ -58,9 +68,9 @@ public class CircleFitterStep extends Step {
 	protected CenterPoint center;
 	protected TPoint edge;
 	protected double radius;
-	protected Map<Integer, Shape> circleHitShapes = new HashMap<Integer, Shape>();
-	protected Map<Integer, Shape> centerHitShapes = new HashMap<Integer, Shape>();
-	protected ArrayList<Map<Integer, Shape>> pointHitShapes = new ArrayList<Map<Integer, Shape>>();
+	protected Map<Integer, Shape> panelCircleHitShapes = new HashMap<Integer, Shape>();
+	protected Map<Integer, Shape> panelCenterHitShapes = new HashMap<Integer, Shape>();
+	protected ArrayList<Map<Integer, Shape>> panelPointHitShapes = new ArrayList<Map<Integer, Shape>>();
 	protected MultiShape selectedShape;
 
 	/**
@@ -260,18 +270,18 @@ public class CircleFitterStep extends Step {
 		Shape hitShape;
 		Interactive hit = null;
 
-		hitShape = circleHitShapes.get(trackerPanel.getID());
+		hitShape = panelCircleHitShapes.get(trackerPanel.getID());
 		if (isValidCircle() && hitShape != null && hitShape.intersects(hitRect)) {
 			hit = edge;
 		}
 
-		hitShape = centerHitShapes.get(trackerPanel.getID());
+		hitShape = panelCenterHitShapes.get(trackerPanel.getID());
 		if (isValidCircle() && hitShape != null && hitShape.intersects(hitRect)) {
 			hit = center;
 		}
 
-		for (int i = 0; i < pointHitShapes.size(); i++) {
-			Map<Integer, Shape> map = pointHitShapes.get(i);
+		for (int i = 0; i < panelPointHitShapes.size(); i++) {
+			Map<Integer, Shape> map = panelPointHitShapes.get(i);
 			if (map != null) {
 				hitShape = map.get(trackerPanel.getID());
 				if (hitShape != null && hitShape.intersects(hitRect)) {
@@ -300,7 +310,7 @@ public class CircleFitterStep extends Step {
 
 	@Override
 	protected Mark getMark(TrackerPanel trackerPanel) {
-		Mark mark = marks.get(trackerPanel.getID());
+		Mark mark = panelMarks.get(trackerPanel.getID());
 		TPoint selection = null;
 		if (mark == null) {
 			selection = trackerPanel.getSelectedPoint();
@@ -351,20 +361,20 @@ public class CircleFitterStep extends Step {
 					}
 				};
 			}
-			marks.put(trackerPanel.getID(), mark);
+			panelMarks.put(trackerPanel.getID(), mark);
 
 			// get new hit shapes
 			Shape[] shapes = footprint.getHitShapes();
-			centerHitShapes.put(trackerPanel.getID(), shapes[0]);
-			if (shapes.length - 1 < pointHitShapes.size()) {
-				pointHitShapes.clear();
+			panelCenterHitShapes.put(trackerPanel.getID(), shapes[0]);
+			if (shapes.length - 1 < panelPointHitShapes.size()) {
+				panelPointHitShapes.clear();
 			}
 			for (int i = 1; i < shapes.length; i++) {
-				if (pointHitShapes.size() <= i) {
+				if (panelPointHitShapes.size() <= i) {
 					Map<Integer, Shape> newMap = new HashMap<Integer, Shape>();
-					pointHitShapes.add(newMap);
+					panelPointHitShapes.add(newMap);
 				}
-				Map<Integer, Shape> map = pointHitShapes.get(i - 1);
+				Map<Integer, Shape> map = panelPointHitShapes.get(i - 1);
 				map.put(trackerPanel.getID(), shapes[i]);
 			}
 
@@ -609,8 +619,8 @@ public class CircleFitterStep extends Step {
 		if (step != null) {
 			step.points[0] = step.center = step.new CenterPoint(center.x, center.y);
 			step.points[1] = step.edge = new TPoint(edge.getX(), edge.getY());
-			step.circleHitShapes = new HashMap<Integer, Shape>();
-			step.pointHitShapes = new ArrayList<Map<Integer, Shape>>();
+			step.panelCircleHitShapes = new HashMap<Integer, Shape>();
+			step.panelPointHitShapes = new ArrayList<Map<Integer, Shape>>();
 			step.dataPoints = new DataPoint[2][0];
 			step.dataPoints[0] = new DataPoint[dataPoints[0].length];
 			for (int i = 0; i < dataPoints[0].length; i++) {
@@ -671,12 +681,12 @@ public class CircleFitterStep extends Step {
 
 	@Override
 	protected void dispose() {
-		centerHitShapes.clear();
-		circleHitShapes.clear();
-		for (Map<Integer, Shape> shapes : pointHitShapes) {
+		panelCenterHitShapes.clear();
+		panelCircleHitShapes.clear();
+		for (Map<Integer, Shape> shapes : panelPointHitShapes) {
 			shapes.clear();
 		}
-		pointHitShapes.clear();
+		panelPointHitShapes.clear();
 		super.dispose();
 	}
 

@@ -1248,7 +1248,7 @@ public class TapeMeasure extends InputTrack {
 
 	@Override
 	protected Rectangle getLayoutBounds(Step step) {
-		return ((TapeStep) step).layoutBounds.get(tp.getID());
+		return ((TapeStep) step).panelLayoutBounds.get(tp.getID());
 	}
 
 	@Override

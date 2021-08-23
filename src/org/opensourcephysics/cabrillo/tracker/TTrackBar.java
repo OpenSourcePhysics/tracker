@@ -654,8 +654,8 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 			break;
 		case TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR:
 			// tracks have been cleared 
-			for (Integer n : TTrack.activeTracks.keySet()) {
-				TTrack.activeTracks.get(n).removeListenerNCF(this);
+			for (Integer n : TTrack.panelActiveTracks.keySet()) {
+				TTrack.panelActiveTracks.get(n).removeListenerNCF(this);
 			}
 			if (trackButton != null)
 				trackButton.setTrack(null);
@@ -671,8 +671,8 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 	public void dispose() {
 		removeAll();
 		panel().removeListeners(panelProps, this);
-		for (Integer n : TTrack.activeTracks.keySet()) {
-			TTrack.activeTracks.get(n).removeListenerNCF(this);
+		for (Integer n : TTrack.panelActiveTracks.keySet()) {
+			TTrack.panelActiveTracks.get(n).removeListenerNCF(this);
 		}
 		if (trackButton != null)
 			trackButton.setTrack(null);

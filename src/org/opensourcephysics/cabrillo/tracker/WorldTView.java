@@ -226,8 +226,8 @@ public class WorldTView extends TrackerPanel implements TView {
 		if (mainPanelID != null) {
 			getMainPanel().removeListeners(panelProps, this);
 			// remove this listener from tracks
-			for (Integer n : TTrack.activeTracks.keySet()) {
-				TTrack.activeTracks.get(n).removePropertyChangeListener(TTrack.PROPERTY_TTRACK_COLOR, this); // $NON-NLS-1$
+			for (Integer n : TTrack.panelActiveTracks.keySet()) {
+				TTrack.panelActiveTracks.get(n).removePropertyChangeListener(TTrack.PROPERTY_TTRACK_COLOR, this); // $NON-NLS-1$
 			}
 		}
 	}
@@ -355,8 +355,8 @@ public class WorldTView extends TrackerPanel implements TView {
 			refresh();
 			break;
 		case TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR:
-			for (Integer n : TTrack.activeTracks.keySet()) {
-				TTrack track = TTrack.activeTracks.get(n);
+			for (Integer n : TTrack.panelActiveTracks.keySet()) {
+				TTrack track = TTrack.panelActiveTracks.get(n);
 				track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_COLOR, this); // $NON-NLS-1$
 				track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_VISIBLE, this); // $NON-NLS-1$
 			}

@@ -332,7 +332,7 @@ public abstract class InputTrack extends TTrack {
 			TapeStep step = (TapeStep) getStep(n);
 			if (step == null)
 				return;
-			Rectangle bounds = step.layoutBounds.get(tp.getID());
+			Rectangle bounds = step.panelLayoutBounds.get(tp.getID());
 			if (bounds != null && bounds.contains(pt)) {
 				// readout was clicked
 				if (isFullyAttached()) {
@@ -346,7 +346,7 @@ public abstract class InputTrack extends TTrack {
 			ProtractorStep step = (ProtractorStep) getStep(n);
 			if (step == null)
 				return;
-			Rectangle bounds = step.layoutBounds.get(tp.getID());
+			Rectangle bounds = step.panelLayoutBounds.get(tp.getID());
 			if (bounds != null && bounds.contains(pt)) {
 				// readout was clicked
 				if (isFullyAttached()) {

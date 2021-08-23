@@ -73,7 +73,7 @@ public class DynamicSystem extends DynamicParticlePolar {
 	protected StepArray realSteps;
 	protected StepArray noSteps;
 	protected int systemInspectorX = Integer.MIN_VALUE, systemInspectorY;
-	protected TreeMap<Integer, double[]> relativeStates = new TreeMap<Integer, double[]>();
+	protected TreeMap<Integer, double[]> frameRelativeStates = new TreeMap<Integer, double[]>();
 	protected boolean refreshing = false;
 
 	protected final static String[] dataVariables = new String[] {
@@ -669,7 +669,7 @@ public class DynamicSystem extends DynamicParticlePolar {
 				validData[11][pt] = Math.atan2(y, x);
 			}
 			double[] relState;
-			if (particles.length == 2 && (relState = relativeStates.get(i)) != null) {
+			if (particles.length == 2 && (relState = frameRelativeStates.get(i)) != null) {
 				validData[21][pt] = relState[0]; // r_rel
 				validData[22][pt] = relState[2]; // theta_rel
 				validData[23][pt] = relState[1]; // vr_rel
@@ -971,7 +971,7 @@ public class DynamicSystem extends DynamicParticlePolar {
 		double[] toSave = new double[polarState.length];
 		System.arraycopy(polarState, 0, toSave, 0, polarState.length);
 		int frameNum = tp.getFrameNumber();
-		relativeStates.put(frameNum, toSave);
+		frameRelativeStates.put(frameNum, toSave);
 		return polarState;
 	}
 

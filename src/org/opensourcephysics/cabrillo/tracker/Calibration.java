@@ -263,7 +263,7 @@ public class Calibration extends TTrack {
 				return step.getPoints()[index];
 			}
 			// both points exist, so move target point
-			Mark mark = step.marks.get(tp.getID());
+			Mark mark = step.panelMarks.get(tp.getID());
 			if (mark == null) {
 				double worldX = index == 0 ? step.worldX0 : step.worldX1;
 				double worldY = index == 0 ? step.worldY0 : step.worldY1;

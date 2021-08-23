@@ -319,8 +319,8 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 			return;
 		getPanel().removeListeners(panelProps, this);		
 		// remove this listener from tracks
-		for (Integer n : TTrack.activeTracks.keySet()) {
-			TTrack.activeTracks.get(n).removeListenerNCF(this);
+		for (Integer n : TTrack.panelActiveTracks.keySet()) {
+			TTrack.panelActiveTracks.get(n).removeListenerNCF(this);
 		}
 	}
 
@@ -527,8 +527,8 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 				setSelectedTrack(track);
 			break;
 		case TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR: // tracks have been cleared
-			for (Integer n : TTrack.activeTracks.keySet()) {
-				track = TTrack.activeTracks.get(n);
+			for (Integer n : TTrack.panelActiveTracks.keySet()) {
+				track = TTrack.panelActiveTracks.get(n);
 				track.removeListenerNCF(this);
 				if ((view = trackViews.get(track)) != null) {
 					view.dispose();

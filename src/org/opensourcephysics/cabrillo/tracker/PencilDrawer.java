@@ -53,7 +53,7 @@ public class PencilDrawer {
 	static Cursor pencilCursor;
 	static BasicStroke lightStroke, heavyStroke;
 
-	private static HashMap<Integer, PencilDrawer> drawers = new HashMap<>();
+	private static HashMap<Integer, PencilDrawer> panelDrawers = new HashMap<>();
 
 	static {
 		lightStroke = new BasicStroke(2);
@@ -96,10 +96,10 @@ public class PencilDrawer {
 	 * @return the PencilDrawer
 	 */
 	protected static PencilDrawer getDrawer(TrackerPanel panel) {
-		PencilDrawer drawer = drawers.get(panel.getID());
+		PencilDrawer drawer = panelDrawers.get(panel.getID());
 		if (drawer == null) {
 			drawer = new PencilDrawer(panel);
-			drawers.put(drawer.panelID, drawer);
+			panelDrawers.put(drawer.panelID, drawer);
 		}
 		return drawer;
 	}
@@ -122,7 +122,7 @@ public class PencilDrawer {
 	 * @return true if drawings exist
 	 */
 	public static boolean hasDrawings(TrackerPanel panel) {
-		PencilDrawer drawer = drawers.get(panel.getID());
+		PencilDrawer drawer = panelDrawers.get(panel.getID());
 		if (drawer == null || drawer.scenes.isEmpty())
 			return false;
 		for (PencilScene scene : drawer.scenes) {
@@ -140,10 +140,10 @@ public class PencilDrawer {
 	 * @param panel the TrackerPanel
 	 */
 	protected static void dispose(TrackerPanel panel) {
-		PencilDrawer drawer = drawers.get(panel.getID());
+		PencilDrawer drawer = panelDrawers.get(panel.getID());
 		if (drawer != null) {
 			drawer.dispose();
-			drawers.remove(panel.getID());
+			panelDrawers.remove(panel.getID());
 		}
 	}
 

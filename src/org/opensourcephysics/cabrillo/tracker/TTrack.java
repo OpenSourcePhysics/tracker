@@ -362,7 +362,7 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 	protected static boolean skippedStepWarningOn = true;
 	protected static NameDialog nameDialog;
 	protected static int nextID = 1;
-	protected static HashMap<Integer, TTrack> activeTracks = new HashMap<Integer, TTrack>();
+	protected static HashMap<Integer, TTrack> panelActiveTracks = new HashMap<Integer, TTrack>();
 	// instance fields
 	protected String name = TrackerRes.getString("TTrack.Name.None"); //$NON-NLS-1$
 	protected String description = ""; //$NON-NLS-1$
@@ -379,7 +379,11 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 	protected StepArray steps = new StepArray();
 	protected HashMap<String, Object> properties = new HashMap<String, Object>();
 	protected DatasetManager datasetManager;
-	protected HashMap<Integer, double[]> worldBounds = new HashMap<Integer, double[]>();
+//	protected HashMap<Integer, double[]> panelWorldBounds;
+//	
+//	private HashMap<Integer, double[]> getPanelWorldBounds() {
+//		return (panelWorldBounds == null ? (panelWorldBounds = new HashMap<Integer, double[]>()) : panelWorldBounds);
+//	}
 	protected final Point2D.Double[] points = new Point2D.Double[] { new Point2D.Double() };
 	protected ArrayList<Component> toolbarTrackComponents = new ArrayList<Component>();
 	protected ArrayList<Component> toolbarPointComponents = new ArrayList<Component>();
@@ -2792,53 +2796,62 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 		return getY();
 	}
 
-	/**
-	 * Gets the minimum world x needed to draw this object on the specified
-	 * TrackerPanel.
-	 *
-	 * @param panel the TrackerPanel drawing this track
-	 * @return the minimum world x
-	 */
-	public double getXMin(TrackerPanel panel) {
-		double[] bounds = getWorldBounds(panel);
-		return bounds[2];
-	}
-
-	/**
-	 * Gets the maximum world x needed to draw this object on the specified
-	 * TrackerPanel.
-	 *
-	 * @param panel the TrackerPanel drawing this track
-	 * @return the maximum x of any step's footprint
-	 */
-	public double getXMax(TrackerPanel panel) {
-		double[] bounds = getWorldBounds(panel);
-		return bounds[0];
-	}
-
-	/**
-	 * Gets the minimum world y needed to draw this object on the specified
-	 * TrackerPanel.
-	 *
-	 * @param panel the TrackerPanel drawing this track
-	 * @return the minimum y of any step's footprint
-	 */
-	public double getYMin(TrackerPanel panel) {
-		double[] bounds = getWorldBounds(panel);
-		return bounds[3];
-	}
-
-	/**
-	 * Gets the maximum world y needed to draw this object on the specified
-	 * TrackerPanel.
-	 *
-	 * @param panel the TrackerPanel drawing this track
-	 * @return the maximum y of any step's footprint
-	 */
-	public double getYMax(TrackerPanel panel) {
-		double[] bounds = getWorldBounds(panel);
-		return bounds[1];
-	}
+//	/**
+//	 * Never called.
+//	 * 
+//	 * Gets the minimum world x needed to draw this object on the specified
+//	 * TrackerPanel.
+//	 *
+//	 * @param panel the TrackerPanel drawing this track
+//	 * @return the minimum world x
+//	 */
+//	public double getXMin(TrackerPanel panel) {
+//		double[] bounds = getWorldBounds(panel);
+//		return bounds[2];
+//	}
+//
+//	/**
+//	 * 
+//	 * Never called.
+//	 * 
+//	 * Gets the maximum world x needed to draw this object on the specified
+//	 * TrackerPanel.
+//	 *
+//	 * @param panel the TrackerPanel drawing this track
+//	 * @return the maximum x of any step's footprint
+//	 */
+//	public double getXMax(TrackerPanel panel) {
+//		double[] bounds = getWorldBounds(panel);
+//		return bounds[0];
+//	}
+//
+//	/**
+//	 * Never called.
+//	 * 
+//	 * Gets the minimum world y needed to draw this object on the specified
+//	 * TrackerPanel.
+//	 *
+//	 * @param panel the TrackerPanel drawing this track
+//	 * @return the minimum y of any step's footprint
+//	 */
+//	public double getYMin(TrackerPanel panel) {
+//		double[] bounds = getWorldBounds(panel);
+//		return bounds[3];
+//	}
+//
+//	/**
+//	 * Never called.
+//	 * 
+//	 * Gets the maximum world y needed to draw this object on the specified
+//	 * TrackerPanel.
+//	 *
+//	 * @param panel the TrackerPanel drawing this track
+//	 * @return the maximum y of any step's footprint
+//	 */
+//	public double getYMax(TrackerPanel panel) {
+//		double[] bounds = getWorldBounds(panel);
+//		return bounds[1];
+//	}
 
 	/**
 	 * Sets a user property of the track.
@@ -2895,38 +2908,42 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 
 	// ___________________________ protected methods ____________________________
 
-	/**
-	 * Gets the world bounds of this track on the specified TrackerPanel.
-	 *
-	 * @param panel the TrackerPanel
-	 * @return a double[] containing xMax, yMax, xMin, yMin
-	 */
-	protected double[] getWorldBounds(TrackerPanel panel) {
-		double[] bounds = worldBounds.get(panel.getID());
-		// if (bounds != null) return bounds;
-		// make a rectangle containing the world positions of the TPoints in this track
-		// then convert it into world units
-		bounds = new double[4];
-		Rectangle2D rect = new Rectangle2D.Double();
-		Step[] array = steps.array;
-		for (int n = 0; n < array.length; n++) {
-			if (array[n] != null) {
-				TPoint[] points = array[n].getPoints();
-				for (int i = 0; i < points.length; i++) {
-					if (points[i] == null)
-						continue;
-					rect.add(points[i].getWorldPosition(panel));
-				}
-			}
-		}
-		// increase bounds to make room for footprint shapes
-		bounds[0] = rect.getX() + 1.05 * rect.getWidth(); // xMax
-		bounds[1] = rect.getY() + 1.05 * rect.getHeight(); // yMax
-		bounds[2] = rect.getX() - 0.05 * rect.getWidth(); // xMin
-		bounds[3] = rect.getY() - 0.05 * rect.getHeight(); // yMin
-		worldBounds.put(panel.getID(), bounds);
-		return bounds;
-	}
+//	/**
+//	 * Gets the world bounds of this track on the specified TrackerPanel.
+//	 * 
+//	 * Never used?
+//	 *
+//	 * @param panel the TrackerPanel
+//	 * @return a double[] containing xMax, yMax, xMin, yMin
+//	 */
+//	protected double[] getWorldBounds(TrackerPanel panel) {
+//		double[] bounds
+//		   // ? = panelWorldBounds.get(panel.getID())
+//		;
+//		// if (bounds != null) return bounds;
+//		// make a rectangle containing the world positions of the TPoints in this track
+//		// then convert it into world units
+//		bounds = new double[4];
+//		Rectangle2D rect = new Rectangle2D.Double();
+//		Step[] array = steps.array;
+//		for (int n = 0; n < array.length; n++) {
+//			if (array[n] != null) {
+//				TPoint[] points = array[n].getPoints();
+//				for (int i = 0; i < points.length; i++) {
+//					if (points[i] == null)
+//						continue;
+//					rect.add(points[i].getWorldPosition(panel));
+//				}
+//			}
+//		}
+//		// increase bounds to make room for footprint shapes
+//		bounds[0] = rect.getX() + 1.05 * rect.getWidth(); // xMax
+//		bounds[1] = rect.getY() + 1.05 * rect.getHeight(); // yMax
+//		bounds[2] = rect.getX() - 0.05 * rect.getWidth(); // xMin
+//		bounds[3] = rect.getY() - 0.05 * rect.getHeight(); // yMin
+//		getPanelWorldBounds().put(panel.getID(), bounds);
+//		return bounds;
+//	}
 
 	/**
 	 * Sets the display format for angles.
@@ -2947,7 +2964,8 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 	@Override
 	public void dispose() {
 		properties.clear();
-		worldBounds.clear();
+//		if (panelWorldBounds != null)
+//			panelWorldBounds.clear();
 		datasetManager = null;
 		if (attachments != null) {
 			for (int i = 0; i < attachments.length; i++) {
@@ -3681,7 +3699,7 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 	}
 
 	protected static TTrack getTrack(int ID) {
-		return activeTracks.get(ID);
+		return panelActiveTracks.get(ID);
 	}
 
 	public void invalidateData(Object newValue) {

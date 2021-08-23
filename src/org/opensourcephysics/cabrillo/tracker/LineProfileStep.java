@@ -48,9 +48,9 @@ public class LineProfileStep extends Step {
 	protected TPoint lineEnd1;
 	protected Handle handle;
 	protected boolean endsEnabled = true;
-	protected Map<Integer, Shape> end0Shapes = new HashMap<Integer, Shape>();
-	protected Map<Integer, Shape> end1Shapes = new HashMap<Integer, Shape>();
-	protected Map<Integer, Shape> shaftShapes = new HashMap<Integer, Shape>();
+	protected Map<Integer, Shape> panelEnd0Shapes = new HashMap<Integer, Shape>();
+	protected Map<Integer, Shape> panelEnd1Shapes = new HashMap<Integer, Shape>();
+	protected Map<Integer, Shape> panelShaftShapes = new HashMap<Integer, Shape>();
 	protected LineProfile line;
 	protected Corner[][] corners; // corners at ends 0,1 of sweep lines 0,1
 	protected GridIntersection[] endX; // end 0,1 x-intersections
@@ -175,14 +175,14 @@ public class LineProfileStep extends Step {
 		setHitRectCenter(xpix, ypix);
 		Shape hitShape;
 		if (endsEnabled) {
-			hitShape = end0Shapes.get(trackerPanel.getID());
+			hitShape = panelEnd0Shapes.get(trackerPanel.getID());
 			if (hitShape != null && hitShape.intersects(hitRect))
 				return lineEnd0;
-			hitShape = end1Shapes.get(trackerPanel.getID());
+			hitShape = panelEnd1Shapes.get(trackerPanel.getID());
 			if (hitShape != null && hitShape.intersects(hitRect))
 				return lineEnd1;
 		}
-		hitShape = shaftShapes.get(trackerPanel.getID());
+		hitShape = panelShaftShapes.get(trackerPanel.getID());
 		if (hitShape != null && hitShape.intersects(hitRect)) {
 			return handle;
 		}
@@ -211,7 +211,7 @@ public class LineProfileStep extends Step {
 	 */
 	@Override
 	protected Mark getMark(TrackerPanel trackerPanel) {
-		Mark mark = marks.get(trackerPanel.getID());
+		Mark mark = panelMarks.get(trackerPanel.getID());
 		TPoint selection = null;
 		if (mark == null) {
 			if (footprint instanceof OutlineFootprint) {
@@ -260,15 +260,15 @@ public class LineProfileStep extends Step {
 					}
 				};
 			}
-			marks.put(trackerPanel.getID(), mark);
+			panelMarks.put(trackerPanel.getID(), mark);
 			// get new hit shapes
 			Shape[] shapes = footprint.getHitShapes();
-			end0Shapes.put(trackerPanel.getID(), shapes[0]);
-			end1Shapes.put(trackerPanel.getID(), shapes[1]);
+			panelEnd0Shapes.put(trackerPanel.getID(), shapes[0]);
+			panelEnd1Shapes.put(trackerPanel.getID(), shapes[1]);
 			if (s != null && pointNumber == 2) {
-				shaftShapes.put(trackerPanel.getID(), s);
+				panelShaftShapes.put(trackerPanel.getID(), s);
 			} else {
-				shaftShapes.put(trackerPanel.getID(), shapes[2]);
+				panelShaftShapes.put(trackerPanel.getID(), shapes[2]);
 			}
 		}
 		return mark;
@@ -286,9 +286,9 @@ public class LineProfileStep extends Step {
 			step.points[0] = step.lineEnd0 = step.new LineEnd(lineEnd0.getX(), lineEnd0.getY());
 			step.points[1] = step.lineEnd1 = step.new LineEnd(lineEnd1.getX(), lineEnd1.getY());
 			step.points[2] = step.handle = step.new Handle(handle.getX(), handle.getY());
-			step.end0Shapes = new HashMap<Integer, Shape>();
-			step.end1Shapes = new HashMap<Integer, Shape>();
-			step.shaftShapes = new HashMap<Integer, Shape>();
+			step.panelEnd0Shapes = new HashMap<Integer, Shape>();
+			step.panelEnd1Shapes = new HashMap<Integer, Shape>();
+			step.panelShaftShapes = new HashMap<Integer, Shape>();
 			step.endX = new GridIntersection[2];
 			step.endY = new GridIntersection[2];
 			for (int i = 0; i < 2; i++) {

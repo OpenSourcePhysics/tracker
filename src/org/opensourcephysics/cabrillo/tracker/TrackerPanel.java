@@ -627,7 +627,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			return;
 		// BH 2020.07.09
 		userTracks = null;
-		TTrack.activeTracks.put(track.getID(), track);
+		TTrack.panelActiveTracks.put(track.getID(), track);
 		// set trackerPanel property if not yet set
 		if (track.tp == null) {
 			track.setTrackerPanel(this);
@@ -837,7 +837,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			setSelectedTrack(null);
 		// notify views and other listeners
 		firePropertyChange(PROPERTY_TRACKERPANEL_TRACK, track, null);
-		TTrack.activeTracks.remove(track.getID());
+		TTrack.panelActiveTracks.remove(track.getID());
 		changed = true;
 	}
 
@@ -1110,7 +1110,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		firePropertyChange(PROPERTY_TRACKERPANEL_CLEAR, null, null);
 		// remove tracks from TTrack.activeTracks
 		for (int it = 0, n = list.size(); it < n; it++) {
-			TTrack.activeTracks.remove(list.get(it).getID());
+			TTrack.panelActiveTracks.remove(list.get(it).getID());
 		}
 		changed = true;
 		//OSPLog.debug("!!! " + Performance.now(t0) + " TrackerPanel.clear");
@@ -3421,8 +3421,8 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		if (video != null) {
 			video.removeListener(this);
 		}
-		for (Integer n : TTrack.activeTracks.keySet()) {
-			TTrack track = TTrack.activeTracks.get(n);
+		for (Integer n : TTrack.panelActiveTracks.keySet()) {
+			TTrack track = TTrack.panelActiveTracks.get(n);
 			removePropertyChangeListener(track);
 			track.removeListener(this);
 		}

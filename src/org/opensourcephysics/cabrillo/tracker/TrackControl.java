@@ -61,7 +61,7 @@ public class TrackControl extends JDialog implements OSPRuntime.Disposable, Prop
 			TTrack.PROPERTY_TTRACK_DATA, };
 
 // static fields
-	protected static Map<Integer, TrackControl> controls = new HashMap<>();
+	protected static Map<Integer, TrackControl> panelTrackcontrols = new HashMap<>();
 
 	// instance fields
 
@@ -86,10 +86,10 @@ public class TrackControl extends JDialog implements OSPRuntime.Disposable, Prop
 	 * @return the track control
 	 */
 	public static synchronized TrackControl getControl(TrackerPanel panel) {
-		TrackControl control = controls.get(panel.getID());
+		TrackControl control = panelTrackcontrols.get(panel.getID());
 		if (control == null) {
 			control = new TrackControl(panel);
-			controls.put(panel.getID(), control);
+			panelTrackcontrols.put(panel.getID(), control);
 			panel.trackControl = control;
 
 		}
@@ -200,8 +200,8 @@ public class TrackControl extends JDialog implements OSPRuntime.Disposable, Prop
 			}
 			break;
 		case TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR: // //$NON-NLS-1$
-			for (Integer n : TTrack.activeTracks.keySet()) {
-				TTrack.activeTracks.get(n).removeListenerNCF(this);
+			for (Integer n : TTrack.panelActiveTracks.keySet()) {
+				TTrack.panelActiveTracks.get(n).removeListenerNCF(this);
 			}
 			return;
 		}
@@ -307,7 +307,7 @@ public class TrackControl extends JDialog implements OSPRuntime.Disposable, Prop
 				frame.removeComponentListener(myFollower);
 				myFollower = null;
 			}
-			controls.remove(panelID);
+			panelTrackcontrols.remove(panelID);
 			trackerPanel.trackControl = null;
 			ArrayList<TTrack> tracks = trackerPanel.getTracks();
 			for (int i = tracks.size(); --i >= 0;) { // : TTrack.activeTracks.keySet()) {

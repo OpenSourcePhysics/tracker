@@ -74,7 +74,7 @@ public class MultiPositionStep extends PositionStep {
 	 */
 	@Override
 	protected Mark getMark(TrackerPanel trackerPanel) {
-		Mark mark = marks.get(trackerPanel.getID());
+		Mark mark = panelMarks.get(trackerPanel.getID());
 		if (mark == null) {
 			Mark aMark = null;
 			if (dataTrack.modelFootprintVisible) {
@@ -103,7 +103,7 @@ public class MultiPositionStep extends PositionStep {
 					positionMark.draw(g, highlighted);
 				}
 			};
-			marks.put(trackerPanel.getID(), mark);
+			panelMarks.put(trackerPanel.getID(), mark);
 		}
 		return mark;
 	}

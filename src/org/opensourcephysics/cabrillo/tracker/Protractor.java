@@ -814,7 +814,7 @@ public class Protractor extends InputTrack {
 
 	@Override
 	protected Rectangle getLayoutBounds(Step step) {
-		return ((ProtractorStep) step).layoutBounds.get(tp.getID());
+		return ((ProtractorStep) step).panelLayoutBounds.get(tp.getID());
 	}
 
 	@Override

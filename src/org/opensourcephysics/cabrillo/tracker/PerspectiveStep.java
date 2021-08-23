@@ -89,10 +89,10 @@ public TPoint getDefaultPoint() {
    */
   @Override
 protected Mark getMark(TrackerPanel trackerPanel) {
-    Mark mark = marks.get(trackerPanel.getID());
+    Mark mark = panelMarks.get(trackerPanel.getID());
     if (mark == null) {
       mark = footprint.getMark(screenPoints);
-      marks.put(trackerPanel.getID(), mark);
+      panelMarks.put(trackerPanel.getID(), mark);
     }
     return mark;
   }

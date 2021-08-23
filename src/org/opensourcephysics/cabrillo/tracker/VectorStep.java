@@ -487,7 +487,7 @@ public class VectorStep extends Step implements PropertyChangeListener {
 	 */
 	@Override
 	protected Mark getMark(TrackerPanel trackerPanel) {
-		Mark mark = marks.get(trackerPanel.getID());
+		Mark mark = panelMarks.get(trackerPanel.getID());
 		TPoint selection = null;
 		if (mark == null) {
 			tip.setLocation(tip.getX(), tip.getY()); // sets visible tip position
@@ -584,7 +584,7 @@ public class VectorStep extends Step implements PropertyChangeListener {
 					theMark.draw(g, highlighted);
 				}
 			};
-			marks.put(trackerPanel.getID(), mark);
+			panelMarks.put(trackerPanel.getID(), mark);
 			if (valid) {
 				Shape[] shapes = footprint.getHitShapes();
 				tipShapes.put(trackerPanel.getID(), shapes[0]);

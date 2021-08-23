@@ -113,7 +113,7 @@ public class OffsetOriginStep extends Step {
    */
   @Override
 protected Mark getMark(TrackerPanel trackerPanel) {
-    Mark mark = marks.get(trackerPanel.getID());
+    Mark mark = panelMarks.get(trackerPanel.getID());
     TPoint selection = null;
     if (mark == null) {
       ImageCoordSystem coords = trackerPanel.getCoords();
@@ -150,7 +150,7 @@ protected Mark getMark(TrackerPanel trackerPanel) {
           g.setPaint(gpaint);
         }
       };
-      marks.put(trackerPanel.getID(), mark);
+      panelMarks.put(trackerPanel.getID(), mark);
     }
     return mark;
   }

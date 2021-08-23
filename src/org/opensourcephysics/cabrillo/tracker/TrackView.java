@@ -89,8 +89,8 @@ public abstract class TrackView extends JScrollPane implements PropertyChangeLis
 	}
 
 	protected void dispose() {
-		for (Integer n : TTrack.activeTracks.keySet()) {
-			TTrack.activeTracks.get(n).removeStepListener(this);
+		for (Integer n : TTrack.panelActiveTracks.keySet()) {
+			TTrack.panelActiveTracks.get(n).removeStepListener(this);
 		}
 		frame.getTrackerPanelForID(panelID).removeListeners(panelProps, this);
 		frame = null;

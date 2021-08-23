@@ -113,7 +113,7 @@ public class NumberFormatDialog extends JDialog {
 	String prevPattern, prevDecimalSeparator;
 	TitledBorder variablesBorder, applyToBorder, decimalSeparatorBorder;
 	boolean formatsChanged, prevAnglesInRadians;
-	Map<Integer, String[]> selectedVariables = new TreeMap<Integer, String[]>();
+	Map<Integer, String[]> trackSelectedVariables = new TreeMap<Integer, String[]>();
 
 	/**
 	 * Gets the NumberFormatDialog for a TrackerPanel and sets the track and
@@ -162,7 +162,7 @@ public class NumberFormatDialog extends JDialog {
 			}
 		}
 		if (track != null) {
-			dialog.selectedVariables.put(track.getID(), selectedNames);
+			dialog.trackSelectedVariables.put(track.getID(), selectedNames);
 		}
 		dialog.setTrack(track);
 		dialog.setFontLevel(FontSizer.getLevel());
@@ -239,7 +239,7 @@ public class NumberFormatDialog extends JDialog {
 					int[] indices = variableList.getSelectedIndices();
 					showNumberFormatAndSample(indices);
 					String[] vars = getSelectedVariables(indices);
-					selectedVariables.put(trackID, vars);
+					trackSelectedVariables.put(trackID, vars);
 					refreshGUI();
 				}
 			}
@@ -471,7 +471,7 @@ public class NumberFormatDialog extends JDialog {
 		}
 		trackID = track.getID();
 		ArrayList<String> names = getDisplayNames(track);
-		String[] selected = selectedVariables.get(trackID);
+		String[] selected = trackSelectedVariables.get(trackID);
 		setVariables(track, names, selected == null ? new String[0] : selected);
 	}
 

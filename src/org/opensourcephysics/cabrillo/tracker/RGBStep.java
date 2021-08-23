@@ -51,7 +51,7 @@ public class RGBStep extends Step {
   protected Position position;
   protected RGBRegion rgbRegion;
   protected int radius;
-  protected Map<Integer, Shape> hitShapes = new HashMap<Integer, Shape>();
+  protected Map<Integer, Shape> panelHitShapes = new HashMap<Integer, Shape>();
 	protected double[] rgbData = new double[8];
 	protected boolean dataValid = false;
 	protected BasicStroke stroke;
@@ -105,7 +105,7 @@ public Interactive findInteractive(
          DrawingPanel panel, int xpix, int ypix) {
     TrackerPanel trackerPanel = (TrackerPanel)panel;
     setHitRectCenter(xpix, ypix);
-    Shape hitShape = hitShapes.get(trackerPanel.getID());
+    Shape hitShape = panelHitShapes.get(trackerPanel.getID());
     if (hitShape != null && hitShape.intersects(hitRect)) return position;
     return null;
   }
@@ -145,7 +145,7 @@ protected Mark getMark(TrackerPanel trackerPanel) {
   	if (stroke==null || stroke.getLineWidth()!=lineWidth) {
   		stroke = new BasicStroke(lineWidth);
   	}
-    Mark mark = marks.get(trackerPanel.getID());
+    Mark mark = panelMarks.get(trackerPanel.getID());
     if (mark == null) {
       trackerPanel.getPixelTransform(transform);
       if (!trackerPanel.isDrawingInImageSpace()) {
@@ -185,9 +185,9 @@ protected Mark getMark(TrackerPanel trackerPanel) {
           g.setPaint(gpaint);
         }
       };
-      marks.put(trackerPanel.getID(), mark);
+      panelMarks.put(trackerPanel.getID(), mark);
       // center is also the hit shape
-      hitShapes.put(trackerPanel.getID(), cross);
+      panelHitShapes.put(trackerPanel.getID(), cross);
     }
     return mark;
   }
@@ -210,7 +210,7 @@ protected Mark getMark(TrackerPanel trackerPanel) {
 public Object clone() {
     RGBStep step = (RGBStep)super.clone();
     if (step != null) {
-      step.hitShapes = new HashMap<Integer, Shape>();
+      step.panelHitShapes = new HashMap<Integer, Shape>();
       step.points[0] = step.position = step.new Position(
       			position.getX(), position.getY());
       step.position.setStepEditTrigger(true);
