@@ -209,7 +209,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	protected XMLControl currentState, currentCoords, currentSteps;
 	protected TPoint pointState = new TPoint();
 	protected TMouseHandler mouseHandler;
-	protected JLabel badNameLabel = new JLabel();
+	protected JLabel badNameLabel;
 	protected TrackDataBuilder dataBuilder;
 	protected boolean dataToolVisible;
 	protected XMLProperty customViewsProperty; // TFrame loads views
@@ -229,6 +229,10 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	protected TrackControl trackControl;
 	protected boolean isModelBuilderVisible;
 	protected boolean isShiftKeyDown, isControlKeyDown;
+	
+	private int cursorType;
+	private boolean showTrackControlDelayed;
+
 	/**
 	 * changeable TapeMeasure, Calibration, OffsetOrigin
 	 */
@@ -265,6 +269,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	private ArrayList<TTrack> userTracks;
 	private Map<String, AbstractAction> actions;
 	protected String title;
+	protected WorldTView view;
 
 	/**
 	 * Constructs a blank TrackerPanel with a player.
@@ -272,7 +277,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	 * We need a frame -  at the very least, new TFrame()
 	 */
 	public TrackerPanel() {
-		this(null, null);
+		this(null, null, null,null);
 		// no gui, no frame, no panelID. 
 	}
 
@@ -280,7 +285,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	 * Constructs a blank TrackerPanel with a player and GUI.
 	 */
 	public TrackerPanel(TFrame frame) {
-		this(frame, null);
+		this(frame, null, null, null);
 	}
 
 	/**
@@ -289,11 +294,25 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	 * @param video the video
 	 */
 	public TrackerPanel(TFrame frame, Video video) {
+		this(frame, video, null, null);
+	}
+
+	public TrackerPanel(TFrame frame, TrackerPanel panel, WorldTView view) {
+		this(frame, null, panel, view);
+	}
+
+	public TrackerPanel(TFrame frame, Video video, TrackerPanel panel, WorldTView view) {
 		super(video);
 		setTFrame(frame == null ? new TFrame() : frame);
-		andWorld.add(panelID);
+		if (panel == null) {
+			andWorld.add(panelID);
+		} else {
+			this.view = view;
+			panel.andWorld.add(panelID);
+		}
+		this.view = view;
+		selectedSteps = new StepSet(frame, panelID);		
 		setGUI();
-		configure();
 	}
 	
 	public void setTFrame(TFrame frame) {
@@ -303,22 +322,18 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		// If have GUI.... what?
 	}
 
+	public boolean isWorldPanel() {
+		return (view != null);
+	}
+
 	public Map<String, AbstractAction> getActions() {
 		return actions;
 	}
 	
-	private void setGUI() {
-		selectedSteps = new StepSet(frame, panelID);
+	protected void setGUI() {
 		actions = TActions.createActions(this);
 		displayCoordsOnMouseMoved = true;		
 		zoomBox.setShowUndraggedBox(false);
-		// remove the interactive panel mouse controller
-		removeMouseListener(mouseController);
-		removeMouseMotionListener(mouseController);
-		// create and add a new mouse controller for tracker
-		mouseController = new TMouseController();
-		addMouseListener(mouseController);
-		addMouseMotionListener(mouseController);
 		// set new CoordinateStringBuilder
 		coordStringBuilder = new TCoordinateStringBuilder();
 		setCoordinateStringBuilder(coordStringBuilder);
@@ -326,6 +341,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		// set fonts of message boxes and noDataLabels
 //		Font font = new JTextField().getFont();
 
+		badNameLabel = new JLabel();
 		badNameLabel.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
 //		Box box = Box.createVerticalBox();
 //		noData.add(box);
@@ -336,9 +352,6 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 //			box.add(noDataLabels[i]);
 //		}
 //		noData.setOpaque(false);
-		player.setInspectorButtonVisible(false);
-		player.addActionListener(this);
-		// BH! VideoPanel has already done this: player.addFrameListener(this);
 
 		massParamListener = new PropertyChangeListener() {
 			@Override
@@ -370,6 +383,100 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				}
 			}
 		};
+		coords.addPropertyChangeListenerSafely(this);
+		addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyPressed(KeyEvent e) {
+				if (e.getKeyCode() == KeyEvent.VK_SHIFT) {
+					if (!isShiftKeyDown) {
+						isShiftKeyDown = true;
+						boolean marking = setCursorForMarking(true, e);
+						if (selectedTrack != null && marking != selectedTrack.isMarking) {
+							selectedTrack.setMarking(marking);
+						}
+					}
+				} else if (e.getKeyCode() == KeyEvent.VK_CONTROL) {
+					if (!isControlKeyDown) {
+						isControlKeyDown = true;
+						boolean marking = setCursorForMarking(isShiftKeyDown, e);
+						if (selectedTrack != null && marking != selectedTrack.isMarking) {
+							selectedTrack.setMarking(marking);
+						}
+					}
+				} else if (e.getKeyCode() == KeyEvent.VK_ENTER && selectedTrack != null
+						&& cursorType == selectedTrack.getMarkingCursorType(e) && getFrameNumber() > 0) {
+					int n = getFrameNumber();
+					Step step = selectedTrack.getStep(n - 1);
+					if (step != null) {
+						Step clone = null;
+						if (selectedTrack.getClass() == PointMass.class) {
+							TPoint p = ((PositionStep) step).getPosition();
+							clone = selectedTrack.createStep(n, p.x, p.y);
+							((PointMass) selectedTrack).keyFrames.add(n);
+						} else if (selectedTrack.getClass() == Vector.class) {
+							VectorStep s = (VectorStep) step;
+							TPoint tail = s.getTail();
+							TPoint tip = s.getTip();
+							Vector vector = (Vector) selectedTrack;
+							double dx = tip.x - tail.x;
+							double dy = tip.y - tail.y;
+							clone = vector.createStep(n, tail.x, tail.y, dx, dy);
+						}
+						if (clone != null && selectedTrack.isAutoAdvance()) {
+							getPlayer().step();
+							hideMouseBox();
+						} else {
+							setMouseCursor(Cursor.getDefaultCursor());
+							if (clone != null) {
+								setSelectedPoint(clone.getDefaultPoint());
+								selectedTrack.repaintStep(clone);
+							}
+						}
+					}
+				} else
+					handleKeyPress(e);
+			}
+
+			@Override
+			public void keyReleased(KeyEvent e) {
+				if (e.getKeyCode() == KeyEvent.VK_SHIFT) {
+					isShiftKeyDown = false;
+					boolean marking = setCursorForMarking(false, e);
+					if (selectedTrack != null && marking != selectedTrack.isMarking) {
+						selectedTrack.setMarking(marking);
+					}
+				} else if (e.getKeyCode() == KeyEvent.VK_CONTROL) {
+					isControlKeyDown = false;
+					boolean marking = setCursorForMarking(isShiftKeyDown, e);
+					if (selectedTrack != null && marking != selectedTrack.isMarking) {
+						selectedTrack.setMarking(marking);
+					}
+				}
+			}
+		});
+		// set default properties
+		setDrawingInImageSpace(true);
+		setPreferredSize(new Dimension(1, 1));
+		// load default configuration file
+		enabled = Tracker.getDefaultConfig();
+		enabledCount++;
+		changed = false;
+	}
+
+	@Override
+	protected void addVideoPlayer() {
+		super.addVideoPlayer();
+		player.setInspectorButtonVisible(false);
+		player.addActionListener(this);		
+	}
+
+	@Override
+	protected void setMouseListeners() {
+		// create and add a new mouse controller for tracker
+		mouseController = new TMouseController();
+		addMouseListener(mouseController);
+		addMouseMotionListener(mouseController);
+		addOptionController();
 	}
 
 	/**
@@ -517,19 +624,11 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	 * Repaints the dirty region.
 	 */
 	public void repaintDirtyRegion() {
-
 		if (getHeight() >= 0 && (tainted || dirty != null)) {
-//			synchronized (dirty) {
-//				dirty.grow(2, 2);
 			TFrame.repaintT(this);
-//				repaint(dirty);
-//			}
 		}
 	}
 
-	int BHtest;
-	private int cursorType;
-	boolean showTrackControlDelayed;
 	/**
 	 * Gets a list of TTracks being drawn on this panel.
 	 *
@@ -632,8 +731,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		}
 
 		// set angle format of the track
-		if (frame != null)
-			track.setAnglesInRadians(frame.anglesInRadians);
+		track.setAnglesInRadians(frame.anglesInRadians);
 		showTrackControlDelayed = true;
 		boolean doAddDrawable = true;
 		if (track instanceof ParticleDataTrack) {
@@ -1486,10 +1584,6 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			d = new Dimension(1, 1);
 		} else {
 			zoom = Math.min(Math.max(magnification, MIN_ZOOM), MAX_ZOOM);
-//			if (view != null && view.getTrackerPanel() != null) {
-//				double oldMag = view.getTrackerPanel().getMagnification();
-//				Dimension oldDim = view.getTrackerPanel().getSize();
-//			}
 			int w = (int) (imageWidth * zoom);
 			int h = (int) (imageHeight * zoom);
 			d = new Dimension(w, h);
@@ -1503,7 +1597,6 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			// this will fire a full panel repaint
 			view.scrollToZoomCenter(getPreferredSize(), prevSize, p1);
 			eraseAll();
-// should not be necessary			TFrame.repaintT(this);
 		}
 		zoomBox.hide();
 	}
@@ -2041,8 +2134,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		return (popup != null ? popup: ( popup = new JPopupMenu() {
 			@Override
 			public void setVisible(boolean vis) {
-				if (vis) {
-				} else {
+				if (!vis) {
 					zoomBox.hide();
 				}
 				super.setVisible(vis);
@@ -2206,90 +2298,6 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			}
 //			frame.restoreViews(this);
 		}
-	}
-
-	/**
-	 * Configures this panel.
-	 */
-	protected void configure() {
-		coords.addPropertyChangeListenerSafely(this);
-		addKeyListener(new KeyAdapter() {
-			@Override
-			public void keyPressed(KeyEvent e) {
-				if (e.getKeyCode() == KeyEvent.VK_SHIFT) {
-					if (!isShiftKeyDown) {
-						isShiftKeyDown = true;
-						boolean marking = setCursorForMarking(true, e);
-						if (selectedTrack != null && marking != selectedTrack.isMarking) {
-							selectedTrack.setMarking(marking);
-						}
-					}
-				} else if (e.getKeyCode() == KeyEvent.VK_CONTROL) {
-					if (!isControlKeyDown) {
-						isControlKeyDown = true;
-						boolean marking = setCursorForMarking(isShiftKeyDown, e);
-						if (selectedTrack != null && marking != selectedTrack.isMarking) {
-							selectedTrack.setMarking(marking);
-						}
-					}
-				} else if (e.getKeyCode() == KeyEvent.VK_ENTER && selectedTrack != null
-						&& cursorType == selectedTrack.getMarkingCursorType(e) && getFrameNumber() > 0) {
-					int n = getFrameNumber();
-					Step step = selectedTrack.getStep(n - 1);
-					if (step != null) {
-						Step clone = null;
-						if (selectedTrack.getClass() == PointMass.class) {
-							TPoint p = ((PositionStep) step).getPosition();
-							clone = selectedTrack.createStep(n, p.x, p.y);
-							((PointMass) selectedTrack).keyFrames.add(n);
-						} else if (selectedTrack.getClass() == Vector.class) {
-							VectorStep s = (VectorStep) step;
-							TPoint tail = s.getTail();
-							TPoint tip = s.getTip();
-							Vector vector = (Vector) selectedTrack;
-							double dx = tip.x - tail.x;
-							double dy = tip.y - tail.y;
-							clone = vector.createStep(n, tail.x, tail.y, dx, dy);
-						}
-						if (clone != null && selectedTrack.isAutoAdvance()) {
-							getPlayer().step();
-							hideMouseBox();
-						} else {
-							setMouseCursor(Cursor.getDefaultCursor());
-							if (clone != null) {
-								setSelectedPoint(clone.getDefaultPoint());
-								selectedTrack.repaintStep(clone);
-							}
-						}
-					}
-				} else
-					handleKeyPress(e);
-			}
-
-			@Override
-			public void keyReleased(KeyEvent e) {
-				if (e.getKeyCode() == KeyEvent.VK_SHIFT) {
-					isShiftKeyDown = false;
-					boolean marking = setCursorForMarking(false, e);
-					if (selectedTrack != null && marking != selectedTrack.isMarking) {
-						selectedTrack.setMarking(marking);
-					}
-				} else if (e.getKeyCode() == KeyEvent.VK_CONTROL) {
-					isControlKeyDown = false;
-					boolean marking = setCursorForMarking(isShiftKeyDown, e);
-					if (selectedTrack != null && marking != selectedTrack.isMarking) {
-						selectedTrack.setMarking(marking);
-					}
-				}
-			}
-		});
-		// set default properties
-		setDrawingInImageSpace(true);
-		setPreferredSize(new Dimension(1, 1));
-		// load default configuration file
-		enabled = Tracker.getDefaultConfig();
-		enabledCount++;
-		changed = false;
 	}
 
 	/**
@@ -2982,23 +2990,6 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		}
 		getTrackBar(true).setFontLevel(level);
 		refreshTrackBar();
-//		trackbar.refresh();
-//		frame.getToolbar(panelID).refresh(false);
-		// replace the menubar to get new accelerator fonts
-		// TMenuBar menubar =
-
-		// select the correct fontSize menu radiobutton
-//		if (menubar.fontSizeGroup != null) {
-//			Enumeration<AbstractButton> e = menubar.fontSizeGroup.getElements();
-//			for (; e.hasMoreElements();) {
-//				AbstractButton button = e.nextElement();
-//				int i = Integer.parseInt(button.getActionCommand());
-//				if (i == FontSizer.getLevel()) {
-//					button.setSelected(true);
-//				}
-//			}
-//		}
-
 		ArrayList<TTrack> list = getTracks();
 		for (int it = 0, n = list.size(); it < n; it++) {
 			list.get(it).setFontLevel(level);
@@ -3344,6 +3335,8 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			return;
 		isDisposed = true; // stop all firing of events
 
+		view = null;
+		
 		//System.out.println(this.getClass().getSimpleName() + ".dispose " + panelID + " " + title);
 		
 		// remove property change listeners
@@ -3407,12 +3400,6 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		offscreenImage = null;
 		workingImage = null;
 
-		removeMouseListener(mouseController);
-		removeMouseMotionListener(mouseController);
-		mouseController = null;
-		removeMouseListener(optionController);
-		removeMouseMotionListener(optionController);
-		optionController = null;
 		if (player != null) {
 			VideoClip clip = player.getVideoClip();
 			clip.removePropertyChangeListener(player);
@@ -5057,10 +5044,6 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	public void finalize() {
 		System.out.println("-------HOORAY!!!!!!!----finalized!------------ " + this);
 		OSPLog.finalized(this);
-	}
-
-	public boolean isWorldPanel() {
-		return false;
 	}
 
 }

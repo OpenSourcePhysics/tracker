@@ -88,12 +88,14 @@ public class WorldTView extends TView {
 	 */
 	public WorldTView(TrackerPanel panel) {
 		super(panel);
+		// just create a local panel; we will refer to it by its panelID.		
+		WorldPanel worldPanel = new WorldPanel(panel, this);
+		worldPanelID = worldPanel.getID();
+		add(worldPanel);
+
 		worldViewLabel = new JLabel();
 		worldViewLabel.setBorder(BorderFactory.createEmptyBorder(2, 6, 2, 0));
-		toolbarComponents.add(worldViewLabel);
-		WorldPanel worldPanel = new WorldPanel(panel, this);
-		add(worldPanel);
-		worldPanelID = worldPanel.getID();
+		toolbarComponents.add(worldViewLabel);		
 	}
 
 	static class WorldPanel extends TrackerPanel {
@@ -101,45 +103,12 @@ public class WorldTView extends TView {
 		protected JMenuItem copyImageItem;
 		protected JMenuItem printItem;
 		protected JMenuItem helpItem;
-		private WorldTView view;
 		protected Integer mainPanelID;
 		
 
-		@Override
-		public boolean isWorldPanel() {
-			return true;
-		}
-
 		private WorldPanel(TrackerPanel panel, WorldTView view) {
-			super(panel.frame);
-			this.view = view;
-			andWorld.clear();
-			//System.out.println("WorldTView init " + this + " " + panel);
-			panel.andWorld.add(panelID);
+			super(panel.frame, panel, view);
 			mainPanelID = panel.getID();
-			initWP();
-			setPlayerVisible(false);
-			setDrawingInImageSpace(false);
-			setPreferredSize(new Dimension(240, 180));
-			setShowCoordinates(false);
-			// world view button
-			addMouseListener(new MouseAdapter() {
-				@Override
-				public void mousePressed(MouseEvent e) {
-					mousePressedWP(e);
-				}
-
-			});
-		}
-
-		protected void mousePressedWP(MouseEvent e) {
-			if (OSPRuntime.isPopupTrigger(e)) {
-				createWorldPopup();
-				popup.show(this, e.getX(), e.getY());
-			}
-		}
-
-		private void initWP() {
 			cleanup();
 			// add this view to tracker panel listeners
 			// note "track" and "clear" not needed since forwarded from TViewChooser
@@ -149,6 +118,32 @@ public class WorldTView extends TView {
 			for (TTrack track : trackerPanel.getTracks()) {
 				track.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_COLOR, this); // $NON-NLS-1$
 			}
+			setPlayerVisible(false);
+			setDrawingInImageSpace(false);
+			setPreferredSize(new Dimension(240, 180));
+			setShowCoordinates(false);
+			// world view button
+		}
+
+		@Override
+		protected void setGUI() {
+			// set tiny preferred size so auto zooms to very small
+			setPreferredSize(new Dimension(1, 1));
+		}
+
+		@Override
+		protected void setMouseListeners() {
+			// create and add a new mouse controller for tracker
+			addMouseListener(new MouseAdapter() {
+				@Override
+				public void mousePressed(MouseEvent e) {
+					if (OSPRuntime.isPopupTrigger(e)) {
+						createWorldPopup();
+						popup.show(WorldPanel.this, e.getX(), e.getY());
+					}
+				}
+
+			});
 		}
 
 		protected void createWorldPopup() {
@@ -202,6 +197,8 @@ public class WorldTView extends TView {
 					}
 				}
 			});
+			
+			snapshotItem = getSnapshotItem(new PopupmenuListener());
 		}
 
 		protected void copyImage(String where) {
@@ -347,18 +344,6 @@ public class WorldTView extends TView {
 			return null;
 		}
 
-		/**
-		 * Configures this panel. Overrides TrackerPanel method.
-		 */
-		@Override
-		protected void configure() {
-			// set tiny preferred size so auto zooms to very small
-			setPreferredSize(new Dimension(1, 1));
-//			coords.addPropertyChangeListener(this);
-			// remove DrawingPanel option controller
-			removeOptionController();
-		}
-
 		public void cleanup() {
 			// remove this listener from tracker panel
 			if (mainPanelID != null) {
@@ -419,7 +404,7 @@ public class WorldTView extends TView {
 	 */
 	@Override
 	public void init() {
-		worldPanel().initWP();
+		//worldPanel().initWP();
 	}
 
 	/**

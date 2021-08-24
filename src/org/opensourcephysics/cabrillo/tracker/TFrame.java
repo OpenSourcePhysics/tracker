@@ -896,7 +896,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		int id = panelID.intValue();
 		int tab = getTab(panelID);
 
-		System.out.println("TFrame sync remove for " + trackerPanel);
+		//System.out.println("TFrame sync remove for " + trackerPanel);
 		TTabPanel tabPanel = getTabPanel(trackerPanel);
 
 		closeAllDialogs(trackerPanel, tabPanel);
