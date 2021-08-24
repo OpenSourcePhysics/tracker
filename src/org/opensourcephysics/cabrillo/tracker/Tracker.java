@@ -810,7 +810,7 @@ public class Tracker {
 		} else {
 			// use else here for SwingJS.
 			// remove the tabs but don't close if canceled
-			frame.saveAllTabs(new Function<Integer, Void>() {
+			frame.saveAllTabs(false, new Function<Integer, Void>() {
 				// for each approved, remove tab
 				@Override
 				public Void apply(Integer panelID) {

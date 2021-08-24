@@ -841,7 +841,6 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 	protected void doNotesAction() {
 		if (frame != null && frame.getSelectedPanel() == panel()) {
 			frame.setNotesDialog(panel(), infoListener);
-			notesButton.setSelected(frame.notesVisible());
 		}
 	}
 

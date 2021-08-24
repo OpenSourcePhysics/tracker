@@ -718,13 +718,13 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 
 	/**
 	 * Saves all tabs if user approved. Stops if any is canceled.
-	 * 
+	 * @param isExit TODO
 	 * @param whenEachApproved Function to apply to each TrackerPanel unless
 	 *                         canceled
 	 * @param whenAllApproved  Runnable to run after all have run whenEachApproved
 	 * @param whenCanceled     Runnable to run if canceled
 	 */
-	public void saveAllTabs(Function<Integer, Void> whenEachApproved, Runnable whenAllApproved, Runnable whenCanceled) {
+	public void saveAllTabs(boolean isExit, Function<Integer, Void> whenEachApproved, Runnable whenAllApproved, Runnable whenCanceled) {
 		// save all tabs in last-to-first order
 		final int[] tab = { getTabCount() - 1 };
 		TrackerPanel trackerPanel = getTrackerPanelForTab(tab[0]);
@@ -734,7 +734,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			@Override
 			public Void apply(Boolean doSave) {
 				TrackerPanel trackerPanel = getTrackerPanelForTab(tab[0]);
-				if (doSave && whenEachApproved != null) {
+				if ((!isExit || doSave) && whenEachApproved != null) {
 					whenEachApproved.apply(trackerPanel.getID());
 				}
 				tab[0]--;
@@ -751,7 +751,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 
 	protected void relaunchCurrentTabs() {
 		final ArrayList<String> filenames = new ArrayList<String>();
-		saveAllTabs(new Function<Integer, Void>() {
+		saveAllTabs(false, new Function<Integer, Void>() {
 			// for each approved
 			@Override
 			public Void apply(Integer panelID) {
@@ -796,7 +796,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		hideNotes();
 		ArrayList<Integer> panels = new ArrayList<Integer>();
 		boolean[] cancelled = new boolean[] { false };
-		saveAllTabs((panelID) -> {
+		saveAllTabs(false, (panelID) -> {
 			// when each approved, add to list
 			if (!cancelled[0])
 				panels.add(panelID);
@@ -3187,8 +3187,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		}
 	}
 
-	private void setNotesVisible(boolean b) {
-		notes.setVisible(false);
+	public void setNotesVisible(boolean b) {
+		notes.setVisible(b);
 	}
 
 	@Override
@@ -3594,6 +3594,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			TrackerPanel trackerPanel = getSelectedPanel();
 			// position info dialog if first time shown
 			// or if trackerPanel specifies location
+			setVisible(true);
 			updateNotesDialog(trackerPanel);
 		}
 

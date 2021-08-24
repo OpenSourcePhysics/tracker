@@ -4935,10 +4935,9 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			if (!hideDescriptionWhenLoaded
 					&& (track == null ? getDescription() != null && getDescription().trim().length() != 0
 							: track.getDescription() != null && track.getDescription().trim().length() > 0)) {
-				if (!button.isSelected())
-					button.doClick();
+				getToolBar(true).doNotesAction();
 			} else if (button.isSelected())
-				button.doClick();
+				button.setSelected(false);//doClick();
 		}
 	}
 	
