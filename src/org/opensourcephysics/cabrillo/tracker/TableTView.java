@@ -222,15 +222,20 @@ public class TableTView extends TrackChooserTView {
 			break;
 		case FunctionTool.PROPERTY_FUNCTIONTOOL_FUNCTION: //$NON-NLS-1$
 			super.propertyChange(e);
-			if (getSelectedTrack() != null) {
-				TableTrackView trackView = (TableTrackView) getTrackView(selectedTrack);
+//			if (getSelectedTrack() != null) {
+//				TableTrackView trackView = (TableTrackView) getTrackView(selectedTrack);
+//				trackView.refreshNameMaps();
+//				trackView.buildForNewFunction();
+//			}
+			// refresh all trackviews, not just selected track
+			for (TrackView next: trackViews.values()) {
+				TableTrackView trackView = (TableTrackView) next;
 				trackView.refreshNameMaps();
 				trackView.buildForNewFunction();
 			}
 			break;
 		default:
 			super.propertyChange(e);
-			break;
 		}
 	}
 
