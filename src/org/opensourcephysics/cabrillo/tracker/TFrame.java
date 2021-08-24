@@ -904,6 +904,15 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		// remove the tab immediately
 		// BH 2020.11.24 thread lock
 		// BH 2021.08.13 removed
+		try {
+	//		synchronized (tabbedPane) {
+			tabbedPane.remove(tab);
+			tabbedPane.remove(tabPanel);
+	//		}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
 		if (trackerPanel.trackControl != null) {
 			deallocate(trackerPanel.trackControl);
 		}
@@ -958,14 +967,14 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		System.gc();
 		Disposable.deallocate(tabPanel);
 
-		try {
-//			synchronized (tabbedPane) {
-			tabbedPane.remove(tab);
-			tabbedPane.remove(tabPanel);
-//			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+//		try {
+////			synchronized (tabbedPane) {
+//			tabbedPane.remove(tab);
+//			tabbedPane.remove(tabPanel);
+////			}
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//		}
 
 		removePropertyChangeListener(TFrame.PROPERTY_TFRAME_RADIANANGLES, trackerPanel); // $NON-NLS-1$
 		firePropertyChange(PROPERTY_TFRAME_TAB, trackerPanel, null); // $NON-NLS-1$
