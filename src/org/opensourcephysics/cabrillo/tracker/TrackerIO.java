@@ -993,7 +993,7 @@ public class TrackerIO extends VideoIO {
 		boolean success = ResourceLoader.copyAllFiles(new File(source), file);
 		if (success) {
 			Tracker.addRecent(XML.getAbsolutePath(file), false); // add at beginning
-			trackerPanel.frame.refreshMenus(trackerPanel, TMenuBar.REFRESH_TRACKERIO_SAVEVIDEO);
+			trackerPanel.getTFrame().refreshMenus(trackerPanel, TMenuBar.REFRESH_TRACKERIO_SAVEVIDEO);
 			return file;
 		}
 		return null;

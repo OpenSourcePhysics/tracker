@@ -925,7 +925,7 @@ public class ExportVideoDialog extends JDialog {
 		}
 		if (view instanceof WorldTView) { // world view
 			BufferedImage image = (BufferedImage) view.createImage(size.width, size.height);
-			image = ((WorldTView) view).render(image);
+			image = ((WorldTView) view).worldPanel.render(image);
 			return new BufferedImage[] { getResizedImage(image, size) };
 		}
 		if (view instanceof PlotTrackView) { // plot view

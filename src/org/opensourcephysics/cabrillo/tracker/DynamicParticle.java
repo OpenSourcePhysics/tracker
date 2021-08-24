@@ -56,6 +56,8 @@ public class DynamicParticle extends ParticleModel implements ODE {
 
 	
 	// instance fields
+	protected ModelBooster modelBooster = new ModelBooster();
+
 	protected boolean inSystem; // used only when loading
 	protected String boosterName; // used only when loading
 	final static protected String[] cartVars = new String[] {"x", "vx", "y", "vy", "t" };
@@ -65,7 +67,6 @@ public class DynamicParticle extends ParticleModel implements ODE {
 	protected int iterationsPerStep = 10;
 	protected DynamicSystem system;
 	protected HashMap<Integer, double[]> frameStates = new HashMap<Integer, double[]>();
-	protected ModelBooster modelBooster = new ModelBooster();
 
 	protected String[] getBoostVars() {
 		return cartVars;
@@ -134,12 +135,6 @@ public class DynamicParticle extends ParticleModel implements ODE {
 		super.delete();
 	}
 
-	@Override
-	public void dispose() {
-		setBooster(null);
-		super.dispose();
-	}
-
 	/**
 	 * Refreshes step positions.
 	 */
@@ -157,7 +152,6 @@ public class DynamicParticle extends ParticleModel implements ODE {
 	public void reset() {
 		if (system != null)
 			return;
-		super.reset();
 		resetState(); // resets state to initial state (ie at startFrame)
 		double[] state = getState();
 		// state is {x, vx, y, vy, t} but may be different in subclasses
@@ -744,4 +738,13 @@ public class DynamicParticle extends ParticleModel implements ODE {
 			return obj;
 		}
 	}
+	
+	@Override
+	public void dispose() {
+		setBooster(null);
+		modelBooster = null;
+		super.dispose();
+	}
+
+
 }

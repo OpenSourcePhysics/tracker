@@ -190,8 +190,8 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	}
 	
 
-	protected double defaultImageBorder;
-	protected String description = ""; //$NON-NLS-1$
+	private double defaultImageBorder;
+	private String description = ""; //$NON-NLS-1$
 	protected TPoint selectedPoint;
 	protected Step selectedStep;
 	protected Integer selectingPanelID;
@@ -264,6 +264,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 
 	private ArrayList<TTrack> userTracks;
 	private Map<String, AbstractAction> actions;
+	private String title;
 
 	/**
 	 * Constructs a blank TrackerPanel with a player.
@@ -414,22 +415,19 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	 */
 	public String getTitle() {
 		if (getDataFile() != null) {
-			return getDataFile().getName();
+			title = getDataFile().getName();
+		} else if (defaultFileName != null) {
+			title = defaultFileName;
+		} else if (getVideo() != null && (title = (String) getVideo().getProperty("name")) // $NON-NLS-0$
+				!= null) {
+			title = XML.forwardSlash(title);
+			int i = title.lastIndexOf("/"); //$NON-NLS-1$
+			if (i >= 0)
+				title = title.substring(i + 1);
+		} else {
+			title = TrackerRes.getString("TrackerPanel.NewTab.Name"); //$NON-NLS-1$
 		}
-		if (defaultFileName != null) {
-			return defaultFileName;
-		}
-		if (getVideo() != null) {
-			String name = (String) getVideo().getProperty("name"); //$NON-NLS-1$
-			if (name != null) {
-				name = XML.forwardSlash(name);
-				int i = name.lastIndexOf("/"); //$NON-NLS-1$
-				if (i >= 0)
-					name = name.substring(i + 1);
-				return name;
-			}
-		}
-		return TrackerRes.getString("TrackerPanel.NewTab.Name"); //$NON-NLS-1$
+		return title;
 	}
 
 	/**
@@ -1439,6 +1437,15 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			selectedSteps.add(selectedStep);
 		selectedSteps.isModified = false;
 		firePropertyChange(PROPERTY_TRACKERPANEL_SELECTEDPOINT, prevPoint, point);
+	}
+
+	/**
+	 * Returns pointID if this panel is actively selecting. 
+	 *
+	 * @return
+	 */
+	public Integer getSelectingPanelID() {
+		return selectingPanelID;
 	}
 
 	/**
@@ -5052,13 +5059,17 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 
 	@Override
 	public String toString() {
-		return "[" + this.getClass().getSimpleName() + " " + panelID + " " + getTabName() + "]";
+		return "[" + this.getClass().getSimpleName() + " " + panelID + " " + title + "]";
 	}
 
 	@Override
 	public void finalize() {
 		System.out.println("-------HOORAY!!!!!!!----finalized!------------ " + this);
 		OSPLog.finalized(this);
+	}
+
+	public boolean isWorldPanel() {
+		return false;
 	}
 
 }

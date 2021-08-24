@@ -516,6 +516,7 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 	 */
 	protected TTrack(int ttype) {
 		this.ttype = ttype;
+		OSPLog.notify(this, "<init>");
 		ID = nextID++;
 		// create toolbar components
 		stepLabel = new JLabel();
@@ -2967,6 +2968,7 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 	 */
 	@Override
 	public void dispose() {
+		OSPLog.notify(this, "disposing");
 		properties.clear();
 //		if (panelWorldBounds != null)
 //			panelWorldBounds.clear();

@@ -42,6 +42,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.opensourcephysics.cabrillo.tracker.WorldTView.WorldPanel;
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.display.DrawingPanel;
@@ -413,7 +414,7 @@ public class VectorStep extends Step implements PropertyChangeListener {
 		if (panel instanceof TrackerPanel) {
 			TrackerPanel trackerPanel = (TrackerPanel) panel;
 			Graphics2D g = (Graphics2D) _g;
-			if (brandNew && !(trackerPanel instanceof WorldTView)) {
+			if (brandNew && !(trackerPanel.isWorldPanel())) {
 				snap(trackerPanel);
 				brandNew = false;
 			}
@@ -504,10 +505,10 @@ public class VectorStep extends Step implements PropertyChangeListener {
 					p = screenPoints[n];
 			}
 			// move screen points on WorldTView if snapped to origin
-			if (trackerPanel instanceof WorldTView) {
-				WorldTView view = (WorldTView) trackerPanel;
-				if (attachmentPoint == view.getSnapPoint()) {
-					Point origin = view.getSnapPoint().getScreenPosition(view);
+			if (trackerPanel.isWorldPanel()) {
+				WorldPanel world = (WorldPanel) trackerPanel;
+				if (attachmentPoint == world.getSnapPoint()) {
+					Point origin = world.getSnapPoint().getScreenPosition(world);
 					dx = origin.x - screenPoints[1].x;
 					dy = origin.y - screenPoints[1].y;
 					for (int n = 0; n < screenPoints.length; n++) {
@@ -668,7 +669,7 @@ public class VectorStep extends Step implements PropertyChangeListener {
 	private Point getLayoutPosition(TrackerPanel trackerPanel, TextLayout layout) {
 		Point p = middle.getScreenPosition(trackerPanel);
 		// move p on WorldTView if snapped to origin
-		if (trackerPanel instanceof WorldTView && attachmentPoint == ((WorldTView) trackerPanel).getSnapPoint()) {
+		if (trackerPanel.isWorldPanel() && attachmentPoint == ((WorldPanel) trackerPanel).getSnapPoint()) {
 			p.x += dx;
 			p.y += dy;
 		}

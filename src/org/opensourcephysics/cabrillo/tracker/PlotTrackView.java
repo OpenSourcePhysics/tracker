@@ -43,6 +43,7 @@ import javax.swing.JRadioButtonMenuItem;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 
+import org.opensourcephysics.cabrillo.tracker.WorldTView.WorldPanel;
 import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
@@ -290,8 +291,7 @@ public class PlotTrackView extends TrackView {
 			}
 			return;
 		case TrackerPanel.PROPERTY_TRACKERPANEL_TRACK:
-			if (e.getNewValue() != null // $NON-NLS-1$
-					&& !(e.getSource() instanceof WorldTView)) {
+			if (!(e.getNewValue() instanceof WorldPanel)) {
 				// track added
 				for (TrackPlottingPanel plot : getPlots()) {
 					plot.plotAxes.hideScaleSetter();

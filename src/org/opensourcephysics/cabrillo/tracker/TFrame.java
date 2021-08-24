@@ -877,7 +877,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	 * @param trackerPanel the tracker panelf
 	 */
 	public boolean doCloseAction(TrackerPanel trackerPanel) {
-		if (getTab(trackerPanel.panelID) < 0)
+		if (getTab(trackerPanel.getID()) < 0)
 			return false;
 
 		Function<Boolean, Void> removeTab = (doSave) -> {

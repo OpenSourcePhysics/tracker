@@ -58,7 +58,7 @@ public class Undo {
 	 * @param panel 
 	 */
 	private Undo(TrackerPanel panel) {
-		this.frame = panel.frame;
+		this.frame = panel.getTFrame();
 		this.panelID = panel.getID();
 
 		// set up the undo system
@@ -750,7 +750,7 @@ public class Undo {
 		protected Integer panelID;
 
 		protected TEdit(TrackerPanel panel, Object obj, XMLControl control) {
-			this.frame = panel.frame;
+			this.frame = panel.getTFrame();
 			this.panelID = panel.getID();
 			undo = control.toXML();
 			control = new XMLControlElement(obj);

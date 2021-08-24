@@ -63,6 +63,7 @@ import javax.swing.JOptionPane;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import org.opensourcephysics.cabrillo.tracker.WorldTView.WorldPanel;
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.controls.XMLControlElement;
@@ -1957,9 +1958,9 @@ public class PointMass extends TTrack {
 		}
 		for (int j = 0; j < tp.andWorld.size(); j++) {
 			TrackerPanel next = panel(tp.andWorld.get(j));
-			if (next instanceof WorldTView) {
-				WorldTView view = (WorldTView) next;
-				if (view.getTrackerPanel() == panel) {
+			if (next.isWorldPanel()) {
+				WorldPanel view = (WorldPanel) next;
+				if (view.getMainPanel() == panel) {
 					setLabelsVisible(view, visible);
 				}
 			}
@@ -2100,10 +2101,8 @@ public class PointMass extends TTrack {
 	 * @param stepCount    the step count
 	 */
 	protected void updateDerivatives(TrackerPanel panel, int startFrame, int stepCount) {
-		if (panel instanceof WorldTView) {
-			WorldTView wtv = (WorldTView) panel;
-			if (!TViewChooser.isSelectedView(wtv) || !wtv.isViewPaneVisible())
-				return;
+		if (panel.isWorldPanel() && !((WorldPanel) panel).isActive()) {
+			return;
 		}
 		VideoClip clip = panel.getPlayer().getVideoClip();
 
@@ -3235,7 +3234,7 @@ public class PointMass extends TTrack {
 		// snap all vectors to the snapPoint at origin
 		TPoint p = tp.getSnapPoint();
 		Step[] steps = null;
-		Integer panelID = tp.panelID;
+		Integer panelID = tp.getID();
 		if (type.equals("v")) //$NON-NLS-1$
 			steps = PointMass.this.getVelocities(panelID);
 		else
@@ -3263,7 +3262,7 @@ public class PointMass extends TTrack {
 	private void snapToPosition(String type) {
 		// snap all vectors to the snapPoint
 		Step[] steps = null;
-		Integer panelID = tp.panelID;
+		Integer panelID = tp.getID();
 		if (type.equals("v")) //$NON-NLS-1$
 			steps = PointMass.this.getVelocities(panelID);
 		else

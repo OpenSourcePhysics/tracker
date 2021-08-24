@@ -88,7 +88,6 @@ public class AnalyticParticle extends ParticleModel {
 	 */
 	@Override
 	protected void reset() {
-		super.reset();
 		t0 = getInitialValues()[0]; // time at start frame
 		functions = getFunctionEditor().getMainFunctions();
 		if (tp != null) {

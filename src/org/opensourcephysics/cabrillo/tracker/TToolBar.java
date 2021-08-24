@@ -263,7 +263,7 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 	 * @param panel the tracker panel
 	 */
 	TToolBar(TrackerPanel panel) {
-		this.frame = panel.frame;
+		this.frame = panel.getTFrame();
 		this.panelID = panel.getID();
 		System.out.println("Creating toolbar for " + panel);
 		panel.addListeners(panelProps, this);

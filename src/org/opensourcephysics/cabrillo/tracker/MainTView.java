@@ -25,7 +25,6 @@
 package org.opensourcephysics.cabrillo.tracker;
 
 import java.awt.BorderLayout;
-import java.awt.Component;
 import java.awt.Container;
 import java.awt.Cursor;
 import java.awt.Dimension;
@@ -39,18 +38,15 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 import java.beans.PropertyChangeEvent;
-import java.util.ArrayList;
 
 import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JDialog;
-import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JToolBar;
 import javax.swing.SwingUtilities;
 
-import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.display.DrawingPanel;
 import org.opensourcephysics.media.core.TPoint;
 import org.opensourcephysics.media.core.VideoClip;
@@ -62,11 +58,9 @@ import org.opensourcephysics.media.core.VideoClip;
  * @author Douglas Brown
  */
 @SuppressWarnings("serial")
-public class MainTView extends JPanel implements TView {
+public class MainTView extends TView {
 
 	// instance fields
-	private TFrame frame;
-	private Integer panelID;
 	JScrollPane scrollPane;
 	Rectangle scrollRect = new Rectangle();
 	private Point zoomCenter = new Point();
@@ -87,8 +81,7 @@ public class MainTView extends JPanel implements TView {
 	 * @param panel the tracker panel
 	 */
 	public MainTView(TrackerPanel panel) {
-		frame = panel.getTFrame();
-		panelID = panel.getID();
+		super(panel);
 		init();
 		setLayout(new BorderLayout());
 		playerBar = new JToolBar();
@@ -483,16 +476,6 @@ public class MainTView extends JPanel implements TView {
 	}
 
 	/**
-	 * Gets the toolbar components for this view
-	 *
-	 * @return an ArrayList of components to be added to a toolbar
-	 */
-	@Override
-	public ArrayList<Component> getToolBarComponents() {
-		return new ArrayList<Component>();
-	}
-
-	/**
 	 * Responds to property change events.
 	 *
 	 * @param e the property change event
@@ -642,15 +625,5 @@ public class MainTView extends JPanel implements TView {
 		return TView.VIEW_MAIN;
 	}
 	
-	@Override
-	public void refreshPopup(JPopupMenu popup) {
-		// does nothing
-	}
-
-	@Override
-	public void finalize() {
-		OSPLog.finalized(this);
-	}
-
 
 }

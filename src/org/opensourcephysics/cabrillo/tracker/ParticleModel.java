@@ -69,7 +69,9 @@ import org.opensourcephysics.tools.UserFunctionEditor;
 import javajs.async.SwingJSUtils.Performance;
 
 /**
- * A ParticleModel is a point mass whose positions are determined by a model.
+ * An abstract class representing a point mass for which positions are
+ * determined by a model. Subclassed as AnalyticParticle,
+ * DynamicParticle, and ParticleDataTrack.
  * 
  * @author Douglas Brown
  */
@@ -93,6 +95,7 @@ abstract public class ParticleModel extends PointMass {
 	protected FunctionTool modelBuilder;
 	protected ModelFunctionPanel functionPanel;
 	protected UserFunctionEditor functionEditor;
+
 	protected int inspectorX = Integer.MIN_VALUE, inspectorY, inspectorH = Integer.MIN_VALUE;
 	protected boolean showModelBuilder;
 	protected boolean refreshing = false;
@@ -196,7 +199,7 @@ abstract public class ParticleModel extends PointMass {
 				coords = ((ReferenceFrame) coords).getCoords();
 			}
 			boolean fixed = coords.isFixedAngle() && coords.isFixedOrigin() && coords.isFixedScale();
-			if (fixed && (!(tPanel instanceof WorldTView) || !isRefFrame)) {
+			if (fixed && (!tPanel.isWorldPanel() || !isRefFrame)) {
 				trace.reset();
 				for (int i = 0; i < traceX.length; i++) {
 					if (Double.isNaN(traceX[i]))
@@ -229,7 +232,7 @@ abstract public class ParticleModel extends PointMass {
 	 */
 	@Override
 	public void delete() {
-		FunctionTool modelBuilder = null;
+		ModelBuilder modelBuilder = null;
 		if (tp != null && tp.modelBuilder != null) {
 			ArrayList<ParticleModel> list = tp.getDrawablesTemp(ParticleModel.class);
 			if (list.size() == 1)
@@ -667,25 +670,6 @@ abstract public class ParticleModel extends PointMass {
 		functionPanel.initEditor.setDescription(FunctionEditor.OMEGA, s);
 	}
 
-	@Override
-	public void dispose() {
-		if (modelBuilder != null) {
-			getParamEditor().removePropertyChangeListener(massParamListener);
-			getInitEditor().removePropertyChangeListener(timeParamListener);
-			functionPanel.dispose();
-
-			modelBuilder.removePanel(getName());
-			modelBuilder.removePropertyChangeListener(this);
-			if (modelBuilder.isEmpty()) {
-				modelBuilder.setVisible(false);
-			}
-			modelBuilder = null;
-			functionPanel = null;
-			functionEditor = null;
-		}
-		super.dispose();
-	}
-
 	/**
 	 * Gets the next trace positions. Subclasses override to get positions based on
 	 * model. Value is stored in the points field
@@ -698,9 +682,8 @@ abstract public class ParticleModel extends PointMass {
 	 * Resets model parameters and sets position(s) for start frame. Most of the
 	 * work in this method must be done by subclasses.
 	 */
-	protected void reset() {
-//		invalidWarningShown = false;	
-	}
+	abstract protected void reset();
+	
 
 	protected Point2D.Double[] points;
 	protected int myPoint = 0;
@@ -1330,6 +1313,29 @@ abstract public class ParticleModel extends PointMass {
 				p.endFrame = n;
 			return obj;
 		}
+	}
+
+	@Override
+	public void dispose() {
+		if (modelBuilder != null) {
+			getParamEditor().removePropertyChangeListener(massParamListener);
+			getInitEditor().removePropertyChangeListener(timeParamListener);
+			functionPanel.dispose();
+			massParamListener = null;
+			timeParamListener = null;
+
+			modelBuilder.removePanel(getName());
+			modelBuilder.removePropertyChangeListener(this);
+			if (modelBuilder.isEmpty()) {
+				modelBuilder.setVisible(false);
+			}
+			modelBuilder = null;
+		}
+		functionPanel = null;
+		functionEditor = null;
+		if (tframe != null)
+			tframe.removePropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, this);
+		super.dispose();
 	}
 
 }
