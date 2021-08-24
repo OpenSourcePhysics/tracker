@@ -719,8 +719,8 @@ abstract public class ParticleModel extends PointMass {
 
 	protected boolean isModelsVisible() {
 		for (ParticleModel model : getModels()) {
-			if (model.isTraceVisible() || (model.isVisible() && (model.isPositionVisible(tp)
-					|| model.isVVisible(tp) || model.isAVisible(tp)))) {
+			if (model.isTraceVisible() || (model.isVisible() && (model.isPositionVisible()
+					|| model.isVVisible() || model.isAVisible()))) {
 				return true;
 			}
 		}

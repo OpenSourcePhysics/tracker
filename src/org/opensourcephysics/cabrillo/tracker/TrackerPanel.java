@@ -4420,7 +4420,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			// search only visible PointMass tracks for now
 			if (!track.isVisible() || track.getClass() != PointMass.class)
 				continue;
-			if (!((PointMass) track).isPositionVisible(this))
+			if (!((PointMass) track).isPositionVisible())
 				continue;
 			for (Step step : track.getSteps()) {
 				if (step == null || !track.isStepVisible(step, this))
@@ -4460,7 +4460,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			// search only visible PointMass tracks for now
 			if (!track.isVisible() || track.getClass() != PointMass.class)
 				continue;
-			if (!((PointMass) track).isPositionVisible(this))
+			if (!((PointMass) track).isPositionVisible())
 				continue;
 			for (Step step : track.getSteps()) {
 				if (step == null)
@@ -4943,7 +4943,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	}
 	
 	public String getTabName() {
-		return (frame == null ? "??" : getTFrame().getTabTitle(getTFrame().getTab(panelID)));
+		return (frame == null ? "<removed>" : getTFrame().getTabTitle(getTFrame().getTab(panelID)));
 	}
 
 	public void onBlocked() {
