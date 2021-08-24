@@ -26,7 +26,6 @@ package org.opensourcephysics.cabrillo.tracker;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
@@ -82,7 +81,6 @@ import javax.swing.undo.UndoManager;
 import javax.swing.undo.UndoableEdit;
 import javax.swing.undo.UndoableEditSupport;
 
-import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.desktop.OSPDesktop;
@@ -99,19 +97,15 @@ import javajs.async.AsyncFileChooser;
  *
  * @author Douglas Brown
  */
-public class PageTView extends JPanel implements TView {
+public class PageTView extends TView {
 
   protected static final Icon PAGEVIEW_ICON =  Tracker.getResourceIcon("html.gif", true); //$NON-NLS-1$;
 
 	// instance fields
   
-    protected TFrame frame;
-    protected Integer panelID;
-    
 	protected ArrayList<TabView> tabs = new ArrayList<TabView>();
 	protected JTabbedPane tabbedPane; // each tab is a TabView
 	protected JButton pageButton;
-	protected ArrayList<Component> toolbarComponents = new ArrayList<Component>();
 	protected JDialog nameDialog;
 	protected JTextField nameField;
 	protected JPanel noTab;
@@ -131,10 +125,7 @@ public class PageTView extends JPanel implements TView {
 	 * @param panel the tracker panel
 	 */
 	protected PageTView(TrackerPanel panel) {
-		if (panel == null)
-			return;
-		frame = panel.getTFrame();
-		panelID = panel.getID();
+		super(panel);
 		setBackground(panel.getBackground());
 		createGUI();
 		refresh();
@@ -231,21 +222,6 @@ public class PageTView extends JPanel implements TView {
 	@Override
 	public int getViewType() {
 		return TView.VIEW_PAGE;
-	}
-
-	/**
-	 * Gets the toolbar components
-	 *
-	 * @return an ArrayList of components to be added to a toolbar
-	 */
-	@Override
-	public ArrayList<Component> getToolBarComponents() {
-		return toolbarComponents;
-	}
-
-	@Override
-	public void refreshPopup(JPopupMenu popup) {
-		// does nothing
 	}
 
 	/**
@@ -1123,11 +1099,5 @@ public class PageTView extends JPanel implements TView {
 			return obj;
 		}
 	}
-
-	@Override
-	public void finalize() {
-		OSPLog.finalized(this);
-	}
-
 
 }

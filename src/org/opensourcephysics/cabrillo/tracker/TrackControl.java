@@ -298,7 +298,7 @@ public class TrackControl extends JDialog implements OSPRuntime.Disposable, Prop
 	 */
 	@Override
 	public void dispose() {
-		System.out.println("TrackControl.dispose " + panelID);
+		//System.out.println("TrackControl.dispose " + panelID);
 		if (panelID != null) {
 			TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
 			trackerPanel.removeListeners(panelProps, this);

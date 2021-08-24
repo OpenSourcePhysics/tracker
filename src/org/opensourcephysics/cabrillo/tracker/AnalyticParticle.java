@@ -88,7 +88,6 @@ public class AnalyticParticle extends ParticleModel {
 	 */
 	@Override
 	protected void reset() {
-		super.reset();
 		t0 = getInitialValues()[0]; // time at start frame
 		functions = getFunctionEditor().getMainFunctions();
 		if (tp != null) {
@@ -106,9 +105,9 @@ public class AnalyticParticle extends ParticleModel {
 				steps.setLength(1);
 				steps.setStep(0, null);
 				for (int i = 0; i < tp.andWorld.size(); i++) {
-					TrackerPanel panel = panel(tp.andWorld.get(i));
-					getVArray(panel).setLength(0);
-					getAArray(panel).setLength(0);
+					Integer panelID = tp.andWorld.get(i);
+					getVArray(panelID).setLength(0);
+					getAArray(panelID).setLength(0);
 				}
 				traceX = new double[0];
 				traceY = new double[0];
@@ -132,8 +131,8 @@ public class AnalyticParticle extends ParticleModel {
 					steps.setStep(firstFrameInClip, step);
 				}
 			}
-			getVArray(tp).setLength(0);
-			getAArray(tp).setLength(0);
+			getVArray(tp.getID()).setLength(0);
+			getAArray(tp.getID()).setLength(0);
 			// set position of step at firstFrameInClip
 			ImageCoordSystem coords = tp.getCoords();
 			// get underlying coords if appropriate

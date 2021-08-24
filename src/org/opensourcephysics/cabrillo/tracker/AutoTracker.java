@@ -2393,7 +2393,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 					setTrack(track);
 				refreshGUI();
 				if (!isPositioned) {
-					Timer timer = new Timer(10, (e) -> {
+					OSPRuntime.trigger(10, (e) -> {
 						// refreshGUI a second time before positioning
 						clearTextPaneSize();
 						refreshGUI();
@@ -2406,8 +2406,6 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 						setLocation(x, y);
 						isPositioned = true;
 					});
-					timer.setRepeats(false);
-					timer.start();
 				}
 			}
 		}

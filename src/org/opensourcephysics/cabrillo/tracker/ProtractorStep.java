@@ -137,7 +137,7 @@ public void setFootprint(Footprint footprint) {
 public Interactive findInteractive(
          DrawingPanel panel, int xpix, int ypix) {
     TrackerPanel trackerPanel = (TrackerPanel)panel;
-    boolean isWorldView = panel instanceof WorldTView;
+    boolean isWorldView = panel instanceof WorldTView.WorldPanel;
     setHitRectCenter(xpix, ypix);
     Shape hitShape;
     Interactive hit = null;
@@ -223,7 +223,7 @@ public Interactive findInteractive(
 public void draw(DrawingPanel panel, Graphics _g) {
     // draw the mark
     TrackerPanel trackerPanel = (TrackerPanel)panel;
-    boolean isWorldView = panel instanceof WorldTView;
+    boolean isWorldView = trackerPanel.isWorldPanel();
     Graphics2D g = (Graphics2D)_g;
     getMark(trackerPanel).draw(g, false);
     Paint gpaint = g.getPaint();
@@ -277,7 +277,7 @@ protected Mark getMark(TrackerPanel trackerPanel) {
       getProtractorAngle(true); // updates angle display
       ProtractorFootprint pFootprint = (ProtractorFootprint)footprint;
       TPoint selection = trackerPanel.getSelectedPoint();
-      boolean isWorldView = trackerPanel instanceof WorldTView;
+      boolean isWorldView = trackerPanel.isWorldPanel();
       
       // get screen points
       Point p = null;

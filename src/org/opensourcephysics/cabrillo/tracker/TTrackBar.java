@@ -107,7 +107,7 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 	 */
 	TTrackBar(TrackerPanel panel) {
 		System.out.println("Creating trackbar for " + panel);
-		this.frame = panel.frame;
+		this.frame = panel.getTFrame();
 		this.panelID = panel.getID();
 		
 		panel.addListeners(panelProps, this);

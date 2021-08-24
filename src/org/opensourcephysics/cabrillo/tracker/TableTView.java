@@ -35,7 +35,6 @@ import javax.swing.JPopupMenu;
 import javax.swing.SwingUtilities;
 import javax.swing.table.TableColumnModel;
 
-import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.display.DataTable;
@@ -73,7 +72,6 @@ public class TableTView extends TrackChooserTView {
 	@Override
 	public void addNotify() {
 		super.addNotify();
-		TrackerPanel trackerPanel = getPanel();
 		frame.removePropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, this); 
 		frame.addPropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, this); 
 	}
@@ -500,10 +498,5 @@ public class TableTView extends TrackChooserTView {
 		super.dispose();
 	}
 	
-	@Override
-	public void finalize() {
-		OSPLog.finalized(this);
-	}
-
 
 }

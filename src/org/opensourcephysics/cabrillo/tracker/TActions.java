@@ -200,7 +200,7 @@ public class TActions {
 					public void actionPerformed(ActionEvent e) {
 						
 						if (frame != null) {
-							frame.removeAllTabs();
+							frame.removeAllTabs(false);
 						}
 					}
 				});
@@ -791,10 +791,7 @@ public class TActions {
 		}
 		TFrame frame = trackerPanel.getTFrame();
 		if (frame != null) {
-			if (frame.getTabCount() > 0)
-				frame.removeAllTabs();
-			if (frame.getTabCount() == 0)
-				System.exit(0);
+			frame.removeAllTabs(true);
 		}
 	}
 

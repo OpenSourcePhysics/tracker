@@ -263,7 +263,7 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 	 * @param panel the tracker panel
 	 */
 	TToolBar(TrackerPanel panel) {
-		this.frame = panel.frame;
+		this.frame = panel.getTFrame();
 		this.panelID = panel.getID();
 		System.out.println("Creating toolbar for " + panel);
 		panel.addListeners(panelProps, this);
@@ -841,7 +841,6 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 	protected void doNotesAction() {
 		if (frame != null && frame.getSelectedPanel() == panel()) {
 			frame.setNotesDialog(panel(), infoListener);
-			notesButton.setSelected(frame.notesVisible());
 		}
 	}
 
@@ -855,6 +854,8 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 	 */
 	protected static void refreshMemoryButton(TrackerPanel trackerPanel) {
 		if (OSPRuntime.isJS)
+			return;
+		if (trackerPanel == null)
 			return;
 		Integer panelID = trackerPanel.getID();
 		TFrame frame = trackerPanel.getTFrame();
@@ -1045,20 +1046,12 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 		if (refreshTimer != null) {
 			refreshTimer.stop();
 		}
-		refreshTimer = new Timer(200, new ActionListener() {
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				if (!disposed) {
-					//System.out.println("TToolBar refreshAsync from " + whereFrom);
-					refreshAsync(refreshTrackProperties);
-				}
-				refreshTimer = null;
+		refreshTimer = OSPRuntime.trigger(200, (e) -> {
+			if (!disposed) {
+				refreshAsync(refreshTrackProperties);
 			}
-
+			refreshTimer = null;
 		});
-		refreshTimer.setRepeats(false);
-		refreshTimer.start();
 	}
 
 	/**
@@ -1380,7 +1373,7 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 	 */
 	@Override
 	public void dispose() {
-		System.out.println("TToolBar.dispose " + panelID);
+		//System.out.println("TToolBar.dispose " + panelID);
 		
 		disposed = true;
 		if (refreshTimer != null)

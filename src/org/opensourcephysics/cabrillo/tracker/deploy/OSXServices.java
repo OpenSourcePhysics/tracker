@@ -197,8 +197,8 @@ public class OSXServices {
 	    		if (tracker!=null) {
 		  		  TFrame frame = tracker.getFrame();
 		  		  if (frame != null) {
-		  		    frame.saveAllTabs(null, 
-		  		    new Runnable() {
+		  		    frame.saveAllTabs(false, 
+		  		    null, new Runnable() {
   	    				// whenAllApproved
   	    				@Override
   	    				public void run() {

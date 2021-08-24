@@ -57,7 +57,7 @@ public class AngleRuler extends Ruler {
 	
 	@Override
 	protected Mark getMark(TrackerPanel trackerPanel, int n) {
-		if (trackerPanel instanceof WorldTView)
+		if (trackerPanel.isWorldPanel())
 			return null;
 		refreshStrokes();
 		format.setDecimalFormatSymbols(OSPRuntime.getDecimalFormatSymbols());

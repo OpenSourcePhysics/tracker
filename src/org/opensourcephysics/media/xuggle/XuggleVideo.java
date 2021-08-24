@@ -768,7 +768,7 @@ public class XuggleVideo extends VideoAdapter implements SmoothPlayable, Increme
 	 */
 	@Override
 	public void dispose() {
-		System.out.println("XuggleVideo.dispose");
+		//System.out.println("XuggleVideo.dispose");
 		super.dispose();
 		disposeXuggle();
 	}

@@ -48,7 +48,6 @@ import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JTextField;
 
-import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.display.DataTable;
 import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.media.core.ImageCoordSystem;
@@ -64,7 +63,7 @@ import org.opensourcephysics.tools.FunctionTool;
  * @author Douglas Brown
  */
 @SuppressWarnings("serial")
-public abstract class TrackChooserTView extends JPanel implements TView {
+public abstract class TrackChooserTView extends TView {
 
 	private static final String[] panelProps = {
 		TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR,
@@ -77,12 +76,8 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 		FunctionTool.PROPERTY_FUNCTIONTOOL_FUNCTION,
 	};
 	public static boolean ignoreRefresh = false;
-	protected static int viewPanelID;
 	
 	// instance fields
-
-	protected TFrame frame;
-    protected Integer panelID;
 
     protected TrackerPanel getPanel() {
     	return frame.getTrackerPanelForID(panelID);
@@ -93,13 +88,10 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 	protected TTrack selectedTrack;
 	protected boolean refreshing;
 
-	protected ArrayList<Component> toolbarComponents = new ArrayList<Component>();
 	private JComboBox<Object[]> trackComboBox;
 	private JPanel noData;
 	private JLabel noDataLabel;
 
-	private int id;
-		
 	protected void setNodataLabel(String text) {
 		noDataLabel.setText(text);
 	}
@@ -109,14 +101,11 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 	 * @param panel the tracker panel
 	 */
 	protected TrackChooserTView(TrackerPanel panel) {
-		super(new CardLayout());
-		id = ++viewPanelID;
+		super(panel);
 		if (panel == null) {
 			// just a place-holder 
 			return;
 		}
-		frame = panel.getTFrame();
-		panelID = panel.getID();
 		init();
 		setBackground(panel.getBackground());
 		// create combobox with custom renderer for tracks
@@ -299,6 +288,7 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 	 */
 	@Override
 	public void init() {
+		setLayout(new CardLayout());
 		cleanup();
 		TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
 		trackerPanel.addListeners(panelProps, this);		
@@ -329,7 +319,7 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 	 */
 	@Override
 	public void dispose() {
-		System.out.println("TrackChoserTV.dispose for " + getClass().getSimpleName());
+		//System.out.println("TrackChoserTV.dispose for " + getClass().getSimpleName() + " " + panelID);
 		cleanup();
 		if (trackViews == null)
 			return;
@@ -341,13 +331,7 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 		tracks.clear();
 		setSelectedTrack(null);
 		remove(noData);
-		frame = null;
-		panelID = null;
-	}
-
-	@Override
-	public void finalize() {
-		OSPLog.finalized(this);
+		super.dispose();
 	}
 
 	/**
@@ -460,11 +444,6 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 		return toolbarComponents;
 	}
 
-	@Override
-	public void refreshPopup(JPopupMenu popup) {
-		// does nothing
-	}
-
 	/**
 	 * Returns true if this view is in a custom state.
 	 *
@@ -472,16 +451,6 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 	 */
 	@Override
 	public boolean isCustomState() {
-//		if (tracks.size() > 1) {
-//			// custom state if selected track is not the first in trackerPanel
-//			for (TTrack track : trackerPanel.getUserTracks()) {
-//				if (!track.isViewable())
-//					continue;
-//				if (track != selectedTrack)
-//					return true;
-//				break;
-//			}
-//		}
 		if (trackViews == null)
 			return false;
 		for (Iterator<TTrack> it = trackViews.keySet().iterator(); it.hasNext();) {
@@ -644,7 +613,7 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 	
 	@Override
 	public String toString() {
-		return "["+ getClass().getSimpleName() + " " + id +" selected=" + selectedTrack 
+		return "["+ getClass().getSimpleName() + " " + panelID +" selected=" + selectedTrack 
 				+ " views=" + (trackViews == null ? 0 : trackViews.size()) 
 				+ " tracks=" + tracks.size() + "]";
 	}

@@ -305,7 +305,7 @@ public class TapeStep extends Step {
 	protected Mark getMark(TrackerPanel trackerPanel) {
 		Mark mark = panelMarks.get(trackerPanel.getID());
 		if (mark == null) {
-      boolean isWorldView = trackerPanel instanceof WorldTView;
+      boolean isWorldView = trackerPanel.isWorldPanel();
 			// adjust tips if stick mode
 			if (tape.isStickMode() && !tape.isIncomplete) {
 				adjustTipsToLength();

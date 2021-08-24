@@ -267,7 +267,7 @@ public class Upgrader {
 						// launch new Tracker version
 						final String jarPath = jarFile.getAbsolutePath();
 						final ArrayList<String> filenames = new ArrayList<String>();
-						frame.saveAllTabs(new Function<Integer, Void>() {
+						frame.saveAllTabs(false, new Function<Integer, Void>() {
 							// for each approved
 							@Override
 							public Void apply(Integer panelID) {

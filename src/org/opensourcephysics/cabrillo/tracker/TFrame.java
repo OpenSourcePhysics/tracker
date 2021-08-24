@@ -72,7 +72,6 @@ import java.util.function.Function;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.Box;
-import javax.swing.ButtonGroup;
 import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -85,7 +84,6 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
-import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
@@ -108,7 +106,6 @@ import javax.swing.event.MenuListener;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.text.Document;
 
-import org.opensourcephysics.cabrillo.tracker.TFrame.DefaultMenuBar;
 import org.opensourcephysics.cabrillo.tracker.deploy.TrackerStarter;
 import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.controls.XML;
@@ -208,7 +205,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			objects = null;
 			toolbarBox = null;
 			removeAll();
-			System.out.println("TFrame.TTabPanel.dispose");
+			//System.out.println("TFrame.TTabPanel.dispose");
 		}
 
 		@Override
@@ -243,7 +240,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	protected static final double DEFAULT_LEFT_DIVIDER = 0.57;
 	protected static final double DEFAULT_BOTTOM_DIVIDER = 0.50;
 
-	private static boolean isPortraitLayout, isLayoutChanged, isLayoutAdaptive;
+	private static boolean isPortraitOrientation, isLayoutChanged, isLayoutAdaptive;
 	public static boolean haveExportDialog = false;
 	public static boolean haveThumbnailDialog = false;
 
@@ -371,8 +368,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	private void init(Map<String, Object> options) {
 		if (options == null)
 			options = new HashMap<>();
-		isLayoutAdaptive = OSPRuntime.isJS && options.get("-adaptive") != null;
-//		isLayoutAdaptive = true; // pig for testing
+		isLayoutAdaptive = (options.get("-adaptive") != null);
 		Dimension dim = (Dimension) options.get("-dim");
 		Rectangle bounds = (Rectangle) options.get("-bounds");
 		Video video = (Video) options.get("-video");
@@ -412,8 +408,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		pack();
 		setLocation(bounds.x, bounds.y);
 		Rectangle rect = getBounds();
-		isPortraitLayout = rect.height > rect.width;
-
+		isPortraitOrientation = rect.height > rect.width;
+		
 		// set transfer handler on tabbedPane
 		fileDropHandler = new FileDropHandler(this);
 		// set transfer handler for CTRL-V paste
@@ -432,21 +428,22 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		int h = (int) (0.7 * (dim.height - 80));
 		Rectangle rect = new Rectangle(margin, 80, w, h);
 		if (isInit) {
-			Runnable onOrient = new Runnable() {
+			// JS only
+				Runnable onOrient = new Runnable() {
 
-				@Override
-				public void run() {
-					getAdaptiveBounds(false);
-				}
+					@Override
+					public void run() {
+						getAdaptiveBounds(false);
+					}
 
-			};
+				};
 
-			// startup
-			/**
-			 * @j2sNative window.addEventListener(window.onorientationchange ?
-			 *            "orientationchange" : "resize", function() {
-			 *            console.log("Orientation changed"); onOrient.run$(); }, false);
-			 */
+				// startup
+				/**
+				 * @j2sNative window.addEventListener(window.onorientationchange ?
+				 *            "orientationchange" : "resize", function() {
+				 *            console.log("Orientation changed"); onOrient.run$(); }, false);
+				 */
 		} else {
 			setBounds(rect);
 			validate();
@@ -706,42 +703,38 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		if (whenDone != null) {
 			whenDone.run();
 		}
-
-		Timer timer = new Timer(100, new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
+		Integer panelID = trackerPanel.getID();
+		OSPRuntime.trigger(100, (e) -> {
 				// TTrackBar will only refresh after TFrame is visible
+				TrackerPanel tp = getTrackerPanelForID(panelID);
 				if (doRefresh)
-					trackerPanel.refreshTrackBar();
+					tp.refreshTrackBar();
 				// TTrackBar.getTrackbar(trackerPanel).refresh();
 				// DB following line needed to autoload data functions from external files
-				trackerPanel.getDataBuilder();
-				trackerPanel.changed = false;
-			}
+				tp.getDataBuilder();
+				tp.changed = false;
 		});
-		timer.setRepeats(false);
-		timer.start();
 	}
 
 	/**
 	 * Saves all tabs if user approved. Stops if any is canceled.
-	 * 
+	 * @param isExit TODO
 	 * @param whenEachApproved Function to apply to each TrackerPanel unless
 	 *                         canceled
 	 * @param whenAllApproved  Runnable to run after all have run whenEachApproved
 	 * @param whenCanceled     Runnable to run if canceled
 	 */
-	public void saveAllTabs(Function<Integer, Void> whenEachApproved, Runnable whenAllApproved, Runnable whenCanceled) {
+	public void saveAllTabs(boolean isExit, Function<Integer, Void> whenEachApproved, Runnable whenAllApproved, Runnable whenCanceled) {
 		// save all tabs in last-to-first order
 		final int[] tab = { getTabCount() - 1 };
 		TrackerPanel trackerPanel = getTrackerPanelForTab(tab[0]);
 		if (trackerPanel == null)
 			return;
-		Runnable approved = new Runnable() {
+		Function<Boolean, Void> whenClosed = new Function<Boolean, Void>() {
 			@Override
-			public void run() {
+			public Void apply(Boolean doSave) {
 				TrackerPanel trackerPanel = getTrackerPanelForTab(tab[0]);
-				if (whenEachApproved != null) {
+				if ((!isExit || doSave) && whenEachApproved != null) {
 					whenEachApproved.apply(trackerPanel.getID());
 				}
 				tab[0]--;
@@ -749,14 +742,16 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 					getTrackerPanelForTab(tab[0]).askSaveIfChanged(this, whenCanceled);
 				} else if (whenAllApproved != null)
 					whenAllApproved.run();
+				return null;
 			}
 		};
-		trackerPanel.askSaveIfChanged(approved, whenCanceled);
+		
+		trackerPanel.askSaveIfChanged(whenClosed, whenCanceled);
 	}
 
 	protected void relaunchCurrentTabs() {
 		final ArrayList<String> filenames = new ArrayList<String>();
-		saveAllTabs(new Function<Integer, Void>() {
+		saveAllTabs(false, new Function<Integer, Void>() {
 			// for each approved
 			@Override
 			public Void apply(Integer panelID) {
@@ -793,7 +788,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	/**
 	 * Removes all tabs.
 	 */
-	public void removeAllTabs() {
+	public void removeAllTabs(boolean isExit) {
 		if (!haveContent() && getTabCount() == 1) {
 			removeTabNow(0);
 			Disposable.dump();
@@ -801,12 +796,14 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		hideNotes();
 		ArrayList<Integer> panels = new ArrayList<Integer>();
 		boolean[] cancelled = new boolean[] { false };
-		saveAllTabs((panelID) -> {
+		saveAllTabs(false, (panelID) -> {
 			// when each approved, add to list
 			if (!cancelled[0])
 				panels.add(panelID);
 			return null;
 		}, () -> {
+			if (isExit)
+				System.exit(0);
 			// when all approved remove tabs synchronously
 			while (panels.size() > 0) {
 				removeTabSynchronously(getTrackerPanelForID(panels.remove(0)));
@@ -880,13 +877,14 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	 * @param trackerPanel the tracker panelf
 	 */
 	public boolean doCloseAction(TrackerPanel trackerPanel) {
-		if (getTab(trackerPanel.panelID) < 0)
+		if (getTab(trackerPanel.getID()) < 0)
 			return false;
 
-		trackerPanel.askSaveIfChanged(() -> {
+		Function<Boolean, Void> removeTab = (doSave) -> {
 			removeTabSynchronously(trackerPanel);
-			// new TabRemover(trackerPanel).executeSynchronously();// was sync
-		}, null);
+			return null;
+		};
+		trackerPanel.askSaveIfChanged(removeTab, null);
 		return true;
 	}
 
@@ -999,7 +997,20 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			if (frame != null && frame != this)
 				frame.setVisible(true);
 		}
+		
+		if (getTabCount() == 0) {
+			clearAllReferences();
+		}
 
+	}
+
+	private void clearAllReferences() {
+		if (notes != null) {
+			notes.dispose();
+			notes = null;
+		}
+		playerBar = null;
+//		System.out.println("TFrame.clearAllReferences");
 	}
 
 	private void closeAllDialogs(TrackerPanel trackerPanel, TTabPanel tabPanel) {
@@ -1127,9 +1138,10 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 
 	public void addTrackerPanel(boolean changedState, Runnable whenDone) {
 		TrackerPanel newPanel = new TrackerPanel(this);
+		Integer panelID = newPanel.getID();
 		addTab(newPanel, ADD_SELECT | ADD_NOREFRESH, () -> {
 			if (!changedState)
-				newPanel.changed = false;
+				getTrackerPanelForID(panelID).changed = false;
 			if (whenDone == null)
 				refresh();
 			else
@@ -1272,14 +1284,16 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		// place views in the right locations
 		placeViews(trackerPanel, getViewChoosers(trackerPanel));
 		// set divider properties according to visibility specified
-		boolean showRight = (!isPortraitLayout && showDefaultViews) || (isPortraitLayout && showOtherViews);
+		boolean showRight = (isPortraitOrientation ? showOtherViews :  showDefaultViews);
 		setDividerLocation(trackerPanel, SPLIT_MAIN_RIGHT, showRight ? DEFAULT_MAIN_DIVIDER : 1.0);
 		setDividerLocation(trackerPanel, SPLIT_PLOT_TABLE, DEFAULT_RIGHT_DIVIDER);
-		boolean showBottom = (!isPortraitLayout && showOtherViews) || (isPortraitLayout && showDefaultViews);
+		boolean showBottom = (isPortraitOrientation ? showDefaultViews : showOtherViews);
+//		boolean showBottom = (!isPortraitOrientation && showOtherViews) || (isPortraitOrientation && showDefaultViews);
 		setDividerLocation(trackerPanel, SPLIT_MAIN_BOTTOM, showBottom ? DEFAULT_LEFT_DIVIDER : 1.0);
 		// bottom divider--delay needed in Java for correct placement
+		Integer panelID = trackerPanel.getID();
 		SwingUtilities.invokeLater(() -> {
-			setDividerLocation(trackerPanel, SPLIT_WORLD_PAGE, DEFAULT_BOTTOM_DIVIDER);
+			setDividerLocation(getTrackerPanelForID(panelID), SPLIT_WORLD_PAGE, DEFAULT_BOTTOM_DIVIDER);
 		});
 	}
 	
@@ -1652,14 +1666,9 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			return;
 //    Tracker.setProgress(100);
 		// dispose of splash automatically after short time
-		Timer timer = new Timer(1000, new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
+		OSPRuntime.trigger(1000, (e) -> {
 				Tracker.splash.dispose();
-			}
 		});
-		timer.setRepeats(false);
-		timer.start();
 	}
 
 	/**
@@ -2537,7 +2546,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		if (!isLayoutAdaptive || trackerPanel == null)
 			return;
 		Rectangle rect = getBounds();
-		isLayoutChanged = isPortraitLayout != (rect.height > rect.width);
+		isLayoutChanged = isPortraitOrientation != (rect.height > rect.width);
 		if (maximizedView > -1) {
 			maximizeView(trackerPanel, maximizedView);
 			trackerPanel.dividerLocs = null;
@@ -2545,15 +2554,15 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		}
 		if (isLayoutChanged) {
 			// determine if dimensions are portrait or landscape and arrange views
-			isPortraitLayout = rect.height > rect.width;
+			isPortraitOrientation = !isPortraitOrientation;
 			for (int i = getTabCount(); --i >= 0;) { // bh rev order
 				trackerPanel = getTrackerPanelForTab(i);
 				boolean defaultViewsVisible = areViewsVisible(DEFAULT_VIEWS, trackerPanel);
 				boolean moreViewsVisible = areViewsVisible(OTHER_VIEWS, trackerPanel);
 				arrangeViews(trackerPanel, defaultViewsVisible, moreViewsVisible);
 			}
+			isLayoutChanged = false;
 		}
-		isLayoutChanged = false;
 	}
 
 	DataDropHandler getDataDropHandler() {
@@ -2605,7 +2614,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	}
 
 	protected static boolean isPortraitLayout() {
-		return isLayoutAdaptive && isPortraitLayout;
+		return isLayoutAdaptive && isPortraitOrientation;
 	}
 
 	/**
@@ -2817,28 +2826,33 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			return;
 		}
 		if (getTabCount() > 0)
-			removeAllTabs();
+			removeAllTabs(false);
 		try {
 			doOpenURL(path);
 		} catch (Throwable t) {
-			removeAllTabs();
+			removeAllTabs(false);
 		}
 	}
 
 	protected void loadLibraryRecord(LibraryResource record) {
 		openLibraryResource(record, () -> {
-			TrackerPanel trackerPanel = getSelectedPanel();
-			Timer timer = new Timer(200, (ev) -> {
+			Integer panelID = getSelectedPanelID();
+
+			OSPRuntime.trigger(200, (ev) -> {
 				libraryBrowser.doneLoading();
 				requestFocus();
-				if (trackerPanel != null) {
-					trackerPanel.changed = false;
-					repaintT(trackerPanel);
+				if (panelID != null) {
+					TrackerPanel panel = getTrackerPanelForID(panelID);
+					panel.changed = false;
+					repaintT(panel);
 				}
 			});
-			timer.setRepeats(false);
-			timer.start();
 		});
+	}
+
+	private Integer getSelectedPanelID() {
+		TrackerPanel panel = getSelectedPanel();
+		return (panel == null ? null : panel.getID());
 	}
 
 	public void openLibraryResource(LibraryResource record, Runnable whenDone) {
@@ -2919,14 +2933,12 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			setCursor(Cursor.getDefaultCursor());
 			libraryBrowser.open(path);
 			libraryBrowser.setVisible(true);
-			Timer timer = new Timer(1000, (e) -> {
+			OSPRuntime.trigger(1000, (e) -> {
 				LibraryTreePanel treePanel = libraryBrowser.getSelectedTreePanel();
 				if (treePanel != null) {
 					treePanel.refreshSelectedNode();
 				}
 			});
-			timer.setRepeats(false);
-			timer.start();
 		});
 	}
 
@@ -3188,8 +3200,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		}
 	}
 
-	private void setNotesVisible(boolean b) {
-		notes.setVisible(false);
+	public void setNotesVisible(boolean b) {
+		notes.setVisible(b);
 	}
 
 	@Override
@@ -3595,6 +3607,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			TrackerPanel trackerPanel = getSelectedPanel();
 			// position info dialog if first time shown
 			// or if trackerPanel specifies location
+			setVisible(true);
 			updateNotesDialog(trackerPanel);
 		}
 
@@ -3631,13 +3644,6 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	public void disposeOf(TrackerPanel trackerPanel) {
 		if (prevPanelID == trackerPanel.getID())
 			prevPanelID = null;
-	}
-
-	public void checkMemoryFromTimer() {
-		System.gc();
-		TrackerPanel panel = getSelectedPanel();
-		if (panel != null)
-			TToolBar.refreshMemoryButton(panel);
 	}
 
 	/**
@@ -3707,6 +3713,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	private TMenuBar[] _amenubars = new TMenuBar[MAX_PID];
 	private TTrackBar[] _atrackbars = new TTrackBar[MAX_PID];
 	private TToolBar[] _atoolbars = new TToolBar[MAX_PID];
+	private Timer memoryTimer;
  
 	{
 		Disposable.allocate(_apanels, "_apanels");
@@ -3717,6 +3724,20 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	
 	public TrackerPanel getTrackerPanelForID(Integer panelID) {
 		return (panelID == null ? null : _apanels[panelID.intValue()]);
+	}
+	
+	private static final int MEMORY_TIMER_DELAY_MS = 15000;
+
+	public void startMemoryTimer() {
+		if (MEMORY_TIMER_DELAY_MS > 0)
+		memoryTimer = new Timer(MEMORY_TIMER_DELAY_MS, (e) -> {
+			System.gc();
+			TrackerPanel panel = getSelectedPanel();
+			if (panel != null)
+				TToolBar.refreshMemoryButton(panel);
+		});
+		memoryTimer.setRepeats(true);
+		memoryTimer.start();
 	}
 
 	public static void main(String[] args) {

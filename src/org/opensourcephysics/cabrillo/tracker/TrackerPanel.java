@@ -57,6 +57,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.function.Function;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -189,8 +190,8 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	}
 	
 
-	protected double defaultImageBorder;
-	protected String description = ""; //$NON-NLS-1$
+	private double defaultImageBorder;
+	private String description = ""; //$NON-NLS-1$
 	protected TPoint selectedPoint;
 	protected Step selectedStep;
 	protected Integer selectingPanelID;
@@ -263,6 +264,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 
 	private ArrayList<TTrack> userTracks;
 	private Map<String, AbstractAction> actions;
+	protected String title;
 
 	/**
 	 * Constructs a blank TrackerPanel with a player.
@@ -413,22 +415,19 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	 */
 	public String getTitle() {
 		if (getDataFile() != null) {
-			return getDataFile().getName();
+			title = getDataFile().getName();
+		} else if (defaultFileName != null) {
+			title = defaultFileName;
+		} else if (getVideo() != null && (title = (String) getVideo().getProperty("name")) // $NON-NLS-0$
+				!= null) {
+			title = XML.forwardSlash(title);
+			int i = title.lastIndexOf("/"); //$NON-NLS-1$
+			if (i >= 0)
+				title = title.substring(i + 1);
+		} else {
+			title = TrackerRes.getString("TrackerPanel.NewTab.Name"); //$NON-NLS-1$
 		}
-		if (defaultFileName != null) {
-			return defaultFileName;
-		}
-		if (getVideo() != null) {
-			String name = (String) getVideo().getProperty("name"); //$NON-NLS-1$
-			if (name != null) {
-				name = XML.forwardSlash(name);
-				int i = name.lastIndexOf("/"); //$NON-NLS-1$
-				if (i >= 0)
-					name = name.substring(i + 1);
-				return name;
-			}
-		}
-		return TrackerRes.getString("TrackerPanel.NewTab.Name"); //$NON-NLS-1$
+		return title;
 	}
 
 	/**
@@ -479,9 +478,6 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		if (modelBuilder == null) {
 			// create and size model builder
 			modelBuilder = new ModelBuilder(this);
-			modelBuilder.setFontLevel(FontSizer.getLevel());
-			modelBuilder.refreshLayout();
-			modelBuilder.addPropertyChangeListener(FunctionTool.PROPERTY_FUNCTIONTOOL_PANEL, this);
 			// show model builder
 			try {
 				// place near top right corner of frame
@@ -875,9 +871,9 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	/**
 	 * Saves this TrackerPanel if changed, then runs the appropriate Runnable
 	 */
-	public void askSaveIfChanged(Runnable whenSaved, Runnable whenCanceled) {
-		if (!changed) {// || OSPRuntime.isApplet) {
-			whenSaved.run();
+	public void askSaveIfChanged(Function<Boolean, Void> whenClosed, Runnable whenCanceled) {
+		if (!changed) {
+			whenClosed.apply(false);
 			return;
 		}
 		String name = getTitle();
@@ -904,12 +900,12 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 								}
 							}
 							changed = false;
-							if (whenSaved != null)
-								whenSaved.run();
+							if (whenClosed != null)
+								whenClosed.apply(true);
 							break;
 						case JOptionPane.NO_OPTION:
-							if (whenSaved != null)
-								whenSaved.run();
+							if (whenClosed != null)
+								whenClosed.apply(false);
 							break;
 						default: // canceled
 							if (whenCanceled != null)
@@ -1075,9 +1071,13 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	public void clear() {
 		clear(true);
 	}
-	
-	synchronized void clear(boolean andSetCoords) {
-		isDisposed = true; // stop all firing of events
+
+	/**
+	 * Clear all drawables.
+	 * 
+	 * @param andSetCoords in general course of replacing them; false for dispose
+	 */
+	synchronized private void clear(boolean andSetCoords) {
 		//long t0 = Performance.now(0);
 		setSelectedTrack(null);
 		selectedPoint = null;
@@ -1107,7 +1107,8 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			modelBuilder.setVisible(false);
 		}
 		// notify views and other listeners
-		firePropertyChange(PROPERTY_TRACKERPANEL_CLEAR, null, null);
+		if (!isDisposed)
+			firePropertyChange(PROPERTY_TRACKERPANEL_CLEAR, null, null);
 		// remove tracks from TTrack.activeTracks
 		for (int it = 0, n = list.size(); it < n; it++) {
 			TTrack.panelActiveTracks.remove(list.get(it).getID());
@@ -1433,6 +1434,15 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			selectedSteps.add(selectedStep);
 		selectedSteps.isModified = false;
 		firePropertyChange(PROPERTY_TRACKERPANEL_SELECTEDPOINT, prevPoint, point);
+	}
+
+	/**
+	 * Returns pointID if this panel is actively selecting. 
+	 *
+	 * @return
+	 */
+	public Integer getSelectingPanelID() {
+		return selectingPanelID;
 	}
 
 	/**
@@ -1989,7 +1999,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		for (int i = 0, n = tapes.size(); i < n; i++) {
 			TapeMeasure tape = tapes.get(i);
 			//tape.inputField.getFormat(); // sets decimal separator
-			tape.repaint(this);
+			tape.repaint(panelID);
 		}
 		tapes.clear();
 		ArrayList<Protractor> prots = getDrawablesTemp(Protractor.class);
@@ -1998,7 +2008,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 //			p.inputField.getFormat(); // sets decimal separator
 //			p.xField.getFormat(); // sets decimal separator
 //			p.yField.getFormat(); // sets decimal separator
-			p.repaint(this);
+			p.repaint(panelID);
 		}
 		prots.clear();
 	}
@@ -2755,7 +2765,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			}
 			ArrayList<TTrack> list = getUserTracks();
 			for (int it = 0, ni = list.size(); it < ni; it++) {
-				list.get(it).erase(this);
+				list.get(it).erase(panelID);
 			}
 			TFrame.repaintT(this);
 			break;
@@ -3326,12 +3336,15 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 
 
 	/**
-	 * Disposes of this panel
+	 * Disposes of this panel permanently. Only to be used upon tab removal, and only to be run once.
 	 */
 	@Override
 	public void dispose() {
-		
-		System.out.println(this.getClass().getSimpleName() + ".dispose " + panelID);
+		if (isDisposed)
+			return;
+		isDisposed = true; // stop all firing of events
+
+		//System.out.println(this.getClass().getSimpleName() + ".dispose " + panelID + " " + title);
 		
 		// remove property change listeners
 		if (frame != null) {
@@ -3948,6 +3961,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				// clear the object
 				((XMLControlElement)control).dispose();
 				control = null;
+				finalized = true;
 			}
 		}
 
@@ -4419,7 +4433,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			// search only visible PointMass tracks for now
 			if (!track.isVisible() || track.getClass() != PointMass.class)
 				continue;
-			if (!((PointMass) track).isPositionVisible(this))
+			if (!((PointMass) track).isPositionVisible())
 				continue;
 			for (Step step : track.getSteps()) {
 				if (step == null || !track.isStepVisible(step, this))
@@ -4459,7 +4473,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			// search only visible PointMass tracks for now
 			if (!track.isVisible() || track.getClass() != PointMass.class)
 				continue;
-			if (!((PointMass) track).isPositionVisible(this))
+			if (!((PointMass) track).isPositionVisible())
 				continue;
 			for (Step step : track.getSteps()) {
 				if (step == null)
@@ -4533,13 +4547,6 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		setIgnoreRepaint(false);
 		firePropertyChange(PROPERTY_TRACKERPANEL_LOADED, null, null);
 	}
-
-//	@Override
-//	public void addPropertyChangeListener(String name, PropertyChangeListener listener) {
-//		if (listener instanceof TrackView)
-//			OSPLog.debug("Trackerpanel add " + name + listener);
-//		super.addPropertyChangeListener(name, listener);
-//	}
 
 	public void taintEnabled() {
 		enabledCount++;
@@ -4934,15 +4941,14 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			if (!hideDescriptionWhenLoaded
 					&& (track == null ? getDescription() != null && getDescription().trim().length() != 0
 							: track.getDescription() != null && track.getDescription().trim().length() > 0)) {
-				if (!button.isSelected())
-					button.doClick();
+				getToolBar(true).doNotesAction();
 			} else if (button.isSelected())
-				button.doClick();
+				button.setSelected(false);//doClick();
 		}
 	}
 	
 	public String getTabName() {
-		return (frame == null ? "??" : getTFrame().getTabTitle(getTFrame().getTab(panelID)));
+		return (frame == null ? "<removed>" : getTFrame().getTabTitle(getTFrame().getTab(panelID)));
 	}
 
 	public void onBlocked() {
@@ -4996,7 +5002,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	 * @return
 	 */
 	public TrackerPanel ref(Object o) {
-		System.out.println("TP ref " + (o instanceof String ? o.toString() : o.getClass().getSimpleName())); 
+		//System.out.println("TP ref " + (o instanceof String ? o.toString() : o.getClass().getSimpleName())); 
 		return this;
 	}
 
@@ -5044,13 +5050,17 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 
 	@Override
 	public String toString() {
-		return "[" + this.getClass().getSimpleName() + " " + panelID + " " + getTabName() + "]";
+		return "[" + this.getClass().getSimpleName() + " " + panelID + " " + title + "]";
 	}
 
 	@Override
 	public void finalize() {
 		System.out.println("-------HOORAY!!!!!!!----finalized!------------ " + this);
 		OSPLog.finalized(this);
+	}
+
+	public boolean isWorldPanel() {
+		return false;
 	}
 
 }

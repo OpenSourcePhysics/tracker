@@ -7,7 +7,8 @@
 
 package org.opensourcephysics.cabrillo.tracker;
 
-import org.opensourcephysics.tools.*;
+import org.opensourcephysics.tools.UserFunction;
+import org.opensourcephysics.tools.UserFunctionEditor;
 
 /**
  * This is a FunctionPanel for dynamic particles.

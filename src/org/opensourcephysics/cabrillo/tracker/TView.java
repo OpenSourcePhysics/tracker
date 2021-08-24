@@ -29,9 +29,11 @@ import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 
 import javax.swing.Icon;
+import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 
-import org.opensourcephysics.display.OSPRuntime;
+import org.opensourcephysics.controls.OSPLog;
+import org.opensourcephysics.display.OSPRuntime.Disposable;
 
 /**
  * This is a view of a tracker panel that can be added to a TViewChooser.
@@ -39,92 +41,104 @@ import org.opensourcephysics.display.OSPRuntime;
  *
  * @author Douglas Brown
  */
-public interface TView extends PropertyChangeListener, OSPRuntime.Disposable {
+public abstract class TView extends JPanel implements PropertyChangeListener, Disposable {
 	
-	String PROPERTY_TVIEW_TRACKVIEW = "trackview";
+	public final static String PROPERTY_TVIEW_TRACKVIEW = "trackview";
 
-	int VIEW_UNSET = -1;
-	int VIEW_PLOT = 0;
-	int VIEW_TABLE = 1;
-	int VIEW_WORLD = 2;
-	int VIEW_PAGE = 3;
-	int VIEW_MAIN = 4;
+	public final static int VIEW_UNSET = -1;
+	public final static int VIEW_PLOT = 0;
+	public final static int VIEW_TABLE = 1;
+	public final static int VIEW_WORLD = 2;
+	public final static int VIEW_PAGE = 3;
+	public final static int VIEW_MAIN = 4;
 
 	// view icons to show in chooserButton
-	Icon[] VIEW_ICONS = { PlotTView.PLOTVIEW_ICON, TableTView.TABLEVIEW_ICON, WorldTView.WORLDVIEW_ICON,
+	public final static Icon[] VIEW_ICONS = { PlotTView.PLOTVIEW_ICON, TableTView.TABLEVIEW_ICON, WorldTView.WORLDVIEW_ICON,
 			PageTView.PAGEVIEW_ICON };
 
 	// view names for chooserButton are localizable
-	String[] VIEW_NAMES = { "TFrame.View.Plot", "TFrame.View.Table", "TFrame.View.World", "TFrame.View.Text" };
+	public final static String[] VIEW_NAMES = { "TFrame.View.Plot", "TFrame.View.Table", "TFrame.View.World", "TFrame.View.Text" };
+
+	
+    protected TFrame frame;
+    protected Integer panelID;
+    
+	protected ArrayList<Component> toolbarComponents = new ArrayList<Component>();
+
+	public TView(TrackerPanel panel) {
+		frame = panel.getTFrame();
+		panelID = panel.getID();
+	}
 
 	/**
 	 * Initializes the view
 	 */
-	public void init();
+	public abstract void init();
 
 	/**
 	 * Refreshes the view
 	 */
-	public void refresh();
+	public abstract void refresh();
 
 	/**
 	 * Cleans up the view
 	 */
-	public void cleanup();
-
-	/**
-	 * Disposes of the view
-	 */
-	public void dispose();
+	public abstract void cleanup();
 
 	/**
 	 * Gets the TrackerPanel containing the track data
 	 *
 	 * @return the tracker panel containing the data to be viewed
 	 */
-	public TrackerPanel getTrackerPanel();
+	public abstract TrackerPanel getTrackerPanel();
 
 	/**
 	 * Gets the name of the view
 	 *
 	 * @return the name of the view
 	 */
-	public String getViewName();
+	public abstract String getViewName();
 
 	/**
 	 * Gets the icon for this view
 	 *
 	 * @return the icon for the view
 	 */
-	public Icon getViewIcon();
+	public abstract Icon getViewIcon();
 
 	/**
 	 * Gets the type of view
 	 *
 	 * @return one of the defined types
 	 */
-	public int getViewType();
+	public abstract int getViewType();
 
 	/**
-	 * Gets the toolbar components for this view
+	 * Gets the toolbar components for this view. Overridden by most subclasses
 	 *
 	 * @return an ArrayList of components to be added to a toolbar
 	 */
-	public ArrayList<Component> getToolBarComponents();
+	public ArrayList<Component> getToolBarComponents() {
+		return toolbarComponents;
+	}
+
 
 	/**
 	 * Refreshes a popup menu by adding items to it
 	 *
 	 * @param popup the popup to refresh
 	 */
-	public void refreshPopup(JPopupMenu popup);
+	public void refreshPopup(JPopupMenu popup) {
+		// see TableTView
+	}
+
 
 	/**
 	 * Returns true if this view is in a custom state.
 	 *
 	 * @return false
 	 */
-	default public boolean isCustomState() {
+	public boolean isCustomState() {
 		return false;
 	}
 
@@ -133,7 +147,7 @@ public interface TView extends PropertyChangeListener, OSPRuntime.Disposable {
 	 *
 	 * @return false
 	 */
-	default public boolean isViewPaneVisible() {
+	public boolean isViewPaneVisible() {
 		final TrackerPanel trackerPanel = getTrackerPanel();
 		TFrame tf;
 		if (trackerPanel == null || (tf = trackerPanel.getTFrame()) == null || tf.getTabCount() == 0)
@@ -154,4 +168,15 @@ public interface TView extends PropertyChangeListener, OSPRuntime.Disposable {
 		return false;
 	}
 
+	@Override
+	public void dispose() {		
+		frame = null;
+		panelID = null;
+		toolbarComponents = null;
+	}
+	
+	@Override
+	public void finalize() {
+		OSPLog.finalized(this);
+	}
 }

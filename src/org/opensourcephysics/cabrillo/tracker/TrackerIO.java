@@ -75,7 +75,6 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
 import javax.swing.SwingUtilities;
-import javax.swing.Timer;
 import javax.swing.filechooser.FileFilter;
 
 import org.opensourcephysics.cabrillo.tracker.TrackerPanel.Loader;
@@ -916,20 +915,14 @@ public class TrackerIO extends VideoIO {
 		}
 
 		run("addToLibrary", () -> {
-
+			
 				frame.getLibraryBrowser().open(path);
-//			      frame.getLibraryBrowser().setVisible(true); 
-				Timer timer = new Timer(1000, new ActionListener() {
-					@Override
-					public void actionPerformed(ActionEvent e) {
+				OSPRuntime.trigger(1000, (e) -> {
 						LibraryTreePanel treePanel = frame.getLibraryBrowser().getSelectedTreePanel();
 						if (treePanel != null) {
 							treePanel.refreshSelectedNode();
 						}
-					}
 				});
-				timer.setRepeats(false);
-				timer.start();
 		});
 	}
 
@@ -999,7 +992,7 @@ public class TrackerIO extends VideoIO {
 		boolean success = ResourceLoader.copyAllFiles(new File(source), file);
 		if (success) {
 			Tracker.addRecent(XML.getAbsolutePath(file), false); // add at beginning
-			trackerPanel.frame.refreshMenus(trackerPanel, TMenuBar.REFRESH_TRACKERIO_SAVEVIDEO);
+			trackerPanel.getTFrame().refreshMenus(trackerPanel, TMenuBar.REFRESH_TRACKERIO_SAVEVIDEO);
 			return file;
 		}
 		return null;
@@ -2267,6 +2260,9 @@ public class TrackerIO extends VideoIO {
 					frame.doTabStateChanged();
 				});
 			}
+			control = null;
+			this.libraryBrowser = null;
+			this.loader = null;
 			return PROGRESS_COMPLETE;
 		}
 

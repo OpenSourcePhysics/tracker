@@ -349,7 +349,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 	 * @param panel the tracker panel
 	 */
 	TMenuBar(TrackerPanel panel) {
-		frame = panel.frame;
+		frame = panel.getTFrame();
 		panelID = panel.getID();
 		System.out.println("creating TMenuBar for " + panel);
 		panel.addListeners(panelProps, this);
@@ -2563,7 +2563,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 	 */
 	@Override
 	public void dispose() {
-		System.out.println("disposing TMenuBar for " + panelID);
+		//System.out.println("disposing TMenuBar for " + panelID);
 		TrackerPanel panel = panel();
 		panel.removeListeners(panelProps, this);
 		Video video = panel.getVideo();

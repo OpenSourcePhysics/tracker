@@ -73,6 +73,9 @@ public class ModelBuilder extends FunctionTool {
 		if (frame != null) {
 			myFollower = frame.addFollower(this, null);
 		}
+		setFontLevel(FontSizer.getLevel());
+		refreshLayout();
+		addPropertyChangeListener(FunctionTool.PROPERTY_FUNCTIONTOOL_PANEL, trackerPanel);
 
 	}
 

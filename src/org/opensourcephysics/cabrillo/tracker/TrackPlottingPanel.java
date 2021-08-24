@@ -215,9 +215,9 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 					break;
 				case KeyEvent.VK_DELETE: // delete selected steps
 					trackerPanel.deleteSelectedSteps();
-					if (trackerPanel.selectedPoint != null
-							&& trackerPanel.selectingPanelID == trackerPanel.getID()) {
-						trackerPanel.deletePoint(trackerPanel.selectedPoint);
+					if (trackerPanel.getSelectedPoint() != null
+							&& trackerPanel.getSelectingPanelID() == trackerPanel.getID()) {
+						trackerPanel.deletePoint(trackerPanel.getSelectedPoint());
 					}
 					return;
 
@@ -1948,7 +1948,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 
 	@Override
 	public void dispose() {
-		System.out.println("TrackPlottingPanel.dispose " + panelID);
+		//System.out.println("TrackPlottingPanel.dispose " + panelID);
 		if (playerListener != null) {
 			getPlotPanel().getPlayer()
 					.removePropertyChangeListener(VideoPlayer.PROPERTY_VIDEOPLAYER_STEPNUMBER, playerListener); // $NON-NLS-1$

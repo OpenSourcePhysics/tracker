@@ -362,7 +362,7 @@ public class PerspectiveTrack extends TTrack {
 	}
 
 	@Override
-	public void remark(TrackerPanel trackerPanel) {
+	public void remark(Integer panelID) {
 	}
 
 	@Override
