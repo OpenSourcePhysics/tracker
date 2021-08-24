@@ -2024,7 +2024,8 @@ public class PointMass extends TTrack {
 			return;
 		// for each panel, update entire current videoclip
 		for (int i = tList.size(); --i >= 0;) {
-			updateDerivatives(tList.get(i));
+			TrackerPanel tp = panel(tList.get(i));
+			updatePanelDerivatives(tp);
 		}
 	}
 
@@ -2047,7 +2048,8 @@ public class PointMass extends TTrack {
 			Tracker.logTime(this.getClass().getSimpleName() + this.hashCode() + " update derivatives " + startFrame //$NON-NLS-1$
 					+ " steps " + stepCount); //$NON-NLS-1$
 		for (int i = tList.size(); --i >= 0;) {
-			updateDerivatives(panel(tList.get(i)), startFrame, stepCount);
+			TrackerPanel tp = panel(tList.get(i));
+			updateDerivatives(tp, startFrame, stepCount);
 		}
 //		OSPLog.debug(Performance.timeCheckStr(
 //				"ParticleModel.updateDerivatives1 " + startFrame + " tList=" + tList.size() + " stepcount=" + stepCount,
@@ -2063,7 +2065,8 @@ public class PointMass extends TTrack {
 		if (isEmpty() || refreshDataLater)
 			return;
 		for (int i = tList.size(); --i >= 0;) {
-			updateDerivatives(tList.get(i), frameNumber);
+			TrackerPanel tp = panel(tList.get(i));
+			updateDerivatives(tp, frameNumber);
 		}
 	}
 
