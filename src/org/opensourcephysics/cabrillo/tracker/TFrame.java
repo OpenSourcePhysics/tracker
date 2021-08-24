@@ -997,7 +997,21 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			if (frame != null && frame != this)
 				frame.setVisible(true);
 		}
+		
+		if (getTabCount() == 0) {
+			clearAllReferences();
+		}
 
+	}
+
+	private void clearAllReferences() {
+		if (notes != null) {
+			notes.dispose();
+			notes = null;
+		}
+		playerBar = null;
+		
+		System.out.println("TFrame.clearAllReferences");
 	}
 
 	private void closeAllDialogs(TrackerPanel trackerPanel, TTabPanel tabPanel) {
