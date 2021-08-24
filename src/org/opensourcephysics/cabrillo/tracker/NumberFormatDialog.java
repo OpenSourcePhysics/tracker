@@ -594,8 +594,8 @@ public class NumberFormatDialog extends JDialog {
 	@Override
 	public void setVisible(boolean b) {
 		super.setVisible(b);
-		if (!b) 
-			dispose();
+//		if (!b) 
+//			dispose();
 	}
 	/**
 	 * Sets the font level of this dialog.
