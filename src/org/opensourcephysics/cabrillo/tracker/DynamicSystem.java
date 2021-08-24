@@ -591,13 +591,14 @@ public class DynamicSystem extends DynamicParticlePolar {
 	 * Refreshes the data. Overrides PointMass method.
 	 *
 	 * @param data         the DatasetManager
-	 * @param trackerPanel the tracker panel
+	 * @param panel the tracker panel
 	 */
 	@Override
-	protected void refreshData(DatasetManager data, TrackerPanel trackerPanel) {
-		if (refreshDataLater || trackerPanel == null || data == null)
+	protected void refreshData(DatasetManager data, TrackerPanel panel) {
+		if (refreshDataLater || panel == null || data == null)
 			return;
-		int count = 25; // number of datasets		
+		int count = 25; // number of datasets	
+		Integer panelID = panel.getID();
 		// get the rotational data
 		Object[] rotationData = getRotationData();
 		double[] theta_data = (double[]) rotationData[0];
@@ -605,10 +606,10 @@ public class DynamicSystem extends DynamicParticlePolar {
 		double[] alpha_data = (double[]) rotationData[2];
 		// clear datasets
 		// get data at each non-null position step in the videoclip
-		VideoPlayer player = trackerPanel.getPlayer();
+		VideoPlayer player = panel.getPlayer();
 		VideoClip clip = player.getVideoClip();
 		double dt = player.getMeanStepDuration() / 1000.0;
-		ImageCoordSystem coords = trackerPanel.getCoords();
+		ImageCoordSystem coords = panel.getCoords();
 		Step[] stepArray = getSteps();
 		int pt = 0;
 		int len = stepArray.length;
@@ -621,7 +622,7 @@ public class DynamicSystem extends DynamicParticlePolar {
 			double t = player.getStepTime(stepNumber) / 1000.0;
 			// assemble the data values for this step
 			TPoint p = ((PositionStep) stepArray[i]).getPosition();
-			Point2D wp = p.getWorldPosition(trackerPanel);
+			Point2D wp = p.getWorldPosition(panel);
 			validData[0][pt] = wp.getX(); // x
 			validData[1][pt] = wp.getY(); // y
 			validData[2][pt] = wp.distance(0, 0); // mag
@@ -631,7 +632,7 @@ public class DynamicSystem extends DynamicParticlePolar {
 			validData[14][pt] = alpha_data[i] / (dt * dt); // alpha
 			validData[15][pt] = stepNumber; // step
 			validData[16][pt] = i; // frame
-			VectorStep veloc = getVelocity(i, trackerPanel);
+			VectorStep veloc = getVelocity(i, panelID);
 			if (veloc == null) {
 				validData[4][pt] = Double.NaN; // vx
 				validData[5][pt] = Double.NaN; // vy
@@ -654,7 +655,7 @@ public class DynamicSystem extends DynamicParticlePolar {
 				validData[19][pt] = mass * r;
 				validData[20][pt] = mass * slope;
 			}
-			VectorStep accel = getAcceleration(i, trackerPanel);
+			VectorStep accel = getAcceleration(i, panelID);
 			if (accel == null) {
 				validData[8][pt] = Double.NaN; // ax
 				validData[9][pt] = Double.NaN; // ay

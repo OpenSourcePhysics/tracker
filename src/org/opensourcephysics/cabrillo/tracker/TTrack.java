@@ -210,7 +210,7 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 				dataValid = false;
 				break;
 			case VideoPanel.PROPERTY_VIDEOPANEL_IMAGESPACE:
-				erase(trackerPanel);
+				erase(trackerPanel.getID());
 				break;
 			case ImageCoordSystem.PROPERTY_COORDS_TRANSFORM:
 			case Video.PROPERTY_VIDEO_COORDS:
@@ -1333,12 +1333,12 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 	 * @param trackerPanel the tracker panel
 	 * @return the next visiblestep
 	 */
-	public Step getNextVisibleStep(Step step, TrackerPanel trackerPanel) {
+	public Step getNextVisibleStep(Step step, TrackerPanel panel) {
 		Step[] steps = getSteps();
 		boolean found = false;
 		for (int i = 0; i < steps.length; i++) {
 			// return first step after found
-			if (found && steps[i] != null && isStepVisible(steps[i], trackerPanel))
+			if (found && steps[i] != null && isStepVisible(steps[i], panel))
 				return steps[i];
 			// find specified step
 			if (steps[i] == step)
@@ -1348,7 +1348,7 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 		if (found) {
 			for (int i = 0; i < steps.length; i++) {
 				// return first visible step
-				if (steps[i] != null && steps[i] != step && isStepVisible(steps[i], trackerPanel))
+				if (steps[i] != null && steps[i] != step && isStepVisible(steps[i], panel))
 					return steps[i];
 			}
 		}
@@ -1562,10 +1562,10 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 	/**
 	 * Returns the DatasetManager.
 	 *
-	 * @param trackerPanel the tracker panel
+	 * @param panel the tracker panel
 	 * @return the DatasetManager
 	 */
-	public DatasetManager getData(TrackerPanel trackerPanel) {
+	public DatasetManager getData(TrackerPanel panel) {
 		if (datasetManager == null) {
 			datasetManager = new DatasetManager(true);
 			datasetManager.setSorted(true);
@@ -1575,7 +1575,7 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 		if (!dataValid) {
 			dataValid = true;
 			// refresh track data
-			refreshData(datasetManager, trackerPanel);
+			refreshData(datasetManager, panel);
 			// check for newly loaded dataFunctions
 			if (constantsLoadedFromXML != null) {
 				for (int i = 0; i < constantsLoadedFromXML.length; i++) {
@@ -1612,7 +1612,7 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 				}
 			}
 			DataTool tool = DataTool.getTool(false);
-			if (trackerPanel != null && tool != null && tool.isVisible() && tool.getSelectedTab() != null
+			if (panel != null && tool != null && tool.isVisible() && tool.getSelectedTab() != null
 					&& tool.getSelectedTab().isInterestedIn(datasetManager)) {
 				tool.getSelectedTab().refreshData();
 			}
@@ -1627,7 +1627,7 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 	 * @param data         the DatasetManager
 	 * @param trackerPanel the tracker panel
 	 */
-	protected void refreshData(DatasetManager data, TrackerPanel trackerPanel) {
+	protected void refreshData(DatasetManager data, TrackerPanel panel) {
 		/** empty block */
 	}
 
@@ -2080,9 +2080,7 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 	 */
 	protected void refreshAttachmentsLater() {
 		// use timer with 2 second delay
-		Timer timer = new Timer(2000, new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
+		OSPRuntime.trigger(2000, (e) -> {
 				// save changed state
 				boolean changed = tp != null && tp.changed;
 				refreshAttachments();
@@ -2090,10 +2088,7 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 					// restore changed state
 					tp.changed = changed;
 				}
-			}
 		});
-		timer.setRepeats(false);
-		timer.start();
 	}
 
 	/**
@@ -2555,13 +2550,14 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 	 *
 	 * @param trackerPanel the tracker panel
 	 */
-	public void erase(TrackerPanel trackerPanel) {
+	public void erase(Integer panelID) {
 		Step[] stepArray = steps.array;
 		for (int j = 0; j < stepArray.length; j++)
 			if (stepArray[j] != null)
-				stepArray[j].erase(trackerPanel);
-		if (trackerPanel.autoTracker != null) {
-			AutoTracker autoTracker = trackerPanel.getAutoTracker(true);
+				stepArray[j].erase(panelID);
+		TrackerPanel panel = panel(panelID);
+		AutoTracker autoTracker = panel.autoTracker;
+		if (autoTracker != null) {
 			if (autoTracker.getWizard().isVisible() && autoTracker.getTrack() == this) {
 				autoTracker.erase();
 			}
@@ -2573,11 +2569,11 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 	 *
 	 * @param trackerPanel the tracker panel
 	 */
-	public void remark(TrackerPanel trackerPanel) {
+	public void remark(Integer panelID) {
 		Step[] stepArray = steps.array;
 		for (int j = 0; j < stepArray.length; j++)
 			if (stepArray[j] != null)
-				stepArray[j].remark(trackerPanel);
+				stepArray[j].remark(panelID);
 	}
 
 	/**
@@ -2585,10 +2581,20 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 	 *
 	 * @param trackerPanel the tracker panel
 	 */
-	public void repaint(TrackerPanel trackerPanel) {
-		remark(trackerPanel);
-		trackerPanel.repaintDirtyRegion();
+	public void repaint(Integer panelID) {
+		remark(panelID);
+		panel(panelID).repaintDirtyRegion();
 	}
+
+//	/**
+//	 * Repaints all steps on the specified panel.
+//	 *
+//	 * @param trackerPanel the tracker panel
+//	 */
+//	public void repaint(TrackerPanel panel) {
+//		remark(panel.getID());
+//		panel.repaintDirtyRegion();
+//	}
 
 	/**
 	 * Repaints the specified step on all panels. This should be used instead of the
@@ -2600,7 +2606,7 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 	 */
 	public void repaintStep(Step step) {
 		for (int j = 0; j < tp.andWorld.size(); j++) {
-			step.repaint(panel(tp.andWorld.get(j)));
+			step.repaint(tp.andWorld.get(j));
 		}
 	}
 

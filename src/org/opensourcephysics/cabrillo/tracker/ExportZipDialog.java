@@ -2187,14 +2187,9 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 			// offer to open the newly created zip file
 			openNewZip(target.getAbsolutePath());
 			// delete temp directory after short delay
-			Timer timer = new Timer(1000, new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent e) {
+			OSPRuntime.trigger(1000, (e) -> {
 					ResourceLoader.deleteFile(new File(getTempDirectory()));
-				}
 			});
-			timer.setRepeats(false);
-			timer.start();
 		}
 	}
 

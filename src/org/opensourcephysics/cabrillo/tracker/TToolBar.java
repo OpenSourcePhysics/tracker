@@ -856,6 +856,8 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 	protected static void refreshMemoryButton(TrackerPanel trackerPanel) {
 		if (OSPRuntime.isJS)
 			return;
+		if (trackerPanel == null)
+			return;
 		Integer panelID = trackerPanel.getID();
 		TFrame frame = trackerPanel.getTFrame();
 		System.gc();
@@ -1045,20 +1047,12 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 		if (refreshTimer != null) {
 			refreshTimer.stop();
 		}
-		refreshTimer = new Timer(200, new ActionListener() {
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				if (!disposed) {
-					//System.out.println("TToolBar refreshAsync from " + whereFrom);
-					refreshAsync(refreshTrackProperties);
-				}
-				refreshTimer = null;
+		refreshTimer = OSPRuntime.trigger(200, (e) -> {
+			if (!disposed) {
+				refreshAsync(refreshTrackProperties);
 			}
-
+			refreshTimer = null;
 		});
-		refreshTimer.setRepeats(false);
-		refreshTimer.start();
 	}
 
 	/**

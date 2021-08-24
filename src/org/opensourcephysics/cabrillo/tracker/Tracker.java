@@ -111,7 +111,6 @@ import org.opensourcephysics.tools.JREFinder;
 import org.opensourcephysics.tools.LaunchNode;
 import org.opensourcephysics.tools.Resource;
 import org.opensourcephysics.tools.ResourceLoader;
-import org.opensourcephysics.tools.ToolsRes;
 
 import javajs.async.AsyncSwingWorker;
 import javajs.async.SwingJSUtils.Performance;
@@ -633,7 +632,7 @@ public class Tracker {
 //		helper = new StateHelper(this);
 //		helper.next(STATE_INIT);
 
-		if (false && splash != null) {
+		if (splash != null) {
 			if (showSplash && !OSPRuntime.isJS) {
 				// set font level resize and center splash frame
 				FontSizer.setFonts(splash);
@@ -820,7 +819,10 @@ public class Tracker {
 					return null;
 				}
 
-			}, null, () -> {
+			}, () -> {
+				// when all approved
+				exit();
+			}, () -> {
 				// if canceled
 				// exiting is canceled so temporarily change close operation
 				// to DO_NOTHING before the frame finishes closing
@@ -1946,7 +1948,8 @@ public class Tracker {
 		// determine if this is tracker.jar (Tracker main class)
 		// bypassed in JavaScript
 		if (initializeJava(args)) {
-			TFrame frame = start(args);
+			//TFrame frame = 
+					start(args);
 
 			if (testingFinal) { // TEST_BH
 				//testFinalize(frame);
@@ -1954,11 +1957,11 @@ public class Tracker {
 		}
 	}
 
-	private static void testFinalize(TFrame frame) {
+	static void testFinalize(TFrame frame) {
 		
 		new Thread(()->{
 		try {
-			Thread.currentThread().sleep(5000);
+			Thread.sleep(5000);
 			TrackerPanel panel = testPanel;
 			if (panel == null)
 				panel = frame.getTrackerPanelForTab(0);
@@ -1968,9 +1971,9 @@ public class Tracker {
 				panel.dispose();
 			panel = null;
 			System.gc();
-			Thread.currentThread().sleep(500);
+			Thread.sleep(500);
 			System.gc();
-			Thread.currentThread().sleep(100000);
+			Thread.sleep(100000);
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -2202,7 +2205,7 @@ public class Tracker {
 
 			final String newVersionURL = System.getenv(TrackerStarter.TRACKER_NEW_VERSION);
 			if (newVersionURL != null) {
-				Timer timer = new Timer(2000, (e) -> {
+				OSPRuntime.trigger(2000, (e) -> {
 					if (OSPRuntime.isWindows()) {
 						File target = new File(trackerHome, "tracker.jar"); //$NON-NLS-1$
 						ResourceLoader.download(newVersionURL, target, true);
@@ -2227,15 +2230,8 @@ public class Tracker {
 						savePreferences();
 					}
 				});
-				timer.setRepeats(false);
-				timer.start();
 			}
-
-			Timer memoryTimer = new Timer(15000, (e) -> {
-				frame.checkMemoryFromTimer();
-			});
-			memoryTimer.setRepeats(true);
-			memoryTimer.start();
+			frame.startMemoryTimer();
 		}
 	}
 

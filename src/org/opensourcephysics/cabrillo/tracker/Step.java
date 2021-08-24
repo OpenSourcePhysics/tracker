@@ -105,15 +105,6 @@ public abstract class Step implements Cloneable {
 	}
 
 	/**
-	 * Gets the TFrame.
-	 *
-	 * @return the frame
-	 */
-	public TFrame getTFrame() {
-		return getTrack().tframe;
-	}
-
-	/**
 	 * Sets the footprint.
 	 *
 	 * @param footprint the footprint
@@ -182,11 +173,11 @@ public abstract class Step implements Cloneable {
 	 *
 	 * @param trackerPanel the tracker panel
 	 */
-	public void erase(TrackerPanel trackerPanel) {
-		if (panelMarks.get(trackerPanel.getID()) == null)
+	public void erase(Integer panelID) {
+		if (panelMarks.get(panelID) == null)
 			return; // already dirty
-		trackerPanel.addDirtyRegion(null);//getBounds(trackerPanel)); // old bounds
-		panelMarks.put(trackerPanel.getID(), null); // triggers new mark
+		panel(panelID).addDirtyRegion(null);//getBounds(trackerPanel)); // old bounds
+		panelMarks.put(panelID, null); // triggers new mark
 	}
 
 	/**
@@ -196,9 +187,9 @@ public abstract class Step implements Cloneable {
 	 *
 	 * @param trackerPanel the tracker panel
 	 */
-	public void remark(TrackerPanel trackerPanel) {
-		erase(trackerPanel);
-		trackerPanel.addDirtyRegion(null);//getBounds(trackerPanel)); // new bounds
+	public void remark(Integer panelID) {
+		erase(panelID);
+		panel(panelID).addDirtyRegion(null);//getBounds(trackerPanel)); // new bounds
 	}
 
 	/**
@@ -207,9 +198,9 @@ public abstract class Step implements Cloneable {
 	 *
 	 * @param trackerPanel the tracker panel
 	 */
-	public void repaint(TrackerPanel trackerPanel) {
-		remark(trackerPanel);
-		trackerPanel.repaintDirtyRegion();
+	public void repaint(Integer panelID) {
+		remark(panelID);
+		panel(panelID).repaintDirtyRegion();
 	}
 
 	/**
@@ -218,9 +209,9 @@ public abstract class Step implements Cloneable {
 	public void erase() {
 		if (panelMarks.isEmpty())
 			return;
-		Iterator<Integer> it = panelMarks.keySet().iterator();
-		while (it.hasNext())
-			erase(getTFrame().getTrackerPanelForID(it.next()));
+		Iterator<Integer> panelIDs = panelMarks.keySet().iterator();
+		while (panelIDs.hasNext())
+			erase(panelIDs.next());
 	}
 
 	/**
@@ -229,18 +220,22 @@ public abstract class Step implements Cloneable {
 	public void remark() {
 		if (panelMarks.isEmpty())
 			return;
-		Iterator<Integer> it = panelMarks.keySet().iterator();
-		while (it.hasNext())
-			remark(getTFrame().getTrackerPanelForID(it.next()));
+		Iterator<Integer> panelIDs = panelMarks.keySet().iterator();
+		while (panelIDs.hasNext())
+			remark(panelIDs.next());
 	}
 
 	/**
 	 * Repaints this on all tracker panels.
 	 */
 	public void repaint() {
-		Iterator<Integer> it = panelMarks.keySet().iterator();
-		while (it.hasNext())
-			repaint(getTFrame().getTrackerPanelForID(it.next()));
+		Iterator<Integer> panelIDs = panelMarks.keySet().iterator();
+		while (panelIDs.hasNext())
+			repaint(panelIDs.next());
+	}
+
+	private TrackerPanel panel(Integer panelID) {
+		return getTrack().panel(panelID);
 	}
 
 	/**

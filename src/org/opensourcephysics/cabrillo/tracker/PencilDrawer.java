@@ -98,7 +98,6 @@ public class PencilDrawer {
 	protected static PencilDrawer getDrawer(TrackerPanel panel) {
 		Integer panelID = panel.getID();
 		PencilDrawer drawer = panelDrawers.get(panelID);
-		System.out.println("PencilDrawer " + panel + " " + drawer);
 		if (drawer == null) {
 			drawer = new PencilDrawer(panel);
 			panelDrawers.put(panelID, drawer);

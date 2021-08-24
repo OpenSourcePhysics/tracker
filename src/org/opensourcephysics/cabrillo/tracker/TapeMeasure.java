@@ -983,8 +983,8 @@ public class TapeMeasure extends InputTrack {
 	 * @param trackerPanel the tracker panel
 	 */
 	@Override
-	public void remark(TrackerPanel trackerPanel) {
-		super.remark(trackerPanel);
+	public void remark(Integer panelID) {
+		super.remark(panelID);
 		displayState();
 	}
 
@@ -1266,7 +1266,7 @@ public class TapeMeasure extends InputTrack {
 		}
 		if (t.worldLength > 0) {
 			t.setTapeLength(inputField.getValue());
-			t.repaint(tp);
+			t.repaint(tp.getID());
 		}
 		inputField.setSigFigs(4);
 	}

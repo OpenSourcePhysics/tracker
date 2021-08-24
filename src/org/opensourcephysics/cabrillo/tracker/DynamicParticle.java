@@ -187,9 +187,9 @@ public class DynamicParticle extends ParticleModel implements ODE {
 					models[i].steps.setLength(1);
 					models[i].steps.setStep(0, null);
 					for (int j = 0; j < tp.andWorld.size(); j++) {
-						TrackerPanel panel = panel(tp.andWorld.get(j));
-						models[i].getVArray(panel).setLength(0);
-						models[i].getAArray(panel).setLength(0);
+						Integer panelID = tp.andWorld.get(j);
+						models[i].getVArray(panelID).setLength(0);
+						models[i].getAArray(panelID).setLength(0);
 					}
 					models[i].traceX = new double[0];
 					models[i].traceY = new double[0];
@@ -229,9 +229,9 @@ public class DynamicParticle extends ParticleModel implements ODE {
 					}
 				}
 				for (int j = 0; j < tp.andWorld.size(); j++) {
-					TrackerPanel panel = panel(tp.andWorld.get(j));
-					models[i].getVArray(panel).setLength(0);
-					models[i].getAArray(panel).setLength(0);
+					Integer panelID = tp.andWorld.get(j);
+					models[i].getVArray(panelID).setLength(0);
+					models[i].getAArray(panelID).setLength(0);
 				}
 				transform.transform(points[i], points[i]);
 				models[i].traceX = new double[] { points[i].getX() };

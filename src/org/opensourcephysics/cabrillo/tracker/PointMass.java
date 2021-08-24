@@ -593,16 +593,17 @@ public class PointMass extends TTrack {
 		if (point == null)
 			return null;
 		Step[] stepArray = null;
+		Integer panelID = trackerPanel.getID();
 		for (int n = 0; n < 3; n++) {
 			switch (n) {
 			case 0:
 				stepArray = steps.array;
 				break;
 			case 1:
-				stepArray = getVelocities(trackerPanel);
+				stepArray = getVelocities(panelID);
 				break;
 			case 2:
-				stepArray = getAccelerations(trackerPanel);
+				stepArray = getAccelerations(panelID);
 			}
 			for (int j = 0; j < stepArray.length; j++)
 				if (stepArray[j] != null) {
@@ -623,16 +624,17 @@ public class PointMass extends TTrack {
 	 * @return the next step
 	 */
 	@Override
-	public Step getNextVisibleStep(Step step, TrackerPanel trackerPanel) {
+	public Step getNextVisibleStep(Step step, TrackerPanel panel) {
+		Integer panelID = panel.getID();
 		Step[] steps = getSteps();
 		if (isVelocity(step))
-			steps = getVelocities(trackerPanel);
+			steps = getVelocities(panelID);
 		if (isAcceleration(step))
-			steps = getAccelerations(trackerPanel);
+			steps = getAccelerations(panelID);
 		boolean found = false;
 		for (int i = 0; i < steps.length; i++) {
 			// return first step after found
-			if (found && steps[i] != null && isStepVisible(steps[i], trackerPanel))
+			if (found && steps[i] != null && isStepVisible(steps[i], panel))
 				return steps[i];
 			// find specified step
 			if (steps[i] == step)
@@ -642,7 +644,7 @@ public class PointMass extends TTrack {
 		if (found) {
 			for (int i = 0; i < steps.length; i++) {
 				// return first visible step
-				if (steps[i] != null && steps[i] != step && isStepVisible(steps[i], trackerPanel))
+				if (steps[i] != null && steps[i] != step && isStepVisible(steps[i], panel))
 					return steps[i];
 			}
 		}
@@ -653,20 +655,21 @@ public class PointMass extends TTrack {
 	 * Gets step before the specified step. May return null.
 	 *
 	 * @param step         the step
-	 * @param trackerPanel the tracker panel
+	 * @param panel the tracker panel
 	 * @return the previous step
 	 */
 	@Override
-	public Step getPreviousVisibleStep(Step step, TrackerPanel trackerPanel) {
+	public Step getPreviousVisibleStep(Step step, TrackerPanel panel) {
 		Step[] steps = getSteps();
+		Integer panelID = panel.getID();
 		if (isVelocity(step))
-			steps = getVelocities(trackerPanel);
+			steps = getVelocities(panelID);
 		if (isAcceleration(step))
-			steps = getAccelerations(trackerPanel);
+			steps = getAccelerations(panelID);
 		boolean found = false;
 		for (int i = steps.length - 1; i > -1; i--) {
 			// return first step after found
-			if (found && steps[i] != null && isStepVisible(steps[i], trackerPanel))
+			if (found && steps[i] != null && isStepVisible(steps[i], panel))
 				return steps[i];
 			// find specified step
 			if (steps[i] == step)
@@ -676,7 +679,7 @@ public class PointMass extends TTrack {
 		if (found) {
 			for (int i = steps.length - 1; i > -1; i--) {
 				// return first visible step
-				if (steps[i] != null && steps[i] != step && isStepVisible(steps[i], trackerPanel))
+				if (steps[i] != null && steps[i] != step && isStepVisible(steps[i], panel))
 					return steps[i];
 			}
 		}
@@ -770,8 +773,8 @@ public class PointMass extends TTrack {
 				if (tp == null)
 					return;
 				for (int j = 0; j < tp.andWorld.size(); j++) {
-					TrackerPanel panel = panel(tp.andWorld.get(j));
-					Step[] stepArray = getVArray(panel).array;
+					Integer panelID = tp.andWorld.get(j);
+					Step[] stepArray = getVArray(panelID).array;
 					for (int k = 0; k < stepArray.length; k++)
 						if (stepArray[k] != null)
 							stepArray[k].setFootprint(vFootprint);
@@ -831,8 +834,8 @@ public class PointMass extends TTrack {
 				if (tp == null)
 					return;
 				for (int j = 0; j < tp.andWorld.size(); j++) {
-					TrackerPanel panel = panel(tp.andWorld.get(j));
-					Step[] stepArray = getAArray(panel).array;
+					Integer panelID = tp.andWorld.get(j);
+					Step[] stepArray = getAArray(panelID).array;
 					for (int k = 0; k < stepArray.length; k++)
 						if (stepArray[k] != null)
 							stepArray[k].setFootprint(aFootprint);
@@ -899,7 +902,7 @@ public class PointMass extends TTrack {
 	@Override
 	protected void setMarking(boolean marking) {
 		super.setMarking(marking);
-		repaint(tp);
+		repaint(tp.getID());
 	}
 
 	/**
@@ -965,13 +968,13 @@ public class PointMass extends TTrack {
 	 * null;
 	 *
 	 * @param n            the frame number
-	 * @param trackerPanel the tracker panel
+	 * @param panel the tracker panel
 	 * @return a Point2D containing the velocity components
 	 */
-	public Point2D getWorldVelocity(int n, TrackerPanel trackerPanel) {
-		ImageCoordSystem coords = trackerPanel.getCoords();
-		double dt = trackerPanel.getPlayer().getMeanStepDuration() / 1000.0;
-		VectorStep veloc = getVelocity(n, trackerPanel);
+	public Point2D getWorldVelocity(int n, TrackerPanel panel) {
+		ImageCoordSystem coords = panel.getCoords();
+		double dt = panel.getPlayer().getMeanStepDuration() / 1000.0;
+		VectorStep veloc = getVelocity(n, panel.getID());
 		if (veloc != null) {
 			double imageX = veloc.getXComponent();
 			double imageY = veloc.getYComponent();
@@ -990,10 +993,11 @@ public class PointMass extends TTrack {
 	 * @param trackerPanel the tracker panel
 	 * @return a Point2D containing the acceleration components
 	 */
-	public Point2D getWorldAcceleration(int n, TrackerPanel trackerPanel) {
-		ImageCoordSystem coords = trackerPanel.getCoords();
-		double dt = trackerPanel.getPlayer().getMeanStepDuration() / 1000.0;
-		VectorStep accel = getAcceleration(n, trackerPanel);
+	public Point2D getWorldAcceleration(int n, Integer panelID) {
+		TrackerPanel panel = panel(panelID);
+		ImageCoordSystem coords = panel.getCoords();
+		double dt = panel.getPlayer().getMeanStepDuration() / 1000.0;
+		VectorStep accel = getAcceleration(n, panelID);
 		if (accel != null) {
 			double imageX = accel.getXComponent();
 			double imageY = accel.getYComponent();
@@ -1287,12 +1291,13 @@ public class PointMass extends TTrack {
 	 * Refreshes the data.
 	 *
 	 * @param data         the DatasetManager
-	 * @param trackerPanel the tracker panel
+	 * @param panel the tracker panel
 	 */
 	@Override
-	protected void refreshData(DatasetManager data, TrackerPanel trackerPanel) {
-		if (refreshDataLater || trackerPanel == null || data == null)
+	protected void refreshData(DatasetManager data, TrackerPanel panel) {
+		if (refreshDataLater || panel == null || data == null)
 			return;
+		Integer panelID = panel.getID();
 		int count = 24; // number of datasets
 		if (!getClass().equals(CenterOfMass.class) && !getClass().equals(DynamicSystem.class)) {
 			count = 25; // extra dataset for KE
@@ -1314,9 +1319,9 @@ public class PointMass extends TTrack {
 		dataFrames.clear();
 		skippedSteps.clear();
 		// get data at each non-null position step in the videoclip
-		VideoPlayer player = trackerPanel.getPlayer();
+		VideoPlayer player = panel.getPlayer();
 		VideoClip clip = player.getVideoClip();
-		ImageCoordSystem coords = trackerPanel.getCoords();
+		ImageCoordSystem coords = panel.getCoords();
 		Step[] stepArray = getSteps();
 		Step curStep = null, prevNonNullStep = null;
 		int len = stepArray.length;
@@ -1355,7 +1360,7 @@ public class PointMass extends TTrack {
 			double dt_a2 = (tf - to) * (tf - to) / (4 * aDerivSpill * aDerivSpill);
 			// assemble the data values for this step
 			TPoint p = ((PositionStep) stepArray[i]).getPosition();
-			Point2D wp = p.getWorldPosition(trackerPanel);
+			Point2D wp = p.getWorldPosition(panel);
 			double x = validData[0][pt] = wp.getX(); // x
 			double y = validData[1][pt] = wp.getY(); // y
 			double r = validData[2][pt] = Math.sqrt(x * x + y * y); // mag
@@ -1366,7 +1371,7 @@ public class PointMass extends TTrack {
 			validData[15][pt] = stepNumber; // step
 			validData[16][pt] = i; // frame
 			
-			VectorStep veloc = getVelocity(i, trackerPanel);
+			VectorStep veloc = getVelocity(i, panelID);
 			if (veloc == null) {
 				validData[4][pt] = Double.NaN; // vx
 				validData[5][pt] = Double.NaN; // vy
@@ -1391,7 +1396,7 @@ public class PointMass extends TTrack {
 				validData[20][pt] = mass * slope;
 				ke = 0.5 * mass * v2;
 			}
-			VectorStep accel = getAcceleration(i, trackerPanel);
+			VectorStep accel = getAcceleration(i, panel.getID());
 			if (accel == null) {
 				validData[8][pt] = Double.NaN; // ax
 				validData[9][pt] = Double.NaN; // ay
@@ -1450,18 +1455,19 @@ public class PointMass extends TTrack {
 	/**
 	 * Overrides TTrack draw method.
 	 *
-	 * @param panel the drawing panel requesting the drawing
+	 * @param dp the drawing panel requesting the drawing
 	 * @param _g    the graphics context on which to draw
 	 */
 	@Override
-	public void draw(DrawingPanel panel, Graphics _g) {
-		if (!(panel instanceof TrackerPanel) || !visible)
+	public void draw(DrawingPanel dp, Graphics _g) {
+		if (!(dp instanceof TrackerPanel) || !visible)
 			return;
 
-		TrackerPanel trackerPanel = (TrackerPanel) panel;
+		TrackerPanel panel = (TrackerPanel) dp;
 		Graphics2D g = (Graphics2D) _g;
-		VideoClip clip = trackerPanel.getPlayer().getVideoClip();
-		int n = trackerPanel.getFrameNumber();
+		VideoClip clip = panel.getPlayer().getVideoClip();
+		int n = panel.getFrameNumber();
+		Integer panelID = panel.getID();
 		int stepSize = clip.getStepSize();
 		if (trailVisible) {
 			// trailVisible but length == 0 --> full trail from 0 to stepArray.length
@@ -1472,32 +1478,32 @@ public class PointMass extends TTrack {
 //			OSPLog.debug("PointMass " + name + " n=" + n + " i0=" + i0 + " n=" + n);
 			for (int i = i0; i < n; i++) {
 				if (stepArray[i] != null) {
-					if (isStepVisible(stepArray[i], trackerPanel)) {
-						stepArray[i].draw(trackerPanel, g);
+					if (isStepVisible(stepArray[i], panel)) {
+						stepArray[i].draw(panel, g);
 					}
-					Step v = getVelocity(i, trackerPanel);
-					if (v != null && isStepVisible(v, trackerPanel)) {
-						v.draw(trackerPanel, g);
+					Step v = getVelocity(i, panelID);
+					if (v != null && isStepVisible(v, panel)) {
+						v.draw(panel, g);
 					}
-					Step a = getAcceleration(i, trackerPanel);
-					if (a != null && isStepVisible(a, trackerPanel)) {
-						a.draw(trackerPanel, g);
+					Step a = getAcceleration(i, panelID);
+					if (a != null && isStepVisible(a, panel)) {
+						a.draw(panel, g);
 					}
 				}
 			}
 		} else {
 			Step step = getStep(n);
 			if (step != null) {
-				if (isStepVisible(step, trackerPanel)) {
-					step.draw(trackerPanel, g);
+				if (isStepVisible(step, panel)) {
+					step.draw(panel, g);
 				}
-				Step v = getVelocity(n, trackerPanel);
-				if (v != null && isStepVisible(v, trackerPanel)) {
-					v.draw(trackerPanel, g);
+				Step v = getVelocity(n, panelID);
+				if (v != null && isStepVisible(v, panel)) {
+					v.draw(panel, g);
 				}
-				Step a = getAcceleration(n, trackerPanel);
-				if (a != null && isStepVisible(a, trackerPanel)) {
-					a.draw(trackerPanel, g);
+				Step a = getAcceleration(n, panelID);
+				if (a != null && isStepVisible(a, panel)) {
+					a.draw(panel, g);
 				}
 			}
 		}
@@ -1519,7 +1525,7 @@ public class PointMass extends TTrack {
 					reset = true;
 					continue;
 				}
-				Point p = step.getPosition().getScreenPosition(trackerPanel);
+				Point p = step.getPosition().getScreenPosition(panel);
 				if (reset) {
 					trace.reset();
 					trace.moveTo((float) p.getX(), (float) p.getY());
@@ -1536,19 +1542,20 @@ public class PointMass extends TTrack {
 	/**
 	 * Overrides TTrack findInteractive method.
 	 *
-	 * @param panel the drawing panel
+	 * @param dp the drawing panel
 	 * @param xpix  the x pixel position on the panel
 	 * @param ypix  the y pixel position on the panel
 	 * @return the first step or motion vector that is hit
 	 */
 	@Override
-	public Interactive findInteractive(DrawingPanel panel, int xpix, int ypix) {
-		if (!(panel instanceof TrackerPanel) || !visible)
+	public Interactive findInteractive(DrawingPanel dp, int xpix, int ypix) {
+		if (!(dp instanceof TrackerPanel) || !visible)
 			return null;
-		TrackerPanel trackerPanel = (TrackerPanel) panel;
+		TrackerPanel panel = (TrackerPanel) dp;
+		Integer panelID = panel.getID();
 		Interactive iad = null;
-		int n = trackerPanel.getFrameNumber();
-		int stepSize = trackerPanel.getPlayer().getVideoClip().getStepSize();
+		int n = panel.getFrameNumber();
+		int stepSize = panel.getPlayer().getVideoClip().getStepSize();
 		if (trailVisible) {
 			boolean shortTrail = getTrailLength() > 0;
 			Step[] stepArray = steps.array;
@@ -1556,26 +1563,26 @@ public class PointMass extends TTrack {
 				if (shortTrail && (n - i > (getTrailLength() - 1) * stepSize || i > n))
 					continue;
 				if (stepArray[i] != null) {
-					if (isStepVisible(stepArray[i], trackerPanel)) {
-						iad = stepArray[i].findInteractive(trackerPanel, xpix, ypix);
+					if (isStepVisible(stepArray[i], panel)) {
+						iad = stepArray[i].findInteractive(panel, xpix, ypix);
 						if (iad != null) {
 							partName = TrackerRes.getString("PointMass.Position.Name"); //$NON-NLS-1$
 							hint = TrackerRes.getString("PointMass.Position.Hint"); //$NON-NLS-1$
 							return iad;
 						}
 					}
-					Step v = getVelocity(i, trackerPanel);
-					if (v != null && isStepVisible(v, trackerPanel)) {
-						iad = v.findInteractive(trackerPanel, xpix, ypix);
+					Step v = getVelocity(i, panelID);
+					if (v != null && isStepVisible(v, panel)) {
+						iad = v.findInteractive(panel, xpix, ypix);
 						if (iad != null) {
 							partName = TrackerRes.getString("PointMass.Velocity.Name"); //$NON-NLS-1$
 							hint = TrackerRes.getString("PointMass.Vector.Hint"); //$NON-NLS-1$
 							return iad;
 						}
 					}
-					Step a = getAcceleration(i, trackerPanel);
-					if (a != null && isStepVisible(a, trackerPanel)) {
-						iad = a.findInteractive(trackerPanel, xpix, ypix);
+					Step a = getAcceleration(i, panelID);
+					if (a != null && isStepVisible(a, panel)) {
+						iad = a.findInteractive(panel, xpix, ypix);
 						if (iad != null) {
 							partName = TrackerRes.getString("PointMass.Acceleration.Name"); //$NON-NLS-1$
 							hint = TrackerRes.getString("PointMass.Vector.Hint"); //$NON-NLS-1$
@@ -1587,26 +1594,26 @@ public class PointMass extends TTrack {
 		} else {
 			Step step = getStep(n);
 			if (step != null) {
-				if (isStepVisible(step, trackerPanel)) {
-					iad = step.findInteractive(trackerPanel, xpix, ypix);
+				if (isStepVisible(step, panel)) {
+					iad = step.findInteractive(panel, xpix, ypix);
 					if (iad != null) {
 						partName = TrackerRes.getString("PointMass.Position.Name"); //$NON-NLS-1$
 						hint = TrackerRes.getString("PointMass.Position.Hint"); //$NON-NLS-1$
 						return iad;
 					}
 				}
-				Step v = getVelocity(n, trackerPanel);
-				if (v != null && isStepVisible(v, trackerPanel)) {
-					iad = v.findInteractive(trackerPanel, xpix, ypix);
+				Step v = getVelocity(n, panelID);
+				if (v != null && isStepVisible(v, panel)) {
+					iad = v.findInteractive(panel, xpix, ypix);
 					if (iad != null) {
 						partName = TrackerRes.getString("PointMass.Velocity.Name"); //$NON-NLS-1$
 						hint = TrackerRes.getString("PointMass.Vector.Hint"); //$NON-NLS-1$
 						return iad;
 					}
 				}
-				Step a = getAcceleration(n, trackerPanel);
-				if (a != null && isStepVisible(a, trackerPanel)) {
-					iad = a.findInteractive(trackerPanel, xpix, ypix);
+				Step a = getAcceleration(n, panelID);
+				if (a != null && isStepVisible(a, panel)) {
+					iad = a.findInteractive(panel, xpix, ypix);
 					if (iad != null) {
 						partName = TrackerRes.getString("PointMass.Acceleration.Name"); //$NON-NLS-1$
 						hint = TrackerRes.getString("PointMass.Vector.Hint"); //$NON-NLS-1$
@@ -1616,7 +1623,7 @@ public class PointMass extends TTrack {
 			}
 		}
 		// null iad case
-		Step selectedStep = trackerPanel.getSelectedStep();
+		Step selectedStep = panel.getSelectedStep();
 		if (selectedStep != null) {
 			if (selectedStep instanceof PositionStep) {
 				partName = TrackerRes.getString("PointMass.Position.Name"); //$NON-NLS-1$
@@ -1633,7 +1640,7 @@ public class PointMass extends TTrack {
 		} else {
 			partName = TrackerRes.getString("TTrack.Selected.Hint"); //$NON-NLS-1$
 			hint = TrackerRes.getString("PointMass.Hint"); //$NON-NLS-1$
-			if (getStep(trackerPanel.getFrameNumber()) == null)
+			if (getStep(panel.getFrameNumber()) == null)
 				hint += TrackerRes.getString("PointMass.Unmarked.Hint"); //$NON-NLS-1$
 			else
 				hint += TrackerRes.getString("PointMass.Remark.Hint"); //$NON-NLS-1$
@@ -1810,8 +1817,8 @@ public class PointMass extends TTrack {
 	 * @param trackerPanel the tracker panel
 	 * @return the velocity
 	 */
-	public VectorStep getVelocity(int n, TrackerPanel trackerPanel) {
-		return (VectorStep) getVArray(trackerPanel).getStep(n);
+	public VectorStep getVelocity(int n, Integer panelID) {
+		return (VectorStep) getVArray(panelID).getStep(n);
 	}
 
 	/**
@@ -1820,8 +1827,8 @@ public class PointMass extends TTrack {
 	 * @param trackerPanel the tracker panel
 	 * @return the velocity step array
 	 */
-	public Step[] getVelocities(TrackerPanel trackerPanel) {
-		return getVArray(trackerPanel).array;
+	public Step[] getVelocities(Integer panelID) {
+		return getVArray(panelID).array;
 	}
 
 	/**
@@ -1890,8 +1897,8 @@ public class PointMass extends TTrack {
 	 * @param trackerPanel the tracker panel
 	 * @return the acceleration vector
 	 */
-	public VectorStep getAcceleration(int n, TrackerPanel trackerPanel) {
-		return (VectorStep) getAArray(trackerPanel).getStep(n);
+	public VectorStep getAcceleration(int n, Integer panelID) {
+		return (VectorStep) getAArray(panelID).getStep(n);
 	}
 
 	/**
@@ -1900,8 +1907,8 @@ public class PointMass extends TTrack {
 	 * @param trackerPanel the tracker panel
 	 * @return the acceleration step array
 	 */
-	public Step[] getAccelerations(TrackerPanel trackerPanel) {
-		return getAArray(trackerPanel).array;
+	public Step[] getAccelerations(Integer panelID) {
+		return getAArray(panelID).array;
 	}
 
 	/**
@@ -1923,6 +1930,7 @@ public class PointMass extends TTrack {
 	 */
 	public void setLabelsVisible(TrackerPanel panel, boolean visible) {
 		labelsVisible = visible;
+		Integer panelID = panel.getID();
 		Step[] steps = this.getSteps();
 		for (int i = 0; i < steps.length; i++) {
 			PositionStep step = (PositionStep) steps[i];
@@ -1931,7 +1939,7 @@ public class PointMass extends TTrack {
 				step.setRolloverVisible(!visible);
 			}
 		}
-		steps = this.getVelocities(panel);
+		steps = getVelocities(panelID);
 		for (int i = 0; i < steps.length; i++) {
 			VectorStep step = (VectorStep) steps[i];
 			if (step != null) {
@@ -1939,7 +1947,7 @@ public class PointMass extends TTrack {
 				step.setRolloverVisible(!visible);
 			}
 		}
-		steps = this.getAccelerations(panel);
+		steps = this.getAccelerations(panelID);
 		for (int i = 0; i < steps.length; i++) {
 			VectorStep step = (VectorStep) steps[i];
 			if (step != null) {
@@ -2076,7 +2084,7 @@ public class PointMass extends TTrack {
 	 * 
 	 * @param trackerPanel the TrackerPanel
 	 */
-	protected void updateDerivatives(TrackerPanel trackerPanel) {
+	private void updatePanelDerivatives(TrackerPanel trackerPanel) {
 		if (refreshDataLater)
 			return;
 		VideoClip clip = trackerPanel.getPlayer().getVideoClip();
@@ -2370,17 +2378,17 @@ public class PointMass extends TTrack {
 			return;
 		super.erase(); // erases all steps on all panels
 		for (int j = 0; j < tp.andWorld.size(); j++) {
-			TrackerPanel panel = panel(tp.andWorld.get(j));
+			Integer panelID = tp.andWorld.get(j);
 			// erase velocity and acceleration steps
-			if (panelVMap.get(panel.getID()) != null) {
-				Step[] stepArray = getVelocities(panel);
+			if (panelVMap.get(panelID) != null) {
+				Step[] stepArray = getVelocities(panelID);
 				for (int i = 0; i < stepArray.length; i++)
 					if (stepArray[i] != null)
-						stepArray[i].erase(panel);
-				stepArray = getAccelerations(panel);
+						stepArray[i].erase(panelID);
+				stepArray = getAccelerations(panelID);
 				for (int i = 0; i < stepArray.length; i++)
 					if (stepArray[i] != null)
-						stepArray[i].erase(panel);
+						stepArray[i].erase(panelID);
 			}
 		}
 	}
@@ -2392,16 +2400,16 @@ public class PointMass extends TTrack {
 	public void remark() {
 		super.remark();
 		for (int j = 0; j < tp.andWorld.size(); j++) {
-			TrackerPanel panel = panel(tp.andWorld.get(j));
-			Step[] stepArray = getVelocities(panel);
+			Integer panelID = tp.andWorld.get(j);
+			Step[] stepArray = getVelocities(panelID);
 			for (int i = 0; i < stepArray.length; i++)
 				if (stepArray[i] != null) {
-					stepArray[i].remark(panel);
+					stepArray[i].remark(panelID);
 				}
-			stepArray = getAccelerations(panel);
+			stepArray = getAccelerations(panelID);
 			for (int i = 0; i < stepArray.length; i++)
 				if (stepArray[i] != null)
-					stepArray[i].remark(panel);
+					stepArray[i].remark(panelID);
 		}
 	}
 
@@ -2411,16 +2419,16 @@ public class PointMass extends TTrack {
 	 * @param trackerPanel the tracker panel
 	 */
 	@Override
-	public void erase(TrackerPanel trackerPanel) {
-		super.erase(trackerPanel);
-		Step[] stepArray = getVelocities(trackerPanel);
+	public void erase(Integer panelID) {
+		super.erase(panelID);
+		Step[] stepArray = getVelocities(panelID);
 		for (int i = 0; i < stepArray.length; i++)
 			if (stepArray[i] != null)
-				stepArray[i].erase(trackerPanel);
-		stepArray = getAccelerations(trackerPanel);
+				stepArray[i].erase(panelID);
+		stepArray = getAccelerations(panelID);
 		for (int j = 0; j < stepArray.length; j++)
 			if (stepArray[j] != null)
-				stepArray[j].erase(trackerPanel);
+				stepArray[j].erase(panelID);
 	}
 
 	/**
@@ -2429,17 +2437,17 @@ public class PointMass extends TTrack {
 	 * @param trackerPanel the tracker panel
 	 */
 	@Override
-	public void remark(TrackerPanel trackerPanel) {
-		super.remark(trackerPanel);
-		Step[] stepArray = getVelocities(trackerPanel);
+	public void remark(Integer panelID) {
+		super.remark(panelID);
+		Step[] stepArray = getVelocities(panelID);
 		for (int i = 0; i < stepArray.length; i++)
 			if (stepArray[i] != null) {
-				stepArray[i].remark(trackerPanel);
+				stepArray[i].remark(panelID);
 			}
-		stepArray = getAccelerations(trackerPanel);
+		stepArray = getAccelerations(panelID);
 		for (int j = 0; j < stepArray.length; j++)
 			if (stepArray[j] != null)
-				stepArray[j].remark(trackerPanel);
+				stepArray[j].remark(panelID);
 	}
 
 	/**
@@ -3111,9 +3119,9 @@ public class PointMass extends TTrack {
 	 * @param trackerPanel the tracker panel
 	 * @return the velocity StepArray
 	 */
-	protected StepArray getVArray(TrackerPanel trackerPanel) {
-		StepArray v = panelVMap.get(trackerPanel.getID());
-		return (v == null ? createMaps(trackerPanel, Step.TYPE_VELOCITY) : v);
+	protected StepArray getVArray(Integer panelID) {
+		StepArray v = panelVMap.get(panelID);
+		return (v == null ? createMaps(panelID, Step.TYPE_VELOCITY) : v);
 	}
 
 	/**
@@ -3122,9 +3130,9 @@ public class PointMass extends TTrack {
 	 * @param trackerPanel the tracker panel
 	 * @return the acceleration StepArray
 	 */
-	protected StepArray getAArray(TrackerPanel trackerPanel) {
-		StepArray a = panelAMap.get(trackerPanel.getID());
-		return (a == null ? createMaps(trackerPanel, Step.TYPE_ACCELERATION) : a);
+	protected StepArray getAArray(Integer panelID) {
+		StepArray a = panelAMap.get(panelID);
+		return (a == null ? createMaps(panelID, Step.TYPE_ACCELERATION) : a);
 	}
 
 	/**
@@ -3135,13 +3143,13 @@ public class PointMass extends TTrack {
 	 * @param retType
 	 * @return velocity or acceleration array
 	 */
-	private StepArray createMaps(TrackerPanel trackerPanel, int retType) {
-		tList.add(trackerPanel.getID());
+	private StepArray createMaps(Integer panelID, int retType) {
+		tList.add(panelID);
 		StepArray v = new StepArray();
-		panelVMap.put(trackerPanel.getID(), v);
+		panelVMap.put(panelID, v);
 		StepArray a = new StepArray();
-		panelAMap.put(trackerPanel.getID(), a);
-		updateDerivatives(trackerPanel);
+		panelAMap.put(panelID, a);
+		updatePanelDerivatives(panel(panelID));
 		return (retType == Step.TYPE_VELOCITY ? v : a);
 	}
 
@@ -3227,10 +3235,11 @@ public class PointMass extends TTrack {
 		// snap all vectors to the snapPoint at origin
 		TPoint p = tp.getSnapPoint();
 		Step[] steps = null;
+		Integer panelID = tp.panelID;
 		if (type.equals("v")) //$NON-NLS-1$
-			steps = PointMass.this.getVelocities(tp);
+			steps = PointMass.this.getVelocities(panelID);
 		else
-			steps = PointMass.this.getAccelerations(tp);
+			steps = PointMass.this.getAccelerations(panelID);
 		for (int i = 0; i < steps.length; i++) {
 			if (steps[i] != null) {
 				VectorStep a = (VectorStep) steps[i];
@@ -3254,10 +3263,11 @@ public class PointMass extends TTrack {
 	private void snapToPosition(String type) {
 		// snap all vectors to the snapPoint
 		Step[] steps = null;
+		Integer panelID = tp.panelID;
 		if (type.equals("v")) //$NON-NLS-1$
-			steps = PointMass.this.getVelocities(tp);
+			steps = PointMass.this.getVelocities(panelID);
 		else
-			steps = PointMass.this.getAccelerations(tp);
+			steps = PointMass.this.getAccelerations(panelID);
 		for (int i = 0; i < steps.length; i++) {
 			if (steps[i] != null) {
 				VectorStep v = (VectorStep) steps[i];

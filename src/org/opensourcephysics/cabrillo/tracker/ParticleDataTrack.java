@@ -1358,8 +1358,8 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 		}
 
 		// reset v and a arrays
-		getVArray(tp).setLength(0);
-		getAArray(tp).setLength(0);
+		getVArray(tp.getID()).setLength(0);
+		getAArray(tp.getID()).setLength(0);
 
 		// reset trace data
 		traceX = new double[] { point.x };

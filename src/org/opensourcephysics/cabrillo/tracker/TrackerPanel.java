@@ -57,6 +57,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.function.Function;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -875,9 +876,9 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	/**
 	 * Saves this TrackerPanel if changed, then runs the appropriate Runnable
 	 */
-	public void askSaveIfChanged(Runnable whenSaved, Runnable whenCanceled) {
-		if (!changed) {// || OSPRuntime.isApplet) {
-			whenSaved.run();
+	public void askSaveIfChanged(Function<Boolean, Void> whenClosed, Runnable whenCanceled) {
+		if (!changed) {
+			whenClosed.apply(false);
 			return;
 		}
 		String name = getTitle();
@@ -904,12 +905,12 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 								}
 							}
 							changed = false;
-							if (whenSaved != null)
-								whenSaved.run();
+							if (whenClosed != null)
+								whenClosed.apply(true);
 							break;
 						case JOptionPane.NO_OPTION:
-							if (whenSaved != null)
-								whenSaved.run();
+							if (whenClosed != null)
+								whenClosed.apply(false);
 							break;
 						default: // canceled
 							if (whenCanceled != null)
@@ -1989,7 +1990,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		for (int i = 0, n = tapes.size(); i < n; i++) {
 			TapeMeasure tape = tapes.get(i);
 			//tape.inputField.getFormat(); // sets decimal separator
-			tape.repaint(this);
+			tape.repaint(panelID);
 		}
 		tapes.clear();
 		ArrayList<Protractor> prots = getDrawablesTemp(Protractor.class);
@@ -1998,7 +1999,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 //			p.inputField.getFormat(); // sets decimal separator
 //			p.xField.getFormat(); // sets decimal separator
 //			p.yField.getFormat(); // sets decimal separator
-			p.repaint(this);
+			p.repaint(panelID);
 		}
 		prots.clear();
 	}
@@ -2755,7 +2756,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			}
 			ArrayList<TTrack> list = getUserTracks();
 			for (int it = 0, ni = list.size(); it < ni; it++) {
-				list.get(it).erase(this);
+				list.get(it).erase(panelID);
 			}
 			TFrame.repaintT(this);
 			break;

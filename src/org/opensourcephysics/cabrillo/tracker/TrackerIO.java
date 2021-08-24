@@ -916,20 +916,14 @@ public class TrackerIO extends VideoIO {
 		}
 
 		run("addToLibrary", () -> {
-
+			
 				frame.getLibraryBrowser().open(path);
-//			      frame.getLibraryBrowser().setVisible(true); 
-				Timer timer = new Timer(1000, new ActionListener() {
-					@Override
-					public void actionPerformed(ActionEvent e) {
+				OSPRuntime.trigger(1000, (e) -> {
 						LibraryTreePanel treePanel = frame.getLibraryBrowser().getSelectedTreePanel();
 						if (treePanel != null) {
 							treePanel.refreshSelectedNode();
 						}
-					}
 				});
-				timer.setRepeats(false);
-				timer.start();
 		});
 	}
 

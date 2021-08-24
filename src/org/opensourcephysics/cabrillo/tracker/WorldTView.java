@@ -190,7 +190,7 @@ public class WorldTView extends TrackerPanel implements TView {
 			Object next = it.next();
 			if (next instanceof TTrack) {
 				TTrack track = (TTrack) next;
-				track.erase(this);
+				track.erase(panelID);
 			}
 		}
 		TFrame.repaintT(this);

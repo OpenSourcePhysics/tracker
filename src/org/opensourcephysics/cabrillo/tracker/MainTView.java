@@ -217,7 +217,7 @@ public class MainTView extends JPanel implements TView {
 						&& trackerPanel.getSelectedTrack() instanceof PointMass) {
 					PointMass m = (PointMass) trackerPanel.getSelectedTrack();
 					m.setAutoFill(!m.isAutofill);
-					trackerPanel.getSelectedTrack().repaint(trackerPanel);
+					trackerPanel.getSelectedTrack().repaint(panelID);
 				}
 			}
 			break;

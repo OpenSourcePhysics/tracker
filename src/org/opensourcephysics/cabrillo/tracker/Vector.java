@@ -369,7 +369,7 @@ public class Vector extends TTrack {
 	@Override
 	protected void setMarking(boolean marking) {
 		super.setMarking(marking);
-		repaint(tp);
+		repaint(tp.getID());
 	}
 
 	/**
