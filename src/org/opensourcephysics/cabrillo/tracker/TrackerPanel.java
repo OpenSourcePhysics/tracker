@@ -3493,7 +3493,8 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		// Performance.TIME_MARK));
 
 		if (numberFormatDialog != null) {
-			numberFormatDialog.clear();
+			numberFormatDialog.dispose();
+			numberFormatDialog = null;
 		}
 		filterClasses.clear();
 		selectingPanelID = null;
@@ -4952,10 +4953,17 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	}
 
 	public void onBlocked() {
-		if (trackControl != null)
+		if (trackControl != null) {
+			boolean vis = trackControl.wasVisible;
 			trackControl.setVisible(false);
-		if (modelBuilder != null)
+			trackControl.wasVisible = vis;
+		}
+		if (modelBuilder != null) {
+			TrackerPanel tp = frame.getTrackerPanelForID(panelID);
+			boolean vis = tp.isModelBuilderVisible;
 			modelBuilder.setVisible(false);
+			tp.isModelBuilderVisible = vis;
+		}
 	}
 
 	public void addListeners(String[] names, PropertyChangeListener listener) {
