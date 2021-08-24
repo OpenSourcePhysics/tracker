@@ -75,7 +75,6 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
 import javax.swing.SwingUtilities;
-import javax.swing.Timer;
 import javax.swing.filechooser.FileFilter;
 
 import org.opensourcephysics.cabrillo.tracker.TrackerPanel.Loader;
@@ -2261,6 +2260,9 @@ public class TrackerIO extends VideoIO {
 					frame.doTabStateChanged();
 				});
 			}
+			control = null;
+			this.libraryBrowser = null;
+			this.loader = null;
 			return PROGRESS_COMPLETE;
 		}
 

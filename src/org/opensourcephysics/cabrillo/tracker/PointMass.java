@@ -1270,7 +1270,7 @@ public class PointMass extends TTrack {
 
 	@Override
 	public void dispose() {
-		System.out.println("PointMasss.dispose");
+		//System.out.println("PointMasss.dispose");
 		if (tp != null) {
 			tp.removePointMassListeners(this);
 		}

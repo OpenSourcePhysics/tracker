@@ -264,7 +264,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 
 	private ArrayList<TTrack> userTracks;
 	private Map<String, AbstractAction> actions;
-	private String title;
+	protected String title;
 
 	/**
 	 * Constructs a blank TrackerPanel with a player.
@@ -478,9 +478,6 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		if (modelBuilder == null) {
 			// create and size model builder
 			modelBuilder = new ModelBuilder(this);
-			modelBuilder.setFontLevel(FontSizer.getLevel());
-			modelBuilder.refreshLayout();
-			modelBuilder.addPropertyChangeListener(FunctionTool.PROPERTY_FUNCTIONTOOL_PANEL, this);
 			// show model builder
 			try {
 				// place near top right corner of frame
@@ -3347,7 +3344,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			return;
 		isDisposed = true; // stop all firing of events
 
-		System.out.println(this.getClass().getSimpleName() + ".dispose " + panelID);
+		//System.out.println(this.getClass().getSimpleName() + ".dispose " + panelID + " " + title);
 		
 		// remove property change listeners
 		if (frame != null) {
@@ -3964,6 +3961,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				// clear the object
 				((XMLControlElement)control).dispose();
 				control = null;
+				finalized = true;
 			}
 		}
 
@@ -4550,13 +4548,6 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		firePropertyChange(PROPERTY_TRACKERPANEL_LOADED, null, null);
 	}
 
-//	@Override
-//	public void addPropertyChangeListener(String name, PropertyChangeListener listener) {
-//		if (listener instanceof TrackView)
-//			OSPLog.debug("Trackerpanel add " + name + listener);
-//		super.addPropertyChangeListener(name, listener);
-//	}
-
 	public void taintEnabled() {
 		enabledCount++;
 	}
@@ -5011,7 +5002,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	 * @return
 	 */
 	public TrackerPanel ref(Object o) {
-		System.out.println("TP ref " + (o instanceof String ? o.toString() : o.getClass().getSimpleName())); 
+		//System.out.println("TP ref " + (o instanceof String ? o.toString() : o.getClass().getSimpleName())); 
 		return this;
 	}
 

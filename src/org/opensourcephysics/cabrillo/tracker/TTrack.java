@@ -1387,7 +1387,7 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 	 * Gets a step containing a TPoint. May return null.
 	 *
 	 * @param point        a TPoint
-	 * @param trackerPanel the tracker panel holding the TPoint
+	 * @param trackerPanel ignored
 	 * @return the step containing the TPoint
 	 */
 	public Step getStep(TPoint point, TrackerPanel trackerPanel) {

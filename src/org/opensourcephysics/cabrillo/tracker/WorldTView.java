@@ -30,6 +30,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeEvent;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -54,7 +55,7 @@ import org.opensourcephysics.tools.FontSizer;
 import org.opensourcephysics.tools.FunctionTool;
 
 /**
- * This is a TView of a TrackerPanel drawn in world space. It is a JPanel with a single component, WorldPanel. 
+ * This is a TView of a TrackerPanel drawn in world space. It is a JPanel with a single component, worldPanel(). 
  * 
  * An unusual TView,
  * WorldTView is not just a JPanel, it is a full TrackerPanel. A distinction is made for several tracks, including CenterOfMass, PointMass,
@@ -76,9 +77,7 @@ public class WorldTView extends TView {
 
 
 
-	// instance fields
-	protected Integer mainPanelID;
-	protected WorldPanel worldPanel;
+	private Integer worldPanelID;
 
 	protected JLabel worldViewLabel;
 	
@@ -92,25 +91,30 @@ public class WorldTView extends TView {
 		worldViewLabel = new JLabel();
 		worldViewLabel.setBorder(BorderFactory.createEmptyBorder(2, 6, 2, 0));
 		toolbarComponents.add(worldViewLabel);
-		worldPanel = new WorldPanel(panel);
+		WorldPanel worldPanel = new WorldPanel(panel, this);
 		add(worldPanel);
+		worldPanelID = worldPanel.getID();
 	}
 
-	class WorldPanel extends TrackerPanel {
+	static class WorldPanel extends TrackerPanel {
 
 		protected JMenuItem copyImageItem;
 		protected JMenuItem printItem;
 		protected JMenuItem helpItem;
+		private WorldTView view;
+		protected Integer mainPanelID;
+		
 
 		@Override
 		public boolean isWorldPanel() {
 			return true;
 		}
 
-		private WorldPanel(TrackerPanel panel) {
+		private WorldPanel(TrackerPanel panel, WorldTView view) {
 			super(panel.frame);
+			this.view = view;
 			andWorld.clear();
-			System.out.println("WorldTView init " + worldPanel + " " + panel);
+			//System.out.println("WorldTView init " + this + " " + panel);
 			panel.andWorld.add(panelID);
 			mainPanelID = panel.getID();
 			initWP();
@@ -140,7 +144,7 @@ public class WorldTView extends TView {
 			// add this view to tracker panel listeners
 			// note "track" and "clear" not needed since forwarded from TViewChooser
 			TrackerPanel trackerPanel = getMainPanel();
-			trackerPanel.addListeners(panelProps, worldPanel);
+			trackerPanel.addListeners(panelProps, this);
 			// add this view to track listeners
 			for (TTrack track : trackerPanel.getTracks()) {
 				track.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_COLOR, this); // $NON-NLS-1$
@@ -368,29 +372,30 @@ public class WorldTView extends TView {
 
 		@Override
 		public void propertyChange(PropertyChangeEvent e) {
-			propertyChangeImpl(e);
+			view.propertyChangeImpl(e);
 		}
 		
 		@Override
 		public void dispose() {
 			cleanup();
+			title = getMainPanel().getTitle();
 			if (mainPanelID != null) {
 				TrackerPanel trackerPanel = getMainPanel();
 				trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR, this);
 				trackerPanel.removePropertyChangeListener(FunctionTool.PROPERTY_FUNCTIONTOOL_FUNCTION, this);
 				mainPanelID = null;
 			}
-			toolbarComponents = null;
+			
 			frame.deallocatePanelID(panelID);
 			super.dispose();
 		}
 
 		public WorldTView getWorldView() {
-			return WorldTView.this;
+			return view;
 		}
 
 		public boolean isActive() {
-			return (TViewChooser.isSelectedView(WorldTView.this) && isViewPaneVisible());
+			return (TViewChooser.isSelectedView(view) && view.isViewPaneVisible());
 		}
 
 
@@ -406,7 +411,7 @@ public class WorldTView extends TView {
 		if (!isViewPaneVisible())
 			return;
 		worldViewLabel.setText(TrackerRes.getString("WorldTView.Button.World")); //$NON-NLS-1$
-		worldPanel.refresh();
+		worldPanel().refresh();
 	}
 
 	/**
@@ -414,7 +419,7 @@ public class WorldTView extends TView {
 	 */
 	@Override
 	public void init() {
-		worldPanel.initWP();
+		worldPanel().initWP();
 	}
 
 	/**
@@ -422,7 +427,7 @@ public class WorldTView extends TView {
 	 */
 	@Override
 	public void cleanup() {
-		worldPanel.cleanup();
+		worldPanel().cleanup();
 	}
 
 	
@@ -431,8 +436,8 @@ public class WorldTView extends TView {
 	 */
 	@Override
 	public void dispose() {
-		worldPanel.dispose();
-		worldPanel = null;
+		worldPanel().dispose();
+		worldPanelID = null;
 		super.dispose();
 	}
 
@@ -443,7 +448,7 @@ public class WorldTView extends TView {
 	 */
 	@Override
 	public TrackerPanel getTrackerPanel() {
-		return worldPanel.getMainPanel();
+		return worldPanel().getMainPanel();
 	}
 
 	/**
@@ -523,7 +528,7 @@ public class WorldTView extends TView {
 		case TrackerPanel.PROPERTY_TRACKERPANEL_VIDEOVISIBLE:
 		case TTrack.PROPERTY_TTRACK_COLOR:
 		case TTrack.PROPERTY_TTRACK_VISIBLE:
-			TFrame.repaintT(worldPanel);
+			TFrame.repaintT(worldPanel());
 			break;
 		case ImageCoordSystem.PROPERTY_COORDS_TRANSFORM:
 		case TrackerPanel.PROPERTY_TRACKERPANEL_SIZE:
@@ -535,7 +540,12 @@ public class WorldTView extends TView {
 			break;
 		}
 		// no sending to super? 
-		// no worldPanel.propertyChange(e); ? Original did not pass, either
+		// no worldPanel().propertyChange(e); ? Original did not pass, either
+	}
+
+	private WorldPanel worldPanel() {
+		// TODO Auto-generated method stub
+		return (WorldPanel) frame.getTrackerPanelForID(worldPanelID);
 	}
 
 	/**
@@ -586,6 +596,10 @@ public class WorldTView extends TView {
 			return obj;
 		}
 
+	}
+
+	public BufferedImage render(BufferedImage image) {
+		return worldPanel().render(image);
 	}
 
 }

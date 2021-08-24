@@ -205,7 +205,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			objects = null;
 			toolbarBox = null;
 			removeAll();
-			System.out.println("TFrame.TTabPanel.dispose");
+			//System.out.println("TFrame.TTabPanel.dispose");
 		}
 
 		@Override
@@ -1010,8 +1010,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			notes = null;
 		}
 		playerBar = null;
-		
-		System.out.println("TFrame.clearAllReferences");
+//		System.out.println("TFrame.clearAllReferences");
 	}
 
 	private void closeAllDialogs(TrackerPanel trackerPanel, TTabPanel tabPanel) {

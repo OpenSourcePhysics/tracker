@@ -319,7 +319,7 @@ public abstract class TrackChooserTView extends TView {
 	 */
 	@Override
 	public void dispose() {
-		System.out.println("TrackChoserTV.dispose for " + getClass().getSimpleName() + " " + panelID);
+		//System.out.println("TrackChoserTV.dispose for " + getClass().getSimpleName() + " " + panelID);
 		cleanup();
 		if (trackViews == null)
 			return;

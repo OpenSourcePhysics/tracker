@@ -141,7 +141,6 @@ public class PencilDrawer {
 	 * @param panel the TrackerPanel
 	 */
 	protected static void dispose(TrackerPanel panel) {
-		System.out.println("PencilDrawer.dispose " + panel);
 		PencilDrawer drawer = panelDrawers.get(panel.getID());
 		if (drawer != null) {
 			drawer.dispose();
@@ -457,7 +456,6 @@ public class PencilDrawer {
 	 * Disposes of this drawer and associated PencilControl
 	 */
 	protected void dispose() {
-		System.out.println("PencilDrawer.dispose panelID=" + panelID);
 		clearScenes(false);
 		if (drawingControl != null)
 			drawingControl.dispose();

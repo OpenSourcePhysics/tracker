@@ -2563,7 +2563,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 	 */
 	@Override
 	public void dispose() {
-		System.out.println("disposing TMenuBar for " + panelID);
+		//System.out.println("disposing TMenuBar for " + panelID);
 		TrackerPanel panel = panel();
 		panel.removeListeners(panelProps, this);
 		Video video = panel.getVideo();

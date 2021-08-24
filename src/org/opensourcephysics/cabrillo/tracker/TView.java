@@ -172,6 +172,7 @@ public abstract class TView extends JPanel implements PropertyChangeListener, Di
 	public void dispose() {		
 		frame = null;
 		panelID = null;
+		toolbarComponents = null;
 	}
 	
 	@Override

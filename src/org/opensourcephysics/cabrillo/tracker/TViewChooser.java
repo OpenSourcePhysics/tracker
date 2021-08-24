@@ -659,7 +659,7 @@ public class TViewChooser extends JPanel implements PropertyChangeListener, OSPR
 	@Override
 	public void finalize() {
 		//		OSPLog.finer
-		System.out.println(getClass().getSimpleName() + " " + getName() + " finalized"); //$NON-NLS-1$
+		//System.out.println(getClass().getSimpleName() + " " + getName() + " finalized"); //$NON-NLS-1$
 	}
 
 	/**

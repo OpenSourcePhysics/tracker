@@ -1948,7 +1948,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 
 	@Override
 	public void dispose() {
-		System.out.println("TrackPlottingPanel.dispose " + panelID);
+		//System.out.println("TrackPlottingPanel.dispose " + panelID);
 		if (playerListener != null) {
 			getPlotPanel().getPlayer()
 					.removePropertyChangeListener(VideoPlayer.PROPERTY_VIDEOPLAYER_STEPNUMBER, playerListener); // $NON-NLS-1$
