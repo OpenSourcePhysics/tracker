@@ -1076,9 +1076,13 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	public void clear() {
 		clear(true);
 	}
-	
-	synchronized void clear(boolean andSetCoords) {
-		isDisposed = true; // stop all firing of events
+
+	/**
+	 * Clear all drawables.
+	 * 
+	 * @param andSetCoords in general course of replacing them; false for dispose
+	 */
+	synchronized private void clear(boolean andSetCoords) {
 		//long t0 = Performance.now(0);
 		setSelectedTrack(null);
 		selectedPoint = null;
@@ -1108,7 +1112,8 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			modelBuilder.setVisible(false);
 		}
 		// notify views and other listeners
-		firePropertyChange(PROPERTY_TRACKERPANEL_CLEAR, null, null);
+		if (!isDisposed)
+			firePropertyChange(PROPERTY_TRACKERPANEL_CLEAR, null, null);
 		// remove tracks from TTrack.activeTracks
 		for (int it = 0, n = list.size(); it < n; it++) {
 			TTrack.panelActiveTracks.remove(list.get(it).getID());
@@ -3327,11 +3332,14 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 
 
 	/**
-	 * Disposes of this panel
+	 * Disposes of this panel permanently. Only to be used upon tab removal, and only to be run once.
 	 */
 	@Override
 	public void dispose() {
-		
+		if (isDisposed)
+			return;
+		isDisposed = true; // stop all firing of events
+
 		System.out.println(this.getClass().getSimpleName() + ".dispose " + panelID);
 		
 		// remove property change listeners
