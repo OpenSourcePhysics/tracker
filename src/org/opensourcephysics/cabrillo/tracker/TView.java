@@ -31,7 +31,7 @@ import java.util.ArrayList;
 import javax.swing.Icon;
 import javax.swing.JPopupMenu;
 
-import org.opensourcephysics.display.OSPRuntime;
+import org.opensourcephysics.display.OSPRuntime.Disposable;
 
 /**
  * This is a view of a tracker panel that can be added to a TViewChooser.
@@ -39,7 +39,7 @@ import org.opensourcephysics.display.OSPRuntime;
  *
  * @author Douglas Brown
  */
-public interface TView extends PropertyChangeListener, OSPRuntime.Disposable {
+public interface TView extends PropertyChangeListener, Disposable {
 	
 	String PROPERTY_TVIEW_TRACKVIEW = "trackview";
 
@@ -71,11 +71,6 @@ public interface TView extends PropertyChangeListener, OSPRuntime.Disposable {
 	 * Cleans up the view
 	 */
 	public void cleanup();
-
-	/**
-	 * Disposes of the view
-	 */
-	public void dispose();
 
 	/**
 	 * Gets the TrackerPanel containing the track data
