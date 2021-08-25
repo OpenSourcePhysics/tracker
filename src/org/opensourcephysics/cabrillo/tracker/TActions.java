@@ -664,8 +664,9 @@ public class TActions {
 			y = origin.y;
 		}
 		ProtractorStep step = (ProtractorStep) protractor.getStep(0);
-		step.moveVertexTo(x, y);
 		addTrack(protractor, trackerPanel);
+		// move vertex AFTER adding to TrackerPanel
+		step.moveVertexTo(x, y);
 	}
 
 	protected static void pointMassAction(TrackerPanel trackerPanel) {
