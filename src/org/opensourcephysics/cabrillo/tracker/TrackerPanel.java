@@ -3664,7 +3664,6 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		}
 
 		private AsyncLoader asyncloader;
-		public XMLControl control;
 
 		/**
 		 * Creates an object having no frame or video (yet)
@@ -3694,7 +3693,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			TrackerPanel trackerPanel = (TrackerPanel) obj;	
 			asyncloader = (AsyncLoader) ((XMLControlElement) control).getData();
 			asyncloader.setLoader(this);
-			this.control = control;
+			this.control = (XMLControlElement) control;
 			switch (trackerPanel.progress) {
 			case VideoIO.PROGRESS_LOAD_INIT:
 				// immediately set the frame
@@ -3903,9 +3902,6 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 					for (int i = 0, n = tracks2.size(); i < n; i++) {
 						((TTrack) tracks2.get(i)).initialize(trackerPanel);
 					}
-					trackerPanel.progress = TrackerIO.PROGRESS_TRACKS_INITIALIZED;
-				break;
-				case TrackerIO.PROGRESS_TRACKS_INITIALIZED:
 					// load drawing scenes saved in vers 4.11.0+
 					ArrayList<PencilScene> scenes = (ArrayList<PencilScene>) control.getObject("drawing_scenes"); //$NON-NLS-1$
 					if (scenes != null) {
@@ -3925,9 +3921,9 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 							drawer.addDrawingtoSelectedScene(drawings.get(i));
 						}
 					}
-					trackerPanel.progress = TrackerIO.PROGRESS_PENCIL_DRAWINGS_READY;
+					trackerPanel.progress = TrackerIO.PROGRESS_TRACKS_INITIALIZED;
 					break;
-				case TrackerIO.PROGRESS_PENCIL_DRAWINGS_READY:
+				case TrackerIO.PROGRESS_TRACKS_INITIALIZED:
 					// load the reference frame
 					String rfName = control.getString("referenceframe"); //$NON-NLS-1$
 					if (rfName != null) {
@@ -3943,16 +3939,21 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				// OSPLog.debug("!!! " + Performance.now(t0) + " TrackerPanel.finalizeLoading");
 				// OSPLog.debug("TrackerPanel.finalizeLoading done");
 			}
+			System.out.println("TrackerPanel.loader progress " + trackerPanel.progress + " " + OSPRuntime.getMemoryStr());
 			if (trackerPanel.progress == VideoIO.PROGRESS_COMPLETE && asyncloader != null) {
 				asyncloader.finalized(trackerPanel);
-				asyncloader = null;
-				// clear the object
-				((XMLControlElement)control).dispose();
-				control = null;
-				finalized = true;
+				dispose();
+
 			}
 		}
 
+		@Override
+		public void dispose() {
+			// clear the object
+			asyncloader = null;
+			super.dispose();
+
+		}
 		protected void setDataTabs(TrackerPanel trackerPanel, ArrayList<DataToolTab> addedTabs) {
 			final DataToolTab tab = addedTabs.get(0);
 
