@@ -140,7 +140,7 @@ public class VectorSumInspector extends JDialog implements PropertyChangeListene
 	public void propertyChange(PropertyChangeEvent e) {
 		if (e.getPropertyName().equals(TFrame.PROPERTY_TFRAME_TAB)) {
 			TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
-			if (trackerPanel != null && e.getNewValue() == trackerPanel) {
+			if (!frame.isRemovingAll() && trackerPanel != null && e.getNewValue() == trackerPanel) {
 				setVisible(isVisible);
 			} else {
 				boolean vis = isVisible;

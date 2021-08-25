@@ -2182,6 +2182,7 @@ public class TrackerIO extends VideoIO {
 					Tracker.addRecent(nonURIPath, false); // add at beginning
 				paths.addAll(trkFiles);
 				desktopFiles.addAll(tempFiles);
+				
 			}
 			return PROGRESS_COMPLETE;
 		}
@@ -2258,14 +2259,15 @@ public class TrackerIO extends VideoIO {
 
 			checkDone(false);			
 			// remove empty tab if running in Java
-			if (!OSPRuntime.isJS) {
-				TToolBar tbar = trackerPanel.getToolBar(false);
-				SwingUtilities.invokeLater(()->{
-					if (tbar != null)
-						tbar.refresh(TToolBar.REFRESH_TFRAME_REFRESH_TRUE);
-					frame.doTabStateChanged();
-				});
-			}
+			
+//			if (!OSPRuntime.isJS) {
+//				TToolBar tbar = trackerPanel.getToolBar(false);
+//				SwingUtilities.invokeLater(()->{
+//					if (tbar != null)
+//						tbar.refresh(TToolBar.REFRESH_TFRAME_REFRESH_TRUE);
+//					frame.doTabStateChanged();
+//				});
+//			}
 			control = null;
 			this.libraryBrowser = null;
 			this.loader = null;
@@ -2273,10 +2275,10 @@ public class TrackerIO extends VideoIO {
 		}
 
 		void checkDone(boolean b) {
-			if (b == (panel().getVideo() instanceof AsyncVideoI)) {
+//			if (b == (panel().getVideo() instanceof AsyncVideoI)) {
 				if (panelList.size() == 0 && paths.size() == 0)
 					doneLoading();
-			}
+//			}
 		}
 		
 		private int loadData(int progress) {
@@ -2382,11 +2384,13 @@ public class TrackerIO extends VideoIO {
 			// show dialog only if bad frames found, and include "don't show again" button
 		}
 
+		/**
+		 */
 		public void finalized(TrackerPanel trackerPanel) {
 			panelList.remove(trackerPanel.getID());
-			if (panelList.size() == 0 && paths.size() == 0 && trackerPanel.getVideo() instanceof AsyncVideoI) {
-				doneLoading();
-			}
+//			if (panelList.size() == 0 && paths.size() == 0 && trackerPanel.getVideo() instanceof AsyncVideoI) {
+//				();
+//			}
 		}
 
 		private void doneLoading() {

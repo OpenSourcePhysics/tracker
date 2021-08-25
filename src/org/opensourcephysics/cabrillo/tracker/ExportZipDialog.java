@@ -798,16 +798,20 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 	public void propertyChange(PropertyChangeEvent e) {
 		if (e.getPropertyName().equals(TFrame.PROPERTY_TFRAME_TAB)) { // $NON-NLS-1$
 			TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
-			if (e.getNewValue() == trackerPanel) {
-				setVisible(isVisible);
-			} else if (e.getNewValue() == null && e.getOldValue() == trackerPanel) {
-				// tab was removed, so dispose
-				clear(trackerPanel);
-			} else {
-				boolean vis = isVisible;
-				setVisible(false);
-				isVisible = vis;
+			if (!frame.isRemovingAll()) {
+				if (e.getNewValue() == trackerPanel) {
+					setVisible(isVisible);
+					return;
+				}
+				if (e.getNewValue() == null && e.getOldValue() == trackerPanel) {
+					// tab was removed, so dispose
+					clear(trackerPanel);
+					return;
+				}
 			}
+			boolean vis = isVisible;
+			setVisible(false);
+			isVisible = vis;
 		}
 	}
 

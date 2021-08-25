@@ -89,7 +89,7 @@ public class TViewChooser extends JPanel implements PropertyChangeListener, OSPR
 	private JButton chooserButton;
 	
 	public boolean isMaximized() {
-		return frame != null && frame.maximizedView >= 0;
+		return frame != null && (frame.getMaximizedView() != TView.VIEW_UNSET);
 	}
 	
 	// popup menu

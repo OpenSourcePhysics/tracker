@@ -111,7 +111,7 @@ public class AttachmentDialog extends JDialog implements PropertyChangeListener 
 		switch (e.getPropertyName()) {
 		case TFrame.PROPERTY_TFRAME_TAB:
 			TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
-			if (panelID != null && e.getNewValue() == trackerPanel) {
+			if (!frame.isRemovingAll() && panelID != null && e.getNewValue() == trackerPanel) {
 				setVisible(isVisible);
 			} else {
 				boolean vis = isVisible;

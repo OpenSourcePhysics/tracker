@@ -212,7 +212,7 @@ public class TableTView extends TrackChooserTView {
 			}
 			break;
 		case TFrame.PROPERTY_TFRAME_TAB:
-			if (e.getNewValue() != null) {
+			if (e.getNewValue() != null && !frame.isRemovingAll()) {
 				TableTrackView trackview = (TableTrackView) getTrackView(selectedTrack);
 				if (trackview != null) {
 					dialogLastVisible = trackview.setDialogVisible(

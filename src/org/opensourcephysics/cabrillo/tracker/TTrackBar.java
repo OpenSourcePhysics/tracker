@@ -337,7 +337,7 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 				if (e.getClickCount() == 2) {
 					maximizeButton.doClick(0);
 //					TFrame frame = trackerPanel.getTFrame();
-//					if (frame.maximizedView < 0)
+//					if (frame.getMaximizedView() < 0)
 //						frame.maximizeView(trackerPanel, 4);
 //					else 
 //						frame.restoreViews(trackerPanel);
@@ -391,7 +391,7 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 		maximizeButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				boolean maximize = (frame.maximizedView < 0);
+				boolean maximize = (frame.getMaximizedView() == TView.VIEW_UNSET);
 				if (maximize) {
 					frame.saveCurrentDividerLocations(panel());
 					frame.maximizeView(panel(), TView.VIEW_MAIN);

@@ -389,7 +389,7 @@ public class TableTrackView extends TrackView {
 			ArrayList<Dataset> datasets = trackDataManager.getDatasetsRaw();
 			int count = datasets.size();
 			dataTable.setUnits(datasets.get(0).getXColumnName(), "", track.getDataDescription(0)); //$NON-NLS-1$
-			boolean degrees = frame != null && !frame.anglesInRadians;
+			boolean degrees = frame != null && !frame.getAnglesInRadians();
 
 			dataTableManager.clear();
 			int colCount = 0;

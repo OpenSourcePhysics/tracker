@@ -1281,7 +1281,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 			}
 			return;
 		case TFrame.PROPERTY_TFRAME_TAB: // $NON-NLS-1$
-			if (tp != null && tframe != null
+			if (tframe.getState() == TFrame.STATE_ACTIVE && tp != null && tframe != null
 					&& tp == e.getNewValue()) {
 				tframe.getClipboardListener().processContents(tp);
 			}

@@ -103,7 +103,7 @@ public class UnitsDialog extends JDialog {
     Action angleUnitAction = new AbstractAction() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				if (frame.anglesInRadians==radiansButton.isSelected()) return;
+				if (frame.getAnglesInRadians()==radiansButton.isSelected()) return;
       	frame.setAnglesInRadians(radiansButton.isSelected());
 			}
     };
@@ -112,8 +112,8 @@ public class UnitsDialog extends JDialog {
     ButtonGroup group = new ButtonGroup();
     group.add(degreesButton);
     group.add(radiansButton);
-    degreesButton.setSelected(!frame.anglesInRadians);
-    radiansButton.setSelected(frame.anglesInRadians);
+    degreesButton.setSelected(!frame.getAnglesInRadians());
+    radiansButton.setSelected(frame.getAnglesInRadians());
     
     // visible checkbox
     visibleCheckbox = new JCheckBox();
@@ -187,8 +187,8 @@ public class UnitsDialog extends JDialog {
   	timeLabel.setText(TrackerRes.getString("NumberFormatSetter.Help.Dimensions.3")); //$NON-NLS-1$
     degreesButton.setText(TrackerRes.getString("TMenuBar.MenuItem.Degrees")); //$NON-NLS-1$
     radiansButton.setText(TrackerRes.getString("TMenuBar.MenuItem.Radians")); //$NON-NLS-1$
-    degreesButton.setSelected(!frame.anglesInRadians);
-    radiansButton.setSelected(frame.anglesInRadians);
+    degreesButton.setSelected(!frame.getAnglesInRadians());
+    radiansButton.setSelected(frame.getAnglesInRadians());
     unitsBorder.setTitle(TrackerRes.getString("UnitsDialog.Border.LMT.Text")); //$NON-NLS-1$
     angleBorder.setTitle(TrackerRes.getString("NumberFormatSetter.TitledBorder.Units.Text")); //$NON-NLS-1$
     

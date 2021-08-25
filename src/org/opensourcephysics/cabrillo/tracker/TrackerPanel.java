@@ -731,7 +731,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		}
 
 		// set angle format of the track
-		track.setAnglesInRadians(frame.anglesInRadians);
+		track.setAnglesInRadians(frame.getAnglesInRadians());
 		showTrackControlDelayed = true;
 		boolean doAddDrawable = true;
 		if (track instanceof ParticleDataTrack) {
@@ -1911,7 +1911,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		case "A/T":
 		case "A/TT":
 			TFrame frame = getTFrame();
-			String angUnit = frame != null && frame.anglesInRadians ? "" : Tracker.DEGREES; //$NON-NLS-1$
+			String angUnit = frame != null && frame.getAnglesInRadians() ? "" : Tracker.DEGREES; //$NON-NLS-1$
 			return sp + angUnit + "/" + timeUnit + sq; //$NON-NLS-1$
 		}
 		return ""; //$NON-NLS-1$
@@ -2283,20 +2283,20 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	 * Restores the views to a non-maximized state.
 	 */
 	protected void restoreViews() {
-
 		TFrame frame = getTFrame();
 		if (frame != null) {
-			int n = frame.maximizedView;
-			if (n < 0)
+			int n = frame.getMaximizedView();
+			switch (n) {
+			case TView.VIEW_UNSET:
 				return;
-			if (n == TView.VIEW_MAIN) {
+			case TView.VIEW_MAIN:
 				getTrackBar(true).maximizeButton.doClick(0);
-			}
-			else {
+				break;
+			default:
 				TViewChooser viewChooser = frame.getViewChoosers(this)[n];
-				viewChooser.restore();				
+				viewChooser.restore();
+				break;
 			}
-//			frame.restoreViews(this);
 		}
 	}
 
@@ -3940,8 +3940,9 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				// OSPLog.debug("TrackerPanel.finalizeLoading done");
 			}
 			System.out.println("TrackerPanel.loader progress " + trackerPanel.progress + " " + OSPRuntime.getMemoryStr());
-			if (trackerPanel.progress == VideoIO.PROGRESS_COMPLETE && asyncloader != null) {
-				asyncloader.finalized(trackerPanel);
+			if (trackerPanel.progress == VideoIO.PROGRESS_COMPLETE) {
+				if (asyncloader != null)
+					asyncloader.finalized(trackerPanel);
 				dispose();
 
 			}
@@ -4582,7 +4583,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			}
 			dataTracks.clear();
 			// if no matching track was found then create new track
-			if (!foundMatch && frame.alwaysListenToClipboard) {
+			if (!foundMatch && frame.getAlwaysListenToClipboard()) {
 				dt = importDatasetManager(datasetManager, null);
 				if (dt != null && dt instanceof ParticleDataTrack) {
 					ParticleDataTrack track = (ParticleDataTrack) dt;

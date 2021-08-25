@@ -166,7 +166,8 @@ public class PencilControl extends JDialog {
 		tabListener = new PropertyChangeListener() {
 			@Override
 			public void propertyChange(PropertyChangeEvent e) {
-				if (e.getNewValue() == trackerPanel) {
+				// TFrame.PROPERTY_TFRAME_TAB
+				if (!frame.isRemovingAll() && e.getNewValue() == trackerPanel) {
 					setVisible(isVisible);
 				} else {
 					boolean vis = isVisible;

@@ -185,7 +185,7 @@ public class TrackControl extends JDialog implements OSPRuntime.Disposable, Prop
 			TrackerPanel p = (TrackerPanel) e.getNewValue();
 			if (p == null)
 				return;
-			if (p.getID() == panelID) {
+			if (p.getID() == panelID && !frame.isRemovingAll()) {
 				setVisible(wasVisible);
 			} else {
 				boolean vis = wasVisible;

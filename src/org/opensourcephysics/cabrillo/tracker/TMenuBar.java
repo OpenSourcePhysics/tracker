@@ -651,8 +651,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		// autopaste checkbox
 		edit_autopasteCheckbox = new JCheckBoxMenuItem(TrackerRes.getString("TMenuBar.Checkbox.Autopaste")); //$NON-NLS-1$
 		edit_autopasteCheckbox.addActionListener((e) -> {
-				frame.alwaysListenToClipboard = edit_autopasteCheckbox.isSelected();
-				frame.checkClipboardListener();
+			frame.setAlwaysListenToClipboard(edit_autopasteCheckbox.isSelected());
 		});
 		edit_copyDataMenu = new JMenu();
 		edit_copyDataMenu.setName("edit_copyData");
@@ -1711,7 +1710,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 				checkAddMenuSep(editMenu);
 				editMenu.add(edit_pasteItem);
 				if (frame != null) {
-					edit_autopasteCheckbox.setSelected(frame.alwaysListenToClipboard);
+					edit_autopasteCheckbox.setSelected(frame.getAlwaysListenToClipboard());
 					editMenu.add(edit_autopasteCheckbox);
 				}
 			}
@@ -2342,7 +2341,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 			// OSPLog.debug("TMenuBar window menu rebuild");
 			// rebuild window menu
 			windowMenu.removeAll();
-			if (frame.maximizedView >= 0) {
+			if (frame.getMaximizedView() != TView.VIEW_UNSET) {
 				windowMenu.add(window_restoreItem);
 			} else {
 				windowMenu.add(window_rightPaneItem);

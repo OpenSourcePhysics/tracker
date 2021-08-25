@@ -272,7 +272,7 @@ abstract public class ParticleModel extends PointMass {
 				startFrameUndefined = false;
 			}
 			if (tframe != null) {
-				boolean radians = tframe.anglesInRadians;
+				boolean radians = tframe.getAnglesInRadians();
 				functionPanel.initEditor.setAnglesInDegrees(!radians);
 			}
 		}
@@ -296,7 +296,7 @@ abstract public class ParticleModel extends PointMass {
 		default:
 			return;
 		case TFrame.PROPERTY_TFRAME_TAB: // $NON-NLS-1$
-			if (modelBuilder != null) {
+			if (modelBuilder != null && !tframe.isRemovingAll()) {
 				if (tp != null && e.getNewValue() == tp && tp.isModelBuilderVisible) {
 					modelBuilder.setVisible(true);
 				} else if (modelBuilder.isVisible() && e.getNewValue() != null) {

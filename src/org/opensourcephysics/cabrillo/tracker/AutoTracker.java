@@ -2352,7 +2352,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 		public void propertyChange(PropertyChangeEvent e) {
 			if (e.getPropertyName().equals(TFrame.PROPERTY_TFRAME_TAB)) { // $NON-NLS-1$
 				// this tab has been selected or deselected
-				if (panelID != null && e.getNewValue() == trackerPanel()) { // selected
+				if (!frame.isRemovingAll() && panelID != null && e.getNewValue() == trackerPanel()) { // selected
 					setVisible(isVisible);
 				} else { // deselected
 					boolean vis = isVisible;
