@@ -2030,7 +2030,7 @@ public class TrackerIO extends VideoIO {
 		}
 
 		private int loadTRZ(int progress) {
-			Map<String, String> pageViewTabs = new HashMap<String, String>(); 
+			Map<String, String> pageViewTabs = new HashMap<String, String>();
 			// pageView tabs that display html files
 			String name = XML.getName(ResourceLoader.getNonURIPath(path));
 			// download web files to OSP cache
@@ -2044,17 +2044,22 @@ public class TrackerIO extends VideoIO {
 				}
 			}
 
+			Map<String, ZipEntry> contents = ResourceLoader.getZipContents(path);
+			if (contents == null) {
+				frame.sayFileNotFound(path);
+				cancelAsync();
+				return PROGRESS_COMPLETE;
+			}
+			// extract the zip file contents
+			// first determine baseName shared by thumbnail, html and (usually) zip file
+			// eg example.trz, example_info.html, example_thumbnail.png
 			ArrayList<String> trkFiles = new ArrayList<String>(); // all trk files found in zip
 			ArrayList<String> htmlFiles = new ArrayList<String>(); // supplemental html files found in zip
 			ArrayList<String> pdfFiles = new ArrayList<String>(); // all pdf files found in zip
 			ArrayList<String> otherFiles = new ArrayList<String>(); // other files found in zip
+			ArrayList<String> tempFiles = new ArrayList<String>();
 			String trkForTFrame = null;
-
-			// sort the zip file contents
-			Map<String, ZipEntry> contents = ResourceLoader.getZipContents(path);
-			// first determine baseName shared by thumbnail, html and (usually) zip file
-			// eg example.trz, example_info.html, example_thumbnail.png
-			String baseName = XML.stripExtension(name);  // first guess: filename
+			String baseName = XML.stripExtension(name); // first guess: filename
 			for (String next : contents.keySet()) {
 				if (next.indexOf("_thumbnail") > -1) {
 					String thumb = XML.getName(next);
@@ -2078,12 +2083,13 @@ public class TrackerIO extends VideoIO {
 					htmlFiles.add(next);
 				}
 				// collect other files in top directory except thumbnails and videos
-				else if (next.indexOf("thumbnail") == -1 && next.indexOf("/") == -1
-						&& !isKnownVideoExtension(next)) { //$NON-NLS-1$ //$NON-NLS-2$
-					//String s = ResourceLoader.getURIPath(path + "!/" + next); //$NON-NLS-1$
+				else if (next.indexOf("thumbnail") == -1 && next.indexOf("/") == -1 && !isKnownVideoExtension(next)) { // $NON-NLS-1$
+																														// //$NON-NLS-2$
+					// String s = ResourceLoader.getURIPath(path + "!/" + next); //$NON-NLS-1$
 					otherFiles.add(next);
 				}
 			}
+			contents = null;
 			if (trkFiles.isEmpty() && pdfFiles.isEmpty() && htmlFiles.isEmpty() && otherFiles.isEmpty()) {
 				String s = TrackerRes.getString("TFrame.Dialog.LibraryError.Message"); //$NON-NLS-1$
 				JOptionPane.showMessageDialog(frame, s + " \"" + name + "\".", //$NON-NLS-1$ //$NON-NLS-2$
@@ -2137,7 +2143,6 @@ public class TrackerIO extends VideoIO {
 			}
 
 			// unzip pdf/html/other files into temp directory and open on desktop
-			ArrayList<String> tempFiles = new ArrayList<String>();
 			if (!htmlFiles.isEmpty() || !pdfFiles.isEmpty() || !otherFiles.isEmpty()) {
 				if (OSPRuntime.unzipFiles) {
 
@@ -2146,7 +2151,7 @@ public class TrackerIO extends VideoIO {
 					for (File next : files) {
 						next.deleteOnExit();
 						// add PDF/HTML/other files to tempFiles
-						//System.out.println(next);
+						// System.out.println(next);
 						String relPath = XML.getPathRelativeTo(next.getPath(), temp.getPath());
 						if (pdfFiles.contains(relPath) || htmlFiles.contains(relPath) || otherFiles.contains(relPath)) {
 							String tempPath = ResourceLoader.getURIPath(next.getAbsolutePath());

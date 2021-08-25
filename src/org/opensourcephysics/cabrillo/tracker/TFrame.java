@@ -2034,10 +2034,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 				if (panel != null) {
 					refreshMenus(panel, TMenuBar.REFRESH_TFRAME_OPENRECENT);
 				}
-				JOptionPane.showMessageDialog(this, TrackerRes.getString("TFrame.Dialog.FileNotFound.Message") //$NON-NLS-1$
-						+ "\n" + MediaRes.getString("VideoIO.Dialog.Label.Path") + ": " //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-						+ path, TrackerRes.getString("TFrame.Dialog.FileNotFound.Title"), //$NON-NLS-1$
-						JOptionPane.WARNING_MESSAGE);
+				sayFileNotFound(path);
 				return;
 			}
 		}
@@ -3205,7 +3202,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 				panel.onBlocked();
 		} else if (frameBlocker != null) {
 			frameBlocker = null;
-			panel.onLoaded();
+			if (panel != null) // null for file not found
+				panel.onLoaded();
 		}
 	}
 
@@ -3758,6 +3756,13 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		System.out.println(tp);
 		System.out.println(f.getTrackerPanelForID(tp.getID()));
 		System.exit(0);
+	}
+
+	public void sayFileNotFound(String path) {
+		JOptionPane.showMessageDialog(this, TrackerRes.getString("TFrame.Dialog.FileNotFound.Message") //$NON-NLS-1$
+				+ "\n" + MediaRes.getString("VideoIO.Dialog.Label.Path") + ": " //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+				+ path, TrackerRes.getString("TFrame.Dialog.FileNotFound.Title"), //$NON-NLS-1$
+				JOptionPane.WARNING_MESSAGE);
 	}
 
 
