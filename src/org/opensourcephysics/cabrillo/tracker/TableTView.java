@@ -228,10 +228,12 @@ public class TableTView extends TrackChooserTView {
 //				trackView.buildForNewFunction();
 //			}
 			// refresh all trackviews, not just selected track
-			for (TrackView next: trackViews.values()) {
-				TableTrackView trackView = (TableTrackView) next;
-				trackView.refreshNameMaps();
-				trackView.buildForNewFunction();
+			if (trackViews != null) {
+				for (TrackView next: trackViews.values()) {
+					TableTrackView trackView = (TableTrackView) next;
+					trackView.refreshNameMaps();
+					trackView.buildForNewFunction();
+				}
 			}
 			break;
 		default:
