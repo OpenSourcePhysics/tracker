@@ -2899,6 +2899,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 					TrackerPanel panel = getTrackerPanelForID(panelID);
 					panel.changed = false;
 					repaintT(panel);
+					if (panel.openedFromPath != null)
+						Tracker.addRecent(panel.openedFromPath, false);
 				}
 			});
 		});
