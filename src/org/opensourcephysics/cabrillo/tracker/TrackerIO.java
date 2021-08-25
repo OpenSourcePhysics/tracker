@@ -2189,10 +2189,11 @@ public class TrackerIO extends VideoIO {
 			} else {
 				control.loadObject(trackerPanel, this);
 			}
-			if (trackerPanel.progress < PROGRESS_COMPLETE) {
-				if (trackerPanel.progress == PROGRESS_VIDEO_LOADING)
+			int p = trackerPanel.getProgress();
+			if (p < PROGRESS_COMPLETE) {
+				if (p == PROGRESS_VIDEO_LOADING)
 					videoCount++;
-				return trackerPanel.progress;
+				return p;
 			}
 			
 			// 
