@@ -239,6 +239,7 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 
 	protected boolean refreshing; // true when refreshing toolbar
 	protected boolean useEyeButton = true;
+	private boolean refreshingTracks;
 	protected int vStretch = 1, aStretch = 1;
 	protected int trailLengthIndex = Tracker.preferredTrailLengthIndex;
 	protected boolean notYetCalibrated = true;
@@ -1042,13 +1043,14 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 			break;
 		}
 
-		boolean refreshTrackProperties = doRefresh;
+		refreshingTracks = refreshingTracks || doRefresh;
 		if (refreshTimer != null) {
 			refreshTimer.stop();
 		}
 		refreshTimer = OSPRuntime.trigger(200, (e) -> {
 			if (!disposed) {
-				refreshAsync(refreshTrackProperties);
+				refreshAsync(refreshingTracks);
+				refreshingTracks = false;
 			}
 			refreshTimer = null;
 		});
