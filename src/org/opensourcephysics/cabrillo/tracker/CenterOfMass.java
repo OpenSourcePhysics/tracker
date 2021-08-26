@@ -111,6 +111,7 @@ public class CenterOfMass extends PointMass {
 		if (initialized)
 			return;
 		panel = panel.getMainPanel();
+		boolean isChanged = panel.changed;
 		ArrayList<PointMass> masses = panel.getDrawablesTemp(PointMass.class);
 		for (int i = 0, n = massNames.size(); i < n; i++) {
 			String name = massNames.get(i);
@@ -122,6 +123,7 @@ public class CenterOfMass extends PointMass {
 		}
 		masses.clear();
 		massNames.clear();
+		panel.changed = isChanged;
 		initialized = true;
 	}
 
