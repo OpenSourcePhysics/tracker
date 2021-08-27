@@ -91,6 +91,7 @@ import org.opensourcephysics.display.Renderable;
 import org.opensourcephysics.media.core.AsyncVideoI;
 import org.opensourcephysics.media.core.ImageCoordSystem;
 import org.opensourcephysics.media.core.ImageVideo;
+import org.opensourcephysics.media.core.ImageVideoRecorder;
 import org.opensourcephysics.media.core.ImageVideoType;
 import org.opensourcephysics.media.core.IncrementallyLoadable;
 import org.opensourcephysics.media.core.MediaRes;
@@ -976,7 +977,8 @@ public class TrackerIO extends VideoIO {
 		Video video = trackerPanel.getVideo();
 		if (video == null)
 			return null;
-		if (video instanceof ImageVideo) {
+		boolean isImageVideo = video instanceof ImageVideo;
+		if (isImageVideo) {
 			boolean saved = ((ImageVideo) video).saveInvalidImages();
 			if (!saved)
 				return null;
@@ -989,7 +991,31 @@ public class TrackerIO extends VideoIO {
 				return null;
 			return saveVideo(target, trackerPanel);
 		}
-		boolean success = ResourceLoader.copyAllFiles(new File(source), file);
+		boolean success = true;
+		if (isImageVideo) {
+			String targetDir = XML.forwardSlash(file.getParent());
+			ImageVideo iv = (ImageVideo) video;
+			String[] paths = iv.getValidPaths();
+			ImageVideoRecorder.setChooserExtension(extension);
+			String[] targets = ImageVideoRecorder.getFileNames(file.getName(), paths.length);
+			String[] jarURLParts = ResourceLoader.getJarURLParts(source); // null if not a zip/jar/trz file
+			String srcDir = jarURLParts == null? 
+					XML.forwardSlash(source).contains(":/")? "":
+					XML.getDirectoryPath(source)+"/": 
+					jarURLParts[0]+"!/";
+			for (int i = 0; i < paths.length; i++) {
+				File in = new File(srcDir + paths[i]);
+				File out = new File(targetDir, targets[i]);
+				if (i == 0)
+					file = out; // file is first image in series
+				success = ResourceLoader.copyAllFiles(in, out);
+				if (!success)
+					return null;
+			}
+		}
+		else {
+			success = ResourceLoader.copyAllFiles(new File(source), file);
+		}
 		if (success) {
 			Tracker.addRecent(XML.getAbsolutePath(file), false); // add at beginning
 			trackerPanel.getTFrame().refreshMenus(trackerPanel, TMenuBar.REFRESH_TRACKERIO_SAVEVIDEO);
