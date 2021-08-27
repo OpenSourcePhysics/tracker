@@ -526,6 +526,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 				tabbedPane.setTitleAt(tab, name);
 				tabbedPane.setToolTipTextAt(tab, trackerPanel.getToolTipPath());
 			}
+			tabPanel = getTabPanel(trackerPanel);
 		} else {
 			setIgnoreRepaint(true);
 
