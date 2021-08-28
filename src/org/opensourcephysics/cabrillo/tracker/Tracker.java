@@ -2009,6 +2009,7 @@ public class Tracker {
 			long currentMemory = memory.getHeapMemoryUsage().getMax() / (1024 * 1024);
 
 			if (!checkIsRelaunch(args)) {
+				boolean isJar = checkIsJAR(); // check jar to set usesXuggleServer BEFORE checking java VM
 				boolean needsJavaVM = checkNeedsJVM(currentMemory);
 				// update video engine resources
 				boolean updated = updateResources();
@@ -2018,7 +2019,7 @@ public class Tracker {
 
 				// attempt to relaunch if needed
 
-				if (checkIsJAR() && (needsJavaVM || needsMemory || needsEnvironment || updated)) {
+				if (isJar && (needsJavaVM || needsMemory || needsEnvironment || updated)) {
 					doRelaunch(needsJavaVM, needsMemory, needsEnvironment, args);
 					return false;
 				}
