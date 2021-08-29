@@ -2828,7 +2828,9 @@ public class Tracker {
 	 * @param frame
 	 */
 	public static void askToSetMemory(TFrame frame) {
-		String response = GUIUtils.showInputDialog(frame, TrackerRes.getString("TTrackBar.Dialog.SetMemory.Message"), //$NON-NLS-1$
+		String s = TrackerRes.getString("TTrackBar.Dialog.SetMemory.Message") 
+				+ " " + TrackerStarter.DEFAULT_MEMORY_SIZE + " MB.";
+		String response = GUIUtils.showInputDialog(frame, s, //$NON-NLS-1$
 				TrackerRes.getString("TTrackBar.Dialog.SetMemory.Title"), //$NON-NLS-1$
 				JOptionPane.PLAIN_MESSAGE, String.valueOf(preferredMemorySize));
 		if (response == null || response.length() <= 0)
