@@ -3961,8 +3961,9 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 		case TYPE_CIRCLEFITTER:
 			patterns.put(TrackerRes.getString("CircleFitter.Data.PointCount"), NumberField.INTEGER_PATTERN);
 			// fall through
-		case TYPE_POINTMASS:
 		case TYPE_PROTRACTOR:
+			patterns.put(Tracker.THETA, NumberField.DECIMAL_1_PATTERN);
+		case TYPE_POINTMASS:
 		case TYPE_RGBREGION:
 		case TYPE_TAPEMEASURE:
 		case TYPE_VECTOR:
