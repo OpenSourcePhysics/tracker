@@ -65,22 +65,27 @@ public class Upgrader {
 	TFrame frame;
 	JDialog upgradeDialog;
 	JLabel downloadLabel, relaunchLabel;
+	String upgradeURL, trackerJarName;
 
 	public Upgrader(TFrame tFrame) {
 		frame = tFrame;
 	}
 
+	/**
+	 * Starts the upgrade process
+	 */
 	public void upgrade() {
 		// get upgrade dialog
 		getUpgradeDialog();
 		// initialize
 		boolean[] failed = new boolean[] { false };
 		int responseCode = 0; // code 200 = "OK"
+		upgradeURL = getUpgradeURL();
+		trackerJarName = "tracker-" + Tracker.newerVersion + ".jar"; //$NON-NLS-1$ //$NON-NLS-2$
+		
 		// look for upgrade tracker.jar
-		final String jarFileName = "tracker-" + Tracker.newerVersion + ".jar"; //$NON-NLS-1$ //$NON-NLS-2$
-		final String upgradeURL = ResourceLoader.getString("https://physlets.org/tracker/upgradeURL.txt"); //$NON-NLS-1$
 		if (upgradeURL != null && Tracker.trackerHome != null) {
-			String upgradeFile = upgradeURL.trim() + jarFileName;
+			String upgradeFile = upgradeURL + trackerJarName;
 			try {
 				URL url = new URL(upgradeFile);
 				HttpURLConnection huc = (HttpURLConnection) url.openConnection();
@@ -109,13 +114,11 @@ public class Upgrader {
 
 	private void upgradeWindows(final boolean[] failed) {
 		// check for upgrade installer
-		final String jarFileName = "tracker-" + Tracker.newerVersion + ".jar"; //$NON-NLS-1$ //$NON-NLS-2$
-		final String upgradeURL = ResourceLoader.getString("https://physlets.org/tracker/upgradeURL.txt"); //$NON-NLS-1$
-		final String upgradeInstallerName = "TrackerUpgrade-" + Tracker.newerVersion + "-windows-installer.exe"; //$NON-NLS-1$ //$NON-NLS-2$
-		final String upgradeInstallerURL = upgradeURL.trim() + upgradeInstallerName;
+		final String upgradeInstallerName = "TrackerUpgrade-" + Tracker.newerVersion + "-windows-x64-installer.exe"; //$NON-NLS-1$ //$NON-NLS-2$
+		final String upgradeInstallerURL = upgradeURL + upgradeInstallerName;
 		int responseCode = 0;
 		try {
-			URL url = new URL(upgradeInstallerURL);
+			URL url = new URL(upgradeInstallerURL );
 			HttpURLConnection huc = (HttpURLConnection) url.openConnection();
 			responseCode = huc.getResponseCode();
 		} catch (Exception ex) {
@@ -151,6 +154,7 @@ public class Upgrader {
 						upgradeDialog.setVisible(true);
 
 						// download upgrade installer
+						String attempted = installer.getPath();
 						installer = ResourceLoader.download(upgradeInstallerURL, installer, true);
 						// close dialog when done downloading
 						closeUpgradeDialog();
@@ -158,7 +162,7 @@ public class Upgrader {
 							// get OK to run installer and close Tracker
 							int ans = JOptionPane.showConfirmDialog(frame,
 									TrackerRes.getString("Upgrader.Dialog.Downloaded.Message1") + " " //$NON-NLS-1$ //$NON-NLS-2$
-											+ installer.getPath() + "." //$NON-NLS-1$
+//											+ installer.getPath() + "." //$NON-NLS-1$
 											+ XML.NEW_LINE + TrackerRes.getString("Upgrader.Dialog.Downloaded.Message2") //$NON-NLS-1$
 											+ XML.NEW_LINE,
 									TrackerRes.getString("TTrackBar.Dialog.Download.Title"), //$NON-NLS-1$
@@ -190,8 +194,9 @@ public class Upgrader {
 									Tracker.preferredTrackerJar = null;
 									Tracker.savePreferences();
 									// exit Tracker
-									TrackerPanel trackerPanel = frame.getSelectedPanel();
-									TActions.exitAction(trackerPanel);
+//									TrackerPanel trackerPanel = frame.getSelectedPanel();
+//									TActions.exitAction(trackerPanel);
+									TActions.exitAction(null);
 									return;
 								}
 								// upgrade installer launch failure
@@ -208,6 +213,7 @@ public class Upgrader {
 							failed[0] = true;
 						}
 						if (failed[0]) {
+							showDownloadFailure(attempted);							
 							// close upgrade dialog and display Tracker web site
 							closeUpgradeDialog();
 							String websiteurl = "https://" + Tracker.trackerWebsite; //$NON-NLS-1$
@@ -217,9 +223,9 @@ public class Upgrader {
 				}; // end runnable
 				new Thread(runner).start();
 			}
-		} // end upgrade installer
+		} // end handling upgrade installer
 		else {
-			// no upgrade installer so download tracker.jar
+			// no upgrade installer so download tracker.jar if writable
 			// inform user of intended action and ask permission
 			int ans = JOptionPane.showConfirmDialog(frame,
 					TrackerRes.getString("TTrackBar.Dialog.Download.Message1") + " " + Tracker.trackerHome + "." //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
@@ -243,13 +249,14 @@ public class Upgrader {
 					upgradeDialog.setVisible(true);
 
 					// download new tracker jar
-					File jarFile = new File(Tracker.trackerHome, jarFileName);
-					String jarURL = upgradeURL.trim() + jarFileName;
+					File jarFile = new File(Tracker.trackerHome, trackerJarName);
+					String attempted = jarFile.getPath();
+					String jarURL = upgradeURL + trackerJarName;
 					jarFile = ResourceLoader.download(jarURL, jarFile, true);
 
 					// also download new Tracker.exe if available
 					String starterName = "Tracker.exe"; //$NON-NLS-1$
-					String starterURL = upgradeURL.trim() + starterName;
+					String starterURL = upgradeURL + starterName;
 					int responseCode = 0;
 					try {
 						URL url = new URL(starterURL);
@@ -312,6 +319,7 @@ public class Upgrader {
 						failed[0] = true;
 					}
 					if (failed[0]) {
+						showDownloadFailure(attempted);							
 						// close upgrade dialog and display Tracker web site
 						closeUpgradeDialog();
 						String websiteurl = "https://" + Tracker.trackerWebsite; //$NON-NLS-1$
@@ -325,9 +333,8 @@ public class Upgrader {
 
 	private void upgradeOSX(final boolean[] failed) {
 		// see if a TrackerUpgrade zip is available
-		final String upgradeURL = ResourceLoader.getString("https://physlets.org/tracker/upgradeURL.txt"); //$NON-NLS-1$
 		final String dmgFileName = "TrackerUpgrade-" + Tracker.newerVersion + "-osx-installer.dmg"; //$NON-NLS-1$ //$NON-NLS-2$
-		final String dmgURL = upgradeURL.trim() + dmgFileName;
+		final String dmgURL = upgradeURL + dmgFileName;
 		int responseCode = 0;
 		try {
 			URL url = new URL(dmgURL);
@@ -373,6 +380,7 @@ public class Upgrader {
 						upgradeDialog.setVisible(true);
 
 						// download dmg file
+						String attempted = dmgFile.getPath();
 						dmgFile = ResourceLoader.download(dmgURL, dmgFile, true);
 						if (dmgFile != null && dmgFile.exists()) {
 							// use hdiutil to mount
@@ -444,6 +452,7 @@ public class Upgrader {
 							failed[0] = true;
 						}
 						if (failed[0]) {
+							showDownloadFailure(attempted);							
 							// close upgrade dialog and display Tracker web site
 							closeUpgradeDialog();
 							String websiteurl = "https://" + Tracker.trackerWebsite; //$NON-NLS-1$
@@ -461,13 +470,10 @@ public class Upgrader {
 	}
 
 	private void upgradeLinux(final boolean[] failed) {
-		final String upgradeURL = ResourceLoader.getString("https://physlets.org/tracker/upgradeURL.txt"); //$NON-NLS-1$
 		// see if a TrackerUpgrade file is available
-		int bitness = OSPRuntime.getVMBitness();
 		// see if a TrackerUpgrade zip is available
-		final String upgradeFileName = "TrackerUpgrade-" + Tracker.newerVersion + "-linux-" + bitness //$NON-NLS-1$ //$NON-NLS-2$
-				+ "bit-installer.run"; //$NON-NLS-1$
-		final String fileURL = upgradeURL.trim() + upgradeFileName;
+		final String runFileName = "TrackerUpgrade-" + Tracker.newerVersion	+ "-linux-x64-installer.run"; //$NON-NLS-1$
+		final String fileURL = upgradeURL + runFileName;
 		int responseCode = 0;
 		try {
 			URL url = new URL(fileURL);
@@ -496,7 +502,7 @@ public class Upgrader {
 						// show relaunching dialog during download
 						downloadLabel
 								.setText((TrackerRes.getString("TTrackBar.Dialog.Relaunch.DownloadLabel.Upgrade.Text") //$NON-NLS-1$
-										+ " " + downloads.getPath() + "/" + upgradeFileName + ".")); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+										+ " " + downloads.getPath() + "/" + runFileName + ".")); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 						// show relaunching dialog during download
 						relaunchLabel.setText(""); //$NON-NLS-1$
 						FontSizer.setFonts(upgradeDialog, FontSizer.getLevel());
@@ -506,7 +512,8 @@ public class Upgrader {
 						upgradeDialog.setVisible(true);
 
 						// download upgrade installer
-						File installer = new File(downloads, upgradeFileName);
+						File installer = new File(downloads, runFileName);
+						String attempted = installer.getPath();
 						installer = ResourceLoader.download(fileURL, installer, true);
 						closeUpgradeDialog();
 						if (installer != null && installer.exists()) {
@@ -532,8 +539,7 @@ public class Upgrader {
 
 							field.setText(cmd);
 							JPanel panel = new JPanel(new BorderLayout());
-							JLabel label1 = new JLabel(TrackerRes.getString("Upgrader.Dialog.Downloaded.Message1") //$NON-NLS-1$
-									+ " " + installer.getPath() + "."); //$NON-NLS-1$ //$NON-NLS-2$
+							JLabel label1 = new JLabel(TrackerRes.getString("Upgrader.Dialog.Downloaded.Message1")); //$NON-NLS-1$ //$NON-NLS-2$
 							label1.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 4));
 							JLabel label2 = new JLabel(
 									TrackerRes.getString("Upgrader.Dialog.Downloaded.Linux.Message2")); //$NON-NLS-1$
@@ -570,6 +576,7 @@ public class Upgrader {
 						failed[0] = true;
 
 						if (failed[0]) {
+							showDownloadFailure(attempted);							
 							// close upgrade dialog and display Tracker web site
 							closeUpgradeDialog();
 							String websiteurl = "https://" + Tracker.trackerWebsite; //$NON-NLS-1$
@@ -643,6 +650,14 @@ public class Upgrader {
 		}
 		return null;
 	}
+	
+	/**
+	 * Gets the upgrade folder url on the server. Currently return version 6 subfolder.
+	 */
+	private String getUpgradeURL() {
+		String url = ResourceLoader.getString("https://physlets.org/tracker/upgradeURL.txt"); //$NON-NLS-1$
+		return url==null? null: url.trim() + "ver6/";
+	}
 
 	private JDialog getUpgradeDialog() {
 		// create relaunching dialog
@@ -661,6 +676,19 @@ public class Upgrader {
 			relaunchLabel.setBorder(BorderFactory.createEmptyBorder(6, 6, 16, 6));
 		}
 		return upgradeDialog;
+	}
+
+	/**
+	 * Shows a dialog when a download failure occurs
+	 * 
+	 * @param taret the target that failed
+	 */
+	private void showDownloadFailure(String target) {
+		String message = TrackerRes.getString("Upgrader.Dialog.DownloadFailed.Message")
+				+ " " + target;
+		JOptionPane.showMessageDialog(frame, message, 
+				TrackerRes.getString("Upgrader.Dialog.DownloadFailed.Title"), 
+				JOptionPane.ERROR_MESSAGE);
 	}
 
 	private boolean isAlive(Process process) {

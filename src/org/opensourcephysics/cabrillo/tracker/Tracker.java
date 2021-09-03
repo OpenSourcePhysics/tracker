@@ -1664,7 +1664,7 @@ public class Tracker {
 				}
 			}
 			// show dialog if this is a first-time-seen upgrade version
-//	    if (testOn) latestVersion = null; // pig for testing only
+//	    if (testOn) latestVersion = null; // for testing only
 			String testVersion = latestVersion == null ? OSPRuntime.VERSION : latestVersion;
 			result = 0;
 			try {
