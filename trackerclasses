@@ -286,6 +286,7 @@ java/text/DontCareFieldPosition.js
 java/text/FieldPosition.js
 java/text/Format.js
 java/text/NumberFormat.js
+java/text/ParseException.js
 java/text/ParsePosition.js
 java/text/SimpleDateFormat.js
 java/text/spi/BreakIteratorProvider.js
