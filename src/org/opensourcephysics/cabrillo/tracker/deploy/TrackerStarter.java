@@ -596,11 +596,11 @@ public class TrackerStarter {
 			File home = new File(trackerHome);
 			String path = home.getParent()+"/PlugIns/Java.runtime"; //$NON-NLS-1$
 			File jre = JREFinder.getFinder().getDefaultJRE(64, path, false);
-			return new String[] {jre.getPath()};
+			return new String[] {jre == null? null: jre.getPath()};
 		}
 		else {
 			File jre = JREFinder.getFinder().getDefaultJRE(64, trackerHome, false);
-			return new String[] {jre.getPath()};
+			return new String[] {jre == null? null: jre.getPath()};
 		}
 	}
 
