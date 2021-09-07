@@ -407,7 +407,9 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 			if (p != null && (Double.isInfinite(peakWidthAndHeight[1]) || peakWidthAndHeight[1] >= goodMatch)) {
 				marking = true;
 				track.autoTrackerMarking = track.isAutoAdvance();
-				p = track.autoMarkAt(n, p.x, p.y);
+				if (keyFrameData != frameData) {
+					p = track.autoMarkAt(n, p.x, p.y);
+				}
 				frameData.setAutoMarkPoint(p);
 				track.autoTrackerMarking = false;
 				return true;
@@ -1068,7 +1070,9 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 		BufferedImage img = createMagnifiedImage(match);
 		frameData.setMatchIcon(new ImageIcon(img));
 		Rectangle rect = frameData.getKeyFrameData().getMask().getBounds();
-		TPoint center = new TPoint(p.x + maskCenter.x - rect.getX(), p.y + maskCenter.y - rect.getY());
+		// we know that for key frames the fit is perfect so match center = mask center
+		TPoint center = frameData.isKeyFrameData()? new TPoint(maskCenter):
+				new TPoint(p.x + maskCenter.x - rect.getX(), p.y + maskCenter.y - rect.getY());
 		TPoint corner = new TPoint(center.x + cornerFactor * (maskCorner.x - maskCenter.x),
 				center.y + cornerFactor * (maskCorner.y - maskCenter.y));
 		frameData.setMatchPoints(new TPoint[] { center, corner, p });
@@ -1391,7 +1395,11 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 			// if anything is selected, create a selection mark
 			if (selectionPt != null) {
 				transform.setToTranslation(selectionPt.x, selectionPt.y);
-				Shape selectedShape = transform.createTransformedShape(hitRect);
+				int scale = FontSizer.getIntegerFactor();
+				if (scale > 1) {
+					transform.scale(scale, scale);
+				}
+				Shape selectedShape = transform.createTransformedShape(Step.selectionShape);
 				selectionMark = new Mark() {
 					@Override
 					public void draw(Graphics2D g, boolean highlighted) {
@@ -1559,8 +1567,9 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 		wizard.replaceIcons(keyFrame);
 		// get the marked point and set target position AFTER refreshing keyFrame
 		TPoint p = keyFrame.getMarkedPoint();
-		if (p != null)
+		if (p != null) {
 			keyFrame.getTarget().setXY(p.getX(), p.getY());
+		}
 		search(true, false); // search this frame only
 		repaint();
 		wizard.repaint();
