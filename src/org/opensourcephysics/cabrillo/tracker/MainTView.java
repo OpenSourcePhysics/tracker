@@ -353,6 +353,7 @@ public class MainTView extends TView {
 				}
 				panel.eraseAll();
 				TFrame.repaintT(panel);
+				panel.getToolBar(true).refreshZoomButton();
 			}
 		};
 		SwingUtilities.invokeLater(runner);

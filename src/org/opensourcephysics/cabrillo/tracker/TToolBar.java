@@ -327,7 +327,7 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 					double mag = Double.parseDouble(name);
 					panel().setMagnification(mag / 100);
 				}
-				refreshZoomButton();
+//				refreshZoomButton();
 			}
 		};
 
@@ -346,7 +346,7 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 					panel().setMagnification(-1);
 					if (zoomPopup != null)
 						zoomPopup.setVisible(false);
-					refreshZoomButton();
+//					refreshZoomButton();
 				}
 			}
 		});
@@ -1418,7 +1418,7 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 			refresh(REFRESH__PROPERTY_SELECTED_TRACK);
 			break;
 		case TrackerPanel.PROPERTY_TRACKERPANEL_MAGNIFICATION:
-			refreshZoomButton();
+//			refreshZoomButton();
 			break;
 		case TTrack.PROPERTY_TTRACK_VISIBLE:
 			if (e.getSource() == panel().getAxes()) {

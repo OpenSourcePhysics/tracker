@@ -4289,7 +4289,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				@Override
 				public void actionPerformed(ActionEvent e) {
 					setMagnification(-1);
-					getToolBar(true).refreshZoomButton();
+//					getToolBar(true).refreshZoomButton();
 				}
 			});
 
