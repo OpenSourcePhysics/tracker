@@ -2408,6 +2408,8 @@ public class TrackerIO extends VideoIO {
 			if (Tracker.warnVariableDuration)
 				findBadVideoFrames(trackerPanel, defaultBadFrameTolerance, true, true, true);
 			// show dialog only if bad frames found, and include "don't show again" button
+			
+			checkDone(false);
 		}
 
 		/**

@@ -888,6 +888,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	private int state = STATE_ACTIVE;
 	private boolean removingAll;
 	
+	@Override
 	public int getState() {
 		return state;
 	}
