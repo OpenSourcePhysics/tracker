@@ -46,6 +46,7 @@ import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ComponentListener;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
@@ -2337,6 +2338,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 		private int prevEvolution;
 		private boolean refreshPosted;
 		protected boolean isPositioned;
+		private ComponentListener myFollower;
 
 		public void clearTextPaneSize() {
 			textPaneSize = null;
@@ -2462,6 +2464,8 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 		@Override
 		public void dispose() {
 			frame.removePropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, this); // $NON-NLS-1$
+			frame.removeComponentListener(myFollower);
+			myFollower = null;
 			mouseOverTimer.stop();
 			mouseOverTimer = null;
 			panelID = null;
@@ -3000,6 +3004,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 			evolveAlpha = getAlphaFromPercent(defaultEvolve);
 			tetherAlpha = getAlphaFromPercent(defaultTether);
 //			refreshGUI();
+			myFollower = frame.addFollower(this, null);
 		}
 
 		protected void refreshNow() {
