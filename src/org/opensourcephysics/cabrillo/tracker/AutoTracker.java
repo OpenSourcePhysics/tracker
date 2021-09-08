@@ -2388,6 +2388,25 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 		 */
 		@Override
 		public void setVisible(boolean vis) {
+			if (vis && !isPositioned) {
+				OSPRuntime.trigger(100, (e) -> {
+					SwingUtilities.invokeLater(() -> {
+						// refreshGUI a second time before positioning
+						clearTextPaneSize(); // forces GUI to lay out and measure text
+						refreshGUIAsync();
+						// place near top right corner of frame
+						Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
+						Point frameLoc = frame.getLocationOnScreen();
+						int w = wizard.getWidth() + 8;
+						int x = Math.min(screen.width - w, frameLoc.x + frame.getWidth() - w);
+						int y = frameLoc.y + 90;
+						setLocation(x, y);
+						isPositioned = true;
+						setVisible(vis);
+					});
+				});
+				return;
+			}
 			super.setVisible(vis);
 			TrackerPanel panel = frame.getTrackerPanelForID(panelID);
 			TToolBar toolbar = panel.getToolBar(true);
@@ -2401,21 +2420,6 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 				if (track != null)
 					setTrack(track);
 				refreshGUI();
-				if (!isPositioned) {
-					OSPRuntime.trigger(10, (e) -> {
-						// refreshGUI a second time before positioning
-						clearTextPaneSize();
-						refreshGUI();
-						// place near top right corner of frame
-						Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
-						Point frameLoc = frame.getLocationOnScreen();
-						int w = wizard.getWidth() + 8;
-						int x = Math.min(screen.width - w, frameLoc.x + frame.getWidth() - w);
-						int y = frameLoc.y;
-						setLocation(x, y);
-						isPositioned = true;
-					});
-				}
 			}
 		}
 
