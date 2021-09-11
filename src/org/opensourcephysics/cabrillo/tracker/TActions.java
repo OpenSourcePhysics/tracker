@@ -246,15 +246,14 @@ public class TActions {
 					}
 				});
 
-		// save zip resource
+		// save zip resource (TRZ)
 		actions.put("saveZip", //$NON-NLS-1$
 				new AbstractAction(TrackerRes.getString("TActions.Action.SaveZip") + "...", //$NON-NLS-1$ //$NON-NLS-2$
 						Tracker.getResourceIcon("save_zip.gif", true) //$NON-NLS-1$
 				) {
 					@Override
 					public void actionPerformed(ActionEvent e) {
-						ExportZipDialog zipDialog = ExportZipDialog.getDialog(panel());
-						zipDialog.setVisible(true);
+						ExportZipDialog.getDialog(panel()).setVisible(true);
 					}
 				});
 

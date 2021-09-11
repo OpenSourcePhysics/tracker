@@ -50,7 +50,6 @@ import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.controls.XMLControlElement;
 import org.opensourcephysics.display.OSPRuntime;
-import org.opensourcephysics.media.core.VideoIO;
 import org.opensourcephysics.tools.JREFinder;
 import org.opensourcephysics.tools.ResourceLoader;
 
@@ -1026,7 +1025,7 @@ public class TrackerStarter {
 				File target = new File(targetDir, xuggleNames[i] + ".jar");
 				// copy jar
 				if (!target.exists() || target.lastModified() < modified) {
-					upToDate = VideoIO.copyFile(xuggleFile, target) && upToDate;
+					upToDate = ResourceLoader.copyFile(xuggleFile, target, 100000) && upToDate;
 				}				
 			}
 			

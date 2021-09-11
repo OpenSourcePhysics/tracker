@@ -644,7 +644,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 	protected String videoIOPreferredExtension;
 	protected boolean isVisible;
 	private Iterator<Export> exportIterator;
-	private File lastTRZ = new File("");
+	private File lastTRZ = new File(OSPRuntime.isJS ? "tracker" : "");
 
 	/**
 	 * Returns an ExportZipDialog for a TrackerPanel.
@@ -2296,7 +2296,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 		}
 		// otherwise copy it
 		else
-			ResourceLoader.copyFile(new File(filePath), targetFile);
+			ResourceLoader.copyFile(new File(filePath), targetFile, 100000);
 		return targetFile.exists();
 	}
 
