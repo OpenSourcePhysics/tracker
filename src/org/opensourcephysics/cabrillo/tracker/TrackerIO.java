@@ -2475,7 +2475,8 @@ public class TrackerIO extends VideoIO {
 			if (libraryBrowser != null) {
 				libraryBrowser.cancelLoading();
 			}
-			trackerPanel.releaseResources();
+			if (trackerPanel != null)
+				trackerPanel.releaseResources();
 			if (type == TYPE_VIDEO) {
 				// remove existingPanel if clean and removable
 				if (existingPanelID != null) {
