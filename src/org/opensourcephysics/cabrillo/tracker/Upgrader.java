@@ -652,11 +652,12 @@ public class Upgrader {
 	}
 	
 	/**
-	 * Gets the upgrade folder url on the server. Currently return version 6 subfolder.
+	 * Gets the upgrade folder url on the server. Returns major version subfolder.
 	 */
 	private String getUpgradeURL() {
+		int ver = OSPRuntime.getMajorVersion();
 		String url = ResourceLoader.getString("https://physlets.org/tracker/upgradeURL.txt"); //$NON-NLS-1$
-		return url==null? null: url.trim() + "ver6/";
+		return url==null? null: url.trim() + "ver" + ver + "/";
 	}
 
 	private JDialog getUpgradeDialog() {
