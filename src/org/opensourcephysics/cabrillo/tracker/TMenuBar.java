@@ -203,8 +203,8 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 	private JMenuItem file_closeItem;
 	private JMenuItem file_closeAllItem;
 	private JMenuItem file_saveItem;
-	private JMenuItem file_saveAsItem;
-	private JMenuItem file_saveZipAsItem;
+	private JMenuItem file_saveTabAsItem;
+	private JMenuItem file_saveProjectAsItem;
 	private JMenuItem saveVideoAsItem;
 	private JMenuItem file_saveTabsetAsItem;
 	private JMenu file_importMenu;
@@ -591,9 +591,9 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 			file_saveItem = new JMenuItem(actions.get("save")); //$NON-NLS-1$
 			file_saveItem.setAccelerator(KeyStroke.getKeyStroke('S', keyMask));
 			// saveAs item
-			file_saveAsItem = new JMenuItem(actions.get("saveAs")); //$NON-NLS-1$
+			file_saveTabAsItem = new JMenuItem(actions.get("saveAs")); //$NON-NLS-1$
 			// save zip item
-			file_saveZipAsItem = new JMenuItem(actions.get("saveZip")); //$NON-NLS-1$
+			file_saveProjectAsItem = new JMenuItem(actions.get("saveZip")); //$NON-NLS-1$
 			// saveVideoAs item
 			saveVideoAsItem = new JMenuItem(actions.get("saveVideo")); //$NON-NLS-1$
 			// saveTabset item
@@ -1367,11 +1367,11 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 				if (panel().isEnabled("file.save")) //$NON-NLS-1$
 					fileMenu.add(file_saveItem);
 				if (panel().isEnabled("file.saveAs")) { //$NON-NLS-1$
-					fileMenu.add(file_saveAsItem);
+					fileMenu.add(file_saveTabAsItem);
 					if (panel().getVideo() != null) {
 						fileMenu.add(saveVideoAsItem);
 					}
-					fileMenu.add(file_saveZipAsItem);
+					fileMenu.add(file_saveProjectAsItem);
 					fileMenu.add(file_saveTabsetAsItem);
 				}
 			}
@@ -1400,7 +1400,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		}
 		if (opening) {
 			if (frame != null) {
-				System.out.println("TMenuBar mem test " + OSPRuntime.getMemoryStr()); //TEST_BH
+				//System.out.println("TMenuBar mem test " + OSPRuntime.getMemoryStr()); //TEST_BH
 				frame.refreshOpenRecentMenu(file_openRecentMenu);
 			}
 			// disable export data menu if no tables to export

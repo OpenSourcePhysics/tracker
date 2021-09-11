@@ -643,7 +643,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 	protected String videoIOPreferredExtension;
 	protected boolean isVisible;
 	private Iterator<Export> exportIterator;
-	private File lastTRZ = new File("");
+	private File lastTRZ = new File(OSPRuntime.isJS ? "tracker" : "");
 
 	/**
 	 * Returns an ExportZipDialog for a TrackerPanel.
@@ -2294,7 +2294,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 		}
 		// otherwise copy it
 		else
-			VideoIO.copyFile(new File(filePath), targetFile);
+			ResourceLoader.copyFile(new File(filePath), targetFile, 100000);
 		return targetFile.exists();
 	}
 
@@ -2500,7 +2500,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 					// copy image and determine its path relative to target
 					File imageTarget = new File(imageDir, XML.getName(next));
 					if (res.getFile() != null) {
-						VideoIO.copyFile(res.getFile(), imageTarget);
+						ResourceLoader.copyFile(res.getFile(), imageTarget);
 					}
 					path = XML.getPathRelativeTo(imageTarget.getAbsolutePath(), getHTMLDirectory());
 					html = substitutePathInText(html, next, path, pre, post);
@@ -2516,7 +2516,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 					// copy css file into HTMLTarget directory
 					String cssName = XML.getName(css);
 					File cssTarget = new File(htmlTarget, XML.getName(cssName));
-					VideoIO.copyFile(res.getFile(), cssTarget);
+					ResourceLoader.copyFile(res.getFile(), cssTarget);
 					// substitute cssName in html
 					html = substitutePathInText(html, css, cssName, "\"", "\""); //$NON-NLS-1$ //$NON-NLS-2$
 				}
