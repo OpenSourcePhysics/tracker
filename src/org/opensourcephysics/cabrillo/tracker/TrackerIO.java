@@ -1391,7 +1391,8 @@ public class TrackerIO extends VideoIO {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				// remove primitives from control
-				if (e.getID() != ActionEvent.ACTION_PERFORMED) {
+				if (e.getID() != ActionEvent.ACTION_PERFORMED
+						|| vControl == null || vClipControl == null) {
 					return;
 				}
 				for (XMLProperty prop : primitives) {
@@ -1574,7 +1575,7 @@ public class TrackerIO extends VideoIO {
 			}
 			buf.append(XML.NEW_LINE); // new line after each row
 		}
-		if (restoreRows != null) {
+		if (restoreRows != null && restoreColumns != null) {
 			// restore previous selection state
 			table.clearSelection();
 			for (int row : restoreRows)
@@ -1646,10 +1647,8 @@ public class TrackerIO extends VideoIO {
 						int n = zipPath.indexOf("!/"); //$NON-NLS-1$
 						// extract files from jar, zip or trz files into temp directory
 						if (n > 0) {
-							File target = new File(OSPRuntime.tempDir); // $NON-NLS-1$
-							zipPath = zipPath.substring(0, n);
-							ResourceLoader.unzip(zipPath, target, true); // overwrite
-							target = new File(target, path);
+							ResourceLoader.unzip(zipPath.substring(0, n)); // overwrite
+							File target = new File(ResourceLoader.tempDirFile, path);
 							if (target.exists()) {
 								res = ResourceLoader.getResource(target.getAbsolutePath());
 								urlPath = res.getURL().toExternalForm();
@@ -2171,14 +2170,11 @@ public class TrackerIO extends VideoIO {
 			// unzip pdf/html/other files into temp directory and open on desktop
 			if (!htmlFiles.isEmpty() || !pdfFiles.isEmpty() || !otherFiles.isEmpty()) {
 				if (OSPRuntime.unzipFiles) {
-
-					File temp = new File(OSPRuntime.tempDir); // $NON-NLS-1$
-					Set<File> files = ResourceLoader.unzip(path, temp, true);
-					for (File next : files) {
+					for (File next : ResourceLoader.unzip(path)) {
 						next.deleteOnExit();
 						// add PDF/HTML/other files to tempFiles
 						// System.out.println(next);
-						String relPath = XML.getPathRelativeTo(next.getPath(), temp.getPath());
+						String relPath = XML.getPathRelativeTo(next.getPath(), ResourceLoader.tempDirFile.getPath());
 						if (pdfFiles.contains(relPath) || htmlFiles.contains(relPath) || otherFiles.contains(relPath)) {
 							String tempPath = ResourceLoader.getURIPath(next.getAbsolutePath());
 							tempFiles.add(tempPath);

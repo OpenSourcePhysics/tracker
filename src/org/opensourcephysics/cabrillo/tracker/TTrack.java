@@ -2186,8 +2186,8 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 	 * @return a menu
 	 */
 	public JMenu getMenu(TrackerPanel trackerPanel, JMenu menu) {
-		boolean dynamic = (menu == null);
-		if (dynamic) {
+		if (menu == null) {
+			// dynamic
 			JMenu menu0 = new JMenu();
 			menu0.setText(getName("track"));
 			menu0.setIcon(getFootprint().getIcon(21, 16));
@@ -4034,7 +4034,7 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 			for (int i = 0; i < count; i++) {
 				data.getDataset(i).clear();
 			}
-		} else {
+		} else if (dataVariables != null) {
 			// not yet initialized
 			for (int i = 0; i < count; i++)
 				data.setXYColumnNames(i, v0, dataVariables[i + 1]);

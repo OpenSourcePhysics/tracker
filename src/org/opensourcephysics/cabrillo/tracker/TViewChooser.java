@@ -378,6 +378,7 @@ public class TViewChooser extends JPanel implements PropertyChangeListener, OSPR
 		if (view == null) {
 			// create new TView
 			switch (type) {
+			default:
 			case TView.VIEW_PLOT: 
 				view = new PlotTView(trackerPanel);
 				break;

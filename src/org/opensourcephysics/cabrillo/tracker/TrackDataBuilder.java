@@ -288,6 +288,8 @@ public class TrackDataBuilder extends FunctionTool {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				if (e.getID() == ActionEvent.ACTION_PERFORMED) {
+					if (panelTrackType == null || targetControl == null)
+						return;
 					// load data function panel(s)
 					ArrayList<FunctionPanel> panelsToLoad = new ArrayList<FunctionPanel>();
 					for (String name : getPanelNames()) {
@@ -348,7 +350,7 @@ public class TrackDataBuilder extends FunctionTool {
 		if (controlType != null)
 			trackType = TrackerRes.getString(controlType.getSimpleName() + ".Name").toLowerCase(); //$NON-NLS-1$
 
-		if (controlType != panelType) {
+		if (controlType != panelType && panelType != null) {
 			String targetType = TrackerRes.getString(panelType.getSimpleName() + ".Name").toLowerCase(); //$NON-NLS-1$
 			JOptionPane.showMessageDialog(frame,
 					TrackerRes.getString("TrackerPanel.DataBuilder.Dialog.WrongTrackType.Message1") //$NON-NLS-1$

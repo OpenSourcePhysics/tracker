@@ -1532,16 +1532,16 @@ public class Tracker {
 		OSPRuntime.setDefaultDecimalSeparator(separator);
 	}
 
-	/**
-	 * Sets the cache path.
-	 * 
-	 * @param cachePath the cache path
-	 */
-	protected static void setCache(String cachePath) {
-		File cacheDir = cachePath == null || cachePath.trim().equals("") ? ResourceLoader.getDefaultOSPCache() //$NON-NLS-1$
-				: new File(cachePath);
-		ResourceLoader.setOSPCache(cacheDir);
-	}
+//	/**
+//	 * Sets the cache path.
+//	 * 
+//	 * @param cachePath the cache path
+//	 */
+//	protected static void setCache(String cachePath) {
+//		File cacheDir = cachePath == null || cachePath.trim().equals("") ? ResourceLoader.getDefaultOSPCache() //$NON-NLS-1$
+//				: new File(cachePath);
+//		ResourceLoader.setOSPCache(cacheDir);
+//	}
 
 	/**
 	 * Checks and updates video engine resources if needed.
@@ -2054,7 +2054,7 @@ public class Tracker {
 			String trackerDir = TrackerStarter.findTrackerHome(false);
 			if (trackerDir != null) {
 				String trackerEnv = System.getenv("TRACKER_HOME"); //$NON-NLS-1$
-				if (trackerDir != null && !trackerDir.equals(trackerEnv)) {
+				if (!trackerDir.equals(trackerEnv)) {
 					return true;
 				}
 			}
@@ -2103,7 +2103,7 @@ public class Tracker {
 	private static boolean checkIsRelaunch(String[] args) {
 		// determine if this is a relaunch or if relaunch is needed
 		boolean isRelaunch = (args != null && args.length > 0 && "relaunch".equals(args[args.length - 1])); //$NON-NLS-1$
-		if (isRelaunch) {
+		if (args != null && isRelaunch) {
 			args[args.length - 1] = null;
 		} else {
 			// versions 4.87+ use environment variable to indicate relaunch
@@ -2594,7 +2594,7 @@ public class Tracker {
 				}
 				// set cache only if it has not yet been set
 				if (ResourceLoader.getOSPCache() == null) {
-					setCache(control.getString("cache")); //$NON-NLS-1$
+					ResourceLoader.setOSPCache(control.getString("cache")); //$NON-NLS-1$
 				}
 				if (control.getPropertyNamesRaw().contains("upgrade_interval")) { //$NON-NLS-1$
 					checkForUpgradeInterval = control.getInt("upgrade_interval"); //$NON-NLS-1$

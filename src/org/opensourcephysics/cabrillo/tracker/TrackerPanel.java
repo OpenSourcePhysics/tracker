@@ -1454,7 +1454,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		if (stepsChanged || prevPointChanged) {
 			boolean trackEdit = false;
 			boolean coordsEdit = false;
-			if (prevPointChanged) {
+			if (prevPointChanged && prevPoint != null) {
 				trackEdit = prevPoint.isTrackEditTrigger() && getSelectedTrack() != null;
 				coordsEdit = prevPoint.isCoordsEditTrigger();
 			} else { // steps have changed
@@ -4244,7 +4244,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 					selectedStep = step;
 					if (track instanceof ParticleDataTrack) {
 						popup = ((ParticleDataTrack) track).getPointMenu(this).getPopupMenu();
-					} else {
+					} else if (track != null) {
 						popup = track.getMenu(this, new JMenu()).getPopupMenu();
 					}
 					selectedStep = prev;

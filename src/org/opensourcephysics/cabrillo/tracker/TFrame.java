@@ -1016,7 +1016,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			setJMenuBar(defaultMenuBar);
 			// we need to also remove this menubar from the _amenubars array
 			Disposable.deallocate(_amenubars, id);
-		} else {
+		} else if (tabPanel != null){
 			// need id of new tab being displayed, not the one removed
 			id = tabPanel.panelID.intValue(); // not nec., but a reminder that panelID is an Integer not int
 			setJMenuBar(getMenuBar(id, true));
@@ -2511,7 +2511,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		if (objects == null) {
 			// show defaultMenuBar
 			setJMenuBar(defaultMenuBar);
-		} else {
+		} else if (mainView != null && newPanel != null) {
 			prevPanelID = newPanel.getID();
 			// update prefsDialog
 			if (prefsDialog != null) {

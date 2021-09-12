@@ -1400,7 +1400,8 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		}
 		if (opening) {
 			if (frame != null) {
-				//System.out.println("TMenuBar mem test " + OSPRuntime.getMemoryStr()); //TEST_BH
+				if (!OSPRuntime.isJS)
+					System.out.println("TMenuBar mem test " + OSPRuntime.getMemoryStr()); //TEST_BH
 				frame.refreshOpenRecentMenu(file_openRecentMenu);
 			}
 			// disable export data menu if no tables to export
@@ -1869,8 +1870,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 			if (importEnabled)
 				videoMenu.add(hasVideo ? video_pasteImageMenu : video_pasteImageItem);
 
-			if (hasVideo) {
-
+			if (video != null) {
 				boolean isEditableVideo = importEnabled && video instanceof ImageVideo
 						&& ((ImageVideo) video).isEditable();
 				if (isEditableVideo && importEnabled) {
@@ -1987,7 +1987,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		XMLControlElement control = null;
 		if (s.startsWith("<?xml")) {
 			control = new XMLControlElement(s);
-			type = control.failedToRead()? null: control.getObjectClass();
+			type = (control.failedToRead()? null: control.getObjectClass());
 		}
 		if (type == null) {
 			if (ParticleDataTrack.getImportableDataName(s) != null) {
@@ -1996,7 +1996,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 				edit_pasteItem.setEnabled(true);
 				edit_pasteItem.setText(paste);
 			}
-		} else if (TTrack.class.isAssignableFrom(type)) {
+		} else if (control != null && TTrack.class.isAssignableFrom(type)) {
 			String name = control.getString("name"); //$NON-NLS-1$
 			edit_pasteItem.setEnabled(true);
 			edit_pasteItem.setText(paste + " " + name); //$NON-NLS-1$

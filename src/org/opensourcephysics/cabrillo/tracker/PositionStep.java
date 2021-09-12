@@ -296,10 +296,11 @@ public class PositionStep extends Step {
 	@Override
 	public Object clone() {
 		PositionStep step = (PositionStep) super.clone();
-		if (step != null)
+		if (step != null) { // BH 2021.09.11 null check
 			step.points[0] = step.p = step.new Position(p.getX(), p.getY());
-		step.panelTextLayouts = new HashMap<Integer, TextLayout>();
-		step.panelLayoutBounds = new HashMap<Integer, Rectangle>();
+			step.panelTextLayouts = new HashMap<Integer, TextLayout>();
+			step.panelLayoutBounds = new HashMap<Integer, Rectangle>();
+		}
 		return step;
 	}
 

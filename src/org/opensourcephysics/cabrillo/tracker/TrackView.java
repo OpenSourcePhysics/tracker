@@ -192,8 +192,10 @@ public abstract class TrackView extends JScrollPane implements PropertyChangeLis
 	}
 
 	public static String trimDefined(String name) {
-		int pt = (name == null ? -1 : name.indexOf(DEFINED_AS));
-		return TeXParser.removeSubscript(pt >= 0 ? name.substring(0, pt) : name);
+		int pt;
+		return TeXParser.removeSubscript(
+				name == null || (pt = name.indexOf(DEFINED_AS)) < 0 ? name 
+						: name.substring(0, pt));
 	}
 
 	/**

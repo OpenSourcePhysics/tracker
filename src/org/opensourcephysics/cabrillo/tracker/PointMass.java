@@ -604,7 +604,9 @@ public class PointMass extends TTrack {
 				stepArray = getVelocities(panelID);
 				break;
 			case 2:
+			default:
 				stepArray = getAccelerations(panelID);
+				break;
 			}
 			for (int j = 0; j < stepArray.length; j++)
 				if (stepArray[j] != null) {

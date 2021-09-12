@@ -1219,13 +1219,16 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 
 		if (tp != null) {
 			tp.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_VIDEO, this);
-			VideoClip videoClip = panel.getPlayer().getVideoClip();
-			int length = videoClip.getLastFrameNumber() - videoClip.getFirstFrameNumber() + 1;
-			dataClip.setClipLength(Math.min(length, dataClip.getClipLength()));
-			firePropertyChange("videoclip", null, null); //$NON-NLS-1$
-			if (useDataTime) {
-				panel.getPlayer().getClipControl().setTimeSource(this);
-				firePropertyChange("timedata", null, null); //$NON-NLS-1$
+			if (panel != null) {
+				// BH 2021.09.11 null check for panel
+				VideoClip videoClip = panel.getPlayer().getVideoClip();
+				int length = videoClip.getLastFrameNumber() - videoClip.getFirstFrameNumber() + 1;
+				dataClip.setClipLength(Math.min(length, dataClip.getClipLength()));
+				firePropertyChange("videoclip", null, null); //$NON-NLS-1$
+				if (useDataTime) {
+					panel.getPlayer().getClipControl().setTimeSource(this);
+					firePropertyChange("timedata", null, null); //$NON-NLS-1$
+				}
 			}
 		}
 	}
@@ -1649,7 +1652,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 			String yname = dataset.getYColumnName();
 			String xlc = xname.toLowerCase();
 			String ylc = yname.toLowerCase();
-			
+
 			// look for x and y column candidates
 			xColName = yColName = null;
 			if (xlc.startsWith("x")) { //$NON-NLS-1$
@@ -1674,146 +1677,79 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 			} else if (ylc.endsWith("y")) { //$NON-NLS-1$
 				yColName = yname.substring(0, yname.length() - 1).trim();
 			}
-			
+
 			// if no candidates, continue
 			if (xColName == null && yColName == null)
 				continue;
-			
+
 			// compare candidates with existing xset and yset if any
 			if (colName == null) { // starting fresh
-				if (xColName != null && yColName == null) { // xset only
-					colName = xColName;
-					xset = dataset;
-					x = xIsX? 'x': 'y';					
-				} else if (xColName == null && yColName != null) { // yset only
+				if (xColName != null) { // xset only
+					if (yColName == null) {
+						colName = xColName;
+						xset = dataset;
+						x = xIsX ? 'x' : 'y';
+					} else if (xColName.equals(yColName)) { 
+						// both found and same
+						colName = xColName;
+						xset = dataset;
+						yset = dataset;
+						x = xIsX ? 'x' : 'y';
+						y = yIsY ? 'y' : 'x';
+					} else {
+						// both but mismatched: keep y only
+						colName = yColName;
+						yset = dataset;
+						y = yIsY ? 'y' : 'x';
+					}
+				} else if (yColName != null) { // yset only
 					colName = yColName;
 					yset = dataset;
-					y = yIsY? 'y': 'x';
-				} else if (!xColName.equals(yColName)) { // both but mismatched: keep y only
-					colName = yColName;
-					yset = dataset;
-					y = yIsY? 'y': 'x';
-				} else { // both found
-					colName = xColName;
-					xset = dataset;
-					yset = dataset;
-					x = xIsX? 'x': 'y';
-					y = yIsY? 'y': 'x';
-				}				
-			}
-			else { // colName previously found and either xset or yset is non-null
+					y = yIsY ? 'y' : 'x';
+				}
+			} else { // colName previously found and either xset or yset is non-null
 				if (xset == null && colName.equals(xColName)) {
 					xset = dataset;
-					x = xIsX? 'x': 'y';
+					x = xIsX ? 'x' : 'y';
 				} else if (yset == null && colName.equals(yColName)) {
 					yset = dataset;
-					y = yIsY? 'y': 'x';
-				}	else { // matching dataset not found so start over
+					y = yIsY ? 'y' : 'x';
+				} else { // matching dataset not found so start over
 					xset = yset = null;
 					if (xColName != null) {
-						colName = xColName;						
+						colName = xColName;
 						xset = dataset;
-						x = xIsX? 'x': 'y';
-					}
-					else {
-						colName = yColName;						
+						x = xIsX ? 'x' : 'y';
+					} else {
+						colName = yColName;
 						yset = dataset;
-						y = yIsY? 'y': 'x';
+						y = yIsY ? 'y' : 'x';
 					}
 				}
 			}
-			
-//			if (xset == null) {
-//				if (xlc.startsWith("x")) { //$NON-NLS-1$
-//					if (colName == null) {
-//						colName = xname.substring(1).trim();
-//						xset = dataset;
-//					} else if (xname.substring(1).trim().equals(colName)) {
-//						xset = dataset;
-//					} else {
-//						colName = null;  // mismatched names 
-//					}
-//				} else if ((ylc = yname.toLowerCase()).startsWith("x")) { //$NON-NLS-1$
-//					x = 'y';
-//					colName = yname.substring(1).trim();
-//					xset = dataset;
-//				} else if (xlc.endsWith("x")) { //$NON-NLS-1$
-//					colName = xname.substring(0, xname.length() - 1).trim();
-//					xset = dataset;
-//				} else if (ylc.endsWith("x")) { //$NON-NLS-1$
-//					x = 'y';
-//					colName = yname.substring(0, yname.length() - 1).trim();
-//					xset = dataset;
-//				}
-//			}
-//			if (yset == null) {
-//				if ((xlc = xname.toLowerCase()).startsWith("y")) { //$NON-NLS-1$
-//					if (colName == null) {
-//						yset = dataset;
-//						y = 'x';
-//						colName = xname.substring(1).trim();
-//					} else if (xname.substring(1).trim().equals(colName)) {
-//						y = 'x';
-//						yset = dataset;
-//					} else {
-//						colName = null;
-//					}
-//				} else if ((ylc = yname.toLowerCase()).startsWith("y")) { //$NON-NLS-1$
-//					if (colName == null) {
-//						colName = yname.substring(1).trim();
-//						yset = dataset;
-//					} else if (yname.substring(1).trim().equals(colName)) {
-//						yset = dataset;
-//					} else {
-//						colName = null;
-//					}
-//				} else if (xlc.endsWith("y")) { //$NON-NLS-1$
-//					if (colName == null) {
-//						y = 'x';
-//						colName = xname.substring(0, xname.length() - 1).trim();
-//					} else if (xname.substring(0, xname.length() - 1).trim().equals(colName)) {
-//						y = 'x';
-//					} else {
-//						colName = null;
-//					}
-//				} else if (ylc.endsWith("y")) { //$NON-NLS-1$
-//					if (colName == null) {
-//						colName = yname.substring(0, yname.length() - 1).trim();
-//					} else if (!yname.substring(0, yname.length() - 1).trim().equals(colName)) {
-//						colName = null;
-//					}
-//				}
-//			}
-
-//			if (colName == null) {  // nothing found
-//				// continue looking with no previous dataset
-//				prevDataset = null;
-//				continue;
-//			}
-			
 			// continue if not yet complete
-			if (xset == null || yset == null) {
+			if (xset == null || yset == null || colName == null) {
 				continue;
 			}
-			
+
 			// we have complete xy set
 			colName = colName.replace('_', ' ').trim(); // $NON-NLS-1$ //$NON-NLS-2$
-			
+
 			// require equal length xy arrays
 			if (xset.getIndex() != yset.getIndex()) {
 				if (mode == DATA_CHECK_ONLY)
 					return null;
 				throw new Exception("X and Y data have different array lengths"); //$NON-NLS-1$
 			}
-			
+
 			if (mode == DATA_CHECK_ONLY)
 				return results;
-			
+
 			// add data to results and continue
 			double[][] xyData = new double[2][];
-			xyData[0] = (x == 'x' ? xset.getXPoints() : xset.getYPoints()); 
-			xyData[1] = (y == 'x' ? yset.getXPoints() : yset.getYPoints()); 
-			results.add(new Object[] {colName, xyData});
+			xyData[0] = (x == 'x' ? xset.getXPoints() : xset.getYPoints());
+			xyData[1] = (y == 'x' ? yset.getXPoints() : yset.getYPoints());
+			results.add(new Object[] { colName, xyData });
 			xset = yset = null;
 			colName = null;
 		} // end for loop
@@ -1842,9 +1778,9 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 					return results;
 				// add data to results
 				double[][] xyData = new double[2][];
-				xyData[0] = xset.getYPoints(); 
-				xyData[1] = yset.getYPoints(); 
-				results.add(new Object[] {colName, xyData});
+				xyData[0] = xset.getYPoints();
+				xyData[1] = yset.getYPoints();
+				results.add(new Object[] { colName, xyData });
 			}
 		}
 		if (results.isEmpty()) {

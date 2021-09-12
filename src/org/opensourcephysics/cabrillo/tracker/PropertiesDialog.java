@@ -185,7 +185,7 @@ public class PropertiesDialog extends JDialog {
 
 		// Video tab
 		Video video = trackerPanel.getVideo();
-		hasVid = video != null;
+		hasVid = (video != null);
 		VideoClip clip = trackerPanel.getPlayer().getVideoClip();
 		if (hasVid || clip.getVideoPath() != null) {
 			videoPanel = new JPanel(new BorderLayout());
@@ -194,7 +194,7 @@ public class PropertiesDialog extends JDialog {
 			format.setMinimumIntegerDigits(1);
 			format.setMinimumFractionDigits(1);
 			format.setMaximumFractionDigits(1);
-			name = hasVid ? XML.getName((String) video.getProperty("name")) : null; //$NON-NLS-1$
+			name = (video == null ? null : XML.getName((String) video.getProperty("name"))); //$NON-NLS-1$
 			path = clip.getVideoPath();
 			path = XML.forwardSlash(path);
 			path = ResourceLoader.getNonURIPath(path);
@@ -202,7 +202,7 @@ public class PropertiesDialog extends JDialog {
 			String size = null;
 			String length = null;
 			String fps = null;
-			if (hasVid) {
+			if (video != null) {
 				VideoType videoType = (VideoType) video.getProperty("video_type"); //$NON-NLS-1$
 				type = videoType == null ? video.getClass().getSimpleName() : videoType.getDescription();
 				// eliminate extension list and replace with video engine if xuggle

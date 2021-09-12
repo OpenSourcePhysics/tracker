@@ -936,6 +936,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 			TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
 			ArrayList<TTrack> tracks = trackerPanel.getTracks();
 			// BH count down for removal
+			
 			for (int i = n; --i >= 0;) {
 				// check if guest still exists in tracker panel
 				if ((track = guests.get(i)) != null && trackerPanel.getTrack(track.getName(), tracks) == null) {
@@ -945,7 +946,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 			}
 			tracks.clear();
 			// now add drawables for guests
-			if (n > 0) {
+			if (n > 0 && track != null) {
 				DatasetManager manager = track.getData(track.tp);
 				for (int i = 0; i < n; i++) {
 					track = guests.get(i);
@@ -963,7 +964,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 
 		// refresh highlighted indices
 		BitSet bsSteps = bsFrameHighlights;
-		if (!track.dataFrames.isEmpty()) {
+		if (track != null && !track.dataFrames.isEmpty()) {
 			int frameNum = bsSteps.nextSetBit(0);
 			if (bsSteps.cardinality() != 1 || track.dataFrames.size() <= frameNum
 					|| track.dataFrames.get(frameNum) != frameNum) {

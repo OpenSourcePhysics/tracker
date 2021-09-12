@@ -521,8 +521,8 @@ public class Calibration extends TTrack {
 		Step step = getStep(n);
 
 		// add world coordinate fields and labels
-		boolean exists = step != null;
-		boolean complete = exists && step.getPoints()[1] != null;
+		boolean exists = (step != null);
+		boolean complete = (step != null && step.getPoints()[1] != null);
 		String s = TrackerRes.getString("Calibration.Label.Point"); //$NON-NLS-1$
 		String unmarked = TrackerRes.getString("TTrack.Label.Unmarked"); //$NON-NLS-1$
 		if (!exists) {
@@ -856,8 +856,8 @@ public class Calibration extends TTrack {
 				if (tp != null) {
 					int n = tp.getFrameNumber();
 					CalibrationStep step = (CalibrationStep) getStep(n);
-					boolean isComplete = step != null && step.getPoints()[1] != null;
-					if (isComplete) {
+					boolean isComplete = (step != null && step.getPoints()[1] != null);
+					if (isComplete && step != null) {
 						if (i == X_AXIS && step.worldX0 == step.worldX1) {
 							JOptionPane.showMessageDialog(tp,
 									TrackerRes.getString("Calibration.Dialog.InvalidXCoordinates.Message"), //$NON-NLS-1$

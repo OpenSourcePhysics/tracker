@@ -797,8 +797,8 @@ public class TapeMeasure extends InputTrack {
 		TapeStep step = (TapeStep) getStep(n);
 
 		// add world coordinate fields and labels
-		boolean exists = step != null;
-		boolean complete = exists && step.worldLength > 0;
+		boolean exists = (step != null);
+		boolean complete = (step != null && step.worldLength > 0);
 		String unmarked = isStickMode() ? TrackerRes.getString("TapeMeasure.Label.UnmarkedStick")
 				: TrackerRes.getString("TapeMeasure.Label.UnmarkedTape"); //$NON-NLS-1$
 		if (!exists) {

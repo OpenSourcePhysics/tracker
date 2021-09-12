@@ -1233,14 +1233,6 @@ public class PrefsDialog extends JDialog {
 			cacheNorthPanel.add(cacheLabel);
 			cacheField = new JTextField(27);
 			cacheNorthPanel.add(cacheField);
-			final Action setCacheAction = new AbstractAction() {
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					String cachePath = XML.stripExtension(cacheField.getText());
-					Tracker.setCache(cachePath);
-					refreshTextFields();
-				}
-			};
 			cacheField.addKeyListener(new KeyAdapter() {
 				@Override
 				public void keyPressed(KeyEvent e) {
@@ -1251,10 +1243,12 @@ public class PrefsDialog extends JDialog {
 				@Override
 				public void focusLost(FocusEvent e) {
 					if (cacheField.getBackground() == Color.yellow)
-						setCacheAction.actionPerformed(null);
+						setCache(null);
 				}
 			});
-			cacheField.addActionListener(setCacheAction);
+			cacheField.addActionListener((e) -> {
+					setCache(null);
+				});
 
 			browseCacheButton = new TButton(openFileIcon);
 			browseCacheButton.addActionListener(new ActionListener() {
@@ -1338,8 +1332,7 @@ public class PrefsDialog extends JDialog {
 				public void actionPerformed(ActionEvent e) {
 					File newCache = ResourceLoader.chooseOSPCache(frame);
 					if (newCache != null) {
-						cacheField.setText(newCache.getPath());
-						setCacheAction.actionPerformed(null);
+						setCache(newCache.getPath());
 					}
 				}
 			});
@@ -1495,6 +1488,16 @@ public class PrefsDialog extends JDialog {
 			}
 		}
 		refreshGUI();
+	}
+
+	protected void setCache(String path) {
+		if (path == null) {
+			path = cacheField.getText();
+		} else {			
+			cacheField.setText(path);
+		}
+		ResourceLoader.setOSPCache(XML.stripExtension(path));
+		refreshTextFields();
 	}
 
 	private void savePrevious() {

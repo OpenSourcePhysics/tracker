@@ -80,28 +80,29 @@ public class DownloadCounter {
     return new String[0];
   }
 
-  /**
-   * Reads a file.
-   *
-   * @param fileName the name of the file
-   * @return the contents as a String
-   */
-  static String read(String fileName) {
-    File file = new File(fileName);
-    StringBuffer buffer = null;
-    try {
-      BufferedReader in = new BufferedReader(new FileReader(file));
-      buffer = new StringBuffer();
-      String line = in.readLine();
-      while(line!=null) {
-        buffer.append(line+NEW_LINE);
-        line = in.readLine();
-      }
-      in.close();
-    } catch(IOException ex) {
-     }
-    return buffer.toString();
-  }
+	/**
+	 * Reads a file.
+	 *
+	 * @param fileName the name of the file
+	 * @return the contents as a String
+	 */
+	static String read(String fileName) {
+		File file = new File(fileName);
+		StringBuffer buffer = null;
+		try {
+			BufferedReader in = new BufferedReader(new FileReader(file));
+			buffer = new StringBuffer();
+			String line = in.readLine();
+			while (line != null) {
+				buffer.append(line + NEW_LINE);
+				line = in.readLine();
+			}
+			in.close();
+			return buffer.toString();
+		} catch (IOException ex) {
+			return null;
+		}
+	}
   
   /**
    * Writes a file.

@@ -1345,19 +1345,15 @@ public class CircleFitter extends TTrack {
 			for (int i = 0; i < keyPts.length; i++) {
 				DataPoint p1 = keyPts[i];
 				DataPoint p2 = pts[i];
-				if (p1 == null) {
-					if (p2 == null)
-						continue;
+				if (p1 != null && p2 != null) {
+					if (p1.x != p2.x || p1.y != p2.y) {
+						different = true;
+						break;
+					}					
+				} else 	if (p1 != null || p2 != null) {
 					different = true;
-				} else if (p2 == null) {
-					different = true;
-				}
-				if (!different) {
-					different = different || p1.x != p2.x || p1.y != p2.y;
-				}
-				if (different)
 					break;
-
+				}
 			}
 		}
 		// update step if needed

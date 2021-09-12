@@ -192,57 +192,53 @@ public class TapeStep extends Step {
 		hitShape = panelShaftShapes.get(trackerPanel.getID());
 		if (hit == null && hitShape != null && hitShape.intersects(hitRect)) {
 			hit = handle;
-		}	
+		}
 		// look for rotator hit
 		Shape[] rotatorHitShapes = panelRotatorShapes.get(trackerPanel.getID());
 		if (hit == null && rotatorHitShapes != null) {
 			if (rotatorHitShapes[0].intersects(hitRect) && !end1.isAttached()) {
 				hit = rotator1;
-			}
-			else if (rotatorHitShapes[1].intersects(hitRect) && !end2.isAttached()) {
+			} else if (rotatorHitShapes[1].intersects(hitRect) && !end2.isAttached()) {
 				hit = rotator2;
 			}
 		}
-    if (hit == null && selectedShape != null && selectedShape.intersects(hitRect)) {
-    	if (trackerPanel.getSelectedPoint()==rotator1 && !end1.isAttached())
-    		hit = rotator1;
-    	else if (trackerPanel.getSelectedPoint()==rotator2 && !end2.isAttached())
-    		hit = rotator2;
-    }
-		// create rotatorShape if hit is rotator
-    if ((hit==rotator1 || hit==rotator2) && trackerPanel.getSelectedPoint()!=hit && footprint!=null) {
-      ((Rotator)hit).setScreenCoords(xpix, ypix);
-  		int index = hit==rotator1? 0: 1;
-      rotatorDrawShapes[index] = ((LineFootprint)footprint).getRotatorShape(
-      		middle.getScreenPosition(trackerPanel),
-      		getRotatorLocation(index, trackerPanel), 
-      		null);
-    }   
-    // clear rotatorShape shape when no longer needed
-    if (hit==null && rotatorDrawShapes[0]!=null && 
-    		trackerPanel.getSelectedPoint()!=rotator1) {
-    	rotatorDrawShapes[0] = null;
-    }
-    if (hit==null && rotatorDrawShapes[1]!=null && 
-    		trackerPanel.getSelectedPoint()!=rotator2) {
-    	rotatorDrawShapes[1] = null;
-    }
-		Rectangle layoutRect = panelLayoutBounds.get(trackerPanel.getID());
-		if (hit == null && layoutRect != null && layoutRect.intersects(hitRect)) {
-			drawLayout = true;
-			hit = tape;
+		if (hit == null && selectedShape != null && selectedShape.intersects(hitRect)) {
+			if (trackerPanel.getSelectedPoint() == rotator1 && !end1.isAttached())
+				hit = rotator1;
+			else if (trackerPanel.getSelectedPoint() == rotator2 && !end2.isAttached())
+				hit = rotator2;
 		}
-		if (hit == null && tape.ruler != null && tape.ruler.isVisible()) {
-			hit = tape.ruler.findInteractive(trackerPanel, hitRect);
+		// create rotatorShape if hit is rotator
+		if (hit == null) {
+			// clear rotatorShape shape when no longer needed
+			if (rotatorDrawShapes[0] != null && trackerPanel.getSelectedPoint() != rotator1) {
+				rotatorDrawShapes[0] = null;
+			}
+			if (rotatorDrawShapes[1] != null && trackerPanel.getSelectedPoint() != rotator2) {
+				rotatorDrawShapes[1] = null;
+			}
+			Rectangle layoutRect = panelLayoutBounds.get(trackerPanel.getID());
+			if (layoutRect != null && layoutRect.intersects(hitRect)) {
+				drawLayout = true;
+				hit = tape;
+			}
+			if (hit == null && tape.ruler != null && tape.ruler.isVisible()) {
+				hit = tape.ruler.findInteractive(trackerPanel, hitRect);
+			}
+		} else if ((hit == rotator1 || hit == rotator2) && trackerPanel.getSelectedPoint() != hit
+				&& footprint != null) {
+			((Rotator) hit).setScreenCoords(xpix, ypix);
+			int index = (hit == rotator1 ? 0 : 1);
+			rotatorDrawShapes[index] = ((LineFootprint) footprint).getRotatorShape(
+					middle.getScreenPosition(trackerPanel), getRotatorLocation(index, trackerPanel), null);
 		}
 		if (drawLayout != drawLayoutBounds) {
 			drawLayoutBounds = drawLayout;
 		}
 
 		// check for attached ends which cannot be dragged
-		if (end1.isAttached() && (hit == end1 || hit == handle || hit == rotator1))
-			return null;
-		if (end2.isAttached() && (hit == end2 || hit == handle || hit == rotator1))
+		if (end1.isAttached() && (hit == end1 || hit == handle || hit == rotator1)
+				|| end2.isAttached() && (hit == end2 || hit == handle || hit == rotator2)) // BH!! 2021.09.11 was rotator1
 			return null;
 
 		return hit;

@@ -892,7 +892,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 			}
 			break;
 		case TTrack.PROPERTY_TTRACK_STEP:
-			if (haveVideo && haveWizard) {
+			if (haveVideo && haveWizard && track != null) {
 				if (!marking) { // not marked by this autotracker
 					n = ((Integer) e.getNewValue()).intValue();
 					frameData = getOrCreateFrameData(n);
@@ -3469,7 +3469,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 
 			// refresh the delete and keyframe buttons
 			boolean deleteButtonEnabled = (track != null);
-			if (deleteButtonEnabled) {
+			if (track != null) {
 				boolean isAlwaysMarked = track.steps.isAutofill() || track instanceof CoordAxes;
 				if (isAlwaysMarked) {
 					boolean hasFrameData = false;

@@ -549,7 +549,7 @@ public class CircleFitterStep extends Step {
 		boolean allDeltaXZero = true, allSameSlope = true;
 		for (int i = 0; i < pts.size(); i++) {
 			DataPoint p = pts.get(i);
-			if (i == 0) {
+			if (prev == null) {
 				prev = p;
 				continue;
 			}

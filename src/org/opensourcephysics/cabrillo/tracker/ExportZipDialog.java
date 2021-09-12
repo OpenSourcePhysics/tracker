@@ -694,8 +694,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 							if (TrackerIO.trkFileFilter.accept(file)) {
 								continue;
 							}
-
-							if (file != null && !dialog.addedFiles.contains(file)) {
+							if (!dialog.addedFiles.contains(file)) {
 								dialog.addedFiles.add(file);
 							}
 						}
