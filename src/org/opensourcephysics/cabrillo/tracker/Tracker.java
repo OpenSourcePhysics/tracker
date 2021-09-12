@@ -127,7 +127,7 @@ public class Tracker {
 	// enabling all resources and setting J2S parameters
 	// such as allowed AJAX databases.
 
-	public static final String TRACKER_TEST_URL = "https://physlets.org/tracker/counter/counter.php";
+	public static String TRACKER_TEST_URL = "https://physlets.org/tracker/counter/counter.php";
 
 	public static boolean doHoldRepaint = true; // BH testing if false
 
