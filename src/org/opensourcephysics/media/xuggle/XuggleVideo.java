@@ -1013,7 +1013,7 @@ public class XuggleVideo extends VideoAdapter implements SmoothPlayable, Increme
 //			firstDisplayPacket = nIncomplete;
 //	}
 
-	private final static String DEBUG_DIR = "c:/temp/tmp/";
+	private static String DEBUG_DIR = "c:/temp/tmp/";
 	
 	private void dumpImage(int i, BufferedImage bi, String froot) {
 		if (DEBUG_DIR == null)
