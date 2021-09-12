@@ -80,7 +80,6 @@ import javax.swing.JToolBar;
 import javax.swing.ListCellRenderer;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
-import javax.swing.Timer;
 import javax.swing.UIManager;
 import javax.swing.border.Border;
 import javax.swing.event.DocumentEvent;
@@ -223,39 +222,41 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 		}
 
 		protected void finalizeExport() {
-			// video should be ready at this point
-			// add video file(s) to ziplist
-			File vidFile = new File(videoTarget);
-			if (vidFile.exists())
-				zipList.add(vidFile);
-			else {
-				vidFile = new File(getTempDirectory(), videoTarget);
+			// video, if any, should be ready at this point
+			if (videoTarget != null) {
+				// add video file(s) to ziplist
+				File vidFile = new File(videoTarget);
 				if (vidFile.exists())
 					zipList.add(vidFile);
-			}
-			
-			// deal with image videos
-			if (!"".equals(videoSubdirectory)) { //$NON-NLS-1$
-				// delete XML file, if any, from video directory
-				File xmlFile = null;
-				for (File next : new File(vidDir).listFiles()) {
-					if (next.getName().endsWith(".xml") && next.getName().startsWith(targetName)) { //$NON-NLS-1$
-						xmlFile = next;
-						break;
-					}
+				else {
+					vidFile = new File(getTempDirectory(), videoTarget);
+					if (vidFile.exists())
+						zipList.add(vidFile);
 				}
-				if (xmlFile != null) {
-					XMLControl control = new XMLControlElement(xmlFile);
-					if (control.getObjectClassName().endsWith("ImageVideo")) { //$NON-NLS-1$
-						String[] paths = (String[]) control.getObject("paths"); //$NON-NLS-1$
-						String base = control.getBasepath();
-						if (base == null)
-							base = vidDir;
-						for (String path : paths) {
-							zipList.add(new File(vidDir + File.separator + path));
+			
+				// deal with image videos
+				if (!"".equals(videoSubdirectory)) { //$NON-NLS-1$
+					// delete XML file, if any, from video directory
+					File xmlFile = null;
+					for (File next : new File(vidDir).listFiles()) {
+						if (next.getName().endsWith(".xml") && next.getName().startsWith(targetName)) { //$NON-NLS-1$
+							xmlFile = next;
+							break;
 						}
 					}
-					xmlFile.delete();
+					if (xmlFile != null) {
+						XMLControl control = new XMLControlElement(xmlFile);
+						if (control.getObjectClassName().endsWith("ImageVideo")) { //$NON-NLS-1$
+							String[] paths = (String[]) control.getObject("paths"); //$NON-NLS-1$
+							String base = control.getBasepath();
+							if (base == null)
+								base = vidDir;
+							for (String path : paths) {
+								zipList.add(new File(vidDir + File.separator + path));
+							}
+						}
+						xmlFile.delete();
+					}
 				}
 			}
 
@@ -2129,7 +2130,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 	/**
 	 * Saves a zip resource to a target defined with a file chooser
 	 */
-	private void saveZipAs() {
+	protected void saveZipAs() {
 		String description = descriptionPane.getText().trim();
 		TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
 		if (!"".equals(description) && "".equals(trackerPanel.getDescription())) { //$NON-NLS-1$ //$NON-NLS-2$
@@ -2187,6 +2188,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 		// define zip target and compress with JarTool
 		File target = new File(getZIPTarget());
 		if (JarTool.compress(zipList, target, null)) {
+			ResourceLoader.removeFromZipCache(target.getPath());
 			// offer to open the newly created zip file
 			openNewZip(target.getAbsolutePath());
 			// delete temp directory after short delay
