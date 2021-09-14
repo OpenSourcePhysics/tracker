@@ -785,13 +785,22 @@ public class TrackerIO extends VideoIO {
 		// TrackerIO.loadFiles (From FileDropHandler)
 		// TrackerIO.openFileFromDialog
 		frame.loadedFiles.clear();
-		String path = (files.size() == 1 ? files.get(0) : null);
-		if (path != null && (path.contains("/OSP/Cache/") || !trzFileFilter.accept(new File(path), false)))
-			path = null;
-		String path0 = path;
+		ArrayList<String> paths = new ArrayList<String>();
+		for (int i = 0; i < files.size(); i++) {
+			String next = files.get(i);
+			if (next != null && !next.contains("/OSP/Cache/") && trzFileFilter.accept(new File(next), false))
+				paths.add(next);
+		}
+//		String path = (files.size() == 1 ? files.get(0) : null);
+//		if (path != null && (path.contains("/OSP/Cache/") || !trzFileFilter.accept(new File(path), false)))
+//			path = null;
+//		String path0 = path;
 		startLoading(files, null, frame, null, () -> {
-			if (path0 != null)
-				addToLibrary(frame, path0);
+			for (int i = 0; i < paths.size(); i++) {
+				addToLibrary(frame, paths.get(i));				
+			}
+//			if (path0 != null)
+//				addToLibrary(frame, path0);
 		});
 	}
 	
@@ -2200,7 +2209,8 @@ public class TrackerIO extends VideoIO {
 			// load trk files into Tracker
 			if (!isCanceled()) {
 				// add path to recent files
-				if (path0.equals(nonURIPath))
+//				if (path0.equals(nonURIPath))
+				if (path.equals(nonURIPath))
 					Tracker.addRecent(nonURIPath, false); // add at beginning
 				paths.addAll(trkFiles);
 				desktopFiles.addAll(tempFiles);
@@ -2293,6 +2303,9 @@ public class TrackerIO extends VideoIO {
 			control = null;
 			this.libraryBrowser = null;
 			this.loader = null;
+
+			if (path.equals(nonURIPath) && !path.contains("!/"))
+				Tracker.addRecent(nonURIPath, false); // add at beginning
 			return PROGRESS_COMPLETE;
 		}
 
