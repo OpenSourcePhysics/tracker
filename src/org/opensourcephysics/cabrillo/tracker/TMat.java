@@ -27,6 +27,7 @@ package org.opensourcephysics.cabrillo.tracker;
 import java.beans.*;
 import java.awt.*;
 import java.awt.geom.*;
+import java.awt.image.BufferedImage;
 
 import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.display.*;
@@ -223,11 +224,11 @@ public class TMat implements Measurable, Trackable, PropertyChangeListener {
 				w = dim.width;
 				h = dim.height;
 			} else {
-				Dimension d = video.getImageSize();
-				if (d.width > 0) {
-					w = d.width;
-					h = d.height;
-				}
+        BufferedImage vidImage = video.getImage();
+        if (vidImage != null) {
+        	w = vidImage.getWidth();
+        	h = vidImage.getHeight();
+        }
 			}
 		}
 		mat.x = Math.min((w - mat.width) / 2, 0);
