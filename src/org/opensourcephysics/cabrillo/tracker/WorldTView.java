@@ -520,6 +520,8 @@ public class WorldTView extends TView {
 		case TTrack.PROPERTY_TTRACK_DATA:
 			refresh();
 			break;
+		case TrackerPanel.PROPERTY_TRACKERPANEL_MAGNIFICATION:
+			break;
 		default:
 			System.err.println("WoldTView.propertyChange " + e.getPropertyName() + " " + e.getSource());
 			break;
