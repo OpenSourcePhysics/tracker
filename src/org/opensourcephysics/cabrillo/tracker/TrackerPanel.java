@@ -3019,7 +3019,13 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				JDialog inspector = filter.getInspector();
 				if (inspector != null) {
 					FontSizer.setFonts(inspector, level);
-					inspector.pack();
+					if (filter instanceof BaselineFilter) {
+						// resize the thumbnail, if any
+						BaselineFilter bf = (BaselineFilter)filter;
+						bf.resizeThumbnail();
+					}
+					else
+						inspector.pack();
 				}
 			}
 		}
@@ -3569,12 +3575,13 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			for (Filter filter : visibleFilters.keySet()) {
 				Point p = visibleFilters.get(filter);
 				JDialog inspector = filter.getInspector();
+				// must display inspector first to have non-zero size
+				inspector.setVisible(true);
 				int x = Math.max(p.x + (frame == null ? 0 : frame.getLocation().x), 0);
 				x = Math.min(x, dim.width - inspector.getWidth());
 				int y = Math.max(p.y + (frame == null ? 0 : frame.getLocation().y), 0);
 				y = Math.min(y, dim.height - inspector.getHeight());
 				inspector.setLocation(x, y);
-				inspector.setVisible(true);
 			}
 			visibleFilters.clear();
 			visibleFilters = null;
