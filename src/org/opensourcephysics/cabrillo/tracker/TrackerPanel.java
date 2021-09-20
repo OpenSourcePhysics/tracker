@@ -2711,6 +2711,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			if (mbar != null)
 				mbar.checkMatSize();
 			TFrame.repaintT(this);
+			changed = true;
 			break;
 		case Video.PROPERTY_VIDEO_FILTERCHANGED: // from video //$NON-NLS-1$
 			Filter filter = (Filter) e.getNewValue();
