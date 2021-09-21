@@ -2612,8 +2612,8 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		if (video != null) {
 			video.getFilterStack().removePropertyChangeListener(FilterStack.PROPERTY_FILTER_FILTER, this);
 		}
-		for (Integer n : TTrack.panelActiveTracks.keySet()) {
-			TTrack.panelActiveTracks.get(n).removePropertyChangeListener(TTrack.PROPERTY_TTRACK_LOCKED, this);
+		for (TTrack t : TTrack.getValues()) {
+			t.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_LOCKED, this);
 		}
 		actions = null;
 		if (edit_copyViewImageItems != null)
@@ -2658,8 +2658,8 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 			}
 			break;
 		case TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR: // tracks have been cleared //$NON-NLS-1$
-			for (Integer n : TTrack.panelActiveTracks.keySet()) {
-				TTrack.panelActiveTracks.get(n).removePropertyChangeListener(TTrack.PROPERTY_TTRACK_LOCKED, this); // $NON-NLS-1$
+			for (TTrack t : TTrack.getValues()) {
+				t.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_LOCKED, this); // $NON-NLS-1$
 			}
 			break;
 		default:

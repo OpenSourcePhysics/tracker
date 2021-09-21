@@ -404,8 +404,8 @@ public class MainTView extends TView {
 		panel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this); // $NON-NLS-1$
 		panel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR, this); // $NON-NLS-1$
 		// remove this listener from all tracks
-		for (Integer n : TTrack.panelActiveTracks.keySet()) {
-			TTrack.panelActiveTracks.get(n).removePropertyChangeListener(TTrack.PROPERTY_TTRACK_COLOR, this); //$NON-NLS-1$
+		for (TTrack t : TTrack.getValues()) {
+			t.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_COLOR, this); //$NON-NLS-1$
 		}
 	}
 

@@ -235,6 +235,8 @@ public abstract class Step implements Cloneable {
 	}
 
 	private TrackerPanel panel(Integer panelID) {
+		if (getTrack() == null)
+			System.out.println("OHOH");
 		return getTrack().panel(panelID);
 	}
 

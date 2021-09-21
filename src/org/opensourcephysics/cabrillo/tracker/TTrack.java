@@ -351,6 +351,8 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 		addPropertyChangeListener(PROPERTY_TTRACK_VISIBLE, l);
 	}
 
+	private static HashMap<Integer, TTrack> panelActiveTracks = new HashMap<Integer, TTrack>();
+
 	final public int ttype;
 
 	protected static JDialog skippedStepWarningDialog;
@@ -360,7 +362,6 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 	protected static boolean skippedStepWarningOn = true;
 	protected static NameDialog nameDialog;
 	protected static int nextID = 1;
-	protected static HashMap<Integer, TTrack> panelActiveTracks = new HashMap<Integer, TTrack>();
 	// instance fields
 	protected String name = TrackerRes.getString("TTrack.Name.None"); //$NON-NLS-1$
 	protected String description = ""; //$NON-NLS-1$
@@ -765,11 +766,11 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 		if (postEdit) {
 			Undo.postTrackDelete(this); // posts undoable edit
 		}
+		erase();
 		for (int j = 0; j < tp.andWorld.size(); j++) {
 			TrackerPanel panel = panel(tp.andWorld.get(j));
 			panel.removeTrack(this);
 		}
-		erase();
 		dispose();
 	}
 
@@ -3704,9 +3705,22 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 		return nameDialog;
 	}
 
+	public void setActive() {
+		panelActiveTracks.put(ID, this);
+	}
+
 	protected static TTrack getTrack(int ID) {
 		return panelActiveTracks.get(ID);
 	}
+
+	public static void removeActiveTrack(int id) {
+		panelActiveTracks.remove(id);
+	}
+	
+	public static Collection<TTrack> getValues() {
+		return panelActiveTracks.values();
+	}
+
 
 	public void invalidateData(Object newValue) {
 		dataValid = false;

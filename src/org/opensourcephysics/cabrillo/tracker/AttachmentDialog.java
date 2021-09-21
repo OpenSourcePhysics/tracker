@@ -153,8 +153,8 @@ public class AttachmentDialog extends JDialog implements PropertyChangeListener 
 			}
 			break;
 		case TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR:
-			for (Integer n : TTrack.panelActiveTracks.keySet()) {
-				TTrack.panelActiveTracks.get(n).removeListenerNCF(this);
+			for (TTrack t : TTrack.getValues()) {
+				t.removeListenerNCF(this);
 			}
 			refreshDropdowns();
 			refreshGUI();

@@ -256,6 +256,7 @@ public abstract class TrackChooserTView extends TView {
 		}
 		trackerPanel.clearTemp();
 		validate();
+		// may set null here
 		trackViews = newViews;
 		// select previously selected track, if any
 		refreshing = false;
@@ -309,8 +310,8 @@ public abstract class TrackChooserTView extends TView {
 			return;
 		getPanel().removeListeners(panelProps, this);		
 		// remove this listener from tracks
-		for (Integer n : TTrack.panelActiveTracks.keySet()) {
-			TTrack.panelActiveTracks.get(n).removeListenerNCF(this);
+		for (TTrack t : TTrack.getValues()) {
+			t.removeListenerNCF(this);
 		}
 	}
 
@@ -481,7 +482,7 @@ public abstract class TrackChooserTView extends TView {
 			track = (TTrack) e.getOldValue();
 			if (track != null) {
 				track.removeListenerNCF(this);
-				view = trackViews.get(track);
+				view = (trackViews == null ? null : trackViews.get(track));
 				if (view != null) {
 					view.dispose();
 					trackViews.remove(track);
@@ -496,12 +497,11 @@ public abstract class TrackChooserTView extends TView {
 				setSelectedTrack(track);
 			break;
 		case TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR: // tracks have been cleared
-			for (Integer n : TTrack.panelActiveTracks.keySet()) {
-				track = TTrack.panelActiveTracks.get(n);
-				track.removeListenerNCF(this);
-				if ((view = trackViews.get(track)) != null) {
+			for (TTrack t : TTrack.getValues()) {
+				t.removeListenerNCF(this);
+				if ((view = trackViews.get(t)) != null) {
 					view.dispose();
-					trackViews.remove(track);
+					trackViews.remove(t);
 				}
 			}
 			refresh();

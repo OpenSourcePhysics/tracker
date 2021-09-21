@@ -200,8 +200,8 @@ public class TrackControl extends JDialog implements OSPRuntime.Disposable, Prop
 			}
 			break;
 		case TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR: // //$NON-NLS-1$
-			for (Integer n : TTrack.panelActiveTracks.keySet()) {
-				TTrack.panelActiveTracks.get(n).removeListenerNCF(this);
+			for (TTrack t : TTrack.getValues()) {
+				t.removeListenerNCF(this);
 			}
 			return;
 		}

@@ -1383,8 +1383,7 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 		refreshTimer = null;
 		removeAll();
 		panel().removeListeners(panelProps, this);
-		for (Integer n : TTrack.panelActiveTracks.keySet()) {
-			TTrack track = TTrack.panelActiveTracks.get(n);
+		for (TTrack track : TTrack.getValues()) {
 			track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_LOCKED, this);
 			track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_VISIBLE, this);
 		}
@@ -1444,7 +1443,7 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 			refresh(REFRESH__PROPERTY_TRACK_TRUE);
 			break;
 		case TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR:
-			for (TTrack track : TTrack.panelActiveTracks.values()) {
+			for (TTrack track : TTrack.getValues()) {
 				panel().calibrationTools.remove(track);
 				panel().visibleCalibrationTools.remove(track);
 				panel().measuringTools.remove(track);

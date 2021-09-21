@@ -630,8 +630,8 @@ public class CircleFitter extends TTrack {
 
 	@Override
 	public void dispose() {
-		for (Integer n : panelActiveTracks.keySet()) {
-			panelActiveTracks.get(n).removeStepListener(this);
+		for (TTrack t : TTrack.getValues()) {
+			t.removeStepListener(this);
 		}
 		if (attachmentForSteps != null) {
 			for (int i = 0; i < attachmentForSteps.length; i++) {
