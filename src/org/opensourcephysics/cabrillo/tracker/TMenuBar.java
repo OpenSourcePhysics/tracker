@@ -1333,28 +1333,28 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 			if (file_replaceTabItem != null) {
 				fileMenu.add(file_replaceTabItem);
 			}
-			checkAddMenuSep(fileMenu);
+			fileMenu.addSeparator();
 			fileMenu.add(file_openItem);
 			if (!OSPRuntime.isJS) {
 				fileMenu.add(file_openRecentMenu);
 			}
-			checkAddMenuSep(fileMenu);
+			fileMenu.addSeparator();
 			fileMenu.add(file_openBrowserItem);
-			checkAddMenuSep(fileMenu);
+			fileMenu.addSeparator();
 			fileMenu.add(file_closeItem);
 			fileMenu.add(file_closeAllItem);
-			checkAddMenuSep(fileMenu);
+			fileMenu.addSeparator();
 			fileMenu.add(file_saveItem);
 			fileMenu.add(file_saveTabAsItem);
 			fileMenu.add(file_saveVideoAsItem);
 			fileMenu.add(file_saveProjectAsItem);
 			fileMenu.add(file_saveTabsetAsItem);
-			checkAddMenuSep(fileMenu);
+			fileMenu.addSeparator();
 			fileMenu.add(file_importMenu);
 			fileMenu.add(file_exportMenu);
-			checkAddMenuSep(fileMenu);
+			fileMenu.addSeparator();
 			fileMenu.add(file_propertiesItem);
-			checkAddMenuSep(fileMenu);
+			fileMenu.addSeparator();
 			fileMenu.add(file_printFrameItem);
 			fileMenu.add(file_exitItem);
 			return;
