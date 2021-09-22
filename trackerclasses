@@ -1171,6 +1171,7 @@ sun/nio/cs/ThreadLocalCoders.js
 sun/nio/cs/UTF_8.js
 sun/nio/cs/Unicode.js
 sun/reflect/Reflection.js
+sun/reflect/annotation/AnnotationParser.js
 sun/security/action/GetPropertyAction.js
 sun/swing/AccumulativeRunnable.js
 sun/swing/DefaultLookup.js
