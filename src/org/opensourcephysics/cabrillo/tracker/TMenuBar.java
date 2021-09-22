@@ -1362,23 +1362,15 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		// opening
 		if (isTainted(MENU_FILE)) {
 			// refresh file menu
-			// fileMenu.removeAll();
-			// if (!OSPRuntime.isApplet) {
-			// update save and close items
-			String name = panel().getTitle();
-			name = " \"" + name + "\""; //$NON-NLS-1$ //$NON-NLS-2$
-			file_closeItem.setText(TrackerRes.getString("TActions.Action.Close") + name); //$NON-NLS-1$
-			file_saveItem.setText(TrackerRes.getString("TActions.Action.Save") + name); //$NON-NLS-1$
-			file_saveItem.setEnabled(panel().getDataFile() != null);
-
+			
 			boolean newtabEnabled = panel().isEnabled("file.new"); //$NON-NLS-1$
 			boolean openEnabled = panel().isEnabled("file.open"); //$NON-NLS-1$
 			boolean closeEnabled = panel().isEnabled("file.close"); //$NON-NLS-1$
 			boolean importEnabled = panel().isEnabled("file.import"); //$NON-NLS-1$
-			boolean exportEnabled = panel().isEnabled("fileexport");
+			boolean exportEnabled = panel().isEnabled("file.export"); //$NON-NLS-1$
 			boolean showLib = (panel().isEnabled("file.library") //$NON-NLS-1$
-					&& (openEnabled || exportEnabled)); // $NON-NLS-1$ //$NON-NLS-2$
-			boolean saveEnabled = panel().isEnabled("file.save"); //$NON-NLS-1$
+					&& (openEnabled || exportEnabled));
+			boolean saveEnabled = (panel().isEnabled("file.save") && panel().getDataFile() != null); //$NON-NLS-1$
 			boolean saveAsEnabled = panel().isEnabled("file.saveAs"); //$NON-NLS-1$
 			boolean printEnabled = panel().isEnabled("file.print"); //$NON-NLS-1$
 
@@ -1401,6 +1393,12 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 			file_exportMenu.setEnabled(exportEnabled);
 			checkShowMenuSep(fileMenu, file_printFrameItem, printEnabled);
 			file_printFrameItem.setEnabled(printEnabled);
+
+			// set close and saveAs names
+			String name = " \"" + panel().getTitle() + "\""; //$NON-NLS-1$ //$NON-NLS-2$
+			file_closeItem.setText(TrackerRes.getString("TActions.Action.Close") + name); //$NON-NLS-1$
+			file_saveItem.setText(TrackerRes.getString("TActions.Action.Save") + name); //$NON-NLS-1$
+			
 			FontSizer.setMenuFonts(fileMenu);
 			setMenuTainted(MENU_FILE, false);
 		}
