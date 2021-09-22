@@ -1322,20 +1322,28 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		return menu;
 	}
 
+	boolean fmLoaded = false;
+
+	private void enableFileItems() {
+		String name = panel().getTitle();
+		name = " \"" + name + "\""; //$NON-NLS-1$ //$NON-NLS-2$
+		file_closeItem.setText(TrackerRes.getString("TActions.Action.Close") + name); //$NON-NLS-1$
+		file_saveItem.setText(TrackerRes.getString("TActions.Action.Save") + name); //$NON-NLS-1$
+		file_saveItem.setEnabled(panel().getDataFile() != null);
+		
+	}
 	protected void refreshFileMenu(boolean opening) {
 
 		// long t0 = Performance.now(0);
 
-		if (isTainted(MENU_FILE)) {
+		enableFileItems();
+		if (fmLoaded && OSPRuntime.isJS) {
+		} else if (isTainted(MENU_FILE)) {
+			fmLoaded = true;
 			// refresh file menu
 			fileMenu.removeAll();
 			// if (!OSPRuntime.isApplet) {
 			// update save and close items
-			file_saveItem.setEnabled(panel().getDataFile() != null);
-			String name = panel().getTitle();
-			name = " \"" + name + "\""; //$NON-NLS-1$ //$NON-NLS-2$
-			file_closeItem.setText(TrackerRes.getString("TActions.Action.Close") + name); //$NON-NLS-1$
-			file_saveItem.setText(TrackerRes.getString("TActions.Action.Save") + name); //$NON-NLS-1$
 			if (panel().isEnabled("file.new")) { //$NON-NLS-1$
 				fileMenu.add(file_newTabItem);
 			}
@@ -1399,7 +1407,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 			FontSizer.setMenuFonts(fileMenu);
 			setMenuTainted(MENU_FILE, false);
 		}
-		if (opening) {
+		if (!OSPRuntime.isJS && opening) {
 			if (frame != null) {
 				if (!OSPRuntime.isJS)
 					System.out.println("TMenuBar mem test " + OSPRuntime.getMemoryStr()); //TEST_BH
