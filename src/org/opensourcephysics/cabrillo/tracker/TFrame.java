@@ -1904,7 +1904,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			setDividerLocation(trackerPanel, SPLIT_WORLD_PAGE, 0.0);
 		}
 		TMenuBar menubar = getMenuBar(trackerPanel.getID(), true);
-		menubar.setMenuTainted(TMenuBar.MENU_WINDOW, true);
+		menubar.setMenuTainted(TMenuBar.MENU_VIEW, true);
 //		int tab = getTab(trackerPanel);
 //		if (tab == -1) return;
 //		TTabPanel tabPanel = (TTabPanel) tabbedPane.getComponentAt(tab);
@@ -1941,7 +1941,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		setDefaultWeights(getSplitPanes(trackerPanel));
 		maximizedView = TView.VIEW_UNSET;
 		TMenuBar menubar = getMenuBar(trackerPanel.getID(), true);
-		menubar.setMenuTainted(TMenuBar.MENU_WINDOW, true);
+		menubar.setMenuTainted(TMenuBar.MENU_VIEW, true);
 		if (isLayoutChanged) {
 			frameResized();
 		}
