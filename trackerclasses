@@ -468,6 +468,7 @@ javax/swing/ClientPropertyKey.js
 javax/swing/ComboBoxEditor.js
 javax/swing/ComboBoxModel.js
 javax/swing/ComponentInputMap.js
+javax/swing/ColorChooserDialog.js
 javax/swing/DefaultBoundedRangeModel.js
 javax/swing/DefaultButtonModel.js
 javax/swing/DefaultCellEditor.js
