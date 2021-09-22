@@ -473,7 +473,7 @@ public class PageTView extends TView {
 					helpItem.addActionListener(new ActionListener() {
 						@Override
 						public void actionPerformed(ActionEvent e) {
-							frame.showHelp("textview", 0); //$NON-NLS-1$
+							frame.showHelp("pageview", 0); //$NON-NLS-1$
 						}
 					});
 					popup.add(helpItem);
@@ -617,7 +617,7 @@ public class PageTView extends TView {
 		helpItem.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				frame.showHelp("textview", 0); //$NON-NLS-1$
+				frame.showHelp("pageview", 0); //$NON-NLS-1$
 			}
 		});
 		popup.add(helpItem);
