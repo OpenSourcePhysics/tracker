@@ -206,7 +206,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 	private JMenuItem file_saveItem;
 	private JMenuItem file_saveTabAsItem;
 	private JMenuItem file_saveProjectAsItem;
-	private JMenuItem saveVideoAsItem;
+	private JMenuItem file_saveVideoAsItem;
 	private JMenuItem file_saveTabsetAsItem;
 	private JMenu file_importMenu;
 	private JMenuItem file_import_videoItem;
@@ -531,75 +531,77 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		fileMenu = new JMenu(TrackerRes.getString("TMenuBar.Menu.File"));
 		fileMenu.setName("file");
 		fileMenu.addMenuListener(this);
-		//if (!OSPRuntime.isApplet) {
-			if (testing) {
-				file_replaceTabItem = new JMenuItem("Replace Tab"); // TODO TrackerRes.getString("TMenuBar.Menu.ReplaceTab")
-				file_replaceTabItem.addActionListener((e)-> {frame.loadExperimentURL(null);});
-			}
-			// new tab item
-			file_newTabItem = new JMenuItem(actions.get("newTab"));
-			file_newTabItem.setAccelerator(KeyStroke.getKeyStroke('N', keyMask));
-			// open item
-			file_openItem = new JMenuItem(actions.get("open")); //$NON-NLS-1$
-			file_openItem.setAccelerator(KeyStroke.getKeyStroke('O', keyMask));
-			// open library browser item
-			file_openBrowserItem = new JMenuItem(actions.get("openBrowser")); //$NON-NLS-1$
-			// open recent
-			file_openRecentMenu = new JMenu();
-			// import menu
-			file_importMenu = new JMenu(TrackerRes.getString("TMenuBar.Menu.Import")); //$NON-NLS-1$
-			file_import_videoItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.Video")); //$NON-NLS-1$
-			file_import_videoItem.addActionListener(actions.get("openVideo")); //$NON-NLS-1$
-			file_import_videoItem.setAccelerator(KeyStroke.getKeyStroke('I', keyMask));
-			file_import_TRKItem = new JMenuItem(actions.get("import")); //$NON-NLS-1$
-			file_import_dataItem = new JMenuItem(actions.get("importData")); //$NON-NLS-1$
-			file_importMenu.add(file_import_videoItem);
-			file_importMenu.add(file_import_TRKItem);
-			file_importMenu.add(file_import_dataItem);
-			// close and close all items
-			file_closeItem = new JMenuItem(actions.get("close")); //$NON-NLS-1$
-			file_closeAllItem = new JMenuItem(actions.get("closeAll")); //$NON-NLS-1$
-			// export menu
-			file_exportMenu = new JMenu(TrackerRes.getString("TMenuBar.Menu.Export")); //$NON-NLS-1$
-			// export zip item
-			file_export_zipItem = new JMenuItem(actions.get("saveZip")); //$NON-NLS-1$
-			file_export_zipItem.setText(TrackerRes.getString("TMenuBar.MenuItem.ExportZIP") + "..."); //$NON-NLS-1$ //$NON-NLS-2$
+		// if (!OSPRuntime.isApplet) {
+		if (testing) {
+			file_replaceTabItem = new JMenuItem("Replace Tab"); // TODO TrackerRes.getString("TMenuBar.Menu.ReplaceTab")
+			file_replaceTabItem.addActionListener((e) -> {
+				frame.loadExperimentURL(null);
+			});
+		}
+		// new tab item
+		file_newTabItem = new JMenuItem(actions.get("newTab"));
+		file_newTabItem.setAccelerator(KeyStroke.getKeyStroke('N', keyMask));
+		// open item
+		file_openItem = new JMenuItem(actions.get("open")); //$NON-NLS-1$
+		file_openItem.setAccelerator(KeyStroke.getKeyStroke('O', keyMask));
+		// open library browser item
+		file_openBrowserItem = new JMenuItem(actions.get("openBrowser")); //$NON-NLS-1$
+		// open recent
+		file_openRecentMenu = new JMenu();
+		// import menu
+		file_importMenu = new JMenu(TrackerRes.getString("TMenuBar.Menu.Import")); //$NON-NLS-1$
+		file_import_videoItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.Video")); //$NON-NLS-1$
+		file_import_videoItem.addActionListener(actions.get("openVideo")); //$NON-NLS-1$
+		file_import_videoItem.setAccelerator(KeyStroke.getKeyStroke('I', keyMask));
+		file_import_TRKItem = new JMenuItem(actions.get("import")); //$NON-NLS-1$
+		file_import_dataItem = new JMenuItem(actions.get("importData")); //$NON-NLS-1$
+		file_importMenu.add(file_import_videoItem);
+		file_importMenu.add(file_import_TRKItem);
+		file_importMenu.add(file_import_dataItem);
+		// close and close all items
+		file_closeItem = new JMenuItem(actions.get("close")); //$NON-NLS-1$
+		file_closeAllItem = new JMenuItem(actions.get("closeAll")); //$NON-NLS-1$
+		// export menu
+		file_exportMenu = new JMenu(TrackerRes.getString("TMenuBar.Menu.Export")); //$NON-NLS-1$
+		// export zip item
+		file_export_zipItem = new JMenuItem(actions.get("saveZip")); //$NON-NLS-1$
+		file_export_zipItem.setText(TrackerRes.getString("TMenuBar.MenuItem.ExportZIP") + "..."); //$NON-NLS-1$ //$NON-NLS-2$
 //      exportMenu.add(exportZipItem);
-			// export video item
-			file_export_videoItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.VideoClip") + "..."); //$NON-NLS-1$ //$NON-NLS-2$
-			file_export_videoItem.addActionListener((e) -> {
-					ExportVideoDialog exporter = ExportVideoDialog.getVideoDialog(panel());
-					exporter.setVisible(true);
-			});
-			file_exportMenu.add(file_export_videoItem);
-			// export TRK item
-			file_export_TRKItem = new JMenuItem(actions.get("export")); //$NON-NLS-1$
-			file_exportMenu.add(file_export_TRKItem);
-			// export thumbnail item
-			file_export_thumbnailItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.Thumbnail") + "..."); //$NON-NLS-1$ //$NON-NLS-2$
-			file_export_thumbnailItem.addActionListener((e) -> {
-					ThumbnailDialog.getDialog(panel(), true).setVisible(true);
-			});
-			file_exportMenu.add(file_export_thumbnailItem);
-			// export data item
-			file_export_dataItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.Data")); //$NON-NLS-1$
-			file_export_dataItem.addActionListener((e) -> {
-					ExportDataDialog exporter = ExportDataDialog.getDialog(panel());
-					exporter.setVisible(true);
-			});
-			file_exportMenu.add(file_export_dataItem);
-			// save item
-			file_saveItem = new JMenuItem(actions.get("save")); //$NON-NLS-1$
-			file_saveItem.setAccelerator(KeyStroke.getKeyStroke('S', keyMask));
-			// saveAs item
-			file_saveTabAsItem = new JMenuItem(actions.get("saveAs")); //$NON-NLS-1$
-			// save zip item
-			file_saveProjectAsItem = new JMenuItem(actions.get("saveZip")); //$NON-NLS-1$
-			// saveVideoAs item
-			saveVideoAsItem = new JMenuItem(actions.get("saveVideo")); //$NON-NLS-1$
-			// saveTabset item
-			file_saveTabsetAsItem = new JMenuItem(actions.get("saveTabsetAs")); //$NON-NLS-1$
-		//}
+		// export video item
+		file_export_videoItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.VideoClip") + "..."); //$NON-NLS-1$ //$NON-NLS-2$
+		file_export_videoItem.addActionListener((e) -> {
+			ExportVideoDialog exporter = ExportVideoDialog.getVideoDialog(panel());
+			exporter.setVisible(true);
+		});
+		file_exportMenu.add(file_export_videoItem);
+		// export TRK item
+		file_export_TRKItem = new JMenuItem(actions.get("export")); //$NON-NLS-1$
+		file_exportMenu.add(file_export_TRKItem);
+		// export thumbnail item
+		file_export_thumbnailItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.Thumbnail") + "..."); //$NON-NLS-1$ //$NON-NLS-2$
+		file_export_thumbnailItem.addActionListener((e) -> {
+			ThumbnailDialog.getDialog(panel(), true).setVisible(true);
+		});
+		file_exportMenu.add(file_export_thumbnailItem);
+		// export data item
+		file_export_dataItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.Data")); //$NON-NLS-1$
+		file_export_dataItem.addActionListener((e) -> {
+			ExportDataDialog exporter = ExportDataDialog.getDialog(panel());
+			exporter.setVisible(true);
+		});
+		file_exportMenu.add(file_export_dataItem);
+		// save item
+		file_saveItem = new JMenuItem(actions.get("save")); //$NON-NLS-1$
+		file_saveItem.setAccelerator(KeyStroke.getKeyStroke('S', keyMask));
+		// saveAs item
+		file_saveTabAsItem = new JMenuItem(actions.get("saveAs")); //$NON-NLS-1$
+		// save zip item
+		file_saveProjectAsItem = new JMenuItem(actions.get("saveZip")); //$NON-NLS-1$
+		// saveVideoAs item
+		file_saveVideoAsItem = new JMenuItem(actions.get("saveVideo")); //$NON-NLS-1$
+		// saveTabset item
+		file_saveTabsetAsItem = new JMenuItem(actions.get("saveTabsetAs")); //$NON-NLS-1$
+		// }
 		// properties item
 		file_propertiesItem = new JMenuItem(actions.get("properties")); //$NON-NLS-1$
 		// printFrame item
@@ -613,13 +615,16 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 //			}
 //		});
 		// exit item
-		if (!OSPRuntime.isApplet) {
+//		if (!OSPRuntime.isApplet) {
 			file_exitItem = new JMenuItem(actions.get("exit")); //$NON-NLS-1$
 			file_exitItem.setAccelerator(KeyStroke.getKeyStroke('Q', keyMask));
 //			file_exitItem.addActionListener((a) ->{
 //				Tracker.exit();
 //			});
-		}
+//		}
+			
+		refreshFileMenu(false);
+			
 		add(fileMenu);
 	}
 
@@ -1322,95 +1327,86 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		return menu;
 	}
 
-	boolean fmLoaded = false;
-
-	private void enableFileItems() {
-		String name = panel().getTitle();
-		name = " \"" + name + "\""; //$NON-NLS-1$ //$NON-NLS-2$
-		file_closeItem.setText(TrackerRes.getString("TActions.Action.Close") + name); //$NON-NLS-1$
-		file_saveItem.setText(TrackerRes.getString("TActions.Action.Save") + name); //$NON-NLS-1$
-		file_saveItem.setEnabled(panel().getDataFile() != null);
-		
-	}
 	protected void refreshFileMenu(boolean opening) {
-
-		// long t0 = Performance.now(0);
-
-		enableFileItems();
-		if (fmLoaded && OSPRuntime.isJS) {
-		} else if (isTainted(MENU_FILE)) {
-			fmLoaded = true;
-			// refresh file menu
-			fileMenu.removeAll();
-			// if (!OSPRuntime.isApplet) {
-			// update save and close items
-			if (panel().isEnabled("file.new")) { //$NON-NLS-1$
-				fileMenu.add(file_newTabItem);
-			}
+		if (!opening) {
+			fileMenu.add(file_newTabItem);
 			if (file_replaceTabItem != null) {
 				fileMenu.add(file_replaceTabItem);
 			}
-
-			if (panel().isEnabled("file.open")) { //$NON-NLS-1$
-				checkAddMenuSep(fileMenu);
-				fileMenu.add(file_openItem);
-//	    fileMenu.add(openURLItem);
-				if (!OSPRuntime.isJS)
-					fileMenu.add(file_openRecentMenu);
+			checkAddMenuSep(fileMenu);
+			fileMenu.add(file_openItem);
+			if (!OSPRuntime.isJS) {
+				fileMenu.add(file_openRecentMenu);
 			}
-			boolean showLib = panel().isEnabled("file.open") || panel().isEnabled("file.export"); //$NON-NLS-1$ //$NON-NLS-2$
-			if (showLib && panel().isEnabled("file.library")) { //$NON-NLS-1$
-				checkAddMenuSep(fileMenu);
-				if (panel().isEnabled("file.open")) //$NON-NLS-1$
-					fileMenu.add(file_openBrowserItem);
-//					if (trackerPanel.isEnabled("file.export")) fileMenu.add(saveZipAsItem); //$NON-NLS-1$
-			}
-			if (panel().isEnabled("file.close")) { //$NON-NLS-1$
-				checkAddMenuSep(fileMenu);
-				fileMenu.add(file_closeItem);
-				fileMenu.add(file_closeAllItem);
-			}
-			if (panel().isEnabled("file.save") //$NON-NLS-1$
-					|| panel().isEnabled("file.saveAs")) { //$NON-NLS-1$
-				checkAddMenuSep(fileMenu);
-				if (panel().isEnabled("file.save")) //$NON-NLS-1$
-					fileMenu.add(file_saveItem);
-				if (panel().isEnabled("file.saveAs")) { //$NON-NLS-1$
-					fileMenu.add(file_saveTabAsItem);
-					if (panel().getVideo() != null) {
-						fileMenu.add(saveVideoAsItem);
-					}
-					fileMenu.add(file_saveProjectAsItem);
-					fileMenu.add(file_saveTabsetAsItem);
-				}
-			}
-			if (panel().isEnabled("file.import") //$NON-NLS-1$
-					|| panel().isEnabled("file.export")) { //$NON-NLS-1$
-				checkAddMenuSep(fileMenu);
-				if (panel().isEnabled("file.import")) //$NON-NLS-1$
-					fileMenu.add(file_importMenu);
-				if (panel().isEnabled("file.export")) //$NON-NLS-1$
-					fileMenu.add(file_exportMenu);
-			}
-			// }
+			checkAddMenuSep(fileMenu);
+			fileMenu.add(file_openBrowserItem);
+			checkAddMenuSep(fileMenu);
+			fileMenu.add(file_closeItem);
+			fileMenu.add(file_closeAllItem);
+			checkAddMenuSep(fileMenu);
+			fileMenu.add(file_saveItem);
+			fileMenu.add(file_saveTabAsItem);
+			fileMenu.add(file_saveVideoAsItem);
+			fileMenu.add(file_saveProjectAsItem);
+			fileMenu.add(file_saveTabsetAsItem);
+			checkAddMenuSep(fileMenu);
+			fileMenu.add(file_importMenu);
+			fileMenu.add(file_exportMenu);
 			checkAddMenuSep(fileMenu);
 			fileMenu.add(file_propertiesItem);
-			if (panel().isEnabled("file.print")) { //$NON-NLS-1$
-				checkAddMenuSep(fileMenu);
-				fileMenu.add(file_printFrameItem);
-			}
-			// exit menu always added except in applets
-			// if (!OSPRuntime.isApplet) {
 			checkAddMenuSep(fileMenu);
+			fileMenu.add(file_printFrameItem);
 			fileMenu.add(file_exitItem);
-			// }
+			return;
+		}
+		// opening
+		if (isTainted(MENU_FILE)) {
+			// refresh file menu
+			// fileMenu.removeAll();
+			// if (!OSPRuntime.isApplet) {
+			// update save and close items
+			String name = panel().getTitle();
+			name = " \"" + name + "\""; //$NON-NLS-1$ //$NON-NLS-2$
+			file_closeItem.setText(TrackerRes.getString("TActions.Action.Close") + name); //$NON-NLS-1$
+			file_saveItem.setText(TrackerRes.getString("TActions.Action.Save") + name); //$NON-NLS-1$
+			file_saveItem.setEnabled(panel().getDataFile() != null);
+
+			boolean newtabEnabled = panel().isEnabled("file.new"); //$NON-NLS-1$
+			boolean openEnabled = panel().isEnabled("file.open"); //$NON-NLS-1$
+			boolean closeEnabled = panel().isEnabled("file.close"); //$NON-NLS-1$
+			boolean importEnabled = panel().isEnabled("file.import"); //$NON-NLS-1$
+			boolean exportEnabled = panel().isEnabled("fileexport");
+			boolean showLib = (panel().isEnabled("file.library") //$NON-NLS-1$
+					&& (openEnabled || exportEnabled)); // $NON-NLS-1$ //$NON-NLS-2$
+			boolean saveEnabled = panel().isEnabled("file.save"); //$NON-NLS-1$
+			boolean saveAsEnabled = panel().isEnabled("file.saveAs"); //$NON-NLS-1$
+			boolean printEnabled = panel().isEnabled("file.print"); //$NON-NLS-1$
+
+			file_newTabItem.setEnabled(newtabEnabled);			
+			checkShowMenuSep(fileMenu, file_openItem, openEnabled);
+			file_openItem.setEnabled(openEnabled);
+			checkShowMenuSep(fileMenu, file_openBrowserItem, showLib);
+			file_openBrowserItem.setEnabled(showLib && openEnabled);
+			checkShowMenuSep(fileMenu, file_closeItem, closeEnabled);
+			file_closeItem.setEnabled(closeEnabled);
+			file_closeAllItem.setEnabled(closeEnabled);
+			checkShowMenuSep(fileMenu, file_saveItem, saveEnabled || saveAsEnabled);
+			file_saveItem.setEnabled(saveEnabled);
+			file_saveTabAsItem.setEnabled(saveAsEnabled);
+			file_saveVideoAsItem.setEnabled(saveAsEnabled && panel().getVideo() != null);
+			file_saveProjectAsItem.setEnabled(saveAsEnabled);
+			file_saveTabsetAsItem.setEnabled(saveAsEnabled);
+			checkShowMenuSep(fileMenu, file_importMenu, importEnabled || exportEnabled);
+			file_importMenu.setEnabled(importEnabled);
+			file_exportMenu.setEnabled(exportEnabled);
+			checkShowMenuSep(fileMenu, file_printFrameItem, printEnabled);
+			file_printFrameItem.setEnabled(printEnabled);
 			FontSizer.setMenuFonts(fileMenu);
 			setMenuTainted(MENU_FILE, false);
 		}
-		if (!OSPRuntime.isJS && opening) {
+		if (!OSPRuntime.isJS) {
 			if (frame != null) {
-				if (!OSPRuntime.isJS)
-					System.out.println("TMenuBar mem test " + OSPRuntime.getMemoryStr()); //TEST_BH
+				System.out.println("TMenuBar mem test " + OSPRuntime.getMemoryStr()); // TEST_BH
 				frame.refreshOpenRecentMenu(file_openRecentMenu);
 			}
 			// disable export data menu if no tables to export
@@ -1420,7 +1416,9 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 			// DB changes when tab is opened or closed
 			file_saveTabsetAsItem.setEnabled(frame != null && frame.getTabCount() > 1);
 		}
-		// OSPLog.debug("!!! " + Performance.now(t0) + " TMenuBar file refresh");
+	}
+
+	private void checkShowMenuSep(JMenu menu, JMenuItem item, boolean isEnabled) {
 	}
 
 	protected void rebuildEditFontSizeMenu() {
