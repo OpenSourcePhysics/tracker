@@ -3023,15 +3023,18 @@ public class PointMass extends TTrack {
 			public void actionPerformed(ActionEvent e) {
 				// show color chooser dialog with color of velocity footprint
 				Color c = getVelocityFootprint().getColor();
-				Color newColor = chooseColor(c, TrackerRes.getString("Velocity.Dialog.Color.Title")); //$NON-NLS-1$
-				if (newColor != null) {
-					XMLControl control = new XMLControlElement(PointMass.this);
-					for (Footprint footprint : getVelocityFootprints()) {
-						footprint.setColor(newColor);
+				OSPRuntime.chooseColor(c, TrackerRes.getString("Velocity.Dialog.Color.Title"), (newColor) -> {
+					if (newColor != null) {
+						XMLControl control = new XMLControlElement(PointMass.this);
+						for (Footprint footprint : getVelocityFootprints()) {
+							footprint.setColor(newColor);
+						}
+						Undo.postTrackEdit(PointMass.this, control);
+						repaint();
 					}
-					Undo.postTrackEdit(PointMass.this, control);
-					repaint();
 				}
+
+				);
 			}
 		});
 		aColorItem = new JMenuItem();
@@ -3040,7 +3043,7 @@ public class PointMass extends TTrack {
 			public void actionPerformed(ActionEvent e) {
 				// show color chooser dialog with color of acceleration footprint
 				Color c = getAccelerationFootprint().getColor();
-				Color newColor = chooseColor(c, TrackerRes.getString("Acceleration.Dialog.Color.Title")); //$NON-NLS-1$
+				OSPRuntime.chooseColor(c, TrackerRes.getString("Acceleration.Dialog.Color.Title"), (newColor) -> {//$NON-NLS-1$
 				if (newColor != null) {
 					XMLControl control = new XMLControlElement(PointMass.this);
 					for (Footprint footprint : getAccelerationFootprints()) {
@@ -3049,6 +3052,7 @@ public class PointMass extends TTrack {
 					Undo.postTrackEdit(PointMass.this, control);
 					repaint();
 				}
+				});
 			}
 		});
 

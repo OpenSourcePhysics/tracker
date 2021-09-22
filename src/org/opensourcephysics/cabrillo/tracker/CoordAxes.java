@@ -56,6 +56,7 @@ import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.display.DrawingPanel;
 import org.opensourcephysics.display.Interactive;
+import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.media.core.ImageCoordSystem;
 import org.opensourcephysics.media.core.NumberField;
 import org.opensourcephysics.media.core.TPoint;
@@ -275,11 +276,12 @@ public class CoordAxes extends TTrack {
 						}
 
 						Color color = grid.getColor();
-						Color newColor = chooseColor(color, TrackerRes.getString("CoordAxes.Dialog.GridColor.Title")); //$NON-NLS-1$
-						if (newColor != color) {
-							grid.setColor(newColor);
-							repaintAll();
-						}
+						OSPRuntime.chooseColor(color, TrackerRes.getString("CoordAxes.Dialog.GridColor.Title"), (newColor) -> { //$NON-NLS-1$
+							if (newColor != color) {
+								grid.setColor(newColor);
+								repaintAll();
+							}
+						});
 					}
 				});
 				popup.add(colorItem);

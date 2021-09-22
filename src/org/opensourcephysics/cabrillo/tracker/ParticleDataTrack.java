@@ -176,12 +176,13 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				Color color = getColor();
-				Color newColor = chooseColor(color, TrackerRes.getString("TTrack.Dialog.Color.Title")); //$NON-NLS-1$
-				if (newColor != color) {
-					XMLControl control = new XMLControlElement(new TrackProperties(ParticleDataTrack.this));
-					getLeader().setLineColor(newColor);
-					Undo.postTrackDisplayEdit(ParticleDataTrack.this, control);
-				}
+				OSPRuntime.chooseColor(color, TrackerRes.getString("TTrack.Dialog.Color.Title"), (newColor) -> {
+					if (newColor != color) {
+						XMLControl control = new XMLControlElement(new TrackProperties(ParticleDataTrack.this));
+						getLeader().setLineColor(newColor);
+						Undo.postTrackDisplayEdit(ParticleDataTrack.this, control);
+					}
+				}); //$NON-NLS-1$
 			}
 		});
 		linesVisibleCheckbox = new JCheckBoxMenuItem();
@@ -287,16 +288,17 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 
 	protected void doAllColor() {
 		Color color = getColor();
-		Color newColor = chooseColor(color, TrackerRes.getString("TTrack.Dialog.Color.Title")); //$NON-NLS-1$
-		if (newColor != color) {
-			XMLControl control = new XMLControlElement(new TrackProperties(this));
-			setColor(newColor);
-			for (ParticleDataTrack next : morePoints) {				
-				next.setColor(newColor);
+		OSPRuntime.chooseColor(color, TrackerRes.getString("TTrack.Dialog.Color.Title"), (newColor) -> { //$NON-NLS-1$
+			if (newColor != color) {
+				XMLControl control = new XMLControlElement(new TrackProperties(this));
+				setColor(newColor);
+				for (ParticleDataTrack next : morePoints) {
+					next.setColor(newColor);
+				}
+				getLeader().setLineColor(newColor);
+				Undo.postTrackDisplayEdit(this, control);
 			}
-			getLeader().setLineColor(newColor);
-			Undo.postTrackDisplayEdit(this, control);
-		}
+		});
 	}
 
 	protected void doAllCircle(String footprintName) {

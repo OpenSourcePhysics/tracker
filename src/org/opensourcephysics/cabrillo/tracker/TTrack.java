@@ -60,7 +60,6 @@ import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JCheckBoxMenuItem;
-import javax.swing.JColorChooser;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
@@ -941,28 +940,6 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 		String name = trackerPanel.getNextName(getName(), connector);
 		setName(name);
 		setColorToDefault((int) name.charAt(name.length() - 1) - 65);
-	}
-
-	/**
-	 * Displays a JColorChooser and returns the selected color.
-	 *
-	 * @param color the initial color to select
-	 * @param title the title for the dialog
-	 * @return the newly selected color. or initial color if cancelled
-	 */
-	public Color chooseColor(final Color color, String title) {
-		final JColorChooser chooser = new JColorChooser();
-		chooser.setColor(color);
-		ActionListener cancelListener = new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				chooser.setColor(color);
-			}
-		};
-		JDialog dialog = JColorChooser.createDialog(null, title, true, chooser, null, cancelListener);
-		FontSizer.setFonts(dialog, FontSizer.getLevel());
-		dialog.setVisible(true);
-		return chooser.getColor();
 	}
 
 	/**
@@ -2320,12 +2297,13 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				Color color = getColor();
-				Color newColor = chooseColor(color, TrackerRes.getString("TTrack.Dialog.Color.Title")); //$NON-NLS-1$
+				OSPRuntime.chooseColor(color, TrackerRes.getString("TTrack.Dialog.Color.Title"), (newColor) -> { //$NON-NLS-1$
 				if (newColor != color) {
 					XMLControl control = new XMLControlElement(new TrackProperties(TTrack.this));
 					setColor(newColor);
 					Undo.postTrackDisplayEdit(TTrack.this, control);
 				}
+				});
 			}
 		});
 
