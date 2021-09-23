@@ -517,7 +517,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		createVideoMenu(keyMask);
 		createTracksMenu(keyMask);
 		createCoordsMenu(keyMask);
-		createWindowMenu(keyMask);
+		createViewMenu(keyMask);
 
 		// help menu
 		helpMenu = getTrackerHelpMenu(panel(), null);
@@ -1090,7 +1090,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		add(trackMenu);
 	}
 
-	private void createWindowMenu(int keyMask) {
+	private void createViewMenu(int keyMask) {
 		viewMenu = new JMenu(TrackerRes.getString("TMenuBar.Menu.Window")); //$NON-NLS-1$
 		viewMenu.setName("window");
 		viewMenu.addMenuListener(this);
@@ -1195,6 +1195,8 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 				tool.setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
 				tool.setVisible(true);
 		});
+		viewMenu.addSeparator();
+		refreshViewMenu(false);
 		add(viewMenu);
 	}
 
@@ -1712,11 +1714,20 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 	}
 
 	protected void refreshEditMenu(boolean opening) {
-		//long t0 = Performance.now(0);
-		if (true || isTainted(MENU_EDIT)) {
+		if (isTainted(MENU_EDIT)) {
 			boolean hasTracks = !panel().getUserTracks().isEmpty();
+			boolean undoEnabled = panel().isEnabled("edit.undoRedo");
+			boolean copyDataEnabled = panel().isEnabled("edit.copyData"); //$NON-NLS-1$
+			boolean copyImageEnabled = panel().isEnabled("edit.copyImage"); //$NON-NLS-1$
+			boolean copyObjectEnabled = panel().isEnabled("edit.copyObject"); //$NON-NLS-1$
+			boolean pasteEnabled = panel().isEnabled("edit.paste");
+			boolean deleteEnabled = panel().isEnabled("track.delete");
+			boolean formatsEnabled = panel().isEnabled("number.formats");
+			boolean unitsEnabled = panel().isEnabled("number.units");
+			boolean matSizeEnabled = panel().isEnabled("edit.matSize");
+
 			editMenu.removeAll();
-			if (panel().isEnabled("edit.undoRedo")) { //$NON-NLS-1$
+			if (undoEnabled) { // $NON-NLS-1$
 				edit_undoItem.setText(TrackerRes.getString("TMenuBar.MenuItem.Undo")); //$NON-NLS-1$
 				edit_undoItem.setText(Undo.getUndoDescription(panel()));
 				editMenu.add(edit_undoItem);
@@ -1727,11 +1738,9 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 				edit_redoItem.setEnabled(Undo.canRedo(panel()));
 			}
 			// refresh copyData, copyImage and copyObject menus
-			if (panel().isEnabled("edit.copyData") //$NON-NLS-1$
-					|| panel().isEnabled("edit.copyImage") //$NON-NLS-1$
-					|| panel().isEnabled("edit.copyObject")) { //$NON-NLS-1$
+			if (copyImageEnabled || copyDataEnabled || copyObjectEnabled) {
 				checkAddMenuSep(editMenu);
-				if (panel().isEnabled("edit.copyData")) { //$NON-NLS-1$
+				if (copyDataEnabled) { // $NON-NLS-1$
 					editMenu.add(edit_copyDataMenu); // refreshed in edit menu mouse listener
 					TreeMap<Integer, TableTrackView> dataViews = getDataViews();
 					edit_copyDataMenu.setEnabled(!dataViews.isEmpty());
@@ -1745,17 +1754,17 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 						edit_copyDataMenu.setText(text + " (" + key + ")"); //$NON-NLS-1$ //$NON-NLS-2$
 					}
 				}
-				if (panel().isEnabled("edit.copyImage")) { //$NON-NLS-1$
+				if (copyImageEnabled) { // $NON-NLS-1$
 					editMenu.add(edit_copyImageMenu);
 				}
-				if (panel().isEnabled("edit.copyObject")) { //$NON-NLS-1$
+				if (copyObjectEnabled) { // $NON-NLS-1$
 					editMenu.add(edit_copyObjectMenu);
 					edit_copyObjectMenu.setText(TrackerRes.getString("TMenuBar.Menu.CopyObject")); //$NON-NLS-1$
 				}
 			}
 
 			// paste and autopaste items
-			if (panel().isEnabled("edit.paste")) { //$NON-NLS-1$
+			if (pasteEnabled) { // $NON-NLS-1$
 				checkAddMenuSep(editMenu);
 				editMenu.add(edit_pasteItem);
 				if (frame != null) {
@@ -1767,24 +1776,25 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 			edit_deleteTracksMenu.setEnabled(hasTracks);
 
 			// delete and clear menus
-			if (panel().isEnabled("track.delete")) { //$NON-NLS-1$
+			if (deleteEnabled) { // $NON-NLS-1$
 				checkAddMenuSep(editMenu);
-				if (panel().isEnabled("track.delete") || hasTracks) { //$NON-NLS-1$
+				if (deleteEnabled || hasTracks) { // $NON-NLS-1$
 					editMenu.add(edit_deleteTracksMenu);
 				}
 			}
+
 			// number menu
-			if (panel().isEnabled("number.formats") || panel().isEnabled("number.units")) { //$NON-NLS-1$ //$NON-NLS-2$
+			if (formatsEnabled || unitsEnabled) { // $NON-NLS-1$ //$NON-NLS-2$
 				checkAddMenuSep(editMenu);
 				editMenu.add(edit_numberMenu);
 				edit_numberMenu.removeAll();
-				if (panel().isEnabled("number.formats")) //$NON-NLS-1$
+				if (formatsEnabled) // $NON-NLS-1$
 					edit_numberMenu.add(edit_formatsItem);
-				if (panel().isEnabled("number.units")) //$NON-NLS-1$
+				if (unitsEnabled) // $NON-NLS-1$
 					edit_numberMenu.add(edit_unitsItem);
 			}
 			// add size menu
-			if (panel().isEnabled("edit.matSize")) { //$NON-NLS-1$
+			if (matSizeEnabled) { // $NON-NLS-1$
 				checkAddMenuSep(editMenu);
 				editMenu.add(edit_matSizeMenu);
 			}
@@ -1805,7 +1815,6 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 			// clearTracksItem enabled only when there are tracks
 			refreshTrackNames(MENU_EDIT);
 		}
-		//OSPLog.debug("!!! " + Performance.now(t0) + " TMenuBar edit refresh");
 	}
 
 	protected void refreshCoordsMenu(boolean opening) {
@@ -2364,9 +2373,27 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 	 * @param opening      TODO
 	 */
 	public void refreshViewMenu(boolean opening) {
+		TrackerPanel panel = panel();
+		boolean builderEnabled = panel.isEnabled("data.builder"); //$NON-NLS-1$
+		boolean toolEnabled = panel.isEnabled("data.tool");  //$NON-NLS-1$
+
+		if (!opening) {
+			if (true)
+				return;
+			viewMenu.add(view_restoreItem);
+			viewMenu.add(view_rightPaneItem);
+			viewMenu.add(view_bottomPaneItem);
+			viewMenu.addSeparator();
+			viewMenu.add(view_trackControlItem);
+			viewMenu.add(view_notesItem);
+			viewMenu.add(view_dataBuilderItem);
+			viewMenu.add(view_dataToolItem);
+			return;
+		}
+		
+		
 		// long t0 = Performance.now(0);
 		JSplitPane pane = frame.getSplitPane(panel(), 0);
-		TrackerPanel panel = panel();
 		int max = pane.getMaximumDividerLocation();
 		int cur = pane.getDividerLocation();
 		double loc = 1.0 * cur / max;
@@ -2388,7 +2415,10 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		if (isTainted(MENU_VIEW)) {
 			// OSPLog.debug("TMenuBar window menu rebuild");
 			// rebuild window menu
-			viewMenu.removeAll();
+			for (int i = viewMenu.getItemCount(); --i > 0;) {
+				viewMenu.remove(i);
+			}
+//			viewMenu.removeAll();
 			if (frame.getMaximizedView() != TView.VIEW_UNSET) {
 				viewMenu.add(view_restoreItem);
 			} else {
@@ -2404,6 +2434,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 				if (panel.isEnabled("data.builder")) //$NON-NLS-1$
 					viewMenu.add(view_dataBuilderItem);
 				if (panel.isEnabled("data.tool")) //$NON-NLS-1$
+					
 					viewMenu.add(view_dataToolItem);
 			}
 			tabItems = new JMenuItem[frame.getTabCount()];
