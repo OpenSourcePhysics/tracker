@@ -59,18 +59,20 @@ public class PlotGuestDialog extends JDialog {
    */
   public PlotGuestDialog(TrackerPanel panel) {
     super(JOptionPane.getFrameForComponent(panel), true);
-	frame = panel.getTFrame();
-	panelID = panel.getID();
+    frame = panel.getTFrame();
+    panelID = panel.getID();
     // listener for the checkboxes
     listener = new ActionListener() {
       @Override
-	public void actionPerformed(ActionEvent e) {
+      public void actionPerformed(ActionEvent e) {
       	JCheckBoxMenuItem checkbox = (JCheckBoxMenuItem)e.getSource();
       	int id = Integer.parseInt(checkbox.getActionCommand());
 	      TTrack track = TTrack.getTrack(id);
       	if (checkbox.isSelected()) plot.addGuest(track);
 				else plot.removeGuest(track);
       	plot.plotData();
+      	plot.repaint();
+      	updateDisplay();
       }
     };
     setResizable(false);
@@ -102,7 +104,7 @@ public class PlotGuestDialog extends JDialog {
     okButton.setForeground(new Color(0, 0, 102));
     okButton.addActionListener(new ActionListener() {
       @Override
-	public void actionPerformed(ActionEvent e) {
+      public void actionPerformed(ActionEvent e) {
         setVisible(false);
       }
     });
@@ -111,7 +113,7 @@ public class PlotGuestDialog extends JDialog {
     selectAllButton.setForeground(new Color(0, 0, 102));
     selectAllButton.addActionListener(new ActionListener() {
       @Override
-	public void actionPerformed(ActionEvent e) {
+      public void actionPerformed(ActionEvent e) {
       	for (Integer id: allTracks) {
 		      TTrack track = TTrack.getTrack(id);
 		      if (allTracksSelected) {
@@ -120,6 +122,7 @@ public class PlotGuestDialog extends JDialog {
 		      else plot.addGuest(track);
       	}
       	plot.plotData();
+      	plot.repaint();
       	updateDisplay();
       }
     });

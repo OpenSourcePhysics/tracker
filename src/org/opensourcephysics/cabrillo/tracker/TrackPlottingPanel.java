@@ -656,6 +656,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				PlotGuestDialog dialog = frame.getTrackerPanelForID(panelID).getPlotGuestDialog(TrackPlottingPanel.this);
+				dialog.setLocationRelativeTo(TrackPlottingPanel.this);
 				dialog.setVisible(true);
 			}
 		});
@@ -947,9 +948,9 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 			tracks.clear();
 			// now add drawables for guests
 			if (n > 0 && track != null) {
-				DatasetManager manager = track.getData(track.tp);
 				for (int i = 0; i < n; i++) {
 					track = guests.get(i);
+					DatasetManager manager = track.getData(track.tp);
 					HighlightableDataset dataset = guestDatasets.get(track);
 					dataset.setMarkerColor(track.getColor());
 					dataset.setHighlightColor(track.getColor());
