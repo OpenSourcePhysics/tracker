@@ -642,7 +642,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 	protected boolean addThumbnail = true;
 	protected ArrayList<ParticleModel> badModels; // particle models with start frames not included in clip
 	protected String videoIOPreferredExtension;
-	protected boolean isVisible;
+	protected boolean isVisible, isOpenInTracker;
 	private Iterator<Export> exportIterator;
 	private File lastTRZ = new File("");
 
@@ -2190,7 +2190,8 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 		if (JarTool.compress(zipList, target, null)) {
 			ResourceLoader.removeFromZipCache(target.getPath());
 			// offer to open the newly created zip file
-			openNewZip(target.getAbsolutePath());
+//			if (!isOpenInTracker)
+				openNewZip(target.getAbsolutePath());
 			// delete temp directory after short delay
 			if (!OSPRuntime.isJS) {
 				OSPRuntime.trigger(1000, (e) -> {
@@ -2638,17 +2639,19 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 			return null;
 		}
 		File chooserFile = lastTRZ = chooser.getSelectedFile();
-		// Note that
+		// DB Sep 23 2021 now we CAN overwrite TRZ files since not caching streams
 		// check that target is not currently open in Tracker--can't overwrite open TRZ
+		isOpenInTracker = false;
 		if (!OSPRuntime.isJS && chooserFile.exists()) {
 			for (int i = 0; i < frame.getTabCount(); i++) {
 				String path = frame.getTrackerPanelForTab(i).openedFromPath;
 				if (path != null && path.equals(XML.forwardSlash(chooserFile.getPath()))) {
-					javax.swing.JOptionPane.showMessageDialog(frame,
-							TrackerRes.getString("ExportZipDialog.Dialog.CannotOverwrite.Message"), //$NON-NLS-1$
-							TrackerRes.getString("ExportZipDialog.Dialog.CannotOverwrite.Title"), //$NON-NLS-1$
-							javax.swing.JOptionPane.WARNING_MESSAGE);
-					return defineTarget();
+					isOpenInTracker = true;
+//					javax.swing.JOptionPane.showMessageDialog(frame,
+//							TrackerRes.getString("ExportZipDialog.Dialog.CannotOverwrite.Message"), //$NON-NLS-1$
+//							TrackerRes.getString("ExportZipDialog.Dialog.CannotOverwrite.Title"), //$NON-NLS-1$
+//							javax.swing.JOptionPane.WARNING_MESSAGE);
+//					return defineTarget();
 				}
 			}
 		}

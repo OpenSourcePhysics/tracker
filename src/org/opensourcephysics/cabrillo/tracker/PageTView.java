@@ -921,7 +921,7 @@ public class PageTView extends TView {
 			if ((res != null) && (res.getURL() != null)) {
 				url = res.getURL();
 				try {
-					InputStream in = url.openStream();
+					InputStream in = ResourceLoader.openStream(url);
 					in.close();
 				} catch (Exception ex) {
 					url = null;
