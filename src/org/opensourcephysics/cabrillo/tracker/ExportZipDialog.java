@@ -644,7 +644,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 	protected String videoIOPreferredExtension;
 	protected boolean isVisible;
 	private Iterator<Export> exportIterator;
-	private File lastTRZ = new File(OSPRuntime.isJS ? "tracker" : "");
+	private File lastTRZ = new File("");
 
 	/**
 	 * Returns an ExportZipDialog for a TrackerPanel.
@@ -2604,6 +2604,18 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 	 * @return empty List<File> to fill with files to be zipped
 	 */
 	protected ArrayList<File> defineTarget() {
+		if (lastTRZ == null || "".equals(lastTRZ.getPath())) {
+			String title = titleField.getText().trim();
+			if (!"".equals(title)) {
+				lastTRZ = new File(title);
+			}
+			else {
+				String tabtitle = frame.getTabTitle(frame.getSelectedTab());			
+				if (!"".equals(tabtitle)) {
+					lastTRZ = new File(tabtitle);
+				}
+			}
+		}
 		// show file chooser to get directory and zip name
 		AsyncFileChooser chooser = TrackerIO.getChooser();
 		chooser.setDialogTitle(TrackerRes.getString("ZipResourceDialog.FileChooser.SaveZip.Title")); //$NON-NLS-1$
