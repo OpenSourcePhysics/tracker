@@ -2604,7 +2604,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 	 * @return empty List<File> to fill with files to be zipped
 	 */
 	protected ArrayList<File> defineTarget() {
-		if (lastTRZ == null || "".equals(lastTRZ.getPath())) {
+		if (lastTRZ == null || lastTRZ.getName().trim().length() < 2) {
 			String title = titleField.getText().trim();
 			if (!"".equals(title)) {
 				lastTRZ = new File(title);
@@ -2614,6 +2614,8 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 				if (!"".equals(tabtitle)) {
 					lastTRZ = new File(tabtitle);
 				}
+				else
+					lastTRZ = new File("");
 			}
 		}
 		// show file chooser to get directory and zip name
