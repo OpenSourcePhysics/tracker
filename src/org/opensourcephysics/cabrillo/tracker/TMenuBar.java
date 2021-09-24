@@ -593,6 +593,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		// save item
 		file_saveItem = new JMenuItem(actions.get("save")); //$NON-NLS-1$
 		file_saveItem.setAccelerator(KeyStroke.getKeyStroke('S', keyMask));
+		file_saveItem.setDisabledIcon(file_saveItem.getIcon());
 		// saveAs item
 		file_saveTabAsItem = new JMenuItem(actions.get("saveAs")); //$NON-NLS-1$
 		// save zip item
@@ -1390,7 +1391,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 			file_saveTabAsItem.setEnabled(saveAsEnabled);
 			file_saveVideoAsItem.setEnabled(saveAsEnabled && panel().getVideo() != null);
 			file_saveProjectAsItem.setEnabled(saveAsEnabled);
-			file_saveTabsetAsItem.setEnabled(saveAsEnabled);
+			file_saveTabsetAsItem.setEnabled(saveAsEnabled && frame != null && frame.getTabCount() > 1);
 			checkShowMenuSep(fileMenu, file_importMenu, importEnabled || exportEnabled);
 			file_importMenu.setEnabled(importEnabled);
 			file_exportMenu.setEnabled(exportEnabled);
@@ -1401,6 +1402,8 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 			String name = " \"" + panel().getTitle() + "\""; //$NON-NLS-1$ //$NON-NLS-2$
 			file_closeItem.setText(TrackerRes.getString("TActions.Action.Close") + name); //$NON-NLS-1$
 			file_saveItem.setText(TrackerRes.getString("TActions.Action.Save") + name); //$NON-NLS-1$
+			// disable export data menu if no tables to export
+			file_export_dataItem.setEnabled(!getDataViews().isEmpty());
 			
 			FontSizer.setMenuFonts(fileMenu);
 			setMenuTainted(MENU_FILE, false);
@@ -1410,12 +1413,6 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 				System.out.println("TMenuBar mem test " + OSPRuntime.getMemoryStr()); // TEST_BH
 				frame.refreshOpenRecentMenu(file_openRecentMenu);
 			}
-			// disable export data menu if no tables to export
-			// DB getDataViews() only changes when a TableTrackView is displayed/hidden
-			file_export_dataItem.setEnabled(!getDataViews().isEmpty());
-			// disable saveTabsetAs item if only 1 tab is open
-			// DB changes when tab is opened or closed
-			file_saveTabsetAsItem.setEnabled(frame != null && frame.getTabCount() > 1);
 		}
 	}
 
@@ -2374,11 +2371,11 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 	 */
 	public void refreshViewMenu(boolean opening) {
 		TrackerPanel panel = panel();
-		boolean builderEnabled = panel.isEnabled("data.builder"); //$NON-NLS-1$
-		boolean toolEnabled = panel.isEnabled("data.tool");  //$NON-NLS-1$
+//		boolean builderEnabled = panel.isEnabled("data.builder"); //$NON-NLS-1$
+//		boolean toolEnabled = panel.isEnabled("data.tool");  //$NON-NLS-1$
 
 		if (!opening) {
-			if (true)
+			if (true)  // why is this here--testing????
 				return;
 			viewMenu.add(view_restoreItem);
 			viewMenu.add(view_rightPaneItem);
