@@ -248,6 +248,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	protected UnitsDialog unitsDialog;
 	protected PasteDataDialog pasteDataDialog;
 	private boolean isAutoRefresh = true;
+	protected boolean isNotesVisible = false;
 	protected TreeSet<String> supplementalFilePaths = new TreeSet<String>(); // HTML/PDF URI paths
 	protected Map<String, String> pageViewFilePaths = new HashMap<String, String>();
 	protected StepSet selectedSteps;

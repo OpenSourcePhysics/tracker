@@ -2517,8 +2517,14 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			if (prefsDialog != null) {
 				prefsDialog.panelID = newPanel.getID();
 			}
+			
+			if (oldPanel != null)
+				oldPanel.isNotesVisible = notesVisible();
+			if (notes != null)
+				notes.dialog.setVisible(newPanel.isNotesVisible);
 			// refresh the notes dialog and button
 			updateNotesDialog(newPanel);
+			
 			Integer panelID = newPanel.getID();
 			TToolBar bar = getToolBar(panelID, true);
 			if (bar != null) {
