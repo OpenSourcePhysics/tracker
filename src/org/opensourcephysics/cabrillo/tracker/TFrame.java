@@ -3075,7 +3075,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		@Override
 		public void saveObject(XMLControl control, Object obj) {
 			TFrame frame = (TFrame) obj;
-			// save tabs with data files or unchanged videos
+			// save tabs with a defined data file or openedFromPath, and unchanged videos
 			// save both relative paths (relative to tabsetFile) and absolute paths
 			String relativeTo = frame.tabsetFile != null ? XML.getDirectoryPath(XML.getAbsolutePath(frame.tabsetFile))
 					: XML.getUserDirectory();
@@ -3084,6 +3084,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			for (int i = 0; i < frame.getTabCount(); i++) {
 				TrackerPanel trackerPanel = frame.getTrackerPanelForTab(i);
 				File file = trackerPanel.getDataFile();
+				if (trackerPanel.openedFromPath != null)
+					file = new File(trackerPanel.openedFromPath);
 				if (file != null) {
 					String path = XML.getAbsolutePath(file);
 					String relativePath = XML.getPathRelativeTo(path, relativeTo);
@@ -3176,9 +3178,11 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 				}
 				// BH! but if the file is set in the prev block, res is still null. So this will
 				// not work?
-				if (res != null && !videoFilter.accept(file)) {
-					if (dataFile == null)
-						dataFile = file;
+				if (res != null) {
+					if (!videoFilter.accept(file)) {
+						if (dataFile == null)
+							dataFile = file;
+					}
 					files.add(XML.getAbsolutePath(file));
 				}
 			}

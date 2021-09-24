@@ -408,7 +408,7 @@ public class TrackerIO extends VideoIO {
 		// if file is null, use chooser to get a file
 		if (file == null) {
 			File[] files = getChooserFiles("save tabset"); //$NON-NLS-1$
-			if (files == null || !canWrite(files[0]))
+			if (files == null || files.length == 0)
 				return null;
 			file = files[0];
 		}
@@ -554,21 +554,22 @@ public class TrackerIO extends VideoIO {
 			chooser.addChoosableFileFilter(trkFileFilter);
 			chooser.setDialogTitle(TrackerRes.getString("TrackerIO.Dialog.SaveTabset.Title")); //$NON-NLS-1$
 			String filename = ""; //$NON-NLS-1$
-			File file = new File(filename + "." + defaultXMLExt); //$NON-NLS-1$
+			File[] theFile = new File[] {new File(filename + "." + defaultXMLExt)}; //$NON-NLS-1$
 			String parent = XML.getDirectoryPath(filename);
 			if (!parent.equals("")) { //$NON-NLS-1$
 				XML.createFolders(parent);
 				chooser.setCurrentDirectory(new File(parent));
 			}
-			chooser.setSelectedFile(file);
+			chooser.setSelectedFile(theFile[0]);
 			chooser.showSaveDialog(null, () -> {
+				theFile[0] = chooser.getSelectedFile();
 				resetChooser.run();
 				if (processFiles != null) {
-					processFiles.apply(new File[] { fixXML(chooser) });
+					processFiles.apply(new File[] { fixXML(theFile[0]) });
 				}
 			}, resetChooser);
 			ret = (processFiles != null || chooser.getSelectedOption() != JFileChooser.APPROVE_OPTION ? null
-					: fixXML(chooser));
+					: fixXML(theFile[0]));
 			break;
 		default:
 			return getChooserFilesAsync(frame, type, processFiles);
@@ -580,8 +581,9 @@ public class TrackerIO extends VideoIO {
 		return (ret == null || isSave && !canWrite(ret) ? null : new File[] { ret });
 	}
 
-	protected static File fixXML(AsyncFileChooser chooser) {
-		File file = chooser.getSelectedFile();
+	protected static File fixXML(File file) {
+		if (file == null)
+			return null;
 		if (!defaultXMLExt.equals(getExtension(file))) {
 			String filename = XML.stripExtension(file.getPath());
 			File f = new File(filename + "." + defaultXMLExt); //$NON-NLS-1$
