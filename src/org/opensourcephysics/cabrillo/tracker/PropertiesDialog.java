@@ -58,6 +58,7 @@ import javax.swing.table.TableModel;
 
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.display.OSPRuntime;
+import org.opensourcephysics.media.core.ImageVideo;
 import org.opensourcephysics.media.core.Video;
 import org.opensourcephysics.media.core.VideoClip;
 import org.opensourcephysics.media.core.VideoType;
@@ -206,11 +207,18 @@ public class PropertiesDialog extends JDialog {
 				VideoType videoType = (VideoType) video.getProperty("video_type"); //$NON-NLS-1$
 				type = videoType == null ? video.getClass().getSimpleName() : videoType.getDescription();
 				// eliminate extension list and replace with video engine if xuggle
+				// or image extension if a zipped image video
 				int n = type.lastIndexOf("("); //$NON-NLS-1$
 				if (n > -1) {
-					type = type.substring(0, n);
-					if (video instanceof MovieVideoI)
+					if (video instanceof MovieVideoI) {
+						type = type.substring(0, n);
 						type += "(Xuggle)"; //$NON-NLS-1$
+					}
+					else if (video instanceof ImageVideo && video.getProperty("ext") != null) {
+						String ext = (String)video.getProperty("ext");
+						type = type.substring(0, n);
+						type += "(" + ext.toUpperCase() + ")"; //$NON-NLS-1$						
+					}
 				}
 				Dimension d = video.getImageSize();
 				int w = d.width;

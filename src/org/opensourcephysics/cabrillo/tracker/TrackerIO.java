@@ -50,6 +50,9 @@ import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
@@ -1868,6 +1871,14 @@ public class TrackerIO extends VideoIO {
 
 			setCanceled(false);
 
+			if (zippedImageFileFilter.accept(path)) {
+				type = TYPE_VIDEO;
+				if (!ResourceLoader.isHTTP(path))
+					path = zippedImageFileFilter.getImagePaths()[0];
+				newPanel();
+				return true;
+			}
+			
 			// load data from zip or trz file			
 			boolean isTRZ = ResourceLoader.isJarZipTrz(path, false);
 			
@@ -1882,7 +1893,7 @@ public class TrackerIO extends VideoIO {
 			// BH note - this file is not likely to exist without its pathname.
 			// changed to just check extensions, not if directory (which requires an
 			// existence check)
-			File testFile = new File(XML.getName(path));			
+			File testFile = new File(path);			
 			if (videoFileFilter.accept(testFile, false)) {
 				type = TYPE_VIDEO;
 				newPanel();
@@ -2391,7 +2402,11 @@ public class TrackerIO extends VideoIO {
 				finalizeVideoLoading(video);
 			}
 			// add video path to recent files
-			Tracker.addRecent(ResourceLoader.getNonURIPath(XML.forwardSlash(path)), false); // add at beginning			
+			String thePath = XML.forwardSlash(path);
+			int n = thePath.indexOf("!/");
+			if (n > 0)
+				thePath = thePath.substring(0, n);
+			Tracker.addRecent(ResourceLoader.getNonURIPath(thePath), false); // add at beginning			
 			return PROGRESS_COMPLETE;
 		}
 

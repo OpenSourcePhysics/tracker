@@ -270,6 +270,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 				XMLControl videoControl = control.getChildControl("videoclip").getChildControl("video"); //$NON-NLS-1$ //$NON-NLS-2$
 				if (videoControl != null) {
 					videoControl.setValue("path", XML.forwardSlash(videoTarget)); //$NON-NLS-1$
+					// leave "paths" unchanged--not needed
 				}
 			}
 
@@ -566,7 +567,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 	}
 
 	protected void nextExport(ArrayList<File> zipList) {
-		if (exportIterator.hasNext()) {
+		if (exportIterator != null && exportIterator.hasNext()) {
 			new Thread(new Runnable() {
 
 				@Override
@@ -2080,9 +2081,26 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 					String tempPath = getTempDirectory() + videoPath; // $NON-NLS-1$
 					// check if target video file already exists
 					boolean videoexists = new File(tempPath).exists();
+					
+					// deal with zipped images
+					String[] imagePaths = VideoIO.getZippedImagePaths(originalPath);
+					if (imagePaths != null) {
+						videoexists = new File(imagePaths[0]).exists();						
+					}
 					if (!videoexists) {
 						new File(getTempDirectory() + videoSubdirectory).mkdirs();
-						if (!createTarget(originalPath, new File(tempPath)))
+						if (imagePaths != null) {
+							originalPath = imagePaths[0];
+							for (int k = 0; k < imagePaths.length; k++) {
+								String vidPath = videoSubdirectory + File.separator + XML.getName(imagePaths[k]);
+								tempPath = getTempDirectory() + vidPath; // $NON-NLS-1$
+								if (k == 0)
+									videoPath = tempPath;
+								if (!createTarget(imagePaths[k], new File(tempPath)))
+									return;
+							}
+						}
+						else if (!createTarget(originalPath, new File(tempPath)))
 							return;
 					}
 				}
