@@ -1547,52 +1547,50 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 			datasetManager = new DatasetManager(true);
 			datasetManager.setSorted(true);
 		}
-		if (refreshDataLater)
+		if (refreshDataLater || dataValid)
 			return datasetManager;
-		if (!dataValid) {
-			dataValid = true;
-			// refresh track data
-			refreshData(datasetManager, panel);
-			// check for newly loaded dataFunctions
-			if (constantsLoadedFromXML != null) {
-				for (int i = 0; i < constantsLoadedFromXML.length; i++) {
-					String name = (String) constantsLoadedFromXML[i][0];
-					double val = (Double) constantsLoadedFromXML[i][1];
-					String expression = (String) constantsLoadedFromXML[i][2];
-					String desc = constantsLoadedFromXML[i].length < 4 ? null : (String) constantsLoadedFromXML[i][3];
-					datasetManager.setConstant(name, val, expression, desc);
-				}
-				constantsLoadedFromXML = null;
+		dataValid = true;
+		// refresh track data
+		refreshData(datasetManager, panel);
+		// check for newly loaded dataFunctions
+		if (constantsLoadedFromXML != null) {
+			for (int i = 0; i < constantsLoadedFromXML.length; i++) {
+				String name = (String) constantsLoadedFromXML[i][0];
+				double val = (Double) constantsLoadedFromXML[i][1];
+				String expression = (String) constantsLoadedFromXML[i][2];
+				String desc = constantsLoadedFromXML[i].length < 4 ? null : (String) constantsLoadedFromXML[i][3];
+				datasetManager.setConstant(name, val, expression, desc);
 			}
-			if (dataProp != null) {
-				XMLControl[] children = dataProp.getChildControls();
-				outer: for (int i = 0; i < children.length; i++) {
-					// compare function name with existing datasets to avoid duplications
-					String name = children[i].getString("function_name"); //$NON-NLS-1$
-					for (Dataset next : datasetManager.getDatasetsRaw()) {
-						if (next instanceof DataFunction && next.getYColumnName().equals(name)) {
-							continue outer;
-						}
+			constantsLoadedFromXML = null;
+		}
+		if (dataProp != null) {
+			XMLControl[] children = dataProp.getChildControls();
+			outer: for (int i = 0; i < children.length; i++) {
+				// compare function name with existing datasets to avoid duplications
+				String name = children[i].getString("function_name"); //$NON-NLS-1$
+				for (Dataset next : datasetManager.getDatasetsRaw()) {
+					if (next instanceof DataFunction && next.getYColumnName().equals(name)) {
+						continue outer;
 					}
-					DataFunction f = new DataFunction(datasetManager);
-					children[i].loadObject(f);
-					f.setXColumnVisible(false);
-					datasetManager.addDataset(f);
 				}
-				dataProp = null;
+				DataFunction f = new DataFunction(datasetManager);
+				children[i].loadObject(f);
+				f.setXColumnVisible(false);
+				datasetManager.addDataset(f);
 			}
-			// refresh dataFunctions
-			ArrayList<Dataset> datasets = datasetManager.getDatasetsRaw();
-			for (int i = 0; i < datasets.size(); i++) {
-				if (datasets.get(i) instanceof DataFunction) {
-					((DataFunction) datasets.get(i)).refreshFunctionData();
-				}
+			dataProp = null;
+		}
+		// refresh dataFunctions
+		ArrayList<Dataset> datasets = datasetManager.getDatasetsRaw();
+		for (int i = 0; i < datasets.size(); i++) {
+			if (datasets.get(i) instanceof DataFunction) {
+				((DataFunction) datasets.get(i)).refreshFunctionData();
 			}
-			DataTool tool = DataTool.getTool(false);
-			if (panel != null && tool != null && tool.isVisible() && tool.getSelectedTab() != null
-					&& tool.getSelectedTab().isInterestedIn(datasetManager)) {
-				tool.getSelectedTab().refreshData();
-			}
+		}
+		DataTool tool = DataTool.getTool(false);
+		if (panel != null && tool != null && tool.isVisible() && tool.getSelectedTab() != null
+				&& tool.getSelectedTab().isInterestedIn(datasetManager)) {
+			tool.getSelectedTab().refreshData();
 		}
 		return datasetManager;
 	}
