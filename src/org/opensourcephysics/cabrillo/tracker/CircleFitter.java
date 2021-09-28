@@ -43,6 +43,9 @@ import javax.swing.border.Border;
 import org.opensourcephysics.display.*;
 import org.opensourcephysics.media.core.*;
 import org.opensourcephysics.tools.FontSizer;
+
+import javajs.async.AsyncDialog;
+
 import org.opensourcephysics.cabrillo.tracker.CircleFitterStep.DataPoint;
 import org.opensourcephysics.cabrillo.tracker.CircleFitterStep.CenterPoint;
 import org.opensourcephysics.controls.*;
@@ -160,7 +163,7 @@ public class CircleFitter extends TTrack {
 	protected JLabel xDataPointLabel, yDataPointLabel;
 	protected NumberField xDataField, yDataField;
 	protected Component xDataPointSeparator, yDataPointSeparator;
-	protected JMenuItem originToCenterItem, clearPointsItem;
+	protected JMenuItem originToCenterItem, clearPointsItem, calibrateRadiusItem;
 	protected JMenuItem attachmentItem;
 	protected JButton pointCountButton;
 	protected boolean attachToSteps = false, isRelativeFrameNumbers = false;
@@ -302,6 +305,14 @@ public class CircleFitter extends TTrack {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				setCoordsOriginToCenter();
+			}
+		});
+
+		calibrateRadiusItem = new JMenuItem();
+		calibrateRadiusItem.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				setCoordsScaleFromRadius();
 			}
 		});
 
@@ -1052,6 +1063,8 @@ public class CircleFitter extends TTrack {
 
 		originToCenterItem.setText(TrackerRes.getString("CircleFitter.MenuItem.OriginToCenter")); //$NON-NLS-1$
 		originToCenterItem.setEnabled(!trackerPanel.getCoords().isLocked());
+		calibrateRadiusItem.setText(TrackerRes.getString("CircleFitter.MenuItem.CalibrateRadius")); //$NON-NLS-1$
+		calibrateRadiusItem.setEnabled(!trackerPanel.getCoords().isLocked());
 		deleteStepItem.setText(TrackerRes.getString("CircleFitter.MenuItem.DeletePoint")); //$NON-NLS-1$
 		clearPointsItem.setText(TrackerRes.getString("CircleFitter.MenuItem.ClearPoints")); //$NON-NLS-1$
 		clearPointsItem.setEnabled(!isLocked());
@@ -1072,6 +1085,7 @@ public class CircleFitter extends TTrack {
 		// add originToCenter item and separator below inspector item
 		menu.addSeparator();
 		menu.add(originToCenterItem);
+		menu.add(calibrateRadiusItem);
 		menu.addSeparator();
 		menu.add(deleteStepItem);
 		menu.add(clearPointsItem);
@@ -1431,7 +1445,7 @@ public class CircleFitter extends TTrack {
 	}
 
 	/**
-	 * Sets the coordinate system origin to the circle center in all frames.
+	 * Sets the coordinate system origin to the circle center in all valid circle frames.
 	 */
 	protected void setCoordsOriginToCenter() {
 		if (tp.getCoords().isLocked()) {
@@ -1477,6 +1491,99 @@ public class CircleFitter extends TTrack {
 			}
 		}
 		tp.getAxes().setVisible(true);
+		// post undoable edit
+		Undo.postCoordsEdit(tp, control);
+	}
+
+	/**
+	 * Brings up a dialog to sets the coordinate system scale by setting the circle radius.
+	 */
+	protected void setCoordsScaleFromRadius() {
+		// pig implement
+		if (tp.getCoords().isLocked()) {
+			return;
+		}
+		XMLControl control = new XMLControlElement(tp.getCoords());
+		boolean valid = false;
+		Step[] stepArray = steps.array;
+		for (Step step : stepArray) {
+			if (step == null)
+				continue;
+			CircleFitterStep circleStep = (CircleFitterStep) step;
+			if (!circleStep.isValidCircle())
+				continue;
+			valid = true;
+			break;
+		}
+		if (!valid)
+			return;
+		
+		int n = tp.getFrameNumber();
+		CircleFitterStep step = (CircleFitterStep) getStep(n);
+		double r = step.getWorldRadius();
+		String init = magField.getText();
+		if (init.contains(" ")) {
+			init = init.substring(0, init.indexOf(" "));
+		}
+		double[] targetR = new double[] {r};
+		// get desired radius
+		new AsyncDialog().showInputDialog(null,
+				TrackerRes.getString("CircleFitter.Dialog.SetRadius.Message"), //$NON-NLS-1$
+				TrackerRes.getString("CircleFitter.Dialog.SetRadius.Title"), //$NON-NLS-1$
+				JOptionPane.PLAIN_MESSAGE, null, null, init, (e) -> {
+					String s = e.getActionCommand();
+					System.out.println("pig response "+s);
+					if (s != null) {
+						// eliminate units if any
+						if (s.contains(" ")) {
+							s = s.substring(0, s.indexOf(" "));
+						}
+						try {
+							targetR[0] = Double.valueOf(s);
+						} catch (NumberFormatException e1) {
+							setCoordsScaleFromRadius();
+						}
+					}
+				});
+		if (r == targetR[0])
+			return;
+		
+		double scale = tp.getCoords().getScaleX(n) * r / targetR[0];
+		if (tp.getCoords().isFixedScale()) {
+			tp.getCoords().setAllScalesXY(scale, scale);			
+		} else {
+			// scale varies with frame
+			// only set scale for current frame
+			tp.getCoords().setScaleXY(n, scale, scale);			
+		}
+		
+//		if (isFixed()) { // circle radius in image units is same in all frames
+//			int len = tp.getCoords().getLength();
+//			if (tp.getCoords().isFixedScale()) {
+//				// fixed scale
+//				double scale = tp.getCoords().getScaleX(0) * r / targetR[0];
+//				tp.getCoords().setAllScalesXY(scale, scale);
+//			} else
+//				// scale varies by frame
+//				for (int i = 0; i < len; i++) {
+//					if (i > 0 && !tp.getCoords().getKeyFrames().contains(i)) {
+//						continue;
+//					}
+//					double scale = tp.getCoords().getScaleX(i) * r / targetR[0];
+////					tp.getCoords().setScaleXY(i, pt.x, pt.y);
+//				}
+//		} else {  // circle radius in image units varies by frame
+//			// set scale in each frame so circle has world radius targetR
+//			// set scale in only 
+//			tp.getCoords().setFixedScale(false);
+//			for (Step next : stepArray) {
+//				if (next == null)
+//					continue;
+//				CircleFitterStep circleStep = (CircleFitterStep) next;
+//				double scale = tp.getCoords().getScaleX(next.n) * r / targetR[0];
+//				tp.getCoords().setScaleXY(next.n, scale, scale);
+//			}
+//		}
 		// post undoable edit
 		Undo.postCoordsEdit(tp, control);
 	}
