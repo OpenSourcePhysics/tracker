@@ -1,0 +1,122 @@
+<?xml version="1.0"?>
+<!DOCTYPE project>
+<project name="build-tracker-unjar" default="tracker_jar" basedir=".\">
+
+<!--  
+
+	- checks for Bob's workspace
+	- builds a version of tracker that has no internal JAR files using ANT unjar
+	- just the minimal targets; no compile
+	
+-->
+
+	  <taskdef resource="net/sf/antcontrib/antlib.xml">
+	    <classpath>
+	      <pathelement location="../../osp/tools/ant-contrib.jar" />
+	    </classpath>
+	  </taskdef>
+
+   	<property name="author" value="D Brown, W Christian, R M Hanson" />
+
+	<property name="workspace" value="../../" />
+	
+  	<if>
+  		<available file="${workspace}tracker1/LICENSE"/>
+  	 <then>
+  		<property name="trackerdir" value="${workspace}tracker1" />
+    </then>
+  	<else>
+  		<property name="trackerdir" value="${workspace}tracker" />
+  	</else>
+  	</if>
+
+	
+	<property name="temp" value="${trackerdir}/temp-build" />
+	<property name="output" value="${trackerdir}/distribution" />
+	<property name="libraries" value="${trackerdir}/libraries" />
+
+	<tstamp>
+		<format property="buildtime.isoformat" pattern="MMM dd yyyy"/>
+		<format property="date" pattern="yyyyMMdd"/>
+	</tstamp>
+
+	<!--clean: clean the temp directory-->
+	<target name="clean">
+		<delete dir="${temp}/meta-inf"/>
+		<delete dir="${temp}"/>
+		<mkdir dir="${temp}"/>
+		<mkdir dir="${temp}/meta-inf"/>
+	</target>
+
+	<target name="unjar" depends="clean">
+		<unjar dest="${temp}" src="${libraries}/xuggle-xuggler-server-all.jar"/>
+		<unjar dest="${temp}" src="${libraries}/commons-cli-1.1.jar"/>
+		<unjar dest="${temp}" src="${libraries}/logback-classic.jar"/>
+		<unjar dest="${temp}" src="${libraries}/logback-core.jar"/>
+		<unjar dest="${temp}" src="${libraries}/slf4j-api.jar"/>
+		<echo message="unjar complete for ${libraries}" />    	
+	</target>
+	
+	<target name="copy_bin_for_tracker" depends="unjar">
+		<copy todir="${temp}">
+            <fileset dir="${workspace}/osp/bin"
+          		excludes="
+            	test/ 
+            	testing/ 
+            	csm/ 
+            	davidson/ 
+            	demo/ 
+            	debugging/ 
+            	demoJS/ 
+            	**/*.zip 
+            	**/*.mp4
+            	*.xml 
+            	*.txt" />
+            <fileset dir="${trackerdir}/bin"
+            	excludes="
+            	test/ 
+            	**/*.zip 
+            	*.xml 
+            	*.prefs 
+            	*.txt" />
+		</copy>
+	</target>
+	
+    <target name="tracker_jar" depends="copy_bin_for_tracker">
+		<manifest file="${temp}/meta-inf/TRACKER.mf">
+			<attribute name="Built-By" value="${author}"/>
+			<attribute name="Build-Date" value="${buildtime.isoformat}"/>
+			<attribute name="Main-Class" value="org.opensourcephysics.cabrillo.tracker.Tracker"/>
+			<!-- attribute name="Class-Path" value=". xuggle-xuggler-server-all.jar"/ -->
+			<attribute name="permissions" value="all-permissions"/>
+		</manifest >
+		<jar jarfile="${output}/tracker-6.0.${date}.jar" basedir="${temp}" manifest="${temp}/meta-inf/TRACKER.mf" 
+			includes="
+			**/apache/
+			**/logback/
+			**/slf4j/
+			**/xuggle/
+			**/epsgraphics/
+            **/controls/
+            **/javajs/
+            **/js/
+            **/analysis/
+            **/display/
+            **/desktop/
+            **/ejs/EjsRes.class,
+            **/frames/ImageFrame*,
+            **/numerics/
+            **/tools/
+			**/media/
+			**/tracker/
+            **/opensourcephysics/resources/" 
+        	excludes="**/html/ **/*.zip **/*.mp4">
+		</jar>
+		<copy file="${output}/tracker-6.0.${date}.jar" tofile="${output}/tracker.jar" />
+		<delete dir="${temp}"/>
+	</target>
+
+</project>
+
+
+
