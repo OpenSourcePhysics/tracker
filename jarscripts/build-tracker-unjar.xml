@@ -61,23 +61,23 @@
 		<copy todir="${temp}">
             <fileset dir="${workspace}/osp/bin"
           		excludes="
-            	test/, 
-            	testing/, 
-            	csm/, 
-            	davidson/, 
-            	demo/, 
-            	debugging/, 
-            	demoJS/, 
-            	**/*.zip, 
-            	**/*.mp4,
-            	*.xml, 
+            	test/ 
+            	testing/ 
+            	csm/ 
+            	davidson/ 
+            	demo/ 
+            	debugging/ 
+            	demoJS/ 
+            	**/*.zip 
+            	**/*.mp4
+            	*.xml 
             	*.txt" />
             <fileset dir="${trackerdir}/bin"
             	excludes="
-            	test/, 
-            	**/*.zip, 
-            	*.xml, 
-            	*.prefs, 
+            	test/ 
+            	**/*.zip 
+            	*.xml 
+            	*.prefs 
             	*.txt" />
 		</copy>
 	</target>
@@ -93,24 +93,24 @@
 		<jar jarfile="${output}/tracker-6.0.${date}.jar" basedir="${temp}" manifest="${temp}/meta-inf/TRACKER.mf" 
 			includes="
 			**/apache/
-			**/logback/,
+			**/logback/
 			**/slf4j/
-			**/xuggle/,
-			**/epsgraphics/,
-            **/controls/,
-            **/javajs/,
-            **/js/,
-            **/analysis/,
-            **/display/,
-            **/desktop/,
+			**/xuggle/
+			**/epsgraphics/
+            **/controls/
+            **/javajs/
+            **/js/
+            **/analysis/
+            **/display/
+            **/desktop/
             **/ejs/EjsRes.class,
             **/frames/ImageFrame*,
-            **/numerics/,
-            **/tools/,
-			**/media/,
-			**/tracker/,
+            **/numerics/
+            **/tools/
+			**/media/
+			**/tracker/
             **/opensourcephysics/resources/" 
-        	excludes="**/html/, **/*.zip, **/*.mp4">
+        	excludes="**/html/ **/*.zip **/*.mp4">
 		</jar>
 		<copy file="${output}/tracker-6.0.${date}.jar" tofile="${output}/tracker.jar" />
 		<delete dir="${temp}"/>
