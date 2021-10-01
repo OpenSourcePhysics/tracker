@@ -31,15 +31,20 @@
   	</if>
 
 	
-	<property name="temp" value="${trackerdir}/temp-build" />
-	<property name="output" value="${trackerdir}/distribution" />
-	<property name="libraries" value="${trackerdir}/libraries" />
-
 	<tstamp>
 		<format property="buildtime.isoformat" pattern="MMM dd yyyy"/>
 		<format property="date" pattern="yyyyMMdd"/>
 	</tstamp>
 
+
+	<property name="version" value="6.0" />
+	<property name="ext" value="_bh" />
+	<property name="temp" value="${trackerdir}/temp-build" />
+	<property name="output" value="${trackerdir}/distribution" />
+	<property name="libraries" value="${trackerdir}/libraries" />
+	
+	<property name="target.jar" value="${output}/tracker-${version}${ext}.${date}.jar" />
+	
 	<!--clean: clean the temp directory-->
 	<target name="clean">
 		<delete dir="${temp}/meta-inf"/>
@@ -90,7 +95,7 @@
 			<!-- attribute name="Class-Path" value=". xuggle-xuggler-server-all.jar"/ -->
 			<attribute name="permissions" value="all-permissions"/>
 		</manifest >
-		<jar jarfile="${output}/tracker-6.0.${date}.jar" basedir="${temp}" manifest="${temp}/meta-inf/TRACKER.mf" 
+		<jar jarfile="${target.jar}" basedir="${temp}" manifest="${temp}/meta-inf/TRACKER.mf" 
 			includes="
 			**/apache/
 			**/logback/
@@ -112,7 +117,7 @@
             **/opensourcephysics/resources/" 
         	excludes="**/html/ **/*.zip **/*.mp4">
 		</jar>
-		<copy file="${output}/tracker-6.0.${date}.jar" tofile="${output}/tracker.jar" />
+		<copy file="${target.jar}" tofile="${output}/tracker${ext}.jar" />
 		<delete dir="${temp}"/>
 	</target>
 
