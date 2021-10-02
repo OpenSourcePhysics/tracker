@@ -30,6 +30,7 @@ import java.awt.FontMetrics;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.event.MouseEvent;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Line2D;
 import java.text.DecimalFormat;
@@ -372,10 +373,10 @@ public abstract class Ruler {
 		}
 		
 		@Override
-		public void setAdjusting(boolean adjust) {
+		public void setAdjusting(boolean adjust, MouseEvent e) {
 			if (adjust == isAdjusting)
 				return;
-			super.setAdjusting(adjust);
+			super.setAdjusting(adjust, e);
 			if (isAdjusting) {
 				previousDistFromLineEnd = null;
 			}

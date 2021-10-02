@@ -8,11 +8,11 @@ workspace_trackerJS:
 -- update version number in tracker_installer.xml
 -- update version number in tracker_upgrade_installer.xml
 
-launch4j:
+workspace_trackerJS/launch4j:
 -- update version number
 -- package Tracker.exe
 
-installbuilder:
+workspace_trackerJS/installbuilder:
 -- update Tracker_README.txt
 -- build Windows and Linux installers & upgrade installers in workspace_trackerJS/installbuilder
 
@@ -37,6 +37,7 @@ installbuilder:
 
 -- delete output files in TrackerBuildXXX folder
 -- zip the entire TrackerBuildXXX folder and send to Wolfgang via dropbox for building/notarizing
+-- use the tracker-X.X.X-osx-installer.dmg returned by Wolfgang
 
 dreamweaver:
 -- upload installers to installers folder

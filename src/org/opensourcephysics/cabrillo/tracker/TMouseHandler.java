@@ -173,7 +173,7 @@ public class TMouseHandler implements InteractiveMouseHandler {
 					return;
 				}
 				// move p to current mouse location
-				selectedPoint.setAdjusting(true);
+				selectedPoint.setAdjusting(true, e);
 				Point scrPt = selectedPoint.getScreenPosition(trackerPanel);
 				dx = e.getX() - scrPt.x;
 				dy = e.getY() - scrPt.y;
@@ -185,7 +185,7 @@ public class TMouseHandler implements InteractiveMouseHandler {
 					selectedPoint = step.points[0];
 					if (selectedPoint == trackerPanel.getSelectedPoint())
 						continue;
-					selectedPoint.setAdjusting(true);
+					selectedPoint.setAdjusting(true, e);
 					scrPt = selectedPoint.getScreenPosition(trackerPanel);
 					selectedPoint.setScreenPosition(scrPt.x + dx, scrPt.y + dy, trackerPanel, e);
 				}
@@ -221,7 +221,7 @@ public class TMouseHandler implements InteractiveMouseHandler {
 			trackerPanel.requestFocusInWindow();
 			selectedPoint = trackerPanel.getSelectedPoint();
 			if (selectedPoint != null) {
-				selectedPoint.setAdjusting(false);
+				selectedPoint.setAdjusting(false, e);
 				if (selectedPoint instanceof VectorStep.Handle) {
 					((VectorStep.Handle) selectedPoint).snap(trackerPanel);
 				}
@@ -345,7 +345,7 @@ public class TMouseHandler implements InteractiveMouseHandler {
 			((Ruler.Handle) selectedPoint).setScreenLocation(e.getX(), e.getY(), trackerPanel);
 		}
 		if (selectedPoint != null) {
-			selectedPoint.setAdjusting(true);
+			selectedPoint.setAdjusting(true, e);
 			selectedPoint.showCoordinates(trackerPanel);
 			trackerPanel.setSelectedPoint(selectedPoint);
 		}

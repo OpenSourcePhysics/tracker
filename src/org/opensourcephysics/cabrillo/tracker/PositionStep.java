@@ -25,6 +25,7 @@
 package org.opensourcephysics.cabrillo.tracker;
 
 import java.awt.*;
+import java.awt.event.MouseEvent;
 import java.awt.geom.*;
 import java.awt.font.*;
 
@@ -398,10 +399,10 @@ public class PositionStep extends Step {
 		 * @param adjusting true if being dragged
 		 */
 		@Override
-		public void setAdjusting(boolean adjusting) {
+		public void setAdjusting(boolean adjusting, MouseEvent e) {
 			if (!adjusting && !isAdjusting())
 				return;
-			super.setAdjusting(adjusting);
+			super.setAdjusting(adjusting, e);
 			PointMass m = (PointMass) getTrack();
 			if (m.isAutofill()) {
 				m.markInterpolatedSteps(PositionStep.this, !adjusting);

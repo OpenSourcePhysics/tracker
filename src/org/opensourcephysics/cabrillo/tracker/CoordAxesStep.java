@@ -31,6 +31,7 @@ import java.awt.Point;
 import java.awt.RenderingHints;
 import java.awt.Shape;
 import java.awt.event.InputEvent;
+import java.awt.event.MouseEvent;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.GeneralPath;
 import java.awt.geom.Point2D;
@@ -365,11 +366,11 @@ public class CoordAxesStep extends Step {
 		 * @param adjusting true if being dragged
 		 */
 		@Override
-		public void setAdjusting(boolean adjusting) {
+		public void setAdjusting(boolean adjusting, MouseEvent e) {
 			boolean wasAdjusting = isAdjusting();
 			if (wasAdjusting == adjusting)
 				return;
-			super.setAdjusting(adjusting);
+			super.setAdjusting(adjusting, e);
 			if (!wasAdjusting) {
 				prevX = x;
 				prevY = y;
@@ -485,11 +486,19 @@ public class CoordAxesStep extends Step {
 		 * @param adjusting true if being dragged
 		 */
 		@Override
-		public void setAdjusting(boolean adjusting) {
+		public void setAdjusting(boolean adjusting, MouseEvent e) {
 			boolean wasAdjusting = isAdjusting();
-			super.setAdjusting(adjusting);
+			super.setAdjusting(adjusting, e);
 			if (wasAdjusting && !adjusting && !java.lang.Double.isNaN(prevX)) {
-				setXY(prevX, prevY);
+				if (e != null) {
+					// first time selected
+					if (prevX == 0 && prevY == 0) {
+						angleIncrement = Math.PI / 9; // keep it at 0!
+						setScreenPosition(e.getX(), e.getY(), CoordAxesStep.this.getTrack().tp);						
+					}
+				}
+				else
+					setXY(prevX, prevY);
 			}
 		}
 	}

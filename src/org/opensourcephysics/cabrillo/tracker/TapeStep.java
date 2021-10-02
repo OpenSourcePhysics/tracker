@@ -32,6 +32,7 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.Stroke;
+import java.awt.event.MouseEvent;
 import java.awt.font.TextLayout;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
@@ -907,15 +908,15 @@ public class TapeStep extends Step {
 		}
 
 		@Override
-		public void setAdjusting(boolean adjusting) {
+		public void setAdjusting(boolean adjusting, MouseEvent e) {
 			boolean wasAdjusting = isAdjusting();
 			if (tape.isStickMode()) {
-				super.setAdjusting(adjusting);
+				super.setAdjusting(adjusting, e);
 				if (wasAdjusting && !adjusting && !java.lang.Double.isNaN(prevX)) {
 					setXY(prevX, prevY);
 				}
 			} else
-				super.setAdjusting(adjusting);
+				super.setAdjusting(adjusting, e);
 			
 			if (wasAdjusting && !adjusting) {
 	      if (tape.isFixedPosition())
@@ -979,9 +980,9 @@ public class TapeStep extends Step {
 		}
 
 		@Override
-		public void setAdjusting(boolean adjusting) {
+		public void setAdjusting(boolean adjusting, MouseEvent e) {
 			boolean wasAdjusting = isAdjusting();
-			super.setAdjusting(adjusting);			
+			super.setAdjusting(adjusting, e);			
 			if (wasAdjusting && !adjusting) {
 	      if (tape.isFixedPosition())
 	      	tape.fireStepsChanged();

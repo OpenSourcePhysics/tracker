@@ -1418,7 +1418,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			return;
 		TPoint prevPoint = selectedPoint;
 		if (prevPoint != null) {
-			prevPoint.setAdjusting(false);
+			prevPoint.setAdjusting(false, null);
 		}
 		selectedPoint = point;
 		// determine if selected steps or previous point has changed

@@ -639,12 +639,14 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		edit_undoItem.addActionListener((e) -> {
 				panel().setSelectedPoint(null);
 				panel().selectedSteps.clear();
-				Undo.undo(panel());
+				if (Undo.canUndo(panel()))
+					Undo.undo(panel());
 		});
 		edit_redoItem = new JMenuItem();
 		edit_redoItem.setAccelerator(KeyStroke.getKeyStroke('Y', keyMask));
 		edit_redoItem.addActionListener((e) -> {
-				Undo.redo(panel());
+				if (Undo.canRedo(panel()))
+					Undo.redo(panel());
 				panel().setSelectedPoint(null);
 				panel().selectedSteps.clear();
 		});

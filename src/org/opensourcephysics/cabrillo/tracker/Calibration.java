@@ -272,9 +272,9 @@ public class Calibration extends TTrack {
 				double yy = coords.worldToImageY(n, worldX, worldY);
 				p.setLocation(xx, yy);
 			}
-			p.setAdjusting(true);
+			p.setAdjusting(true, null);
 			p.setXY(x, y);
-			p.setAdjusting(false);
+			p.setAdjusting(false, null);
 			return p;
 		}
 	}

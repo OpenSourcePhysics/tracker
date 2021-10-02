@@ -26,6 +26,7 @@ package org.opensourcephysics.cabrillo.tracker;
 
 import java.util.*;
 import java.awt.*;
+import java.awt.event.MouseEvent;
 import java.awt.font.*;
 import java.awt.geom.*;
 
@@ -738,10 +739,10 @@ public String toString() {
 		 * @param adjusting true if being dragged
 		 */
 		@Override
-		public void setAdjusting(boolean adjusting) {
+		public void setAdjusting(boolean adjusting, MouseEvent e) {
 			if (!adjusting && !isAdjusting())
 				return;
-			super.setAdjusting(adjusting);
+			super.setAdjusting(adjusting, e);
 			if (!adjusting) {
 				protractor.firePropertyChange(TTrack.PROPERTY_TTRACK_STEP, null, new Integer(n())); // $NON-NLS-1$
 			}

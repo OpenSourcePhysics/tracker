@@ -31,6 +31,7 @@ import java.awt.Paint;
 import java.awt.Point;
 import java.awt.Shape;
 import java.awt.event.InputEvent;
+import java.awt.event.MouseEvent;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
@@ -750,10 +751,10 @@ public class CircleFitterStep extends Step {
 		}
 		
 		@Override
-		public void setAdjusting(boolean adjusting) {
+		public void setAdjusting(boolean adjusting, MouseEvent e) {
 			if (!adjusting && !isAdjusting())
 				return;
-			super.setAdjusting(adjusting);
+			super.setAdjusting(adjusting, e);
 			TTrack m = getTrack();
 			if (!adjusting) {
 				m.firePropertyChange(TTrack.PROPERTY_TTRACK_STEP, null, new Integer(n)); // $NON-NLS-1$

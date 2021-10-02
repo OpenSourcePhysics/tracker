@@ -32,7 +32,6 @@ import java.awt.event.ActionListener;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -663,6 +662,14 @@ public class CoordAxes extends TTrack {
 			xField.setValue(coords.getOriginX(n));
 			yField.setValue(coords.getOriginY(n));
 			break;
+		case ImageCoordSystem.PROPERTY_COORDS_TRANSFORM:
+			if (tp.getSelectedTrack() == this) {
+				n = tp.getFrameNumber();
+				coords = tp.getCoords();
+				angleField.setValue(coords.getAngle(n));
+				xField.setValue(coords.getOriginX(n));
+				yField.setValue(coords.getOriginY(n));
+			}
 		default:
 			super.propertyChange(e);
 			break;

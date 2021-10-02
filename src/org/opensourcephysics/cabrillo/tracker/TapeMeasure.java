@@ -613,9 +613,9 @@ public class TapeMeasure extends InputTrack {
 			ImageCoordSystem coords = tp.getCoords();
 			coords.setFixedScale(false);
 		}
-		p.setAdjusting(true);
+		p.setAdjusting(true, null);
 		p.setXY(x, y);
-		p.setAdjusting(false);
+		p.setAdjusting(false, null);
 		return p;
 	}
 

@@ -178,9 +178,9 @@ public class OffsetOrigin extends TTrack {
 					double yy = coords.worldToImageY(n, step.worldX, step.worldY);
 					p.setLocation(xx, yy);
 				}
-				p.setAdjusting(true);
+				p.setAdjusting(true, null);
 				p.setXY(x, y);
-				p.setAdjusting(false);
+				p.setAdjusting(false, null);
 				firePropertyChange(PROPERTY_TTRACK_STEP, null, n); // $NON-NLS-1$
 				return p;
 			}

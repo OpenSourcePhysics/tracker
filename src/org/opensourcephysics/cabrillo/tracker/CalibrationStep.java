@@ -25,6 +25,7 @@
 package org.opensourcephysics.cabrillo.tracker;
 
 import java.awt.*;
+import java.awt.event.MouseEvent;
 
 import javax.swing.JOptionPane;
 
@@ -529,9 +530,9 @@ public String toString() {
      * @param adjusting true if being dragged
      */
     @Override
-	public void setAdjusting(boolean adjusting) {
+	public void setAdjusting(boolean adjusting, MouseEvent e) {
     	boolean wasAdjusting = isAdjusting();
-    	super.setAdjusting(adjusting);
+    	super.setAdjusting(adjusting, e);
     	if (wasAdjusting && !adjusting && !java.lang.Double.isNaN(prevX)) {
     		setXY(prevX, prevY);
     		getTrack().firePropertyChange(TTrack.PROPERTY_TTRACK_STEP, null, n); //$NON-NLS-1$
