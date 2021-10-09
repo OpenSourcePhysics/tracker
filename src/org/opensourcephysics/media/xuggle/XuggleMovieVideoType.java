@@ -108,7 +108,6 @@ public boolean isType(Video video) {
 			OSPLog.fine(getDescription() + ": " + ex.getMessage()); //$NON-NLS-1$
 			video = null;
 		}
-		invalid = (video == null);
 		return video;
 	}
 

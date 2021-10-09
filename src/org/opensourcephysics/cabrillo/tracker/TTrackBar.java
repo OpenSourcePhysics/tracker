@@ -59,6 +59,7 @@ import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.display.OSPRuntime.Disposable;
 import org.opensourcephysics.media.core.NumberField;
 import org.opensourcephysics.media.core.TPoint;
+import org.opensourcephysics.media.core.VideoIO;
 import org.opensourcephysics.tools.FontSizer;
 
 /**
@@ -134,8 +135,7 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 								@Override
 								public void actionPerformed(ActionEvent e) {
 									// test action goes here
-									TrackerPanel trackerPanel = frame.getTrackerPanelForTab(0);		
-									ExportZipDialog.getDialog(trackerPanel).saveZipAs();
+									TrackerPanel trackerPanel = frame.getTrackerPanelForTab(0);	
 									
 //									AutoTracker autoTracker = trackerPanel.getAutoTracker(false);
 //									java.awt.image.BufferedImage image = autoTracker.getTemplateMatcher().getTemplate();

@@ -307,7 +307,7 @@ public class ExportDataDialog extends JDialog {
 		FontSizer.setFonts(titled, FontSizer.getLevel());
 		formatPanel.setBorder(BorderFactory.createCompoundBorder(titled, space));
 		saveAsButton.setText(TrackerRes.getString("ExportVideoDialog.Button.SaveAs")); //$NON-NLS-1$
-		closeButton.setText(TrackerRes.getString("Dialog.Button.Close")); //$NON-NLS-1$
+		closeButton.setText(TrackerRes.getString("Dialog.Button.Cancel")); //$NON-NLS-1$
 		FontSizer.setFonts(this, FontSizer.getLevel());
 
 		// refresh dropdowns

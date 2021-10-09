@@ -288,6 +288,7 @@ public class ExportVideoDialog extends JDialog {
 				VideoType format = TrackerIO.videoFormats.get(formatDropdown.getSelectedItem());
 				Dimension size = sizes.get(sizeDropdown.getSelectedItem());
 				render(format, size, !OSPRuntime.isJS, null, null);
+				TrackerIO.selectedVideoFormat = (String) formatDropdown.getSelectedItem();
 			}
 		});
 		closeButton = new JButton();
@@ -356,7 +357,7 @@ public class ExportVideoDialog extends JDialog {
 		formatPanel.setBorder(BorderFactory.createCompoundBorder(titled, space));
 		// buttons
 		saveAsButton.setText(TrackerRes.getString("ExportVideoDialog.Button.SaveAs")); //$NON-NLS-1$
-		closeButton.setText(TrackerRes.getString("Dialog.Button.Close")); //$NON-NLS-1$
+		closeButton.setText(TrackerRes.getString("Dialog.Button.Cancel")); //$NON-NLS-1$
 
 		// refresh view dropdown
 		Object selectedView = viewDropdown.getSelectedItem();
@@ -788,6 +789,9 @@ public class ExportVideoDialog extends JDialog {
 				String message = String.format(TrackerRes.getString("TActions.SaveClipAs.ProgressMonitor.Progress") //$NON-NLS-1$
 						+ " %d%%.\n", 100 / taskLength); //$NON-NLS-1$
 				monitor.setNote(message);
+				// force repaint of trackerPanel before getting images
+				TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
+				trackerPanel.paintImmediately(trackerPanel.getBounds());
 				try {
 					for (BufferedImage image : getNextImages(size)) {
 						recorder.addFrame(image);
@@ -826,9 +830,9 @@ public class ExportVideoDialog extends JDialog {
 		}
 		if (done)
 			playControl.removePropertyChangeListener(ClipControl.PROPERTY_CLIPCONTROL_STEPNUMBER, listener); //$NON-NLS-1$
-		// paint the view and add frame
-//theView.paintImmediately(theView.getBounds());
+
 		TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
+		
 		try {
 			for (BufferedImage image : getNextImages(size)) {
 				recorder.addFrame(image);
@@ -842,9 +846,18 @@ public class ExportVideoDialog extends JDialog {
 				trackerPanel.setMagnification(magnification);
 				setVideoVisible(videoIsVisible);
 				player.setEnabled(true);
-				// set VideoIO preferred export format to this one (ie most recent)
-				String extension = XML.getExtension(savedFilePath);
-				VideoIO.setPreferredExportExtension(extension);
+				
+				// set VideoIO preferred export format
+				String imageExt = XML.getExtension(savedFilePath);
+				if (imageExt.equals("zip")) {
+					VideoType videoType = TrackerIO.videoFormats.get(formatDropdown.getSelectedItem());
+					if (videoType instanceof VideoIO.ZipImageVideoType) {
+						VideoIO.ZipImageVideoType zvt = (VideoIO.ZipImageVideoType)videoType;
+						imageExt += " " + zvt.getImageExtension();
+					}
+				}				
+				VideoIO.setPreferredExportExtension(imageExt);
+
 				if (showOpenDialog) {
 					int response = javax.swing.JOptionPane.showConfirmDialog(frame,
 							TrackerRes.getString("ExportVideoDialog.Complete.Message1") //$NON-NLS-1$
@@ -872,6 +885,7 @@ public class ExportVideoDialog extends JDialog {
 				playControl.step();
 			}
 		} catch (Exception ex) {
+			
 			JOptionPane.showMessageDialog(trackerPanel, ex.getStackTrace(), "Exception saving video: ", //$NON-NLS-1$
 					JOptionPane.WARNING_MESSAGE);
 			monitor.close();

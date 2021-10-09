@@ -50,9 +50,6 @@ import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
@@ -1010,6 +1007,11 @@ public class TrackerIO extends VideoIO {
 			String targetDir = XML.forwardSlash(file.getParent());
 			ImageVideo iv = (ImageVideo) video;
 			String[] paths = iv.getValidPaths();
+			// check for zipped image video
+			if (paths.length > 0 && paths[0] != null && paths[0].contains("!")) {
+				String zipPath = paths[0].substring(0, paths[0].indexOf("!"));
+				paths = new String[] {zipPath};
+			}
 			ImageVideoRecorder.setChooserExtension(extension);
 			String[] targets = ImageVideoRecorder.getFileNames(file.getName(), paths.length);
 			String[] jarURLParts = ResourceLoader.getJarURLParts(source); // null if not a zip/jar/trz file
@@ -1871,10 +1873,11 @@ public class TrackerIO extends VideoIO {
 
 			setCanceled(false);
 
-			if (zippedImageFileFilter.accept(path)) {
+			if (zipFileFilter.accept(new File(path)) &&
+					getZippedImagePaths(path) != null) {				
 				type = TYPE_VIDEO;
 				if (!ResourceLoader.isHTTP(path))
-					path = zippedImageFileFilter.getImagePaths()[0];
+					path = getZippedImagePaths(path)[0];
 				newPanel();
 				return true;
 			}
@@ -2091,7 +2094,7 @@ public class TrackerIO extends VideoIO {
 				}
 			}
 
-			Map<String, ZipEntry> contents = ResourceLoader.getZipContents(path);
+			Map<String, ZipEntry> contents = ResourceLoader.getZipContents(path, true);
 			if (contents == null) {
 				frame.sayFileNotFound(path);
 				cancelAsync();
@@ -2137,13 +2140,20 @@ public class TrackerIO extends VideoIO {
 				}
 			}
 			contents = null;
-			if (trkFiles.isEmpty() && pdfFiles.isEmpty() && htmlFiles.isEmpty() && otherFiles.isEmpty()) {
-				String s = TrackerRes.getString("TFrame.Dialog.LibraryError.Message"); //$NON-NLS-1$
+			if (trkFiles.isEmpty()) { // pig test this for incomplete state if aborted?
+				String s = TrackerRes.getString("TrackerIO.Dialog.NotATrackerFile.Message"); //$NON-NLS-1$
 				JOptionPane.showMessageDialog(frame, s + " \"" + name + "\".", //$NON-NLS-1$ //$NON-NLS-2$
 						TrackerRes.getString("TFrame.Dialog.LibraryError.Title"), //$NON-NLS-1$
 						JOptionPane.WARNING_MESSAGE);
 				return PROGRESS_COMPLETE;
 			}
+//			if (trkFiles.isEmpty() && pdfFiles.isEmpty() && htmlFiles.isEmpty() && otherFiles.isEmpty()) {
+//				String s = TrackerRes.getString("TFrame.Dialog.LibraryError.Message"); //$NON-NLS-1$
+//				JOptionPane.showMessageDialog(frame, s + " \"" + name + "\".", //$NON-NLS-1$ //$NON-NLS-2$
+//						TrackerRes.getString("TFrame.Dialog.LibraryError.Title"), //$NON-NLS-1$
+//						JOptionPane.WARNING_MESSAGE);
+//				return PROGRESS_COMPLETE;
+//			}
 
 			// find page view filenames in TrackerPanel xmlControls
 			// also look for trk for TFrame
@@ -2641,13 +2651,16 @@ public class TrackerIO extends VideoIO {
 	}
 
 	public static String getVideoFormat(String preferredExtension) {
+		String[] extensions = preferredExtension.split(" ");
 		String selected = selectedVideoFormat;
 		boolean hasSelected = false;
 		String preferred = null;
 		for (String format : videoFormatDescriptions) {
 			if (format.equals(selected))
 				hasSelected = true;
-			if (preferred == null && format.contains("." + preferredExtension)) { //$NON-NLS-1$
+			if (preferred == null && format.contains("." + extensions[0])) { //$NON-NLS-1$
+				if (extensions.length > 1 && !format.toLowerCase().contains(extensions[1]))
+					continue;
 				preferred = format;
 			}
 		}

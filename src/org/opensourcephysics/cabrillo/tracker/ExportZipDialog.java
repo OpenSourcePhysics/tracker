@@ -98,6 +98,7 @@ import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.media.core.ImageCoordSystem;
 import org.opensourcephysics.media.core.ImageVideo;
 import org.opensourcephysics.media.core.ImageVideoType;
+import org.opensourcephysics.media.core.MediaRes;
 import org.opensourcephysics.media.core.Video;
 import org.opensourcephysics.media.core.VideoClip;
 import org.opensourcephysics.media.core.VideoIO;
@@ -164,7 +165,14 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 			// render the video (also sets VideoIO preferred extension to this one)
 			vidDir = getTempDirectory() + videoSubdirectory;
 			if (exporter != null) {
-				String extension = TrackerIO.videoFormats.get(formatDropdown.getSelectedItem()).getDefaultExtension();
+				VideoType vidType = TrackerIO.videoFormats.get(formatDropdown.getSelectedItem());
+				VideoIO.ZipImageVideoType zipType = vidType instanceof VideoIO.ZipImageVideoType?
+						(VideoIO.ZipImageVideoType) vidType: null;
+				if (zipType != null) {
+					// don't zip images inside TRZ files
+					vidType = zipType.getImageVideoType();
+				}
+				String extension = vidType.getDefaultExtension();
 				videoTarget = getVideoTarget(XML.getName(trkPath), extension);
 				TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
 				exporter.setTrackerPanel(trackerPanel);
@@ -194,7 +202,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 				return;
 			}
 			
-			// if image video, then copy/extract additional image files
+			// if source is an image video, then copy/extract additional image files
 			TrackerPanel panel = frame.getTrackerPanelForID(panelID);
 			Video vid = panel.getVideo();
 			if (vid instanceof ImageVideo) {
@@ -241,20 +249,21 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 					for (File next : new File(vidDir).listFiles()) {
 						if (next.getName().endsWith(".xml") && next.getName().startsWith(targetName)) { //$NON-NLS-1$
 							xmlFile = next;
-							break;
 						}
+						if (next != vidFile && next != xmlFile)
+							zipList.add(next);
 					}
 					if (xmlFile != null) {
-						XMLControl control = new XMLControlElement(xmlFile);
-						if (control.getObjectClassName().endsWith("ImageVideo")) { //$NON-NLS-1$
-							String[] paths = (String[]) control.getObject("paths"); //$NON-NLS-1$
-							String base = control.getBasepath();
-							if (base == null)
-								base = vidDir;
-							for (String path : paths) {
-								zipList.add(new File(vidDir + File.separator + path));
-							}
-						}
+//						XMLControl control = new XMLControlElement(xmlFile);
+//						if (control.getObjectClassName().endsWith("ImageVideo")) { //$NON-NLS-1$
+//							String[] paths = (String[]) control.getObject("paths"); //$NON-NLS-1$
+//							String base = control.getBasepath();
+//							if (base == null)
+//								base = vidDir;
+//							for (String path : paths) {
+//								zipList.add(new File(vidDir + File.separator + path));
+//							}
+//						}
 						xmlFile.delete();
 					}
 				}
@@ -1501,7 +1510,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 		clipCheckbox.setText(TrackerRes.getString("ZipResourceDialog.Checkbox.TrimVideo")); //$NON-NLS-1$
 		helpButton.setText(TrackerRes.getString("Dialog.Button.Help")); //$NON-NLS-1$
 		saveButton.setText(TrackerRes.getString("ExportZipDialog.Button.SaveZip.Text") + "..."); //$NON-NLS-1$ //$NON-NLS-2$
-		closeButton.setText(TrackerRes.getString("Dialog.Button.Close")); //$NON-NLS-1$
+		closeButton.setText(TrackerRes.getString("Dialog.Button.Cancel")); //$NON-NLS-1$
 		thumbnailButton.setText(TrackerRes.getString("ZipResourceDialog.Button.ThumbnailSettings") + "..."); //$NON-NLS-1$ //$NON-NLS-2$
 		showThumbnailCheckbox.setText(TrackerRes.getString("ZipResourceDialog.Checkbox.PreviewThumbnail")); //$NON-NLS-1$
 		addButton.setText(TrackerRes.getString("Dialog.Button.Add") + "..."); //$NON-NLS-1$ //$NON-NLS-2$
@@ -1980,8 +1989,11 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 		TrackerIO.refreshVideoFormats();
 		String selected = TrackerIO.getVideoFormat(preferredExtension);
 		formatDropdown.removeAllItems();
+  	String zipped = MediaRes.getString("ZipImageVideoType.Description.Zipped");
 		for (Object format : TrackerIO.getVideoFormats()) {
-			formatDropdown.addItem(format);
+			String desc = (String)format;
+			if (!desc.startsWith(zipped))
+				formatDropdown.addItem(format);
 		}
 		formatDropdown.setSelectedItem(selected);
 	}
