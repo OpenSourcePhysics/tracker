@@ -102,15 +102,6 @@
             	*.prefs, 
             	*.txt" />
 		</copy>
-		<copy todir="${temp}/org/opensourcephysics/resources">
-			<fileset dir="${src_osp}/org/opensourcephysics/resources"/>
-		</copy>
-		<copy todir="${temp}/org/opensourcephysics/resources">
-			<fileset dir="${src_video}/org/opensourcephysics/resources"/>
-		</copy>
-		<copy todir="${temp}/org/opensourcephysics/cabrillo/tracker/resources">
-			<fileset dir="${src_tracker}/org/opensourcephysics/cabrillo/tracker/resources"/>
-		</copy>
 	</target>
 	
 	<!--tracker_jar_xuggle3.4: copy bin and create tracker jar from temp directory-->
