@@ -741,7 +741,7 @@ public class TrackerStarter {
 					}
 				}
 				else {
-					logMessage("preferred Tracker version: tracker.jar (presumed "+versionStr+")"); //$NON-NLS-1$				
+					logMessage("preferred Tracker version: tracker.jar"); //$NON-NLS-1$				
 				}
 			}
 			if (useDefaultTrackerJar) {
