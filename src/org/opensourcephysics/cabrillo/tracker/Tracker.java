@@ -268,7 +268,7 @@ public class Tracker {
 	static Action aboutTrackerAction, readmeAction;
 	static Action aboutJavaAction, startLogAction, trackerPrefsAction;
 	private static Tracker sharedTracker;
-	static String readmeFileName = "tracker_README.txt"; //$NON-NLS-1$
+	static String readmeFileName = "Tracker_README.txt"; //$NON-NLS-1$
 	static JDialog readmeDialog, startLogDialog, trackerPrefsDialog;
 	static JTextArea trackerPrefsTextArea;
 	static String prefsPath;
