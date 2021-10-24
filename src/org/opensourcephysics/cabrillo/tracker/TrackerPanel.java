@@ -45,6 +45,7 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.geom.AffineTransform;
+import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -205,7 +206,8 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	protected JPopupMenu popup;
 	protected Set<String> enabled; // enabled GUI features (subset of full_config)
 	protected TPoint snapPoint; // used for origin snap
-	protected BufferedImage renderedImage, matImage; // for video recording
+	private BufferedImage renderedImage;  // for video export
+	private BufferedImage mattedImage; // for video export
 	protected XMLControl currentState, currentCoords, currentSteps;
 	protected TPoint pointState = new TPoint();
 	protected TMouseHandler mouseHandler;
@@ -2657,7 +2659,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			firePropertyChange(PROPERTY_TRACKERPANEL_VIDEO, null, null); // to TMenuBar & views //$NON-NLS-1$
 			TMat mat = getMat();
 			if (mat != null) {
-				mat.isValidMeasure = false;
+				mat.invalidate();
 			}
 			if (video != null) {
 				video.setProperty("measure", null); //$NON-NLS-1$
@@ -2685,14 +2687,9 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			TFrame.repaintT(this);
 			VideoCaptureTool grabber = VideoGrabber.VIDEO_CAPTURE_TOOL;
 			if (grabber != null && grabber.isVisible() && grabber.isRecording()) {
-				Runnable runner = new Runnable() {
-					@Override
-					public void run() {
-						renderMat();
-						VideoGrabber.getTool().addFrame(matImage);
-					}
-				};
-				EventQueue.invokeLater(runner);
+				EventQueue.invokeLater(() -> {
+					VideoGrabber.getTool().addFrame(getMattedImage());
+				});
 			}
 
 			// show crosshair cursor if shift key down or automarking
@@ -2758,7 +2755,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			if (modelBuilder != null)
 				modelBuilder.refreshSpinners();
 			if (getMat() != null) {
-				getMat().isValidMeasure = false;
+				getMat().invalidate();
 			}
 			if (getVideo() != null) {
 				getVideo().setProperty("measure", null); //$NON-NLS-1$
@@ -2955,10 +2952,8 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			eraseAll();
 		}
 		// load track control if TFrame is known
-		TFrame frame = getTFrame();
-		if (frame != null && trackControl == null)
+		if (trackControl == null && getTFrame() != null)
 			trackControl = TrackControl.getControl(this);
-
 	}
 
 	/**
@@ -3075,13 +3070,6 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 							&& (o = getAxes().findInteractive(this, mouseEvent.getX(), mouseEvent.getY())) != null) {
 				return o;
 			}
-//			if (isMarking
-//					|| (track.isDependent() || track == getAxes())
-//							&& (o = getAxes().findInteractive(this, mouseEvent.getX(), mouseEvent.getY())) != null
-//					|| track != getAxes() && !calibrationTools.contains(track)
-//							&& (o = track.findInteractive(this, mouseEvent.getX(), mouseEvent.getY())) != null) {
-//				return o;
-//			}
 		}
 		return super.getInteractive();
 	}
@@ -3091,24 +3079,21 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		return coordStringBuilder;
 	}
 
-//	protected void addCalibrationTool(String name, TTrack tool) {
-//		calibrationTools.add(tool);
-//		addTrack(tool);
-//	}
-//
-	protected BufferedImage renderMat() {
+	protected BufferedImage getMattedImage() {
 		if (renderedImage == null || renderedImage.getWidth() != getWidth()
 				|| renderedImage.getHeight() != getHeight()) {
 			renderedImage = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_RGB);
 		}
 		render(renderedImage);
-		Rectangle rect = getMat().drawingBounds;
-		if (matImage == null || matImage.getWidth() != rect.width || matImage.getHeight() != rect.height) {
-			matImage = new BufferedImage(rect.width, rect.height, BufferedImage.TYPE_INT_RGB);
+		Rectangle2D rect = getMat().getDrawingBounds();
+		int w = (int) rect.getWidth();
+		int h = (int) rect.getHeight();
+		if (mattedImage == null || mattedImage.getWidth() != w || mattedImage.getHeight() != h) {
+			mattedImage = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
 		}
-		Graphics g = matImage.getGraphics();
-		g.drawImage(renderedImage, -rect.x, -rect.y, null);
-		return matImage;
+		Graphics g = mattedImage.getGraphics();
+		g.drawImage(renderedImage, (int) -rect.getX(), (int) -rect.getY(), null);
+		return mattedImage;
 	}
 
 	/**
@@ -3494,7 +3479,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		selectingPanelID = null;
 		frame = null;
 		renderedImage = null;
-		matImage = null;
+		mattedImage = null;
 		if (frame != null)
 			frame.disposeOf(this);
 		//menuBar.dispose(this);

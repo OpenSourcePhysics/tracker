@@ -44,13 +44,19 @@ public class TMat implements Measurable, Trackable, PropertyChangeListener {
 	// instance fields
 	private TFrame frame;
 	private Integer panelID;
+	/**
+	 * the cleared rectangle behind the video
+	 */
 	private Rectangle mat;
-	private Rectangle2D bounds;
+	/**
+	 * The bounds of the video after world transformation
+	 */
+	private Rectangle2D worldBounds;
 	private Paint paint = Color.white;
 	private boolean visible = true;
-	protected boolean isValidMeasure = false;
+	private boolean isValidMeasure = false;
 	private ImageCoordSystem coords;
-	protected Rectangle drawingBounds;
+	protected Rectangle2D drawnBounds;
 
 	private AffineTransform trTM = new AffineTransform();
 	private boolean haveVideo;
@@ -101,13 +107,15 @@ public class TMat implements Measurable, Trackable, PropertyChangeListener {
 		g2.setPaint(paint);
 		g2.fill(mat);
 		// restore graphics transform and paint
-		// save drawing bounds for use when exporting videos
-		Shape asDrawn = vidPanel.transformShape(mat);
-		Rectangle2D rect2D = asDrawn.getBounds2D();
-		drawingBounds = new Rectangle((int) Math.round(rect2D.getMinX()), (int) Math.round(rect2D.getMinY()),
-				(int) rect2D.getWidth(), (int) rect2D.getHeight());
+		// save drawing bounds for rendering
+		drawnBounds = vidPanel.transformShape(mat).getBounds2D();
 		g2.dispose();
 	}
+
+	protected Rectangle2D getDrawingBounds() {
+		return drawnBounds;
+	}
+
 
 	/**
 	 * Gets the paint.
@@ -156,7 +164,7 @@ public class TMat implements Measurable, Trackable, PropertyChangeListener {
 	public double getXMin() {
 		if (!isValidMeasure)
 			getWorldBounds();
-		return bounds.getMinX();
+		return worldBounds.getMinX();
 	}
 
 	/**
@@ -168,7 +176,7 @@ public class TMat implements Measurable, Trackable, PropertyChangeListener {
 	public double getXMax() {
 		if (!isValidMeasure)
 			getWorldBounds();
-		return bounds.getMaxX();
+		return worldBounds.getMaxX();
 	}
 
 	/**
@@ -180,7 +188,7 @@ public class TMat implements Measurable, Trackable, PropertyChangeListener {
 	public double getYMin() {
 		if (!isValidMeasure)
 			getWorldBounds();
-		return bounds.getMinY();
+		return worldBounds.getMinY();
 	}
 
 	/**
@@ -192,7 +200,7 @@ public class TMat implements Measurable, Trackable, PropertyChangeListener {
 	public double getYMax() {
 		if (!isValidMeasure)
 			getWorldBounds();
-		return bounds.getMaxY();
+		return worldBounds.getMaxY();
 	}
 
 	/**
@@ -242,9 +250,10 @@ public class TMat implements Measurable, Trackable, PropertyChangeListener {
 		mat.x = Math.min((w - mat.width) / 2, 0);
 		mat.y = Math.min((h - mat.height) / 2, 0);
 		if (!mat0.equals(mat)) {
-			isValidMeasure = false;
+			invalidate();
 			trackerPanel.scale();
 		}
+		System.out.println("TMat.mat=" + mat);
 	}
 
 	protected void checkVideo(TrackerPanel panel) {
@@ -261,7 +270,7 @@ public class TMat implements Measurable, Trackable, PropertyChangeListener {
 	public void propertyChange(PropertyChangeEvent e) {
 		switch (e.getPropertyName()) {
 		case ImageCoordSystem.PROPERTY_COORDS_TRANSFORM:
-			isValidMeasure = false;
+			invalidate();
 			break;
 		case Video.PROPERTY_VIDEO_COORDS:
 			refresh();
@@ -294,11 +303,11 @@ public class TMat implements Measurable, Trackable, PropertyChangeListener {
 		int stepCount = clip.getStepCount();
 		// initialize bounds
 		AffineTransform at = coords.getToWorldTransform(clip.stepToFrame(0));
-		bounds = at.createTransformedShape(mat).getBounds2D();
+		worldBounds = at.createTransformedShape(mat).getBounds2D();
 		// combine bounds from every step
 		for (int n = 0; n < stepCount; n++) {
 			at = coords.getToWorldTransform(clip.stepToFrame(n));
-			bounds.add(at.createTransformedShape(mat).getBounds2D());
+			worldBounds.add(at.createTransformedShape(mat).getBounds2D());
 		}
 		isValidMeasure = true;
 	}
@@ -310,6 +319,10 @@ public class TMat implements Measurable, Trackable, PropertyChangeListener {
 
 	protected Rectangle getBounds() {
 		return mat;
+	}
+
+	public void invalidate() {
+		isValidMeasure = false;
 	}
 
 }

@@ -510,7 +510,7 @@ public class ThumbnailDialog extends JDialog {
 		TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
 		switch (viewDropdown.getSelectedIndex()) {
 		case 1: // video and graphics
-			rawImage = trackerPanel.renderMat();
+			rawImage = trackerPanel.getMattedImage();
 			break;
 		case 2: // video only
 			rawImage = trackerPanel.getVideo().getImage();
