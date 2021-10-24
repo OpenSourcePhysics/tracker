@@ -462,7 +462,7 @@ public class ExportVideoDialog extends JDialog {
 				sizeDropdown.addItem(s);
 				sizes.put(s, fullSize);
 			} else { // includes graphics
-				Rectangle bounds = panel.getMat().mat;
+				Rectangle bounds = panel.getMatBounds();
 				fullSize = getAcceptedDimension(bounds.width, bounds.height);
 				s = fullSize.width + "x" + fullSize.height; //$NON-NLS-1$
 
@@ -934,8 +934,7 @@ public class ExportVideoDialog extends JDialog {
 				return new BufferedImage[] { img1, img2 };
 			}
 			// if content includes graphics, have TrackerPanel render the mat
-			BufferedImage img = trackerPanel.renderMat();
-			return new BufferedImage[] { getResizedImage(img, size) };
+			return new BufferedImage[] { getResizedImage(trackerPanel.getMattedImage(), size) };
 		}
 		if (view instanceof WorldTView) { // world view
 			BufferedImage image = (BufferedImage) view.createImage(size.width, size.height);

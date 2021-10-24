@@ -188,7 +188,7 @@ public class PencilDrawer {
 		drawing.setStroke(scene.isHeavy() ? heavyStroke : lightStroke);
 		drawing.setStyle(style);
 		if (style == PencilDrawing.STYLE_ARROW) {
-			int w = panel().getMat().mat.width;
+			int w = panel().getMatBounds().width;
 			drawing.setArrowheadLength(w / 30);
 		}
 		scene.getDrawings().add(drawing);

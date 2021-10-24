@@ -44,15 +44,22 @@ public class TMat implements Measurable, Trackable, PropertyChangeListener {
 	// instance fields
 	private TFrame frame;
 	private Integer panelID;
-	protected Rectangle mat;
-	private Rectangle2D bounds;
+	/**
+	 * the cleared rectangle behind the video
+	 */
+	private Rectangle mat;
+	/**
+	 * The bounds of the video after world transformation
+	 */
+	private Rectangle2D worldBounds;
 	private Paint paint = Color.white;
 	private boolean visible = true;
-	protected boolean isValidMeasure = false;
+	private boolean isValidMeasure = false;
 	private ImageCoordSystem coords;
-	protected Rectangle drawingBounds;
+	protected Rectangle2D drawnBounds;
 
 	private AffineTransform trTM = new AffineTransform();
+	private boolean haveVideo;
 
 	/**
 	 * Creates a mat for the specified tracker panel
@@ -72,8 +79,7 @@ public class TMat implements Measurable, Trackable, PropertyChangeListener {
 		panelID = panel.getID();
 		panel = frame.getTrackerPanelForID(panelID);
 		panel.addPropertyChangeListener(Video.PROPERTY_VIDEO_COORDS, this); // $NON-NLS-1$
-		coords = panel.getCoords();
-		coords.addPropertyChangeListener(ImageCoordSystem.PROPERTY_COORDS_TRANSFORM, this); // $NON-NLS-1$
+		refreshCoords(panel);
 	}
 
 	/**
@@ -100,13 +106,15 @@ public class TMat implements Measurable, Trackable, PropertyChangeListener {
 		g2.setPaint(paint);
 		g2.fill(mat);
 		// restore graphics transform and paint
-		// save drawing bounds for use when exporting videos
-		Shape asDrawn = vidPanel.transformShape(mat);
-		Rectangle2D rect2D = asDrawn.getBounds2D();
-		drawingBounds = new Rectangle((int) Math.round(rect2D.getMinX()), (int) Math.round(rect2D.getMinY()),
-				(int) rect2D.getWidth(), (int) rect2D.getHeight());
+		// save drawing bounds for rendering
+		drawnBounds = vidPanel.transformShape(mat).getBounds2D();
 		g2.dispose();
 	}
+
+	protected Rectangle2D getDrawingBounds() {
+		return drawnBounds;
+	}
+
 
 	/**
 	 * Gets the paint.
@@ -155,7 +163,7 @@ public class TMat implements Measurable, Trackable, PropertyChangeListener {
 	public double getXMin() {
 		if (!isValidMeasure)
 			getWorldBounds();
-		return bounds.getMinX();
+		return worldBounds.getMinX();
 	}
 
 	/**
@@ -167,7 +175,7 @@ public class TMat implements Measurable, Trackable, PropertyChangeListener {
 	public double getXMax() {
 		if (!isValidMeasure)
 			getWorldBounds();
-		return bounds.getMaxX();
+		return worldBounds.getMaxX();
 	}
 
 	/**
@@ -179,7 +187,7 @@ public class TMat implements Measurable, Trackable, PropertyChangeListener {
 	public double getYMin() {
 		if (!isValidMeasure)
 			getWorldBounds();
-		return bounds.getMinY();
+		return worldBounds.getMinY();
 	}
 
 	/**
@@ -191,7 +199,7 @@ public class TMat implements Measurable, Trackable, PropertyChangeListener {
 	public double getYMax() {
 		if (!isValidMeasure)
 			getWorldBounds();
-		return bounds.getMaxY();
+		return worldBounds.getMaxY();
 	}
 
 	/**
@@ -208,11 +216,29 @@ public class TMat implements Measurable, Trackable, PropertyChangeListener {
 	 * Refreshes this mat.
 	 */
 	public void refresh() {
-		// remove and add coords ImageCoordSystem.PROPERTY_COORDS_TRANSFORM listener
-		TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
+		TrackerPanel panel = frame.getTrackerPanelForID(panelID);
+		refreshCoords(panel);
+		refreshMat(panel);
+	}
+
+	/**
+	 * Remove and re-add coords ImageCoordSystem.PROPERTY_COORDS_TRANSFORM listener.
+	 * 
+	 * @param panel
+	 */
+	private void refreshCoords(TrackerPanel panel) {
 		coords.removePropertyChangeListener(ImageCoordSystem.PROPERTY_COORDS_TRANSFORM, this); // $NON-NLS-1$
-		coords = trackerPanel.getCoords();
+		coords = panel.getCoords();
 		coords.addPropertyChangeListener(ImageCoordSystem.PROPERTY_COORDS_TRANSFORM, this); // $NON-NLS-1$
+	}
+
+	/**
+	 * Ensure that the mat rectangle is valid.
+	 * 
+	 * @param trackerPanel
+	 */
+	private void refreshMat(TrackerPanel trackerPanel) {
+		Rectangle mat0 = new Rectangle(mat);
 		mat.width = (int) trackerPanel.getImageWidth();
 		mat.height = (int) trackerPanel.getImageHeight();
 		int w = (int) TrackerPanel.getDefaultImageWidth();
@@ -221,38 +247,30 @@ public class TMat implements Measurable, Trackable, PropertyChangeListener {
 		if (video != null) {
 			if (video instanceof ImageVideo && video.getFilterStack().isEmpty()) {
 				Dimension dim = ((ImageVideo) video).getSize();
+				haveVideo = true;
 				w = dim.width;
 				h = dim.height;
 			} else {
-        BufferedImage vidImage = video.getImage();
-        if (vidImage != null) {
-        	w = vidImage.getWidth();
-        	h = vidImage.getHeight();
-        }
+				BufferedImage vidImage = video.getImage();
+				if (vidImage != null) {
+					haveVideo = true;
+					w = vidImage.getWidth();
+					h = vidImage.getHeight();
+				}
 			}
 		}
 		mat.x = Math.min((w - mat.width) / 2, 0);
 		mat.y = Math.min((h - mat.height) / 2, 0);
-		isValidMeasure = false;
-		trackerPanel.scale();
+		if (!mat0.equals(mat)) {
+			invalidate();
+			trackerPanel.scale();
+		}
+		System.out.println("TMat.mat=" + mat);
 	}
 
-	/**
-	 * Gets the x offset of this mat relative to the image origin
-	 *
-	 * @return x offset
-	 */
-	public double getXOffset() {
-		return mat.x;
-	}
-
-	/**
-	 * Gets the y offset of this mat relative to the image origin
-	 *
-	 * @return y offset
-	 */
-	public double getYOffset() {
-		return mat.y;
+	protected void checkVideo(TrackerPanel panel) {
+		if (!haveVideo && panel.getVideo() != null)
+			refreshMat(panel);		
 	}
 
 	/**
@@ -264,7 +282,7 @@ public class TMat implements Measurable, Trackable, PropertyChangeListener {
 	public void propertyChange(PropertyChangeEvent e) {
 		switch (e.getPropertyName()) {
 		case ImageCoordSystem.PROPERTY_COORDS_TRANSFORM:
-			isValidMeasure = false;
+			invalidate();
 			break;
 		case Video.PROPERTY_VIDEO_COORDS:
 			refresh();
@@ -297,11 +315,11 @@ public class TMat implements Measurable, Trackable, PropertyChangeListener {
 		int stepCount = clip.getStepCount();
 		// initialize bounds
 		AffineTransform at = coords.getToWorldTransform(clip.stepToFrame(0));
-		bounds = at.createTransformedShape(mat).getBounds2D();
+		worldBounds = at.createTransformedShape(mat).getBounds2D();
 		// combine bounds from every step
 		for (int n = 0; n < stepCount; n++) {
 			at = coords.getToWorldTransform(clip.stepToFrame(n));
-			bounds.add(at.createTransformedShape(mat).getBounds2D());
+			worldBounds.add(at.createTransformedShape(mat).getBounds2D());
 		}
 		isValidMeasure = true;
 	}
@@ -309,6 +327,14 @@ public class TMat implements Measurable, Trackable, PropertyChangeListener {
 	@Override
 	public void finalize() {
 		OSPLog.finalized(this);
+	}
+
+	protected Rectangle getBounds() {
+		return mat;
+	}
+
+	public void invalidate() {
+		isValidMeasure = false;
 	}
 
 }
