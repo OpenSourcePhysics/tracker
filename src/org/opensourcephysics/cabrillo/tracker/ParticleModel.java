@@ -66,8 +66,6 @@ import org.opensourcephysics.tools.Parameter;
 import org.opensourcephysics.tools.UserFunction;
 import org.opensourcephysics.tools.UserFunctionEditor;
 
-import javajs.async.SwingJSUtils.Performance;
-
 /**
  * An abstract class representing a point mass for which positions are
  * determined by a model. Subclassed as AnalyticParticle,
