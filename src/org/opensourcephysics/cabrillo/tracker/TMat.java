@@ -79,8 +79,7 @@ public class TMat implements Measurable, Trackable, PropertyChangeListener {
 		panelID = panel.getID();
 		panel = frame.getTrackerPanelForID(panelID);
 		panel.addPropertyChangeListener(Video.PROPERTY_VIDEO_COORDS, this); // $NON-NLS-1$
-		coords = panel.getCoords();
-		coords.addPropertyChangeListener(ImageCoordSystem.PROPERTY_COORDS_TRANSFORM, this); // $NON-NLS-1$
+		refreshCoords(panel);
 	}
 
 	/**
@@ -217,15 +216,28 @@ public class TMat implements Measurable, Trackable, PropertyChangeListener {
 	 * Refreshes this mat.
 	 */
 	public void refresh() {
-		// remove and add coords ImageCoordSystem.PROPERTY_COORDS_TRANSFORM listener
-		TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
-		coords.removePropertyChangeListener(ImageCoordSystem.PROPERTY_COORDS_TRANSFORM, this); // $NON-NLS-1$
-		coords = trackerPanel.getCoords();
-		coords.addPropertyChangeListener(ImageCoordSystem.PROPERTY_COORDS_TRANSFORM, this); // $NON-NLS-1$
-		setMat(trackerPanel);
+		TrackerPanel panel = frame.getTrackerPanelForID(panelID);
+		refreshCoords(panel);
+		refreshMat(panel);
 	}
 
-	private void setMat(TrackerPanel trackerPanel) {
+	/**
+	 * Remove and re-add coords ImageCoordSystem.PROPERTY_COORDS_TRANSFORM listener.
+	 * 
+	 * @param panel
+	 */
+	private void refreshCoords(TrackerPanel panel) {
+		coords.removePropertyChangeListener(ImageCoordSystem.PROPERTY_COORDS_TRANSFORM, this); // $NON-NLS-1$
+		coords = panel.getCoords();
+		coords.addPropertyChangeListener(ImageCoordSystem.PROPERTY_COORDS_TRANSFORM, this); // $NON-NLS-1$
+	}
+
+	/**
+	 * Ensure that the mat rectangle is valid.
+	 * 
+	 * @param trackerPanel
+	 */
+	private void refreshMat(TrackerPanel trackerPanel) {
 		Rectangle mat0 = new Rectangle(mat);
 		mat.width = (int) trackerPanel.getImageWidth();
 		mat.height = (int) trackerPanel.getImageHeight();
@@ -258,7 +270,7 @@ public class TMat implements Measurable, Trackable, PropertyChangeListener {
 
 	protected void checkVideo(TrackerPanel panel) {
 		if (!haveVideo && panel.getVideo() != null)
-			setMat(panel);		
+			refreshMat(panel);		
 	}
 
 	/**
