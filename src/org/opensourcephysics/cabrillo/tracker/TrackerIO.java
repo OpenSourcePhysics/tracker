@@ -1193,7 +1193,7 @@ public class TrackerIO extends VideoIO {
 				message += "\n" + TrackerRes.getString("TrackerIO.Dialog.DurationVaries.Message3"); //$NON-NLS-1$ //$NON-NLS-2$
 				message += "\n\n" + TrackerRes.getString("TrackerIO.Dialog.DurationVaries.Message4"); //$NON-NLS-1$ //$NON-NLS-2$
 				for (int i = outliers.nextSetBit(0); i >= 0; i = outliers.nextSetBit(i + 1)) {
-					message += " " + i + " (" + video.getFrameDuration(i) + "ms)"; //$NON-NLS-1$
+					message += " " + i + " (" + format.format(video.getFrameDuration(i)) + "ms)"; //$NON-NLS-1$
 					if (i < last)
 						message += ","; //$NON-NLS-1$
 				}
