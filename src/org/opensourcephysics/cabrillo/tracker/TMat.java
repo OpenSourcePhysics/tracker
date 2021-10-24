@@ -227,7 +227,8 @@ public class TMat implements Measurable, Trackable, PropertyChangeListener {
 	 * @param panel
 	 */
 	private void refreshCoords(TrackerPanel panel) {
-		coords.removePropertyChangeListener(ImageCoordSystem.PROPERTY_COORDS_TRANSFORM, this); // $NON-NLS-1$
+		if (coords != null)
+			coords.removePropertyChangeListener(ImageCoordSystem.PROPERTY_COORDS_TRANSFORM, this); // $NON-NLS-1$
 		coords = panel.getCoords();
 		coords.addPropertyChangeListener(ImageCoordSystem.PROPERTY_COORDS_TRANSFORM, this); // $NON-NLS-1$
 	}
