@@ -164,7 +164,6 @@ abstract public class ParticleModel extends PointMass {
 		}
 		// OSPLog.debug("!!! " + Performance.now(t0) + "
 		// ParticleModel.paintComponent-draw-refreshsteps");
-		t0 = Performance.now(0);
 		drawMe(panel, _g);
 		// OSPLog.debug("!!! " + Performance.now(t0) + "
 		// ParticleModel.paintComponent-drawme");
