@@ -1,19 +1,25 @@
-TrackerStarter version 5.9.20201013  12:32:45  Oct 14 2020
+TrackerStarter version 6.0.1  12:45:52  Oct 01 2021
 
+ - relaunch required
+ - needs Java VM? false
+ - needs memory? false
+ - needs environment? true
  - relaunch initiated by Tracker
- - TrackerStarter running in jre: /Library/Java/JavaVirtualMachines/jdk1.8.0_201.jdk/Contents/Home/jre
+ - TrackerStarter running in jre: C:\Program Files\Java\jdk-11.0.8
  - launching with main arguments: null
- - osp.prefs XUGGLE_HOME: /Applications/Tracker.app/Contents/Xuggle
- - using xugglehome: /Applications/Tracker.app/Contents/Xuggle
- - loading starter preferences from: /Users/wochristian/.tracker.prefs
- - system property PREFERRED_TRACKER_JAR = /Users/wochristian/Dropbox (Davidson College)/GitHubOSP/tracker/distribution/tracker-5.9.20201014.jar
- - preferred version: 5.9.20201014
- - no preferred or bundled java VM, using default
- - system property PREFERRED_MEMORY_SIZE = 256
- - preferred memory size: 256 MB
- - setting TRACKER_HOME = /Users/wochristian/Dropbox (Davidson College)/GitHubOSP/tracker/distribution
- - setting XUGGLE_HOME = /Applications/Tracker.app/Contents/Xuggle
- - setting DYLD_LIBRARY_PATH = /Applications/Tracker.app/Contents/Xuggle/lib:
- - executing command: /Library/Java/JavaVirtualMachines/jdk1.8.0_201.jdk/Contents/Home/jre/bin/java -Xms32m -Xmx256m -Xdock:name=Tracker -jar /Users/wochristian/Dropbox (Davidson College)/GitHubOSP/tracker/distribution/tracker-5.9.20201014.jar 
- - writing user start log to /Users/wochristian/Library/Application Support/OSP/tracker_start.log
- - writing code base start log /Users/wochristian/Dropbox (Davidson College)/GitHubOSP/tracker/distribution/tracker_start.log
+ - using trackerhome: C:\Users\hansonr\git\tracker1\distribution
+ - osp.prefs XUGGLE_HOME: C:\temp\tracker\Xuggle
+ - using xugglehome: C:\temp\tracker\Xuggle
+ - loading starter preferences from: C:\Users\hansonr\tracker.prefs
+ - system property PREFERRED_TRACKER_JAR = C:/Users/hansonr/git/tracker1/distribution/tracker.jar
+ - preferred Tracker version: tracker.jar (presumed 6.0.1)
+ - preferred xuggle version: 5.7 server
+ - no preferred java VM
+ - no bundled VM, using default VM: C:\Program Files\Java\jre1.8.0_291
+ - system property PREFERRED_MEMORY_SIZE = 1024
+ - preferred memory size: 1024 MB
+ - xuggle 5.7 files up to date 
+ - setting TRACKER_HOME = C:\Users\hansonr\git\tracker1\distribution
+ - setting XUGGLE_HOME = C:\temp\tracker\Xuggle
+ - executing command: C:/Program Files/Java/jre1.8.0_291/bin/java -Xms32m -Xmx1024m -jar C:/Users/hansonr/git/tracker1/distribution/tracker.jar 
+ - writing code base start log C:\Users\hansonr\git\tracker1\distribution\tracker_start.log

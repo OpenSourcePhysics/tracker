@@ -44,7 +44,7 @@ public class TMat implements Measurable, Trackable, PropertyChangeListener {
 	// instance fields
 	private TFrame frame;
 	private Integer panelID;
-	protected Rectangle mat;
+	private Rectangle mat;
 	private Rectangle2D bounds;
 	private Paint paint = Color.white;
 	private boolean visible = true;
@@ -53,6 +53,7 @@ public class TMat implements Measurable, Trackable, PropertyChangeListener {
 	protected Rectangle drawingBounds;
 
 	private AffineTransform trTM = new AffineTransform();
+	private boolean haveVideo;
 
 	/**
 	 * Creates a mat for the specified tracker panel
@@ -213,6 +214,11 @@ public class TMat implements Measurable, Trackable, PropertyChangeListener {
 		coords.removePropertyChangeListener(ImageCoordSystem.PROPERTY_COORDS_TRANSFORM, this); // $NON-NLS-1$
 		coords = trackerPanel.getCoords();
 		coords.addPropertyChangeListener(ImageCoordSystem.PROPERTY_COORDS_TRANSFORM, this); // $NON-NLS-1$
+		setMat(trackerPanel);
+	}
+
+	private void setMat(TrackerPanel trackerPanel) {
+		Rectangle mat0 = new Rectangle(mat);
 		mat.width = (int) trackerPanel.getImageWidth();
 		mat.height = (int) trackerPanel.getImageHeight();
 		int w = (int) TrackerPanel.getDefaultImageWidth();
@@ -221,38 +227,29 @@ public class TMat implements Measurable, Trackable, PropertyChangeListener {
 		if (video != null) {
 			if (video instanceof ImageVideo && video.getFilterStack().isEmpty()) {
 				Dimension dim = ((ImageVideo) video).getSize();
+				haveVideo = true;
 				w = dim.width;
 				h = dim.height;
 			} else {
-        BufferedImage vidImage = video.getImage();
-        if (vidImage != null) {
-        	w = vidImage.getWidth();
-        	h = vidImage.getHeight();
-        }
+				BufferedImage vidImage = video.getImage();
+				if (vidImage != null) {
+					haveVideo = true;
+					w = vidImage.getWidth();
+					h = vidImage.getHeight();
+				}
 			}
 		}
 		mat.x = Math.min((w - mat.width) / 2, 0);
 		mat.y = Math.min((h - mat.height) / 2, 0);
-		isValidMeasure = false;
-		trackerPanel.scale();
+		if (!mat0.equals(mat)) {
+			isValidMeasure = false;
+			trackerPanel.scale();
+		}
 	}
 
-	/**
-	 * Gets the x offset of this mat relative to the image origin
-	 *
-	 * @return x offset
-	 */
-	public double getXOffset() {
-		return mat.x;
-	}
-
-	/**
-	 * Gets the y offset of this mat relative to the image origin
-	 *
-	 * @return y offset
-	 */
-	public double getYOffset() {
-		return mat.y;
+	protected void checkVideo(TrackerPanel panel) {
+		if (!haveVideo && panel.getVideo() != null)
+			setMat(panel);		
 	}
 
 	/**
@@ -309,6 +306,10 @@ public class TMat implements Measurable, Trackable, PropertyChangeListener {
 	@Override
 	public void finalize() {
 		OSPLog.finalized(this);
+	}
+
+	protected Rectangle getBounds() {
+		return mat;
 	}
 
 }

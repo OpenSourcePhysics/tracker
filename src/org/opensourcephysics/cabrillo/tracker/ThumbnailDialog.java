@@ -415,7 +415,7 @@ public class ThumbnailDialog extends JDialog {
 		TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
 		switch (viewDropdown.getSelectedIndex()) {
 		case 1: // video and graphics
-			Rectangle bounds = trackerPanel.getMat().mat;
+			Rectangle bounds = trackerPanel.getMatBounds();
 			fullSize.setSize(bounds.getWidth(), bounds.getHeight());
 			thumbSize = getFullThumbnailSize(fullSize);
 			break;

@@ -850,6 +850,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 	 */
 	protected void scaleYMin() {
 		double newYMin = Double.MAX_VALUE;
+		double range = 0;
 		Measurable dataset = getDataset();
 		if (dataset != null && dataset.isMeasured()) {
 			if (!Double.isNaN(dataset.getYMin())) {
@@ -858,7 +859,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 			if (newYMin == ymaxPreferred) {
 				newYMin = 0.9 * newYMin - 0.5;
 			}
-			double range = ymaxPreferred - newYMin;
+			range = ymaxPreferred - newYMin;
 			yminPreferred = newYMin - autoscaleMargin * range;
 		}
 		if (!Double.isNaN(yfloor)) {
@@ -872,6 +873,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 	protected void scaleYMax() {
 		double newYMax = -Double.MAX_VALUE;
 		Measurable dataset = getDataset();
+		double range = 0;
 		if (dataset != null && dataset.isMeasured()) {
 			if (!Double.isNaN(dataset.getYMax())) {
 				newYMax = Math.max(newYMax, dataset.getYMax());
@@ -879,7 +881,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 			if (yminPreferred == newYMax) {
 				newYMax = 1.1 * newYMax + 0.5;
 			}
-			double range = newYMax - yminPreferred;
+			range = newYMax - yminPreferred;
 			ymaxPreferred = newYMax + autoscaleMargin * range;
 		}
 		if (!Double.isNaN(yceil)) {

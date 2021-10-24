@@ -1352,7 +1352,10 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	 * @return the first TMat in the drawable list
 	 */
 	public TMat getMat() {
-		return getFirstDrawable(TMat.class);
+		TMat mat = getFirstDrawable(TMat.class);
+		if (mat != null)
+			mat.checkVideo(this);
+		return mat;
 	}
 
 	/**
@@ -2652,8 +2655,9 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			coords.addPropertyChangeListener(this);
 			firePropertyChange(Video.PROPERTY_VIDEO_COORDS, oldCoords, coords); // to tracks //$NON-NLS-1$
 			firePropertyChange(PROPERTY_TRACKERPANEL_VIDEO, null, null); // to TMenuBar & views //$NON-NLS-1$
-			if (getMat() != null) {
-				getMat().isValidMeasure = false;
+			TMat mat = getMat();
+			if (mat != null) {
+				mat.isValidMeasure = false;
 			}
 			if (video != null) {
 				video.setProperty("measure", null); //$NON-NLS-1$
@@ -2937,10 +2941,10 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	 */
 	@Override
 	public void scale() {
-		TMat mat = getMat();
+		Rectangle mat = getMatBounds();
 		if (mat != null) {
-			xOffset = mat.getXOffset();
-			yOffset = mat.getYOffset();
+			xOffset = mat.x;
+			yOffset = mat.y;
 		}
 		super.scale();
 		// erase all tracks if pixel transform has changed
@@ -3342,11 +3346,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		if (isDisposed)
 			return;
 		isDisposed = true; // stop all firing of events
-
 		view = null;
-		
-		//System.out.println(this.getClass().getSimpleName() + ".dispose " + panelID + " " + title);
-		
 		// remove property change listeners
 		if (frame != null) {
 			removePropertyChangeListener(VideoPanel.PROPERTY_VIDEOPANEL_DATAFILE, frame); // $NON-NLS-1$
@@ -4657,7 +4657,6 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		if (tempA == null)
 			tempA = new ArrayList<>();
 		if (!tempA.isEmpty()) {
-			//System.out.println("TP DANGER WILL ROBINSON");
 			tempA.clear();
 		}
 		return (type == null ? null : getDrawables(type, true, null, (ArrayList<T>) tempA));
@@ -4694,14 +4693,8 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	public void paint(Graphics g) {
 		if (unTracked())
 			return;
-//		System.out.println("TrackerPanel.paint");
-//		OSPLog.debug(Performance.timeCheckStr("TrackerPanel.paint " + getClass().getName(),
-//		Performance.TIME_MARK));
-//		if (OSPRuntime.isJS)
-//			System.out.println("TrackerPanel.paint");
+		getMat(); // ensures checked
 		super.paint(g);
-//		OSPLog.debug(Performance.timeCheckStr("TrackerPanel.paint " + getClass().getName(),
-//		Performance.TIME_MARK));
 	}
 
 	public void doPaste(String data) {
@@ -5007,7 +5000,6 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	 * @return
 	 */
 	public TrackerPanel ref(Object o) {
-		//System.out.println("TP ref " + (o instanceof String ? o.toString() : o.getClass().getSimpleName())); 
 		return this;
 	}
 
@@ -5062,6 +5054,11 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	public void finalize() {
 		System.out.println("-------HOORAY!!!!!!!----finalized!------------ " + this);
 		OSPLog.finalized(this);
+	}
+
+	public Rectangle getMatBounds() {
+		TMat mat = getMat();
+		return (mat == null ? null : mat.getBounds());
 	}
 
 }

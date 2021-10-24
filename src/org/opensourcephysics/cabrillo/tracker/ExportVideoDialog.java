@@ -462,7 +462,7 @@ public class ExportVideoDialog extends JDialog {
 				sizeDropdown.addItem(s);
 				sizes.put(s, fullSize);
 			} else { // includes graphics
-				Rectangle bounds = panel.getMat().mat;
+				Rectangle bounds = panel.getMatBounds();
 				fullSize = getAcceptedDimension(bounds.width, bounds.height);
 				s = fullSize.width + "x" + fullSize.height; //$NON-NLS-1$
 

@@ -31,6 +31,7 @@ import java.awt.Dimension;
 //import java.awt.Frame;
 import java.awt.Image;
 import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.DataFlavor;
@@ -1474,47 +1475,47 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 			// has no listener--used only for non-standard dimensions set by Tracker
 			edit_matsize_matSizeItem = new JRadioButtonMenuItem();
 		}
-		
+
 		edit_matSizeMenu.removeAll();
 		matSizeGroup.remove(edit_matsize_matSizeItem);
 
-    int vidWidth = 1;
-    int vidHeight = 1;
-    
+		int vidWidth = 1;
+		int vidHeight = 1;
+
 		// if has video, set up videoSizeItem and add extended size items if needed
-    TrackerPanel panel = panel();
+		TrackerPanel panel = panel();
 		Video video = panel.getVideo();
-		TMat mat = panel.getMat();
-    String dimensionString = mat.mat.width + "x" + mat.mat.height;
+		Rectangle mat = panel.getMatBounds();
+		String dimensionString = mat.width + "x" + mat.height;
 		edit_matsize_matSizeItem.setText(dimensionString);
 		edit_matsize_matSizeItem.setActionCommand(dimensionString);
-		
-    if (video!=null) {
-    	BufferedImage image = video.getImage();
-      vidWidth = image.getWidth();
-      vidHeight = image.getHeight();
-      // can't use raw video size here--image size changes with filters 
+
+		if (video != null) {
+			BufferedImage image = video.getImage();
+			vidWidth = image.getWidth();
+			vidHeight = image.getHeight();
+			// can't use raw video size here--image size changes with filters
 //			Dimension d = video.getImageSize();
 //      vidWidth = d.width;
 //      vidHeight = d.height;
-      String s = TrackerRes.getString("TMenuBar.Menu.Video"); //$NON-NLS-1$
-      String description = " ("+s.toLowerCase()+")"; //$NON-NLS-1$ //$NON-NLS-2$
-      dimensionString = vidWidth + "x" + vidHeight;
-      edit_matsize_videoSizeItem.setText(dimensionString + description); //$NON-NLS-1$
-      edit_matsize_videoSizeItem.setActionCommand(dimensionString); //$NON-NLS-1$
-      
-      // determine largest available size
-      int maxW = 0, maxH = 0;
-  		for (Enumeration<AbstractButton> e = matSizeGroup.getElements(); e.hasMoreElements();) {
-  			AbstractButton next = e.nextElement();
+			String s = TrackerRes.getString("TMenuBar.Menu.Video"); //$NON-NLS-1$
+			String description = " (" + s.toLowerCase() + ")"; //$NON-NLS-1$ //$NON-NLS-2$
+			dimensionString = vidWidth + "x" + vidHeight;
+			edit_matsize_videoSizeItem.setText(dimensionString + description); // $NON-NLS-1$
+			edit_matsize_videoSizeItem.setActionCommand(dimensionString); // $NON-NLS-1$
+
+			// determine largest available size
+			int maxW = 0, maxH = 0;
+			for (Enumeration<AbstractButton> e = matSizeGroup.getElements(); e.hasMoreElements();) {
+				AbstractButton next = e.nextElement();
 				String[] size = next.getActionCommand().split("x");
-  			maxW = Math.max(maxW, Integer.parseInt(size[0])); //$NON-NLS-1$
-  			maxH = Math.max(maxH, Integer.parseInt(size[1])); //$NON-NLS-1$
-  		}
-  		
+				maxW = Math.max(maxW, Integer.parseInt(size[0])); // $NON-NLS-1$
+				maxH = Math.max(maxH, Integer.parseInt(size[1])); // $NON-NLS-1$
+			}
+
 			// add extended mat sizes to group if needed
 			for (int i = 0; maxW < 2 * vidWidth || maxH < 2 * vidHeight; i++) {
-				int multiplier = (int)Math.pow(2, i);
+				int multiplier = (int) Math.pow(2, i);
 				int w = multiplier * 3200;
 				maxW = Math.max(maxW, w);
 				int h = multiplier * 2400;
@@ -1526,11 +1527,11 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 					item.addActionListener(matSizeAction);
 					matSizeGroup.add(item);
 				}
-				
+
 				if (maxW < 2 * vidWidth || maxH < 2 * vidHeight) {
-					w = (int)(w * 1.5);
+					w = (int) (w * 1.5);
 					maxW = Math.max(maxW, w);
-					h = (int)(h * 1.5);
+					h = (int) (h * 1.5);
 					maxH = Math.max(maxH, h);
 					dimensionString = w + "x" + h;
 					if (!matSizeGroupContains(dimensionString)) {
@@ -1542,14 +1543,13 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 				}
 			}
 
-    }
-    else {
-    	edit_matsize_videoSizeItem.setActionCommand("0x0"); //$NON-NLS-1$
-    }
-    
+		} else {
+			edit_matsize_videoSizeItem.setActionCommand("0x0"); //$NON-NLS-1$
+		}
+
 		int imageWidth = (int) panel().getImageWidth();
 		int imageHeight = (int) panel().getImageHeight();
-		
+
 		// add appropriate items to menu
 		int matIndex = 0;
 		for (Enumeration<AbstractButton> e = matSizeGroup.getElements(); e.hasMoreElements();) {
@@ -1557,8 +1557,8 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 			String[] size = next.getActionCommand().split("x");
 			int w = Integer.parseInt(size[0]);
 			int h = Integer.parseInt(size[1]);
-			boolean matIsWider = w < mat.mat.width;
-			boolean matIsHigher = h < mat.mat.height;
+			boolean matIsWider = w < mat.width;
+			boolean matIsHigher = h < mat.height;
 			if (w >= vidWidth && h >= vidHeight) {
 				if (matIsWider || matIsHigher)
 					matIndex++;
@@ -1582,7 +1582,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 			// insert at matIndex
 			edit_matSizeMenu.insert(edit_matsize_matSizeItem, matIndex);
 		}
-		
+
 		FontSizer.setMenuFonts(edit_matSizeMenu);
 	}
 	
@@ -2377,17 +2377,16 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 //		boolean toolEnabled = panel.isEnabled("data.tool");  //$NON-NLS-1$
 
 		if (!opening) {
-			if (true)  // why is this here--testing????
 				return;
-			viewMenu.add(view_restoreItem);
-			viewMenu.add(view_rightPaneItem);
-			viewMenu.add(view_bottomPaneItem);
-			viewMenu.addSeparator();
-			viewMenu.add(view_trackControlItem);
-			viewMenu.add(view_notesItem);
-			viewMenu.add(view_dataBuilderItem);
-			viewMenu.add(view_dataToolItem);
-			return;
+//			viewMenu.add(view_restoreItem);
+//			viewMenu.add(view_rightPaneItem);
+//			viewMenu.add(view_bottomPaneItem);
+//			viewMenu.addSeparator();
+//			viewMenu.add(view_trackControlItem);
+//			viewMenu.add(view_notesItem);
+//			viewMenu.add(view_dataBuilderItem);
+//			viewMenu.add(view_dataToolItem);
+//			return;
 		}
 		
 		
@@ -2832,10 +2831,10 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 					isVideoSize = true;
 			}
 		}
-		TMat mat = panel.getMat();
+		Rectangle mat = panel.getMatBounds();
 		if (mat != null) {
 			if (isVideoSize) {
-				Dimension dim = panel.getMat().mat.getSize();
+				Dimension dim = mat.getSize();
 	
 	  		// can't use raw video size since filters may be applied
 	//			Dimension d = panel.getVideo().getImageSize();
@@ -2849,7 +2848,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 				}
 			}
 			else {
-				panel().setImageSize(mat.mat.width, mat.mat.height);
+				panel().setImageSize(mat.width, mat.height);
 			}
 			TToolBar toolbar = panel.getToolBar(false);
 			if (toolbar != null)
