@@ -266,7 +266,6 @@ public class TMat implements Measurable, Trackable, PropertyChangeListener {
 			invalidate();
 			trackerPanel.scale();
 		}
-		System.out.println("TMat.mat=" + mat);
 	}
 
 	protected void checkVideo(TrackerPanel panel) {
