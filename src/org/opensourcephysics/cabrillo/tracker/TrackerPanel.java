@@ -109,6 +109,7 @@ import org.opensourcephysics.media.core.GhostFilter;
 import org.opensourcephysics.media.core.GrayScaleFilter;
 import org.opensourcephysics.media.core.ImageCoordSystem;
 import org.opensourcephysics.media.core.ImageVideo;
+import org.opensourcephysics.media.core.LogFilter;
 import org.opensourcephysics.media.core.MediaRes;
 import org.opensourcephysics.media.core.NegativeFilter;
 import org.opensourcephysics.media.core.PerspectiveFilter;
@@ -4626,6 +4627,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		addFilter(DarkGhostFilter.class);
 		addFilter(NegativeFilter.class);
 		addFilter(GrayScaleFilter.class);
+		addFilter(LogFilter.class);
 		addFilter(BrightnessFilter.class);
 		addFilter(BaselineFilter.class);
 		addFilter(SumFilter.class);

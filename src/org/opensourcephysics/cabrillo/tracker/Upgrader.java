@@ -332,7 +332,7 @@ public class Upgrader {
 	}
 
 	private void upgradeOSX(final boolean[] failed) {
-		// see if a TrackerUpgrade zip is available
+		// see if a TrackerUpgrade dmg is available
 		final String dmgFileName = "TrackerUpgrade-" + Tracker.newerVersion + "-osx-installer.dmg"; //$NON-NLS-1$ //$NON-NLS-2$
 		final String dmgURL = upgradeURL + dmgFileName;
 		int responseCode = 0;
