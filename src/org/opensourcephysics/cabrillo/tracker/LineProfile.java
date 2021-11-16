@@ -123,6 +123,8 @@ public class LineProfile extends TTrack {
 	protected IntegerField spreadField;
 	protected boolean isHorizontal = true;
 	protected boolean loading;
+	protected boolean showTimeData = false;
+	protected int timeDataIndex = 0; //pig
 
 	/**
 	 * Constructs a LineProfile.
@@ -276,8 +278,10 @@ public class LineProfile extends TTrack {
 		this.spread = Math.min(spread, MAX_SPREAD);
 		if (!loading)
 			Undo.postTrackEdit(this, control);
+		clearStepData();
 		repaint();
 		invalidateData(Boolean.FALSE);
+		firePropertyChange(TTrack.PROPERTY_TTRACK_STEP, null, tp.getFrameNumber()); // $NON-NLS-1$
 	}
 
 	/**
@@ -470,7 +474,7 @@ public class LineProfile extends TTrack {
 	}
 
 	/**
-	 * Refreshes the data.
+	 * Refreshes the data to display multiple variables (columns) for all pixels (rows).
 	 *
 	 * @param data         the DatasetManager
 	 * @param trackerPanel the tracker panel
@@ -479,19 +483,15 @@ public class LineProfile extends TTrack {
 	protected void refreshData(DatasetManager data, TrackerPanel trackerPanel) {
 		if (refreshDataLater || trackerPanel == null || data == null)
 			return;
-		// get the datasets
-//    Dataset x = data.getDataset(count++);
-//    Dataset y = data.getDataset(count++);
-//    Dataset r = data.getDataset(count++);
-//    Dataset g = data.getDataset(count++);
-//    Dataset b = data.getDataset(count++);
-//    Dataset luma = data.getDataset(count++);
-//    Dataset w = data.getDataset(count++);
-		// assign column names to the datasets
+		
+		if (showTimeData) {
+			refreshTimeData(data, trackerPanel);
+			return;
+		}
 
 		int count = 7;
 		double[][] validData;
-		// get data from current line profile step if video is visible
+		// get data from current line profile step only if video is visible
 		if (trackerPanel.getVideo() == null || !trackerPanel.getVideo().isVisible()) {
 			validData = new double[count+1][0]; // empty data
 		}
@@ -502,7 +502,146 @@ public class LineProfile extends TTrack {
 		}
 
 		// append the data to the data set
-		clearColumns(data, 7, dataVariables, "LineProfile.Data.Description.", validData, validData[0].length);
+		clearColumns(data, count, dataVariables, "LineProfile.Data.Description.", validData, validData[0].length);
+	}
+	
+	@Override
+	protected void clearColumns(DatasetManager data, int count, String[] dataVariables, String desc,
+			double[][] validData, int len) {
+		// get the x and y variables of the first dataset
+		String v0 = dataVariables[0];
+		// if already initialized and count unchanged, clear existing datasets
+		if (data.getDataset(0).getColumnName(0).equals(v0) &&
+				data.getDataset(0).getColumnName(1).equals(dataVariables[1]) &&
+				data.getDatasetsRaw().size() == count) {
+			for (int i = 0; i < count; i++) {
+				data.clear(i);
+			}
+		} else {			
+			// needs (re)initialization, so eliminate excess datasets, clear others and set variable xy names
+			int n = data.getDatasetsRaw().size();
+			for (int i = n-1; i >= count; i--) {
+				data.removeDataset(i);
+			}
+			for (int i = 0; i < count; i++) {
+				data.clear(i);
+				data.setXYColumnNames(i, v0, dataVariables[i + 1]);
+			}
+		}
+		// refresh the data descriptions
+		dataDescriptions = new String[count + 1];
+		if (showTimeData) {
+			dataDescriptions[0] = TrackerRes.getString("PointMass.Data.Description.0"); // time
+			for (int i = 1; i <= count; i++) {
+				dataDescriptions[i] = TrackerRes.getString(desc + (timeDataIndex+1)); // $NON-NLS-1$
+			}			
+		}
+		else {
+			for (int i = 0; i <= count; i++) {
+				dataDescriptions[i] = TrackerRes.getString(desc + i); // $NON-NLS-1$
+			}
+		}
+		if (validData != null) {
+			// indep var is last array in validData
+			double[] t = validData[count];
+			for (int i = 0; i < count; i++) {
+				data.getDataset(i).append(t, validData[i], len);
+			}
+		}
+	}
+
+	/**
+	 * Refreshes the data to display a single variable at all line positions (columns) and times (rows).
+	 *
+	 * @param data         the DatasetManager
+	 * @param trackerPanel the tracker panel
+	 * @param datasetIndex the dataset index to display
+	 */
+	private void refreshTimeData(DatasetManager data, TrackerPanel trackerPanel) {
+		int count = 0;
+		ArrayList<double[]> collectedData = new ArrayList<double[]>();
+		ArrayList<Double> times = new ArrayList<Double>(); 
+		double[][] validData;
+		String[] varNames = new String[] {"t", "empty"};
+		// get data from line profile steps only if video is visible
+		if (trackerPanel.getVideo() == null || !trackerPanel.getVideo().isVisible()) {
+			validData = new double[count+1][0]; // empty data
+		}
+		else {
+			VideoPlayer player = trackerPanel.getPlayer();
+			VideoClip clip = player.getVideoClip();
+			// get specified dataset index at all steps
+			Step[] stepArray = getSteps();
+			if (stepArray.length < trackerPanel.getFrameNumber()) {
+				steps.setLength(trackerPanel.getFrameNumber() + 1);
+				stepArray = getSteps();
+			}
+			for (int i = 0; i < stepArray.length; i++) {
+				LineProfileStep step = (LineProfileStep)stepArray[i];
+				if (step != null && clip.includesFrame(step.n)) {
+					double[][] next = step.getProfileData(trackerPanel);
+					if (next != null && next.length > timeDataIndex) {
+						collectedData.add(next[timeDataIndex]);
+						int stepNumber = clip.frameToStep(i);
+						double t = player.getStepTime(stepNumber) / 1000.0;
+						times.add(t);
+						count = next[timeDataIndex].length;
+					}
+				}
+			}
+			if (collectedData.size() > 0) {
+				// transpose rows and columns
+				// pig this assumes line profile is same length in all frames
+				double[][] orig = collectedData.toArray(new double[collectedData.size()][count]);
+				validData = new double[count+1][orig.length];
+				varNames = new String[count+1];
+				varNames[0] = "t";
+				for (int row = 0; row < orig.length; row++) {
+					for (int col = 0; col < count; col++) {
+						varNames[col+1] = dataVariables[timeDataIndex+1]+"_{"+String.valueOf(col)+"}";
+						validData[col][row] = orig[row][col];
+					}
+					validData[count][row] = times.get(row);
+				}
+				
+			}
+			else 
+				validData = new double[count+1][0]; // empty data
+		}
+		// append the data to the data set
+		clearColumns(data, count, varNames, "LineProfile.Data.Description.", validData, validData[0].length);
+	}
+	
+	protected void setTimeDataIndex(int index) {
+		timeDataIndex = Math.max(0, Math.min(index, dataVariables.length - 2));
+		firePropertyChange(TTrack.PROPERTY_TTRACK_STEPS, null, null); // $NON-NLS-1$
+		ArrayList<PlotTrackView> plotViews = getPlotViews();
+		for (int i = 0; i < plotViews.size(); i++) {
+			plotViews.get(i).refreshGUI();
+		}
+	}
+
+	protected void setShowTimeData(boolean showTime) {
+		showTimeData = showTime;
+		firePropertyChange(TTrack.PROPERTY_TTRACK_STEPS, null, null); // $NON-NLS-1$
+		ArrayList<PlotTrackView> plotViews = getPlotViews();
+		for (int i = 0; i < plotViews.size(); i++) {
+			plotViews.get(i).refreshGUI();
+		}
+		ArrayList<TableTrackView> tableViews = getTableViews();
+		for (int i = 0; i < tableViews.size(); i++) {
+			tableViews.get(i).setHorizontalScrolling(showTime);
+		}
+	}
+
+	protected void clearStepData() {
+		if (!showTimeData)
+			return;
+		Step[] steps = getSteps();
+		for (int i = 0; i < steps.length; i++) {
+			LineProfileStep step = (LineProfileStep) steps[i];
+			step.profileData = null;
+		}
 	}
 
 	/**
@@ -585,6 +724,7 @@ public class LineProfile extends TTrack {
 				invalidateData(Boolean.FALSE);
 				break;
 			case TrackerPanel.PROPERTY_TRACKERPANEL_IMAGE:
+				clearStepData();
 				invalidateData(Boolean.FALSE);
 				firePropertyChange(e); // to view
 				break;

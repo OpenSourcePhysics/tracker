@@ -52,6 +52,7 @@ public class LineProfileStep extends Step {
 	protected Map<Integer, Shape> panelEnd1Shapes = new HashMap<Integer, Shape>();
 	protected Map<Integer, Shape> panelShaftShapes = new HashMap<Integer, Shape>();
 	protected LineProfile line;
+	protected double[][] profileData;
 	protected Corner[][] corners; // corners at ends 0,1 of sweep lines 0,1
 	protected GridIntersection[] endX; // end 0,1 x-intersections
 	protected GridIntersection[] endY; // end 0,1 y-intersections
@@ -283,6 +284,7 @@ public class LineProfileStep extends Step {
 	public Object clone() {
 		LineProfileStep step = (LineProfileStep) super.clone();
 		if (step != null) {
+			step.profileData = null;
 			step.points[0] = step.lineEnd0 = step.new LineEnd(lineEnd0.getX(), lineEnd0.getY());
 			step.points[1] = step.lineEnd1 = step.new LineEnd(lineEnd1.getX(), lineEnd1.getY());
 			step.points[2] = step.handle = step.new Handle(handle.getX(), handle.getY());
@@ -320,11 +322,15 @@ public class LineProfileStep extends Step {
 	 * @return an integer array of values for image pixels along the line
 	 */
 	public double[][] getProfileData(TrackerPanel trackerPanel) {
-		return (trackerPanel.getVideo() == null ? null
+		if (this.n != trackerPanel.getFrameNumber()) {
+			return profileData;
+		}
+		profileData =  (trackerPanel.getVideo() == null ? null
 				: ((LineProfile) getTrack()).isHorizontal
 						|| Math.abs(Math.sin(trackerPanel.getCoords().getAngle(trackerPanel.getFrameNumber()))) < .00001
 								? getHorizontalProfileData(trackerPanel)
 								: getTiltedProfileData(trackerPanel));
+		return profileData;
 	}
 
 	/**
@@ -1103,6 +1109,7 @@ public class LineProfileStep extends Step {
 				setLocation(x, y);
 				line.keyFrames.add(n);
 			}
+			line.clearStepData();
 			repaint();
 			track.firePropertyChange(TTrack.PROPERTY_TTRACK_STEP, null, n); // $NON-NLS-1$
 		}
@@ -1192,6 +1199,7 @@ public class LineProfileStep extends Step {
 				setLocation(getX() + dx, getY() + dy);
 				line.keyFrames.add(n);
 			}
+			line.clearStepData();
 			repaint();
 			track.firePropertyChange(TTrack.PROPERTY_TTRACK_STEP, null, n); // $NON-NLS-1$
 		}
