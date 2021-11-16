@@ -135,7 +135,14 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 								@Override
 								public void actionPerformed(ActionEvent e) {
 									// test action goes here
-									TrackerPanel trackerPanel = frame.getTrackerPanelForTab(0);	
+									int n = frame.getSelectedTab();
+									TrackerPanel trackerPanel = frame.getTrackerPanelForTab(n);	
+									LineProfile lp = (LineProfile)trackerPanel.getTrack("A");
+									if (lp != null) {
+//										lp.setTimeDataIndex(lp.timeDataIndex==6? 0: lp.timeDataIndex+1);
+//										lp.setTimeData(lp.timeDataIndex==6? false: true);
+										lp.setShowTimeData(!lp.showTimeData);
+									}
 									
 //									AutoTracker autoTracker = trackerPanel.getAutoTracker(false);
 //									java.awt.image.BufferedImage image = autoTracker.getTemplateMatcher().getTemplate();
