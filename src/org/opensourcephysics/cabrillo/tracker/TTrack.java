@@ -3783,7 +3783,7 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 	 * @param track the track
 	 * @return ArrayList of table views
 	 */
-	private ArrayList<TableTrackView> getTableViews() {
+	protected ArrayList<TableTrackView> getTableViews() {
 		ArrayList<TableTrackView> tableTrackViews = new ArrayList<TableTrackView>();
 		if (tp == null || tframe == null) {
 			return tableTrackViews;
@@ -3798,6 +3798,29 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 			}
 		}
 		return tableTrackViews;
+	}
+
+	/**
+	 * Gets all plot views for a specified track.
+	 *
+	 * @param track the track
+	 * @return ArrayList of plot views
+	 */
+	protected ArrayList<PlotTrackView> getPlotViews() {
+		ArrayList<PlotTrackView> plotTrackViews = new ArrayList<PlotTrackView>();
+		if (tp == null || tframe == null) {
+			return plotTrackViews;
+		}
+		TViewChooser[] choosers = tframe.getViewChoosers(tp);
+		for (int i = 0; i < choosers.length; i++) {
+			if (choosers[i] == null)
+				continue;
+			PlotTView plotView = (PlotTView) choosers[i].getView(TView.VIEW_PLOT);
+			if (plotView != null) {
+				plotTrackViews.add((PlotTrackView) plotView.getTrackView(this));
+			}
+		}
+		return plotTrackViews;
 	}
 
 	/**
@@ -4017,25 +4040,42 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 		}
 	}
 
+	/**
+	 * Refreshes data by clearing previous data and appending new valid data.
+	 * Also refreshes data descriptions and initializes dataset names if needed.
+	 * 
+	 * @param data the DatasetManager with datasets to refresh
+	 * @param count the number of datasets (columns) to refresh
+	 * @param dataVariables array of variable names (length=count+1 since 1st dataset includes indep var)
+	 * @param desc prefix of String resources defined in tracker.properties
+	 * @param validData array of data arrays to be appended (length=count+1 since last array is indep var)
+	 * @param len length of the data arrays 
+	 */
 	protected void clearColumns(DatasetManager data, int count, String[] dataVariables, String desc,
 			double[][] validData, int len) {
+		// get the independent variable
 		String v0 = (dataVariables == null ? null : dataVariables[0]);
+		// if already initialized, clear existing datasets
 		if (v0 == null || data.getDataset(0).getColumnName(0).equals(v0)) {
 			for (int i = 0; i < count; i++) {
 				data.getDataset(i).clear();
 			}
 		} else if (dataVariables != null) {
-			// not yet initialized
+			// needs initialization, so set variable xy names
 			for (int i = 0; i < count; i++)
 				data.setXYColumnNames(i, v0, dataVariables[i + 1]);
 		}
+		// refresh the data descriptions
 		dataDescriptions = new String[count + 1];
 		if (desc != null) {
 			for (int i = 0; i <= count; i++) {
+				// typical String resources:
+				// "PointMass.Data.Description.0", "PointMass.Data.Description.1", etc  
 				dataDescriptions[i] = TrackerRes.getString(desc + i); // $NON-NLS-1$
 			}
 		}
 		if (validData != null) {
+			// indep var is last array in validData
 			double[] t = validData[count];
 			for (int i = 0; i < count; i++) {
 				data.getDataset(i).append(t, validData[i], len);
