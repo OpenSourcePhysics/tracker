@@ -902,7 +902,6 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 	 * Plots the data.
 	 */
 	protected void plotData() {
-
 		removeDrawables(Dataset.class);
 		// refresh the plot titles and determine if angles are being plotted
 		Dataset xData;
@@ -1296,7 +1295,6 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 	}
 	
 	protected void createVarItems() {
-
 		// make listeners for the button states
 		xListener = new ItemListener() {
 			@Override
@@ -1334,7 +1332,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 			String name = e.getKey();
 			int i = e.getValue().intValue() + 1;
 			String desc = track.getDataDescription(i);
-			if (desc.length() > 0)
+			if (desc != null && desc.length() > 0)
 				name += TrackView.DEFINED_AS + track.getDataDescription(i);
 			xChoices[i] = new JRadioButtonMenuItem(name);
 			xChoices[i].setFont(font);

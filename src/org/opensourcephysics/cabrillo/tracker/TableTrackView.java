@@ -384,8 +384,10 @@ public class TableTrackView extends TrackView {
 		// track=" + track);
 		try {
 			trackDataManager = track.getData(frame.getTrackerPanelForID(panelID));
+			if (datasetCount != trackDataManager.getDatasetsRaw().size())
+				refreshNameMaps();
+			
 			// copy datasets into table data based on checkbox states
-
 			ArrayList<Dataset> datasets = trackDataManager.getDatasetsRaw();
 			int count = datasets.size();
 			dataTable.setUnits(datasets.get(0).getXColumnName(), "", track.getDataDescription(0)); //$NON-NLS-1$
@@ -825,6 +827,9 @@ public class TableTrackView extends TrackView {
 		// refresh gaps button AFTER super.propertyChange
 		if (refreshGapButton)
 			refreshGapsButton();
+		// refresh columnsDialog, if visible, AFTER super.propertyChange
+		if (columnsDialog != null && columnsDialog.isVisible())
+			columnsDialog.refreshCheckboxes();
 	}
 
 	/**
@@ -872,6 +877,23 @@ public class TableTrackView extends TrackView {
 			dataTable.setRowHeight(font.getSize() + 4);
 			dataTable.getTableHeader().setFont(font);
 		}
+	}
+
+	/**
+	 * Sets the horizontal scrolling policy
+	 *
+	 * @param horzScroll true to enable horizontal scrolling of the table
+	 */
+	protected void setHorizontalScrolling(boolean horzScroll) {
+		dataTable.setAutoResizeMode(horzScroll? JTable.AUTO_RESIZE_OFF: JTable.AUTO_RESIZE_SUBSEQUENT_COLUMNS);
+	}
+
+	/**
+	 * Displays all data columns
+	 *
+	 */
+	protected void displayAllColumns() {
+		// pig todo
 	}
 
 	/**
