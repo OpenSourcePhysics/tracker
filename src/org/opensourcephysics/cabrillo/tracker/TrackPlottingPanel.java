@@ -951,7 +951,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 			if (n > 0 && track != null) {
 				for (int i = 0; i < n; i++) {
 					track = guests.get(i);
-					DatasetManager manager = track.getData(track.tp);
+					DatasetManager manager = track.getData(track.tp, plotTrackView.datasetIndex);
 					HighlightableDataset dataset = guestDatasets.get(track);
 					dataset.setMarkerColor(track.getColor());
 					dataset.setHighlightColor(track.getColor());
@@ -1826,7 +1826,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 				tSet.add(t);
 			}
 			for (TTrack guest : guests) {
-				DatasetManager guestData = guest.getData(guest.tp);
+				DatasetManager guestData = guest.getData(guest.tp, plotTrackView.datasetIndex);
 				Dataset nextGuestIn = guestData.getDataset(0);
 				double[] guestTArray = nextGuestIn.getXPoints();
 				for (double t : guestTArray) {

@@ -75,10 +75,12 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
+import javax.swing.JRadioButton;
 import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
+import javax.swing.JToggleButton;
 import javax.swing.JViewport;
 import javax.swing.KeyStroke;
 import javax.swing.ListSelectionModel;
@@ -171,6 +173,7 @@ public class TableTrackView extends TrackView {
 	private Map<String, Integer> htNames;
 	private String[] aNames;
 	private boolean dialogLastVisible;
+	private boolean showAllColumns;
 
 	/**
 	 * set to false during loading
@@ -247,7 +250,7 @@ public class TableTrackView extends TrackView {
 		textColumnModel = new TextColumnTableModel();
 		textColumnEditor = new TextColumnEditor();
 		dataTable = new TrackDataTable();
-		trackDataManager = track.getData(panel);
+		trackDataManager = track.getData(panel, datasetIndex);
 		dataTableManager = new DatasetManager();
 		dataTableManager.setXPointsLinked(true);
 		dataTable.add(dataTableManager.model);
@@ -335,6 +338,8 @@ public class TableTrackView extends TrackView {
 	}
 
 	protected void refreshNameMaps() {
+		if (datasetIndex > -1)
+			return;
 		htNames = new LinkedHashMap<>();
 		ArrayList<Dataset> sets = trackDataManager.getDatasetsRaw();
 		ArrayList<String> textSet = textColumnNames;
@@ -352,7 +357,6 @@ public class TableTrackView extends TrackView {
 			aNames[datasetCount + i] = name;
 			htNames.put(name, Integer.valueOf(datasetCount + i));
 		}
-
 	}
 
 	@Override
@@ -383,7 +387,7 @@ public class TableTrackView extends TrackView {
 		// OSPLog.debug("TableTrackView.refresh " + Integer.toHexString(mode) + "
 		// track=" + track);
 		try {
-			trackDataManager = track.getData(frame.getTrackerPanelForID(panelID));
+			trackDataManager = track.getData(frame.getTrackerPanelForID(panelID), datasetIndex);
 			if (datasetCount != trackDataManager.getDatasetsRaw().size())
 				refreshNameMaps();
 			
@@ -395,7 +399,9 @@ public class TableTrackView extends TrackView {
 
 			dataTableManager.clear();
 			int colCount = 0;
-			for (int i = bsCheckBoxes.nextSetBit(0); i >= 0 && i < count; i = bsCheckBoxes.nextSetBit(i + 1)) {
+			for (int i = 0; i < count; i++) {
+				if (!showAllColumns && !bsCheckBoxes.get(i))
+					continue;
 				Dataset ds = datasets.get(i);
 				String xTitle = ds.getXColumnName();
 				String yTitle = ds.getYColumnName();
@@ -413,6 +419,24 @@ public class TableTrackView extends TrackView {
 				local.setXYColumnNames(xTitle, yTitle);
 				local.setYColumnVisible(true);
 			}
+//			for (int i = bsCheckBoxes.nextSetBit(0); i >= 0 && i < count; i = bsCheckBoxes.nextSetBit(i + 1)) {
+//				Dataset ds = datasets.get(i);
+//				String xTitle = ds.getXColumnName();
+//				String yTitle = ds.getYColumnName();
+//				double[] yPoints = ds.getYPoints();
+//				if (setUnitsAndTooltip(yTitle, track.getDataDescription(i + 1), degrees)) {
+//					// convert values from radians to degrees
+//					for (int k = 0; k < yPoints.length; k++) {
+//						if (!Double.isNaN(yPoints[k])) {
+//							yPoints[k] *= 180 / Math.PI;
+//						}
+//					}
+//				}
+//				Dataset local = dataTableManager.getDataset(colCount++);
+//				local.append(ds.getXPointsRaw(), yPoints, ds.getIndex());
+//				local.setXYColumnNames(xTitle, yTitle);
+//				local.setYColumnVisible(true);
+//			}
 			for (int i = colCount; i < dataTableManager.getDatasetsRaw().size(); i++) {
 				dataTableManager.setYColumnVisible(i, false);
 			}
@@ -497,7 +521,7 @@ public class TableTrackView extends TrackView {
 		gapsButton.setToolTipText(TrackerRes.getString("TableTrackView.Button.SkippedFrames.ToolTip")); //$NON-NLS-1$
 //    track.dataValid = false; // triggers data refresh
 		TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
-		trackDataManager = track.getData(trackerPanel);
+		trackDataManager = track.getData(trackerPanel, datasetIndex);
 		// refreshColumnCheckboxes();
 		refresh(trackerPanel.getFrameNumber(), DataTable.MODE_TRACK_REFRESH);
 
@@ -888,12 +912,25 @@ public class TableTrackView extends TrackView {
 		dataTable.setAutoResizeMode(horzScroll? JTable.AUTO_RESIZE_OFF: JTable.AUTO_RESIZE_SUBSEQUENT_COLUMNS);
 	}
 
+	@Override
+	public void setDatasetIndex(int index) {
+		if (datasetIndex == index)
+			return;
+		boolean refresh = index == -1 || datasetIndex == -1;
+		datasetIndex = index;
+		if (refresh && columnsDialog != null) {
+			columnsDialog.checkBoxes = null;
+		}
+	}
+
 	/**
-	 * Displays all data columns
-	 *
+	 * Shows all data columns if true. If false, shows only columns selected
+	 * in the columnsDialog.
+	 * 
+	 * @param all true to show  all columns
 	 */
-	protected void displayAllColumns() {
-		// pig todo
+	protected void showAllColumns(boolean all) {
+		showAllColumns = all;
 	}
 
 	/**
@@ -2256,7 +2293,7 @@ public class TableTrackView extends TrackView {
 		// GUI
 
 		private JScrollPane columnsScroller;
-		private JCheckBox[] checkBoxes;
+		private JToggleButton[] checkBoxes;
 		private JPanel columnsPanel;
 
 		private JLabel trackLabel;
@@ -2277,7 +2314,7 @@ public class TableTrackView extends TrackView {
 		private ActionListener cbActionListener = new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				doCheckBoxAction(Integer.parseInt(((JCheckBox) e.getSource()).getActionCommand()));
+				doCheckBoxAction(Integer.parseInt(((JToggleButton) e.getSource()).getActionCommand()));
 			}
 		};
 
@@ -2293,22 +2330,27 @@ public class TableTrackView extends TrackView {
 		private void doCheckBoxAction(int i) {
 			boolean add = checkBoxes[i].isSelected();
 			String name = checkBoxes[i].getText();
-			bsCheckBoxes.set(i, add);
-			// if name is a text column, add/remove to textColumnsVisible
-			for (String next : getTrack().getTextColumnNames()) {
-				if (next.equals(name)) {
-					if (add)
-						textColumnsVisible.add(name);
-					else
-						textColumnsVisible.remove(name);
-					break;
+			if (checkBoxes[i] instanceof JRadioButton) {
+				datasetIndex = i;
+			}
+			else {
+				bsCheckBoxes.set(i, add);
+				// if name is a text column, add/remove to textColumnsVisible
+				for (String next : getTrack().getTextColumnNames()) {
+					if (next.equals(name)) {
+						if (add)
+							textColumnsVisible.add(name);
+						else
+							textColumnsVisible.remove(name);
+						break;
+					}
 				}
 			}
 			TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
 			trackerPanel.changed = true;
 			if (refreshing)
 				TableTrackView.this.refresh(trackerPanel.getFrameNumber(), DataTable.MODE_TRACK_STATE);
-			trackerPanel.changed = true; // BH ? a second time?
+//			trackerPanel.changed = true; // BH ? a second time?
 		}
 
 		private void createGUI() {
@@ -2402,13 +2444,18 @@ public class TableTrackView extends TrackView {
 			if (!haveGUI)
 				createGUI();
 			refreshButtonPanel();
-			if (checkBoxes == null || colCount > checkBoxes.length)
-				checkBoxes = new JCheckBox[colCount];
-			for (int i = 0; i < colCount; i++) {
-				String name = (i < datasetCount ? trackDataManager.getDataset(i).getYColumnName()
-						: textColumnNames.get(i - datasetCount));
+			int boxCount = getCheckBoxCount();
+			int setCount = getDatasetCount();
+			if (checkBoxes == null || boxCount > checkBoxes.length)
+				checkBoxes = new JToggleButton[boxCount];
+			for (int i = 0; i < boxCount; i++) {
+				String name = (datasetIndex > -1 && i < aNames.length)?
+						aNames[i]:
+						i < setCount ? 
+						trackDataManager.getDataset(i).getYColumnName(): 
+						textColumnNames.get(i - setCount);
 				if (checkBoxes[i] == null) {
-					checkBoxes[i] = new JCheckBox();
+					checkBoxes[i] = datasetIndex > -1? new JRadioButton(): new JCheckBox();
 					checkBoxes[i].setBackground(Color.white);
 					checkBoxes[i].setBorder(BorderFactory.createEmptyBorder(1, 5, 1, 0));
 					checkBoxes[i].setActionCommand("" + i);
@@ -2417,23 +2464,25 @@ public class TableTrackView extends TrackView {
 					checkBoxes[i].setOpaque(false);
 					checkBoxes[i].setFont(font);
 				}
-				checkBoxes[i].setSelected(bsCheckBoxes.get(i));
+				checkBoxes[i].setSelected(datasetIndex > -1? i==datasetIndex: bsCheckBoxes.get(i));
 				checkBoxes[i].setName(name);
 				checkBoxes[i].setText(TeXParser.removeSubscripting(name));
 			}
 			columnsPanel.removeAll();
 			ArrayList<Integer> dataOrder = track.getPreferredDataOrder();
 			BitSet bsMissed = new BitSet();
-			bsMissed.set(0, colCount);
+			bsMissed.set(0, boxCount);
 			// first add in preferred order
 			for (int i = 0, n = dataOrder.size(); i < n; i++) {
 				int pt = dataOrder.get(i);
-				columnsPanel.add(checkBoxes[pt]);
+				if (pt < checkBoxes.length)
+					columnsPanel.add(checkBoxes[pt]);
 				bsMissed.clear(pt);
 			}
 			// then add any that were missed
 			for (int i = bsMissed.nextSetBit(0); i >= 0; i = bsMissed.nextSetBit(i + 1)) {
-				columnsPanel.add(checkBoxes[i]);
+				if (i < checkBoxes.length)
+					columnsPanel.add(checkBoxes[i]);
 			}
 			refreshGUI();
 		}
@@ -2475,6 +2524,14 @@ public class TableTrackView extends TrackView {
 				setLocation(p.x - w, p.y);
 			}
 			setVisible(!isVisible());
+		}
+		
+		private int getCheckBoxCount() {
+			return datasetIndex > -1? aNames.length: colCount;
+		}
+
+		private int getDatasetCount() {			
+			return datasetCount;
 		}
 
 		@Override

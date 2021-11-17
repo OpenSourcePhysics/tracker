@@ -124,7 +124,7 @@ public class LineProfile extends TTrack {
 	protected boolean isHorizontal = true;
 	protected boolean loading;
 	protected boolean showTimeData = false;
-	protected int timeDataIndex = 0; //pig
+	protected int datasetIndex = -1; // positive for time data
 
 	/**
 	 * Constructs a LineProfile.
@@ -484,7 +484,7 @@ public class LineProfile extends TTrack {
 		if (refreshDataLater || trackerPanel == null || data == null)
 			return;
 		
-		if (showTimeData) {
+		if (showTimeData()) {
 			refreshTimeData(data, trackerPanel);
 			return;
 		}
@@ -530,10 +530,10 @@ public class LineProfile extends TTrack {
 		}
 		// refresh the data descriptions
 		dataDescriptions = new String[count + 1];
-		if (showTimeData) {
+		if (showTimeData()) {
 			dataDescriptions[0] = TrackerRes.getString("PointMass.Data.Description.0"); // time
 			for (int i = 1; i <= count; i++) {
-				dataDescriptions[i] = TrackerRes.getString(desc + (timeDataIndex+1)); // $NON-NLS-1$
+				dataDescriptions[i] = TrackerRes.getString(desc + (datasetIndex+1)); // $NON-NLS-1$
 			}			
 		}
 		else {
@@ -580,12 +580,12 @@ public class LineProfile extends TTrack {
 				LineProfileStep step = (LineProfileStep)stepArray[i];
 				if (step != null && clip.includesFrame(step.n)) {
 					double[][] next = step.getProfileData(trackerPanel);
-					if (next != null && next.length > timeDataIndex) {
-						collectedData.add(next[timeDataIndex]);
+					if (next != null && next.length > datasetIndex) {
+						collectedData.add(next[datasetIndex]);
 						int stepNumber = clip.frameToStep(i);
 						double t = player.getStepTime(stepNumber) / 1000.0;
 						times.add(t);
-						count = next[timeDataIndex].length;
+						count = next[datasetIndex].length;
 					}
 				}
 			}
@@ -598,7 +598,7 @@ public class LineProfile extends TTrack {
 				varNames[0] = "t";
 				for (int row = 0; row < orig.length; row++) {
 					for (int col = 0; col < count; col++) {
-						varNames[col+1] = dataVariables[timeDataIndex+1]+"_{"+String.valueOf(col)+"}";
+						varNames[col+1] = dataVariables[datasetIndex+1]+"_{"+String.valueOf(col)+"}";
 						validData[col][row] = orig[row][col];
 					}
 					validData[count][row] = times.get(row);
@@ -612,30 +612,51 @@ public class LineProfile extends TTrack {
 		clearColumns(data, count, varNames, "LineProfile.Data.Description.", validData, validData[0].length);
 	}
 	
-	protected void setTimeDataIndex(int index) {
-		timeDataIndex = Math.max(0, Math.min(index, dataVariables.length - 2));
-		firePropertyChange(TTrack.PROPERTY_TTRACK_STEPS, null, null); // $NON-NLS-1$
-		ArrayList<PlotTrackView> plotViews = getPlotViews();
-		for (int i = 0; i < plotViews.size(); i++) {
-			plotViews.get(i).refreshGUI();
-		}
+	@Override
+	public DatasetManager getData(TrackerPanel panel, int datasetIndex) {
+		setDatasetIndex(datasetIndex);
+		return getData(panel);
+	}
+	
+	protected void setDatasetIndex(int index) {
+		if (index == datasetIndex)
+			return;
+		datasetIndex = index;
+		System.out.println("pig setDatasetIndex "+datasetIndex);
+		invalidateData(Boolean.FALSE);
+//		firePropertyChange(TTrack.PROPERTY_TTRACK_STEPS, null, null); // $NON-NLS-1$
+//		ArrayList<PlotTrackView> plotViews = getPlotViews();
+//		for (int i = 0; i < plotViews.size(); i++) {
+//			plotViews.get(i).refreshGUI();
+//		}
+//		ArrayList<TableTrackView> tableViews = getTableViews();
+//		for (int i = 0; i < tableViews.size(); i++) {
+//			tableViews.get(i).getDataTable().getTableHeader().repaint();
+//		}
 	}
 
-	protected void setShowTimeData(boolean showTime) {
-		showTimeData = showTime;
-		firePropertyChange(TTrack.PROPERTY_TTRACK_STEPS, null, null); // $NON-NLS-1$
-		ArrayList<PlotTrackView> plotViews = getPlotViews();
-		for (int i = 0; i < plotViews.size(); i++) {
-			plotViews.get(i).refreshGUI();
-		}
-		ArrayList<TableTrackView> tableViews = getTableViews();
-		for (int i = 0; i < tableViews.size(); i++) {
-			tableViews.get(i).setHorizontalScrolling(showTime);
-		}
+//	protected void setShowTimeData(boolean showTime) {
+//		showTimeData = showTime;
+//		System.out.println("pig setShowTimeData "+showTimeData);
+//		ArrayList<TableTrackView> tableViews = getTableViews();
+//		for (int i = 0; i < tableViews.size(); i++) {
+//			tableViews.get(i).setHorizontalScrolling(showTimeData());
+//			tableViews.get(i).showAllColumns(showTimeData());
+//			tableViews.get(i).allowOneDatasetOnly(showTimeData());
+//		}
+//		firePropertyChange(TTrack.PROPERTY_TTRACK_STEPS, null, null); // $NON-NLS-1$
+//		ArrayList<PlotTrackView> plotViews = getPlotViews();
+//		for (int i = 0; i < plotViews.size(); i++) {
+//			plotViews.get(i).refreshGUI();
+//		}
+//	}
+	
+	protected boolean showTimeData() {
+		return datasetIndex > -1 && datasetIndex < dataVariables.length - 1;
 	}
 
 	protected void clearStepData() {
-		if (!showTimeData)
+		if (!showTimeData())
 			return;
 		Step[] steps = getSteps();
 		for (int i = 0; i < steps.length; i++) {

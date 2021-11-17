@@ -95,7 +95,7 @@ public class PlotTrackView extends TrackView {
 //		OSPLog.debug(Performance.timeCheckStr("PlotTrackView constr0 for " + track, Performance.TIME_MARK));
 		// get the track data object (DatasetManager)
 		TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
-		datasetManager = track.getData(trackerPanel);
+		datasetManager = track.getData(trackerPanel, datasetIndex);
 		// create the GUI
 		createGUI();
 		// set the track-specified initial plot properties
@@ -143,7 +143,7 @@ public class PlotTrackView extends TrackView {
 				|| (track = getTrack()) == null)
 			return;
 		TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
-		track.getData(trackerPanel);
+		track.getData(trackerPanel, datasetIndex);
 		boolean haveSelection = (trackerPanel.selectedSteps.size() > 0);
 		Color trackColor = track.getColor();
 		Color mc = (trackColor.equals(Color.WHITE) ? Color.GRAY : trackColor);
@@ -187,7 +187,7 @@ public class PlotTrackView extends TrackView {
 		plotsButton.setHorizontalTextPosition(SwingConstants.LEADING);
 		plotsButton.setHorizontalAlignment(SwingConstants.LEFT);
 		TTrack track = getTrack();
-		track.getData(frame.getTrackerPanelForID(panelID)); // load the current data
+		track.getData(frame.getTrackerPanelForID(panelID), datasetIndex); // load the current data
 		for (int i = 0; i < plots.length; i++) {
 			boolean custom = plots[i].isCustom;
 			plots[i].setVariables();

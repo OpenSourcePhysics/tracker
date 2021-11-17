@@ -139,9 +139,15 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 									TrackerPanel trackerPanel = frame.getTrackerPanelForTab(n);	
 									LineProfile lp = (LineProfile)trackerPanel.getTrack("A");
 									if (lp != null) {
-//										lp.setTimeDataIndex(lp.timeDataIndex==6? 0: lp.timeDataIndex+1);
-//										lp.setTimeData(lp.timeDataIndex==6? false: true);
-										lp.setShowTimeData(!lp.showTimeData);
+										ArrayList<TableTrackView> tableViews = lp.getTableViews();
+										for (int i = 0; i < tableViews.size(); i++) {
+											tableViews.get(i).setDatasetIndex(2);
+											tableViews.get(i).setHorizontalScrolling(true);
+											tableViews.get(i).showAllColumns(true);
+										}
+//										lp.setSingleDatasetIndex(lp.singleDatasetIndex==6? 0: lp.singleDatasetIndex+1);
+//										lp.setShowTimeData(lp.singleDatasetIndex==6? false: true);
+//										lp.setShowTimeData(!lp.showTimeData());
 									}
 									
 //									AutoTracker autoTracker = trackerPanel.getAutoTracker(false);

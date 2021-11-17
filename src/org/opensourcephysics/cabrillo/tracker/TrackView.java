@@ -66,14 +66,15 @@ public abstract class TrackView extends JScrollPane implements PropertyChangeLis
 	protected Icon trackIcon;
 
 	protected int myID;
+	protected int datasetIndex = -1;
 
 	protected boolean clipAdjusting;
 
-	  private static final String[] panelProps = {
-				TrackerPanel.PROPERTY_TRACKERPANEL_LOADED,
-				TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDPOINT,
-				TrackerPanel.PROPERTY_TRACKERPANEL_UNITS,
-			  };
+  private static final String[] panelProps = {
+			TrackerPanel.PROPERTY_TRACKERPANEL_LOADED,
+			TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDPOINT,
+			TrackerPanel.PROPERTY_TRACKERPANEL_UNITS,
+		  };
 
 	
 	// constructor
@@ -119,6 +120,10 @@ public abstract class TrackView extends JScrollPane implements PropertyChangeLis
 
 	TTrack getTrack() {
 		return TTrack.getTrack(trackID);
+	}
+
+	public void setDatasetIndex(int index) {
+		datasetIndex = index;
 	}
 
 	/**

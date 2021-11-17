@@ -427,6 +427,7 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 	protected String[] customNumberFormats;
 	private int ID; // unique ID number
 
+
 	// GUI
 	protected JLabel tLabel, stepLabel, tValueLabel, stepValueLabel;
 	protected NumberField tField, xField, yField, magField;
@@ -1593,6 +1594,18 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 			tool.getSelectedTab().refreshData();
 		}
 		return datasetManager;
+	}
+	
+	/**
+	 * Returns the DatasetManager for a specified Dataset index, if supported.
+	 * This default implementation ignores the index.
+	 *
+	 * @param panel the tracker panel
+	 * @param datasetIndex
+	 * @return the DatasetManager
+	 */
+	public DatasetManager getData(TrackerPanel panel, int datasetIndex) {
+		return getData(panel);
 	}
 
 	/**
@@ -3822,7 +3835,7 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 		}
 		return plotTrackViews;
 	}
-
+	
 	/**
 	 * Gets the format patterns for a specified track.
 	 *
