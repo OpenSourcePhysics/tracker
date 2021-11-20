@@ -5,15 +5,15 @@ workspace_trackerJS:
 -- check out master and merge SwingJS?
 -- add version tag to master and push all code to GitHub
 -- build tracker.jar, tracker_starter.jar using build-tracker-jar.xml file in tracker/jarscripts
--- update version number in tracker_installer.xml
--- update version number in tracker_upgrade_installer.xml
 
 workspace_trackerJS/launch4j:
 -- update version number
 -- package Tracker.exe
 
 workspace_trackerJS/installbuilder:
--- update Tracker_README.txt
+-- update docs/Tracker_README.txt
+-- update version number in tracker_installer_6.xml
+-- update version number in tracker_upgrade_installer.xml
 -- build Windows and Linux installers & upgrade installers in workspace_trackerJS/installbuilder
 
 -- on Mac: replace tracker.jar, tracker_starter.jar, tracker-x.x.x.jar in Desktop Tracker.app/Contents/Java 
@@ -41,13 +41,13 @@ workspace_trackerJS/installbuilder:
 
 dreamweaver:
 -- upload installers to installers folder
--- upload osx/linux upgrade installers, tracker-x.x.x.jar (and Tracker.exe if changed) to upgrade folder
--- upload windows upgrade installer to installers folder
+-- upload windows/osx/linux upgrade installers, tracker-x.x.x.jar and Tracker.exe to upgrade/ver6 folder 
+-- upload windows upgrade installer to installers folder?
 -- upload tracker-X.X.X.jar to archives on Davidson server
 -- update changeLog
 -- upload text files for recording downloads and launches
 -- update tracker home page (index.html)
--- update counter.php on Davidson server (and rarely, version.txt on Cabrillo?)
+-- update counter.php on Davidson server
 
 desktop:
 --add filenames to download_counts.csv and launch_counts.csv in analytics folder
