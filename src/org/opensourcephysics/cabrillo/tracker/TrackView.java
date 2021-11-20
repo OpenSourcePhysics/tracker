@@ -66,7 +66,7 @@ public abstract class TrackView extends JScrollPane implements PropertyChangeLis
 	protected Icon trackIcon;
 
 	protected int myID;
-	protected int datasetIndex = -1;
+	protected int myDatasetIndex = -1, prevDatasetIndex;
 
 	protected boolean clipAdjusting;
 
@@ -123,7 +123,7 @@ public abstract class TrackView extends JScrollPane implements PropertyChangeLis
 	}
 
 	public void setDatasetIndex(int index) {
-		datasetIndex = index;
+		myDatasetIndex = index;
 	}
 
 	/**

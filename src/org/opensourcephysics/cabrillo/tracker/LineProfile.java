@@ -35,6 +35,7 @@ import javax.swing.border.Border;
 import org.opensourcephysics.display.*;
 import org.opensourcephysics.media.core.*;
 import org.opensourcephysics.tools.FontSizer;
+import javajs.async.AsyncDialog;
 import org.opensourcephysics.controls.*;
 
 /**
@@ -231,28 +232,73 @@ public class LineProfile extends TTrack {
 	public void setFixed(boolean fixed) {
 		if (fixed == fixedLine)
 			return;
-		if (steps.isEmpty()) {
-			fixedLine = fixed;
-			return;
-		}
-		XMLControl control = new XMLControlElement(this);
-		fixedLine = fixed;
-		if (tp != null) {
-			tp.changed = true;
-			int n = tp.getFrameNumber();
-			Step step = getStep(n);
-			if (step != null) {
-				steps = new StepArray(getStep(n));
-				TFrame.repaintT(tp);
+		ArrayList<TableTrackView> tableViews = getTableViews();
+		ArrayList<PlotTrackView> plotViews = getPlotViews();
+		if (fixedLine && !fixed) {
+			boolean hasTimeView = false;
+			for (int i = 0; i < tableViews.size(); i++) {
+				hasTimeView = hasTimeView || tableViews.get(i).myDatasetIndex > -1;
+			}
+			for (int i = 0; i < plotViews.size(); i++) {
+				hasTimeView = hasTimeView || plotViews.get(i).myDatasetIndex > -1;
+			}
+			if (hasTimeView) {
+				boolean[] ok = new boolean[] {true};
+				new AsyncDialog().showConfirmDialog(null, 
+						TrackerRes.getString("TableTrackView.Dialog.TimeDataUnsupported.Message1")+"\n"+
+						TrackerRes.getString("TableTrackView.Dialog.TimeDataUnsupported.Message2"),
+						TrackerRes.getString("TableTrackView.Dialog.TimeDataUnsupported.Title"), JOptionPane.YES_NO_OPTION, (ev) -> {
+							int sel = ev.getID();
+							switch (sel) {
+							case JOptionPane.YES_OPTION:
+								for (int i = 0; i < tableViews.size(); i++) {
+									if (tableViews.get(i).myDatasetIndex > -1)
+										tableViews.get(i).lineProfileDatatypeButton.doClick(0);
+								}
+								for (int i = 0; i < plotViews.size(); i++) {
+									// pig
+//									if (plotViews.get(i).myDatasetIndex > -1)
+//										plotViews.get(i).lineProfileDatatypeButton.doClick(0);
+								}
+								break;
+
+							case JOptionPane.NO_OPTION:
+								ok[0] = false;
+							}
+						});
+				if (!ok[0])
+					return;
 			}
 		}
-		if (fixed) {
-			keyFrames.clear();
-			keyFrames.add(0);
+		if (steps.isEmpty()) {
+			fixedLine = fixed;
 		}
-		if (!loading)
-			Undo.postTrackEdit(this, control);
-		repaint();
+		else {
+			XMLControl control = new XMLControlElement(this);
+			fixedLine = fixed;
+			if (tp != null) {
+				tp.changed = true;
+				int n = tp.getFrameNumber();
+				Step step = getStep(n);
+				if (step != null) {
+					steps = new StepArray(getStep(n));
+					TFrame.repaintT(tp);
+				}
+			}
+			if (fixed) {
+				keyFrames.clear();
+				keyFrames.add(0);
+			}
+			if (!loading)
+				Undo.postTrackEdit(this, control);
+			repaint();
+		}
+		for (int i = 0; i < tableViews.size(); i++) {
+			tableViews.get(i).refreshGUI();
+		}
+		for (int i = 0; i < plotViews.size(); i++) {
+			plotViews.get(i).refreshGUI();
+		}		
 	}
 
 	/**
@@ -521,11 +567,13 @@ public class LineProfile extends TTrack {
 			// needs (re)initialization, so eliminate excess datasets, clear others and set variable xy names
 			int n = data.getDatasetsRaw().size();
 			for (int i = n-1; i >= count; i--) {
-				data.removeDataset(i);
+				if (data.getDataset(i).getClass() == Dataset.class)
+					data.removeDataset(i);
 			}
 			for (int i = 0; i < count; i++) {
 				data.clear(i);
-				data.setXYColumnNames(i, v0, dataVariables[i + 1]);
+				if (data.getDataset(i).getClass() == Dataset.class)
+					data.setXYColumnNames(i, v0, dataVariables[i + 1]);
 			}
 		}
 		// refresh the data descriptions
@@ -555,7 +603,6 @@ public class LineProfile extends TTrack {
 	 *
 	 * @param data         the DatasetManager
 	 * @param trackerPanel the tracker panel
-	 * @param datasetIndex the dataset index to display
 	 */
 	private void refreshTimeData(DatasetManager data, TrackerPanel trackerPanel) {
 		int count = 0;
@@ -576,11 +623,16 @@ public class LineProfile extends TTrack {
 				steps.setLength(trackerPanel.getFrameNumber() + 1);
 				stepArray = getSteps();
 			}
+			int k = 0;
 			for (int i = 0; i < stepArray.length; i++) {
 				LineProfileStep step = (LineProfileStep)stepArray[i];
 				if (step != null && clip.includesFrame(step.n)) {
 					double[][] next = step.getProfileData(trackerPanel);
 					if (next != null && next.length > datasetIndex) {
+						if (k == 0)
+							k = next[0].length;
+						if (k != next[0].length)
+							return;
 						collectedData.add(next[datasetIndex]);
 						int stepNumber = clip.frameToStep(i);
 						double t = player.getStepTime(stepNumber) / 1000.0;
@@ -591,7 +643,6 @@ public class LineProfile extends TTrack {
 			}
 			if (collectedData.size() > 0) {
 				// transpose rows and columns
-				// pig this assumes line profile is same length in all frames
 				double[][] orig = collectedData.toArray(new double[collectedData.size()][count]);
 				validData = new double[count+1][orig.length];
 				varNames = new String[count+1];
@@ -622,46 +673,20 @@ public class LineProfile extends TTrack {
 		if (index == datasetIndex)
 			return;
 		datasetIndex = index;
-		System.out.println("pig setDatasetIndex "+datasetIndex);
 		invalidateData(Boolean.FALSE);
-//		firePropertyChange(TTrack.PROPERTY_TTRACK_STEPS, null, null); // $NON-NLS-1$
-//		ArrayList<PlotTrackView> plotViews = getPlotViews();
-//		for (int i = 0; i < plotViews.size(); i++) {
-//			plotViews.get(i).refreshGUI();
-//		}
-//		ArrayList<TableTrackView> tableViews = getTableViews();
-//		for (int i = 0; i < tableViews.size(); i++) {
-//			tableViews.get(i).getDataTable().getTableHeader().repaint();
-//		}
 	}
 
-//	protected void setShowTimeData(boolean showTime) {
-//		showTimeData = showTime;
-//		System.out.println("pig setShowTimeData "+showTimeData);
-//		ArrayList<TableTrackView> tableViews = getTableViews();
-//		for (int i = 0; i < tableViews.size(); i++) {
-//			tableViews.get(i).setHorizontalScrolling(showTimeData());
-//			tableViews.get(i).showAllColumns(showTimeData());
-//			tableViews.get(i).allowOneDatasetOnly(showTimeData());
-//		}
-//		firePropertyChange(TTrack.PROPERTY_TTRACK_STEPS, null, null); // $NON-NLS-1$
-//		ArrayList<PlotTrackView> plotViews = getPlotViews();
-//		for (int i = 0; i < plotViews.size(); i++) {
-//			plotViews.get(i).refreshGUI();
-//		}
-//	}
-	
 	protected boolean showTimeData() {
-		return datasetIndex > -1 && datasetIndex < dataVariables.length - 1;
+		return datasetIndex > -1;
 	}
 
 	protected void clearStepData() {
-		if (!showTimeData())
-			return;
 		Step[] steps = getSteps();
 		for (int i = 0; i < steps.length; i++) {
 			LineProfileStep step = (LineProfileStep) steps[i];
-			step.profileData = null;
+			if (step != null) {
+				step.profileData = null;
+			}
 		}
 	}
 

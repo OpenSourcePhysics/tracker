@@ -59,7 +59,6 @@ import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.display.OSPRuntime.Disposable;
 import org.opensourcephysics.media.core.NumberField;
 import org.opensourcephysics.media.core.TPoint;
-import org.opensourcephysics.media.core.VideoIO;
 import org.opensourcephysics.tools.FontSizer;
 
 /**
@@ -135,20 +134,8 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 								@Override
 								public void actionPerformed(ActionEvent e) {
 									// test action goes here
-									int n = frame.getSelectedTab();
-									TrackerPanel trackerPanel = frame.getTrackerPanelForTab(n);	
-									LineProfile lp = (LineProfile)trackerPanel.getTrack("A");
-									if (lp != null) {
-										ArrayList<TableTrackView> tableViews = lp.getTableViews();
-										for (int i = 0; i < tableViews.size(); i++) {
-											tableViews.get(i).setDatasetIndex(2);
-											tableViews.get(i).setHorizontalScrolling(true);
-											tableViews.get(i).showAllColumns(true);
-										}
-//										lp.setSingleDatasetIndex(lp.singleDatasetIndex==6? 0: lp.singleDatasetIndex+1);
-//										lp.setShowTimeData(lp.singleDatasetIndex==6? false: true);
-//										lp.setShowTimeData(!lp.showTimeData());
-									}
+//									int n = frame.getSelectedTab();
+//									TrackerPanel trackerPanel = frame.getTrackerPanelForTab(n);	
 									
 //									AutoTracker autoTracker = trackerPanel.getAutoTracker(false);
 //									java.awt.image.BufferedImage image = autoTracker.getTemplateMatcher().getTemplate();

@@ -322,7 +322,7 @@ public class LineProfileStep extends Step {
 	 * @return an integer array of values for image pixels along the line
 	 */
 	public double[][] getProfileData(TrackerPanel trackerPanel) {
-		if (this.n != trackerPanel.getFrameNumber()) {
+		if (this.n != trackerPanel.getFrameNumber() || profileData != null) {
 			return profileData;
 		}
 		profileData =  (trackerPanel.getVideo() == null ? null

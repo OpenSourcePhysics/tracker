@@ -288,6 +288,7 @@ public class TableTView extends TrackChooserTView {
 				if (!customized.isEmpty()) {
 					ArrayList<String[][]> formattedColumns = new ArrayList<String[][]>();
 					String[][] data = new String[customized.size()][];
+					ArrayList<String[]> datasetIndices = new ArrayList<String[]>();
 					Iterator<TTrack> it = customized.iterator();
 					int i = -1;
 					while (it.hasNext()) {
@@ -308,11 +309,18 @@ public class TableTView extends TrackChooserTView {
 							}
 							formattedColumns.add(withName);
 						}
+						if (trackView.myDatasetIndex > -1) {
+							datasetIndices.add(trackView.getDatasetIndexData());
+						}
 					}
 					control.setValue("track_columns", data); //$NON-NLS-1$
 					if (!formattedColumns.isEmpty()) {
 						String[][][] patterns = formattedColumns.toArray(new String[0][0][0]);
 						control.setValue("column_formats", patterns); //$NON-NLS-1$
+					}
+					if (!datasetIndices.isEmpty()) {
+						String[][] indices = datasetIndices.toArray(new String[0][0]);
+						control.setValue("dataset_indices", indices); //$NON-NLS-1$
 					}
 				}
 			}
@@ -468,6 +476,24 @@ public class TableTView extends TrackChooserTView {
 							tableView.setRefreshing(true);
 						}
 					}
+			}
+			String[][] datasetIndices = (String[][]) control.getObject("dataset_indices"); //$NON-NLS-1$
+			if (datasetIndices != null) {
+				Map<TTrack, TrackView> views = view.trackViews;
+				if (views != null)
+					for (TTrack track : views.keySet()) {
+						TableTrackView tableView = (TableTrackView) view.getTrackView(track);
+						if (tableView == null)
+							continue;
+						for (int i = 0; i < datasetIndices.length; i++) {
+							String[] indices = datasetIndices[i];
+							if (!indices[0].equals(track.getName()))
+								continue;
+							int n = Integer.parseInt(indices[1]);
+							tableView.setDatasetIndex(n);
+						}
+					}
+				
 			}
 			TTrack track = view.getTrack(control.getString("selected_track")); //$NON-NLS-1$
 			if (track != null) {

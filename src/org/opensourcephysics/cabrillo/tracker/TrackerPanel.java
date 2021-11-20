@@ -2241,6 +2241,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			dataBuilder.setHelpPath("data_builder_help.html"); //$NON-NLS-1$
 			dataBuilder.addPropertyChangeListener(FunctionTool.PROPERTY_FUNCTIONTOOL_PANEL, this);
 			dataBuilder.addPropertyChangeListener(FunctionTool.PROPERTY_FUNCTIONTOOL_FUNCTION, this);
+			dataBuilder.addPropertyChangeListener(FunctionEditor.PROPERTY_FUNCTIONEDITOR_DESCRIPTION, this);
 			dataBuilder.addPropertyChangeListener(FunctionTool.PROPERTY_FUNCTIONTOOL_VISIBLE, this);
 			dataBuilder.setFontLevel(FontSizer.getLevel());
 		}
@@ -2785,6 +2786,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			if (getVideo() == null && modelBuilder != null)
 				modelBuilder.refreshSpinners();
 			break;
+		case FunctionEditor.PROPERTY_FUNCTIONEDITOR_DESCRIPTION: // from DataBuilder //$NON-NLS-1$
 		case FunctionTool.PROPERTY_FUNCTIONTOOL_FUNCTION: // from DataBuilder //$NON-NLS-1$
 			changed = true;
 			firePropertyChange(FunctionTool.PROPERTY_FUNCTIONTOOL_FUNCTION, null, e.getNewValue()); // to views //$NON-NLS-1$
@@ -3436,6 +3438,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		if (dataBuilder != null) {
 			dataBuilder.removePropertyChangeListener(FunctionTool.PROPERTY_FUNCTIONTOOL_PANEL, this);
 			dataBuilder.removePropertyChangeListener(FunctionTool.PROPERTY_FUNCTIONTOOL_FUNCTION, this);
+			dataBuilder.removePropertyChangeListener(FunctionEditor.PROPERTY_FUNCTIONEDITOR_DESCRIPTION, this);
 			dataBuilder.removePropertyChangeListener(FunctionTool.PROPERTY_FUNCTIONTOOL_VISIBLE, this);
 			dataBuilder.dispose();
 			dataBuilder = null;
