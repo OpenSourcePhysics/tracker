@@ -413,8 +413,18 @@ public class TableTrackView extends TrackView {
 				Dataset ds = datasets.get(i);
 				String xTitle = ds.getXColumnName();
 				String yTitle = ds.getYColumnName();
+				String yVarName = yTitle;
+				if (myDatasetIndex > -1) {
+					// remove subscripts with leading space (eg time-based RGB data from LineProfile)
+					int k = yVarName.indexOf("_{ "); // note space
+					if (k > 0) {
+						yVarName = yVarName.substring(0, k);
+					}
+				}
+				
 				double[] yPoints = ds.getYPoints();
-				if (setUnitsAndTooltip(yTitle, track.getDataDescription(i + 1), degrees)) {
+				boolean refreshUnits = myDatasetIndex == -1 || i < 2;
+				if (refreshUnits && setUnitsAndTooltip(yVarName, track.getDataDescription(i + 1), degrees)) {
 					// convert values from radians to degrees
 					for (int k = 0; k < yPoints.length; k++) {
 						if (!Double.isNaN(yPoints[k])) {
@@ -2230,7 +2240,14 @@ public class TableTrackView extends TrackView {
 			TTrack track = getTrack();
 			if (track.tp != null && value instanceof String) {
 				String var = (String) value;// ((JLabel) c).getText();//textLine.getText();
-				String units = track.tp.getUnits(track, var);
+				String varName = var;
+				// remove subscripts with leading space (eg time-based RGB data from LineProfile)
+				int k = varName.indexOf("_{ "); // note space
+				if (k > 0) {
+					varName = varName.substring(0, k);
+				}
+				String units = track.tp.getUnits(track, varName);
+				
 				if (units.length() > 0) {// !"".equals(units)) { //$NON-NLS-1$
 //					if (OSPRuntime.isMac()) {
 //						var = TeXParser.removeSubscripting(var);

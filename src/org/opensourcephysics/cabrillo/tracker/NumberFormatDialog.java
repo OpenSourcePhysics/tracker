@@ -144,6 +144,11 @@ public class NumberFormatDialog extends JDialog {
 			ArrayList<String> displayNames = getDisplayNames(track);
 			Map<String, String[]> map = track.getFormatMap();
 			for (String var : selectedNames) {
+				// remove subscripts with leading space (eg time-based RGB data from LineProfile)
+				int k = var.indexOf("_{ "); // note space
+				if (k > 0) {
+					var = var.substring(0, k);
+				}
 				namesToSelect.add(getDisplayName(var, displayNames, map));
 			}
 			selectedNames = namesToSelect.toArray(new String[0]);

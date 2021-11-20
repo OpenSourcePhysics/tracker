@@ -288,6 +288,7 @@ public class PlotTrackView extends TrackView {
 		case TrackerPanel.PROPERTY_TRACKERPANEL_UNITS:
 			for (TrackPlottingPanel plot : plots) {
 				plot.plotData();
+				plot.repaint();
 			}
 			return;
 		case TrackerPanel.PROPERTY_TRACKERPANEL_TRACK:

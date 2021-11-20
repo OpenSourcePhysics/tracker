@@ -902,6 +902,13 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 	 * Plots the data.
 	 */
 	protected void plotData() {
+		TTrack track = TTrack.getTrack(trackID);
+		if (track.getClass() == LineProfile.class) {
+			LineProfile lp = (LineProfile)track;
+			if (lp.datasetIndex != plotTrackView.myDatasetIndex) {
+				datasetManager = lp.getData(track.tp, plotTrackView.myDatasetIndex);
+			}
+		}
 		removeDrawables(Dataset.class);
 		// refresh the plot titles and determine if angles are being plotted
 		Dataset xData;
@@ -912,7 +919,6 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 		else
 			xData = datasetManager.getDataset(xIndex);
 		Dataset yData = datasetManager.getDataset(yIndex);
-		TTrack track = TTrack.getTrack(trackID);
 		String xTitle = xData.getColumnName(xIndex >= 0 ? 1 : 0);
 		String yTitle = yData.getColumnName(1);
 		setTitle(track.getName() + " (" + xTitle + ", " + yTitle + ")"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$

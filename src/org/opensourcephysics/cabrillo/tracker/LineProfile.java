@@ -233,14 +233,10 @@ public class LineProfile extends TTrack {
 		if (fixed == fixedLine)
 			return;
 		ArrayList<TableTrackView> tableViews = getTableViews();
-		ArrayList<PlotTrackView> plotViews = getPlotViews();
 		if (fixedLine && !fixed) {
 			boolean hasTimeView = false;
 			for (int i = 0; i < tableViews.size(); i++) {
 				hasTimeView = hasTimeView || tableViews.get(i).myDatasetIndex > -1;
-			}
-			for (int i = 0; i < plotViews.size(); i++) {
-				hasTimeView = hasTimeView || plotViews.get(i).myDatasetIndex > -1;
 			}
 			if (hasTimeView) {
 				boolean[] ok = new boolean[] {true};
@@ -254,11 +250,6 @@ public class LineProfile extends TTrack {
 								for (int i = 0; i < tableViews.size(); i++) {
 									if (tableViews.get(i).myDatasetIndex > -1)
 										tableViews.get(i).lineProfileDatatypeButton.doClick(0);
-								}
-								for (int i = 0; i < plotViews.size(); i++) {
-									// pig
-//									if (plotViews.get(i).myDatasetIndex > -1)
-//										plotViews.get(i).lineProfileDatatypeButton.doClick(0);
 								}
 								break;
 
@@ -296,9 +287,6 @@ public class LineProfile extends TTrack {
 		for (int i = 0; i < tableViews.size(); i++) {
 			tableViews.get(i).refreshGUI();
 		}
-		for (int i = 0; i < plotViews.size(); i++) {
-			plotViews.get(i).refreshGUI();
-		}		
 	}
 
 	/**
@@ -649,7 +637,7 @@ public class LineProfile extends TTrack {
 				varNames[0] = "t";
 				for (int row = 0; row < orig.length; row++) {
 					for (int col = 0; col < count; col++) {
-						varNames[col+1] = dataVariables[datasetIndex+1]+"_{"+String.valueOf(col)+"}";
+						varNames[col+1] = dataVariables[datasetIndex+1]+"_{ "+String.valueOf(col)+"}";
 						validData[col][row] = orig[row][col];
 					}
 					validData[count][row] = times.get(row);
