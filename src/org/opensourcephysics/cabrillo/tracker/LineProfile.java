@@ -95,19 +95,21 @@ public class LineProfile extends TTrack {
 		dataVariables = new String[] { "n", "x", "y", "R", //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
 				"G", "B", "luma", "pixels" }; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
 		fieldVariables = new String[0]; // no number fields used except integer spread
-		formatVariables = new String[] { "xy", "RGB", "luma" }; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+		formatVariables = new String[] { "t", "xy", "RGB", "luma" }; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 
 		// assemble format map
 		formatMap = new HashMap<>();
+		formatMap.put("t", new String[] { "t" });
 		formatMap.put("xy", new String[] { "x", "y" });
 		formatMap.put("RGB", new String[] { "R", "G", "B" });
 		formatMap.put("luma", new String[] { "luma" });
 
 		// assemble format description map
 		formatDescriptionMap = new HashMap<String, String>();
-		formatDescriptionMap.put(formatVariables[0], TrackerRes.getString("PointMass.Position.Name")); //$NON-NLS-1$
-		formatDescriptionMap.put(formatVariables[1], TrackerRes.getString("LineProfile.Description.RGB")); //$NON-NLS-1$
-		formatDescriptionMap.put(formatVariables[2], TrackerRes.getString("LineProfile.Data.Brightness")); //$NON-NLS-1$
+		formatDescriptionMap.put(formatVariables[0], TrackerRes.getString("PointMass.Data.Description.0")); //$NON-NLS-1$
+		formatDescriptionMap.put(formatVariables[1], TrackerRes.getString("PointMass.Position.Name")); //$NON-NLS-1$
+		formatDescriptionMap.put(formatVariables[2], TrackerRes.getString("LineProfile.Description.RGB")); //$NON-NLS-1$
+		formatDescriptionMap.put(formatVariables[3], TrackerRes.getString("LineProfile.Data.Brightness")); //$NON-NLS-1$
 
 	}
 
