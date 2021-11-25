@@ -120,7 +120,7 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 	public void finalize() {
 		OSPLog.finalized(this);
 	}
-
+	
 	private static void setTestOn(boolean on) {
 		if (on) {
 			testButton = new JButton("test"); //$NON-NLS-1$
@@ -130,64 +130,13 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 					final TFrame frame = (TFrame) testButton.getTopLevelAncestor();
 					if (frame != null && frame.getSelectedPanel() != null) {
 						if (testTimer == null) {
-							testTimer = new Timer(500, new ActionListener() {
+							testTimer = new Timer(20, new ActionListener() {
 								@Override
 								public void actionPerformed(ActionEvent e) {
-									// test action goes here
-//									int n = frame.getSelectedTab();
-//									TrackerPanel trackerPanel = frame.getTrackerPanelForTab(n);	
-									
-//									AutoTracker autoTracker = trackerPanel.getAutoTracker(false);
-//									java.awt.image.BufferedImage image = autoTracker.getTemplateMatcher().getTemplate();
-//									String filePath = "D:/Documents/Tracker/testing/template.gif";
-//									if (testIndex++ == 0)
-//										VideoIO.writeImageFile(image, filePath);
-//									image = ResourceLoader.getBufferedImage(filePath, java.awt.image.BufferedImage.TYPE_INT_ARGB);
-//									autoTracker.getTemplateMatcher().setTemplate(image);
-									
-//									boolean allViews = testIndex % 2 != 0;
-//									boolean portrait = (testIndex/2) % 2 == 0;
-//									frame.arrangeViews(trackerPanel, portrait, allViews);
-//									TFrame.isPortraitLayout = portrait;
-//									testIndex++;
-									
-//									long t0 = Performance.now(0);
-//									String url = "https://iwant2study.org/lookangejss/02_newtonianmechanics_7gravity/trz/angrybirdtracking.trz";
-//									String filePath = "D:/Documents/Tracker/testing/angry"+testIndex+".trz";
-//									OSPLog.debug("testIndex " + testIndex);
-//									if (testIndex % 2 == 0) {
-//										OSPLog.debug("copying to " + filePath);
-//										try {
-//											ResourceLoader.copyURLtoFile(url, filePath);
-//										} catch (IOException e1) {
-//											// TODO Auto-generated catch block
-//											e1.printStackTrace();
-//										}
-//									}
-//									else {
-//										OSPLog.debug("downloading to " + filePath);
-//										ResourceLoader.download(url, new File(filePath), true);
-//									}
-//									testIndex++;
-//									OSPLog.debug("finished " + filePath +" in "+ Performance.now(t0));
-
-//		    	      	TrackerPanel trackerPanel = frame.getTrackerPanel(frame.getSelectedTab());		 
-//		    	      	TrackControl.getControl(trackerPanel).refresh();
-//		    	      	TTrack track = trackerPanel.getSelectedTrack();
-
-//		    	      	Tracker.checkedForNewerVersion = false;
-//					  			Tracker.testString = "5.1.3"; //$NON-NLS-1$
-//					  			Tracker.loadCurrentVersion(true, false);
-//					  			Tracker.testString = null;
-
-//			    	    	Map<String, String> map = System.getenv();
-//			    	    	for (String key: map.keySet()) {
-//			    	    		System.out.println("environment "+key+" = "+map.get(key));
-//			    	    	}
-//			    	    	for (Object key: System.getProperties().keySet()) {
-//			    	    		System.out.println("property "+key+" = "+System.getProperties().get(key));
-//			    	    	}		    	      			    	      	
-
+									// test action goes here	
+											
+//									TrackerPanel trackerPanel = frame.getSelectedPanel();	
+											
 									if (!testTimer.isRepeats()) {
 										testTimer.stop();
 										testTimer = null;
@@ -195,7 +144,7 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 								}
 							});
 							testTimer.setInitialDelay(0);
-							testTimer.setRepeats(false);
+							testTimer.setRepeats(true);
 							testTimer.start();
 						} // end timer is null
 						else {
