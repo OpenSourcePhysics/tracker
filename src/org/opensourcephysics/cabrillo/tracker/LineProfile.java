@@ -317,7 +317,8 @@ public class LineProfile extends TTrack {
 		clearStepData();
 		repaint();
 		invalidateData(Boolean.FALSE);
-		firePropertyChange(TTrack.PROPERTY_TTRACK_STEP, null, tp.getFrameNumber()); // $NON-NLS-1$
+		if (tp != null)
+			firePropertyChange(TTrack.PROPERTY_TTRACK_STEP, null, tp.getFrameNumber()); // $NON-NLS-1$
 	}
 
 	/**
