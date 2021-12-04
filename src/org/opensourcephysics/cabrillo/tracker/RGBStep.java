@@ -25,10 +25,14 @@
 package org.opensourcephysics.cabrillo.tracker;
 
 import java.awt.*;
+import java.awt.event.MouseEvent;
 import java.awt.geom.*;
 import java.awt.image.*;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+
+import javax.swing.SwingUtilities;
 
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
@@ -37,8 +41,7 @@ import org.opensourcephysics.media.core.*;
 import org.opensourcephysics.tools.FontSizer;
 
 /**
- * This is a step for RGB tracks. It is used for obtaining
- * RGB data in a region of a video image.
+ * This is a step for RGBRegion. It measures video image RGB data within a defined shape.
  *
  * @author Douglas Brown
  */
@@ -46,15 +49,20 @@ public class RGBStep extends Step {
 
   // static fields
 	protected static GeneralPath crosshair;
+  protected static AlphaComposite composite = AlphaComposite.getInstance(
+  		AlphaComposite.SRC_OVER, (float) 0.1);
+
 	
 	// instance fields
   protected Position position;
   protected RGBRegion rgbRegion;
-  protected int radius;
+  protected int radius, width, height; // radius is legacy
   protected Map<Integer, Shape> panelHitShapes = new HashMap<Integer, Shape>();
 	protected double[] rgbData = new double[8];
 	protected boolean dataValid = false;
 	protected BasicStroke stroke;
+	protected Shape rgbShape;
+	protected Polygon2D polygon;
 
   static {
   	crosshair = new GeneralPath();
@@ -75,7 +83,28 @@ public class RGBStep extends Step {
    */
   public RGBStep(RGBRegion track, int n, double x, double y, int r) {
     super(track, n);
-    this.radius = r;
+    radius = width = height = r;
+    rgbRegion = track;
+    position = new Position(x, y);
+    position.setStepEditTrigger(true);
+    points = new TPoint[] {position};
+    screenPoints = new Point[getLength()];
+  }
+
+  /**
+   * Constructs a RGBStep with specified coordinates in image space.
+   *
+   * @param track the track
+   * @param n the frame number
+   * @param x the x coordinate
+   * @param y the y coordinate
+   * @param w the width
+   * @param h the height
+   */
+  public RGBStep(RGBRegion track, int n, double x, double y, int w, int h) {
+    super(track, n);
+    width = w;
+    height = h;
     rgbRegion = track;
     position = new Position(x, y);
     position.setStepEditTrigger(true);
@@ -152,9 +181,7 @@ protected Mark getMark(TrackerPanel trackerPanel) {
         transform.concatenate(trackerPanel.getCoords().getToWorldTransform(n));
       }
     	// make region of interest
-      Shape region = new Ellipse2D.Double(
-        		position.getX()-radius, position.getY()-radius,
-        		2*radius, 2*radius);
+      Shape region = getRGBShape(position);
       final Shape rgn = transform.createTransformedShape(region);
       // center of circle is crosshair or selectionShape
     	Point p = position.getScreenPosition(trackerPanel);
@@ -182,6 +209,10 @@ protected Mark getMark(TrackerPanel trackerPanel) {
           	g.draw(cross);
           }
           g.draw(rgn);
+          if (rgbRegion.shapeType == RGBRegion.SHAPE_POLYGON && !isPolygonClosed()) {
+            g.setComposite(composite);
+            g.fill(rgn);
+          }
           g.setPaint(gpaint);
         }
       };
@@ -198,7 +229,22 @@ protected Mark getMark(TrackerPanel trackerPanel) {
    * @param r the radius
    */
   public void setRadius(int r) {
+  	// pig check RGBRegion.maxRadius?
   	radius = r;
+  	rgbShape = null;
+  }
+
+  /**
+   * Sets the shape size.
+   *
+   * @param height the height
+   * @param width the width
+   */
+  public void setShapeSize(int width, int height) {
+  	// pig check RGBRegion.maxRadius?
+  	this.height = height;
+  	this.width = width;
+  	rgbShape = null;
   }
 
   /**
@@ -226,12 +272,63 @@ public Object clone() {
    * @return a descriptive string
    */
   @Override
-public String toString() {
+  public String toString() {
     return "RGBStep " + n //$NON-NLS-1$
            + " [" + format.format(position.x) //$NON-NLS-1$
            + ", " + format.format(position.y) + "]"; //$NON-NLS-1$ //$NON-NLS-2$
   }
-
+  
+  /**
+   * Gets the RGB shape after moving it to a given point.
+   *
+   * @param pt the point
+   * @return the shape
+   */
+  protected Shape getRGBShape(TPoint pt) {
+  	if (rgbShape == null) {
+  		createRGBShape(pt);
+  	}
+  	AffineTransform transform = AffineTransform.getTranslateInstance(pt.getX(), pt.getY());
+  	return transform.createTransformedShape(rgbShape);
+//  	return new Ellipse2D.Double(
+//    		pt.getX()-radius, pt.getY()-radius,
+//    		2*radius, 2*radius);
+//    return new Rectangle2D.Double(
+//    		pt.getX()-2*radius, pt.getY()-radius,
+//    		6*radius, 2*radius);
+  }
+  
+  private void createRGBShape(TPoint pt) {
+  	if (rgbRegion.shapeType == RGBRegion.SHAPE_ELLIPSE)
+  		rgbShape = RGBRegion.shapeTypesEnabled?
+  				new Ellipse2D.Double(-width/2, -height/2, width, height):
+					new Ellipse2D.Double(-radius, -radius, 2*radius, 2*radius);
+  	else if (rgbRegion.shapeType == RGBRegion.SHAPE_POLYGON) {
+  		if (polygon == null) {
+	  		polygon = new Polygon2D();
+	  		append(pt.x, pt.y);
+  		}
+  		rgbShape = polygon;
+  	}
+  	else
+  		rgbShape = new Rectangle2D.Double(-width/2, -height/2, width, height);
+  }
+  
+  protected void append(double x, double y) {
+  	polygon.add(x - position.x, y - position.y);
+  	if (polygon.vertexCount < 4 && rgbRegion.tp != null) {
+  		rgbRegion.tp.getTrackBar(false).refresh();
+  	}
+  }
+  
+  protected boolean isPolygonClosed() {
+  	return polygon != null && polygon.closed;
+  }
+  
+  protected int getPolygonVertexCount() {
+  	return polygon == null? 0: polygon.vertexCount;
+  }
+  
   /**
    * Gets the RGB data. Return array is {R,G,B,luma,pixels}
    *
@@ -248,14 +345,13 @@ public String toString() {
 	    	RGBStep step = rgbRegion.isFixedPosition()? 
 	    				(RGBStep)rgbRegion.getStep(0): this;	
 	    	TPoint pt = step.getPosition();
-	      Shape region = new Ellipse2D.Double(
-	        		pt.getX()-radius, pt.getY()-radius,
-	        		2*radius, 2*radius);
-	      int h = 2*radius + 1;
-	      int w = h;
+	      Shape region = getRGBShape(pt);
+	      Rectangle rect = region.getBounds(); // pig
+	      int h = rect.height;
+	      int w = rect.width;
         // locate starting pixel
-        int x0 = (int)pt.getX()-radius;
-        int y0 = (int)pt.getY()-radius;
+        int x0 = rect.x;
+        int y0 = rect.y;
         Point2D centerPt = new Point2D.Double();
 	      try {
 	        int[] pixels = new int[h*w];
@@ -327,7 +423,7 @@ public String toString() {
      * @param y the y coordinate
      */
     @Override
-	public void setXY(double x, double y) {
+    public void setXY(double x, double y) {
     	TTrack track = getTrack();
       if (track.isLocked()) return;
       if (rgbRegion.isFixedPosition()) {
@@ -352,7 +448,7 @@ public String toString() {
      * @param vidPanel the video panel
      */
     @Override
-	public void showCoordinates(VideoPanel vidPanel) {
+    public void showCoordinates(VideoPanel vidPanel) {
       // put values into x and y fields
     	TTrack track = getTrack();
       Point2D p = getWorldPosition(vidPanel);
@@ -368,13 +464,102 @@ public String toString() {
      * @return the frame number
      */
     @Override
-	public int getFrameNumber(VideoPanel vidPanel) {
+    public int getFrameNumber(VideoPanel vidPanel) {
       return n;
     }
-
+    
+    @Override 
+		public void setAdjusting(boolean adjusting, MouseEvent e) {
+    	if (rgbRegion.shapeType != RGBRegion.SHAPE_POLYGON)
+    		return;
+    	if (!isPolygonClosed() && !adjusting && getPolygonVertexCount() > 2)
+				SwingUtilities.invokeLater(() -> {
+		    	if (rgbRegion.tp.getSelectedPoint()!=this) {
+		    		polygon.close();
+		    		repaint();
+		    		if (rgbRegion.tp != null) {
+		    			TTrackBar trackBar = rgbRegion.tp.getTrackBar(false);
+		    			if (trackBar != null)
+		    				trackBar.refresh();
+		    		}
+		    	}
+				});
+    }
   }
 
-//__________________________ static methods ___________________________
+//__________________________ static methods & classes ___________________________
+  
+  protected static class Polygon2D extends Path2D.Double {
+  	
+  	double[] pts = new double[6];
+  	ArrayList<Point2D> vertices = new ArrayList<Point2D>();
+  	boolean closed;
+  	int vertexCount;
+  	
+  	public Polygon2D copy() {
+  		Polygon2D clone = new Polygon2D();
+    	PathIterator it = getPathIterator(null);
+  		while(!it.isDone()) {
+  			it.currentSegment(pts);
+  			clone.add(pts[0], pts[1]);
+  			it.next();
+  		}
+  		clone.closed = closed;
+  		return clone;
+  	}
+  	
+    protected void removeEndPoint() {
+    	if (vertexCount == 1)
+    		return;
+    	PathIterator it = getPathIterator(null);
+    	vertices.clear();
+  		while(!it.isDone()) {
+  			int type = it.currentSegment(pts);
+  			if (type == PathIterator.SEG_MOVETO || type == PathIterator.SEG_LINETO) {
+  				vertices.add(new Point2D.Double(pts[0], pts[1]));
+  			}
+  			it.next();
+  		}
+  		reset();
+  		int n = closed? vertices.size() - 2: vertices.size() - 1;
+    	for (int i = 0; i < n; i++) {
+    		Point2D next = vertices.get(i);
+    		if (i==0)
+    			moveTo(next.getX(), next.getY());
+    		else
+    			lineTo(next.getX(), next.getY());
+    	}
+    	closed = false;
+    	vertexCount--;
+    }
+    
+    protected void startOver() {
+    	PathIterator it = getPathIterator(null);
+    	vertices.clear();
+  		it.currentSegment(pts);
+  		reset();
+    	moveTo(pts[0], pts[1]);
+    	closed = false;
+    	vertexCount = 1;
+    }
+
+    protected void close() {
+    	if (vertexCount < 3)
+    		return;
+    	lineTo(0, 0);
+    	closed = true;
+    	vertexCount++;
+    }
+  	
+    protected void add(double x, double y) {
+    	if (getCurrentPoint() == null)
+    		moveTo(x, y);
+    	else
+    		lineTo(x, y);
+    	vertexCount++;
+    }
+    
+  }
 
   /**
    * Returns an ObjectLoader to save and load data for this class.

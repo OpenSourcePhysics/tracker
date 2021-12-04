@@ -462,7 +462,6 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 		} else {
 			track.removeListenerNCF(this);
 		}
-		toolbarComponentHeight = selectButton.getPreferredSize().height;
 		add(selectButton);
 		selectButton.setForeground(Color.red);
 		trackButton.context = "track"; //$NON-NLS-1$
@@ -511,6 +510,7 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 		add(maximizeButton);
 		revalidate();
 		TFrame.repaintT(this);
+		toolbarComponentHeight = selectButton.getPreferredSize().height;
 	}
 
 //	public Component add(Component c) {
