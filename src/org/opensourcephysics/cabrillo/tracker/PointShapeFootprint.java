@@ -47,7 +47,6 @@ public class PointShapeFootprint implements Footprint, Cloneable {
   protected BasicStroke highlightStroke = new BasicStroke(2);
   protected Color color = Color.black;
   protected Shape[] hitShapes = new Shape[1];
-//  protected double defaultWidth = 1;
 
   /**
    * Constructs a PointShapeFootprint with a point shape.
@@ -83,7 +82,7 @@ public class PointShapeFootprint implements Footprint, Cloneable {
    * @return the name
    */
   @Override
-public String getName() {
+  public String getName() {
     return name;
   }
 
@@ -93,7 +92,7 @@ public String getName() {
    * @return the localized display name
    */
   @Override
-public String getDisplayName() {
+  public String getDisplayName() {
   	return TrackerRes.getString(name);
   }
 
@@ -103,7 +102,7 @@ public String getDisplayName() {
    * @return the length
    */
   @Override
-public int getLength() {
+  public int getLength() {
     return 1;
   }
 
@@ -115,7 +114,7 @@ public int getLength() {
    * @return the icon
    */
   @Override
-public ResizableIcon getIcon(int w, int h) {
+  public ResizableIcon getIcon(int w, int h) {
 	  MultiShape shape = getShape(new Point[] {new Point()}, 1);
 	  ShapeIcon icon = new ShapeIcon(shape, w, h);
 	  icon.setColor(color);
@@ -130,7 +129,7 @@ public ResizableIcon getIcon(int w, int h) {
    * @return the mark
    */
   @Override
-public Mark getMark(Point[] points) {
+  public Mark getMark(Point[] points) {
     final MultiShape shape = getShape(points, FontSizer.getIntegerFactor());
     final Shape highlight = this.highlight;
     return new Mark() {
@@ -160,8 +159,18 @@ public Mark getMark(Point[] points) {
    * @return the hit shapes
    */
   @Override
-public Shape[] getHitShapes() {
+  public Shape[] getHitShapes() {
     return hitShapes;
+  }
+
+  /**
+   * Sets the shape.
+   *
+   * @param shape the desired shape
+   */
+  protected void setShape(Shape shape) {
+  	if (shape != null)
+  		this.shape = shape;
   }
 
   /**
@@ -170,11 +179,8 @@ public Shape[] getHitShapes() {
    * @param stroke the desired stroke
    */
   @Override
-public void setStroke(BasicStroke stroke) {
+  public void setStroke(BasicStroke stroke) {
     baseStroke = stroke;
-//    if (stroke != null) {
-//      defaultWidth = stroke.getLineWidth();
-//    }
   }
 
   /**
@@ -183,32 +189,17 @@ public void setStroke(BasicStroke stroke) {
    * @return the stroke
    */
   @Override
-public BasicStroke getStroke() {
+  public BasicStroke getStroke() {
     return baseStroke;
   }
 
-//  /**
-//   * Sets the line width.
-//   *
-//   * @param w the desired line width
-//   */
-//  public void setLineWidth(double w) {
-//    if (baseStroke == null) return;
-//    baseStroke = new BasicStroke((float)w,
-//                              BasicStroke.CAP_BUTT,
-//                              BasicStroke.JOIN_MITER,
-//                              8,
-//                              baseStroke.getDashArray(),
-//                              baseStroke.getDashPhase());
-//  }
-//
   /**
    * Sets the color.
    *
    * @param color the desired color
    */
   @Override
-public void setColor(Color color) {
+  public void setColor(Color color) {
     this.color = color;
   }
 
@@ -218,7 +209,7 @@ public void setColor(Color color) {
    * @return the color
    */
   @Override
-public Color getColor() {
+  public Color getColor() {
     return color;
   }
 
@@ -229,7 +220,7 @@ public Color getColor() {
    * @return the fill shape
    */
   @Override
-public MultiShape getShape(Point[] points, int scale) {
+  public MultiShape getShape(Point[] points, int scale) {
     Point p = points[0];
     transform.setToTranslation(p.x, p.y);
     if (scale>1) {
@@ -275,6 +266,8 @@ public MultiShape getShape(Point[] points, int scale) {
   private static final PointShapeFootprint SOLID_SQUARE;
   private static final PointShapeFootprint VECTOR;
   private static final PointShapeFootprint BOLD_VECTOR;
+  private static final PointShapeFootprint SHAPE;
+  private static final PointShapeFootprint BOLD_SHAPE;
 
   // static initializers
   static {
@@ -326,6 +319,7 @@ public MultiShape getShape(Point[] points, int scale) {
     SOLID_CIRCLE = new PointShapeFootprint("Footprint.SolidCircle", circle); //$NON-NLS-1$
     SOLID_CIRCLE.setStroke(null);
     footprints.add(SOLID_CIRCLE);
+    circle = new Ellipse2D.Double();
     circle.setFrame(-3, -3, 6, 6);
     SMALL_CIRCLE = new PointShapeFootprint("Footprint.SmallCircle", circle); //$NON-NLS-1$
     footprints.add(SMALL_CIRCLE);
@@ -399,6 +393,14 @@ public MultiShape getShape(Point[] points, int scale) {
     BOLD_VECTOR = new PositionVectorFootprint("Footprint.BoldPositionVector", 2); //$NON-NLS-1$
     footprints.add(BOLD_VECTOR);
 
+    // SHAPE
+    circle = new Ellipse2D.Double();
+    circle.setFrame(-5, -5, 10, 10);
+    SHAPE = new PointShapeFootprint("Footprint.Shape", circle); //$NON-NLS-1$
+    footprints.add(SHAPE);
+    BOLD_SHAPE = new PointShapeFootprint("Footprint.BoldShape", circle); //$NON-NLS-1$
+    BOLD_SHAPE.setStroke(new BasicStroke(2));
+    footprints.add(BOLD_SHAPE);
   }
 }
 
