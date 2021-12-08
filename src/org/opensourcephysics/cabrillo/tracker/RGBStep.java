@@ -56,7 +56,7 @@ public class RGBStep extends Step {
 	// instance fields
   protected Position position;
   protected RGBRegion rgbRegion;
-  protected int radius, width, height; // radius is legacy
+  protected int width = RGBRegion.defaultEdgeLength, height = RGBRegion.defaultEdgeLength;
   protected Map<Integer, Shape> panelHitShapes = new HashMap<Integer, Shape>();
 	protected double[] rgbData = new double[8];
 	protected boolean dataValid = false;
@@ -73,26 +73,8 @@ public class RGBStep extends Step {
   }
 
   /**
-   * Constructs a RGBStep with specified coordinates in image space.
-   *
-   * @param track the track
-   * @param n the frame number
-   * @param x the x coordinate
-   * @param y the y coordinate
-   * @param r the radius
-   */
-  public RGBStep(RGBRegion track, int n, double x, double y, int r) {
-    super(track, n);
-    radius = width = height = r;
-    rgbRegion = track;
-    position = new Position(x, y);
-    position.setStepEditTrigger(true);
-    points = new TPoint[] {position};
-    screenPoints = new Point[getLength()];
-  }
-
-  /**
-   * Constructs a RGBStep with specified coordinates in image space.
+   * Constructs a RGBStep with specified coordinates in image space
+   * and width and height in pixels.
    *
    * @param track the track
    * @param n the frame number
@@ -169,7 +151,8 @@ public void draw(DrawingPanel panel, Graphics _g) {
 protected Mark getMark(TrackerPanel trackerPanel) {
   	BasicStroke baseStroke = footprint.getStroke();
     int scale = FontSizer.getIntegerFactor();
-    float lineWidth = Math.min(scale*baseStroke.getLineWidth(), radius/3);
+    float size = Math.min(width, height);
+    float lineWidth = Math.min(scale*baseStroke.getLineWidth(), size/3);
     lineWidth = Math.max(lineWidth, baseStroke.getLineWidth());
   	if (stroke==null || stroke.getLineWidth()!=lineWidth) {
   		stroke = new BasicStroke(lineWidth);
@@ -208,10 +191,12 @@ protected Mark getMark(TrackerPanel trackerPanel) {
 	          g.setStroke(stroke);
           	g.draw(cross);
           }
-          g.draw(rgn);
-          if (rgbRegion.shapeType == RGBRegion.SHAPE_POLYGON && !isPolygonClosed()) {
-            g.setComposite(composite);
-            g.fill(rgn);
+          if (rgn != null) {
+	          g.draw(rgn);
+	          if (rgbRegion.shapeType == RGBRegion.SHAPE_POLYGON && !isPolygonClosed()) {
+	            g.setComposite(composite);
+	            g.fill(rgn);
+	          }
           }
           g.setPaint(gpaint);
         }
@@ -224,26 +209,14 @@ protected Mark getMark(TrackerPanel trackerPanel) {
   }
 
   /**
-   * Sets the radius.
-   *
-   * @param r the radius
-   */
-  public void setRadius(int r) {
-  	// pig check RGBRegion.maxRadius?
-  	radius = r;
-  	rgbShape = null;
-  }
-
-  /**
    * Sets the shape size.
    *
-   * @param height the height
-   * @param width the width
+   * @param h the height
+   * @param w the width
    */
-  public void setShapeSize(int width, int height) {
-  	// pig check RGBRegion.maxRadius?
-  	this.height = height;
-  	this.width = width;
+  public void setShapeSize(double w, double h) {
+  	height = (int) h;
+  	width = (int) w;
   	rgbShape = null;
   }
 
@@ -290,19 +263,11 @@ public Object clone() {
   	}
   	AffineTransform transform = AffineTransform.getTranslateInstance(pt.getX(), pt.getY());
   	return transform.createTransformedShape(rgbShape);
-//  	return new Ellipse2D.Double(
-//    		pt.getX()-radius, pt.getY()-radius,
-//    		2*radius, 2*radius);
-//    return new Rectangle2D.Double(
-//    		pt.getX()-2*radius, pt.getY()-radius,
-//    		6*radius, 2*radius);
   }
   
   private void createRGBShape(TPoint pt) {
   	if (rgbRegion.shapeType == RGBRegion.SHAPE_ELLIPSE)
-  		rgbShape = RGBRegion.shapeTypesEnabled?
-  				new Ellipse2D.Double(-width/2, -height/2, width, height):
-					new Ellipse2D.Double(-radius, -radius, 2*radius, 2*radius);
+  		rgbShape = new Ellipse2D.Double(-width/2, -height/2, width, height);
   	else if (rgbRegion.shapeType == RGBRegion.SHAPE_POLYGON) {
   		if (polygon == null) {
 	  		polygon = new Polygon2D();
@@ -315,6 +280,8 @@ public Object clone() {
   }
   
   protected void append(double x, double y) {
+  	if (polygon == null)
+  		polygon = new Polygon2D();
   	polygon.add(x - position.x, y - position.y);
   	if (polygon.vertexCount < 4 && rgbRegion.tp != null) {
   		rgbRegion.tp.getTrackBar(false).refresh();
@@ -327,6 +294,27 @@ public Object clone() {
   
   protected int getPolygonVertexCount() {
   	return polygon == null? 0: polygon.vertexCount;
+  }
+  
+  protected double[][] getPolygonVertices() {
+  	if (polygon == null)
+  		return null;
+  	return polygon.getVertices();
+  }
+  
+  protected void setPolygonVertices(double[][] vertices) {
+  	if (polygon == null)
+  		polygon = new Polygon2D();
+  	else {
+  		polygon.reset();
+  		polygon.vertexCount = 0;
+  	}
+  	for (int i = 0; i < vertices.length; i++) {
+  		if (vertices[i] == null)
+  			continue;
+  		polygon.add(vertices[i][0], vertices[i][1]);
+  	}
+  	polygon.closed = true;
   }
   
   /**
@@ -346,7 +334,9 @@ public Object clone() {
 	    				(RGBStep)rgbRegion.getStep(0): this;	
 	    	TPoint pt = step.getPosition();
 	      Shape region = getRGBShape(pt);
-	      Rectangle rect = region.getBounds(); // pig
+	      if (region == null)
+	      	return null;
+	      Rectangle rect = region.getBounds();
 	      int h = rect.height;
 	      int w = rect.width;
         // locate starting pixel
@@ -381,11 +371,11 @@ public Object clone() {
 	        }
 	        if (n == 0) return null;
 	        double rMean = 1.0*r/n;
-	        double rSD = n == 1? null: Math.sqrt((r2 - r*rMean) / (n - 1));
+	        double rSD = n == 1? Double.NaN: Math.sqrt((r2 - r*rMean) / (n - 1));
 	        double gMean = 1.0*g/n;
-	        double gSD = n == 1? null: Math.sqrt((g2 - g*gMean) / (n - 1));
+	        double gSD = n == 1? Double.NaN: Math.sqrt((g2 - g*gMean) / (n - 1));
 	        double bMean = 1.0*b/n;
-	        double bSD = n == 1? null: Math.sqrt((b2 - b*bMean) / (n - 1));
+	        double bSD = n == 1? Double.NaN: Math.sqrt((b2 - b*bMean) / (n - 1));
 	        rgbData[0] = rMean;
 	        rgbData[1] = gMean;
 	        rgbData[2] = bMean;
@@ -438,7 +428,7 @@ public Object clone() {
       	rgbRegion.keyFrames.add(n);
         dataValid = false; // this step's data is invalid      
     	}      
-     repaint();
+      repaint();
       track.firePropertyChange(TTrack.PROPERTY_TTRACK_STEP, null, new Integer(n)); //$NON-NLS-1$
     }
 
@@ -496,7 +486,7 @@ public Object clone() {
   	boolean closed;
   	int vertexCount;
   	
-  	public Polygon2D copy() {
+  	protected Polygon2D copy() {
   		Polygon2D clone = new Polygon2D();
     	PathIterator it = getPathIterator(null);
   		while(!it.isDone()) {
@@ -508,16 +498,27 @@ public Object clone() {
   		return clone;
   	}
   	
+  	protected double[][] getVertices() {
+    	PathIterator it = getPathIterator(null);
+  		double[][] result = new double[vertexCount][];
+  		int i = 0;
+  		while(!it.isDone()) {
+  			it.currentSegment(pts);
+  			result[i] = new double[] {pts[0], pts[1]};
+  			it.next();
+  			i++;
+  		}
+  		return result;
+  	}
+  	
     protected void removeEndPoint() {
     	if (vertexCount == 1)
     		return;
     	PathIterator it = getPathIterator(null);
     	vertices.clear();
   		while(!it.isDone()) {
-  			int type = it.currentSegment(pts);
-  			if (type == PathIterator.SEG_MOVETO || type == PathIterator.SEG_LINETO) {
-  				vertices.add(new Point2D.Double(pts[0], pts[1]));
-  			}
+  			it.currentSegment(pts);
+  			vertices.add(new Point2D.Double(pts[0], pts[1]));
   			it.next();
   		}
   		reset();
@@ -584,9 +585,8 @@ public Object clone() {
     @Override
 	public void saveObject(XMLControl control, Object obj) {
       RGBStep step = (RGBStep) obj;
-      control.setValue("x", step.position.x); //$NON-NLS-1$
-      control.setValue("y", step.position.y); //$NON-NLS-1$
-      control.setValue("radius", step.radius); //$NON-NLS-1$
+      control.setValue("position", new double[] {step.position.x, step.position.y});
+      control.setValue("size", new int[] {step.width, step.height});
     }
 
     /**
@@ -612,10 +612,12 @@ public Object clone() {
     @Override
 	public Object loadObject(XMLControl control, Object obj) {
     	RGBStep step = (RGBStep) obj;
-      step.setRadius(control.getInt("radius")); //$NON-NLS-1$
-    	double x = control.getDouble("x"); //$NON-NLS-1$
-      double y = control.getDouble("y"); //$NON-NLS-1$
-      step.position.setXY(x, y);
+      double[] position = (double[]) control.getObject("position");
+      step.position.setXY(position[0], position[1]);
+      int[] size = (int[]) control.getObject("size");
+      step.setShapeSize(size[0],  size[1]);
+      step.dataValid = false;
+      step.rgbRegion.firePropertyChange(TTrack.PROPERTY_TTRACK_STEP, null, new Integer(step.n)); //$NON-NLS-1$
     	return obj;
     }
   }

@@ -28,6 +28,8 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Graphics;
+import java.awt.Rectangle;
+import java.awt.Shape;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusAdapter;
@@ -35,6 +37,7 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.awt.geom.Ellipse2D;
 import java.awt.geom.Point2D;
 import java.beans.PropertyChangeEvent;
 import java.util.ArrayList;
@@ -54,6 +57,7 @@ import javax.swing.JPopupMenu;
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.controls.XMLControlElement;
+import org.opensourcephysics.display.DataTable;
 import org.opensourcephysics.display.Dataset;
 import org.opensourcephysics.display.DatasetManager;
 import org.opensourcephysics.display.DrawingPanel;
@@ -113,8 +117,8 @@ public class RGBRegion extends TTrack {
 	}
 
 	// static fields
-	protected final static int defaultRadius = 10;
-	protected final static int defaultMaxRadius = 100;
+	protected final static int defaultEdgeLength = 20;
+	protected final static int defaultMaxEdgeLength = 200;
 	protected final static String[] dataVariables;
 	protected final static String[] fieldVariables; // associated with number fields
 	protected final static String[] formatVariables; // used by NumberFormatSetter
@@ -123,7 +127,6 @@ public class RGBRegion extends TTrack {
 	protected final static int SHAPE_ELLIPSE = 0;
 	protected final static int SHAPE_RECTANGLE = 1;
 	protected final static int SHAPE_POLYGON = 2;
-	protected static boolean shapeTypesEnabled = false;
 
 	static {
 		dataVariables = new String[] { "t", "x", "y", "R", //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
@@ -154,12 +157,12 @@ public class RGBRegion extends TTrack {
 	protected boolean fixedPosition = true; // region has same position at all times
 	protected boolean fixedShape = true; // region has same shape and size at all times
 	protected JCheckBoxMenuItem fixedPositionItem, fixedShapeItem;
-	protected JLabel radiusLabel, heightLabel, helpLabel;
+	protected JLabel widthLabel, heightLabel, helpLabel;
 	protected TButton editPolygonButton;
-	protected int maxRadius = defaultMaxRadius;
+	protected int maxEdgeLength = defaultMaxEdgeLength;
 	protected int shapeType = SHAPE_ELLIPSE;
 	protected JComboBox<String> shapeTypeDropdown;
-	protected IntegerField radiusField, widthField, heightField;
+	protected IntegerField widthField, heightField;
 	protected ArrayList<RGBStep> validSteps = new ArrayList<RGBStep>();
 	protected boolean dataHidden = false;
 	protected boolean loading;
@@ -182,16 +185,16 @@ public class RGBRegion extends TTrack {
 		setProperty("tableVar1", "1"); //$NON-NLS-1$ //$NON-NLS-2$
 		setProperty("tableVar2", "5"); //$NON-NLS-1$ //$NON-NLS-2$
 		// set up footprint choices and color
-		setFootprints(new Footprint[] { PointShapeFootprint.getFootprint("Footprint.Circle"), //$NON-NLS-1$
-				PointShapeFootprint.getFootprint("Footprint.BoldCircle") }); //$NON-NLS-1$
+		setFootprints(new Footprint[] { PointShapeFootprint.getFootprint("Footprint.Shape"), //$NON-NLS-1$
+				PointShapeFootprint.getFootprint("Footprint.BoldShape") }); //$NON-NLS-1$
 		defaultFootprint = getFootprint();
 		setColor(defaultColors[0]);
 		// set initial hint
 		partName = TrackerRes.getString("TTrack.Selected.Hint"); //$NON-NLS-1$
 		hint = TrackerRes.getString("RGBRegion.Unmarked.Hint"); //$NON-NLS-1$
 		// create toolbar components
-		radiusLabel = new JLabel();
-		radiusLabel.setBorder(BorderFactory.createEmptyBorder(0, 4, 0, 2));
+		widthLabel = new JLabel();
+		widthLabel.setBorder(BorderFactory.createEmptyBorder(0, 4, 0, 2));
 		heightLabel = new JLabel("h");
 		heightLabel.setBorder(BorderFactory.createEmptyBorder(0, 4, 0, 2));
 		helpLabel = new JLabel();
@@ -259,12 +262,6 @@ public class RGBRegion extends TTrack {
 			}			
 		};
 		
-		radiusField = new IntegerField(2);
-		radiusField.setMinValue(1);
-		radiusField.addFocusListener(sizeFocusListener);
-		radiusField.addActionListener(sizeActionListener);
-		radiusField.addMouseListener(formatMouseListener);
-		
 		widthField = new IntegerField(2);
 		widthField.setMinValue(1);
 		widthField.addFocusListener(sizeFocusListener);
@@ -303,7 +300,6 @@ public class RGBRegion extends TTrack {
 				setFixedShape(fixedShapeItem.isSelected());
 			}
 		});
-		radiusField.setBorder(fieldBorder);
 		// position action
 		Action positionAction = new AbstractAction() {
 			@Override
@@ -333,10 +329,7 @@ public class RGBRegion extends TTrack {
 	
 	private void refreshShapeSize(IntegerField field) {
 		if (field.getBackground() == Color.yellow) {
-			if (field == radiusField)
-				setRadius(tp.getFrameNumber(), radiusField.getIntValue());
-			else
-				setShapeSize(tp.getFrameNumber(), widthField.getIntValue(), heightField.getIntValue());						
+			setShapeSize(tp.getFrameNumber(), widthField.getIntValue(), heightField.getIntValue());						
 		}
 
 	}
@@ -398,19 +391,33 @@ public class RGBRegion extends TTrack {
 	protected void setShapeType(int type) {
 		if (shapeType == type)
 			return;
+		XMLControl currentState = new XMLControlElement(this);
 		shapeType = type;
+		Undo.postTrackEdit(this, currentState);
 		for (int i = 0; i < steps.array.length; i++) {
 			RGBStep step = (RGBStep)steps.getStep(i);
 			if (step != null) {
 				step.rgbShape = null; // forces rgbShape refresh
+				step.dataValid = false;
 			}
 		}
+    Shape shape = shapeType == SHAPE_ELLIPSE?
+    		new Ellipse2D.Double(-5, -5, 10, 10):
+    		shapeType == SHAPE_RECTANGLE?	
+    		new Rectangle(-5, -5, 10, 10):
+    		new Rectangle(-5, -5, 10, 10);
+    for (int i = 0; i < getFootprints().length; i++) {
+    	((PointShapeFootprint) getFootprints()[i]).setShape(shape);
+    }
+		erase();
 		if (tp != null) {
 			TTrackBar trackBar = tp.getTrackBar(false);
 			if (trackBar != null)
-				trackBar.refresh();
+				trackBar.refresh();			
+			tp.changed = true;
+			tp.refreshTrackData(DataTable.MODE_REFRESH);
 		}
-		repaint();
+		firePropertyChange(PROPERTY_TTRACK_FOOTPRINT, null, footprint); // $NON-NLS-1$
 	}
 
 	/**
@@ -435,7 +442,7 @@ public class RGBRegion extends TTrack {
 				if (next == null)
 					continue;
 				RGBStep step = (RGBStep) next;
-				step.setRadius(keyStep.radius);
+				step.setShapeSize(keyStep.width, keyStep.height);
 			}
 		}
 		fixedShape = fixed;
@@ -462,65 +469,6 @@ public class RGBRegion extends TTrack {
 	}
 
 	/**
-	 * Sets the radius of a step and posts an undoable edit
-	 *
-	 * @param n the frame number
-	 * @param r the desired radius
-	 */
-	protected void setRadius(int n, int r) {
-		if (isLocked() || r == Integer.MIN_VALUE || tp == null)
-			return;
-		r = Math.max(r, 0);
-		r = Math.min(r, maxRadius);
-		radiusField.setIntValue(r);
-
-		RGBStep step = (RGBStep) getStep(n); // target step
-		RGBStep keyStep = step; // key step is target if radius not fixed
-		if (step != null && step.radius != r) {
-			// deselect selected point to trigger possible undo, then reselect it
-			TPoint selection = tp.getSelectedPoint();
-			tp.setSelectedPoint(null);
-			tp.selectedSteps.clear();
-			XMLControl state = new XMLControlElement(step);
-
-			if (isFixedShape()) {
-				keyStep = (RGBStep) steps.getStep(0); // key step is step 0
-				clearData(); // all data is invalid
-				keyStep.setRadius(r);
-				refreshStep(step);
-			} else {
-				shapeKeyFrames.add(n); // step is both target and key
-				step.setRadius(r);
-				step.dataValid = false; // only target step's data is invalid
-			}
-			Undo.postStepEdit(step, state);
-			tp.setSelectedPoint(selection);
-			refreshData(datasetManager, tp);
-			step.repaint();
-			firePropertyChange(PROPERTY_TTRACK_DATA, null, RGBRegion.this); // to views //$NON-NLS-1$
-		}
-	}
-
-	/**
-	 * Gets the radius.
-	 *
-	 * @return the radius
-	 */
-	public int getRadius() {
-		if (isFixedShape()) {
-			RGBStep step = (RGBStep) getStep(0);
-			if (step != null)
-				return step.radius;
-		} else if (tp != null && !fixedShape) {
-			int n = tp.getFrameNumber();
-			RGBStep step = (RGBStep) getStep(n);
-			if (step != null)
-				return step.radius;
-		}
-		return defaultRadius;
-	}
-
-	/**
 	 * Sets the shape size of a step and posts an undoable edit
 	 *
 	 * @param n the frame number
@@ -531,14 +479,14 @@ public class RGBRegion extends TTrack {
 		if (isLocked() || height == Integer.MIN_VALUE || width == Integer.MIN_VALUE || tp == null)
 			return;
 		width = Math.max(width, 0);
-		width = Math.min(width, maxRadius);
+		width = Math.min(width, maxEdgeLength);
 		widthField.setIntValue(width);
 		height = Math.max(height, 0);
-		height = Math.min(height, maxRadius);
+		height = Math.min(height, maxEdgeLength);
 		heightField.setIntValue(height);
 
 		RGBStep step = (RGBStep) getStep(n); // target step
-		RGBStep keyStep = step; // key step is target if radius not fixed
+		RGBStep keyStep = step; // key step is target if shape not fixed
 		if (step != null && (step.height != height || step.width != width)) {
 			// deselect selected point to trigger possible undo, then reselect it
 			TPoint selection = tp.getSelectedPoint();
@@ -560,7 +508,9 @@ public class RGBRegion extends TTrack {
 			tp.setSelectedPoint(selection);
 			refreshData(datasetManager, tp);
 			step.repaint();
-			firePropertyChange(PROPERTY_TTRACK_DATA, null, RGBRegion.this); // to views //$NON-NLS-1$
+			tp.changed = true;
+//			firePropertyChange(PROPERTY_TTRACK_DATA, null, RGBRegion.this); // to views //$NON-NLS-1$
+      firePropertyChange(TTrack.PROPERTY_TTRACK_STEP, null, new Integer(n)); //$NON-NLS-1$
 		}
 	}
 
@@ -580,7 +530,7 @@ public class RGBRegion extends TTrack {
 			if (step != null)
 				return new Dimension(step.width, step.height);
 		}
-		return new Dimension(2*defaultRadius, 2*defaultRadius);
+		return new Dimension(defaultEdgeLength, defaultEdgeLength);
 	}
 
 	/**
@@ -591,7 +541,6 @@ public class RGBRegion extends TTrack {
 	 */
 	@Override
 	public void draw(DrawingPanel panel, Graphics _g) {
-		// pig
 //		if (isMarking() && !(tp.getSelectedPoint() instanceof RGBStep.Position))
 //			return;
 		super.draw(panel, _g);
@@ -652,7 +601,7 @@ public class RGBRegion extends TTrack {
 	 */
 	@Override
 	public boolean isAutoAdvance() {
-		return !isFixedPosition();
+		return !isFixedPosition() && !isEditingPolygon();
 	}
 
 	/**
@@ -670,35 +619,36 @@ public class RGBRegion extends TTrack {
 		int frame = isFixedPosition() && isFixedShape()? 0 : n;
 		RGBStep step = (RGBStep) steps.getStep(frame);
 		if (step == null) { // create new step 0 and autofill array
-			if (shapeTypesEnabled) {
-				int w = widthField.getIntValue();
-				int h = heightField.getIntValue();
-				step = new RGBStep(this, 0, x, y, w, h);
-			}
-			else {
-				int r = radiusField.getIntValue();
-				step = new RGBStep(this, 0, x, y, r);				
-			}
+			int w = widthField.getIntValue();
+			int h = heightField.getIntValue();
+			if (w == 0)
+				w = h = defaultEdgeLength;
+			step = new RGBStep(this, 0, x, y, w, h);
 			step.setFootprint(getFootprint());
 			steps = new StepArray(step);
 			keyFrames.add(0);
 			shapeKeyFrames.add(0);
 		} else {
 			XMLControl currentState = new XMLControlElement(this);
-			if (shapeType == SHAPE_POLYGON && !step.isPolygonClosed()) {
-				// if fixed shape, then can append to any step
-				// so no need to test
+			// the following should occur only when marking polygons with the mouse
+			if (!loading && shapeType == SHAPE_POLYGON && !step.isPolygonClosed()) {
+				// if fixed shape then all share the same polygon so can append to any step
+				step = (RGBStep) getStep(n); // refreshes step so polygon never null
 				step.append(x, y);
+				if (!isFixedShape())
+					shapeKeyFrames.add(n);
 			}
 			else {
 				// if fixed position, must set position of step 0
 				if (isFixedPosition())
 					((RGBStep) steps.getStep(0)).getPosition().setLocation(x, y);
-				else
+				else {
 					step.getPosition().setLocation(x, y);
+					keyFrames.add(n);
+				}
 			}
-			keyFrames.add(n);
-			Undo.postTrackEdit(this, currentState);
+			if (!loading)
+				Undo.postTrackEdit(this, currentState);
 		}
 		firePropertyChange(TTrack.PROPERTY_TTRACK_STEP, HINT_STEP_ADDED_OR_REMOVED, n); // $NON-NLS-1$
 		return getStep(n);
@@ -923,56 +873,44 @@ public class RGBRegion extends TTrack {
 	public ArrayList<Component> getToolbarTrackComponents(TrackerPanel trackerPanel) {
 		ArrayList<Component> list = super.getToolbarTrackComponents(trackerPanel);
 		
-		if (shapeTypesEnabled) {
-			shapeTypeDropdown.setSelectedIndex(shapeType);
-			FontSizer.setFonts(shapeTypeDropdown, FontSizer.getLevel()); // pig?
-			list.add(shapeTypeDropdown);
-		}
+		shapeTypeDropdown.setSelectedIndex(shapeType);
+		FontSizer.setFonts(shapeTypeDropdown, FontSizer.getLevel()); // pig?
+		list.add(shapeTypeDropdown);
 		
 		int n = trackerPanel.getFrameNumber();
 		RGBStep step = (RGBStep) getStep(n);
 		
-		if (shapeTypesEnabled) {
-			if (shapeType == SHAPE_POLYGON) { 
-				if (step == null || !step.isPolygonClosed()) {
-					if (step != null && step.getPolygonVertexCount() > 1) {
-						editPolygonButton.setText(TrackerRes.getString("RGBRegion.Button.Edit.Text"));
-						list.add(editPolygonButton);
-					}
-					helpLabel.setText(TrackerRes.getString("RGBRegion.Label.MarkPolygon.Text")); //$NON-NLS-1$
-					list.add(helpLabel);
+		if (shapeType == SHAPE_POLYGON) { 
+			editPolygonButton.setText(TrackerRes.getString("RGBRegion.Button.Edit.Text"));
+			if (step == null || !step.isPolygonClosed()) {
+				if (step != null && step.getPolygonVertexCount() > 1) {
+					list.add(editPolygonButton);
 				}
-				else {
-					list.add(editPolygonButton);					
-				}
+				helpLabel.setText(TrackerRes.getString("RGBRegion.Label.MarkPolygon.Text")); //$NON-NLS-1$
+				list.add(helpLabel);
 			}
 			else {
-				radiusLabel.setText("w"); //$NON-NLS-1$
-				list.add(radiusLabel);
-				Dimension dim = getShapeSize();
-				widthField.setIntValue(dim.width);
-				widthField.setEnabled(!isLocked());
-				list.add(widthField);
-				list.add(heightLabel);
-				heightField.setIntValue(dim.height);
-				heightField.setEnabled(!isLocked());
-				list.add(heightField);
+				list.add(editPolygonButton);					
 			}
 		}
 		else {
-			radiusLabel.setText(TrackerRes.getString("RGBRegion.Label.Radius")); //$NON-NLS-1$
-			list.add(radiusLabel);
-			radiusField.setIntValue(getRadius());
-			radiusField.setEnabled(!isLocked());
-			list.add(radiusField);
+			widthLabel.setText("w"); //$NON-NLS-1$
+			list.add(widthLabel);
+			Dimension dim = getShapeSize();
+			widthField.setIntValue(dim.width);
+			widthField.setEnabled(!isLocked());
+			list.add(widthField);
+			list.add(heightLabel);
+			heightField.setIntValue(dim.height);
+			heightField.setEnabled(!isLocked());
+			list.add(heightField);
 		}
 		
 		if (step == null)
 			return list;
 		
-		if (shapeTypesEnabled && shapeType == SHAPE_POLYGON && !step.isPolygonClosed())
+		if (shapeType == SHAPE_POLYGON && !step.isPolygonClosed())
 			return list;
-
 
 		stepLabel.setText(TrackerRes.getString("TTrack.Label.Step")); //$NON-NLS-1$
 		xLabel.setText(dataVariables[1]);
@@ -1039,7 +977,7 @@ public class RGBRegion extends TTrack {
 	@Override
 	public void setFontLevel(int level) {
 		super.setFontLevel(level);
-		Object[] objectsToSize = new Object[] { radiusLabel };
+		Object[] objectsToSize = new Object[] { widthLabel };
 		FontSizer.setFonts(objectsToSize, level);
 	}
 
@@ -1068,8 +1006,8 @@ public class RGBRegion extends TTrack {
 	@Override
 	public void propertyChange(PropertyChangeEvent e) {
 		if (tp != null) {
-			if (maxRadius == defaultMaxRadius && tp.getVideo() != null) {
-				setMaxRadius(tp.getVideo());
+			if (maxEdgeLength == defaultMaxEdgeLength && tp.getVideo() != null) {
+				setMaxEdgeLength(tp.getVideo());
 			}
 			switch (e.getPropertyName()) {
 			case TrackerPanel.PROPERTY_TRACKERPANEL_STEPNUMBER:
@@ -1077,14 +1015,12 @@ public class RGBRegion extends TTrack {
 				int n = tp.getFrameNumber();
 				RGBStep step = (RGBStep) getStep(n);
 				if (step != null) {
-					radiusField.setIntValue(step.radius);
 					widthField.setIntValue(step.width);
 					heightField.setIntValue(step.height);
 					Point2D p = step.position.getWorldPosition(tp);
 					xField.setValue(p.getX());
 					yField.setValue(p.getY());
 				}
-				radiusField.setEnabled(!isLocked() && step != null);
 				stepValueLabel.setText(e.getNewValue() + ":"); //$NON-NLS-1$
 //        firePropertyChange(e); // to views
 				if (!isFixedShape() && shapeType == SHAPE_POLYGON) {
@@ -1103,7 +1039,7 @@ public class RGBRegion extends TTrack {
 				else
 					dataHidden = false;
 				if (vid != null) {
-					setMaxRadius(vid);
+					setMaxEdgeLength(vid);
 				}
 				firePropertyChange(e); // to views
 				break;
@@ -1112,9 +1048,9 @@ public class RGBRegion extends TTrack {
 		super.propertyChange(e); // handled by TTrack
 	}
 
-	private void setMaxRadius(Video video) {
+	private void setMaxEdgeLength(Video video) {
 		Dimension d = video.getImageSize();
-		maxRadius = Math.min(d.height / 2, d.width / 2) - 1;
+		maxEdgeLength = Math.min(d.height, d.width) - 1;
 	}
 
 	/**
@@ -1176,11 +1112,11 @@ public class RGBRegion extends TTrack {
 					key = i;
 			}
 		}
-		int radiusKey = 0;
+		int shapeKey = 0;
 		if (!isFixedShape()) {
 			for (int i : shapeKeyFrames) {
 				if (i <= step.n)
-					radiusKey = i;
+					shapeKey = i;
 			}
 		}
 		// compare step with keySteps and update if needed
@@ -1193,13 +1129,20 @@ public class RGBRegion extends TTrack {
 			step.erase();
 			step.dataValid = false;
 		}
-		RGBStep shapeKeyStep = (RGBStep) steps.getStep(radiusKey);
+		RGBStep shapeKeyStep = (RGBStep) steps.getStep(shapeKey);
+		if (shapeType == SHAPE_POLYGON && shapeKeyStep.polygon == null) {
+			// use first step with non-null polygon, if any
+			for (int i = 0; i < steps.array.length; i++) {
+				shapeKeyStep = (RGBStep) steps.getStep(i);
+				if (shapeKeyStep.polygon != null)
+					break;
+			}
+		}
 		if (isDifferentShape(step, shapeKeyStep)) {
 			if (shapeType == SHAPE_POLYGON) {
 				step.rgbShape = step.polygon = shapeKeyStep.polygon;
 			}
 			else {
-				step.setRadius(shapeKeyStep.radius);
 				step.setShapeSize(shapeKeyStep.width, shapeKeyStep.height);
 			}
 			step.erase();
@@ -1209,11 +1152,16 @@ public class RGBRegion extends TTrack {
 	
 	private boolean isDifferentShape(RGBStep step, RGBStep keyStep) {
 		if (shapeType == SHAPE_POLYGON) {
-			return step.polygon != keyStep.polygon; // pig
+			return step.polygon != keyStep.polygon;
 		}
-		return shapeTypesEnabled? 
-				keyStep.width != step.width || keyStep.height != step.height:
-				keyStep.radius != step.radius;
+		return keyStep.width != step.width || keyStep.height != step.height;
+	}
+
+	private boolean isEditingPolygon() {
+		if (shapeType != SHAPE_POLYGON)
+			return false;
+		RGBStep step = (RGBStep) steps.getStep(tp.getFrameNumber());
+		return step != null && !step.isPolygonClosed();
 	}
 
 //__________________________ static methods ___________________________
@@ -1259,30 +1207,40 @@ public class RGBRegion extends TTrack {
 			XML.getLoader(TTrack.class).saveObject(control, obj);
 			// save fixed position
 			control.setValue("fixed", region.isFixedPosition()); //$NON-NLS-1$
-			// save fixed radius
-			control.setValue("fixed_radius", region.isFixedShape()); //$NON-NLS-1$
+			control.setValue("fixed_shape", region.isFixedShape()); //$NON-NLS-1$
+			// save shape type
+			control.setValue("shape_type", region.shapeType);
 			// save step data, if any
 			if (!region.steps.isEmpty()) {
 				Step[] steps = region.getSteps();
 				int count = region.isFixedPosition() ? 1 : steps.length;
-				FrameData[] data = new FrameData[count];
+				// save position data			
+				double[][] positions = new double[count][];
+//				FrameData[] data = new FrameData[count];
 				for (int n = 0; n < count; n++) {
 					// save only position key frames
 					if (steps[n] == null || !region.keyFrames.contains(n))
 						continue;
-					data[n] = new FrameData((RGBStep) steps[n]);
+//					data[n] = new FrameData((RGBStep) steps[n]);
+					RGBStep.Position next = ((RGBStep) steps[n]).position;
+					positions[n] = new double[] {next.x, next.y};
 				}
-				control.setValue("framedata", data); //$NON-NLS-1$
-				// save radius
+//				control.setValue("framedata", data); //$NON-NLS-1$
+				control.setValue("positions", positions); //$NON-NLS-1$
+				// save shape sizes/vertices
 				count = region.isFixedShape() ? 1 : steps.length;
-				Integer[] radii = new Integer[count];
+				double[][][] shapes = new double[count][][];
 				for (int n = 0; n < count; n++) {
-					// save only radius key frames
+					// save only shape key frames
 					if (steps[n] == null || !region.shapeKeyFrames.contains(n))
 						continue;
-					radii[n] = ((RGBStep) steps[n]).radius;
+					RGBStep step = (RGBStep) steps[n];
+					if (region.shapeType == RGBRegion.SHAPE_POLYGON)
+						shapes[n] = step.getPolygonVertices();
+					else
+						shapes[n] = new double[][] {{step.width, step.height}};
 				}
-				control.setValue("radii", radii); //$NON-NLS-1$
+				control.setValue("shapes", shapes); //$NON-NLS-1$
 				// save RGB values
 				count = steps.length;
 				int first = 0;
@@ -1292,16 +1250,16 @@ public class RGBRegion extends TTrack {
 					last = region.tp.getPlayer().getVideoClip().getEndFrameNumber();
 				}
 				double[][] rgb = new double[last + 1][];
-				double[] stepRGB = new double[5];
+				double[] stepRGB;
 				for (int n = first; n <= last; n++) {
 					// save RGB and pixel count data for all valid frames in clip
 					if (n > steps.length - 1 || steps[n] == null)
 						continue;
 					if (((RGBStep) steps[n]).dataValid) {
 						stepRGB = ((RGBStep) steps[n]).rgbData;
-						rgb[n] = new double[4];
+						rgb[n] = new double[7];
 						System.arraycopy(stepRGB, 0, rgb[n], 0, 3);
-						System.arraycopy(stepRGB, 4, rgb[n], 3, 1);
+						System.arraycopy(stepRGB, 4, rgb[n], 3, 4);
 					}
 				}
 				control.setValue("rgb", rgb); //$NON-NLS-1$
@@ -1337,26 +1295,61 @@ public class RGBRegion extends TTrack {
 			region.loading = true;
 			// load fixed position
 			region.fixedPosition = control.getBoolean("fixed"); //$NON-NLS-1$
-			// load fixed radius
-			region.fixedShape = control.getBoolean("fixed_radius"); //$NON-NLS-1$
+			// load fixed shape (legacy: radius)
+			if (control.getPropertyNamesRaw().contains("fixed_radius"))
+				region.fixedShape = control.getBoolean("fixed_radius"); //$NON-NLS-1$
+			else
+				region.fixedShape = control.getBoolean("fixed_shape"); //$NON-NLS-1$
+			// load shape type
+			int type = control.getInt("shape_type");
+			region.shapeType = type == Integer.MIN_VALUE? SHAPE_ELLIPSE: type;
 			// load step data
 			region.keyFrames.clear();
 			region.shapeKeyFrames.clear();
-			Object dataObj = control.getObject("framedata"); //$NON-NLS-1$
-			FrameData[] data = null;
-			if (dataObj instanceof FrameData) { // legacy
-				data = new FrameData[] { (FrameData) dataObj };
-			} else { // dataObj instanceof FrameData[]
-				data = (FrameData[]) dataObj;
-			}
-			if (data != null) {
-				for (int n = 0; n < data.length; n++) {
-					if (data[n] == null)
+			
+			// vers 6.0.4+ code
+			double[][] positions = (double[][])control.getObject("positions");
+			if (positions != null) {
+				for (int n = 0; n < positions.length; n++) {
+					if (positions[n] == null)
 						continue;
-					RGBStep step = (RGBStep) region.createStep(n, data[n].x, data[n].y);
-					if (data[n].r != Integer.MIN_VALUE) {
-						step.radius = data[n].r;
-						region.shapeKeyFrames.add(n); // for legacy compatibility
+					region.createStep(n, positions[n][0], positions[n][1]);
+				}
+			}
+			double[][][] shapes = (double[][][])control.getObject("shapes");
+			if (shapes != null) {
+				region.shapeKeyFrames.clear();
+				for (int n = 0; n < shapes.length; n++) {
+					if (shapes[n] == null)
+						continue;
+					RGBStep step = (RGBStep) region.steps.getStep(n);
+					if (region.shapeType == RGBRegion.SHAPE_POLYGON)
+						step.setPolygonVertices(shapes[n]);
+					else
+						step.setShapeSize(shapes[n][0][0], shapes[n][0][1]);
+					region.shapeKeyFrames.add(n);
+				}					
+			}
+			// end vers 6.0.4+ code
+			
+			// pre-vers 6.0.4 code
+			if (control.getPropertyNamesRaw().contains("framedata")) {
+				Object dataObj = control.getObject("framedata"); //$NON-NLS-1$
+				FrameData[] data = null;
+				if (dataObj instanceof FrameData) { // legacy
+					data = new FrameData[] { (FrameData) dataObj };
+				} else { // dataObj instanceof FrameData[]
+					data = (FrameData[]) dataObj;
+				}
+				if (data != null) {
+					for (int n = 0; n < data.length; n++) {
+						if (data[n] == null)
+							continue;
+						RGBStep step = (RGBStep) region.createStep(n, data[n].x, data[n].y);
+						if (data[n].r != Integer.MIN_VALUE) {
+							step.setShapeSize(2 * data[n].r, 2 * data[n].r);
+							region.shapeKeyFrames.add(n); // for legacy compatibility
+						}
 					}
 				}
 			}
@@ -1367,22 +1360,22 @@ public class RGBRegion extends TTrack {
 					if (radii[n] == null)
 						continue;
 					RGBStep step = (RGBStep) region.steps.getStep(n);
-					step.radius = radii[n];
+					int side = 2 * radii[n];
+					step.setShapeSize(side, side);
 					region.shapeKeyFrames.add(n);
 				}
 			}
+			// end pre-vers 6.0.4 code
+
 			double[][] rgb = (double[][]) control.getObject("rgb"); //$NON-NLS-1$
 			if (rgb != null) {
 				for (int n = 0; n < rgb.length; n++) {
 					if (rgb[n] == null)
 						continue;
 					RGBStep step = (RGBStep) region.steps.getStep(n);
-					System.arraycopy(rgb[n], 0, step.rgbData, 0, 3);
-					step.rgbData[0] = rgb[n][0];
-					step.rgbData[1] = rgb[n][1];
-					step.rgbData[2] = rgb[n][2];
-					step.rgbData[3] = RGBRegion.getLuma(rgb[n][0], rgb[n][1], rgb[n][2]);
-					step.rgbData[4] = rgb[n][3];
+					System.arraycopy(rgb[n], 0, step.rgbData, 0, 3);					
+					System.arraycopy(rgb[n], 3, step.rgbData, 4, rgb[n].length >= 7? 4: 1);
+					step.rgbData[3] = getLuma(rgb[n][0], rgb[n][1], rgb[n][2]);
 					region.refreshStep(step);
 					step.dataValid = true;
 				}
@@ -1396,6 +1389,7 @@ public class RGBRegion extends TTrack {
 
 	/**
 	 * Inner class containing the rgb data for a single frame number.
+	 * Now used only for legacy pre-vers 6.0.4 TRK files
 	 */
 	private static class FrameData {
 		double x, y;
@@ -1405,11 +1399,6 @@ public class RGBRegion extends TTrack {
 			/** empty block */
 		}
 
-		FrameData(RGBStep s) {
-			x = s.getPosition().getX();
-			y = s.getPosition().getY();
-			r = s.radius;
-		}
 	}
 
 	/**
@@ -1419,10 +1408,6 @@ public class RGBRegion extends TTrack {
 
 		@Override
 		public void saveObject(XMLControl control, Object obj) {
-			FrameData data = (FrameData) obj;
-			control.setValue("x", data.x); //$NON-NLS-1$
-			control.setValue("y", data.y); //$NON-NLS-1$
-			control.setValue("r", data.r); //$NON-NLS-1$
 		}
 
 		@Override
