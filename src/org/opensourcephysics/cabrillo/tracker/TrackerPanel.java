@@ -3893,11 +3893,12 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 					trackerPanel.progress = TrackerIO.PROGRESS_TRACKS_ADDED;
 					break;
 				case TrackerIO.PROGRESS_TRACKS_ADDED:
-					ArrayList<?> tracks2 = ArrayList.class.cast(control.getObject("tracks")); //$NON-NLS-1$
-					// wait until all tracks are added, then finalize the loading
-					// for those that need it -- CenterOfMass, DyanamicSystem, and VectorSum
-					for (int i = 0, n = tracks2.size(); i < n; i++) {
-						((TTrack) tracks2.get(i)).initialize(trackerPanel);
+//					ArrayList<?> tracks2 = ArrayList.class.cast(control.getObject("tracks")); //$NON-NLS-1$
+					ArrayList<TTrack> traks = trackerPanel.getTracks(); //$NON-NLS-1$
+					// initialize tracks only after loading all of them
+					// required by CenterOfMass, DyanamicSystem, and VectorSum
+					for (int i = 0, n = traks.size(); i < n; i++) {
+						traks.get(i).initialize(trackerPanel);
 					}
 					// load drawing scenes saved in vers 4.11.0+
 					ArrayList<PencilScene> scenes = (ArrayList<PencilScene>) control.getObject("drawing_scenes"); //$NON-NLS-1$
