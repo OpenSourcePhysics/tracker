@@ -32,8 +32,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.swing.SwingUtilities;
-
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.display.*;
@@ -51,6 +49,7 @@ public class RGBStep extends Step {
 	protected static GeneralPath crosshair;
   protected static AlphaComposite composite = AlphaComposite.getInstance(
   		AlphaComposite.SRC_OVER, (float) 0.1);
+  protected static TPoint marker;
 
 	
 	// instance fields
@@ -58,6 +57,7 @@ public class RGBStep extends Step {
   protected RGBRegion rgbRegion;
   protected int width = RGBRegion.defaultEdgeLength, height = RGBRegion.defaultEdgeLength;
   protected Map<Integer, Shape> panelHitShapes = new HashMap<Integer, Shape>();
+  protected Map<Integer, Shape[]> polygonHitShapes = new HashMap<Integer, Shape[]>();
 	protected double[] rgbData = new double[8];
 	protected boolean dataValid = false;
 	protected BasicStroke stroke;
@@ -70,6 +70,7 @@ public class RGBStep extends Step {
   	crosshair.lineTo(0, 3);
   	crosshair.moveTo(-3, 0);
   	crosshair.lineTo(3, 0);
+    marker = new TPoint();
   }
 
   /**
@@ -90,7 +91,7 @@ public class RGBStep extends Step {
     rgbRegion = track;
     position = new Position(x, y);
     position.setStepEditTrigger(true);
-    points = new TPoint[] {position};
+    points = new TPoint[] {position, track.vertexHandle};
     screenPoints = new Point[getLength()];
   }
 
@@ -112,12 +113,24 @@ public class RGBStep extends Step {
    * @return the TPoint that is hit, or null
    */
   @Override
-public Interactive findInteractive(
+  public Interactive findInteractive(
          DrawingPanel panel, int xpix, int ypix) {
     TrackerPanel trackerPanel = (TrackerPanel)panel;
     setHitRectCenter(xpix, ypix);
     Shape hitShape = panelHitShapes.get(trackerPanel.getID());
-    if (hitShape != null && hitShape.intersects(hitRect)) return position;
+    if (hitShape != null && hitShape.intersects(hitRect)) 
+    	return position;
+    if (!isPolygonClosed()) {
+	    Shape[] polyshapes = polygonHitShapes.get(trackerPanel.getID());
+	    if (polyshapes != null) {
+	    	for (int i = 0; i < polyshapes.length; i++) {
+	    		if (polyshapes[i].intersects(hitRect)) {
+	    			rgbRegion.prepareVertexHandle(this, i);
+	    			return rgbRegion.vertexHandle;
+	    		}
+	    	}
+	    }
+    }
     return null;
   }
 
@@ -140,6 +153,23 @@ public void draw(DrawingPanel panel, Graphics _g) {
     // note this method does nothing once RGB data is valid
     getRGBData(trackerPanel);
   }
+
+	/**
+	 * Gets the default point. This returns RGBRegion.vertexHandle
+	 * when a polygon is being edited.
+	 *
+	 * @return the default TPoint
+	 */
+	@Override
+	public TPoint getDefaultPoint() {
+		if (rgbRegion.shapeType == RGBRegion.SHAPE_POLYGON
+				&& polygon != null 
+				&& !polygon.isClosed()
+				&& polygon.vertices.size() > 1) {
+			return rgbRegion.vertexHandle;
+		}
+		return points[defaultIndex];
+	}
 
   /**
    * Overrides Step getMark method.
@@ -166,15 +196,38 @@ protected Mark getMark(TrackerPanel trackerPanel) {
     	// make region of interest
       Shape region = getRGBShape(position);
       final Shape rgn = transform.createTransformedShape(region);
+      
+    	polygonHitShapes.remove(trackerPanel.getID());
+      if (rgbRegion.shapeType == RGBRegion.SHAPE_POLYGON && polygon != null) {
+      	int n = polygon.vertices.size() - (polygon.isClosed()? 2: 1);
+      	if (n > 0) {
+	      	Shape[] polyshapes = new Shape[n];
+	      	for (int i = 0; i < n; i++) {
+	      		Point2D pt = polygon.vertices.get(i + 1);
+	      		marker.setLocation(position.getX() + pt.getX(), position.getY() + pt.getY());
+	      		Point p = marker.getScreenPosition(trackerPanel);
+	          transform.setToTranslation(p.x, p.y);
+	          polyshapes[i] = transform.createTransformedShape(crosshair);
+	      	}
+	      	polygonHitShapes.put(trackerPanel.getID(), polyshapes);
+      	}
+      }
       // center of circle is crosshair or selectionShape
     	Point p = position.getScreenPosition(trackerPanel);
       transform.setToTranslation(p.x, p.y);
       final Shape cross = transform.createTransformedShape(crosshair);
-      if (scale>1) {
-      	transform.scale(scale, scale);
-      }
-      final Shape square = position == trackerPanel.getSelectedPoint()?
+      transform.scale(scale, scale);
+      Shape square = position == trackerPanel.getSelectedPoint()?
       	transform.createTransformedShape(selectionShape): null;
+      	
+      if (rgbRegion.vertexHandle == trackerPanel.getSelectedPoint()) {
+      	p = rgbRegion.vertexHandle.getScreenPosition(trackerPanel);
+        transform.setToTranslation(p.x, p.y);
+        transform.scale(scale, scale);
+        square = transform.createTransformedShape(selectionShape);
+      }
+      final Shape selection = square;
+
       mark = new Mark() {
         @Override
         public void draw(Graphics2D g, boolean highlighted) {
@@ -182,9 +235,9 @@ protected Mark getMark(TrackerPanel trackerPanel) {
           g.setPaint(footprint.getColor());
           if (OSPRuntime.setRenderingHints) g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, 
           		RenderingHints.VALUE_ANTIALIAS_ON);
-          if (square != null) {
+          if (selection != null) {
 						g.setStroke(selectionStroke);
-						g.draw(square);
+						g.draw(selection);
 						g.setStroke(stroke);
           }
           else {
@@ -230,8 +283,10 @@ public Object clone() {
     RGBStep step = (RGBStep)super.clone();
     if (step != null) {
       step.panelHitShapes = new HashMap<Integer, Shape>();
+      step.polygonHitShapes = new HashMap<Integer, Shape[]>();
       step.points[0] = step.position = step.new Position(
       			position.getX(), position.getY());
+      step.points[1] = rgbRegion.vertexHandle;
       step.position.setStepEditTrigger(true);
       step.rgbData = new double[8];
       step.dataValid = false;
@@ -283,17 +338,17 @@ public Object clone() {
   	if (polygon == null)
   		polygon = new Polygon2D();
   	polygon.add(x - position.x, y - position.y);
-  	if (polygon.vertexCount < 4 && rgbRegion.tp != null) {
+  	if (polygon.vertices.size() < 4 && rgbRegion.tp != null) {
   		rgbRegion.tp.getTrackBar(false).refresh();
   	}
   }
   
   protected boolean isPolygonClosed() {
-  	return polygon != null && polygon.closed;
+  	return polygon != null && polygon.isClosed();
   }
   
   protected int getPolygonVertexCount() {
-  	return polygon == null? 0: polygon.vertexCount;
+  	return polygon == null? 0: polygon.vertices.size();
   }
   
   protected double[][] getPolygonVertices() {
@@ -307,14 +362,13 @@ public Object clone() {
   		polygon = new Polygon2D();
   	else {
   		polygon.reset();
-  		polygon.vertexCount = 0;
+  		polygon.vertices.clear();
   	}
   	for (int i = 0; i < vertices.length; i++) {
   		if (vertices[i] == null)
   			continue;
   		polygon.add(vertices[i][0], vertices[i][1]);
   	}
-  	polygon.closed = true;
   }
   
   /**
@@ -460,20 +514,8 @@ public Object clone() {
     
     @Override 
 		public void setAdjusting(boolean adjusting, MouseEvent e) {
-    	if (rgbRegion.shapeType != RGBRegion.SHAPE_POLYGON)
-    		return;
-    	if (!isPolygonClosed() && !adjusting && getPolygonVertexCount() > 2)
-				SwingUtilities.invokeLater(() -> {
-		    	if (rgbRegion.tp.getSelectedPoint()!=this) {
-		    		polygon.close();
-		    		repaint();
-		    		if (rgbRegion.tp != null) {
-		    			TTrackBar trackBar = rgbRegion.tp.getTrackBar(false);
-		    			if (trackBar != null)
-		    				trackBar.refresh();
-		    		}
-		    	}
-				});
+    	if (!adjusting)
+				rgbRegion.checkPolygonEditing();
     }
   }
 
@@ -481,26 +523,23 @@ public Object clone() {
   
   protected static class Polygon2D extends Path2D.Double {
   	
-  	double[] pts = new double[6];
+  	static double[] pts = new double[6];
   	ArrayList<Point2D> vertices = new ArrayList<Point2D>();
-  	boolean closed;
-  	int vertexCount;
   	
   	protected Polygon2D copy() {
-  		Polygon2D clone = new Polygon2D();
+  		Polygon2D copy = new Polygon2D();
     	PathIterator it = getPathIterator(null);
   		while(!it.isDone()) {
   			it.currentSegment(pts);
-  			clone.add(pts[0], pts[1]);
+  			copy.add(pts[0], pts[1]);
   			it.next();
   		}
-  		clone.closed = closed;
-  		return clone;
+  		return copy;
   	}
   	
   	protected double[][] getVertices() {
     	PathIterator it = getPathIterator(null);
-  		double[][] result = new double[vertexCount][];
+  		double[][] result = new double[vertices.size()][];
   		int i = 0;
   		while(!it.isDone()) {
   			it.currentSegment(pts);
@@ -511,45 +550,55 @@ public Object clone() {
   		return result;
   	}
   	
-    protected void removeEndPoint() {
-    	if (vertexCount == 1)
+    protected void remove(int vertex) {
+    	if (vertices.size() < 2 || vertices.size() < vertex + 1)
     		return;
-    	PathIterator it = getPathIterator(null);
-    	vertices.clear();
-  		while(!it.isDone()) {
-  			it.currentSegment(pts);
-  			vertices.add(new Point2D.Double(pts[0], pts[1]));
-  			it.next();
-  		}
   		reset();
-  		int n = closed? vertices.size() - 2: vertices.size() - 1;
+  		vertices.remove(vertex + 1);
+  		ArrayList<Point2D> array = new ArrayList<Point2D>(vertices);
+  		vertices.clear();
+  		int n = array.size();
     	for (int i = 0; i < n; i++) {
-    		Point2D next = vertices.get(i);
-    		if (i==0)
-    			moveTo(next.getX(), next.getY());
-    		else
-    			lineTo(next.getX(), next.getY());
+    		Point2D next = array.get(i);
+    		add(next.getX(), next.getY());
     	}
-    	closed = false;
-    	vertexCount--;
     }
     
-    protected void startOver() {
-    	PathIterator it = getPathIterator(null);
-    	vertices.clear();
-  		it.currentSegment(pts);
-  		reset();
-    	moveTo(pts[0], pts[1]);
-    	closed = false;
-    	vertexCount = 1;
+    protected boolean isClosed() {
+    	if (vertices.size() < 3) return false;
+    	// closed if last vertex is at (0, 0)
+    	Point2D pt = vertices.get(vertices.size() - 1);
+    	return pt.getX() == 0 && pt.getY() == 0;
     }
-
-    protected void close() {
-    	if (vertexCount < 3)
+    
+    protected void modify() {
+     	ArrayList<Point2D> array = new ArrayList<Point2D>(vertices);
+    	reset();
+    	vertices.clear();
+  		int n = array.size();
+    	for (int i = 0; i < n; i++) {
+    		Point2D next = array.get(i);
+    		add(next.getX(), next.getY());
+    	}
+    }
+    
+    protected void setClosed(boolean close) {
+    	if (close && (isClosed() || vertices.size() < 3))
     		return;
-    	lineTo(0, 0);
-    	closed = true;
-    	vertexCount++;
+    	if (!close && vertices.size() <= 1)
+    		return;
+    	if (close)
+    		add(0, 0);
+    	else {
+    		reset();
+    		ArrayList<Point2D> array = new ArrayList<Point2D>(vertices);
+    		vertices.clear();
+    		int n = array.size() - 1;
+      	for (int i = 0; i < n; i++) {
+      		Point2D next = array.get(i);
+      		add(next.getX(), next.getY());
+      	}    		
+    	}
     }
   	
     protected void add(double x, double y) {
@@ -557,7 +606,7 @@ public Object clone() {
     		moveTo(x, y);
     	else
     		lineTo(x, y);
-    	vertexCount++;
+    	vertices.add(getCurrentPoint());
     }
     
   }

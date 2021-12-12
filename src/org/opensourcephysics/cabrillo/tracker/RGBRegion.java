@@ -28,6 +28,7 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Graphics;
+import java.awt.Polygon;
 import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.event.ActionEvent;
@@ -37,6 +38,7 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.awt.event.MouseEvent;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Point2D;
 import java.beans.PropertyChangeEvent;
@@ -52,8 +54,8 @@ import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
-import javax.swing.JMenuItem;
-import javax.swing.JPopupMenu;
+import javax.swing.SwingUtilities;
+
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.controls.XMLControlElement;
@@ -167,6 +169,8 @@ public class RGBRegion extends TTrack {
 	protected boolean dataHidden = false;
 	protected boolean loading;
 	protected TreeSet<Integer> shapeKeyFrames = new TreeSet<Integer>();
+	protected XMLControl currentState;
+	protected VertexHandle vertexHandle;
 
 	/**
 	 * Constructs a RGBRegion.
@@ -209,41 +213,21 @@ public class RGBRegion extends TTrack {
 				return dim;
 			}
 			
-			@Override
-			protected JPopupMenu getPopup() {
-				JPopupMenu popup = new JPopupMenu();
-				JMenuItem backItem = new JMenuItem(TrackerRes.getString("RGBRegion.PopupMenu.Item.RemoveLast")); //$NON-NLS-1$
-				backItem.addActionListener((e) -> {
-					int n = tp.getFrameNumber();
-					RGBStep step = (RGBStep) getStep(n);
-					if (!isFixedShape() && !shapeKeyFrames.contains(n)) {
-						shapeKeyFrames.add(n);
-						step.rgbShape = step.polygon = step.polygon.copy();
-					}
-					step.polygon.removeEndPoint();
-					tp.setSelectedPoint(step.position);
-					step.repaint();
-					tp.getTrackBar(false).refresh();
-				});
-				popup.add(backItem);
-				JMenuItem resetItem = new JMenuItem(TrackerRes.getString("RGBRegion.PopupMenu.Item.RemoveAll")); //$NON-NLS-1$
-				resetItem.addActionListener((e) -> {
-					int n = tp.getFrameNumber();
-					RGBStep step = (RGBStep) getStep(n);
-					if (!isFixedShape() && !shapeKeyFrames.contains(n)) {
-						shapeKeyFrames.add(n);
-						step.rgbShape = step.polygon = step.polygon.copy();
-					}
-					step.polygon.startOver();
-					step.repaint();
-					tp.getTrackBar(false).refresh();
-				});
-				popup.add(resetItem);
-				FontSizer.setFonts(popup, FontSizer.getLevel());
-				return popup;
-			}
-
 		};
+		
+		editPolygonButton.addActionListener((e) -> {
+			int n = tp.getFrameNumber();
+			RGBStep step = (RGBStep) getStep(n);
+			if (!isFixedShape() && !shapeKeyFrames.contains(n)) {
+				shapeKeyFrames.add(n);
+				step.rgbShape = step.polygon = step.polygon.copy();
+			}
+			step.polygon.setClosed(false);
+//			tp.setSelectedPoint(step.position);
+			step.repaint();
+			tp.getTrackBar(false).refresh();
+		});
+
 		
 		// size focus listener
 		FocusListener sizeFocusListener = new FocusAdapter() {
@@ -325,6 +309,8 @@ public class RGBRegion extends TTrack {
 		yField.addActionListener(positionAction);
 		xField.addFocusListener(positionFocusListener);
 		yField.addFocusListener(positionFocusListener);
+		
+		vertexHandle = new VertexHandle();
 	}
 	
 	private void refreshShapeSize(IntegerField field) {
@@ -391,9 +377,9 @@ public class RGBRegion extends TTrack {
 	protected void setShapeType(int type) {
 		if (shapeType == type)
 			return;
-		XMLControl currentState = new XMLControlElement(this);
+//		XMLControl currentState = new XMLControlElement(this);
 		shapeType = type;
-		Undo.postTrackEdit(this, currentState);
+//		Undo.postTrackEdit(this, currentState);
 		for (int i = 0; i < steps.array.length; i++) {
 			RGBStep step = (RGBStep)steps.getStep(i);
 			if (step != null) {
@@ -405,7 +391,7 @@ public class RGBRegion extends TTrack {
     		new Ellipse2D.Double(-5, -5, 10, 10):
     		shapeType == SHAPE_RECTANGLE?	
     		new Rectangle(-5, -5, 10, 10):
-    		new Rectangle(-5, -5, 10, 10);
+    		new Polygon(new int[] {-6,0,5,0,-2}, new int[] {-1,-5,-1,1,6}, 5);
     for (int i = 0; i < getFootprints().length; i++) {
     	((PointShapeFootprint) getFootprints()[i]).setShape(shape);
     }
@@ -594,6 +580,13 @@ public class RGBRegion extends TTrack {
 		/** empty block */
 	}
 
+	@Override
+	public void setLocked(boolean lock) {
+		super.setLocked(lock);
+		if (tp != null)
+			tp.getTrackBar(false).refresh();
+	}
+
 	/**
 	 * Gets the autoAdvance property. Overrides TTrack method.
 	 *
@@ -601,7 +594,7 @@ public class RGBRegion extends TTrack {
 	 */
 	@Override
 	public boolean isAutoAdvance() {
-		return !isFixedPosition() && !isEditingPolygon();
+		return !isFixedPosition() && !isPolygonEditing();
 	}
 
 	/**
@@ -629,7 +622,9 @@ public class RGBRegion extends TTrack {
 			keyFrames.add(0);
 			shapeKeyFrames.add(0);
 		} else {
-			XMLControl currentState = new XMLControlElement(this);
+			if (currentState == null) {
+				currentState = new XMLControlElement(this);
+			}
 			// the following should occur only when marking polygons with the mouse
 			if (!loading && shapeType == SHAPE_POLYGON && !step.isPolygonClosed()) {
 				// if fixed shape then all share the same polygon so can append to any step
@@ -637,6 +632,9 @@ public class RGBRegion extends TTrack {
 				step.append(x, y);
 				if (!isFixedShape())
 					shapeKeyFrames.add(n);
+				if (step.polygon.vertices.size() > 1) {
+					prepareVertexHandle(step, step.polygon.vertices.size() - 2);
+				}
 			}
 			else {
 				// if fixed position, must set position of step 0
@@ -646,22 +644,55 @@ public class RGBRegion extends TTrack {
 					step.getPosition().setLocation(x, y);
 					keyFrames.add(n);
 				}
+				if (!loading) {
+					Undo.postTrackEdit(this, currentState);
+					currentState = null;
+				}
 			}
-			if (!loading)
-				Undo.postTrackEdit(this, currentState);
 		}
 		firePropertyChange(TTrack.PROPERTY_TTRACK_STEP, HINT_STEP_ADDED_OR_REMOVED, n); // $NON-NLS-1$
 		return getStep(n);
 	}
 
 	/**
-	 * Overrides TTrack deleteStep method to prevent deletion.
+	 * Overrides TTrack deleteStep method to delete polygon vertices.
 	 *
 	 * @param n the frame number
-	 * @return the deleted step
+	 * @return null since step itself is not deleted
 	 */
 	@Override
 	public Step deleteStep(int n) {
+		if (shapeType != SHAPE_POLYGON || tp.getSelectedPoint() != vertexHandle)
+			return null;
+		RGBStep step = (RGBStep) steps.getStep(n);
+		if (step != null && step.getPolygonVertexCount() > 1) {
+			if (!isFixedShape() && !shapeKeyFrames.contains(n)) {
+				shapeKeyFrames.add(n);
+				step.rgbShape = step.polygon = step.polygon.copy();
+			}
+			step.polygon.remove(vertexHandle.vertex);
+			tp.setSelectedPoint(step.position);
+			if (step.polygon.vertices.size() > vertexHandle.vertex)
+				prepareVertexHandle(step, vertexHandle.vertex);
+			step.repaint();			
+		}
+		return null;
+	}
+
+	@Override
+	public Step getStep(TPoint point, TrackerPanel trackerPanel) {
+		if (point == null)
+			return null;
+		Step[] stepArray = steps.array;
+		if (point == vertexHandle) {
+			return stepArray[vertexHandle.n];
+		}
+		for (int j = 0; j < stepArray.length; j++)
+			if (stepArray[j] != null) {
+				TPoint[] points = stepArray[j].getPoints();
+				if (points[0] == point)
+					return stepArray[j];
+			}
 		return null;
 	}
 
@@ -849,8 +880,10 @@ public class RGBRegion extends TTrack {
 
 		fixedPositionItem.setText(TrackerRes.getString("RGBRegion.MenuItem.Fixed")); //$NON-NLS-1$
 		fixedPositionItem.setSelected(isFixedPosition());
+		fixedPositionItem.setEnabled(!isLocked());
 		fixedShapeItem.setText(TrackerRes.getString("RGBRegion.MenuItem.FixedShape")); //$NON-NLS-1$
 		fixedShapeItem.setSelected(isFixedShape());
+		fixedShapeItem.setEnabled(!isLocked());
 		menu.remove(deleteTrackItem);
 		TMenuBar.checkAddMenuSep(menu);
 		menu.add(fixedPositionItem);
@@ -873,24 +906,27 @@ public class RGBRegion extends TTrack {
 	public ArrayList<Component> getToolbarTrackComponents(TrackerPanel trackerPanel) {
 		ArrayList<Component> list = super.getToolbarTrackComponents(trackerPanel);
 		
-		shapeTypeDropdown.setSelectedIndex(shapeType);
-		FontSizer.setFonts(shapeTypeDropdown, FontSizer.getLevel()); // pig?
-		list.add(shapeTypeDropdown);
+		if (!isLocked() ) {
+			shapeTypeDropdown.setSelectedIndex(shapeType);
+			FontSizer.setFonts(shapeTypeDropdown, FontSizer.getLevel());
+			list.add(shapeTypeDropdown);
+		}
 		
 		int n = trackerPanel.getFrameNumber();
 		RGBStep step = (RGBStep) getStep(n);
 		
-		if (shapeType == SHAPE_POLYGON) { 
-			editPolygonButton.setText(TrackerRes.getString("RGBRegion.Button.Edit.Text"));
-			if (step == null || !step.isPolygonClosed()) {
-				if (step != null && step.getPolygonVertexCount() > 1) {
-					list.add(editPolygonButton);
+		if (shapeType == SHAPE_POLYGON) {
+			if (!isLocked()) {
+				editPolygonButton.setText(TrackerRes.getString("RGBRegion.Button.Edit.Text"));
+				FontSizer.setFonts(editPolygonButton, FontSizer.getLevel());
+				if (step == null || !step.isPolygonClosed()) {
+					helpLabel.setText(TrackerRes.getString("RGBRegion.Label.MarkPolygon.Text")); //$NON-NLS-1$
+					FontSizer.setFonts(helpLabel, FontSizer.getLevel());
+					list.add(helpLabel);
 				}
-				helpLabel.setText(TrackerRes.getString("RGBRegion.Label.MarkPolygon.Text")); //$NON-NLS-1$
-				list.add(helpLabel);
-			}
-			else {
-				list.add(editPolygonButton);					
+				else {
+					list.add(editPolygonButton);					
+				}
 			}
 		}
 		else {
@@ -1023,8 +1059,9 @@ public class RGBRegion extends TTrack {
 				}
 				stepValueLabel.setText(e.getNewValue() + ":"); //$NON-NLS-1$
 //        firePropertyChange(e); // to views
+				checkPolygonEditing();
 				if (!isFixedShape() && shapeType == SHAPE_POLYGON) {
-					tp.getTrackBar(true).refresh();
+					tp.getTrackBar(false).refresh();
 				}
 				break;
 			case TrackerPanel.PROPERTY_TRACKERPANEL_IMAGE:
@@ -1131,11 +1168,13 @@ public class RGBRegion extends TTrack {
 		}
 		RGBStep shapeKeyStep = (RGBStep) steps.getStep(shapeKey);
 		if (shapeType == SHAPE_POLYGON && shapeKeyStep.polygon == null) {
-			// use first step with non-null polygon, if any
+			// find first step with non-null polygon, if any
 			for (int i = 0; i < steps.array.length; i++) {
-				shapeKeyStep = (RGBStep) steps.getStep(i);
-				if (shapeKeyStep.polygon != null)
+				RGBStep aStep = (RGBStep) steps.getStep(i);
+				if (aStep.polygon != null) {
+					shapeKeyStep.rgbShape = shapeKeyStep.polygon = aStep.polygon.copy();
 					break;
+				}
 			}
 		}
 		if (isDifferentShape(step, shapeKeyStep)) {
@@ -1153,16 +1192,92 @@ public class RGBRegion extends TTrack {
 	private boolean isDifferentShape(RGBStep step, RGBStep keyStep) {
 		if (shapeType == SHAPE_POLYGON) {
 			return step.polygon != keyStep.polygon;
+//					|| (keyStep.polygon != null && keyStep.polygon.modified);
 		}
 		return keyStep.width != step.width || keyStep.height != step.height;
 	}
 
-	private boolean isEditingPolygon() {
+	private boolean isPolygonEditing() {
 		if (shapeType != SHAPE_POLYGON)
 			return false;
 		RGBStep step = (RGBStep) steps.getStep(tp.getFrameNumber());
 		return step != null && !step.isPolygonClosed();
 	}
+	
+	protected void prepareVertexHandle(RGBStep step, int i) {
+		vertexHandle.vertex = i;
+		vertexHandle.n = step.n;
+		Point2D pt = step.polygon.vertices.get(i + 1);
+		vertexHandle.setLocation(step.position.getX() + pt.getX(), step.position.getY() + pt.getY());
+	}
+	
+	protected void checkPolygonEditing() {
+//		editing = false;
+  	if (shapeType != RGBRegion.SHAPE_POLYGON || tp == null)
+  		return;
+  	RGBStep step = (RGBStep) steps.getStep(tp.getFrameNumber());
+  	if (!step.isPolygonClosed() && step.getPolygonVertexCount() > 2)
+			SwingUtilities.invokeLater(() -> {
+	    	if (tp.getSelectedPoint() != step.position
+	    			&& tp.getSelectedPoint() != vertexHandle) {
+	    		step.polygon.setClosed(true);
+	    		repaint();
+    			tp.getTrackBar(false).refresh();
+	    		if (currentState != null) {
+	    			Undo.postTrackEdit(this, currentState);
+	    			currentState = null;
+	    		}
+	    	}
+			});
+	}
+
+//____________________ inner VertexHandle class ______________________
+
+  protected class VertexHandle extends TPoint {
+  	
+  	int vertex; 
+  	int n;
+
+    /**
+     * Overrides TPoint setXY method.
+     *
+     * @param x the x coordinate
+     * @param y the y coordinate
+     */
+    @Override
+    public void setXY(double x, double y) {
+      if (isLocked()) return;
+      setLocation(x, y);
+      // modify polygon vertex
+			int n = tp.getFrameNumber();
+			RGBStep step = (RGBStep) getStep(n);
+			if (!isFixedShape() && !shapeKeyFrames.contains(n)) {
+				shapeKeyFrames.add(n);
+				step.rgbShape = step.polygon = step.polygon.copy();
+			}
+      Point2D pt = step.polygon.vertices.get(vertex + 1);      
+      pt.setLocation(x - step.position.x, y - step.position.y);
+      step.polygon.modify();
+      if (isFixedShape()) {
+        erase();
+    		clearData(); // all data is invalid
+      }
+      else {
+      	shapeKeyFrames.add(n);
+        step.dataValid = false; // this step's data is invalid      
+    	}
+      repaint();     
+      firePropertyChange(TTrack.PROPERTY_TTRACK_STEP, null, new Integer(n)); //$NON-NLS-1$
+    }
+    
+    @Override 
+		public void setAdjusting(boolean adjusting, MouseEvent e) {
+    	if (!adjusting) {
+				checkPolygonEditing();
+    	}
+    }
+    
+  }
 
 //__________________________ static methods ___________________________
 
@@ -1302,7 +1417,7 @@ public class RGBRegion extends TTrack {
 				region.fixedShape = control.getBoolean("fixed_shape"); //$NON-NLS-1$
 			// load shape type
 			int type = control.getInt("shape_type");
-			region.shapeType = type == Integer.MIN_VALUE? SHAPE_ELLIPSE: type;
+			region.setShapeType(type == Integer.MIN_VALUE? SHAPE_ELLIPSE: type);
 			// load step data
 			region.keyFrames.clear();
 			region.shapeKeyFrames.clear();
@@ -1323,12 +1438,23 @@ public class RGBRegion extends TTrack {
 					if (shapes[n] == null)
 						continue;
 					RGBStep step = (RGBStep) region.steps.getStep(n);
+					step.rgbShape = null; // forces rgbShape refresh
+					step.dataValid = false;
 					if (region.shapeType == RGBRegion.SHAPE_POLYGON)
 						step.setPolygonVertices(shapes[n]);
 					else
 						step.setShapeSize(shapes[n][0][0], shapes[n][0][1]);
 					region.shapeKeyFrames.add(n);
 				}					
+			}
+			else {
+				for (int i = 0; i < region.steps.array.length; i++) {
+					RGBStep step = (RGBStep) region.steps.getStep(i);
+					if (step != null) {
+						step.rgbShape = null; // forces rgbShape refresh
+						step.dataValid = false;
+					}
+				}
 			}
 			// end vers 6.0.4+ code
 			
