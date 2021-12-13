@@ -11,18 +11,25 @@
 	<body>
 		<h1><a name="rgb0" id="rgb0"></a>RGB Region</h1>
 		<p align="center"><img src="../help_images/rgb_region.gif" alt="Line profile"></p>
-		<p>An <strong>rgb region</strong> track measures the mean brightness and rgb data (mean and standard deviation) as a function of time in a circular region of a video image.</p>
+		<p>An <strong>RGB region</strong> track measures the mean brightness and rgb data (mean and standard deviation) as a function of time inside a user-defined region of a video image.</p>
         
-		<h3><a name="rgb1" id="rgb1"></a>1. Marking the rgb region</h3>
-		<p>Click the mouse (crosshair cursor) to mark the center of the rgb region. The region is drawn as a circle around a center cross. Drag the center of the region or select it and enter the desired world coordinates in the toolbar fields to position it.</p>
-		<p>If the position of the rgb region is <strong>unfixed</strong> so that it varies from frame to frame (see below), then the video will autostep forward so the region can be marked independently on every frame. Even though the region is automatically drawn on every frame, you can still hold down the shift key and click the mouse to move it immediately to the clicked position.</p>
-		<h3><a name="rgb2" id="rgb2"></a>2. Unfixing the position and/or radius</h3>
-		<p>By default, the rgb region has both a <strong>fixed position</strong> and a <strong>fixed radius</strong>--that is, its position and radius do not vary from frame to frame. Uncheck the appropriate checkbox in its track menu to allow these properties to vary.</p>
-        
-		<h3><a name="rgb3" id="rgb3"></a>3. Setting the radius</h3>
-		<p align="center"><img src="../help_images/radius_field.gif"></p>
-		<p>Select the region and enter the radius in pixels in the field on the toolbar.  The outline of the region shows the pixels included in the average. If the region's radius is unfixed, you can set a different radius in every frame.</p>
-		<p align="center"><img src="../help_images/rgb_region_large.gif" alt="Large radius region"></p>
-	</body>
+		<h3><a name="rgb1" id="rgb1"></a>1. Marking the RGB region</h3>
+		<p>An  RGB region may be an ellipse, rectangle or freeform polygon. Select the desired shape type from the dropdown on the toolbar.</p>
+	<p>Marking the region depends on the shape type:</p>
+		<ol>
+		  <li><strong>Ellipse</strong> or <strong>rectangle</strong>: shift-click the mouse (crosshair cursor) to mark the center of the region. Enter the desired width and height in the toolbar fields. Drag the center of the region or select it and enter the desired world coordinates in the toolbar fields to position it.</li>
+          <p align="center"><img src="../help_images/rgb_toolbar_ellipse.gif" alt="RGBRegion ellipse toolbar fields"><br>
+          </p>           
+		  
+		  <li><strong>Polygon</strong>: shift-click the mouse (crosshair cursor) multiple times to mark the vertices of the polygon. Drag a vertex or select it and use the arrow keys to move it. The first vertex is also the position--drag it or select it and enter the desired world coordinates in the toolbar fields to reposition the entire polygon. Note that when editing the polygon it is filled with a translucent color and there is no closing segment so that additional vertices may be added. When finished editing, click elsewhere to close the polygon. To edit again, select the RGBRegion and click the Edit button on the toolbar.</li>
+            <p align="center"><img src="../help_images/rgb_region_polygon.gif" alt="marking RGBRegion polygon"> <img src="../help_images/rgb_region_polygon_closed.gif" alt="closed RGBRegion polygon"><br><img src="../help_images/rgb_toolbar_polygon.gif" alt="RGBRegion polygon toolbar fields"><br><br>
+            </p>
+          
+    </ol>
+<p>If the position of the rgb region is <strong>unfixed</strong> so that it varies from frame to frame (see below), then the video will autostep forward so the region can be positioned independently on every frame. Even though the region is automatically drawn on every frame, you can still hold down the shift key and click the mouse to move it immediately to the clicked position.</p>
+<h3><a name="rgb2" id="rgb2"></a>2. Unfixing the position and/or shape</h3>
+		<p>By default, the rgb region has both a <strong>fixed position</strong> and a <strong>fixed shape</strong>--that is, its position and dimensions/vertices do not vary from frame to frame. Uncheck the appropriate checkbox in its track menu to allow these properties to vary.</p>
+		<p>When the position or shape is unfixed, then changing it in a given frame defines that frame as a keyframe and applies the change to all later frames up to the next keyframe. Frame 0 is always a keyframe. For example, if you made a change in frames 4 and 9 then frames 1-3 would be like frame 0, frames 5-8 would be like frame 4 and all later frames would be like frame 9.</p>
+</body>
 
 </html>
