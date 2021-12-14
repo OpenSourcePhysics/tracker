@@ -927,6 +927,7 @@ org/opensourcephysics/display/TeXParser.js
 org/opensourcephysics/display/TextLine.js
 org/opensourcephysics/display/TextPanel.js
 org/opensourcephysics/display/TextState.js
+org/opensourcephysics/display/UncertainFunctionDrawer.js
 org/opensourcephysics/display/axes/AbstractAxes.js
 org/opensourcephysics/display/axes/CartesianAxes.js
 org/opensourcephysics/display/axes/CartesianCoordinateStringBuilder.js
