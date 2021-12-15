@@ -1053,6 +1053,7 @@ org/opensourcephysics/resources/media/video_en_US.js
 org/opensourcephysics/resources/tools/tools.js
 org/opensourcephysics/resources/tools/tools_en.js
 org/opensourcephysics/resources/tools/tools_en_US.js
+org/opensourcephysics/tools/DataBuilder.js
 org/opensourcephysics/tools/DataColumn.js
 org/opensourcephysics/tools/DataFunctionEditor.js
 org/opensourcephysics/tools/DataFunctionPanel.js
