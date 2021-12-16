@@ -337,27 +337,30 @@ public class CoordAxesStep extends Step {
 		 */
 		@Override
 		public void setXY(double x, double y) {
-			TTrack track = getTrack();
-			if (track.isLocked())
+			CoordAxes axes = (CoordAxes) getTrack();
+			if (axes.isLocked())
 				return;
 			if (isAdjusting()) {
 				prevX = x;
 				prevY = y;
 			}
 			super.setXY(x, y);
-			TrackerPanel panel = track.tp;
+			TrackerPanel panel = axes.tp;
 			if (panel != null) {
-				ImageCoordSystem coords = track.tp.getCoords();
+				ImageCoordSystem coords = panel.getCoords();
 				coords.setAdjusting(isAdjusting());
 				int n = panel.getFrameNumber();
 				coords.setOriginXY(n, x, y);
-				CoordAxes coordAxes = (CoordAxes) track;
-				coordAxes.xField.setValue(coords.getOriginX(n));
-				coordAxes.yField.setValue(coords.getOriginY(n));
+				axes.xField.setValue(coords.getOriginX(n));
+				axes.yField.setValue(coords.getOriginY(n));
 			}
 			if (isAdjusting()) {
 				repaint();
 			}
+		}
+		
+		public double getX() {
+			return super.getX();
 		}
 
 		/**

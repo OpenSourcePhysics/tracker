@@ -3033,7 +3033,8 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 		if (e != null && AutoTracker.isAutoTrackTrigger(e) && tp.getVideo() != null
 				&& isAutoTrackable(getTargetIndex())) {
 			Step step = getStep(tp.getFrameNumber());
-			if (step == null || step.getPoints()[step.getPoints().length - 1] == null) {
+			TPoint[] pts = (step == null ? null : step.getPoints());
+			if (pts == null || pts[pts.length - 1] == null) {
 				return TMouseHandler.STATE_AUTOMARK;
 			}
 			switch (ttype) {

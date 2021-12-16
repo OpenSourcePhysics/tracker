@@ -151,7 +151,7 @@ public class TMouseHandler implements InteractiveMouseHandler {
 				trackerPanel.setMessage(""); //$NON-NLS-1$
 			}
 			TrackControl.getControl(trackerPanel).popup.setVisible(false);
-			marking = selectedTrack != null && trackerPanel.getCursor() == selectedTrack.getMarkingCursor(e);
+			marking = (selectedTrack != null && trackerPanel.getCursor() == selectedTrack.getMarkingCursor(e));
 			if (marking) {
 				markPoint(trackerPanel, e, autoTracker);
 				return;

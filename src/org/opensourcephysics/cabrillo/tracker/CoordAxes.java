@@ -512,8 +512,7 @@ public class CoordAxes extends TTrack {
 			if (coords.isFixedOrigin()) {
 				coords.setFixedOrigin(false);
 			}
-			TPoint origin = getOrigin();
-			origin.setXY(x, y);
+			getOrigin().setXY(x, y);
 		} else { // handle
 			if (coords.isFixedAngle()) {
 				coords.setFixedAngle(false);
@@ -705,8 +704,7 @@ public class CoordAxes extends TTrack {
 		}
 
 		public double getAngle() {
-			TPoint origin = getOrigin();
-			return -origin.angle(this);
+			return -getOrigin().angle(this);
 		}
 	}
 
