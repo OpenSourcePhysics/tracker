@@ -529,19 +529,44 @@ public class LineProfile extends TTrack {
 		int count = 7;
 		double[][] validData;
 		// get data from current line profile step only if video is visible
-		if (trackerPanel.getVideo() == null || !trackerPanel.getVideo().isVisible()) {
+		Video video = trackerPanel.getVideo();
+		if (video == null || !video.isVisible()) {
 			validData = new double[count+1][0]; // empty data
-		}
-		else {
+		} else {
 			LineProfileStep step = (LineProfileStep) getStep(trackerPanel.getPlayer().getFrameNumber());
-			if (step == null || (validData = step.getProfileData(trackerPanel)) == null)
+			if (step == null || (validData = step.getProfileData(trackerPanel)) == null) {
+				if (step != null) {
+					
+					// that is, validData == null
+					// this can happen in JavaScript
+					// because the image has not been fully loaded yet.
+					
+					delayedUpdate(trackerPanel, this, video);
+				}
 				validData = new double[count+1][0]; // empty data
+			}
 		}
 
 		// append the data to the data set
 		clearColumns(data, count, dataVariables, "LineProfile.Data.Description.", validData, validData[0].length);
 	}
-	
+
+	private boolean updating;
+
+	private static void delayedUpdate(TrackerPanel panel, LineProfile profile, Video video) {
+		if (!profile.updating) {
+			profile.updating = true;
+			SwingUtilities.invokeLater(() -> {
+				// force a rebuild of the buffered image from the raw image and then notify
+				// plot and table to revalidate
+				video.invalidateVideoAndFilter();
+				profile.invalidateData(null);
+				panel.refreshTrackData(0);
+				profile.updating = false;
+			});
+		}
+	}
+
 	@Override
 	protected void clearColumns(DatasetManager data, int count, String[] dataVariables, String desc,
 			double[][] validData, int len) {
@@ -668,7 +693,7 @@ public class LineProfile extends TTrack {
 	}
 
 	protected boolean showTimeData() {
-		return datasetIndex > -1;
+		return (datasetIndex >= 0);
 	}
 
 	protected void clearStepData() {
@@ -676,7 +701,7 @@ public class LineProfile extends TTrack {
 		for (int i = 0; i < steps.length; i++) {
 			LineProfileStep step = (LineProfileStep) steps[i];
 			if (step != null) {
-				step.profileData = null;
+				step.clearData();
 			}
 		}
 	}

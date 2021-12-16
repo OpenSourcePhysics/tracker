@@ -52,7 +52,6 @@ public class LineProfileStep extends Step {
 	protected Map<Integer, Shape> panelEnd1Shapes = new HashMap<Integer, Shape>();
 	protected Map<Integer, Shape> panelShaftShapes = new HashMap<Integer, Shape>();
 	protected LineProfile line;
-	protected double[][] profileData;
 	protected Corner[][] corners; // corners at ends 0,1 of sweep lines 0,1
 	protected GridIntersection[] endX; // end 0,1 x-intersections
 	protected GridIntersection[] endY; // end 0,1 y-intersections
@@ -68,6 +67,7 @@ public class LineProfileStep extends Step {
 	private Intersection[] polygon = new Intersection[8]; // polygon shape vertices
 	private Point polyLoc = new Point();
 	private double[] quadAreas = new double[4]; // used for GridVertex quadrant areas
+	private double[][] profileData;
 
 	/**
 	 * Constructs a LineProfileStep with specified end point coordinates in image
@@ -1000,7 +1000,8 @@ public class LineProfileStep extends Step {
 		if (length <= 0)
 			return null;
 		int width = 1 + 2 * spread;
-		int[] pixels = new int[length * width];
+		int npix = length * width;
+		int[] pixels = new int[npix];
 		int[] r = new int[width];
 		int[] g = new int[width];
 		int[] b = new int[width];
@@ -1017,8 +1018,21 @@ public class LineProfileStep extends Step {
 				int n = trackerPanel.getFrameNumber();
 				AffineTransform at = trackerPanel.getCoords().getToWorldTransform(n);
 				// fill pixels array with pixel data
+				image.getRGB(0, 0);
 				image.getRaster().getDataElements(x0, y0, length, width, pixels);
-				// step along length of the line
+				boolean isOK = false;
+				for (int i = 0; i < npix; i++) {
+					if (pixels[i] != 0) {
+						isOK = true;
+						break;
+					}
+				}
+				if (!isOK) {
+					System.err.println("LineProfileStep image failed");
+					image.getRaster().getDataElements(x0, y0, length, width, pixels);
+					return null;
+				}
+			// step along length of the line
 				for (int i = 0; i < length; i++) {
 					// step through pixels across line width at each point
 					for (int j = 0; j < width; j++) {
@@ -1355,6 +1369,10 @@ public class LineProfileStep extends Step {
 			horz = segment;
 			horz.vertex = this;
 		}
+	}
+
+	public void clearData() {
+		profileData = null;
 	}
 
 }
