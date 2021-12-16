@@ -439,8 +439,8 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 
 		// refresh guests item
 		TTrack track = TTrack.getTrack(trackID);
-		Class<? extends TTrack> type = track instanceof PointMass ? PointMass.class
-				: track instanceof Vector ? Vector.class : track.getClass();
+		Class<? extends TTrack> type = track.ttype == TTrack.TYPE_POINTMASS ? PointMass.class
+				: track.ttype == TTrack.TYPE_VECTOR ? Vector.class : track.getClass();
 		TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
 		ArrayList<? extends TTrack> tracks = trackerPanel.getDrawablesTemp(type);
 		tracks.removeAll(trackerPanel.calibrationTools);
@@ -450,7 +450,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 		FontSizer.setFonts(popup, FontSizer.getLevel());
 
 		// disable algorithmItem if not point mass track
-		algorithmItem.setEnabled(track instanceof PointMass);
+		algorithmItem.setEnabled(track.ttype == TTrack.TYPE_POINTMASS);
 		return popupmenu;
 	}
 
@@ -590,7 +590,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 				public void actionPerformed(ActionEvent e) {
 					DerivativeAlgorithmDialog dialog = frame.getTrackerPanelForID(panelID).getAlgorithmDialog();
 					TTrack track = TTrack.getTrack(trackID);
-					if (track instanceof PointMass) {
+					if (track.ttype == TTrack.TYPE_POINTMASS) {
 						dialog.setTargetMass((PointMass) track);
 					}
 					FontSizer.setFonts(dialog, FontSizer.getLevel());
@@ -903,8 +903,8 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 	 */
 	protected void plotData() {
 		TTrack track = TTrack.getTrack(trackID);
-		if (track.getClass() == LineProfile.class) {
-			LineProfile lp = (LineProfile)track;
+		LineProfile lp = (track.ttype == TTrack.TYPE_LINEPROFILE ? (LineProfile) track : null);
+		if (lp != null) {
 			if (lp.datasetIndex != plotTrackView.myDatasetIndex) {
 				datasetManager = lp.getData(track.tp, plotTrackView.myDatasetIndex);
 			}
@@ -967,7 +967,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 			}
 		}
 
-		if (track instanceof LineProfile)
+		if (lp != null)
 			return; // no highlights on line profile plots since not frame-based data
 
 		// refresh highlighted indices
@@ -1522,7 +1522,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 			mouseEvent = e;
 			mouseAction = MOUSE_MOVED;
 			TTrack track = TTrack.getTrack(trackID);
-			if (!(track instanceof LineProfile))
+			if (track.ttype != TTrack.TYPE_LINEPROFILE)
 				iad = getInteractive();
 			Point p = e.getPoint();
 			region = getRegion(p);
@@ -1620,7 +1620,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 			mouseEvent = e;
 			mouseAction = MOUSE_RELEASED;
 			TTrack track = TTrack.getTrack(trackID);
-			if (!(track instanceof LineProfile) && getInteractive() != null)
+			if (track.ttype != TTrack.TYPE_LINEPROFILE && getInteractive() != null)
 				setMouseCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 //			if (getCursor() == Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR)) {
 //	      messages.setMessage(null, MessageDrawable.BOTTOM_LEFT);  //BL message box
@@ -1735,7 +1735,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 			vars[1] = control.getString("y_var"); //$NON-NLS-1$
 			// convert legacy variable names
 			TTrack track = TTrack.getTrack(plot.trackID);
-			boolean isPointMass = (track instanceof PointMass);
+			boolean isPointMass = (track.ttype == TTrack.TYPE_POINTMASS);
 			for (int i = 0; i < 2; i++) {
 				if (vars[i] != null) {
 					switch (vars[i]) {
