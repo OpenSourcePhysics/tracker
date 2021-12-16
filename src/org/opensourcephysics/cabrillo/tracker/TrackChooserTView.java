@@ -561,7 +561,8 @@ public abstract class TrackChooserTView extends TView {
 		case TrackerPanel.PROPERTY_TRACKERPANEL_IMAGE:
 			// video image has changed
 			if ((track = getSelectedTrack()) != null && (view = getTrackView(track)) != null
-					&& (track instanceof LineProfile || track instanceof RGBRegion)) {
+					&& (track.ttype == TTrack.TYPE_LINEPROFILE
+					  || track.ttype == TTrack.TYPE_RGBREGION)) {
 				view.refresh(panel.getFrameNumber(), DataTable.MODE_TRACK_STEPS);
 			}
 			break;

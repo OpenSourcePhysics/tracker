@@ -224,8 +224,15 @@ public class PlotTrackView extends TrackView {
 	
 	private int getDefaultPlotCount() {
 		TTrack track = getTrack();
-		return track instanceof LineProfile || track instanceof RGBRegion
-				 || track instanceof CircleFitter || track instanceof Protractor? 1: 2;
+		switch (track.ttype) {
+		case TTrack.TYPE_LINEPROFILE:
+		case TTrack.TYPE_RGBREGION:
+		case TTrack.TYPE_CIRCLEFITTER:
+		case TTrack.TYPE_PROTRACTOR:
+			return 1;
+		default:
+			return 2;
+		}
 	}
 
 

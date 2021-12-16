@@ -374,7 +374,7 @@ public class TableTView extends TrackChooserTView {
 								String name = columns[j];
 								switch (name) {
 								case "theta":
-									name = (track instanceof PointMass ? "\u03b8r"//$NON-NLS-1$
+									name = (track.ttype == TTrack.TYPE_POINTMASS ? "\u03b8r"//$NON-NLS-1$
 											: "\u03b8"); //$NON-NLS-1$
 									break;
 								case "theta_v": //$NON-NLS-1$
@@ -387,7 +387,7 @@ public class TableTView extends TrackChooserTView {
 									name = "\u03b8p"; //$NON-NLS-1$ //$NON-NLS-2$
 									break;
 								case "n":
-									if (track instanceof PointMass) // $NON-NLS-1$
+									if (track.ttype == TTrack.TYPE_POINTMASS) // $NON-NLS-1$
 										name = "step"; //$NON-NLS-1$
 									break;
 								case "KE": //$NON-NLS-1$

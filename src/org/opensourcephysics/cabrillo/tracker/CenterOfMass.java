@@ -304,7 +304,7 @@ public class CenterOfMass extends PointMass {
 		case TrackerPanel.PROPERTY_TRACKERPANEL_TRACK:
 			if (e.getOldValue() != null) { // track deleted //$NON-NLS-1$
 				TTrack track = (TTrack) e.getOldValue();
-				if (track instanceof PointMass)
+				if (track.ttype == TTrack.TYPE_POINTMASS)
 					removeMass((PointMass) track);
 			}
 			break;

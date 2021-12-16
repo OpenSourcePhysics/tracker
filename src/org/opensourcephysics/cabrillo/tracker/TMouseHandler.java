@@ -122,7 +122,7 @@ public class TMouseHandler implements InteractiveMouseHandler {
 			}
 			if (marking) {
 				iad = null;
-				if (selectedTrack != null && selectedTrack instanceof TapeMeasure) {
+				if (selectedTrack != null && selectedTrack.ttype == TTrack.TYPE_TAPEMEASURE) {
 					TapeMeasure tape = (TapeMeasure) selectedTrack;
 					if (tape.isIncomplete) {
 						// this call refreshes the position of end2 but leaves tape incomplete
@@ -370,12 +370,12 @@ public class TMouseHandler implements InteractiveMouseHandler {
 				selectedTrack.autoMarkAt(frameNumber, trackerPanel.getMouseX(), trackerPanel.getMouseY());
 				step = selectedTrack.getStep(frameNumber);
 			} else {
-				boolean newStep = step == null;
-				if (selectedTrack instanceof PointMass) {
+				boolean newStep = (step == null);
+				if (selectedTrack.ttype == TTrack.TYPE_POINTMASS) {
 					selectedTrack.keyFrames.add(frameNumber);
 				}
 				step = selectedTrack.createStep(frameNumber, trackerPanel.getMouseX(), trackerPanel.getMouseY());
-				if (selectedTrack instanceof PointMass) {
+				if (selectedTrack.ttype == TTrack.TYPE_POINTMASS) {
 					PointMass m = (PointMass) selectedTrack;
 					if (m.isAutofill()) {
 						m.markInterpolatedSteps((PositionStep) step, true);
@@ -408,13 +408,17 @@ public class TMouseHandler implements InteractiveMouseHandler {
 				autoTracker = trackerPanel.getAutoTracker(true);
 				autoTracker.setTrack(trackerPanel.getSelectedTrack());
 			}
-			if (autoTracker.getTrack() == selectedTrack
-					&& (selectedTrack instanceof CoordAxes 
-					|| selectedTrack instanceof TapeMeasure
-					|| selectedTrack instanceof PerspectiveTrack 
-					|| selectedTrack instanceof Protractor)
-						&& autoTracker.getOrCreateFrameData(frameNumber).getKeyFrameData() == null) {
+			if (autoTracker.getTrack() == selectedTrack) {
+				switch (selectedTrack.ttype) {
+				case TTrack.TYPE_COORDAXES:
+				case TTrack.TYPE_TAPEMEASURE:
+				case TTrack.TYPE_PERSPECTIVE:
+				case TTrack.TYPE_PROTRACTOR:
+					if (autoTracker.getOrCreateFrameData(frameNumber).getKeyFrameData() == null) {
 							target.setXY(trackerPanel.getMouseX(), trackerPanel.getMouseY());
+						}
+					break;
+				}
 			}
 			autoTracker.addKeyFrame(target, trackerPanel.getMouseX(), trackerPanel.getMouseY());
 			trackerPanel.refreshTrackBar();

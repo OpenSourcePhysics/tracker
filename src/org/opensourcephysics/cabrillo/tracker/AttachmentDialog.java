@@ -197,7 +197,7 @@ public class AttachmentDialog extends JDialog implements PropertyChangeListener 
 			dummyMass.delete();
 			dummyMass = null;
 			TTrack measuringTool = TTrack.getTrack(trackID);
-			if (measuringTool instanceof CircleFitter) {
+			if (measuringTool.ttype == TTrack.TYPE_CIRCLEFITTER) {
 				measuringTool.removePropertyChangeListener(CircleFitter.PROPERTY_CIRCLEFITTER_DATAPOINT, this); //$NON-NLS-1$
 			}
 			if (frame != null) {
@@ -404,8 +404,8 @@ public class AttachmentDialog extends JDialog implements PropertyChangeListener 
 			public void actionPerformed(ActionEvent e) {
 				TTrack measuringTool = TTrack.getTrack(trackID);
 				String keyword = measuringTool == null ? "circle" : //$NON-NLS-1$
-				measuringTool instanceof Protractor ? "protractor" : //$NON-NLS-1$
-				measuringTool instanceof TapeMeasure ? "tape" : "circle"; //$NON-NLS-1$ //$NON-NLS-2$
+				measuringTool.ttype == TTrack.TYPE_PROTRACTOR ? "protractor" : //$NON-NLS-1$
+				measuringTool.ttype == TTrack.TYPE_TAPEMEASURE ? "tape" : "circle"; //$NON-NLS-1$ //$NON-NLS-2$
 				frame.showHelp(keyword + "#attach", 0); //$NON-NLS-1$
 			}
 		});
@@ -430,18 +430,18 @@ public class AttachmentDialog extends JDialog implements PropertyChangeListener 
 	 */
 	protected void setMeasuringTool(TTrack tool) {
 		TTrack measuringTool = TTrack.getTrack(trackID);
-		if (measuringTool instanceof CircleFitter) {
+		if (measuringTool.ttype == TTrack.TYPE_CIRCLEFITTER) {
 			// BH! was "!= null" but this is unique to CircleFitter 
 			measuringTool.removePropertyChangeListener(CircleFitter.PROPERTY_CIRCLEFITTER_DATAPOINT, this); //$NON-NLS-1$
 		}
 
 		measuringTool = tool;
 		trackID = measuringTool.getID();
-		if (tool instanceof CircleFitter)
+		if (tool.ttype == TTrack.TYPE_CIRCLEFITTER)
 			measuringTool.addPropertyChangeListener(CircleFitter.PROPERTY_CIRCLEFITTER_DATAPOINT, this); //$NON-NLS-1$
 		measuringTool.refreshAttachments();
 		refreshDropdowns();
-		if (measuringTool instanceof CircleFitter) {
+		if (measuringTool.ttype == TTrack.TYPE_CIRCLEFITTER) {
 			CircleFitter fitter = (CircleFitter) measuringTool;
 			refreshFieldsAndButtons(fitter);
 		}
@@ -460,7 +460,7 @@ public class AttachmentDialog extends JDialog implements PropertyChangeListener 
 			p.removeListenerNCF((PropertyChangeListener)this);
 		}
 		TTrack measuringTool = TTrack.getTrack(trackID);
-		if (measuringTool != null && measuringTool instanceof TapeMeasure) {
+		if (measuringTool != null && measuringTool.ttype == TTrack.TYPE_TAPEMEASURE) {
 			// can't attach calibration stick to models--creates circular dependency
 			TapeMeasure tape = (TapeMeasure) measuringTool;
 			if (tape.isStickMode()) {
@@ -477,8 +477,12 @@ public class AttachmentDialog extends JDialog implements PropertyChangeListener 
 		FontSizer.setFonts(measuringToolDropdown, FontSizer.getLevel());
 		java.util.Vector<TTrack> tools = new java.util.Vector<TTrack>();
 		for (TTrack track : trackerPanel.getTracksTemp()) {
-			if (track instanceof TapeMeasure || track instanceof Protractor || track instanceof CircleFitter) {
+			switch (track.ttype) {
+			case TTrack.TYPE_TAPEMEASURE:
+			case TTrack.TYPE_PROTRACTOR:
+			case TTrack.TYPE_CIRCLEFITTER:
 				tools.add(track);
+				break;
 			}
 		}
 		trackerPanel.clearTemp();
@@ -551,7 +555,7 @@ public class AttachmentDialog extends JDialog implements PropertyChangeListener 
 		boolean hasStartStopPanel = circleFitterPanel.getComponentCount() > 1;
 		boolean changedLayout = false;
 		TTrack measuringTool = TTrack.getTrack(trackID);
-		if (measuringTool instanceof CircleFitter) {
+		if (measuringTool.ttype == TTrack.TYPE_CIRCLEFITTER) {
 			// put circleFitter panel in attachments panel SOUTH
 			changedLayout = !hasCircleFitterPanel;
 			attachmentsPanel.add(circleFitterPanel, BorderLayout.SOUTH);
@@ -597,7 +601,7 @@ public class AttachmentDialog extends JDialog implements PropertyChangeListener 
 			if (measuringTool == null)
 				return 0;
 
-			if (measuringTool instanceof CircleFitter) {
+			if (measuringTool.ttype == TTrack.TYPE_CIRCLEFITTER) {
 				CircleFitter fitter = (CircleFitter) measuringTool;
 				if (fitter.attachToSteps) {
 					return 1;

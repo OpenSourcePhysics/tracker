@@ -290,7 +290,7 @@ public class VectorStep extends Step implements PropertyChangeListener {
 		if (pointSnapEnabled) {
 			// snap to position
 			TTrack track = getTrack();
-			if (track instanceof PointMass) {
+			if (track.ttype == TTrack.TYPE_POINTMASS) {
 				p = ((PositionStep) track.getStep(n)).getPosition();
 				if (p.distance(tail) < snapDistance) {
 					attach(p);
@@ -527,7 +527,7 @@ public class VectorStep extends Step implements PropertyChangeListener {
 			boolean xMass = panel.getToolBar(true).xMassButton.isSelected();
 			TTrack track = getTrack();
 			String s = track.getName() + " "; //$NON-NLS-1$
-			if (track instanceof PointMass) {
+			if (track.ttype == TTrack.TYPE_POINTMASS) {
 				PointMass m = (PointMass) track;
 				if (m.isVelocity(this)) {
 					s = xMass ? TrackerRes.getString("VectorStep.Label.Momentum") + " " : //$NON-NLS-1$ //$NON-NLS-2$
@@ -803,7 +803,7 @@ public class VectorStep extends Step implements PropertyChangeListener {
 
 		@Override
 		public boolean isStepEditTrigger() {
-			if (getTrack() instanceof PointMass)
+			if (getTrack().ttype == TTrack.TYPE_POINTMASS)
 				return false;
 			return super.isStepEditTrigger();
 		}
@@ -866,7 +866,7 @@ public class VectorStep extends Step implements PropertyChangeListener {
 			double x = coords.imageToWorldXComponent(n, getXComponent(), getYComponent());
 			double y = coords.imageToWorldYComponent(n, getXComponent(), getYComponent());
 			TTrack track = getTrack();
-			if (track instanceof PointMass) {
+			if (track.ttype == TTrack.TYPE_POINTMASS) {
 				TrackerPanel trackerPanel = (TrackerPanel) vidPanel;
 				PointMass m = (PointMass) track;
 				if (m.isVelocity(VectorStep.this)) {
@@ -1035,7 +1035,8 @@ public class VectorStep extends Step implements PropertyChangeListener {
 				control.setValue("snap", snap); //$NON-NLS-1$
 			control.setValue("xtail", step.getTail().x); //$NON-NLS-1$
 			control.setValue("ytail", step.getTail().y); //$NON-NLS-1$
-			if (!step.getTrack().isDependent() && !(step.getTrack() instanceof PointMass)) {
+			TTrack track = step.getTrack();
+			if (track.ttype != TTrack.TYPE_POINTMASS && !track.isDependent()) {
 				control.setValue("xtip", step.getTip().x); //$NON-NLS-1$
 				control.setValue("ytip", step.getTip().y); //$NON-NLS-1$
 			}
@@ -1068,7 +1069,8 @@ public class VectorStep extends Step implements PropertyChangeListener {
 			double x = control.getDouble("xtail"); //$NON-NLS-1$
 			double y = control.getDouble("ytail"); //$NON-NLS-1$
 			step.getTail().setXY(x, y);
-			if (!step.getTrack().isDependent() && !(step.getTrack() instanceof PointMass)) {
+			TTrack track = step.getTrack();
+			if (track.ttype != TTrack.TYPE_POINTMASS && !track.isDependent()) {
 				x = control.getDouble("xtip"); //$NON-NLS-1$
 				y = control.getDouble("ytip"); //$NON-NLS-1$
 				step.getTip().setXY(x, y);

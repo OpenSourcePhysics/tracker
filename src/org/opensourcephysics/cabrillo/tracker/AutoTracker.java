@@ -250,7 +250,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 						stop(true, false);
 					else {
 						paused = true;
-						if (track instanceof PointMass) {
+						if (track.ttype == TTrack.TYPE_POINTMASS) {
 							PointMass pointMass = (PointMass) track;
 							pointMass.updateDerivatives();
 						}
@@ -379,7 +379,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 			TTrack track = getTrack();
 			if (track == null)
 				return;
-			if (track instanceof PointMass) {
+			if (track.ttype == TTrack.TYPE_POINTMASS) {
 				PointMass pointMass = (PointMass) track;
 				pointMass.updateDerivatives();
 			}
@@ -1514,7 +1514,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 		map.clear();
 		// delete all steps unless always marked
 		TTrack track = getTrack();
-		boolean isAlwaysMarked = track.steps.isAutofill() || track instanceof CoordAxes;
+		boolean isAlwaysMarked = (track.steps.isAutofill() || track.ttype == TTrack.TYPE_COORDAXES);
 		if (!isAlwaysMarked) {
 			for (int n = 0; n < track.getSteps().length; n++) {
 				track.steps.setStep(n, null);
@@ -1654,11 +1654,18 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 			}
 			// not automarked
 			TTrack track = getTrack();
-			boolean isCalibrationTool = track instanceof CoordAxes || track instanceof OffsetOrigin
-					|| track instanceof Calibration;
-			if (track instanceof TapeMeasure) {
-				TapeMeasure tape = (TapeMeasure) track;
-				isCalibrationTool = !tape.isReadOnly();
+			boolean isCalibrationTool;
+			switch (track.ttype) {
+			case TTrack.TYPE_COORDAXES:
+			case TTrack.TYPE_OFFSETORIGIN:
+			case TTrack.TYPE_CALIBRATION:
+				isCalibrationTool = true;
+				break;
+			case TTrack.TYPE_TAPEMEASURE:
+				isCalibrationTool = !((TapeMeasure) track).isReadOnly();
+				break;
+		    default:
+		    	isCalibrationTool = false;
 			}
 			if (frameData.searched) {
 				if (isCalibrationTool) {
@@ -3113,7 +3120,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 				}
 			}
 			TTrack track = getTrack();
-			boolean isAlwaysMarked = (track.steps.isAutofill() || track instanceof CoordAxes);
+			boolean isAlwaysMarked = (track.steps.isAutofill() || track.ttype == TTrack.TYPE_COORDAXES);
 			if (!isAlwaysMarked) {
 				Step[] steps = track.getSteps();
 				for (int i = n + 1; i < steps.length; i++) {
@@ -3136,7 +3143,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 			frameData.clear();
 
 			TTrack track = getTrack();
-			boolean isAlwaysMarked = track.steps.isAutofill() || track instanceof CoordAxes;
+			boolean isAlwaysMarked = track.steps.isAutofill() || track.ttype == TTrack.TYPE_COORDAXES;
 			if (!isAlwaysMarked && track.getSteps().length > n)
 				track.getSteps()[n] = null;
 			refreshGUI();
@@ -3147,7 +3154,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 		protected void deleteButtonAction() {
 			// first determine what can be deleted
 			TTrack track = getTrack();
-			boolean isAlwaysMarked = (track.steps.isAutofill() || track instanceof CoordAxes);
+			boolean isAlwaysMarked = (track.steps.isAutofill() || track.ttype == TTrack.TYPE_COORDAXES);
 			boolean hasThis = false;
 			int n = trackerPanel().getFrameNumber();
 			boolean isKeyFrame = getOrCreateFrameData(n).isKeyFrameData();
@@ -3470,7 +3477,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 			// refresh the delete and keyframe buttons
 			boolean deleteButtonEnabled = (track != null);
 			if (track != null) {
-				boolean isAlwaysMarked = track.steps.isAutofill() || track instanceof CoordAxes;
+				boolean isAlwaysMarked = track.steps.isAutofill() || track.ttype == TTrack.TYPE_COORDAXES;
 				if (isAlwaysMarked) {
 					boolean hasFrameData = false;
 					Map<Integer, FrameData> map = getTrackTargetIndexToFrameDataMap();

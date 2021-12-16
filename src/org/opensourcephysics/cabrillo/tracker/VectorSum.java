@@ -292,7 +292,7 @@ public boolean isDependent() {
 		case TrackerPanel.PROPERTY_TRACKERPANEL_TRACK:
 			if (e.getOldValue() != null) { // track deleted //$NON-NLS-1$
 				TTrack track = (TTrack) e.getOldValue();
-				if (track instanceof Vector)
+				if (track.ttype == TTrack.TYPE_VECTOR)
 					removeVector((Vector) track);
 			}
 			break;

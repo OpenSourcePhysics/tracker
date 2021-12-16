@@ -146,9 +146,8 @@ public class PlotGuestDialog extends JDialog {
     setTitle(track.getName());
     instructions.setTitle(TrackerRes.getString("PlotGuestDialog.Instructions")); //$NON-NLS-1$
     // make checkboxes for all similar tracks in trackerPanel
-    Class<? extends TTrack> type = track instanceof PointMass? PointMass.class:
-    	track instanceof Vector? Vector.class: track.getClass();
-    
+    Class<? extends TTrack> type = (track.ttype == TTrack.TYPE_POINTMASS ? PointMass.class
+    		: track.ttype == TTrack.TYPE_VECTOR ? Vector.class : track.getClass());    
     ArrayList<? extends TTrack> tracks = frame.getTrackerPanelForID(panelID).getDrawablesTemp(type);
     TrackerPanel panel = frame.getTrackerPanelForID(panelID);
     tracks.removeAll(panel.calibrationTools);

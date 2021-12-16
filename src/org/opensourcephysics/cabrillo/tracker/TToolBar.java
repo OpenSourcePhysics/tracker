@@ -493,7 +493,7 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 		xMassButton.addActionListener((e) -> {
 				refreshAction.actionPerformed(e);
 				TTrack track = panel().getSelectedTrack();
-				if (track instanceof PointMass) {
+				if (track != null && track.ttype == TTrack.TYPE_POINTMASS) {
 					panel().refreshTrackBar();
 				}
 		});
@@ -1268,7 +1268,7 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 		double totalMass = 0;
 		int massCount = 0;
 		for (TTrack track : tracks) {
-			if (track instanceof PointMass && !(track instanceof CenterOfMass) && !(track instanceof DynamicSystem)) {
+			if (track.ttype == TTrack.TYPE_POINTMASS && !(track instanceof CenterOfMass) && !(track instanceof DynamicSystem)) {
 				PointMass p = (PointMass) track;
 				totalMass += p.getMass();
 				massCount++;
@@ -1281,7 +1281,7 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 			// refresh track display properties from current button states
 			track.setTrailLength(trailLengths[trailLengthIndex]);
 			track.setTrailVisible(trailButton.isSelected());
-			if (track instanceof PointMass) {
+			if (track.ttype == TTrack.TYPE_POINTMASS) {
 				PointMass p = (PointMass) track;
 				p.setTraceVisible(traceVisButton.isSelected());
 				p.setPositionVisible(panel, pVisButton.isSelected());
@@ -1318,7 +1318,7 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 				track.erase();
 //				if (false)
 //					p.repaint();
-			} else if (track instanceof Vector) {
+			} else if (track.ttype == TTrack.TYPE_VECTOR) {
 				Vector v = (Vector) track;
 				v.setLabelsVisible(labelsButton.isSelected());
 				doRepaint = true;
@@ -1769,13 +1769,13 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 		void showCalibrationTool(TTrack track) {
 			track.erase();
 			track.setVisible(true);
-			if (track instanceof Calibration) {
+			if (track.ttype == TTrack.TYPE_CALIBRATION) {
 				int n = panel().getFrameNumber();
 				Step step = track.getStep(n);
 				if (step == null || step.getPoints()[1] == null) {
 					panel().setSelectedTrack(track);
 				}
-			} else if (track instanceof OffsetOrigin) {
+			} else if (track.ttype == TTrack.TYPE_OFFSETORIGIN) {
 				int n = panel().getFrameNumber();
 				Step step = track.getStep(n);
 				if (step == null) {
@@ -1936,7 +1936,7 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 		void showMeasuringTool(TTrack track) {
 			track.erase();
 			track.setVisible(true);
-			if (track instanceof CircleFitter) {
+			if (track.ttype == TTrack.TYPE_CIRCLEFITTER) {
 				CircleFitter fitter = (CircleFitter)track;
 				CircleFitterStep step = (CircleFitterStep) fitter.getStep(0);
 				if (step.getValidDataPoints().size() < 3) {

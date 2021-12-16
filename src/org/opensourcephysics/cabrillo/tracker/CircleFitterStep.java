@@ -742,9 +742,11 @@ public class CircleFitterStep extends Step {
 				if (doRefresh)
 					refreshCircle();
 			}
-      if (doRefresh) circleFitter.refreshFields(n);
- 	  	circleFitter.dataValid = false;
-	  	if (doRefresh) circleFitter.firePropertyChange(TTrack.PROPERTY_TTRACK_DATA, null, circleFitter); //$NON-NLS-1$
+			if (doRefresh)
+				circleFitter.refreshFields(n);
+			circleFitter.dataValid = false;
+			if (doRefresh) // BH I do not think ", circleFitter" does anything other than null here
+				circleFitter.firePropertyChange(TTrack.PROPERTY_TTRACK_DATA, null, circleFitter);
 			if (circleFitter.tp != null) {
 				circleFitter.tp.changed = true;
 			}

@@ -328,7 +328,7 @@ public abstract class InputTrack extends TTrack {
 		if (isLocked())
 			return;
 		int n = tp.getFrameNumber();
-		if (this instanceof TapeMeasure) {
+		if (ttype == TTrack.TYPE_TAPEMEASURE) {
 			TapeStep step = (TapeStep) getStep(n);
 			if (step == null)
 				return;
@@ -342,7 +342,7 @@ public abstract class InputTrack extends TTrack {
 				setEditing(true, step, pt);
 			}
 		}
-		else if (this instanceof Protractor) {
+		else if (ttype == TTrack.TYPE_PROTRACTOR) {
 			ProtractorStep step = (ProtractorStep) getStep(n);
 			if (step == null)
 				return;

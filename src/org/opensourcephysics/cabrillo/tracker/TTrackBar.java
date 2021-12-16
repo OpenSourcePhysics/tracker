@@ -380,9 +380,8 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 				TTrack track = panel.getTrack(item.getText());
 				if (track == null)
 					return;
-				if (panel.calibrationTools.contains(track) || 
-						panel.measuringTools.contains(track) || 
-						track == panel.getAxes()) {
+				if (panel.calibrationTools.contains(track) || panel.measuringTools.contains(track)
+						|| track == panel.getAxes()) {
 					track.setVisible(true);
 				}
 				panel.setSelectedTrack(track);
@@ -404,21 +403,30 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 			if (!userTracks.contains(track)) {
 				if (track == panel.getAxes() && !panel.isEnabled("button.axes")) //$NON-NLS-1$
 					continue;
-				if (panel.calibrationTools.contains(track) && track instanceof TapeMeasure) {
-					TapeMeasure tape = (TapeMeasure) track;
-					if (tape.isStickMode() && !panel.isEnabled("calibration.stick")) //$NON-NLS-1$
+				switch (track.ttype) {
+				case TTrack.TYPE_TAPEMEASURE:
+					if (panel.calibrationTools.contains(track)) {
+						TapeMeasure tape = (TapeMeasure) track;
+						if (tape.isStickMode() ? !panel.isEnabled("calibration.stick") //$NON-NLS-1$
+								: !panel.isEnabled("calibration.tape")) //$NON-NLS-1$
+							continue;
+					}
+					break;
+				case TTrack.TYPE_CALIBRATION:
+					if (!panel.isEnabled("calibration.points")) //$NON-NLS-1$
 						continue;
-					if (!tape.isStickMode() && !panel.isEnabled("calibration.tape")) //$NON-NLS-1$
+					break;
+				case TTrack.TYPE_POINTMASS:
+					if (track instanceof ParticleDataTrack)
 						continue;
+					break;
+				case TTrack.TYPE_OFFSETORIGIN:
+					if (!panel.isEnabled("calibration.offsetOrigin")) //$NON-NLS-1$
+						continue;
+					break;
+				case TTrack.TYPE_PERSPECTIVE:
+					continue;
 				}
-				if (track instanceof Calibration && !panel.isEnabled("calibration.points")) //$NON-NLS-1$
-					continue;
-				if (track instanceof ParticleDataTrack)
-					continue;
-				if (track instanceof OffsetOrigin && !panel.isEnabled("calibration.offsetOrigin")) //$NON-NLS-1$
-					continue;
-				if (track instanceof PerspectiveTrack)
-					continue;
 				JMenuItem item = new JMenuItem(track.getName(), track.getFootprint().getIcon(21, 16));
 				item.addActionListener(listener);
 				selectPopup.add(item);
@@ -466,7 +474,7 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 		selectButton.setForeground(Color.red);
 		trackButton.context = "track"; //$NON-NLS-1$
 		track = panel.getSelectedTrack();
-		if (track != null && !(track instanceof PerspectiveTrack)) {
+		if (track != null && track.ttype != TTrack.TYPE_PERSPECTIVE) {
 			if (track instanceof ParticleDataTrack) {
 				TPoint p = panel.getSelectedPoint();
 				if (p != null) {

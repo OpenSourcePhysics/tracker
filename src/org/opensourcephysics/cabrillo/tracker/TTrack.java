@@ -211,7 +211,7 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 				break;
 			case ImageCoordSystem.PROPERTY_COORDS_TRANSFORM:
 			case Video.PROPERTY_VIDEO_COORDS:
-				if (!(this instanceof PointMass)) {
+				if (ttype != TTrack.TYPE_POINTMASS) {
 					dataValid = false;
 				}
 				erase();
@@ -2417,7 +2417,7 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 					textColumnEntries.put(columnName, new String[0]);
 				}
 				Undo.postTrackEdit(TTrack.this, control);
-				if (TTrack.this instanceof PointMass) {
+				if (TTrack.this.ttype == TTrack.TYPE_POINTMASS) {
 					PointMass p = (PointMass) TTrack.this;
 					p.updateDerivatives();
 				}
@@ -3036,9 +3036,11 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 			if (step == null || step.getPoints()[step.getPoints().length - 1] == null) {
 				return TMouseHandler.STATE_AUTOMARK;
 			}
-
-			if (this instanceof CoordAxes || this instanceof PerspectiveTrack || this instanceof TapeMeasure
-					|| this instanceof Protractor) {
+			switch (ttype) {
+			case TTrack.TYPE_COORDAXES:
+			case TTrack.TYPE_PERSPECTIVE:
+			case TTrack.TYPE_TAPEMEASURE:
+			case TTrack.TYPE_PROTRACTOR:
 				// BH! requires autotracker?
 				AutoTracker autoTracker = tp.getAutoTracker(true);
 				if (autoTracker.getTrack() == null || autoTracker.getTrack() == this) {
@@ -3046,6 +3048,7 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 					if (autoTracker.getOrCreateFrameData(n).getKeyFrameData() == null)
 						return TMouseHandler.STATE_AUTOMARK;
 				}
+				break;
 			}
 			return TMouseHandler.STATE_AUTO;
 		}
@@ -3715,6 +3718,10 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 		dataValid = false;
 		if (newValue != Boolean.FALSE)
 			firePropertyChange(PROPERTY_TTRACK_DATA, null, newValue == Boolean.TRUE ? null : newValue);
+	}
+	
+	public boolean isDataValid() {
+		return dataValid;
 	}
 
 //	public void notifyUndoLoaded() {

@@ -311,7 +311,7 @@ public class TableTrackView extends TrackView {
 
 		});
 		setToolTipText(ToolsRes.getString("DataToolTab.Scroller.Tooltip")); //$NON-NLS-1$
-		highlightVisible = !(track instanceof LineProfile);
+		highlightVisible = (track.ttype != TTrack.TYPE_LINEPROFILE);
 		refreshNameMaps();
 
 		// create the GUI
@@ -522,8 +522,8 @@ public class TableTrackView extends TrackView {
 				TrackerRes.getString("TableTrackView.Button.SwitchTo.Profile"):
 				TrackerRes.getString("TableTrackView.Button.SwitchTo.Time")); //$NON-NLS-1$
 		lineProfileDatatypeButton.setToolTipText(TrackerRes.getString("TableTrackView.Button.SwitchTo.Tooltip")); //$NON-NLS-1$
-		if (getTrack() instanceof LineProfile) {
-			LineProfile lp = (LineProfile)getTrack();
+		if (track.ttype == TTrack.TYPE_LINEPROFILE) {
+			LineProfile lp = (LineProfile) track;
 			lineProfileDatatypeButton.setEnabled(lp.isFixed()); //$NON-NLS-1$
 		}
 		TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
@@ -538,7 +538,7 @@ public class TableTrackView extends TrackView {
 
 	private void refreshGapsButton() {
 		TTrack track = getTrack();
-		if (track instanceof PointMass) {
+		if (track.ttype == TTrack.TYPE_POINTMASS) {
 			PointMass p = (PointMass) track;
 			boolean hasGaps = p.getGapCount() > 0;
 			boolean hasSkips = p.skippedSteps.size() > 0;
@@ -567,13 +567,15 @@ public class TableTrackView extends TrackView {
 	@Override
 	public ArrayList<Component> getToolBarComponents() {
 		toolbarComponents.clear();
-		if (getTrack() instanceof PointMass) {
+		switch (getTrack().ttype) {
+		case TTrack.TYPE_POINTMASS:
 			toolbarComponents.add(gapsButton);
 			refreshGapsButton();
-		}
-		else if (getTrack() instanceof LineProfile) {
+			break;
+		case TTrack.TYPE_LINEPROFILE:
 			lineProfileDatatypeButton.setSelected(myDatasetIndex > -1? true: false);
 			toolbarComponents.add(lineProfileDatatypeButton);
+			break;
 		}
 		return toolbarComponents;
 	}
@@ -2146,7 +2148,7 @@ public class TableTrackView extends TrackView {
 			if (visible) {
 				// add red above or below border to identify skipped frames
 				TTrack track = getTrack();
-				if (track instanceof PointMass) {
+				if (track.ttype == TTrack.TYPE_POINTMASS) {
 					PointMass p = (PointMass) track;
 					if (p.tp != null) {
 						VideoClip clip = p.tp.getPlayer().getVideoClip();

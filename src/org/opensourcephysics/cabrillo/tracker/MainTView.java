@@ -206,8 +206,8 @@ public class MainTView extends TView {
 		case KeyEvent.VK_A:
 			if (Tracker.enableAutofill && !PointMass.isAutoKeyDown) {
 				PointMass.isAutoKeyDown = true;
-				if (trackerPanel.getSelectedTrack() != null
-						&& trackerPanel.getSelectedTrack() instanceof PointMass) {
+				TTrack track = trackerPanel.getSelectedTrack();
+				if (track != null && track.ttype == TTrack.TYPE_POINTMASS) {
 					PointMass m = (PointMass) trackerPanel.getSelectedTrack();
 					m.setAutoFill(!m.isAutofill);
 					trackerPanel.getSelectedTrack().repaint(panelID);

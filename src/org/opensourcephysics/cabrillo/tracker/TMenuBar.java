@@ -2096,7 +2096,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 
 			switch (menu) {
 			case MENU_COORDS:
-				if (track instanceof PointMass) {
+				if (track.ttype == TTrack.TYPE_POINTMASS) {
 					JRadioButtonMenuItem item = new JRadioButtonMenuItem(trackName);
 					item.addActionListener(actions.get("refFrame")); //$NON-NLS-1$
 					coords_refFrameGroup.add(item);
@@ -2255,7 +2255,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 				jt = setNextTrackMenuText(trackMenu, jt, trackName);
 				break;
 			case MENU_COORDS:
-				if (track instanceof PointMass) {
+				if (track.ttype == TTrack.TYPE_POINTMASS) {
 					jp = setNextTrackMenuText(coords_refFrameMenu, jp, trackName);
 				}
 				break;
