@@ -2317,15 +2317,15 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	 * @return true if marking (ie next mouse click will mark a TPoint)
 	 */
 	protected boolean setCursorForMarking(boolean invert, InputEvent e) {
-		if (isClipAdjusting() 
-				|| Tracker.isZoomInCursor(getCursor()) || Tracker.isZoomOutCursor(getCursor()))
+		if (isClipAdjusting() || Tracker.isZoomInCursor(getCursor()) || Tracker.isZoomOutCursor(getCursor()))
 			return false;
 		boolean markable = false;
 		boolean marking = false;
 		selectedTrack = getSelectedTrack();
 		int n = getFrameNumber();
 		if (selectedTrack != null) {
-			markable = !(selectedTrack.isStepComplete(n) || selectedTrack.isLocked() || popup != null && popup.isVisible());
+			markable = !(selectedTrack.isStepComplete(n) || selectedTrack.isLocked()
+					|| popup != null && popup.isVisible());
 			marking = markable && (selectedTrack.isMarkByDefault() != invert);
 		}
 		Interactive iad = getTracksTemp().isEmpty() || mouseEvent == null ? null : getInteractive();
@@ -2333,20 +2333,27 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		if (marking) {
 			setMouseCursor(selectedTrack.getMarkingCursor(e));
 			if (Tracker.showHints) {
-				if (selectedTrack instanceof PointMass) {
-					if (selectedTrack.getStep(n) == null)
-						setMessage(TrackerRes.getString("PointMass.Hint.Marking")); //$NON-NLS-1$
-					else
-						setMessage(TrackerRes.getString("PointMass.Remarking.Hint")); //$NON-NLS-1$
-				} else if (selectedTrack instanceof Vector)
-					if (selectedTrack.getStep(n) == null)
-						setMessage(TrackerRes.getString("Vector.Hint.Marking")); //$NON-NLS-1$
-					else
-						setMessage(TrackerRes.getString("Vector.Remarking.Hint")); //$NON-NLS-1$
-				else if (selectedTrack instanceof LineProfile)
-					setMessage(TrackerRes.getString("LineProfile.Hint.Marking")); //$NON-NLS-1$
-				else if (selectedTrack instanceof RGBRegion)
-					setMessage(TrackerRes.getString("RGBRegion.Hint.Marking")); //$NON-NLS-1$
+				String msg = null;
+				switch (selectedTrack.ttype) {
+				case TTrack.TYPE_POINTMASS:
+					msg = (selectedTrack.getStep(n) == null ?
+						"PointMass.Hint.Marking" //$NON-NLS-1$
+						: "PointMass.Remarking.Hint"); //$NON-NLS-1$
+					break;
+				case TTrack.TYPE_VECTOR:
+					msg = (selectedTrack.getStep(n) == null ?
+						"Vector.Hint.Marking" //$NON-NLS-1$
+					  : "Vector.Remarking.Hint"); //$NON-NLS-1$
+					break;
+				case TTrack.TYPE_RGBREGION:
+					msg = "RGBRegion.Hint.Marking"; //$NON-NLS-1$
+					break;
+				case TTrack.TYPE_LINEPROFILE:
+					msg = "LineProfile.Hint.Marking"; //$NON-NLS-1$
+					break;
+				}
+				if (msg != null)
+					setMessage(TrackerRes.getString(msg));
 			} else
 				setMessage(""); //$NON-NLS-1$
 		} else if (iad instanceof TPoint) {
@@ -2404,32 +2411,55 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	 */
 	protected void handleKeyPress(KeyEvent e) {
 		if (e.getKeyCode() == KeyEvent.VK_F1) {
+			// help
+			// !BH 2021.12.15 problem with ordering of "instanceof" checks
 			TFrame frame = getTFrame();
 			if (frame != null) {
-				if (selectedTrack == null)
-					frame.showHelp("help", 0); //$NON-NLS-1$
-				else if (selectedTrack instanceof CoordAxes)
-					frame.showHelp("axes", 0); //$NON-NLS-1$
-				else if (selectedTrack instanceof TapeMeasure)
-					frame.showHelp("tape", 0); //$NON-NLS-1$
-				else if (selectedTrack instanceof OffsetOrigin)
-					frame.showHelp("offset", 0); //$NON-NLS-1$
-				else if (selectedTrack instanceof Calibration)
-					frame.showHelp("calibration", 0); //$NON-NLS-1$
-				else if (selectedTrack instanceof PointMass)
-					frame.showHelp("pointmass", 0); //$NON-NLS-1$
-				else if (selectedTrack instanceof CenterOfMass)
-					frame.showHelp("cm", 0); //$NON-NLS-1$
-				else if (selectedTrack instanceof Vector)
-					frame.showHelp("vector", 0); //$NON-NLS-1$
-				else if (selectedTrack instanceof VectorSum)
-					frame.showHelp("vectorsum", 0); //$NON-NLS-1$
-				else if (selectedTrack instanceof LineProfile)
-					frame.showHelp("profile", 0); //$NON-NLS-1$
-				else if (selectedTrack instanceof RGBRegion)
-					frame.showHelp("rgbregion", 0); //$NON-NLS-1$
-				else if (selectedTrack instanceof ParticleModel)
-					frame.showHelp("particle", 0); //$NON-NLS-1$
+				String key = null;
+				if (selectedTrack == null) {
+					key = "help"; //$NON-NLS-1$
+				} else {
+					switch (selectedTrack.ttype) {
+					case TTrack.TYPE_CALIBRATION:
+						key = "calibration"; //$NON-NLS-1$
+						break;
+					case TTrack.TYPE_CIRCLEFITTER:
+						break;
+					case TTrack.TYPE_COORDAXES:
+						key = "axes"; //$NON-NLS-1$
+						break;
+					case TTrack.TYPE_LINEPROFILE:
+						key = "profile"; //$NON-NLS-1$
+						break;
+					case TTrack.TYPE_OFFSETORIGIN:
+						key = "offset"; //$NON-NLS-1$
+						break;
+					case TTrack.TYPE_PERSPECTIVE:
+						break;
+					case TTrack.TYPE_POINTMASS:
+						key = (selectedTrack instanceof CenterOfMass ? "cm" //$NON-NLS-1$
+								: selectedTrack instanceof ParticleModel ?
+								// includes AnalyticalParticle, DynamicParticle, DynamicParticlePolar,
+								// ParticleDataTrack
+										"particle" //$NON-NLS-1$
+										: "pointmass"); // $NON-NLS-2$
+						break;
+					case TTrack.TYPE_PROTRACTOR:
+						break;
+					case TTrack.TYPE_RGBREGION:
+						key = "rgbregion"; //$NON-NLS-1$
+						break;
+					case TTrack.TYPE_TAPEMEASURE:
+						key = "tape"; //$NON-NLS-1$
+						break;
+					case TTrack.TYPE_VECTOR:
+						key = (selectedTrack instanceof VectorSum ? "vectorsum" //$NON-NLS-1$
+								: "vector"); //$NON-NLS-1$
+						break;
+					}
+				}
+				if (key != null)
+					frame.showHelp(key, 0); // $NON-NLS-1$
 			}
 			return;
 		}
@@ -2457,9 +2487,8 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			// delete selected steps
 			if (selectedPoint != null && selectingPanelID == panelID) {
 				deletePoint(selectedPoint);
-			}
-			else {
-				deleteSelectedSteps();				
+			} else {
+				deleteSelectedSteps();
 			}
 			return;
 		}
@@ -3157,7 +3186,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			}
 			if (isChanged) {
 				changes.add(new Object[] { track, control });
-				if (track instanceof PointMass) {
+				if (track.ttype == TTrack.TYPE_POINTMASS) {
 					VideoClip clip = getPlayer().getVideoClip();
 
 					int startFrame = Math.max(nMin - 2 * clip.getStepSize(), clip.getStartFrameNumber());
@@ -4252,12 +4281,16 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			} else if (iad instanceof TTrack) {
 				// look for direct track clicks
 				TTrack track = (TTrack) iad;
-				if (track instanceof TapeMeasure) {
+				switch (track.ttype) {
+				case TTrack.TYPE_TAPEMEASURE:
 					popup = ((TapeMeasure) track).getInputFieldPopup();
-				} else if (track instanceof Protractor) {
+					break;
+				case TTrack.TYPE_PROTRACTOR:
 					popup = ((Protractor) track).getInputFieldPopup();
-				} else {
+					break;
+			    default:
 					popup = track.getMenu(this, null).getPopupMenu();
+			    	break;
 				}
 				getZoomBox().setVisible(false);
 				return popup;
