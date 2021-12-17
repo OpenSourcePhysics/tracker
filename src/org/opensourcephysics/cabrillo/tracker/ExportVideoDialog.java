@@ -452,8 +452,8 @@ public class ExportVideoDialog extends JDialog {
 		sizeDropdown.removeAllItems();
 		if (view == panel) {
 			int contentIndex = contentDropdown.getSelectedIndex();
-			if (contentIndex == 1 || contentIndex == 3) { // video only or deinterlaced video
-				Dimension d = panel.getVideo().getImageSize();
+			if (contentIndex == 1 || contentIndex == 3) { // video only or deinterlaced/filtered video
+				Dimension d = panel.getVideo().getImageSize(true);
 				int w = d.width;
 				int h = d.height;
 				fullSize = getAcceptedDimension(w, h);
