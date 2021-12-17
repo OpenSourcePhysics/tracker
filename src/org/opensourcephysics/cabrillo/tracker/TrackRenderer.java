@@ -35,7 +35,8 @@ import javax.swing.ListCellRenderer;
 import org.opensourcephysics.tools.FontSizer;
 
 /**
- * A custom renderer to show track name and icon in dropdown list items
+ * A custom renderer to show track name and icon in dropdown list items, where the items 
+ * are Object[] { icon, text }
  *
  * @author Douglas Brown
  */
