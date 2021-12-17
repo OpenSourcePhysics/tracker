@@ -121,8 +121,7 @@ public abstract class TrackChooserTView extends TView {
 		trackComboBox.setBorder(BorderFactory.createEmptyBorder(0, 0, 1, 1));
 		toolbarComponents.add(trackComboBox);
 		// custom cell renderer for dropdown items
-		TrackRenderer renderer = new TrackRenderer();
-		trackComboBox.setRenderer(renderer);
+		trackComboBox.setRenderer(new TrackRenderer());
 		// add ActionListener to select a track and display its trackview
 		trackComboBox.addActionListener(new ActionListener() {
 			@Override
