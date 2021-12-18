@@ -747,7 +747,7 @@ public class DynamicSystem extends DynamicParticlePolar {
 		if (tp != null) {
 			zeroOmega = 1000 * zeroAngle / tp.getPlayer().getMeanStepDuration();
 		}
-		String relative = "_" + TrackerRes.getString("DynamicSystem.Parameter. fe.Relative"); //$NON-NLS-1$ //$NON-NLS-2$
+		String relative = "_" + TrackerRes.getString("DynamicSystem.Parameter.Name.Relative"); //$NON-NLS-1$ //$NON-NLS-2$
 		String particleNames = " "; //$NON-NLS-1$
 		if (particles.length > 0) {
 			particleNames += TrackerRes.getString("DynamicSystem.Parameter.Of") + " "; //$NON-NLS-1$ //$NON-NLS-2$
