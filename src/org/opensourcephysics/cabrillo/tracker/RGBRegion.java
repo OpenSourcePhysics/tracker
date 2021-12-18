@@ -1086,7 +1086,7 @@ public class RGBRegion extends TTrack {
 	}
 
 	private void setMaxEdgeLength(Video video) {
-		Dimension d = video.getImageSize();
+		Dimension d = video.getImageSize(true);
 		maxEdgeLength = Math.min(d.height, d.width) - 1;
 	}
 
