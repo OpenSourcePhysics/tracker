@@ -43,6 +43,7 @@ import org.opensourcephysics.media.core.Filter;
 import org.opensourcephysics.media.core.FilterStack;
 import org.opensourcephysics.media.core.TPoint;
 import org.opensourcephysics.media.core.Video;
+import org.opensourcephysics.tools.FunctionTool;
 
 /**
  * This creates a map of action name to action for many common tracker actions.
@@ -569,26 +570,34 @@ public class TActions {
 		return t;
 	}
 
-	private static ParticleModel addParticle(ParticleModel model, TrackerPanel trackerPanel) {
-		addTrack(model, trackerPanel);
-		model.setStartFrame(trackerPanel.getPlayer().getVideoClip().getStartFrameNumber());
-		model.getModelBuilder().setVisible(true);
-		return model;
+	private static void addParticle(ParticleModel model, TrackerPanel trackerPanel, boolean isDynamic) {
+		ModelBuilder builder = model.getModelBuilder();
+		if (builder != null) {
+			builder.setVisible(false);
+		}
+		SwingUtilities.invokeLater(() -> {
+			addTrack(model, trackerPanel);
+			model.setStartFrame(trackerPanel.getPlayer().getVideoClip().getStartFrameNumber());
+			if (isDynamic) {
+				((DynamicSystem) model).getSystemInspector().setVisible(true);
+			}
+			model.getModelBuilder().refreshDropdown(model.getName());
+		});
 	}
 
 	protected static void analyticalParticleAction(TrackerPanel trackerPanel) {
-		addParticle(new AnalyticParticle(), trackerPanel);
+		addParticle(new AnalyticParticle(), trackerPanel, false);
 	}
 
 	public static void dynamicParticleAction(TrackerPanel trackerPanel) {
-		addParticle(new DynamicParticle(), trackerPanel);
+		addParticle(new DynamicParticle(), trackerPanel, false);
 	}
 
 	public static void dynamicParticlePolarAction(TrackerPanel trackerPanel) {
-		addParticle(new DynamicParticlePolar(), trackerPanel);
+		addParticle(new DynamicParticlePolar(), trackerPanel, false);
 	}
 	protected static void dynamicSystemAction(TrackerPanel trackerPanel) {
-		((DynamicSystem) addParticle(new DynamicSystem(), trackerPanel)).getSystemInspector().setVisible(true);
+				addParticle(new DynamicSystem(), trackerPanel, true);
 	}
 
 	protected static void rgbRegionAction(TrackerPanel trackerPanel) {

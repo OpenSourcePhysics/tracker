@@ -55,6 +55,13 @@ public class ModelBuilder extends FunctionTool {
 	private JComboBox<String> solverDropdown;
 
 	private ComponentListener myFollower;
+	protected boolean refreshingLayout;
+	
+	/**
+	 * delay repaint and setVisible (often triggered from within Java, such as for selections.
+	 * 
+	 */
+	private boolean repaintDelayed;
 
 	private static String[] solverClassNames = {
 			"org.opensourcephysics.numerics.RK4", 
@@ -68,15 +75,18 @@ public class ModelBuilder extends FunctionTool {
 	 */
 	protected ModelBuilder(TrackerPanel trackerPanel) {
 		super(trackerPanel, false, true);
+		setVisible(false);// wait until constructed for display
+		repaintDelayed = true;
+		setMinimumSize(new Dimension(400, 600));
 		frame = trackerPanel.getTFrame();
 		panelID = trackerPanel.getID();
 		if (frame != null) {
 			myFollower = frame.addFollower(this, null);
 		}
 		setFontLevel(FontSizer.getLevel());
-		refreshLayout();
+		//refreshLayoutAsync();
 		addPropertyChangeListener(FunctionTool.PROPERTY_FUNCTIONTOOL_PANEL, trackerPanel);
-
+		repaintDelayed = false;
 	}
 
 	@Override
@@ -234,7 +244,14 @@ public class ModelBuilder extends FunctionTool {
 
 	@Override
 	public void setVisible(boolean vis) {
+		if (vis == isVisible() || repaintDelayed)
+			return;
+		//System.out.println("MB setvisible " + vis);
+		repaintDelayed = true;
 		super.setVisible(vis);
+		repaintDelayed = false;
+		if (vis)
+			repaint();
 		frame.getTrackerPanelForID(panelID).isModelBuilderVisible = vis;
 	}
 
@@ -242,15 +259,15 @@ public class ModelBuilder extends FunctionTool {
 	public void setFontLevel(int level) {
 		super.setFontLevel(level);
 		refreshBoosterDropdown();
-		refreshLayout();
-		validate();
+		refreshLayoutAsync();
 	}
 
 	@Override
 	public void propertyChange(PropertyChangeEvent e) {
+		//System.out.println("MB change " + e.getPropertyName());
 		if (e.getPropertyName().equals(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK)) { //$NON-NLS-1$
 			refreshBoosterDropdown();
-			refreshLayout();
+			refreshLayoutAsync();
 		} else {
 			super.propertyChange(e);
 		}
@@ -268,18 +285,27 @@ public class ModelBuilder extends FunctionTool {
 	/**
 	 * Refreshes the layout to ensure the booster dropdown is fully displayed.
 	 */
-	protected void refreshLayout() {
+	protected void refreshLayoutAsync() {
+		if (refreshingLayout)
+			return;
+		refreshingLayout = true;
+		setVisible(false);
 		SwingUtilities.invokeLater(new Runnable() {
+			private boolean sizeSet;
+
 			@Override
 			public void run() {
-				validate();
+				refreshingLayout = false;
 				refreshGUI();
+				validate();
 				Dimension dim = getSize();
 				int height = Toolkit.getDefaultToolkit().getScreenSize().height;
 				height = Math.min((int) (0.95 * height), (int) (550 * (1 + fontLevel / 4.0)));
 				dim.height = height;
+				sizeSet = true;
 				setSize(dim);
-				TFrame.repaintT(ModelBuilder.this);
+				setVisible(true);
+//				TFrame.repaintT(ModelBuilder.this);
 			}
 		});
 
@@ -476,7 +502,7 @@ public class ModelBuilder extends FunctionTool {
 
 	@Override
 	public void dispose() {
-		System.out.println("ModelBuilder.dispose " + panelID);
+		//System.out.println("ModelBuilder.dispose " + panelID);
 		TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
 		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this); //$NON-NLS-1$
 		ToolsRes.removePropertyChangeListener(ToolsRes.OSP_PROPERTY_LOCALE, this); //$NON-NLS-1$
@@ -501,5 +527,30 @@ public class ModelBuilder extends FunctionTool {
 		OSPLog.finalized(this);
 	}
 
+	@Override
+	public void addPanel(String name, FunctionPanel panel) {
+		//System.out.println("MB addPanel " + name);
+		super.addPanel(name, panel);
+	}
+
+	public void repaint() {
+		if (repaintDelayed)
+			return;
+		//System.out.println("MB repaint " );
+		super.repaint();		
+	}
+	
+	public void repaint(long a, int b, int c, int d, int e) {
+		if (repaintDelayed)
+			return;
+		//System.out.println("MB repaint " + a + " " + b + " " + c + " " + d + " " + e);
+		super.repaint(a, b, c, d, e);		
+	}
+	
+	
+	public void paint(Graphics g) {
+		super.paint(g);
+		//System.out.println("MB paint1");
+	}
 
 }

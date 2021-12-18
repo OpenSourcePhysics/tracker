@@ -90,7 +90,7 @@ abstract public class ParticleModel extends PointMass {
 	}
 
 	// instance fields
-	protected FunctionTool modelBuilder;
+	protected ModelBuilder modelBuilder;
 	protected ModelFunctionPanel functionPanel;
 	protected UserFunctionEditor functionEditor;
 
@@ -1019,7 +1019,7 @@ abstract public class ParticleModel extends PointMass {
 	 * 
 	 * @return the model builder
 	 */
-	public FunctionTool getModelBuilder() {
+	public ModelBuilder getModelBuilder() {
 		if (tp == null)
 			return null;
 		if (modelBuilder == null) {

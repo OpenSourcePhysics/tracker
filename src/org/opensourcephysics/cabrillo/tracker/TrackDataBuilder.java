@@ -480,10 +480,10 @@ public class TrackDataBuilder extends FunctionTool {
 	 * @return the added panel
 	 */
 	@Override
-	public FunctionPanel addPanel(String name, FunctionPanel panel) {
+	public void addPanel(String name, FunctionPanel panel) {
 		super.addPanel(name, panel);
 		if (!Tracker.haveDataFunctions())
-			return panel;
+			return;
 		
 		// autoload data functions, if any, for this track type
 		Class<?> trackType = null;
@@ -495,7 +495,6 @@ public class TrackDataBuilder extends FunctionTool {
 		} catch (Throwable e) {
 			e.printStackTrace();
 		}
-		return panel;
 	}
 
 	/**
