@@ -220,7 +220,7 @@ public class PropertiesDialog extends JDialog {
 						type += "(" + ext.toUpperCase() + ")"; //$NON-NLS-1$						
 					}
 				}
-				Dimension d = video.getImageSize(); // original size without filters
+				Dimension d = video.getImageSize(true); // original size without filters
 				int w = d.width;
 				int h = d.height;
 				size = w + " x " + h; //$NON-NLS-1$

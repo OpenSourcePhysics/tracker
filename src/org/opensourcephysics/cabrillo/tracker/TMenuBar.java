@@ -1495,7 +1495,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 			vidWidth = image.getWidth();
 			vidHeight = image.getHeight();
 			// can't use raw video size here--image size changes with filters
-//			Dimension d = video.getImageSize();
+//			Dimension d = video.getImageSize(true);
 //      vidWidth = d.width;
 //      vidHeight = d.height;
 			String s = TrackerRes.getString("TMenuBar.Menu.Video"); //$NON-NLS-1$
@@ -2837,7 +2837,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 				Dimension dim = mat.getSize();
 	
 	  		// can't use raw video size since filters may be applied
-	//			Dimension d = panel.getVideo().getImageSize();
+	//			Dimension d = panel.getVideo().getImageSize(true);
 	//			int vidWidth = d.width;
 	//			int vidHeight = d.height;
 	      int vidWidth = panel.getVideo().getImage().getWidth();
