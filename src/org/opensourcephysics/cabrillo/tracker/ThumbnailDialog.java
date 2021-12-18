@@ -420,7 +420,7 @@ public class ThumbnailDialog extends JDialog {
 			thumbSize = getFullThumbnailSize(fullSize);
 			break;
 		case 2: // video only
-			Dimension d = trackerPanel.getVideo().getImageSize(true);
+			Dimension d = trackerPanel.getVideo().getImageSize();
 			fullSize.setSize(d.width, d.height);
 			thumbSize = getFullThumbnailSize(fullSize);
 			break;

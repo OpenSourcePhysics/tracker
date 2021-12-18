@@ -579,7 +579,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 		}
 		if (success) {
 			// make sure prediction is within the video image
-			Dimension d = getVideo().getImageSize(true);
+			Dimension d = getVideo().getImageSize();
 			predictedTarget.x = Math.max(predictedTarget.x, 0);
 			predictedTarget.x = Math.min(predictedTarget.x, d.width);
 			predictedTarget.y = Math.max(predictedTarget.y, 0);
@@ -794,7 +794,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 	protected void setSearchPoints(TPoint center, TPoint corner) {
 		if (corner == null) {
 			// make sure search rectangle is within the displayed video image
-			Dimension d = getVideo().getImageSize(true);
+			Dimension d = getVideo().getImageSize();
 			int w = d.width;
 			int h = d.height;
 			int setbackX = searchRect2D.getBounds().width / 2;
@@ -1728,7 +1728,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 	protected boolean moveRectIntoImage(Rectangle2D searchRect) {
 		// if needed, modify search rectangle to keep it within the video image
 		// get dimensions of video image after filters applied
-		Dimension d = getVideo().getImageSize(true);
+		Dimension d = getVideo().getImageSize();
 		int w = d.width;
 		int h = d.height;
 		Point2D corner = new Point2D.Double(searchRect.getX(), searchRect.getY());
