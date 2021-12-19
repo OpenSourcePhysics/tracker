@@ -60,14 +60,10 @@ public class AnalyticParticle extends ParticleModel {
 		// set main position functions "x" and "y"
 		String[] t = new String[] { "t" }; //$NON-NLS-1$
 		UserFunction[] ff = new UserFunction[2];
-		ff[0] = new UserFunction("x"); //$NON-NLS-1$
-		ff[0].setNameEditable(false);
-		ff[0].setExpression("0", t); //$NON-NLS-1$
-		ff[0].setDescription(TrackerRes.getString("AnalyticParticle.PositionFunction.X.Description")); //$NON-NLS-1$
-		ff[1] = new UserFunction("y"); //$NON-NLS-1$
-		ff[1].setNameEditable(false);
-		ff[1].setExpression("0", t); //$NON-NLS-1$
-		ff[1].setDescription(TrackerRes.getString("AnalyticParticle.PositionFunction.Y.Description")); //$NON-NLS-1$
+		ff[0] = new UserFunction("x", //$NON-NLS-1$
+				t, TrackerRes.getString("AnalyticParticle.PositionFunction.X.Description")); //$NON-NLS-1$
+		ff[1] = new UserFunction("y", //$NON-NLS-1$
+				t, TrackerRes.getString("AnalyticParticle.PositionFunction.Y.Description")); //$NON-NLS-1$
 		functionEditor.setMainFunctions(ff);
 	}
 

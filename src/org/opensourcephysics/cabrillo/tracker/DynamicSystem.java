@@ -860,15 +860,10 @@ public class DynamicSystem extends DynamicParticlePolar {
 		String[] funcVars = new String[] { "r", "vr", //$NON-NLS-1$ //$NON-NLS-2$
 				FunctionEditor.THETA, FunctionEditor.OMEGA, "t" }; //$NON-NLS-1$
 		String internal = TrackerRes.getString("DynamicSystem.Force.Name.Internal"); //$NON-NLS-1$
-		uf[0] = new UserFunction("fr_" + internal); //$NON-NLS-1$
-		uf[0].setNameEditable(false);
-		uf[0].setExpression("0", funcVars); //$NON-NLS-1$
-		uf[0].setDescription(TrackerRes.getString("DynamicSystem.ForceFunction.R.Description")); //$NON-NLS-1$
-		String s = "f" + FunctionEditor.THETA + "_" + internal; //$NON-NLS-1$ //$NON-NLS-2$
-		uf[1] = new UserFunction(s);
-		uf[1].setNameEditable(false);
-		uf[1].setExpression("0", funcVars); //$NON-NLS-1$
-		uf[1].setDescription(TrackerRes.getString("DynamicSystem.ForceFunction.Theta.Description")); //$NON-NLS-1$
+		uf[0] = new UserFunction("fr_" + internal, //$NON-NLS-1$
+			funcVars, TrackerRes.getString("DynamicSystem.ForceFunction.R.Description")); //$NON-NLS-1$
+		uf[1] = new UserFunction("f" + FunctionEditor.THETA + "_" + internal, //$NON-NLS-1$ //$NON-NLS-2$
+			funcVars, TrackerRes.getString("DynamicSystem.ForceFunction.Theta.Description")); //$NON-NLS-1$
 		functionEditor.setMainFunctions(uf);
 		// create mass and initial time parameters
 		createMassAndTimeParameters();

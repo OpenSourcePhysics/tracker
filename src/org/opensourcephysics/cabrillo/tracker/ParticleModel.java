@@ -58,7 +58,9 @@ import org.opensourcephysics.media.core.ImageCoordSystem;
 import org.opensourcephysics.media.core.TPoint;
 import org.opensourcephysics.media.core.Trackable;
 import org.opensourcephysics.media.core.VideoClip;
+import org.opensourcephysics.numerics.SuryonoParser;
 import org.opensourcephysics.tools.FunctionEditor;
+import org.opensourcephysics.tools.FunctionEditor.FObject;
 import org.opensourcephysics.tools.FunctionTool;
 import org.opensourcephysics.tools.InitialValueEditor;
 import org.opensourcephysics.tools.ParamEditor;
@@ -75,6 +77,11 @@ import org.opensourcephysics.tools.UserFunctionEditor;
  */
 abstract public class ParticleModel extends PointMass {
 
+	/**
+	 * Initializes the ModelFunctionPanel. 
+	 */
+	abstract protected void initializeFunctionPanel();
+	
 	// static fields
 	protected static int tracePtsPerStep = 10;
 	protected static boolean loading = false;
@@ -1038,14 +1045,6 @@ abstract public class ParticleModel extends PointMass {
 	}
 
 	/**
-	 * Initializes the ModelFunctionPanel. The panel must created by subclasses
-	 * before calling this method.
-	 */
-	protected void initializeFunctionPanel() {
-		createMassAndTimeParameters();
-	}
-
-	/**
 	 * This adds the mass and initial time parameters to the function panel.
 	 */
 	protected void createMassAndTimeParameters() {
@@ -1053,10 +1052,7 @@ abstract public class ParticleModel extends PointMass {
 		param.setNameEditable(false);
 		param.setDescription(TrackerRes.getString("ParticleModel.Parameter.Mass.Description")); //$NON-NLS-1$
 		getParamEditor().addObject(param, false);
-		param = new Parameter("t", "0"); //$NON-NLS-1$ //$NON-NLS-2$
-		param.setNameEditable(false);
-		param.setDescription(TrackerRes.getString("ParticleModel.Parameter.InitialTime.Description")); //$NON-NLS-1$
-		functionPanel.getInitEditor().addObject(param, false);
+		functionPanel.getInitEditor().addObject(newTimeParam(), false);
 		massParamListener = new PropertyChangeListener() {
 			@Override
 			public void propertyChange(PropertyChangeEvent e) {
@@ -1334,5 +1330,13 @@ abstract public class ParticleModel extends PointMass {
 			tframe.removePropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, this);
 		super.dispose();
 	}
+
+	public static FObject newTimeParam() {
+		Parameter param = new Parameter("t", SuryonoParser.NULL); //$NON-NLS-1$
+		param.setNameEditable(false);
+		param.setDescription(TrackerRes.getString("ParticleModel.Parameter.InitialTime.Description")); //$NON-NLS-1$
+		return param;
+	}
+
 
 }
