@@ -1799,10 +1799,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 	 * This adds the initial time parameter to the function panel.
 	 */
 	private void createTimeParameter() {
-		Parameter param = new Parameter("t", "0"); //$NON-NLS-1$ //$NON-NLS-2$
-		param.setNameEditable(false);
-		param.setDescription(TrackerRes.getString("ParticleModel.Parameter.InitialTime.Description")); //$NON-NLS-1$
-		functionPanel.getInitEditor().addObject(param, false);
+		functionPanel.getInitEditor().addObject(newTimeParam(), false);
 		getInitEditor().addPropertyChangeListener(new PropertyChangeListener() {
 			@Override
 			public void propertyChange(PropertyChangeEvent e) {

@@ -14,12 +14,21 @@ import javax.swing.Icon;
 import org.opensourcephysics.tools.*;
 
 /**
- * This is a FunctionPanel for particle models.
+ * A subclass of FunctionPanel specifically for particle models.
+ * 
+ * <code>
+     ModelFunctionPanel
+        AnalyticFunctionPanel
+        DynamicFunctionPanel
+        ParticleDataTrackFunctionPanel
+ </code>
  *
+ *Created by their respective ParticleModel constructors (including ParticleDataTrack)
+ * 
  * @author Douglas Brown
  */
 @SuppressWarnings("serial")
-public class ModelFunctionPanel extends FunctionPanel {
+public abstract class ModelFunctionPanel extends FunctionPanel {
 
 	InitialValueEditor initEditor;
 	ParticleModel model;
@@ -223,8 +232,7 @@ public class ModelFunctionPanel extends FunctionPanel {
 
 	@Override
 	protected boolean hasInvalidExpressions() {
-		return functionEditor.containsInvalidExpressions() || paramEditor.containsInvalidExpressions()
-				|| initEditor.containsInvalidExpressions();
+		return super.hasInvalidExpressions() || initEditor.containsInvalidExpressions();
 	}
 
 }

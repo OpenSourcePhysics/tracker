@@ -442,14 +442,10 @@ public class DynamicParticle extends ParticleModel implements ODE {
 		String[] funcVars = new String[] { "x", "vx", //$NON-NLS-1$ //$NON-NLS-2$
 				"y", "vy", "t" }; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 		UserFunction[] uf = new UserFunction[2];
-		uf[0] = new UserFunction("fx"); //$NON-NLS-1$
-		uf[0].setNameEditable(false);
-		uf[0].setExpression("0", funcVars); //$NON-NLS-1$
-		uf[0].setDescription(TrackerRes.getString("DynamicParticle.ForceFunction.X.Description")); //$NON-NLS-1$
-		uf[1] = new UserFunction("fy"); //$NON-NLS-1$
-		uf[1].setNameEditable(false);
-		uf[1].setExpression("0", funcVars); //$NON-NLS-1$
-		uf[1].setDescription(TrackerRes.getString("DynamicParticle.ForceFunction.Y.Description")); //$NON-NLS-1$
+		uf[0] = new UserFunction("fx", //$NON-NLS-1$
+			funcVars, TrackerRes.getString("DynamicParticle.ForceFunction.X.Description")); //$NON-NLS-1$
+		uf[1] = new UserFunction("fy", //$NON-NLS-1$
+			funcVars, TrackerRes.getString("DynamicParticle.ForceFunction.Y.Description")); //$NON-NLS-1$
 		functionEditor.setMainFunctions(uf);
 		// create mass and initial time parameters
 		createMassAndTimeParameters();

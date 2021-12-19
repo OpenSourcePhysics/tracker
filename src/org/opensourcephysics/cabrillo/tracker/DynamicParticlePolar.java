@@ -106,15 +106,10 @@ public class DynamicParticlePolar extends DynamicParticle {
 		functionPanel = new DynamicFunctionPanel(functionEditor, this);
 		// create main force functions
 		UserFunction[] uf = new UserFunction[2];
-		uf[0] = new UserFunction("fr"); //$NON-NLS-1$
-		uf[0].setNameEditable(false);
-		uf[0].setExpression("0", polarVars); //$NON-NLS-1$
-		uf[0].setDescription(TrackerRes.getString("DynamicParticle.ForceFunction.R.Description")); //$NON-NLS-1$
-		String s = "f" + FunctionEditor.THETA; //$NON-NLS-1$
-		uf[1] = new UserFunction(s);
-		uf[1].setNameEditable(false);
-		uf[1].setExpression("0", polarVars); //$NON-NLS-1$
-		uf[1].setDescription(TrackerRes.getString("DynamicParticle.ForceFunction.Theta.Description")); //$NON-NLS-1$
+		uf[0] = new UserFunction("fr", //$NON-NLS-1$
+				polarVars, TrackerRes.getString("DynamicParticle.ForceFunction.R.Description")); //$NON-NLS-1$
+		uf[1] = new UserFunction("f" + FunctionEditor.THETA, //$NON-NLS-1$
+				polarVars, TrackerRes.getString("DynamicParticle.ForceFunction.Theta.Description")); //$NON-NLS-1$
 		functionEditor.setMainFunctions(uf);
 		// create mass and initial time parameters
 		createMassAndTimeParameters();
