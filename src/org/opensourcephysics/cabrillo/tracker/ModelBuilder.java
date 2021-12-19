@@ -24,18 +24,30 @@
  */
 package org.opensourcephysics.cabrillo.tracker;
 
-import java.beans.*;
-import java.util.*;
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ComponentListener;
+import java.beans.PropertyChangeEvent;
+import java.util.ArrayList;
 
-import javax.swing.*;
+import javax.swing.BorderFactory;
+import javax.swing.JComboBox;
+import javax.swing.JLabel;
+import javax.swing.JSpinner;
+import javax.swing.SpinnerNumberModel;
+import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.media.core.Trackable;
-import org.opensourcephysics.tools.*;
+import org.opensourcephysics.tools.FontSizer;
+import org.opensourcephysics.tools.FunctionPanel;
+import org.opensourcephysics.tools.FunctionTool;
+import org.opensourcephysics.tools.ToolsRes;
 
 /**
  * A FunctionTool for building particle models.
@@ -291,7 +303,6 @@ public class ModelBuilder extends FunctionTool {
 		refreshingLayout = true;
 		setVisible(false);
 		SwingUtilities.invokeLater(new Runnable() {
-			private boolean sizeSet;
 
 			@Override
 			public void run() {
@@ -302,7 +313,6 @@ public class ModelBuilder extends FunctionTool {
 				int height = Toolkit.getDefaultToolkit().getScreenSize().height;
 				height = Math.min((int) (0.95 * height), (int) (550 * (1 + fontLevel / 4.0)));
 				dim.height = height;
-				sizeSet = true;
 				setSize(dim);
 				setVisible(true);
 //				TFrame.repaintT(ModelBuilder.this);
@@ -528,29 +538,11 @@ public class ModelBuilder extends FunctionTool {
 	}
 
 	@Override
-	public void addPanel(String name, FunctionPanel panel) {
-		//System.out.println("MB addPanel " + name);
-		super.addPanel(name, panel);
-	}
-
-	public void repaint() {
-		if (repaintDelayed)
-			return;
-		//System.out.println("MB repaint " );
-		super.repaint();		
-	}
-	
 	public void repaint(long a, int b, int c, int d, int e) {
 		if (repaintDelayed)
 			return;
-		//System.out.println("MB repaint " + a + " " + b + " " + c + " " + d + " " + e);
 		super.repaint(a, b, c, d, e);		
 	}
 	
 	
-	public void paint(Graphics g) {
-		super.paint(g);
-		//System.out.println("MB paint1");
-	}
-
 }
