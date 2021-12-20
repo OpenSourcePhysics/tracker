@@ -351,7 +351,6 @@ public class CenterOfMass extends PointMass {
 	 * Updates all cm steps.
 	 */
 	private void update() {
-		System.out.println("pig updating");
 		// update mass and count steps
 		mass = 0;
 		int length = getSteps().length;
