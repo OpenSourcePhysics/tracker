@@ -3982,40 +3982,42 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			super.dispose();
 
 		}
-		protected void setDataTabs(TrackerPanel trackerPanel, ArrayList<DataToolTab> addedTabs) {
-			final DataToolTab tab = addedTabs.get(0);
-
-			// set the owner of the tab to the specified track
-			String trackname = tab.getOwnerName();
-			TTrack track = trackerPanel.getTrack(trackname);
-			if (track == null)
-				return;
-			Data data = track.getData(trackerPanel);
-			tab.setOwner(trackname, data);
-
-			// set up a DataRefreshTool and send it to the tab
-			final DataRefreshTool refresher = DataRefreshTool.getTool(data);
-			DatasetManager toSend = new DatasetManager();
-			toSend.setID(data.getID());
-			tab.send(new LocalJob(toSend), refresher);
-
-			// set the tab column IDs to the track data IDs and add track data to the
-			// refresher
-			SwingUtilities.invokeLater(new Runnable() {
-				@Override
-				public void run() {
-					ArrayList<TTrack> tracks = trackerPanel.getTracks();
-					for (TTrack tt : tracks) {
-						Data trackData = tt.getData(trackerPanel);
-						if (tab.setOwnedColumnIDs(tt.getName(), trackData)) {
-							// true if track owns one or more columns
-							refresher.addData(trackData);
-						}
-					}
-				}
-			});
-			// tab is now fully "wired" for refreshing by tracks
-		}
+		
+// BH data tab loading disabled by Doug f30bd68 2020-07-07
+//		protected void setDataTabs(TrackerPanel trackerPanel, ArrayList<DataToolTab> addedTabs) {
+//			final DataToolTab tab = addedTabs.get(0);
+//
+//			// set the owner of the tab to the specified track
+//			String trackname = tab.getOwnerName();
+//			TTrack track = trackerPanel.getTrack(trackname);
+//			if (track == null)
+//				return;
+//			Data data = track.getData(trackerPanel);
+//			tab.setOwner(trackname, data);
+//
+//			// set up a DataRefreshTool and send it to the tab
+//			final DataRefreshTool refresher = DataRefreshTool.getTool(data);
+//			DatasetManager toSend = new DatasetManager();
+//			toSend.setID(data.getID());
+//			tab.send(new LocalJob(toSend), refresher);
+//
+//			// set the tab column IDs to the track data IDs and add track data to the
+//			// refresher
+//			SwingUtilities.invokeLater(new Runnable() {
+//				@Override
+//				public void run() {
+//					ArrayList<TTrack> tracks = trackerPanel.getTracks();
+//					for (TTrack tt : tracks) {
+//						Data trackData = tt.getData(trackerPanel);
+//						if (tab.setOwnedColumnIDs(tt.getName(), trackData)) {
+//							// true if track owns one or more columns
+//							refresher.addData(trackData);
+//						}
+//					}
+//				}
+//			});
+//			// tab is now fully "wired" for refreshing by tracks
+//		}
 
 		/**
 		 * Saves object data.
