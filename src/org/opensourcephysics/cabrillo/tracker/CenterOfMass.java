@@ -310,7 +310,7 @@ public class CenterOfMass extends PointMass {
 			break;
 		default:
 			if (e.getSource() instanceof PointMass) {
-				switch (name) {
+				switch (e.getPropertyName()) {
 				case PROPERTY_TTRACK_MASS:
 					update();
 					break;
@@ -351,6 +351,7 @@ public class CenterOfMass extends PointMass {
 	 * Updates all cm steps.
 	 */
 	private void update() {
+		System.out.println("pig updating");
 		// update mass and count steps
 		mass = 0;
 		int length = getSteps().length;
