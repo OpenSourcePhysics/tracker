@@ -549,7 +549,7 @@ public class Tracker {
 				new Locale("zh", "CN"), // Locale.CHINA, // simplified chinese
 				new Locale("zh", "TW"), // Locale.TAIWAN // traditional chinese
 		};
-		// pig last updated March 2018
+		// last updated Dec 2021
 		incompleteLocales = new Object[][] {
 				{ new Locale("fi"), "2013" }, // finnish //$NON-NLS-1$ //$NON-NLS-2$
 				{ new Locale("sk"), "2011" }, // slovak //$NON-NLS-1$ //$NON-NLS-2$

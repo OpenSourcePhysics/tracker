@@ -2140,7 +2140,7 @@ public class TrackerIO extends VideoIO {
 				}
 			}
 			contents = null;
-			if (trkFiles.isEmpty()) { // pig test this for incomplete state if aborted?
+			if (trkFiles.isEmpty()) { // test this for incomplete state if aborted?
 				String s = TrackerRes.getString("TrackerIO.Dialog.NotATrackerFile.Message"); //$NON-NLS-1$
 				JOptionPane.showMessageDialog(frame, s + " \"" + name + "\".", //$NON-NLS-1$ //$NON-NLS-2$
 						TrackerRes.getString("TFrame.Dialog.LibraryError.Title"), //$NON-NLS-1$
