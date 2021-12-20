@@ -24,8 +24,6 @@ import javax.swing.JPanel;
 import javax.swing.JSpinner;
 import javax.swing.SpinnerModel;
 import javax.swing.SpinnerNumberModel;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 
 import org.opensourcephysics.display.DataClip;
 import org.opensourcephysics.display.DrawingPanel;
@@ -83,21 +81,6 @@ public class DataTrackClipControl extends JPanel implements PropertyChangeListen
 
 		// create spinners
 		videoInSpinner = new MySpinner(new SpinnerNumberModel(0, 0, 20, 1));
-		ChangeListener lixstener = new ChangeListener() {
-			@Override
-			public void stateChanged(ChangeEvent e) {
-				if (refreshing)
-					return;
-				int in = (Integer) videoInSpinner.getValue();
-				if (in == dataTrack.getStartFrame()) {
-					return;
-				}
-				dataTrack.setStartFrame(in);
-				videoInSpinner.setValue(dataTrack.getStartFrame());
-				TFrame.repaintT(DataTrackClipControl.this);
-				videoInSpinner.requestFocusInWindow();
-			}
-		};
 		videoInSpinner.addChangeListener((e) -> {
 			if (refreshing)
 				return;

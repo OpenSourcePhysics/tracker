@@ -43,7 +43,6 @@ import org.opensourcephysics.media.core.Filter;
 import org.opensourcephysics.media.core.FilterStack;
 import org.opensourcephysics.media.core.TPoint;
 import org.opensourcephysics.media.core.Video;
-import org.opensourcephysics.tools.FunctionTool;
 
 /**
  * This creates a map of action name to action for many common tracker actions.

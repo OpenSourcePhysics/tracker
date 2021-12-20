@@ -328,11 +328,6 @@ public class CoordAxes extends TTrack {
 		};
 	}
 
-	public void repaintAll() {
-		// TODO Auto-generated method stub
-		
-	}
-
 	/**
 	 * Gets the origin.
 	 *

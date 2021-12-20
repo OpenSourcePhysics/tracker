@@ -359,6 +359,7 @@ public class CoordAxesStep extends Step {
 			}
 		}
 		
+		@Override
 		public double getX() {
 			return super.getX();
 		}
