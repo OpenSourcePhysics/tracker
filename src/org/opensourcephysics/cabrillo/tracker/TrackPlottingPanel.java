@@ -44,7 +44,6 @@ import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -233,21 +232,8 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 	}
 	
 	@Override
-	public void send(Job job, Tool replyTo) {
-		XMLControlElement control = new XMLControlElement();
-		control.readXML(job.getXML());
-		ArrayList<Dataset> datasets = this.getObjectOfClass(Dataset.class);
-		Iterator<Dataset> it = control.getObjects(Dataset.class).iterator();
-		while (it.hasNext()) {
-			Dataset newData = it.next();
-			int id = newData.getID();
-			for (int i = 0, n = datasets.size(); i < n; i++) {
-				if (datasets.get(i).getID() == id) {
-					copyProperties(newData, datasets.get(i));
-					break;
-				}
-			}
-		}
+	public void send(Job job, Tool noReply) {
+		receiveToolReply(job);
 		TFrame.repaintT(this);
 	}
 
@@ -1404,11 +1390,6 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 			setXVariable(xName);
 		if (!foundY)
 			setYVariable(yName);
-	}
-
-	private void copyProperties(Dataset source, Dataset destination) {
-		XMLControl control = new XMLControlElement(source); // convert the source to xml
-		Dataset.getLoader().loadObject(control, destination); // copy the data to the destination
 	}
 
 	/**
