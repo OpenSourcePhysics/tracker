@@ -1384,6 +1384,7 @@ public class PointMass extends TTrack {
 				validData[18][pt] = Double.NaN; // py
 				validData[19][pt] = Double.NaN; // pmag
 				validData[20][pt] = Double.NaN; // pang
+				ke = Double.NaN; // kinetic energy
 			} else {
 				double imageX = veloc.getXComponent();
 				double imageY = veloc.getYComponent();
