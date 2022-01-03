@@ -107,6 +107,7 @@ import org.opensourcephysics.display.MeasuredImage;
 import org.opensourcephysics.display.OSPFrame;
 import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.display.TeXParser;
+import org.opensourcephysics.display.DataTable.DataTableColumnModel.DataTableColumn;
 import org.opensourcephysics.media.core.NumberField;
 import org.opensourcephysics.media.core.NumberField.NumberFormatter;
 import org.opensourcephysics.media.core.VideoClip;
@@ -166,7 +167,7 @@ public class TableTrackView extends TrackView {
 	 * primary indicator of visibility; shared with TableTView.Loader
 	 * 
 	 */
-	protected BitSet bsCheckBoxes = new BitSet();
+	BitSet bsCheckBoxes = new BitSet();
 
 	protected int colCount;
 	protected int datasetCount;
@@ -730,6 +731,7 @@ public class TableTrackView extends TrackView {
 	 * @return the visible columns
 	 */
 	String[] getVisibleColumns() {
+		// BH TODO -- this can be returned as a list
 		ArrayList<String> list = new ArrayList<String>();
 		for (Entry<String, Integer> e : htNames.entrySet()) {
 			if (bsCheckBoxes.get(e.getValue()))
@@ -2171,6 +2173,18 @@ public class TableTrackView extends TrackView {
 
 	class TrackDataTable extends DataTable {
 
+		
+		@Override
+		public int findLastAddedModelIndex(StringBuffer names) {
+			BitSet bs = bsCheckBoxes;			
+			for (int i = bs.nextSetBit(0); i >= 0; i = bs.nextSetBit(i + 1)) {
+				String name = aNames[i];
+				if (names.indexOf("," + name + ",") < 0)
+					return dataTableModel.findColumn(name);
+			}
+			return -1;
+		}
+		
 		NumberRenderer numberFieldRenderer = new NumberRenderer();
 		SkippedFramesRenderer skippedFramesRenderer = new SkippedFramesRenderer();
 
@@ -2183,7 +2197,7 @@ public class TableTrackView extends TrackView {
 			TableCellRenderer headerRenderer = new HeaderUnitsRenderer(this, renderer);
 			getTableHeader().setDefaultRenderer(headerRenderer);
 		}
-
+		
 		@Override
 		public void refreshTable(int mode) {
 			super.refreshTable(mode, true);
