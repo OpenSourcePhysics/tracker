@@ -99,6 +99,7 @@ import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.controls.XMLControlElement;
 import org.opensourcephysics.display.DataFunction;
 import org.opensourcephysics.display.DataTable;
+import org.opensourcephysics.display.DataTable.DataTableColumnModel;
 import org.opensourcephysics.display.Dataset;
 import org.opensourcephysics.display.DatasetManager;
 import org.opensourcephysics.display.DisplayRes;
@@ -107,7 +108,6 @@ import org.opensourcephysics.display.MeasuredImage;
 import org.opensourcephysics.display.OSPFrame;
 import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.display.TeXParser;
-import org.opensourcephysics.display.DataTable.DataTableColumnModel.DataTableColumn;
 import org.opensourcephysics.media.core.NumberField;
 import org.opensourcephysics.media.core.NumberField.NumberFormatter;
 import org.opensourcephysics.media.core.VideoClip;
@@ -616,17 +616,17 @@ public class TableTrackView extends TrackView {
 //  		return true;
 
 		// check for reordered columns
-		TableColumnModel model = dataTable.getColumnModel();
+		DataTableColumnModel model = (DataTableColumnModel) dataTable.getColumnModel();
 		int count = model.getColumnCount();
 		if (count == 0) {
 			return false; // should never happen except for new views
 		}
-		int index = model.getColumn(0).getModelIndex();
-		for (int i = 1; i < count; i++) {
-			if (model.getColumn(i).getModelIndex() < index) {
+		for (int i = 0, prev = -1; i < count; i++) {
+			int mi = model.getTableColumn(i).getModelIndex();
+			if (mi < prev) {
 				return true;
 			}
-			index = model.getColumn(i).getModelIndex();
+			prev = mi;
 		}
 		return false;
 	}
@@ -748,10 +748,10 @@ public class TableTrackView extends TrackView {
 	 */
 	String[] getOrderedVisibleColumns() {
 		// get array of column model indexes in table order
-		TableColumnModel model = dataTable.getColumnModel();
+		DataTableColumnModel model = (DataTableColumnModel) dataTable.getColumnModel();
 		Integer[] modelIndexes = new Integer[model.getColumnCount()];
 		for (int i = 0; i < modelIndexes.length; i++) {
-			modelIndexes[i] = model.getColumn(i).getModelIndex();
+			modelIndexes[i] = model.getTableColumn(i).getModelIndex();
 		}
 		// get array of visible (dependent variable) column names
 		String[] dependentVars = getVisibleColumns();
@@ -1251,6 +1251,7 @@ public class TableTrackView extends TrackView {
 		toSend.setID(trackDataManager.getID());
 		toSend.setName(track.getName());
 		toSend.setXPointsLinked(true);
+//		toSend.setJobColumnOrder(this.dataTable.getModelColumnOrder());
 		int colCount = 0;
 		ArrayList<Dataset> datasets = trackDataManager.getDatasetsRaw();
 		// always include linked independent variable first
@@ -2173,14 +2174,19 @@ public class TableTrackView extends TrackView {
 
 	class TrackDataTable extends DataTable {
 
-		
 		@Override
 		public int findLastAddedModelIndex(StringBuffer names) {
-			BitSet bs = bsCheckBoxes;			
+			if (names.length() < 2) {
+				names.append("t").append(",");
+				return 0;
+			}
+			BitSet bs = bsCheckBoxes;
 			for (int i = bs.nextSetBit(0); i >= 0; i = bs.nextSetBit(i + 1)) {
-				String name = aNames[i];
-				if (names.indexOf("," + name + ",") < 0)
-					return dataTableModel.findColumn(name);
+				String key = "," + aNames[i] + ",";
+				if (names.indexOf(key) < 0) {
+					names.append(key);
+					return dataTableModel.findColumn(aNames[i]);
+				}
 			}
 			return -1;
 		}
