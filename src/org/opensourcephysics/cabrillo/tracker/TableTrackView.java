@@ -100,6 +100,7 @@ import org.opensourcephysics.controls.XMLControlElement;
 import org.opensourcephysics.display.DataFunction;
 import org.opensourcephysics.display.DataTable;
 import org.opensourcephysics.display.DataTable.DataTableColumnModel;
+import org.opensourcephysics.display.DataTable.OSPTableModel;
 import org.opensourcephysics.display.Dataset;
 import org.opensourcephysics.display.DatasetManager;
 import org.opensourcephysics.display.DisplayRes;
@@ -2337,20 +2338,19 @@ public class TableTrackView extends TrackView {
 		if (onlyIfVisible && columnsDialog == null || !columnsDialog.isVisible())
 			return;
 		getOrCreateColumnsDialog(track);
-//		columnsDialog.showOrHideDialog();
 	}
 
-	public boolean setDialogVisible(boolean dialogVisible, boolean dialogLastVisible) {
-		if (dialogVisible) {
-			if (columnsDialog != null)
-				columnsDialog.setVisible(dialogLastVisible);
-			return dialogLastVisible;
-		} else {
-			boolean vis = (columnsDialog != null && columnsDialog.isVisible());
-			if (vis)
-				columnsDialog.setVisible(false);
-			return vis;
+	public boolean setDialogVisible(boolean vis, boolean dialogLastVisible) {
+		if (columnsDialog != null) {
+			if (vis) {
+				columnsDialog.setVisible(vis);
+			} else {
+				vis = columnsDialog.isVisible();
+				if (vis)
+					columnsDialog.setVisible(false);
+			}
 		}
+		return vis;
 	}
 
 	public void buildForNewFunction() {
@@ -2595,14 +2595,19 @@ public class TableTrackView extends TrackView {
 		 * Toggles the dialog visibility.
 		 */
 		protected void showOrHideDialog() {
+			boolean vis = !isVisible();
 			if (!isPositioned) {
 				isPositioned = true;
 				// position dialog immediately to left of columnsDialogButton
 				Point p = columnsDialogButton.getLocationOnScreen();
 				int w = getWidth();
 				setLocation(p.x - w, p.y);
+				if (vis) {
+					refresh(frame.getTrackerPanelForID(panelID).getFrameNumber(), DataTable.MODE_TRACK_STATE);
+				}
 			}
-			setVisible(!isVisible());
+
+			setVisible(vis);
 		}
 		
 		private int getCheckBoxCount() {
