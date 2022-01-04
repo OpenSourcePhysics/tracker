@@ -651,16 +651,17 @@ public class TableTrackView extends TrackView {
 	 */
 	public void setVisible(String name, boolean visible) {
 		Integer i = htNames.get(name);
-		if (i != null) {
-			if (i >= trackDataManager.getDatasetsRaw().size()) {
-				if (visible)
-					textColumnsVisible.add(name);
-				else
-					textColumnsVisible.remove(name);
-			}
-			// call setVisible(int,boolean) AFTER above since it calls refresh
-			setVisible(i.intValue(), visible);
+		if (i == null)
+			return;
+		int index = i.intValue();
+		if (index >= trackDataManager.getDatasetsRaw().size()) {
+			if (visible)
+				textColumnsVisible.add(name);
+			else
+				textColumnsVisible.remove(name);
 		}
+		// call setVisible(int,boolean) AFTER above since it calls refresh
+		setVisible(index, visible);
 	}
 
 	@Override
