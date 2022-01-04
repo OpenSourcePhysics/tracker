@@ -504,7 +504,7 @@ public class TableTView extends TrackChooserTView {
 				outer: for (int targetIndex = 0; targetIndex < d.length; targetIndex++) {
 					// find column with modelIndex and move to targetIndex
 					for (int k = 0; k < d.length; k++) {
-						if (k != targetIndex 
+						if (k != targetIndex // BH added this check 2022.01.03
 								&& model.getColumn(k).getModelIndex() == d[targetIndex]) {
 							try {
 								model.moveColumn(k, targetIndex);
