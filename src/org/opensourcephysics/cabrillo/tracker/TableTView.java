@@ -370,7 +370,7 @@ public class TableTView extends TrackChooserTView {
 							tableView.bsCheckBoxes.clear();
 							tableView.textColumnsVisible.clear();
 							// then select checkboxes specified in track_columns
-							Map<String, Integer> htOrder = new HashMap<String, Integer>();
+							Map<String, Integer> htOrder = new HashMap<String, Integer>(); // BH! never used
 							for (int j = 1; j < columns.length; j++) {
 								String name = columns[j];
 								switch (name) {
