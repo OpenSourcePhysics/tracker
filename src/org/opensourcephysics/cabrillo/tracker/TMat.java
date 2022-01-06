@@ -252,11 +252,13 @@ public class TMat implements Measurable, Trackable, PropertyChangeListener {
 				w = dim.width;
 				h = dim.height;
 			} else {
-				BufferedImage vidImage = video.getImage();
-				if (vidImage != null) {
+				// BH It is possible that this is executing prior to JSMovieVideo obtaining its
+				// first image, but still having known width and height. So do not call getImage() here.
+				Dimension d = video.getImageSize(true);
+				if (d.width > 0) {
 					haveVideo = true;
-					w = vidImage.getWidth();
-					h = vidImage.getHeight();
+					w = d.width;
+					h = d.height;
 				}
 			}
 		}
