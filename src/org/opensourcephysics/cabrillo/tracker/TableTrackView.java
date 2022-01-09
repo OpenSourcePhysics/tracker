@@ -107,7 +107,6 @@ import org.opensourcephysics.display.MeasuredImage;
 import org.opensourcephysics.display.OSPFrame;
 import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.display.TeXParser;
-import org.opensourcephysics.display.DataTable.DataTableColumnModel.DataTableColumn;
 import org.opensourcephysics.media.core.NumberField;
 import org.opensourcephysics.media.core.NumberField.NumberFormatter;
 import org.opensourcephysics.media.core.VideoClip;
