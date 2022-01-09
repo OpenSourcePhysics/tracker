@@ -99,6 +99,8 @@ import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.controls.XMLControlElement;
 import org.opensourcephysics.display.DataFunction;
 import org.opensourcephysics.display.DataTable;
+import org.opensourcephysics.display.DataTable.DataTableColumnModel;
+import org.opensourcephysics.display.DataTable.OSPTableModel;
 import org.opensourcephysics.display.Dataset;
 import org.opensourcephysics.display.DatasetManager;
 import org.opensourcephysics.display.DisplayRes;
@@ -615,17 +617,17 @@ public class TableTrackView extends TrackView {
 //  		return true;
 
 		// check for reordered columns
-		TableColumnModel model = dataTable.getColumnModel();
+		DataTableColumnModel model = (DataTableColumnModel) dataTable.getColumnModel();
 		int count = model.getColumnCount();
 		if (count == 0) {
 			return false; // should never happen except for new views
 		}
-		int index = model.getColumn(0).getModelIndex();
-		for (int i = 1; i < count; i++) {
-			if (model.getColumn(i).getModelIndex() < index) {
+		for (int i = 0, prev = -1; i < count; i++) {
+			int mi = model.getTableColumn(i).getModelIndex();
+			if (mi < prev) {
 				return true;
 			}
-			index = model.getColumn(i).getModelIndex();
+			prev = mi;
 		}
 		return false;
 	}
@@ -650,16 +652,17 @@ public class TableTrackView extends TrackView {
 	 */
 	public void setVisible(String name, boolean visible) {
 		Integer i = htNames.get(name);
-		if (i != null) {
-			if (i >= trackDataManager.getDatasetsRaw().size()) {
-				if (visible)
-					textColumnsVisible.add(name);
-				else
-					textColumnsVisible.remove(name);
-			}
-			// call setVisible(int,boolean) AFTER above since it calls refresh
-			setVisible(i.intValue(), visible);
+		if (i == null)
+			return;
+		int index = i.intValue();
+		if (index >= trackDataManager.getDatasetsRaw().size()) {
+			if (visible)
+				textColumnsVisible.add(name);
+			else
+				textColumnsVisible.remove(name);
 		}
+		// call setVisible(int,boolean) AFTER above since it calls refresh
+		setVisible(index, visible);
 	}
 
 	@Override
@@ -747,10 +750,10 @@ public class TableTrackView extends TrackView {
 	 */
 	String[] getOrderedVisibleColumns() {
 		// get array of column model indexes in table order
-		TableColumnModel model = dataTable.getColumnModel();
+		DataTableColumnModel model = (DataTableColumnModel) dataTable.getColumnModel();
 		Integer[] modelIndexes = new Integer[model.getColumnCount()];
 		for (int i = 0; i < modelIndexes.length; i++) {
-			modelIndexes[i] = model.getColumn(i).getModelIndex();
+			modelIndexes[i] = model.getTableColumn(i).getModelIndex();
 		}
 		// get array of visible (dependent variable) column names
 		String[] dependentVars = getVisibleColumns();
@@ -1250,6 +1253,7 @@ public class TableTrackView extends TrackView {
 		toSend.setID(trackDataManager.getID());
 		toSend.setName(track.getName());
 		toSend.setXPointsLinked(true);
+//		toSend.setJobColumnOrder(this.dataTable.getModelColumnOrder());
 		int colCount = 0;
 		ArrayList<Dataset> datasets = trackDataManager.getDatasetsRaw();
 		// always include linked independent variable first
@@ -2172,14 +2176,19 @@ public class TableTrackView extends TrackView {
 
 	class TrackDataTable extends DataTable {
 
-		
 		@Override
 		public int findLastAddedModelIndex(StringBuffer names) {
-			BitSet bs = bsCheckBoxes;			
+			if (names.length() < 2) {
+				names.append("t").append(",");
+				return 0;
+			}
+			BitSet bs = bsCheckBoxes;
 			for (int i = bs.nextSetBit(0); i >= 0; i = bs.nextSetBit(i + 1)) {
-				String name = aNames[i];
-				if (names.indexOf("," + name + ",") < 0)
-					return dataTableModel.findColumn(name);
+				String key = "," + aNames[i] + ",";
+				if (names.indexOf(key) < 0) {
+					names.append(key);
+					return dataTableModel.findColumn(aNames[i]);
+				}
 			}
 			return -1;
 		}
@@ -2329,20 +2338,19 @@ public class TableTrackView extends TrackView {
 		if (onlyIfVisible && columnsDialog == null || !columnsDialog.isVisible())
 			return;
 		getOrCreateColumnsDialog(track);
-//		columnsDialog.showOrHideDialog();
 	}
 
-	public boolean setDialogVisible(boolean dialogVisible, boolean dialogLastVisible) {
-		if (dialogVisible) {
-			if (columnsDialog != null)
-				columnsDialog.setVisible(dialogLastVisible);
-			return dialogLastVisible;
-		} else {
-			boolean vis = (columnsDialog != null && columnsDialog.isVisible());
-			if (vis)
-				columnsDialog.setVisible(false);
-			return vis;
+	public boolean setDialogVisible(boolean vis, boolean dialogLastVisible) {
+		if (columnsDialog != null) {
+			if (vis) {
+				columnsDialog.setVisible(vis);
+			} else {
+				vis = columnsDialog.isVisible();
+				if (vis)
+					columnsDialog.setVisible(false);
+			}
 		}
+		return vis;
 	}
 
 	public void buildForNewFunction() {
@@ -2587,14 +2595,19 @@ public class TableTrackView extends TrackView {
 		 * Toggles the dialog visibility.
 		 */
 		protected void showOrHideDialog() {
+			boolean vis = !isVisible();
 			if (!isPositioned) {
 				isPositioned = true;
 				// position dialog immediately to left of columnsDialogButton
 				Point p = columnsDialogButton.getLocationOnScreen();
 				int w = getWidth();
 				setLocation(p.x - w, p.y);
+				if (vis) {
+					refresh(frame.getTrackerPanelForID(panelID).getFrameNumber(), DataTable.MODE_TRACK_STATE);
+				}
 			}
-			setVisible(!isVisible());
+
+			setVisible(vis);
 		}
 		
 		private int getCheckBoxCount() {

@@ -26,6 +26,7 @@ package org.opensourcephysics.cabrillo.tracker;
 
 import java.beans.PropertyChangeEvent;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -33,11 +34,11 @@ import java.util.Map;
 import javax.swing.Icon;
 import javax.swing.JPopupMenu;
 import javax.swing.SwingUtilities;
-import javax.swing.table.TableColumnModel;
 
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.display.DataTable;
+import org.opensourcephysics.display.DataTable.DataTableColumnModel;
 import org.opensourcephysics.tools.FontSizer;
 import org.opensourcephysics.tools.FunctionTool;
 
@@ -360,16 +361,17 @@ public class TableTView extends TrackChooserTView {
 						TableTrackView tableView = (TableTrackView) view.getTrackView(track);
 						if (tableView == null)
 							continue;
+						String trackName = track.getName();
 						for (int i = 0; i < data.length; i++) {
 							String[] columns = data[i];
-							if (columns == null || columns[0] == null || !columns[0].equals(track.getName()))
+							if (columns == null || columns[0] == null || !columns[0].equals(trackName))
 								continue;
 							tableView.setRefreshing(false); // prevents refreshes
 							// start by unchecking all checkboxes
 							tableView.bsCheckBoxes.clear();
 							tableView.textColumnsVisible.clear();
 							// then select checkboxes specified in track_columns
-							Map<String, Integer> htOrder = new HashMap<String, Integer>();
+							Map<String, Integer> htOrder = new HashMap<String, Integer>(); // BH! never used
 							for (int j = 1; j < columns.length; j++) {
 								String name = columns[j];
 								switch (name) {
@@ -409,50 +411,7 @@ public class TableTView extends TrackChooserTView {
 								htOrder.put(name, j);
 								tableView.setVisible(columns[j] = name, true);
 							}
-
-							// BH? There has to be a much easier way of doing this.
-
-							// move columns so the table column order matches the saved track_columns order
-							// get list of checked boxes--doesn't include independent variable
-							String[] checkedBoxes = tableView.getVisibleColumns();
-							// expand to include independent variable
-							String[] visibleColumns = new String[checkedBoxes.length + 1];
-							visibleColumns[0] = track.getDataName(0);
-							System.arraycopy(checkedBoxes, 0, visibleColumns, 1, checkedBoxes.length);
-							// create desiredOrder from track_columns array by omitting track name
-							String[] desiredOrder = new String[columns.length - 1];
-							System.arraycopy(columns, 1, desiredOrder, 0, desiredOrder.length);
-							// convert desiredOrder names to desiredIndexes
-							final int[] desiredIndexes = new int[desiredOrder.length];
-							for (int k = 0; k < desiredOrder.length; k++) {
-								String name = desiredOrder[k];
-								for (int g = 0; g < visibleColumns.length; g++) {
-									if (visibleColumns[g].equals(name)) {
-										desiredIndexes[k] = g;
-									}
-								}
-							}
-							// move table columns after table is fully constructed
-							final TableColumnModel model = tableView.dataTable.getColumnModel();
-							Runnable runner = new Runnable() {
-								@Override
-								public void run() {
-									outer: for (int targetIndex = 0; targetIndex < desiredIndexes.length; targetIndex++) {
-										// find column with modelIndex and move to targetIndex
-										for (int k = 0; k < desiredIndexes.length; k++) {
-											if (model.getColumn(k).getModelIndex() == desiredIndexes[targetIndex]) {
-												try {
-													model.moveColumn(k, targetIndex);
-												} catch (Exception e) {
-												}
-												continue outer;
-											}
-										}
-									}
-
-								}
-							};
-							SwingUtilities.invokeLater(runner);
+							setColumnOrder(tableView, track, columns);
 							tableView.setRefreshing(true);
 						}
 					}
@@ -513,6 +472,62 @@ public class TableTView extends TrackChooserTView {
 				}
 			}
 			return obj;
+		}
+
+		/**
+		 * Move columns so the table column order matches the saved track_columns order
+		 * @param tableView
+		 * @param track
+		 * @param columns
+		 */
+		private void setColumnOrder(TableTrackView tableView, TTrack track, String[] columns) {
+
+			// BH? There has to be a much easier way of doing this.
+			// Why not just use DataTable.setModelColumnOrder(int[])?
+
+			// get list of checked boxes--doesn't include independent variable
+
+			String[] checkedBoxes = tableView.getVisibleColumns();
+			if (checkedBoxes.length == 0)
+				return;
+			
+			// expand to include independent variable
+			String[] visibleColumns = new String[checkedBoxes.length + 1];
+			visibleColumns[0] = track.getDataName(0);
+			System.arraycopy(checkedBoxes, 0, visibleColumns, 1, checkedBoxes.length);
+			// create desiredOrder from track_columns array by omitting track name
+			String[] desiredOrder = new String[columns.length - 1];
+			System.arraycopy(columns, 1, desiredOrder, 0, desiredOrder.length);
+			// convert desiredOrder names to desiredIndexes
+			final int[] desiredIndexes = new int[desiredOrder.length];
+			for (int k = 0; k < desiredOrder.length; k++) {
+				String name = desiredOrder[k];
+				for (int g = 0; g < visibleColumns.length; g++) {
+					if (visibleColumns[g].equals(name)) {
+						desiredIndexes[k] = g;
+					}
+				}
+			}
+			// move table columns after table is fully constructed
+			SwingUtilities.invokeLater(() -> {
+				System.err.println("TableTView.Loader invokelater " + Arrays.toString(desiredIndexes));
+				tableView.dataTable.setModelColumnOrder(desiredIndexes);
+// BH not necessary to use general JTable calls here?
+//				outer: for (int targetIndex = 0; targetIndex < d.length; targetIndex++) {
+//					// find column with modelIndex and move to targetIndex
+//					for (int k = 0; k < d.length; k++) {
+//						if (k != targetIndex // BH added this check 2022.01.03
+//								&& model.getColumn(k).getModelIndex() == d[targetIndex]) {
+//							try {
+//								model.moveColumn(k, targetIndex);
+//							} catch (Exception e) {
+//								System.err.println("TableTView.Loader failed to move column " + k + " to " + targetIndex);
+//							}
+//							continue outer;
+//						}
+//					}
+//				}
+			});
 		}
 	}
 
