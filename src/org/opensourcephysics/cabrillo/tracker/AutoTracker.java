@@ -1048,9 +1048,10 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 			double theta = coords.getAngle(n);
 			double x0 = coords.getOriginX(n);
 			double y0 = coords.getOriginY(n);
-			p = matcher.getMatchLocation(image, searchRect, x0, y0, theta, lineSpread); // may be null
+			int[][] searchPts = matcher.getSearchPoints(searchRect, x0, y0, theta, lineSpread);
+			p = matcher.getMatchLocation(image, searchRect, searchPts);
 		} else {
-			p = matcher.getMatchLocation(image, searchRect); // may be null
+			p = matcher.getMatchLocation(image, searchRect, null);
 		}
 		double[] matchWidthAndHeight = matcher.getMatchWidthAndHeight();
 		if (matchWidthAndHeight[1] < goodMatch && frameData.isAutoMarked()) {
