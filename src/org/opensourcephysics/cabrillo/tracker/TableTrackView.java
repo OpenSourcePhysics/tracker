@@ -93,14 +93,11 @@ import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
-import javax.swing.table.TableColumnModel;
-
 import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.controls.XMLControlElement;
 import org.opensourcephysics.display.DataFunction;
 import org.opensourcephysics.display.DataTable;
 import org.opensourcephysics.display.DataTable.DataTableColumnModel;
-import org.opensourcephysics.display.DataTable.OSPTableModel;
 import org.opensourcephysics.display.Dataset;
 import org.opensourcephysics.display.DatasetManager;
 import org.opensourcephysics.display.DisplayRes;

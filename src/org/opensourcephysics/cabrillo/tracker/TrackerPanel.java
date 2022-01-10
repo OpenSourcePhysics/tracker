@@ -171,11 +171,11 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	/** The minimum zoom level */
 	public static final double MIN_ZOOM = 0.15;
 	/** The maximum zoom level */
-	public static final double MAX_ZOOM = 12;
+	public static final double MAX_ZOOM = 20;
 	/** The zoom step size */
 	public static final double ZOOM_STEP = Math.pow(2, 1.0 / 6);
 	/** The fixed zoom levels */
-	public static final double[] ZOOM_LEVELS = { 0.25, 0.5, 1, 2, 4, 8 };
+	public static final double[] ZOOM_LEVELS = { 0.25, 0.5, 1, 2, 4, 8, 12, 20 };
 	/** Calibration tool types */
 	public static final String STICK = "Stick", TAPE = "CalibrationTapeMeasure", //$NON-NLS-1$ //$NON-NLS-2$
 			CALIBRATION = "Calibration", OFFSET = "OffsetOrigin"; //$NON-NLS-1$ //$NON-NLS-2$
