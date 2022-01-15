@@ -9,6 +9,7 @@
 	<property name="tracker-assets" value="${trackerdir}/resources/tracker-assets.zip" />
 	<property name="temp" value="temp-build" />
 	<property name="output" value="${trackerdir}/distribution" />
+	<property name="docs" value="${output}/docs" />
 	<property name="author" value="D Brown, W Christian, R M Hanson" />
 	<path id="xuggle.jar" location="${trackerdir}/libraries/xuggle-xuggler.jar"/>
 
@@ -239,6 +240,23 @@
 				**/*.mp4">
 		</jar>
 		<delete dir="${temp}"/>
+	</target>
+
+	<!--copy_src: copy source files to temp folder-->
+	<target name="copy_src" depends="clean">
+		<copy todir="${temp}">
+			<fileset dir="${src_osp}" excludes="demo/*TestApp.java"/>
+			<fileset dir="${src_video}"/>
+			<fileset dir="${src_tracker}"/>
+		</copy>
+	</target>
+
+	<!--javadocs: generate javadoc documentation-->
+	<target name="javadocs" depends="copy_src">
+		<delete dir="${docs}"/>
+		<mkdir dir="${docs}"/>
+		<javadoc packagenames="org.opensourcephysics.*" sourcepath="${temp}" destdir="${docs}">
+		</javadoc>
 	</target>
 
 </project>
