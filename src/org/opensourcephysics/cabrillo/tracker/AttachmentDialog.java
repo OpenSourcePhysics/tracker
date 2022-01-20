@@ -430,7 +430,7 @@ public class AttachmentDialog extends JDialog implements PropertyChangeListener 
 	 */
 	protected void setMeasuringTool(TTrack tool) {
 		TTrack measuringTool = TTrack.getTrack(trackID);
-		if (measuringTool.ttype == TTrack.TYPE_CIRCLEFITTER) {
+		if (measuringTool != null && measuringTool.ttype == TTrack.TYPE_CIRCLEFITTER) {
 			// BH! was "!= null" but this is unique to CircleFitter 
 			measuringTool.removePropertyChangeListener(CircleFitter.PROPERTY_CIRCLEFITTER_DATAPOINT, this); //$NON-NLS-1$
 		}
