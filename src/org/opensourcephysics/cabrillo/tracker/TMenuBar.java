@@ -836,6 +836,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 									TToolBar.refreshMemoryButton(panel());
 								} catch (Exception e1) {
 									Toolkit.getDefaultToolkit().beep();
+									OSPLog.finer("exception occurred: " + e1);
 								}
 							} else {
 								// warn user that memory requirements may be large
@@ -856,9 +857,11 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 									} catch (Exception ex) {
 										Toolkit.getDefaultToolkit().beep();
 										error = true;
+										OSPLog.finer("exception occurred: " + ex);
 									} catch (Error er) {
 										Toolkit.getDefaultToolkit().beep();
 										error = true;
+										OSPLog.finer("error occurred: " + er);
 										throw (er);
 									} finally {
 										if (error) {

@@ -29,6 +29,7 @@ import java.awt.event.MouseEvent;
 
 import javax.swing.JOptionPane;
 
+import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.display.OSPRuntime;
@@ -469,6 +470,7 @@ public String toString() {
           points[i].getX() == x &&
           points[i].getY() == y) {
         Toolkit.getDefaultToolkit().beep();
+				OSPLog.finer("calibration points cannot be identical");
         return;
       }
       if (isAdjusting()) {

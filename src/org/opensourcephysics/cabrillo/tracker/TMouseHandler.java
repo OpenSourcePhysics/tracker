@@ -32,6 +32,7 @@ import javax.swing.text.JTextComponent;
 
 import org.opensourcephysics.cabrillo.tracker.AutoTracker.FrameData;
 import org.opensourcephysics.cabrillo.tracker.AutoTracker.KeyFrameData;
+import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.display.*;
 import org.opensourcephysics.media.core.*;
 
@@ -170,6 +171,7 @@ public class TMouseHandler implements InteractiveMouseHandler {
 				int dx = 0, dy = 0;
 				if (track != null && track.isLocked() && !(track instanceof VectorSum)) {
 					Toolkit.getDefaultToolkit().beep();
+					OSPLog.finer(track + " is locked");
 					return;
 				}
 				// move p to current mouse location
