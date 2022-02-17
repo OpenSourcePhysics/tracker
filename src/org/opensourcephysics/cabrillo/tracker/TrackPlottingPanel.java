@@ -1268,6 +1268,8 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 	}
 
 	protected void createXYPopups() {
+		if (popup == null)
+			buildPopupMenu();
 		xPopup = new JPopupMenu();
 		yPopup = new JPopupMenu();
 		createVarItems();
