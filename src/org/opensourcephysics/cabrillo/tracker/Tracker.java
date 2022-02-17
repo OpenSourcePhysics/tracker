@@ -855,6 +855,12 @@ public class Tracker {
 	}
 
 	public static void exit() {
+		// delete empty xuggle directory in Linux every time so that
+		// the next Tracker/Xuggle user will create a new one
+		// this guarantees correct permissions in Linux
+		File toDelete = new File("/tmp/xuggle");
+		if (toDelete.exists())
+			toDelete.delete();
 		OSPRuntime.exit();
 		System.exit(0);
 	}
