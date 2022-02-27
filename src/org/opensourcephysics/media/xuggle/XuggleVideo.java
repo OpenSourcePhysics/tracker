@@ -492,8 +492,8 @@ public class XuggleVideo extends VideoAdapter implements SmoothPlayable, Increme
 
 		if (imageCache.length > firstDisplayPacket)
 			setImage(imageCache[firstDisplayPacket]);
-		seekToStart();
-		container.readNextPacket(packet);
+//		seekToStart();
+//		container.readNextPacket(packet);
 //
 //		for (int i = frameCount; --i >= 0;) {
 //			dumpImage(i, getImage(i), "D");
@@ -501,7 +501,7 @@ public class XuggleVideo extends VideoAdapter implements SmoothPlayable, Increme
 //
 //		
 		
-		seekToStart(); // why??
+		seekToStart();
 		loadPictureFromNextPacket();
 		BufferedImage img = getImage(0);
 //		if (img == null) {
@@ -517,8 +517,8 @@ public class XuggleVideo extends VideoAdapter implements SmoothPlayable, Increme
 		}
 		setImage(img);
 		
-		seekToStart(); // why again?????
-		loadPictureFromNextPacket();
+//		seekToStart(); // why again?????
+//		loadPictureFromNextPacket();
 		
 	}
 	
@@ -962,7 +962,7 @@ public class XuggleVideo extends VideoAdapter implements SmoothPlayable, Increme
 		newPicture();
 		packet = IPacket.make();
 //		preLoadContainer();
-		seekToStart();
+//		seekToStart(); // DB 2/27/22 commented out to fix AVI black images bug
 		return null;
 	}
 
@@ -1194,9 +1194,8 @@ public class XuggleVideo extends VideoAdapter implements SmoothPlayable, Increme
 	IVideoPicture newPic;
 
 	/**
-	 * Gets the BufferedImage for a specified Xuggle picture.
+	 * Gets the BufferedImage for the current Xuggle picture.
 	 *
-	 * @param picture the picture
 	 * @return the image, or null if unable to resample
 	 */
 	private BufferedImage getBufferedImage() {
