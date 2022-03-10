@@ -242,14 +242,6 @@
 		</copy>
 	</target>
 
-	<!--javadocs: generate javadoc documentation-->
-	<target name="javadocs" depends="copy_src">
-		<delete dir="${docs}"/>
-		<mkdir dir="${docs}"/>
-		<javadoc packagenames="org.opensourcephysics.*" sourcepath="${temp}" destdir="${docs}">
-		</javadoc>
-	</target>
-
 </project>
 
 
