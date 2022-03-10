@@ -4,7 +4,6 @@
 	<property name="workspace" value="../../" />
 	<property name="trackerdir" value="${workspace}/tracker" />
 	<property name="src_osp" value="${workspace}/osp/src" />
-	<property name="src_video" value="${workspace}/video-engines/src" />
 	<property name="src_tracker" value="${trackerdir}/src" />
 	<property name="tracker-assets" value="${trackerdir}/resources/tracker-assets.zip" />
 	<property name="temp" value="temp-build" />
@@ -33,13 +32,6 @@
 		</javac>
 		<copy todir="${temp}/org/opensourcephysics/resources">
 			<fileset dir="${src_osp}/org/opensourcephysics/resources"/>
-		</copy>
-		<javac srcdir="${src_video}" destdir="${temp}" source="1.8" debug="true" debuglevel="lines,vars,source" includeantruntime="false">
-			<compilerarg value="-Xlint:-serial"/>
-			<classpath refid="xuggle.jar"/>
-		</javac>
-		<copy todir="${temp}/org/opensourcephysics/resources">
-			<fileset dir="${src_video}/org/opensourcephysics/resources"/>
 		</copy>
 		<javac srcdir="${src_tracker}" destdir="${temp}" source="1.8" debug="true" debuglevel="lines,vars,source" includeantruntime="false">
 			<compilerarg value="-Xlint:-serial"/>
@@ -246,7 +238,6 @@
 	<target name="copy_src" depends="clean">
 		<copy todir="${temp}">
 			<fileset dir="${src_osp}" excludes="demo/*TestApp.java"/>
-			<fileset dir="${src_video}"/>
 			<fileset dir="${src_tracker}"/>
 		</copy>
 	</target>
