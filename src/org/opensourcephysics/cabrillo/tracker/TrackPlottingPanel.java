@@ -958,6 +958,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 
 		// refresh highlighted indices
 		BitSet bsSteps = bsFrameHighlights;
+		track = TTrack.getTrack(trackID);
 		if (track != null && !track.dataFrames.isEmpty()) {
 			int frameNum = bsSteps.nextSetBit(0);
 			if (bsSteps.cardinality() != 1 || track.dataFrames.size() <= frameNum
