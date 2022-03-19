@@ -736,33 +736,37 @@ public class AttachmentDialog extends JDialog implements PropertyChangeListener 
 	/**
 	 * A class to render track labels for the attachment JComboBoxes.
 	 */
-	class TTrackRenderer extends JLabel implements ListCellRenderer<Object> {
+	class TTrackRenderer implements ListCellRenderer<Object> {
 
+// problems here for JavaScript
+//		JLabel label = new JLabel();
 		TTrackRenderer() {
-			setOpaque(true);
-			setBorder(BorderFactory.createEmptyBorder(3, 4, 3, 0));
+//			label.setOpaque(true);
+//			label.setBorder(BorderFactory.createEmptyBorder(3, 4, 3, 0));
 		}
 
 		@Override
 		public Component getListCellRendererComponent(@SuppressWarnings("rawtypes") JList list, Object val, int index,
 				boolean selected, boolean hasFocus) {
+			JLabel label = new JLabel();
+			label.setOpaque(true);
+			label.setBorder(BorderFactory.createEmptyBorder(3, 4, 3, 0));
 
 			if (list != null) {
 				if (selected) {
-					setBackground(list.getSelectionBackground());
-					setForeground(list.getSelectionForeground());
+					label.setBackground(list.getSelectionBackground());
+					label.setForeground(list.getSelectionForeground());
 				} else {
-					setBackground(list.getBackground());
-					setForeground(list.getForeground());
+					label.setBackground(list.getBackground());
+					label.setForeground(list.getForeground());
 				}
 			}
 			if (val != null) {
 				TTrack track = (TTrack) val;
-				setText(track.getName());
-				Icon icon = track == dummyMass ? new ResizableIcon(dummyIcon) : track.getFootprint().getIcon(21, 16);
-				setIcon(icon);
+				label.setText(track.getName());
+				label.setIcon(track == dummyMass ? new ResizableIcon(dummyIcon) : track.getFootprint().getIcon(21, 16));
 			}
-			return this;
+			return label;
 		}
 
 	}

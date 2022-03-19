@@ -2134,7 +2134,7 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 					Step step = getStep(n);
 					if (step == null)
 						continue;
-					TPoint p = step.getPoints()[i]; // not for CircleFitter--see overridden method
+					TPoint p = getPoint(step, i); // not for CircleFitter--see overridden method
 					if (targetStep == null || !targetStep.valid) {
 						if (p != null) {
 							p.detach();
@@ -2149,7 +2149,7 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 					Step step = getStep(n);
 					if (step == null)
 						continue;
-					TPoint p = step.getPoints()[i];
+					TPoint p = getPoint(step, i);
 					if (p != null) {
 						p.detach();
 					}
@@ -2159,6 +2159,11 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 		tp.refreshTrackBar();
 //		TTrackBar.getTrackbar(trackerPanel).refresh();
 //	refreshFields(trackerPanel.getFrameNumber());
+	}
+
+	private TPoint getPoint(Step step, int i) {
+		TPoint[] pts = step.points;
+		return (pts == null || i >= pts.length ? null : pts[i]);
 	}
 
 	protected void setFixedPosition(boolean b) {
@@ -3598,12 +3603,12 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 					control.setValue("data_functions", f); //$NON-NLS-1$
 				}
 			}
-			// attachments
-			if (track.attachments != null && track.attachments.length > 0) {
-				String[] names = new String[track.attachments.length];
+			TTrack[] att = track.attachments;
+			if (att != null && att.length > 0) {
+				String[] names = new String[att.length];
 				boolean notNull = false;
-				for (int i = 0; i < track.attachments.length; i++) {
-					TTrack next = track.attachments[i];
+				for (int i = 0; i < att.length; i++) {
+					TTrack next = att[i];
 					names[i] = next == null ? null : next.getName();
 					notNull = notNull || names[i] != null;
 				}

@@ -104,9 +104,14 @@
             <property name="footprint" type="string">ProtractorFootprint.Circle3</property>
             <property name="visible" type="boolean">true</property>
             <property name="trail" type="boolean">false</property>
-            <property name="fixed" type="boolean">true</property>
+            <property name="attachments" type="array" class="[Ljava.lang.String;">
+                <property name="[0]" type="string">mass A</property>
+                <property name="[1]" type="string">mass B</property>
+                <property name="[2]" type="string">mass B</property>
+            </property>
+            <property name="fixed" type="boolean">false</property>
             <property name="framedata" type="array" class="[[D">
-                <property name="array" type="string">{{419.51441578148706,240.0,369.51441578148706,153.39745962155615,319.51441578148706,240.0}}</property>
+                <property name="array" type="string">{{533.1714719271623,236.1153262518968,533.1714719271623,236.1153262518968,441.8816388467374,154.53717754172987},null,null,null,null,null,null,null,null,null}</property>
             </property>
             <property name="ruler_visible" type="boolean">true</property>
         </object>
@@ -129,8 +134,8 @@
             <property name="framedata" type="array" class="[Lorg.opensourcephysics.cabrillo.tracker.PointMass$FrameData;">
                 <property name="[0]" type="object">
                 <object class="org.opensourcephysics.cabrillo.tracker.PointMass$FrameData">
-                    <property name="x" type="double">512.7769347496206</property>
-                    <property name="y" type="double">237.08649468892258</property>
+                    <property name="x" type="double">533.1714719271623</property>
+                    <property name="y" type="double">236.1153262518968</property>
                 </object>
                 </property>
             </property>
@@ -139,19 +144,47 @@
             </property>
         </object>
         </property>
+        <property name="item" type="object">
+        <object class="org.opensourcephysics.cabrillo.tracker.Protractor">
+            <property name="name" type="string">protractor B</property>
+            <property name="color" type="object">
+            <object class="java.awt.Color">
+                <property name="red" type="int">0</property>
+                <property name="green" type="int">140</property>
+                <property name="blue" type="int">40</property>
+                <property name="alpha" type="int">255</property>
+            </object>
+            </property>
+            <property name="footprint" type="string">ProtractorFootprint.Circle3</property>
+            <property name="visible" type="boolean">true</property>
+            <property name="trail" type="boolean">false</property>
+            <property name="attachments" type="array" class="[Ljava.lang.String;">
+                <property name="[2]" type="string">mass B</property>
+                <property name="[6]" type="string">mass A</property>
+            </property>
+            <property name="fixed" type="boolean">false</property>
+            <property name="framedata" type="array" class="[[D">
+                <property name="array" type="string">{{200.0,150.0,533.1714719271623,236.1153262518968,105.85735963581183,209.89377845220028},null,null,null,null,null,null,null,null,null}</property>
+            </property>
+            <property name="ruler_visible" type="boolean">true</property>
+        </object>
+        </property>
     </property>
-    <property name="selectedtrack" type="string">mass B</property>
+    <property name="selectedtrack" type="string">protractor A</property>
     <property name="dividers" type="array" class="[D">
-        <property name="array" type="string">{0.6723963599595552,0.5759075907590759,1.0,0.3751263902932255}</property>
+        <property name="array" type="string">{0.6723963599595552,0.5792079207920792,1.0,0.3751263902932255}</property>
     </property>
     <property name="views" type="array" class="[[Lorg.opensourcephysics.cabrillo.tracker.TView;">
         <property name="[1]" type="array" class="[Lorg.opensourcephysics.cabrillo.tracker.TView;">
             <property name="[1]" type="object">
             <object class="org.opensourcephysics.cabrillo.tracker.TableTView">
-                <property name="selected_track" type="string">mass B</property>
+                <property name="selected_track" type="string">protractor B</property>
                 <property name="track_columns" type="array" class="[[Ljava.lang.String;">
                     <property name="[0]" type="array" class="[Ljava.lang.String;">
                         <property name="[0]" type="string">protractor A</property>
+                    </property>
+                    <property name="[1]" type="array" class="[Ljava.lang.String;">
+                        <property name="[0]" type="string">protractor B</property>
                         <property name="[1]" type="string">t</property>
                         <property name="[2]" type="string">θ</property>
                     </property>
@@ -179,6 +212,28 @@
                             <property name="[2]" type="string">0</property>
                         </property>
                     </property>
+                    <property name="[1]" type="array" class="[[Ljava.lang.String;">
+                        <property name="[0]" type="array" class="[Ljava.lang.String;">
+                            <property name="[0]" type="string">protractor B</property>
+                            <property name="[1]" type="string">t</property>
+                            <property name="[2]" type="string">0.000</property>
+                        </property>
+                        <property name="[1]" type="array" class="[Ljava.lang.String;">
+                            <property name="[0]" type="string">protractor B</property>
+                            <property name="[1]" type="string">θ</property>
+                            <property name="[2]" type="string">0.0</property>
+                        </property>
+                        <property name="[2]" type="array" class="[Ljava.lang.String;">
+                            <property name="[0]" type="string">protractor B</property>
+                            <property name="[1]" type="string">step</property>
+                            <property name="[2]" type="string">0</property>
+                        </property>
+                        <property name="[3]" type="array" class="[Ljava.lang.String;">
+                            <property name="[0]" type="string">protractor B</property>
+                            <property name="[1]" type="string">frame</property>
+                            <property name="[2]" type="string">0</property>
+                        </property>
+                    </property>
                 </property>
             </object>
             </property>
@@ -187,7 +242,7 @@
     <property name="selected_view_types" type="array" class="[I">
         <property name="array" type="string">{0,1,2,3}</property>
     </property>
-    <property name="selected_track_views" type="string">mass B,null;null,mass B;null,null;null,null</property>
+    <property name="selected_track_views" type="string">protractor B,null;null,protractor B;null,null;null,null</property>
     <property name="toolbar" type="object">
     <object class="org.opensourcephysics.cabrillo.tracker.TToolBar">
         <property name="trace" type="boolean">false</property>
