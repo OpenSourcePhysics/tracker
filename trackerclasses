@@ -38,6 +38,7 @@ java/awt/GridBagConstraints.js
 java/awt/GridBagLayout.js
 java/awt/GridBagLayoutInfo.js
 java/awt/GridLayout.js
+java/awt/IllegalComponentStateException.js
 java/awt/Image.js
 java/awt/Insets.js
 java/awt/ItemSelectable.js
