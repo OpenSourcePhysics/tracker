@@ -129,14 +129,12 @@ import org.opensourcephysics.media.core.VideoPlayer;
 import org.opensourcephysics.media.core.XYCoordinateStringBuilder;
 import org.opensourcephysics.media.mov.SmoothPlayable;
 import org.opensourcephysics.tools.DataFunctionPanel;
-import org.opensourcephysics.tools.DataRefreshTool;
 import org.opensourcephysics.tools.DataTool;
 import org.opensourcephysics.tools.DataToolTab;
 import org.opensourcephysics.tools.FontSizer;
 import org.opensourcephysics.tools.FunctionEditor;
 import org.opensourcephysics.tools.FunctionPanel;
 import org.opensourcephysics.tools.FunctionTool;
-import org.opensourcephysics.tools.LocalJob;
 import org.opensourcephysics.tools.ParamEditor;
 import org.opensourcephysics.tools.Parameter;
 import org.opensourcephysics.tools.Resource;
@@ -270,7 +268,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	public NumberFormatDialog numberFormatDialog;
 
 
-	private ArrayList<TTrack> userTracks;
+	private ArrayList<TTrack> userTracks, exportableTracks;
 	private Map<String, AbstractAction> actions;
 	protected String title;
 	protected WorldTView view;
@@ -678,6 +676,31 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	}
 
 	/**
+	 * Gets the list of TTracks with exportable data on this panel.
+	 *
+	 * @return a list of tracks with exportable data
+	 */
+	public ArrayList<TTrack> getExportableTracks() {
+		if (exportableTracks != null)
+			return exportableTracks;
+		ArrayList<TTrack> tracks = getTracks();
+		tracks.remove(getAxes());
+		tracks.removeAll(calibrationTools);
+		tracks.removeAll(getDrawablesTemp(PerspectiveTrack.class));
+
+//		// remove child ParticleDataTracks
+//		ArrayList<ParticleDataTrack> list = getDrawablesTemp(ParticleDataTrack.class);
+//		for (int m = 0, n = list.size(); m < n; m++) {
+//			ParticleDataTrack track = list.get(m);
+//			if (track.getLeader() != track) {
+//				tracks.remove(track);
+//			}
+//		}
+//		list.clear();
+		return exportableTracks = tracks;
+	}
+
+	/**
 	 * Gets the list of TTracks to save with this panel.
 	 *
 	 * @return a list of tracks to save
@@ -726,6 +749,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			return;
 		// BH 2020.07.09
 		userTracks = null;
+		exportableTracks = null;
 		track.setActive();
 		// set trackerPanel property if not yet set
 		if (track.tp == null) {
@@ -735,7 +759,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		}
 
 		// set angle format of the track
-		track.setAnglesInRadians(frame.getAnglesInRadians());
+		track.setAnglesInRadians(frame.isAnglesInRadians());
 		showTrackControlDelayed = true;
 		boolean doAddDrawable = true;
 		if (track instanceof ParticleDataTrack) {
@@ -926,6 +950,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		if (getTrackByName(track.getClass(), track.getName()) == null)
 			return;
 		userTracks = null;
+		exportableTracks = null;
 		track.removeListener(this);
 		super.removeDrawable(track);
 		if (dataBuilder != null)
@@ -1918,7 +1943,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		case "A/T":
 		case "A/TT":
 			TFrame frame = getTFrame();
-			String angUnit = frame != null && frame.getAnglesInRadians() ? "" : Tracker.DEGREES; //$NON-NLS-1$
+			String angUnit = frame != null && frame.isAnglesInRadians() ? "" : Tracker.DEGREES; //$NON-NLS-1$
 			return sp + angUnit + "/" + timeUnit + sq; //$NON-NLS-1$
 		}
 		return ""; //$NON-NLS-1$
@@ -2372,10 +2397,11 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		} else { // no point selected
 			setMouseCursor(Cursor.getDefaultCursor());
 			// display selected track hint
+			getExportableTracks(); // needed for correct hint
 			if (Tracker.showHints && selectedTrack != null) {
 				setMessage(selectedTrack.getMessage());
 			} else if (!Tracker.startupHintShown || getVideo() != null
-					|| (userTracks != null && !userTracks.isEmpty())) {
+					|| (exportableTracks != null && !exportableTracks.isEmpty())) {
 				Tracker.startupHintShown = false;
 				if (!Tracker.showHints)
 					setMessage(""); //$NON-NLS-1$
@@ -2391,7 +2417,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 						setMessage(TrackerRes.getString("TrackerPanel.CalibrateVideo.Hint")); //$NON-NLS-1$
 				} else if (getAxes() != null && getAxes().notyetShown)
 					setMessage(TrackerRes.getString("TrackerPanel.ShowAxes.Hint")); //$NON-NLS-1$
-				else if (userTracks == null || userTracks.isEmpty())
+				else if (exportableTracks == null || exportableTracks.isEmpty())
 					setMessage(TrackerRes.getString("TrackerPanel.NoTracks.Hint")); //$NON-NLS-1$
 				else
 					setMessage(""); //$NON-NLS-1$
