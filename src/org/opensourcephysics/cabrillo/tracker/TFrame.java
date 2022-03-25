@@ -389,7 +389,9 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 
 		// set size and limit maximized size so taskbar not covered
 		Rectangle screenRect = GraphicsEnvironment.getLocalGraphicsEnvironment().getMaximumWindowBounds();
-		setMaximizedBounds(screenRect);
+		if (OSPRuntime.isJS)
+			// DB when this is set in Java the frame doesn't maximize fully!
+			setMaximizedBounds(screenRect);
 		// process -bounds or -dim option
 
 		if (isLayoutAdaptive) {
@@ -1707,7 +1709,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	}
 
 
-	public boolean getAnglesInRadians() {
+	public boolean isAnglesInRadians() {
 		return anglesInRadians;
 	}
 	/**
