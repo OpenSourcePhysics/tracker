@@ -24,8 +24,8 @@
 */
 package org.opensourcephysics.cabrillo.tracker;
 
+import java.awt.BorderLayout;
 import java.awt.Component;
-import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
@@ -91,7 +91,9 @@ public class WorldTView extends TView {
 		// just create a local panel; we will refer to it by its panelID.		
 		WorldPanel worldPanel = new WorldPanel(panel, this);
 		worldPanelID = worldPanel.getID();
-		add(worldPanel);
+		// use BorderLayout so autosizes
+		setLayout(new java.awt.BorderLayout());
+		add(worldPanel, BorderLayout.CENTER);
 
 		worldViewLabel = new JLabel();
 		worldViewLabel.setBorder(BorderFactory.createEmptyBorder(2, 6, 2, 0));
@@ -120,15 +122,14 @@ public class WorldTView extends TView {
 			}
 			setPlayerVisible(false);
 			setDrawingInImageSpace(false);
-			setPreferredSize(new Dimension(240, 180));
 			setShowCoordinates(false);
-			// world view button
 		}
 
 		@Override
 		protected void setGUI() {
 			// set tiny preferred size so auto zooms to very small
-			setPreferredSize(new Dimension(1, 1));
+			// DB not needed with BorderLayout
+//			setPreferredSize(new Dimension(1, 1));
 		}
 
 		@Override
