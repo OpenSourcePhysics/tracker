@@ -498,7 +498,7 @@ public class NumberFormatDialog extends JDialog {
 			prevTrackPatterns.put(next, patterns);
 		}
 		panel.clearTemp();
-		prevAnglesInRadians = frame.getAnglesInRadians();
+		prevAnglesInRadians = frame.isAnglesInRadians();
 		prevDecimalSeparator = OSPRuntime.getPreferredDecimalSeparator();
 		formatsChanged = false;
 	}
@@ -977,12 +977,12 @@ public class NumberFormatDialog extends JDialog {
 		} else if (selectedIndices.length == 1) {
 			String name = realNames.get(displayedNames[selectedIndices[0]]);
 			String pattern = track.getVarFormatPattern(name);
-			boolean degrees = name.startsWith(Tracker.THETA) && !track.tframe.getAnglesInRadians();
+			boolean degrees = name.startsWith(Tracker.THETA) && !track.tframe.isAnglesInRadians();
 			showNumberFormatAndSample(pattern, degrees);
 		} else {
 			// do all selected indices have same pattern?
 			String name = realNames.get(displayedNames[selectedIndices[0]]);
-			boolean degrees = name.startsWith(Tracker.THETA) && !track.tframe.getAnglesInRadians();
+			boolean degrees = name.startsWith(Tracker.THETA) && !track.tframe.isAnglesInRadians();
 			String pattern = track.getVarFormatPattern(name);
 			if (degrees && (pattern == null || "".equals(pattern))) { //$NON-NLS-1$
 				pattern = NumberField.DECIMAL_1_PATTERN;
