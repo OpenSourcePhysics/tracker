@@ -7,6 +7,7 @@
 
 package org.opensourcephysics.cabrillo.tracker.analytics;
 
+import java.awt.Toolkit;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -29,11 +30,13 @@ import org.opensourcephysics.tools.Resource;
  */
 public class LaunchCounter {
 	
-	static String dataFile = "C:/Users/Doug/Eclipse/workspace_deploy/analytics/launch_counts.csv"; //$NON-NLS-1$
+	static String dataFile = "launch_counts.csv"; //$NON-NLS-1$
 	static String NEW_LINE = System.getProperty("line.separator", "\n"); //$NON-NLS-1$ //$NON-NLS-2$
 
   public static void main(String[] args) {
   	
+	Toolkit.getDefaultToolkit().beep();
+	
     // create StringBuffer and append date/time
     StringBuffer buffer = new StringBuffer();
   	buffer.append(getDateAndTime());
@@ -42,17 +45,18 @@ public class LaunchCounter {
   	String[] filenames = getFileNames(dataFile);
   	
   	// go through file names and append tabs and download counts
-		for (int j = 0; j<filenames.length; j++) {
+	for (int j = 0; j<filenames.length; j++) {
 	  	String count = getCount(filenames[j]);
 	  	buffer.append("\t"+count); //$NON-NLS-1$
   	}
 		
-		// get current contents and add StringBuffer at end
-		String contents = read(dataFile);
-		contents += buffer.toString();
-		
-		// write the new contents to dataFile
-		write(contents, dataFile);
+	// get current contents and add StringBuffer at end
+	String contents = read(dataFile);
+	contents += buffer.toString();
+	
+	// write the new contents to dataFile
+	write(contents, dataFile);
+
   }
   
   /**

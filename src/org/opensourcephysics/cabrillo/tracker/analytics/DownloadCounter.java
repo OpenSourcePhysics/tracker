@@ -7,6 +7,7 @@
 
 package org.opensourcephysics.cabrillo.tracker.analytics;
 
+import java.awt.Toolkit;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -30,11 +31,13 @@ import org.opensourcephysics.tools.Resource;
  */
 public class DownloadCounter {
 	
-	static String dataFile = "C:/Users/Doug/Eclipse/workspace_deploy/analytics/download_counts.csv"; //$NON-NLS-1$
+	static String dataFile = "download_counts.csv"; //$NON-NLS-1$
 	static String NEW_LINE = System.getProperty("line.separator", "\n"); //$NON-NLS-1$ //$NON-NLS-2$
 	
   public static void main(String[] args) {
     
+	Toolkit.getDefaultToolkit().beep();
+		
     // create StringBuffer and append date/time
     StringBuffer buffer = new StringBuffer();
   	buffer.append(getDateAndTime());
