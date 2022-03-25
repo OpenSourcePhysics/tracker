@@ -26,70 +26,93 @@ package org.opensourcephysics.cabrillo.tracker;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.GridLayout;
+import java.awt.Point;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.BitSet;
 import java.util.HashMap;
-import java.util.function.Function;
-
+import java.util.Map;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.JButton;
-import javax.swing.JComboBox;
+import javax.swing.JCheckBox;
+import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
-import javax.swing.JLabel;
-import javax.swing.JList;
+import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JSeparator;
-import javax.swing.ListCellRenderer;
+import javax.swing.JPopupMenu;
+import javax.swing.JScrollPane;
+import javax.swing.SwingConstants;
 import javax.swing.border.Border;
+import javax.swing.border.TitledBorder;
 
 import org.opensourcephysics.controls.ControlsRes;
 import org.opensourcephysics.controls.XML;
-import org.opensourcephysics.display.DataTable;
+import org.opensourcephysics.display.Dataset;
 import org.opensourcephysics.display.GUIUtils;
+import org.opensourcephysics.display.OSPRuntime;
+import org.opensourcephysics.display.TeXParser;
+import org.opensourcephysics.media.core.NumberField;
+import org.opensourcephysics.media.core.VideoIO;
+import org.opensourcephysics.media.core.VideoPlayer;
 import org.opensourcephysics.tools.FontSizer;
 
 import javajs.async.AsyncDialog;
 
 /**
- * A dialog for exporting videos from a TrackerPanel.
+ * A dialog to export data from one or more tracks.
+ * Data can be copied to the clipboard or saved to a file.
  *
  * @author Douglas Brown
  */
 @SuppressWarnings("serial")
 public class ExportDataDialog extends JDialog {
-
-	protected static File lastTXT = new File("");
-
+	
 	protected static ExportDataDialog dataExporter; // singleton
+	
+	private static String fullPrecisionPattern = "0.000000E0";
+	private static File lastSaved = new File("");
+	private static Color buttonColor = Color.WHITE;
+	// map of PanelID to BitSet of selected tracks
+	private static HashMap<Integer, BitSet> selectedTracksBSMap;
+	// map of trackType to list of all column names
+	private static HashMap<Class<? extends TTrack>, ArrayList<String>> allColumnsMap;
+	// map of trackType to BitSet of selected columns
+	private static HashMap<Class<? extends TTrack>, BitSet> selectedColumnsBSMap;
+	// map of PanelID to Boolean userHasSetData
+	private static HashMap<Integer, Boolean> userHasSetDataMap;
 
-	// instance fields
-	protected TFrame frame;
 	protected Integer panelID;
-	protected JButton saveAsButton, closeButton;
-	protected JComponent tablePanel, delimiterPanel, contentPanel, formatPanel;
-	protected JComboBox<String> formatDropdown;
-	protected JComboBox<Object> delimiterDropdown;
-	protected JComboBox<String> tableDropdown;
-	protected JComboBox<String> contentDropdown;
-	protected HashMap<Object, DataTable> tables;
-	protected HashMap<DataTable, String> trackNames;
-	protected boolean refreshing;
+	private ArrayList<Integer> allTracks = new ArrayList<Integer>();
+	private TFrame frame;
+	private JButton saveAsButton, closeButton, copyButton;
+	private JComponent tracksPanel, columnsPanel, delimiterPanel, formatPanel;
+	private MyButton tracksButton, columnsButton, delimiterButton, formatButton;
+	private TracksDialog tracksDialog;
+	private ColumnsDialog columnsDialog;
+	private JPopupMenu popup;
+	private NumberField.NumberFormatter defaultFormatter;
+	private Class<? extends TTrack> trackType;
+	private boolean asFormatted = true;
+	private ActionListener checkboxListener = (e) -> {
+		showColumnsDialogAction(Integer.parseInt(e.getActionCommand()));
+	};
 
 	/**
 	 * Returns the singleton ExportDataDialog for a specified TrackerPanel.
@@ -101,10 +124,7 @@ public class ExportDataDialog extends JDialog {
 		if (dataExporter == null) {
 			dataExporter = new ExportDataDialog(panel);
 		} else {
-			// MEMORY LEAK HERE -- permanent static reference to a panel
-			//dataExporter.trackerPanel = panel;
-			dataExporter.frame = panel.getTFrame();
-			dataExporter.panelID = panel.getID();
+			dataExporter.setTrackerPanel(panel);
 			dataExporter.refreshGUI();
 		}
 		return dataExporter;
@@ -113,14 +133,16 @@ public class ExportDataDialog extends JDialog {
 	/**
 	 * Constructs a ExportDataDialog.
 	 *
-	 * @param panel a TrackerPanel to supply the images
+	 * @param panel a TrackerPanel to supply the tracks
 	 */
 	private ExportDataDialog(TrackerPanel panel) {
 		super(panel.getTFrame(), true);
 		frame = panel.getTFrame();
-		panelID = panel.getID();
 		setResizable(false);
+		defaultFormatter = new NumberField.NumberFormatter(false);
+		defaultFormatter.setSigFigs(4); // same as typ track field default
 		createGUI();
+		setTrackerPanel(panel);
 		refreshGUI();
 		// center dialog on the screen
 		Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
@@ -135,6 +157,7 @@ public class ExportDataDialog extends JDialog {
 	 * Creates the visible components of this dialog.
 	 */
 	private void createGUI() {
+		popup = new JPopupMenu();
 		JPanel contentPane = new JPanel(new BorderLayout());
 		setContentPane(contentPane);
 		Box settingsPanel = Box.createVerticalBox();
@@ -142,83 +165,209 @@ public class ExportDataDialog extends JDialog {
 		JPanel upper = new JPanel(new GridLayout(1, 2));
 		JPanel lower = new JPanel(new GridLayout(1, 2));
 
-		// table panel
-		tables = new HashMap<Object, DataTable>();
-		trackNames = new HashMap<DataTable, String>();
-		tablePanel = Box.createVerticalBox();
-		tableDropdown = new JComboBox<>();
-		tablePanel.add(tableDropdown);
+		// tracks panel
+		tracksPanel = new JPanel(new GridLayout(0, 1));
+		tracksButton = new MyButton();
+		tracksButton.addActionListener((e) -> {
+			showTracksDialogAction();
+		});
+		tracksPanel.add(tracksButton);
 
 		// delimiter panel
 		delimiterPanel = new JPanel(new GridLayout(0, 1));
-		delimiterDropdown = new JComboBox<>();
-		delimiterPanel.add(delimiterDropdown);
-		delimiterDropdown.addItemListener(new ItemListener() {
+		delimiterButton = new MyButton() {
 			@Override
-			public void itemStateChanged(ItemEvent e) {
-				if (refreshing)
-					return;
-				delimiterAction();
+			protected JPopupMenu getPopup() {
+				return getDelimiterMenu();
 			}
-		});
-		delimiterDropdown.setRenderer(new SeparatorRenderer(delimiterDropdown.getRenderer()));
+		};
+		delimiterPanel.add(delimiterButton);
 
-		// content panel
-		contentPanel = new JPanel(new GridLayout(0, 1));
-		contentDropdown = new JComboBox<>();
-		contentPanel.add(contentDropdown);
+		// columns panel
+		columnsPanel = new JPanel(new GridLayout(0, 1));
+		columnsButton = new MyButton();
+		columnsButton.addActionListener((e) -> {
+			showColumnsDialogAction(-1);
+		});
+		columnsPanel.add(columnsButton);
 
 		// format panel
 		formatPanel = new JPanel(new GridLayout(0, 1));
-		formatDropdown = new JComboBox<>();
-		formatPanel.add(formatDropdown);
-
+		formatButton = new MyButton() {
+			@Override
+			protected JPopupMenu getPopup() {
+				return getFormatMenu();
+			}
+		};
+		formatPanel.add(formatButton);
+		
 		// assemble
 		settingsPanel.add(upper);
 		settingsPanel.add(lower);
-		upper.add(tablePanel);
-		upper.add(contentPanel);
+		upper.add(tracksPanel);
+		upper.add(columnsPanel);
 		lower.add(formatPanel);
 		lower.add(delimiterPanel);
 
 		// buttons
 		saveAsButton = new JButton();
 		saveAsButton.setForeground(new Color(0, 0, 102));
-		saveAsButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				JFileChooser chooser = TrackerIO.getChooser();
-				chooser.setSelectedFile(lastTXT); //$NON-NLS-1$
-				TrackerIO.getChooserFilesAsync(frame, "save data", new Function<File[], Void>() { // $NON-NLS-1$
-
-					@Override
-					public Void apply(File[] files) {
-						if (files != null && files.length > 0 && files[0] != null)
-							saveAsAction(lastTXT = files[0]);
-						return null;
-					}
-				}); 
+		saveAsButton.addActionListener((e) -> {
+			saveAsAction();
+		});
+		copyButton = new JButton();
+		copyButton.setForeground(new Color(0, 0, 102));
+		copyButton.addActionListener((e) -> {
+			String data = getDataString();
+			if (data == null) {
+				Toolkit.getDefaultToolkit().beep();
+				return;
 			}
+			OSPRuntime.copy(data, null);
 		});
 		closeButton = new JButton();
 		closeButton.setForeground(new Color(0, 0, 102));
-		closeButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				setVisible(false);
-			}
+		closeButton.addActionListener((e) -> {
+			// clear tracks so no lingering references to them
+			allTracks.clear();
+			setVisible(false);
 		});
+		
 		// buttonbar
 		JPanel buttonbar = new JPanel();
 		contentPane.add(buttonbar, BorderLayout.SOUTH);
 		buttonbar.add(saveAsButton);
+		buttonbar.add(copyButton);
 		buttonbar.add(closeButton);
+		
+		allColumnsMap = new HashMap<Class<? extends TTrack>, ArrayList<String>>();
+		userHasSetDataMap = new HashMap<Integer, Boolean>();
+	}
+	
+	private void setTrackerPanel(TrackerPanel panel) {
+		// update available tracks
+		ArrayList<TTrack> newTracks = panel.getExportableTracks();
+		if (newTracks.isEmpty()) {
+			Toolkit.getDefaultToolkit().beep();
+			return;
+		}
+		allTracks.clear();
+//		allColumnsMap.clear();
+    for (int i = 0; i < newTracks.size(); i++) {
+    	TTrack next = newTracks.get(i);
+    	allTracks.add(next.getID());
+    	Class<? extends TTrack> type = getTrackType(next);
+    	ArrayList<String> allColumns = allColumnsMap.get(type);
+    	if (allColumns == null) {
+  			allColumns = new ArrayList<String>();
+  			allColumnsMap.put(type, allColumns);
+  			ArrayList<Dataset> sets = next.getData(panel).getDatasetsRaw();
+  			for (int j = 0; j < sets.size(); j++) {
+  				Dataset dataset = sets.get(j);
+    			allColumns.add(dataset.getYColumnName()); 				
+  			}
+    	}
+    }
+    // if this is a new panel, clear selected tracks and select default
+		if (panel.getID() != panelID) {
+			panelID = panel.getID();
+			if (!userHasSetDataMap.containsKey(panelID)) {
+				BitSet selectedTracksBS = getSelectedTracksBitSet(panelID);
+				selectedTracksBS.clear();
+				selectTrack(TTrack.getTrack(allTracks.get(0)), true);
+			}
+		}
+		if (!userHasSetDataMap.containsKey(panelID))
+			userHasSetDataMap.put(panelID, false);
+		if (!userHasSetDataMap.get(panelID)) {
+			selectDefaultColumns(true);
+		}
+	}
+	
+	private void selectTrack(TTrack track, boolean selected) {
+		BitSet selectedTracksBS = getSelectedTracksBitSet(panelID);
+		selectedTracksBS.set(track.getID(), selected);
+		if (selectedTracksBS.isEmpty()) {
+			trackType = null;
+		}
+		else if (selectedTracksBS.cardinality() == 1) {
+			track = TTrack.getTrack(selectedTracksBS.nextSetBit(0));
+			trackType = getTrackType(track);			
+		}		
+		else {
+			// if previous trackType was cm, check new track
+			if (trackType == CenterOfMass.class) {
+				trackType = getTrackType(track); 
+				// changes trackType to PointMass.class if non-cm type track was added
+			}
+		}
+	}
+	
+	private void selectDefaultColumns(boolean selectTrack) {
+		TViewChooser[] choosers = frame.getVisibleChoosers(panelID);
+		for (int i = 0; i < choosers.length; i++) {
+			if (choosers[i] == null)
+				continue;
+			TView view = choosers[i].getSelectedView();
+			if (view.getViewType() == TView.VIEW_TABLE) {
+				TableTView tView = (TableTView) view;
+				TTrack track = tView.getSelectedTrack();
+				if (track != null && getTrackType(track) == trackType) {
+					if (selectTrack) {
+						BitSet selectedTracksBS = getSelectedTracksBitSet(panelID);
+						selectedTracksBS.clear();
+						selectTrack(track, true);
+					}
+					TableTrackView tableView = (TableTrackView) tView.getTrackView(track);
+					String[] cols = tableView.getVisibleColumns();
+					BitSet selectedColsBS = getSelectedColumnsBitSet(trackType);
+					selectedColsBS.clear();
+					ArrayList<String> allColumnNames = allColumnsMap.get(trackType);
+					for (int j = 0; j < cols.length; j++) {
+						String var = cols[j];
+						for (int k = 0; k < allColumnNames.size(); k++) {
+							if (allColumnNames.get(k).equals(var)) {
+								selectedColsBS.set(k);
+								break;
+							}
+						}
+					}
+					break;
+				}			
+			}
+		}
+	}
+	
+	private BitSet getSelectedTracksBitSet(Integer panelID) {
+		if (selectedTracksBSMap == null)
+			selectedTracksBSMap = new HashMap<Integer, BitSet>();
+		BitSet selected = selectedTracksBSMap.get(panelID);
+		if (selected == null) {
+			selected = new BitSet();
+			selectedTracksBSMap.put(panelID, selected);
+		}
+		return selected;
+	}
+	
+	private BitSet getSelectedColumnsBitSet(Class<? extends TTrack> type) {
+		if (selectedColumnsBSMap == null)
+			selectedColumnsBSMap = new HashMap<Class<? extends TTrack>, BitSet>();		
+		BitSet namesBS = selectedColumnsBSMap.get(type);
+		if (namesBS == null) {
+			namesBS = new BitSet();
+			selectedColumnsBSMap.put(type, namesBS);
+		}
+		return namesBS;
+	}
+	
+	private TTrack getFirstSelectedTrack() {
+		BitSet selectedTracksBS = getSelectedTracksBitSet(panelID);		
+		return selectedTracksBS.isEmpty()? null: TTrack.getTrack(selectedTracksBS.nextSetBit(0));
 	}
 
-	protected void delimiterAction() {
-		Object selected = delimiterDropdown.getSelectedItem();
-		boolean isAdd = selected.equals(TrackerRes.getString("ExportDataDialog.Delimiter.Add")); //$NON-NLS-1$
-		boolean isRemove = selected.equals(TrackerRes.getString("ExportDataDialog.Delimiter.Remove")); //$NON-NLS-1$
+	protected void setDelimiterAction(String delimName) {
+		boolean isAdd = delimName.equals(TrackerRes.getString("ExportDataDialog.Delimiter.Add")); //$NON-NLS-1$
+		boolean isRemove = delimName.equals(TrackerRes.getString("ExportDataDialog.Delimiter.Remove")); //$NON-NLS-1$
 		String delimiter = TrackerIO.getDelimiter();
 		if (isAdd) {
 			String response = GUIUtils.showInputDialog(ExportDataDialog.this,
@@ -230,7 +379,6 @@ public class ExportDataDialog extends JDialog {
 				TrackerIO.setDelimiter(s);
 				TrackerIO.addCustomDelimiter(s);
 			}
-			refreshGUI();
 		} else if (isRemove) {
 			String[] choices = TrackerIO.customDelimiters.values().toArray(new String[1]);
 			new AsyncDialog().showInputDialog(ExportDataDialog.this,
@@ -241,164 +389,518 @@ public class ExportDataDialog extends JDialog {
 						if (s != null) {
 							TrackerIO.removeCustomDelimiter(s);
 						}
-						refreshGUI();		
 					});
 		} else {
-			if (TrackerIO.getDelimiters().keySet().contains(selected))
-				TrackerIO.setDelimiter(TrackerIO.getDelimiters().get(selected));
-			else if (TrackerIO.customDelimiters.keySet().contains(selected))
-				TrackerIO.setDelimiter(TrackerIO.customDelimiters.get(selected));
+			if (TrackerIO.getDelimiters().keySet().contains(delimName))
+				TrackerIO.setDelimiter(TrackerIO.getDelimiters().get(delimName));
+			else if (TrackerIO.customDelimiters.keySet().contains(delimName))
+				TrackerIO.setDelimiter(TrackerIO.customDelimiters.get(delimName));
 		}
+		refreshGUI();		
 	}
 
-	protected void saveAsAction(File file) {
-		DataTable table = tables.get(tableDropdown.getSelectedItem());
-		boolean asFormatted = formatDropdown.getSelectedItem()
-				.equals(TrackerRes.getString("TableTrackView.MenuItem.Formatted")); //$NON-NLS-1$
-		boolean allCells = contentDropdown.getSelectedItem()
-				.equals(TrackerRes.getString("ExportDataDialog.Content.AllCells")); //$NON-NLS-1$
-		String trackName = trackNames.get(table) + XML.NEW_LINE;
-		trackName = trackName.replace(' ', '_');
-		if (allCells) {
-			// get current selection state
-			int[] selectedRows = table.getSelectedRows();
-			int[] selectedCols = table.getSelectedColumns();
-			// select all
-			table.selectAll();
-			// get data and write to output file
-			StringBuffer buf = table.getData(asFormatted);
-			write(file, trackName + buf.toString());
-			// restore previous selection state
-			table.clearSelection();
-			for (int row : selectedRows)
-				table.addRowSelectionInterval(row, row);
-			for (int col : selectedCols)
-				table.addColumnSelectionInterval(col, col);
-		} else {
-			// get data and write to output file
-			StringBuffer buf = table.getData(asFormatted);
-			write(file, trackName + buf.toString());
+	private void setFormatAction(String format) {
+		asFormatted = format.equals(TrackerRes.getString("TableTrackView.MenuItem.Formatted")); //$NON-NLS-1$
+		refreshGUI();
+	}
+	
+	private String getPatternFromTable(String var) {
+		TViewChooser[] choosers = frame.getVisibleChoosers(panelID);
+		for (int i = 0; i < choosers.length; i++) {
+			if (choosers[i] == null)
+				continue;
+			TView view = choosers[i].getSelectedView();
+			if (view.getViewType() == TView.VIEW_TABLE) {
+				TableTView tableTView = (TableTView) view;
+				TTrack track = tableTView.getSelectedTrack();
+				if (track != null) {
+					TableTrackView trackView = (TableTrackView)tableTView.getTrackView(track);
+					return trackView.getDataTable().getFormatPattern(var);
+				}
+			}
 		}
+		return null;
+	}
+
+	private void showTracksDialogAction() {
+		if (tracksDialog == null)
+			tracksDialog = new TracksDialog();
+		
+    tracksDialog.refreshDisplay();
+		FontSizer.setFonts(tracksDialog, FontSizer.getLevel());
+		tracksDialog.pack();
+    Point p = tracksButton.getLocationOnScreen();
+    p.x -= tracksButton.getLocation().x;
+    p.y += tracksButton.getHeight();
+    tracksDialog.setLocation(p);
+		tracksDialog.setVisible(true);
+	}
+
+	private void showColumnsDialogAction(int num) {
+		if (num < 0) { // show columns dialog
+			if (columnsDialog == null)
+				columnsDialog = new ColumnsDialog();
+			
+			columnsDialog.rebuild();
+			FontSizer.setFonts(columnsDialog, FontSizer.getLevel());
+			columnsDialog.pack();
+	    Point p = columnsButton.getLocationOnScreen();
+	    p.x -= columnsButton.getLocation().x;
+	    p.y += columnsButton.getHeight();
+	    columnsDialog.setLocation(p);
+	    columnsDialog.setVisible(true);
+		}
+		else { // set names BitSet
+			boolean add = columnsDialog.checkBoxes[num].isSelected();
+			// trackType should always be non-null here
+			BitSet namesBS = getSelectedColumnsBitSet(trackType);
+			namesBS.set(num, add);
+			userHasSetDataMap.put(panelID, true);
+			refreshGUI();
+		}
+	}
+	
+	private Class<? extends TTrack> getTrackType(TTrack track) {
+		return PointMass.class.isAssignableFrom(track.getClass())?
+				track.getClass() == CenterOfMass.class || track.getClass() == DynamicSystem.class?
+				CenterOfMass.class:
+  			PointMass.class: 
+  			Vector.class.isAssignableFrom(track.getClass())?
+  			Vector.class: 
+  			track.getClass();
+	}
+
+	private void saveAsAction() {
+		JFileChooser chooser = TrackerIO.getChooser();
+		chooser.setSelectedFile(lastSaved); //$NON-NLS-1$
+		File[] files = TrackerIO.getChooserFilesAsync(frame, "save data", null); //$NON-NLS-1$
+		if (files == null || files.length == 0)
+			return;
+		File file = files[0];
+		if (XML.getExtension(file.getName()) == null) {
+			file = new File(file.getAbsolutePath() + ".txt");
+		}
+		if (!VideoIO.canWrite(file))
+			return;
+		// get export string and write to output file
+		String output = getDataString();
+		if (output == null)
+			return;
+		write(file, output);
+		lastSaved = file;
+	}
+	
+	@SuppressWarnings("unchecked")
+	private String getDataString() {
+		// trackType should always be non-null here		
+		StringBuffer buf = new StringBuffer();
+		TrackerPanel panel = frame.getTrackerPanelForID(panelID);	
+		// which tracks to export
+		BitSet selectedTracksBS = getSelectedTracksBitSet(panelID);
+		if (selectedTracksBS.isEmpty())
+			return null;
+		TTrack[] selectedTracks = new TTrack[selectedTracksBS.cardinality()];
+		int n = 0;
+		for (int k = selectedTracksBS.nextSetBit(0); k >= 0; k = selectedTracksBS.nextSetBit(k + 1)) {
+			selectedTracks[n++] = TTrack.getTrack(k);
+		}
+
+		ArrayList<String> allColumnNames = allColumnsMap.get(trackType);
+		int datasetCount = allColumnNames.size();
+		// get column names to export		
+		BitSet namesBS = getSelectedColumnsBitSet(trackType);
+		String[] selectedColumnNames = new String[namesBS.cardinality()];
+		n = 0;
+		for (int k = namesBS.nextSetBit(0); k >= 0; k = namesBS.nextSetBit(k + 1)) {
+			selectedColumnNames[n++] = allColumnNames.get(k);
+		}
+		String xVar = null;  // set below
+		// collect selected track data
+		int selectedTrackCount = selectedTracks.length;
+		ArrayList<Dataset>[] selectedTrackData = new ArrayList[selectedTrackCount];
+		n = 0;
+		for (int i = 0; i < selectedTracks.length; i++) {
+			TTrack track = selectedTracks[i];
+			selectedTrackData[i] = track.getData(panel).getDatasetsRaw();
+			if (xVar == null)
+				xVar = selectedTrackData[i].get(0).getXColumnName();
+		}
+		
+		// find dataset index of frame or pixel (lineprofile) variable
+		boolean isFrames = trackType != LineProfile.class;
+		int frameIndex = isFrames? -1: 0;
+		for (int i = 0; i < datasetCount; i++) {
+			if (allColumnNames.get(i).equals("frame")) {
+				frameIndex = i;
+				break;
+			}
+		}
+		if (frameIndex == -1)
+			return null;
+		
+		// set up arrays for data values and frame numbers
+		int colsPerTrack = selectedColumnNames.length;
+		double[][][] dataValues = new double[selectedTrackCount][colsPerTrack][];
+		double[][] frameNumbers = new double[selectedTrackCount][];
+		for (int i = 0; i < selectedTrackCount; i++) {
+			// for each selected track, get list of datasets
+			ArrayList<Dataset> datasets = selectedTrackData[i];
+			
+			Dataset dataset = datasets.get(frameIndex);
+			frameNumbers[i] = getPoints(dataset, isFrames);
+			// for each selected column name look for dataset with same name
+			for (int k = 0; k < selectedColumnNames.length; k++) {
+				String colName = selectedColumnNames[k];
+				for (int j = 0; j < datasetCount; j++) {
+					// look thru all datasets to find column with colName
+					if (datasets.size() <= j)
+						break;
+					dataset = datasets.get(j);					
+					if (dataset.getYColumnName().equals(colName)) {
+						dataValues[i][k] = getPoints(dataset, true);
+						// convert angles to degrees if needed
+						if (!frame.isAnglesInRadians() && 
+								(colName.startsWith(Tracker.THETA) || 
+									colName.startsWith(Tracker.OMEGA) || 
+									colName.startsWith(Tracker.ALPHA))) {
+							double[] angles = dataValues[i][k];
+							for (int m = 0; m < angles.length; m++ ) {
+								angles[m] *= (180 / Math.PI);
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		// determine frame order
+		// find min and max frame numbers in all track data
+		int min = Integer.MAX_VALUE, max = -1;
+		for (int i = 0; i < selectedTrackCount; i++) {
+			// some tracks may have no data!
+			if (frameNumbers[i].length == 0)
+				continue;
+			min = (int)Math.min(min, frameNumbers[i][0]);
+			max = (int)Math.max(max, frameNumbers[i][frameNumbers[i].length - 1]);
+		}
+		boolean hasData = max >= 0;
+
+		int frameCount = hasData? (max - min + 1): 0;
+		int[][] indices = new int[selectedTrackCount][frameCount];
+		String timePattern = null;
+		String[][] patterns = new String[selectedTrackCount][colsPerTrack];
+		DecimalFormat nf = (DecimalFormat) NumberFormat.getInstance();
+		nf.setDecimalFormatSymbols(OSPRuntime.getDecimalFormatSymbols());
+		
+		if (hasData) {
+			// assemble trackDataset indices of corresponding frames
+			for (int i = 0; i < selectedTrackCount; i++) {
+				Arrays.fill(indices[i], -1); // -1 means no data at that frame
+				n = 0;
+				for (int j = min; j <= max; j++) {
+					if (frameNumbers[i].length > 0 && frameNumbers[i][n] == j) {
+						indices[i][j - min] = n;
+						n++;
+						if (n >= frameNumbers[i].length)
+							break;
+					}
+				}
+			}
+					
+			// set up number patterns
+			// find representative track
+			TTrack track = null;
+			for (int i = 0; i < selectedTracks.length; i++) {
+				if (selectedTracks[i].getClass() == trackType) {
+					track = selectedTracks[i];
+					break;
+				}
+			}
+			if (track == null)
+				track = selectedTracks[0];
+			Map<String, String> defaultPatternMap = TTrack.getDefaultFormatPatterns(track.ttype);
+			if (asFormatted) {
+				for (int i = 0; i < selectedTrackCount; i++) {
+					track = selectedTracks[i];
+					Map<String, NumberField[]> fieldMap = track.getNumberFields();
+					// get pattern for xVar
+					NumberField[] fields = fieldMap.get(xVar);
+					timePattern = fields != null && fields.length > 0?
+							fields[0].getFixedPattern():
+							getPatternFromTable(xVar);
+					
+					for (int j = 0; j < colsPerTrack; j++) {
+						// get patterns for column vars
+						String var = selectedColumnNames[j];
+						String pattern = null;
+						if (var != null) {
+							fields = fieldMap.get(var);
+							pattern = fields != null && fields.length > 0?
+									fields[0].getFixedPattern():
+									getPatternFromTable(var);
+							if (pattern == null) {
+								pattern = defaultPatternMap.get(var);
+							}
+						}
+						patterns[i][j] = pattern;
+					}
+				}
+			}
+			else {
+				timePattern = isFrames? fullPrecisionPattern: "0";
+				for (int i = 0; i < selectedTrackCount; i++) {
+					for (int j = 0; j < colsPerTrack; j++) {
+						String var = selectedColumnNames[j];
+						String pattern = defaultPatternMap.get(var);
+						patterns[i][j] = "0".equals(pattern)? pattern: "0.000000E0";
+					}
+				}			
+			}
+		}		
+		// assemble data string by rows in frame order
+		// add track name row
+		buf.append(TrackerIO.getDelimiter());
+		for (int i = 0; i < selectedTrackCount; i++) {
+			TTrack track = selectedTracks[i];
+			buf.append(track.getName());
+			for (int j = 0; j < colsPerTrack; j++) {
+				buf.append(TrackerIO.getDelimiter());
+			}
+		}
+		buf.append(XML.NEW_LINE);
+		// add column name row
+		buf.append(xVar);
+		buf.append(TrackerIO.getDelimiter());
+		for (int i = 0; i < selectedTrackCount; i++) {
+			for (int j = 0; j < colsPerTrack; j++) {
+				if (selectedColumnNames[j] == null) {
+					buf.append(TrackerIO.getDelimiter());
+					continue;
+				}
+				String units = "";
+				if (!frame.isAnglesInRadians() && 
+						(selectedColumnNames[j].startsWith(Tracker.THETA) || 
+							selectedColumnNames[j].startsWith(Tracker.OMEGA) || 
+							selectedColumnNames[j].startsWith(Tracker.ALPHA))) {
+					units = "("+Tracker.DEGREES+")";
+				}
+				buf.append(TeXParser.removeSubscripting(selectedColumnNames[j]) + units);
+				buf.append(TrackerIO.getDelimiter());
+			}
+		}
+		buf.append(XML.NEW_LINE);
+		if (hasData) {
+			// add data rows
+			VideoPlayer player = panel.getPlayer();
+			for (int i = min; i <= max; i++) {
+				// time or n is first in row
+				double value = isFrames? player.getFrameTime(i) / 1000: i;
+				if (timePattern != null && !"".equals(timePattern)) {
+					nf.applyPattern(timePattern); //$NON-NLS-1$
+					buf.append(nf.format(value));
+				}
+				else {
+					buf.append(defaultFormatter.getText(value));
+				}
+	
+				for (int j = 0; j < selectedTrackCount; j++) {
+					double[][] data = dataValues[j];
+					for (int k = 0; k < colsPerTrack; k++) {
+						buf.append(TrackerIO.getDelimiter());
+						if (indices[j][i - min] > -1) {
+							if (data[k] == null)
+								continue;
+							value = data[k][indices[j][i - min]];
+							if (!Double.isNaN(value)) {
+								String pattern = patterns[j][k];
+								if (pattern != null && !"".equals(pattern)) {
+									nf.applyPattern(pattern); //$NON-NLS-1$
+									buf.append(nf.format(value));
+								}
+								else {
+									buf.append(defaultFormatter.getText(value));
+								}
+							}
+						}
+					}
+				}
+				buf.append(XML.NEW_LINE);
+			}
+		}
+		
+		return buf.toString();
+	}
+	
+	private double[] getPoints(Dataset dataset, boolean isY) {
+		double[] p = isY? dataset.getYPointsRaw(): dataset.getXPointsRaw();
+		return Arrays.copyOf(p, dataset.getIndex());
+	}
+	
+	private JPopupMenu getDelimiterMenu() {
+		popup.removeAll();
+		// standard delimiters
+		for (String key : TrackerIO.getDelimiters().keySet()) {
+			JMenuItem item = new JMenuItem(key); //$NON-NLS-1$
+			item.addActionListener((e) -> {
+				setDelimiterAction(key);
+			});
+			popup.add(item);
+		}
+		// custom delimiters
+		boolean hasCustom = !TrackerIO.customDelimiters.isEmpty();
+		if (hasCustom) {
+			popup.addSeparator();
+			for (String key : TrackerIO.customDelimiters.keySet()) {
+				JMenuItem item = new JMenuItem(key); //$NON-NLS-1$
+				item.addActionListener((e) -> {
+					setDelimiterAction(key);
+				});
+				popup.add(item);
+			}
+		}
+		// add and remove delimiter items
+		popup.addSeparator();
+		final String add = TrackerRes.getString("ExportDataDialog.Delimiter.Add"); //$NON-NLS-1$
+		JMenuItem item = new JMenuItem(add); //$NON-NLS-1$
+		item.addActionListener((e) -> {
+			setDelimiterAction(add);
+		});
+		popup.add(item);
+		if (hasCustom) {
+			final String rem = TrackerRes.getString("ExportDataDialog.Delimiter.Remove"); //$NON-NLS-1$
+			item = new JMenuItem(rem); //$NON-NLS-1$
+			item.addActionListener((e) -> {
+				setDelimiterAction(rem);
+			});
+			popup.add(item);
+		}
+
+		FontSizer.setFonts(popup, FontSizer.getLevel());
+		return popup;
+	}
+
+	private JPopupMenu getFormatMenu() {
+		popup.removeAll();
+		String form = TrackerRes.getString("TableTrackView.MenuItem.Formatted");
+		String unform = TrackerRes.getString("TableTrackView.MenuItem.Unformatted");
+		
+		JMenuItem item = new JMenuItem(form); //$NON-NLS-1$
+		item.addActionListener((e) -> {
+			setFormatAction(form);
+		});
+		popup.add(item);
+		item = new JMenuItem(unform); //$NON-NLS-1$
+		item.addActionListener((e) -> {
+			setFormatAction(unform);
+		});
+		popup.add(item);
+
+		FontSizer.setFonts(popup, FontSizer.getLevel());
+		return popup;
 	}
 
 	/**
 	 * Refreshes the visible components of this dialog.
 	 */
 	private void refreshGUI() {
-		refreshing = true;
-		// refresh strings
+		// refresh title, titled borders and buttons
 		String title = TrackerRes.getString("ExportDataDialog.Title"); //$NON-NLS-1$
 		setTitle(title);
-		title = TrackerRes.getString("ExportDataDialog.Subtitle.Table"); //$NON-NLS-1$
+		title = TrackerRes.getString("Undo.Description.Tracks"); //$NON-NLS-1$
 		Border space = BorderFactory.createEmptyBorder(0, 4, 6, 4);
 		Border titled = BorderFactory.createTitledBorder(title);
 		FontSizer.setFonts(titled, FontSizer.getLevel());
-		tablePanel.setBorder(BorderFactory.createCompoundBorder(titled, space));
+		tracksPanel.setBorder(BorderFactory.createCompoundBorder(titled, space));
 		title = TrackerRes.getString("ExportDataDialog.Subtitle.Delimiter"); //$NON-NLS-1$
 		titled = BorderFactory.createTitledBorder(title);
 		FontSizer.setFonts(titled, FontSizer.getLevel());
 		delimiterPanel.setBorder(BorderFactory.createCompoundBorder(titled, space));
-		title = TrackerRes.getString("ExportDataDialog.Subtitle.Content"); //$NON-NLS-1$
+		title = TrackerRes.getString("TableTrackView.Button.SelectTableData"); //$NON-NLS-1$
 		titled = BorderFactory.createTitledBorder(title);
 		FontSizer.setFonts(titled, FontSizer.getLevel());
-		contentPanel.setBorder(BorderFactory.createCompoundBorder(titled, space));
+		columnsPanel.setBorder(BorderFactory.createCompoundBorder(titled, space));
 		title = TrackerRes.getString("ExportDataDialog.Subtitle.Format"); //$NON-NLS-1$
 		titled = BorderFactory.createTitledBorder(title);
 		FontSizer.setFonts(titled, FontSizer.getLevel());
 		formatPanel.setBorder(BorderFactory.createCompoundBorder(titled, space));
 		saveAsButton.setText(TrackerRes.getString("ExportVideoDialog.Button.SaveAs")); //$NON-NLS-1$
-		closeButton.setText(TrackerRes.getString("Dialog.Button.Cancel")); //$NON-NLS-1$
-		FontSizer.setFonts(this, FontSizer.getLevel());
-
-		// refresh dropdowns
-		// delimiters
-		Object selectedItem = null;
+		copyButton.setText(TrackerRes.getString("CircleFitter.MenuItem.CopyToClipboard.Text")); //$NON-NLS-1$
+		closeButton.setText(TrackerRes.getString("Dialog.Button.Close")); //$NON-NLS-1$
+		
+		// tracks button
+		BitSet selectedTracksBS = getSelectedTracksBitSet(panelID);
+		TTrack track = getFirstSelectedTrack();
+		String s = track == null? "": track.getName();
+		if (selectedTracksBS.cardinality() > 1)
+			s += " + " + (selectedTracksBS.cardinality() - 1);
+		tracksButton.setText(s);
+		s = "";
+		for (int k = selectedTracksBS.nextSetBit(0); k >= 0; k = selectedTracksBS.nextSetBit(k + 1)) {
+			s += TTrack.getTrack(k).getName() + ", "; //$NON-NLS-1$
+		}
+		// stop the track list at 300 in extreme cases
+		int end = Math.min(s.length() - 2, 300);
+		tracksButton.setToolTipText(s.length() > 1? s.substring(0, end): null);
+		
+		// delimiter button
 		String delim = TrackerIO.getDelimiter();
-		delimiterDropdown.removeAllItems();
-		// standard delimiters
 		for (String key : TrackerIO.getDelimiters().keySet()) {
-			delimiterDropdown.addItem(key);
 			if (delim.equals(TrackerIO.getDelimiters().get(key)))
-				selectedItem = key;
+				delimiterButton.setText(key);
 		}
-		// custom delimiters
-		boolean hasCustom = !TrackerIO.customDelimiters.isEmpty();
-		if (hasCustom) {
-			delimiterDropdown.addItem(new JSeparator(JSeparator.HORIZONTAL));
-			for (String key : TrackerIO.customDelimiters.keySet()) {
-				delimiterDropdown.addItem(key);
-				if (delim.equals(TrackerIO.customDelimiters.get(key)))
-					selectedItem = key;
-			}
+		for (String key : TrackerIO.customDelimiters.keySet()) {
+			if (delim.equals(TrackerIO.customDelimiters.get(key)))
+				delimiterButton.setText(key);
 		}
-		// add and remove delimiter items
-		delimiterDropdown.addItem(new JSeparator(JSeparator.HORIZONTAL));
-		String s = TrackerRes.getString("ExportDataDialog.Delimiter.Add"); //$NON-NLS-1$
-		delimiterDropdown.addItem(s);
-		if (hasCustom) {
-			s = TrackerRes.getString("ExportDataDialog.Delimiter.Remove"); //$NON-NLS-1$
-			delimiterDropdown.addItem(s);
-		}
-		delimiterDropdown.setSelectedItem(selectedItem);
+		delimiterButton.setToolTipText(delimiterButton.getText()); //$NON-NLS-1$
+		
+		// format button
+		String form = TrackerRes.getString("TableTrackView.MenuItem.Formatted");
+		String unform = TrackerRes.getString("TableTrackView.MenuItem.Unformatted");
+		formatButton.setText(asFormatted? form: unform);	
+		formatButton.setToolTipText(formatButton.getText());
 
-		// tables
-		selectedItem = tableDropdown.getSelectedItem();
-		tableDropdown.removeAllItems();
-		boolean hasSelection = false;
-		TViewChooser[] choosers = frame.getVisibleChoosers(panelID);
-		for (int i = 0; i < choosers.length; i++) {
-			if (choosers[i] == null)
-				continue;
-			String number = " (" + (i + 1) + ")"; //$NON-NLS-1$ //$NON-NLS-2$
-			TView view = choosers[i].getSelectedView();
-			if (view.getViewType() == TView.VIEW_TABLE) {
-				TableTView tableTView = (TableTView) view;
-				TTrack track = tableTView.getSelectedTrack();
-				if (track != null) {
-					s = track.getName() + number;
-					TableTrackView trackView = (TableTrackView) tableTView.getTrackView(track);
-					trackNames.put(trackView.dataTable, track.getName());
-					tables.put(s, trackView.dataTable);
-					tableDropdown.addItem(s);
-					int[] selectedRows = trackView.dataTable.getSelectedRows();
-					if (selectedRows.length > 0) {
-						hasSelection = true;
-					}
+		// columns button
+		s = "";
+		if (track != null) {
+			// trackType should always be non-null here
+			ArrayList<String> allColumnNames = allColumnsMap.get(trackType);
+			String xVar = s = track.getClass().getSimpleName().contains("LineProfile")?
+					"n": "t";
+			BitSet selectedColsBS = getSelectedColumnsBitSet(trackType);
+			int count = 0;
+			int max = 2;
+			for (int i = 0; i < allColumnNames.size(); i++) {
+				String name = allColumnNames.get(i);
+				if (selectedColsBS.get(i)) {
+					count++;
+					if (count <= max)
+						s += ", " + TeXParser.removeSubscripting(name);
 				}
 			}
+			if (count > max)
+				s += " + " + (count - max);
+			// tooltip is entire list of selected columns including t or n
+			String tooltip = xVar;
+			for (int k = selectedColsBS.nextSetBit(0); k >= 0; k = selectedColsBS.nextSetBit(k + 1)) {
+				tooltip += ", "+allColumnNames.get(k); //$NON-NLS-1$
+			}
+			columnsButton.setToolTipText(tooltip);
 		}
-		if (selectedItem != null)
-			tableDropdown.setSelectedItem(selectedItem);
+		columnsButton.setText(s);
 
-		// formats
-		selectedItem = formatDropdown.getSelectedItem();
-		formatDropdown.removeAllItems();
-		formatDropdown.addItem(TrackerRes.getString("TableTrackView.MenuItem.Unformatted")); //$NON-NLS-1$
-		formatDropdown.addItem(TrackerRes.getString("TableTrackView.MenuItem.Formatted")); //$NON-NLS-1$
-		if (selectedItem != null)
-			formatDropdown.setSelectedItem(selectedItem);
-
-		// content
-		contentDropdown.removeAllItems();
-		contentDropdown.addItem(TrackerRes.getString("ExportDataDialog.Content.AllCells")); //$NON-NLS-1$
-		if (hasSelection) {
-			s = TrackerRes.getString("ExportDataDialog.Content.SelectedCells"); //$NON-NLS-1$
-			contentDropdown.insertItemAt(s, 0);
-			contentDropdown.setSelectedItem(s);
-		}
-
+		FontSizer.setFonts(this, FontSizer.getLevel());
 		pack();
-		refreshing = false;
 	}
 
 	/**
 	 * Writes a string to a file.
 	 *
-	 * @param file    the file
+	 * @param file the file
 	 * @param content the string to write
 	 * @return the path of the saved file or null if failed
 	 */
-	public String write(File file, String content) {
+	private String write(File file, String content) {
 		if (file.exists() && !file.canWrite()) {
 			JOptionPane.showMessageDialog(frame, ControlsRes.getString("Dialog.ReadOnly.Message"), //$NON-NLS-1$
 					ControlsRes.getString("Dialog.ReadOnly.Title"), //$NON-NLS-1$
@@ -420,33 +922,283 @@ public class ExportDataDialog extends JDialog {
 		}
 		return null;
 	}
-
+	
 	/**
-	 * Custom renderer to separator in dropdown list
+	 * A button used to set properties of the exported data
 	 */
-	class SeparatorRenderer extends JLabel implements ListCellRenderer<Object> {
-
-		ListCellRenderer<Object> renderer;
-
-		SeparatorRenderer(ListCellRenderer<Object> renderer) {
-			this.renderer = renderer;
+	class MyButton extends TButton {
+		
+		MyButton() {
+			setIcon(TViewChooser.DOWN_ARROW_ICON);
+			setHorizontalTextPosition(SwingConstants.LEADING);
+			alwaysShowBorder(true);
+			setBackground(buttonColor);
 		}
-
+		
 		@Override
-		public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected,
-				boolean cellHasFocus) {
-			if (value instanceof JSeparator)
-				return (JSeparator) value;
-			return renderer.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+		public Dimension getPreferredSize() {
+			Dimension dim = super.getPreferredSize();
+			int w = (int)(FontSizer.getFactor() * 100);
+			dim.width = Math.max(w, dim.width);
+			return dim;
 		}
+		
+	}
+	
+	/**
+	 * A dialog to select tracks for exporting.
+	 */
+	@SuppressWarnings("serial")
+	public class TracksDialog extends JDialog {
+
+	  // instance fields
+		private JButton okButton, selectAllButton, selectNoneButton;
+		private JPanel checkboxPanel;
+		private ActionListener checkboxListener;
+		private TitledBorder instructions;
+		private boolean allTracksSelected;
+
+	  /**
+	   * Constructs a TracksDialog.
+	   *
+	   * @param panel a TrackerPanel
+	   */
+	  public TracksDialog() {
+	    super(frame, true);
+	    setResizable(false);
+	    createGUI();
+	    refreshDisplay();
+	    pack();
+	  }
+	  
+		@Override
+		public void setVisible(boolean vis) {
+			BitSet selectedTracksBS = getSelectedTracksBitSet(panelID);
+			if (vis)
+				refreshDisplay();
+			else if (selectedTracksBS.isEmpty()) {
+				selectTrack(TTrack.getTrack(allTracks.get(0)), true);
+				refreshGUI();
+			}
+			super.setVisible(vis);
+		}
+		
+	  /**
+	   * Creates the visible components of this panel.
+	   */
+	  private void createGUI() {
+	    JPanel inspectorPanel = new JPanel(new BorderLayout());
+	    setContentPane(inspectorPanel);
+	    // create checkboxPanel and action listener
+	    checkboxPanel = new JPanel(new GridLayout(0, 2));
+	    Border etched = BorderFactory.createEtchedBorder();
+	    instructions = BorderFactory.createTitledBorder(etched,""); //$NON-NLS-1$
+	    checkboxPanel.setBorder(instructions);
+	    inspectorPanel.add(checkboxPanel, BorderLayout.CENTER);
+	    checkboxListener = new ActionListener() {
+	      @Override
+	      public void actionPerformed(ActionEvent e) {
+	      	int id = Integer.parseInt(e.getActionCommand());
+		      TTrack track = TTrack.getTrack(id);
+	      	JCheckBoxMenuItem checkbox = (JCheckBoxMenuItem)e.getSource();
+	      	selectTrack(track, checkbox.isSelected());	      	
+	      	refreshDisplay();
+	  			userHasSetDataMap.put(panelID, true);
+	      }
+	    };
+	    
+	    // create ok button
+	    okButton = new JButton(TrackerRes.getString("Dialog.Button.OK")); //$NON-NLS-1$
+	    okButton.setForeground(new Color(0, 0, 102));
+	    okButton.addActionListener(new ActionListener() {
+	      @Override
+	      public void actionPerformed(ActionEvent e) {
+	        setVisible(false);
+	      }
+	    });
+	    // create selectAllButton
+	    selectAllButton = new JButton(TrackerRes.getString("PlotGuestDialog.Button.SelectAll.Text")); //$NON-NLS-1$
+	    selectAllButton.setForeground(new Color(0, 0, 102));
+	    selectAllButton.addActionListener(new ActionListener() {
+	      @Override
+	      public void actionPerformed(ActionEvent e) {
+			  	BitSet selectedTracksBS = getSelectedTracksBitSet(panelID);
+	      	for (Integer id: allTracks) {
+	      		TTrack track = TTrack.getTrack(id);
+	      		if (trackType.isAssignableFrom(getTrackType(track)) ||
+	      				getTrackType(track).isAssignableFrom(trackType)) {
+	      			selectedTracksBS.set(id);
+	      		}
+	      	}
+	      	refreshDisplay();
+	      }
+	    });
+	    // create selectNoneButton
+	    selectNoneButton = new JButton(TrackerRes.getString("PlotGuestDialog.Button.SelectNone.Text")); //$NON-NLS-1$
+	    selectNoneButton.setForeground(new Color(0, 0, 102));
+	    selectNoneButton.addActionListener(new ActionListener() {
+	      @Override
+	      public void actionPerformed(ActionEvent e) {
+	      	BitSet selectedTracksBS = getSelectedTracksBitSet(panelID);
+	      	selectedTracksBS.clear();
+      		trackType = null;
+	      	refreshDisplay();
+	      }
+	    });
+	    // create buttonbar at bottom
+	    JPanel buttonbar = new JPanel();
+	    buttonbar.setBorder(BorderFactory.createEmptyBorder(1, 0, 3, 0));
+	    inspectorPanel.add(buttonbar, BorderLayout.SOUTH);
+	    buttonbar.add(selectAllButton);
+	    buttonbar.add(selectNoneButton);
+	    buttonbar.add(okButton);
+	  }
+
+	  /**
+	   * Lays out, selects and enables appropriate checkboxes.
+	   */
+	  protected void refreshDisplay() {
+	    setTitle(TrackerRes.getString("ExportDataDialog.TracksDialog.Title"));
+	    instructions.setTitle(TrackerRes.getString("ExportDataDialog.TracksDialog.Instructions")); //$NON-NLS-1$
+	    // make checkboxes for all tracks in trackerPanel
+	    int tracksPerRow = 3;
+	    int rows = 1 + allTracks.size() / tracksPerRow;
+	    checkboxPanel.setLayout(new GridLayout(rows, 0));
+	    checkboxPanel.removeAll(); 
+			BitSet selectedTracksBS = getSelectedTracksBitSet(panelID);
+	    allTracksSelected = !selectedTracksBS.isEmpty();
+	    for (int i = 0; i < allTracks.size(); i++) {
+	    	TTrack next = TTrack.getTrack(allTracks.get(i));
+	      JCheckBoxMenuItem checkbox = new JCheckBoxMenuItem(
+	          next.getName(), next.getFootprint().getIcon(21, 16));
+	      checkbox.setBorderPainted(false);
+	      // check the checkbox if next is in trackNames
+	      boolean selected = selectedTracksBS.get(next.getID());
+	      checkbox.setSelected(selected);
+	      checkbox.setEnabled(trackType == null || 
+	      	trackType.isAssignableFrom(getTrackType(next)) || 
+	      	getTrackType(next).isAssignableFrom(trackType));
+	      if (checkbox.isEnabled()) {
+	      	allTracksSelected = allTracksSelected && selected;
+	      }
+	      checkbox.setActionCommand(String.valueOf(next.getID()));
+	      checkbox.addActionListener(checkboxListener);
+	      checkboxPanel.add(checkbox);	      
+	    }
+	    
+	    okButton.setText(TrackerRes.getString("Dialog.Button.OK")); //$NON-NLS-1$
+	    okButton.setEnabled(!selectedTracksBS.isEmpty()); //$NON-NLS-1$
+	    
+	    boolean isEnabled = !selectedTracksBS.isEmpty() && !allTracksSelected;
+	    Class<? extends TTrack> type = trackType == CenterOfMass.class?
+	    		PointMass.class: trackType;
+	    selectAllButton.setText(TrackerRes.getString("PlotGuestDialog.Button.SelectAll.Text")
+	    		+ (trackType != null? " " + type.getSimpleName(): "")); //$NON-NLS-1$
+	    selectAllButton.setEnabled(isEnabled); //$NON-NLS-1$
+	    selectNoneButton.setText(TrackerRes.getString("PlotGuestDialog.Button.SelectNone.Text")); //$NON-NLS-1$
+	    selectNoneButton.setEnabled(!selectedTracksBS.isEmpty()); //$NON-NLS-1$
+	  	
+	    FontSizer.setFonts(checkboxPanel, FontSizer.getLevel());
+	    pack();
+	    TFrame.repaintT(this);
+      ExportDataDialog.this.refreshGUI();
+	  }
+
 	}
 
-	public void clear() {
+
+	/**
+	 * A dialog to select data columns to export
+	 */
+	private class ColumnsDialog extends JDialog {
+
+		private JPanel contentPane;
+		private JCheckBox[] checkBoxes;
+		private JPanel columnsPanel;
+		private JButton okButton;
+		private TitledBorder instructions;
+
+		private ColumnsDialog() {
+			super(frame, true);
+			createGUI();
+		}
+
+		private void createGUI() {
+			columnsPanel = new JPanel();
+			columnsPanel.setLayout(new GridLayout(0, 4));
+			columnsPanel.setBorder(BorderFactory.createEmptyBorder(0, 1, 0, 4));
+			
+			JScrollPane columnsScroller = new JScrollPane(columnsPanel);
+			Border etched = BorderFactory.createEtchedBorder();
+	    instructions = BorderFactory.createTitledBorder(etched,""); //$NON-NLS-1$
+	    columnsScroller.setBorder(instructions);
+			
+			okButton = new JButton();
+			okButton.addActionListener((e) -> {
+				setVisible(false);
+			});
+			JPanel buttonPanel = new JPanel();
+			buttonPanel.add(okButton);
+
+			contentPane = new JPanel(new BorderLayout()) {
+				@Override
+				public Dimension getPreferredSize() {
+					Dimension dim = super.getPreferredSize();
+					dim.height = (int)(dim.height * 1.1);
+					return dim;
+				}
+			};
+			setContentPane(contentPane);
+			contentPane.add(columnsScroller, BorderLayout.CENTER);
+			contentPane.add(buttonPanel, BorderLayout.SOUTH);
+		}
+
+		private void refreshDisplay() {
+			okButton.setText(TrackerRes.getString("Dialog.Button.OK")); //$NON-NLS-1$
+			setTitle(TrackerRes.getString("ExportDataDialog.ColumnsDialog.Title")); //$NON-NLS-1$
+	    instructions.setTitle(TrackerRes.getString("ExportDataDialog.TracksDialog.Instructions")); //$NON-NLS-1$
+	    refreshGUI();
+		}
+
+		/**
+		 * Refreshes the column checkboxes.
+		 */
+		private void refreshCheckboxes() {
+			// trackType should always be non-null here
+			ArrayList<String> allColumnNames = allColumnsMap.get(trackType);
+			if (checkBoxes == null || allColumnNames.size() != checkBoxes.length)
+				checkBoxes = new JCheckBox[allColumnNames.size()];
+			BitSet namesBS = getSelectedColumnsBitSet(trackType);
+			columnsPanel.removeAll();
+			for (int i = 0; i < allColumnNames.size(); i++) {
+				String name = allColumnNames.get(i);
+				if (checkBoxes[i] == null) {
+					checkBoxes[i] = new JCheckBox();
+					checkBoxes[i].setBackground(Color.white);
+					checkBoxes[i].setBorder(BorderFactory.createEmptyBorder(1, 5, 1, 0));
+					checkBoxes[i].setActionCommand("" + i);
+					checkBoxes[i].addActionListener(checkboxListener);
+					checkBoxes[i].setOpaque(false);
+				}
+				checkBoxes[i].setSelected(namesBS.get(i));
+				checkBoxes[i].setName(name);
+				checkBoxes[i].setText(TeXParser.removeSubscripting(name));
+				columnsPanel.add(checkBoxes[i]);
+			}
+			refreshDisplay();
+		}
+
+		private void rebuild() {
+			FontSizer.setFonts(this);
+			setResizable(true);
+			refreshCheckboxes(); // also refreshes display and GUI
+			pack();
+		}
+	}
+		
+	protected void clear() {
 		frame = null;
 		panelID = null;
-		tableDropdown.removeAllItems();
-		tables.clear();
-		trackNames.clear();
 	}
 	
 	@Override

@@ -544,9 +544,13 @@ public class TrackerIO extends VideoIO {
 		case "save data": //$NON-NLS-1$
 			isSave = true;
 			chooser.resetChoosableFileFilters();
+			chooser.setAcceptAllFileFilterUsed(false);
+			chooser.addChoosableFileFilter(txtFileFilter);
 			chooser.setDialogTitle(TrackerRes.getString("ExportDataDialog.Chooser.SaveData.Title")); //$NON-NLS-1$
-			chooser.showSaveDialog(null, okSave, resetChooser);
-			break;
+			if (chooser.showSaveDialog(null) != JFileChooser.APPROVE_OPTION)
+				return null;
+			f = chooser.getSelectedFile();
+			return (f == null ? null : new File[] { f });
 		case "save tabset": //$NON-NLS-1$
 			isSave = true;
 			// save a tabset file
