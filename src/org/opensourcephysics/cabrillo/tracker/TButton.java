@@ -38,10 +38,11 @@ import org.opensourcephysics.tools.FontSizer;
 @SuppressWarnings("serial")
 public class TButton extends JButton {
 	
-	private int trackID;
+  private int trackID;
   private boolean hidePopup = false;
   private JPopupMenu popup;
   protected String context = "track"; //$NON-NLS-1$
+  protected boolean alwaysShowBorder;
 
   /**
    * Constructs a TButton.
@@ -71,7 +72,8 @@ public class TButton extends JButton {
 
     	@Override
 		public void mouseExited(MouseEvent e) {
-    		setBorderPainted(false);
+    		if (!alwaysShowBorder)
+    			setBorderPainted(false);
     	}
 
     	@Override
@@ -212,6 +214,12 @@ public class TButton extends JButton {
 			popup.show(TButton.this, 0, TButton.this.getHeight());
 		}
 		
+	}
+
+	protected void alwaysShowBorder(boolean showBorder) {
+		alwaysShowBorder = showBorder;		
+		setOpaque(alwaysShowBorder);
+		setBorderPainted(alwaysShowBorder);
 	}
 
 }
