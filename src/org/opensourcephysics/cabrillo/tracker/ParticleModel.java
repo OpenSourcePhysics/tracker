@@ -276,7 +276,7 @@ abstract public class ParticleModel extends PointMass {
 				startFrameUndefined = false;
 			}
 			if (tframe != null) {
-				boolean radians = tframe.getAnglesInRadians();
+				boolean radians = tframe.isAnglesInRadians();
 				functionPanel.initEditor.setAnglesInDegrees(!radians);
 			}
 		}

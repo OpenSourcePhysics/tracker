@@ -914,7 +914,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 				|| xTitle.startsWith(Tracker.ALPHA);
 		boolean yIsAngle = yTitle.startsWith(Tracker.THETA) || yTitle.startsWith(Tracker.OMEGA)
 				|| yTitle.startsWith(Tracker.ALPHA);
-		boolean degrees = (panelID != null && frame != null && !frame.getAnglesInRadians());
+		boolean degrees = (panelID != null && frame != null && !frame.isAnglesInRadians());
 
 		// refresh the coordStringBuilder
 		coordStringBuilder.setUnitsAndPatterns(track, xTitle, yTitle);
