@@ -120,6 +120,7 @@ import org.opensourcephysics.media.core.ClipInspector;
 import org.opensourcephysics.media.core.DataTrack;
 import org.opensourcephysics.media.core.MediaRes;
 import org.opensourcephysics.media.core.Video;
+import org.opensourcephysics.media.core.VideoClip;
 import org.opensourcephysics.media.core.VideoFileFilter;
 import org.opensourcephysics.media.core.VideoIO;
 import org.opensourcephysics.media.core.VideoPanel;
@@ -2593,7 +2594,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 				oldPanel.dataToolVisible = vis;
 			}
 			if (oldPanel.getPlayer() != null) {
-				ClipInspector ci = oldPanel.getPlayer().getVideoClip().getClipInspector();
+				VideoClip clip = oldPanel.getPlayer().getVideoClip();
+				ClipInspector ci = (clip == null ? null : clip.getClipInspector());
 				if (ci != null)
 					ci.setVisible(false);
 			}

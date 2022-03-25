@@ -25,6 +25,7 @@
 package org.opensourcephysics.cabrillo.tracker;
 
 import java.beans.PropertyChangeEvent;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -316,11 +317,11 @@ public class TableTView extends TrackChooserTView {
 					}
 					control.setValue("track_columns", data); //$NON-NLS-1$
 					if (!formattedColumns.isEmpty()) {
-						String[][][] patterns = formattedColumns.toArray(new String[0][0][0]);
+						String[][][] patterns = formattedColumns.toArray(new String[formattedColumns.size()][][]);
 						control.setValue("column_formats", patterns); //$NON-NLS-1$
 					}
 					if (!datasetIndices.isEmpty()) {
-						String[][] indices = datasetIndices.toArray(new String[0][0]);
+						String[][] indices = datasetIndices.toArray(new String[datasetIndices.size()][]);
 						control.setValue("dataset_indices", indices); //$NON-NLS-1$
 					}
 				}
@@ -510,8 +511,11 @@ public class TableTView extends TrackChooserTView {
 			}
 			// move table columns after table is fully constructed
 			SwingUtilities.invokeLater(() -> {
-				System.err.println("TableTView.Loader invokelater " + Arrays.toString(desiredIndexes));
-				tableView.dataTable.setModelColumnOrder(desiredIndexes);
+				try {
+					tableView.dataTable.setModelColumnOrder(desiredIndexes);
+				} catch (ArrayIndexOutOfBoundsException e) {
+					System.err.println("TableTView.Loader invokelater exception " + Arrays.toString(desiredIndexes));					
+				}
 // BH not necessary to use general JTable calls here?
 //				outer: for (int targetIndex = 0; targetIndex < d.length; targetIndex++) {
 //					// find column with modelIndex and move to targetIndex

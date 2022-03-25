@@ -2803,6 +2803,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 			}
 		}
 		refreshTrackMenu(true, trackMenu.getPopupMenu());
+		popupTracksMenu.removeAll();
 		addItems(popupTracksMenu, tracksMenuItems);
 		popup.addSeparator();
 		popup.add(popupTracksMenu);
@@ -2822,7 +2823,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 	private void addItems(JMenu menu, Component[] items) {
 		for (int i = 0; i < items.length; i++)
 			menu.add(items[i]);
-	}
+		}
 
 	public void checkMatSize() {
 		TrackerPanel panel = panel();

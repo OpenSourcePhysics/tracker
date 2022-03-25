@@ -400,7 +400,7 @@ public MultiShape getShape(Point[] points, int scale) {
     CIRCLE_3.setStroke(stroke);
     footprints.add(CIRCLE_3);
     
-    CIRCLE_5 = new ProtractorFootprint("ProtractorFootprint.Circle5", 5); //$NON-NLS-1$
+    CIRCLE_5 = new ProtractorFootprint("ProtractorFootprint.Circle5", 8); //$NON-NLS-1$
     CIRCLE_5.setStroke(stroke);
     footprints.add(CIRCLE_5);
 
@@ -409,7 +409,7 @@ public MultiShape getShape(Point[] points, int scale) {
   	CIRCLE_3_BOLD.setStroke(stroke);
     footprints.add(CIRCLE_3_BOLD);
 
-    CIRCLE_5_BOLD = new ProtractorFootprint("ProtractorFootprint.Circle5Bold", 5); //$NON-NLS-1$
+    CIRCLE_5_BOLD = new ProtractorFootprint("ProtractorFootprint.Circle5Bold", 8); //$NON-NLS-1$
   	CIRCLE_5_BOLD.setStroke(stroke);
     footprints.add(CIRCLE_5_BOLD);
   }

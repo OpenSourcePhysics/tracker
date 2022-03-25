@@ -24,23 +24,52 @@
  */
 package org.opensourcephysics.cabrillo.tracker;
 
-import java.util.*;
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.GridLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ComponentListener;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.util.ArrayList;
 
-import javax.swing.*;
+import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.BorderFactory;
+import javax.swing.ButtonGroup;
+import javax.swing.ComboBoxModel;
+import javax.swing.DefaultCellEditor;
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.Icon;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JRadioButton;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.ListCellRenderer;
+import javax.swing.SwingConstants;
 import javax.swing.border.Border;
 import javax.swing.border.TitledBorder;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 
+import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.display.ResizableIcon;
 import org.opensourcephysics.media.core.IntegerField;
 import org.opensourcephysics.tools.FontSizer;
-
-import java.beans.PropertyChangeListener;
-import java.beans.PropertyChangeEvent;
 
 /**
  * This displays and sets point attachments.
@@ -52,9 +81,8 @@ public class AttachmentDialog extends JDialog implements PropertyChangeListener 
 
 	// instance fields
 	protected int trackID;
-    protected TFrame frame;
-    protected Integer panelID;
-    
+	protected TFrame frame;
+	protected Integer panelID;
 
 	protected boolean isVisible;
 	protected JButton closeButton, helpButton;
@@ -67,7 +95,12 @@ public class AttachmentDialog extends JDialog implements PropertyChangeListener 
 	protected Icon dummyIcon = new ShapeIcon(null, 21, 16);
 	protected JScrollPane scrollPane;
 	protected AttachmentCellRenderer attachmentCellRenderer = new AttachmentCellRenderer();
-	protected TTrackRenderer trackRenderer = new TTrackRenderer();
+	protected TTrackRenderer trackCellRenderer = new TTrackRenderer();
+	/**
+	 * in JavaScript, editor must have its own renderer
+	 */
+	protected TTrackRenderer trackEditorRenderer = new TTrackRenderer();
+	protected TTrackRenderer toolRenderer = new TTrackRenderer();
 	protected JPanel attachmentsPanel, circleFitterPanel, circleFitterStartStopPanel;
 	protected JRadioButton stepsButton, tracksButton;
 	protected JCheckBox relativeCheckbox;
@@ -76,13 +109,9 @@ public class AttachmentDialog extends JDialog implements PropertyChangeListener 
 	protected boolean refreshing;
 	private ComponentListener myFollower;
 
-	private static final String[] panelProps = new String[] { 
-			TrackerPanel.PROPERTY_TRACKERPANEL_TRACK,
-			TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDTRACK, 
-			TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR, 
-	};
+	private static final String[] panelProps = new String[] { TrackerPanel.PROPERTY_TRACKERPANEL_TRACK,
+			TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDTRACK, TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR, };
 
-	
 	/**
 	 * Constructs an AttachmentDialog.
 	 *
@@ -142,7 +171,7 @@ public class AttachmentDialog extends JDialog implements PropertyChangeListener 
 			refreshGUI();
 			break;
 		case TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDTRACK:
-			if (e.getNewValue() != null) { //$NON-NLS-1$
+			if (e.getNewValue() != null) { // $NON-NLS-1$
 				TTrack track = (TTrack) e.getNewValue();
 				for (int i = 0; i < measuringToolDropdown.getItemCount(); i++) {
 					if (track == measuringToolDropdown.getItemAt(i)) {
@@ -198,7 +227,7 @@ public class AttachmentDialog extends JDialog implements PropertyChangeListener 
 			dummyMass = null;
 			TTrack measuringTool = TTrack.getTrack(trackID);
 			if (measuringTool.ttype == TTrack.TYPE_CIRCLEFITTER) {
-				measuringTool.removePropertyChangeListener(CircleFitter.PROPERTY_CIRCLEFITTER_DATAPOINT, this); //$NON-NLS-1$
+				measuringTool.removePropertyChangeListener(CircleFitter.PROPERTY_CIRCLEFITTER_DATAPOINT, this); // $NON-NLS-1$
 			}
 			if (frame != null) {
 				frame.removePropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, this);
@@ -231,16 +260,13 @@ public class AttachmentDialog extends JDialog implements PropertyChangeListener 
 		JPanel north = new JPanel();
 		north.setBorder(BorderFactory.createEmptyBorder(4, 0, 0, 0));
 		measuringToolDropdown = new JComboBox<>();
-		measuringToolDropdown.setRenderer(trackRenderer);
-		measuringToolDropdown.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				TTrack tool = (TTrack) measuringToolDropdown.getSelectedItem();
-				TTrack measuringTool = TTrack.getTrack(trackID);
-				if (tool == measuringTool)
-					return;
-				setMeasuringTool(tool);
-			}
+		measuringToolDropdown.setRenderer(toolRenderer);
+		measuringToolDropdown.addActionListener((e) -> {
+			TTrack tool = (TTrack) measuringToolDropdown.getSelectedItem();
+			TTrack measuringTool = TTrack.getTrack(trackID);
+			if (tool == measuringTool)
+				return;
+			setMeasuringTool(tool);
 		});
 		north.add(measuringToolDropdown);
 		attachmentsPanel.add(north, BorderLayout.NORTH);
@@ -248,9 +274,9 @@ public class AttachmentDialog extends JDialog implements PropertyChangeListener 
 		dummyMass = new PointMass();
 
 		rendererDropdown = new JComboBox<>(new AttachmentComboBoxModel());
-		rendererDropdown.setRenderer(trackRenderer);
+		rendererDropdown.setRenderer(trackCellRenderer);
 		editorDropdown = new JComboBox<>(new AttachmentComboBoxModel());
-		editorDropdown.setRenderer(trackRenderer);
+		editorDropdown.setRenderer(trackCellRenderer);
 
 		table = new JTable(new AttachmentTableModel()) {
 			@Override
@@ -315,17 +341,14 @@ public class AttachmentDialog extends JDialog implements PropertyChangeListener 
 		// relative button
 		relativeCheckbox = new JCheckBox();
 		relativeCheckbox.setSelected(false);
-		relativeCheckbox.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				if (refreshing)
-					return;
-				CircleFitter fitter = (CircleFitter) TTrack.getTrack(trackID);
-				fitter.isRelativeFrameNumbers = relativeCheckbox.isSelected();
-				refreshFieldsAndButtons(fitter);
-				fitter.refreshAttachments();
-				refreshGUI();
-			}
+		relativeCheckbox.addActionListener((e) -> {
+			if (refreshing)
+				return;
+			CircleFitter fitter = (CircleFitter) TTrack.getTrack(trackID);
+			fitter.isRelativeFrameNumbers = relativeCheckbox.isSelected();
+			refreshFieldsAndButtons(fitter);
+			fitter.refreshAttachments();
+			refreshGUI();
 		});
 
 		// range action, listener and fields
@@ -399,23 +422,17 @@ public class AttachmentDialog extends JDialog implements PropertyChangeListener 
 		// help and close buttons
 		helpButton = new JButton();
 		helpButton.setForeground(new Color(0, 0, 102));
-		helpButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				TTrack measuringTool = TTrack.getTrack(trackID);
-				String keyword = measuringTool == null ? "circle" : //$NON-NLS-1$
-				measuringTool.ttype == TTrack.TYPE_PROTRACTOR ? "protractor" : //$NON-NLS-1$
-				measuringTool.ttype == TTrack.TYPE_TAPEMEASURE ? "tape" : "circle"; //$NON-NLS-1$ //$NON-NLS-2$
-				frame.showHelp(keyword + "#attach", 0); //$NON-NLS-1$
-			}
+		helpButton.addActionListener((e) -> {
+			TTrack measuringTool = TTrack.getTrack(trackID);
+			String keyword = measuringTool == null ? "circle" : //$NON-NLS-1$
+			measuringTool.ttype == TTrack.TYPE_PROTRACTOR ? "protractor" : //$NON-NLS-1$
+			measuringTool.ttype == TTrack.TYPE_TAPEMEASURE ? "tape" : "circle"; //$NON-NLS-1$ //$NON-NLS-2$
+			frame.showHelp(keyword + "#attach", 0); //$NON-NLS-1$
 		});
 		closeButton = new JButton();
 		closeButton.setForeground(new Color(0, 0, 102));
-		closeButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				setVisible(false);
-			}
+		closeButton.addActionListener((e) -> {
+			setVisible(false);
 		});
 
 		// put help and close button in content pane SOUTH
@@ -431,14 +448,14 @@ public class AttachmentDialog extends JDialog implements PropertyChangeListener 
 	protected void setMeasuringTool(TTrack tool) {
 		TTrack measuringTool = TTrack.getTrack(trackID);
 		if (measuringTool != null && measuringTool.ttype == TTrack.TYPE_CIRCLEFITTER) {
-			// BH! was "!= null" but this is unique to CircleFitter 
-			measuringTool.removePropertyChangeListener(CircleFitter.PROPERTY_CIRCLEFITTER_DATAPOINT, this); //$NON-NLS-1$
+			// BH! was "!= null" but this is unique to CircleFitter
+			measuringTool.removePropertyChangeListener(CircleFitter.PROPERTY_CIRCLEFITTER_DATAPOINT, this); // $NON-NLS-1$
 		}
 
 		measuringTool = tool;
 		trackID = measuringTool.getID();
 		if (tool.ttype == TTrack.TYPE_CIRCLEFITTER)
-			measuringTool.addPropertyChangeListener(CircleFitter.PROPERTY_CIRCLEFITTER_DATAPOINT, this); //$NON-NLS-1$
+			measuringTool.addPropertyChangeListener(CircleFitter.PROPERTY_CIRCLEFITTER_DATAPOINT, this); // $NON-NLS-1$
 		measuringTool.refreshAttachments();
 		refreshDropdowns();
 		if (measuringTool.ttype == TTrack.TYPE_CIRCLEFITTER) {
@@ -457,7 +474,7 @@ public class AttachmentDialog extends JDialog implements PropertyChangeListener 
 		TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
 		masses = trackerPanel.getDrawables(PointMass.class);
 		for (TTrack p : masses) {
-			p.removeListenerNCF((PropertyChangeListener)this);
+			p.removeListenerNCF((PropertyChangeListener) this);
 		}
 		TTrack measuringTool = TTrack.getTrack(trackID);
 		if (measuringTool != null && measuringTool.ttype == TTrack.TYPE_TAPEMEASURE) {
@@ -583,7 +600,7 @@ public class AttachmentDialog extends JDialog implements PropertyChangeListener 
 
 	public void setFontLevel(int level) {
 		FontSizer.setFonts(this, level);
-		FontSizer.setFonts(attachmentCellRenderer.label, level);
+		FontSizer.setFonts(attachmentCellRenderer, level);
 		FontSizer.setFonts(table, level);
 		FontSizer.setFonts(circleFitterPanel, level);
 		FontSizer.setFonts(circleFitterStartStopPanel, level);
@@ -650,14 +667,11 @@ public class AttachmentDialog extends JDialog implements PropertyChangeListener 
 	/**
 	 * A class to render attachment table cells.
 	 */
-	class AttachmentCellRenderer implements TableCellRenderer {
-
-		JLabel label;
+	class AttachmentCellRenderer extends JLabel implements TableCellRenderer {
 
 		AttachmentCellRenderer() {
-			label = new JLabel();
-			label.setHorizontalAlignment(SwingConstants.CENTER);
-			label.setBackground(Color.white);
+			setHorizontalAlignment(SwingConstants.CENTER);
+			setBackground(Color.white);
 		}
 
 		@Override
@@ -665,12 +679,17 @@ public class AttachmentDialog extends JDialog implements PropertyChangeListener 
 				int row, int col) {
 
 			if (col == 0) {
-				label.setText((String) val);
-				label.validate();
-				return label;
+				setText((String) val);
+				validate();
+				return this;
 			}
 
+			if (val == null)
+				val = dummyMass;
 			rendererDropdown.setSelectedItem(val == null ? dummyMass : val);
+			if (OSPRuntime.isJS) {
+				return trackCellRenderer.getListCellRendererComponent(null, val, -1, selected, hasFocus);
+			}
 			return rendererDropdown;
 		}
 
@@ -701,7 +720,7 @@ public class AttachmentDialog extends JDialog implements PropertyChangeListener 
 			TTrack measuringTool = TTrack.getTrack(trackID);
 			TTrack[] attachments = measuringTool.getAttachments();
 			if (attachments[row] != null) {
-				attachments[row].removeStepListener(measuringTool); //$NON-NLS-1$
+				attachments[row].removeStepListener(measuringTool); // $NON-NLS-1$
 			}
 			attachments[row] = obj == dummyMass ? null : (PointMass) obj;
 			measuringTool.refreshAttachments();
@@ -717,31 +736,37 @@ public class AttachmentDialog extends JDialog implements PropertyChangeListener 
 	/**
 	 * A class to render track labels for the attachment JComboBoxes.
 	 */
-	class TTrackRenderer extends JLabel implements ListCellRenderer<Object> {
+	class TTrackRenderer implements ListCellRenderer<Object> {
 
+// problems here for JavaScript
+//		JLabel label = new JLabel();
 		TTrackRenderer() {
-			setOpaque(true);
-			setBorder(BorderFactory.createEmptyBorder(3, 4, 3, 0));
+//			label.setOpaque(true);
+//			label.setBorder(BorderFactory.createEmptyBorder(3, 4, 3, 0));
 		}
 
 		@Override
 		public Component getListCellRendererComponent(@SuppressWarnings("rawtypes") JList list, Object val, int index,
 				boolean selected, boolean hasFocus) {
+			JLabel label = new JLabel();
+			label.setOpaque(true);
+			label.setBorder(BorderFactory.createEmptyBorder(3, 4, 3, 0));
 
-			if (selected) {
-				setBackground(list.getSelectionBackground());
-				setForeground(list.getSelectionForeground());
-			} else {
-				setBackground(list.getBackground());
-				setForeground(list.getForeground());
+			if (list != null) {
+				if (selected) {
+					label.setBackground(list.getSelectionBackground());
+					label.setForeground(list.getSelectionForeground());
+				} else {
+					label.setBackground(list.getBackground());
+					label.setForeground(list.getForeground());
+				}
 			}
 			if (val != null) {
 				TTrack track = (TTrack) val;
-				setText(track.getName());
-				Icon icon = track == dummyMass ? new ResizableIcon(dummyIcon) : track.getFootprint().getIcon(21, 16);
-				setIcon(icon);
+				label.setText(track.getName());
+				label.setIcon(track == dummyMass ? new ResizableIcon(dummyIcon) : track.getFootprint().getIcon(21, 16));
 			}
-			return this;
+			return label;
 		}
 
 	}
@@ -749,7 +774,7 @@ public class AttachmentDialog extends JDialog implements PropertyChangeListener 
 	/**
 	 * A class to provide model data for the attachment JComboBoxes.
 	 */
-	class AttachmentComboBoxModel extends AbstractListModel<Object> implements ComboBoxModel<Object> {
+	class AttachmentComboBoxModel extends DefaultComboBoxModel<Object> implements ComboBoxModel<Object> {
 
 		Object selected = dummyMass;
 
