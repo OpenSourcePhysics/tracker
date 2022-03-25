@@ -1408,8 +1408,8 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 			String name = " \"" + panel().getTitle() + "\""; //$NON-NLS-1$ //$NON-NLS-2$
 			file_closeItem.setText(TrackerRes.getString("TActions.Action.Close") + name); //$NON-NLS-1$
 			file_saveItem.setText(TrackerRes.getString("TActions.Action.Save") + name); //$NON-NLS-1$
-			// disable export data menu if no tables to export
-			file_export_dataItem.setEnabled(!getDataViews().isEmpty());
+			// disable export data menu if no tracks to export
+			file_export_dataItem.setEnabled(!panel().getExportableTracks().isEmpty());
 			
 			FontSizer.setMenuFonts(fileMenu);
 			setMenuTainted(MENU_FILE, false);
