@@ -1269,13 +1269,13 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 				if (dataString != null) {
 					// set new data immediately
 					try {
-						DatasetManager datasetManager = DataTool.parseData(dataString, null);
+						DatasetManager[] datasetManager = DataTool.parseData(dataString, null);
 						if (datasetManager != null) {
-							String dataName = datasetManager.getName().replaceAll("_", " "); //$NON-NLS-1$ //$NON-NLS-2$ ;
+							String dataName = datasetManager[0].getName().replaceAll("_", " "); //$NON-NLS-1$ //$NON-NLS-2$ ;
 							String trackName = getName("model"); //$NON-NLS-1$
 							if (trackName.equals(dataName) || ("".equals(dataName) && //$NON-NLS-1$
 									trackName.equals(TrackerRes.getString("ParticleDataTrack.New.Name")))) { //$NON-NLS-1$
-								setData(datasetManager);
+								setData(datasetManager[0]);
 								prevDataString = dataString;
 							}
 						}
@@ -1490,12 +1490,12 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 
 	protected static String getImportableDataName(String s) {
 		// see if s is importable dataString
-		DatasetManager manager = DataTool.parseData(s, null);
+		DatasetManager[] manager = DataTool.parseData(s, null);
 		if (manager == null)
 			return null;
 		try {
-			if (getPointData(manager, DATA_CHECK_ONLY) != null) {
-				String name = manager.getName();
+			if (getPointData(manager[0], DATA_CHECK_ONLY) != null) {
+				String name = manager[0].getName();
 				if (name.trim().equals("")) { //$NON-NLS-1$
 					name = TrackerRes.getString("ParticleDataTrack.New.Name"); //$NON-NLS-1$
 				}

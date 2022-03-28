@@ -2007,7 +2007,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			return;
 		}
 		// if dataString is parsable data, parse and import it
-		DatasetManager datasetManager = DataTool.parseData(dataString, null);
+		DatasetManager[] datasetManager = DataTool.parseData(dataString, null);
 		if (datasetManager == null) {
 
 			// assume dataString is a resource path, read the resource and call this again
@@ -2016,7 +2016,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			importDataAsync(ResourceLoader.getString(path), path, whenDone);
 			return;
 		}
-		DataTrack dt = importDatasetManager(datasetManager, source);
+		DataTrack dt = importDatasetManager(datasetManager[0], source);
 		if (dt instanceof ParticleDataTrack) {
 			((ParticleDataTrack) dt).prevDataString = dataString;
 		}
@@ -2073,7 +2073,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			}
 		} catch (Exception e) {
 			// inform user
-			JOptionPane.showMessageDialog(frame, TrackerRes.getString("TrackerPanel.Dialog.Exception.Message") + ":" //$NON-NLS-1$ //$NON-NLS-2$
+			JOptionPane.showMessageDialog(frame, TrackerRes.getString("TrackerPanel.Dialog.Exception.Message") + ":\n" //$NON-NLS-1$ //$NON-NLS-2$
 					+ e.getClass().getSimpleName() + ": " + e.getMessage(), //$NON-NLS-1$
 					TrackerRes.getString("TrackerPanel.Dialog.Exception.Title"), //$NON-NLS-1$
 					JOptionPane.WARNING_MESSAGE);
@@ -4618,9 +4618,9 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			return;
 		}
 		// parse the data and find data track
-		DatasetManager datasetManager = DataTool.parseData(dataString, null);
+		DatasetManager[] datasetManager = DataTool.parseData(dataString, null);
 		if (datasetManager != null) {
-			String dataName = datasetManager.getName().replaceAll("_", " "); //$NON-NLS-1$ //$NON-NLS-2$ ;
+			String dataName = datasetManager[0].getName().replaceAll("_", " "); //$NON-NLS-1$ //$NON-NLS-2$ ;
 			boolean foundMatch = false;
 			ArrayList<DataTrack> dataTracks = this.getDrawablesTemp(DataTrack.class);
 			for (DataTrack next : dataTracks) {
@@ -4634,7 +4634,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 					foundMatch = true;
 					if (track.isAutoPasteEnabled()) {
 						// set new data immediately
-						track.setData(datasetManager);
+						track.setData(datasetManager[0]);
 						track.prevDataString = dataString;
 					}
 					break;
@@ -4643,7 +4643,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			dataTracks.clear();
 			// if no matching track was found then create new track
 			if (!foundMatch && frame.getAlwaysListenToClipboard()) {
-				dt = importDatasetManager(datasetManager, null);
+				dt = importDatasetManager(datasetManager[0], null);
 				if (dt != null && dt instanceof ParticleDataTrack) {
 					ParticleDataTrack track = (ParticleDataTrack) dt;
 					track.prevDataString = dataString;

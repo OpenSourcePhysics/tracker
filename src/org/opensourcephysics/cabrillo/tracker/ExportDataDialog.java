@@ -657,6 +657,11 @@ public class ExportDataDialog extends JDialog {
 				}			
 			}
 		}		
+		// add "multi:" gnuPlotComment if multiple tracks
+		if (selectedTrackCount > 1) {
+			buf.append("#multi:");
+			buf.append(XML.NEW_LINE);
+		}
 		// assemble data string by rows in frame order
 		// add track name row
 		buf.append(TrackerIO.getDelimiter());
@@ -677,14 +682,15 @@ public class ExportDataDialog extends JDialog {
 					buf.append(TrackerIO.getDelimiter());
 					continue;
 				}
-				String units = "";
-				if (!frame.isAnglesInRadians() && 
-						(selectedColumnNames[j].startsWith(Tracker.THETA) || 
-							selectedColumnNames[j].startsWith(Tracker.OMEGA) || 
-							selectedColumnNames[j].startsWith(Tracker.ALPHA))) {
-					units = "("+Tracker.DEGREES+")";
-				}
-				buf.append(TeXParser.removeSubscripting(selectedColumnNames[j]) + units);
+//				String units = "";
+//				if (!frame.isAnglesInRadians() && 
+//						(selectedColumnNames[j].startsWith(Tracker.THETA) || 
+//							selectedColumnNames[j].startsWith(Tracker.OMEGA) || 
+//							selectedColumnNames[j].startsWith(Tracker.ALPHA))) {
+//					units = "("+Tracker.DEGREES+")";
+//				}
+//				buf.append(TeXParser.removeSubscripting(selectedColumnNames[j]) + units);
+				buf.append(TeXParser.removeSubscripting(selectedColumnNames[j]));
 				buf.append(TrackerIO.getDelimiter());
 			}
 		}

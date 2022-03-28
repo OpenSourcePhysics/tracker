@@ -1162,7 +1162,7 @@ public class TableTrackView extends TrackView {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				TTrack track = getTrack();
-				TrackerIO.copyTable(dataTable, false, track.getName()); // copy raw data
+				TrackerIO.copyTable(dataTable, false, "\t" + track.getName()); // copy raw data
 			}
 		};
 		ActionMap am = dataTable.getActionMap();
@@ -1456,14 +1456,14 @@ public class TableTrackView extends TrackView {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				TTrack track = getTrack();
-				TrackerIO.copyTable(dataTable, false, track.getName());
+				TrackerIO.copyTable(dataTable, false, "\t" + track.getName());
 			}
 		});
 		copyDataFormattedItem = new JMenuItem(new AbstractAction() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				TTrack track = getTrack();
-				TrackerIO.copyTable(dataTable, true, track.getName());
+				TrackerIO.copyTable(dataTable, true, "\t" + track.getName());
 			}
 		});
 		final Action setDelimiterAction = new AbstractAction() {
