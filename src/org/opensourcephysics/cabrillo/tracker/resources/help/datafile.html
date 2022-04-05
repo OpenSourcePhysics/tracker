@@ -13,7 +13,7 @@
 		<p>Tracker saves the state of individual tabs (video clip, coordinate system, tracks and views) in xml-based<strong> Tracker tab files</strong> with the extension &quot;<strong>trk</strong>&quot;. When a saved tracker tab is opened, the saved state is reproduced in a new tab.</p>
 		<p>You can also save a <strong><a href="datafile.html#tabset">tabset</a></strong> that references several tabs (individual tabs must be saved first). The tabset is a separate tracker (.trk) file that, when opened, loads all the tabs at once.</p>
 		<p>Note that Tracker tab and tabset files do NOT include the videos themselves, only references to the videos. By contrast, <strong><a href="zip_resource.html">Tracker project files</a></strong> with extension &quot;<strong>trz</strong>&quot;  DO include the videos along with PDF and/or HTML documentation and thus are fully self-contained.  With searchable keywords and other metadata, you can browse and find Tracker projects easily with the <a href="library_browser.html">Library Browser</a>.</p>
-<p>Step positions saved in tracker files are in image (pixel) coordinates, so they are not suitable for direct analysis. To access the world data associated with a track, use a <a href="tableview.html">datatable view</a> or export the data to a <a href="datafile.html#datafile">delimited text file</a>.</p>
+<p>Step positions saved in tracker files are in image (pixel) coordinates, so they are not suitable for direct analysis. To access the world data associated with a track, use a <a href="tableview.html">datatable view</a> or the Export|Data dialog to copy or export the data to a <a href="datafile.html#datafile">delimited text file</a>.</p>
         
 		<h3><a name="trk1" id="trk1"></a>1. Opening a tracker tab file from a local drive</h3>
 		<p>Bring up the open dialog with the <strong>Open</strong> button or <strong>File|Open File</strong> menu item, select the desired file, and click Open.</p>
@@ -59,12 +59,12 @@
 		<h3><a name="trk6" id="trk6"></a>6. Editing a tracker tab file directly</h3>
 		<p>A tracker file is easily human-read and edited with any text editor. The xml format conforms to the doctype specification defined in osp10.dtd.</p>
         
-		<h3><a name="datafile" id="datafile"></a>7. Saving data in a text file</h3>
-		<p>Save the data displayed in a data table by choosing the <strong>Export|Data File...</strong> item. This will bring up the <strong>Export Data dialog</strong> as shown.</p>
+		<h3><a name="datafile" id="datafile"></a>7. Exporting data to the clipboard or a text file</h3>
+		<p>Step positions saved in tracker files are in image (pixel) coordinates, so they are not suitable for direct analysis. Instead, copy or save the scaled world data associated with one or more tracks by choosing the <strong>Export|Data...</strong> item. This will bring up the <strong>Export Data dialog</strong> as shown.</p>
 		<p align="center">
 			<img src="../help_images/export_data_dialog.gif">
-        </p>
-		<p>In the dialog, select the <strong>data table</strong> and <strong>cells</strong> to export, the <strong>number format</strong> desired (full precision or as formatted in the table), and the <strong>delimiter</strong> used for separating columns. The file is saved in a plain delimited text format readable by spreadsheets, word processors and many other applications.</p>
+</p>
+		<p>In the dialog, select the <strong>tracks</strong> and <strong>columns</strong> to export, the <strong>number format</strong> desired (full precision or as formatted in  tables and fields), and the <strong>delimiter</strong> used for separating columns. The file is copied or saved in a plain delimited text format suitable for spreadsheets, word processors and many other applications.</p>
 	</body>
 
 </html>
