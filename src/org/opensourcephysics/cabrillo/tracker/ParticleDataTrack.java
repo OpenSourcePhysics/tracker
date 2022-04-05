@@ -998,6 +998,18 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 		return dataClip;
 	}
 
+	@Override
+	public void invalidateData(Object newValue) {
+		dataValid = false;
+		if (getLeader() == this) {
+			for (int i = 0; i < morePoints.size(); i++) {
+				morePoints.get(i).invalidateData(newValue);
+			}
+			if (newValue != Boolean.FALSE)
+				firePropertyChange(PROPERTY_TTRACK_DATA, null, newValue == Boolean.TRUE ? null : newValue);
+		}
+	}
+	
 	/**
 	 * Gets the trackerPanel video clip.
 	 * 
