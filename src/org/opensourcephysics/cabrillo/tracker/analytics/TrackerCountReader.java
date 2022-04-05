@@ -48,8 +48,10 @@ public class TrackerCountReader extends JFrame {
 	private String[] actions = {"read launch counts", "read downloads", "version", "list launch log failures", "list download failures",  //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$
 			"clear launch log failures", "clear download failures", "test launch log", "test downloads"}; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
 	private String[] versions = {"all", "6.", "5.", "4.",  //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-			"6.0.7", "6.0.6", "6.0.5", "6.0.4", "6.0.3", "6.0.2",   //$NON-NLS-1$//$NON-NLS-2$ //$NON-NLS-3$ 
-			"6.0.1", "6.0.0", "5.2.7", "5.2.6", "5.2.5", "5.2.4", "5.2.3", "5.2.2",   //$NON-NLS-1$//$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$
+			"6.0.8", "6.0.7", "6.0.6",   //$NON-NLS-1$//$NON-NLS-2$ //$NON-NLS-3$ 
+			"6.0.5", "6.0.4", "6.0.3", "6.0.2",   //$NON-NLS-1$//$NON-NLS-2$ //$NON-NLS-3$ 
+			"6.0.1", "6.0.0", "5.2.7", "5.2.6",   //$NON-NLS-1$//$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$
+			"5.2.5", "5.2.4", "5.2.3", "5.2.2",   //$NON-NLS-1$//$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$
 			"5.1.5", "5.1.4", "5.1.3",   //$NON-NLS-1$//$NON-NLS-2$ //$NON-NLS-3$ 
 			"5.1.2", "5.1.1", "5.1.0", "5.0.7", //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
 			"5.0.6", "5.0.5", "5.0.4", "5.0.3", "5.0.2", //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$ 
