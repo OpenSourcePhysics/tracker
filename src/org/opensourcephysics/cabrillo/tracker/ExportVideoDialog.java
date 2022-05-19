@@ -849,14 +849,15 @@ public class ExportVideoDialog extends JDialog {
 				
 				// set VideoIO preferred export format
 				String imageExt = XML.getExtension(savedFilePath);
-				if (imageExt.equals("zip")) {
+				if ("zip".equals(imageExt)) {
 					VideoType videoType = TrackerIO.videoFormats.get(formatDropdown.getSelectedItem());
 					if (videoType instanceof VideoIO.ZipImageVideoType) {
 						VideoIO.ZipImageVideoType zvt = (VideoIO.ZipImageVideoType)videoType;
 						imageExt += " " + zvt.getImageExtension();
 					}
-				}				
-				VideoIO.setPreferredExportExtension(imageExt);
+				}
+				if (imageExt != null)
+					VideoIO.setPreferredExportExtension(imageExt);
 
 				if (showOpenDialog) {
 					int response = javax.swing.JOptionPane.showConfirmDialog(frame,
