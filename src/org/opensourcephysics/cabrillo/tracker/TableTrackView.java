@@ -215,7 +215,8 @@ public class TableTrackView extends TrackView {
 	/**
 	 * for super.toolbarComponents
 	 */
-	protected JButton columnsDialogButton, gapsButton, lineProfileDatatypeButton;
+	protected JButton columnsDialogButton, gapsButton, multipleFramesButton;
+	protected JCheckBox multiframeCheckbox;
 
 	private ColumnsDialog columnsDialog;
 
@@ -367,11 +368,11 @@ public class TableTrackView extends TrackView {
 
 	@Override
 	public void refresh(int frameNumber, int mode) {
-
 		if (mode == DataTable.MODE_TRACK_CHOOSE) {
 			FontSizer.setFonts(columnsDialogButton);
 			FontSizer.setFonts(gapsButton);
-			FontSizer.setFonts(lineProfileDatatypeButton);
+			FontSizer.setFonts(multipleFramesButton);
+			FontSizer.setFonts(multiframeCheckbox);
 		}
 		if (isClipAdjusting())
 			return;
@@ -393,6 +394,7 @@ public class TableTrackView extends TrackView {
 		TTrack track = getTrack();
 		// OSPLog.debug("TableTrackView.refresh " + Integer.toHexString(mode) + "
 		// track=" + track);
+		int highlightCol = -1;
 		try {
 			trackDataManager = track.getData(frame.getTrackerPanelForID(panelID), myDatasetIndex);
 			if (datasetCount != trackDataManager.getDatasetsRaw().size())
@@ -414,10 +416,18 @@ public class TableTrackView extends TrackView {
 				String yTitle = ds.getYColumnName();
 				String yVarName = yTitle;
 				if (myDatasetIndex > -1) {
-					// remove subscripts with leading space (eg time-based RGB data from LineProfile)
+					// remove subscripts with leading space (eg multiple frame data from LineProfile)
 					int k = yVarName.indexOf("_{ "); // note space
 					if (k > 0) {
-						yVarName = yVarName.substring(0, k);
+						// determine column for frame number here
+						if (highlightCol == -1) try {
+							String num = yVarName.substring(k + 3, yVarName.indexOf("}"));							
+							if (frameNumber == Integer.parseInt(num)) {
+								highlightCol = i+1;
+							}
+						} catch (Exception e) {
+						}
+						yVarName = yVarName.substring(0, k);						
 					}
 				}
 				
@@ -458,7 +468,17 @@ public class TableTrackView extends TrackView {
 			OSPLog.debug("TableTrackView exception " + e);
 			e.printStackTrace();
 		}
-		highlightTableRows(frameNumber);
+		
+		highlightFrames(frameNumber);
+		if (getTrack().getClass().getSimpleName().equals("LineProfile")) {
+			dataTable.getTableHeader().repaint();
+			LineProfile lp = (LineProfile)getTrack();
+			if (lp.isMultipleFrames()) {
+				highlightColumnForFrame(highlightCol);
+				return;
+			}
+		}
+		highlightRowForFrame(frameNumber);
 	}
 
 	private boolean setUnitsAndTooltip(String yTitle, String root, boolean degrees) {
@@ -516,14 +536,21 @@ public class TableTrackView extends TrackView {
 		columnsDialogButton.setText(TrackerRes.getString("TableTrackView.Button.SelectTableData")); //$NON-NLS-1$
 		columnsDialogButton.setToolTipText(TrackerRes.getString("TableTrackView.Button.SelectTableData.ToolTip")); //$NON-NLS-1$
 		gapsButton.setToolTipText(TrackerRes.getString("TableTrackView.Button.SkippedFrames.ToolTip")); //$NON-NLS-1$
-		lineProfileDatatypeButton.setSelected(myDatasetIndex > -1? true: false);
-		lineProfileDatatypeButton.setText(myDatasetIndex > -1?
-				TrackerRes.getString("TableTrackView.Button.SwitchTo.Profile"):
-				TrackerRes.getString("TableTrackView.Button.SwitchTo.Time")); //$NON-NLS-1$
-		lineProfileDatatypeButton.setToolTipText(TrackerRes.getString("TableTrackView.Button.SwitchTo.Tooltip")); //$NON-NLS-1$
+//		multipleFramesButton.setSelected(myDatasetIndex > -1? true: false);
+//		multipleFramesButton.setText(myDatasetIndex > -1?
+//				TrackerRes.getString("TableTrackView.Button.SwitchTo.MultipleFrames"):
+//				TrackerRes.getString("TableTrackView.Button.SwitchTo.SingleFrame")); //$NON-NLS-1$
+//		multipleFramesButton.setToolTipText(TrackerRes.getString("TableTrackView.Button.SwitchTo.Tooltip")); //$NON-NLS-1$
+//		if (track.ttype == TTrack.TYPE_LINEPROFILE) {
+//			LineProfile lp = (LineProfile) track;
+//			multipleFramesButton.setEnabled(lp.isFixed()); //$NON-NLS-1$
+//		}
+		multiframeCheckbox.setSelected(myDatasetIndex > -1? true: false);
+		multiframeCheckbox.setText(TrackerRes.getString("TableTrackView.Checkbox.Multiframe")); //$NON-NLS-1$
+		multiframeCheckbox.setToolTipText(TrackerRes.getString("TableTrackView.Button.SwitchTo.Tooltip")); //$NON-NLS-1$
 		if (track.ttype == TTrack.TYPE_LINEPROFILE) {
 			LineProfile lp = (LineProfile) track;
-			lineProfileDatatypeButton.setEnabled(lp.isFixed()); //$NON-NLS-1$
+			multiframeCheckbox.setEnabled(lp.isFixed()); //$NON-NLS-1$
 		}
 		TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
 		trackDataManager = track.getData(trackerPanel, myDatasetIndex);
@@ -572,8 +599,10 @@ public class TableTrackView extends TrackView {
 			refreshGapsButton();
 			break;
 		case TTrack.TYPE_LINEPROFILE:
-			lineProfileDatatypeButton.setSelected(myDatasetIndex > -1? true: false);
-			toolbarComponents.add(lineProfileDatatypeButton);
+//			multipleFramesButton.setSelected(myDatasetIndex > -1? true: false);
+//			toolbarComponents.add(multipleFramesButton);
+			multiframeCheckbox.setSelected(myDatasetIndex > -1? true: false);
+			toolbarComponents.add(multiframeCheckbox);
 			break;
 		}
 		return toolbarComponents;
@@ -685,8 +714,7 @@ public class TableTrackView extends TrackView {
 	 *
 	 * @param frameNumbers the frame numbers
 	 */
-	private void highlightTableRows(int frameNumber) {
-		highlightFrames(frameNumber);
+	private void highlightRowForFrame(int frameNumber) {
 		// assume no highlights
 		highlightRows.clear();
 		if (!highlightVisible || dataTable.getRowCount() == 0)
@@ -721,6 +749,39 @@ public class TableTrackView extends TrackView {
 		int cols = dataTable.getColumnCount();
 		dataTable.setColumnSelectionInterval(0, cols - 1);
 //		});
+
+	}
+
+	/**
+	 * Highlight the table rows based on frame numbers.
+	 *
+	 * @param frameNumbers the frame numbers
+	 */
+	private void highlightColumnForFrame(int highlightCol) {
+		// assume no highlights
+		// use highlightRows bitset for columns
+		highlightRows.clear();
+		if (highlightCol < 0)
+			return;
+		highlightRows.set(highlightCol);
+		
+		// set highlighted column if found
+		dataTable.clearSelection();
+		if (highlightRows.isEmpty() || !isRefreshEnabled()) {
+			return;
+		}
+		try {
+			dataTable.selectTableColsBS(highlightRows);
+			if (highlightRows.cardinality() == 1) {
+				dataTable.scrollColumnToVisible(highlightRows.nextSetBit(0));
+			}
+		} catch (Exception e) {
+			// occasionally throws exception during loading or playing?
+			// during playing because the highlighted rows can be set to far
+			e.printStackTrace();
+		}
+		int rows = dataTable.getRowCount();
+		dataTable.setRowSelectionInterval(0, rows - 1);
 
 	}
 
@@ -939,6 +1000,11 @@ public class TableTrackView extends TrackView {
 		myDatasetIndex = index;
 		if (refresh && columnsDialog != null) {
 			columnsDialog.checkBoxes = null;
+			columnsDialog.refreshCheckboxes();
+			if (columnsDialog.isVisible()) {
+				columnsDialog.pack();
+				columnsDialog.repaint();
+			}
 		}
 		showAllColumns(myDatasetIndex > -1? true: false);
 		setHorizontalScrolling(myDatasetIndex > -1? true: false);
@@ -1115,16 +1181,29 @@ public class TableTrackView extends TrackView {
 //		gapsButton.setText(TrackerRes.getString("TableTrackView.Button.Gaps.Text")); //$NON-NLS-1$
 		gapsButton.setSelected(Tracker.showGaps);
 
-		lineProfileDatatypeButton = new TButton();
-		lineProfileDatatypeButton.addActionListener(new ActionListener() {
+		multipleFramesButton = new TButton();
+		multipleFramesButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				boolean select = !lineProfileDatatypeButton.isSelected();
-				lineProfileDatatypeButton.setSelected(select);
-				setDatasetIndex(select? prevDatasetIndex: -1);
-				lineProfileDatatypeButton.setText(select?
-						TrackerRes.getString("TableTrackView.Button.SwitchTo.Profile"):
-						TrackerRes.getString("TableTrackView.Button.SwitchTo.Time")); //$NON-NLS-1$
+				boolean multipleFrames = !multipleFramesButton.isSelected();
+				multipleFramesButton.setSelected(multipleFrames);
+				setDatasetIndex(multipleFrames? prevDatasetIndex: -1);
+				multipleFramesButton.setText(multipleFrames?
+						TrackerRes.getString("TableTrackView.Button.SwitchTo.MultipleFrames"):
+						TrackerRes.getString("TableTrackView.Button.SwitchTo.SingleFrame")); //$NON-NLS-1$
+			}
+		});
+		multiframeCheckbox = new JCheckBox();
+		multiframeCheckbox.setOpaque(false);
+		multiframeCheckbox.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				boolean multiframe = multiframeCheckbox.isSelected();
+//				multiframeCheckbox.setSelected(multiframe);
+				setDatasetIndex(multiframe? prevDatasetIndex: -1);
+//				multipleFramesButton.setText(multiframe?
+//						TrackerRes.getString("TableTrackView.Button.SwitchTo.MultipleFrames"):
+//						TrackerRes.getString("TableTrackView.Button.SwitchTo.SingleFrame")); //$NON-NLS-1$
 			}
 		});
 		
@@ -1271,8 +1350,19 @@ public class TableTrackView extends TrackView {
 //				next = datasets.get(i);
 //			}
 
-		for (int i = bsCheckBoxes.nextSetBit(0); i >= 0; i = bsCheckBoxes.nextSetBit(i + 1)) {
-			if (i >= datasetCount) {
+		BitSet bs = bsCheckBoxes;
+		int max = datasetCount;
+		LineProfile lp = (track.ttype == TTrack.TYPE_LINEPROFILE ? (LineProfile) track : null);
+		if (lp != null && lp.isMultipleFrames()) {
+			bs = new BitSet();
+			max = datasets.size();
+			for (int i = 0; i < max; i++) {
+				bs.set(i);
+			}
+		}
+		
+		for (int i = bs.nextSetBit(0); i >= 0; i = bs.nextSetBit(i + 1)) {
+			if (i >= max) {
 				next = track.convertTextToDataColumn(aNames[i]); // full name
 				if (next == null)
 					continue;
@@ -2175,6 +2265,8 @@ public class TableTrackView extends TrackView {
 
 		@Override
 		public int findLastAddedModelIndex(StringBuffer names) {
+			if (names == null)
+				return -1;
 			if (names.length() < 2) {
 				names.append("t").append(",");
 				return 0;

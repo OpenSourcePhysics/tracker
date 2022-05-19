@@ -251,7 +251,8 @@ public class LineProfile extends TTrack {
 							case JOptionPane.YES_OPTION:
 								for (int i = 0; i < tableViews.size(); i++) {
 									if (tableViews.get(i).myDatasetIndex > -1)
-										tableViews.get(i).lineProfileDatatypeButton.doClick(0);
+//										tableViews.get(i).multipleFramesButton.doClick(0);
+										tableViews.get(i).multiframeCheckbox.doClick(0);
 								}
 								break;
 
@@ -521,8 +522,8 @@ public class LineProfile extends TTrack {
 		if (refreshDataLater || trackerPanel == null || data == null)
 			return;
 		
-		if (showTimeData()) {
-			refreshTimeData(data, trackerPanel);
+		if (isMultipleFrames()) {
+			refreshMultiFrameData(data, trackerPanel);
 			return;
 		}
 
@@ -594,8 +595,8 @@ public class LineProfile extends TTrack {
 		}
 		// refresh the data descriptions
 		dataDescriptions = new String[count + 1];
-		if (showTimeData()) {
-			dataDescriptions[0] = TrackerRes.getString("PointMass.Data.Description.0"); // time
+		if (isMultipleFrames()) {
+			dataDescriptions[0] = TrackerRes.getString(desc + "0"); // time
 			for (int i = 1; i <= count; i++) {
 				dataDescriptions[i] = TrackerRes.getString(desc + (datasetIndex+1)); // $NON-NLS-1$
 			}			
@@ -615,17 +616,18 @@ public class LineProfile extends TTrack {
 	}
 
 	/**
-	 * Refreshes the data to display a single variable at all line positions (columns) and times (rows).
+	 * Refreshes the data to display a single variable in multiple frames.
 	 *
 	 * @param data         the DatasetManager
 	 * @param trackerPanel the tracker panel
 	 */
-	private void refreshTimeData(DatasetManager data, TrackerPanel trackerPanel) {
+	private void refreshMultiFrameData(DatasetManager data, TrackerPanel trackerPanel) {
 		int count = 0;
 		ArrayList<double[]> collectedData = new ArrayList<double[]>();
 		ArrayList<Double> times = new ArrayList<Double>(); 
+		ArrayList<Integer> frames = new ArrayList<Integer>(); 
 		double[][] validData;
-		String[] varNames = new String[] {"t", "empty"};
+		String[] varNames = new String[] {"n", "empty"};
 		// get data from line profile steps only if video is visible
 		if (trackerPanel.getVideo() == null || !trackerPanel.getVideo().isVisible()) {
 			validData = new double[count+1][0]; // empty data
@@ -653,30 +655,53 @@ public class LineProfile extends TTrack {
 						int stepNumber = clip.frameToStep(i);
 						double t = player.getStepTime(stepNumber) / 1000.0;
 						times.add(t);
+						frames.add(i);
 						count = next[datasetIndex].length;
 					}
 				}
 			}
 			if (collectedData.size() > 0) {
-				// transpose rows and columns
 				double[][] orig = collectedData.toArray(new double[collectedData.size()][count]);
-				validData = new double[count+1][orig.length];
-				varNames = new String[count+1];
-				varNames[0] = "t";
-				for (int row = 0; row < orig.length; row++) {
-					for (int col = 0; col < count; col++) {
-						varNames[col+1] = dataVariables[datasetIndex+1]+"_{ "+String.valueOf(col)+"}";
-						validData[col][row] = orig[row][col];
+//				boolean transpose = false;
+//				if (transpose) {
+//					rows = orig.length;
+//					cols = count;		
+//					// transpose rows and columns
+//					validData = new double[cols+1][rows];
+//					varNames = new String[cols+1];
+//					varNames[0] = "t";
+//					for (int row = 0; row < rows; row++) {
+//						for (int col = 0; col < cols; col++) {
+//							varNames[col+1] = dataVariables[datasetIndex+1]+"_{ "+String.valueOf(col)+"}";
+//							validData[col][row] = orig[row][col];
+//						}
+//						validData[cols][row] = times.get(row);
+//					}
+//				}
+//				else {
+					int rows = count;
+					int cols = orig.length;
+					validData = new double[cols+1][rows];
+					varNames = new String[cols+1];
+					varNames[0] = "n";
+					for (int col = 0; col < cols; col++) {
+						varNames[col+1] = dataVariables[datasetIndex+1]+"_{ "+frames.get(col)+"}";
+						for (int row = 0; row < rows; row++) {
+							validData[col][row] = orig[col][row];
+							if (col == 0)
+								validData[cols][row] = row;
+						}
 					}
-					validData[count][row] = times.get(row);
+					count = cols;
 				}
 				
-			}
+//			}
 			else 
 				validData = new double[count+1][0]; // empty data
 		}
 		// append the data to the data set
 		clearColumns(data, count, varNames, "LineProfile.Data.Description.", validData, validData[0].length);
+
 	}
 	
 	@Override
@@ -692,7 +717,7 @@ public class LineProfile extends TTrack {
 		invalidateData(Boolean.FALSE);
 	}
 
-	protected boolean showTimeData() {
+	protected boolean isMultipleFrames() {
 		return (datasetIndex >= 0);
 	}
 
@@ -794,6 +819,15 @@ public class LineProfile extends TTrack {
 				if (!steps.isEmpty()) { // $NON-NLS-1$
 					int n = tp.getFrameNumber();
 					LineProfileStep step = (LineProfileStep) steps.getStep(n);
+					if (e.getNewValue() == null) {
+						// clear data from all steps
+						for (int i = 0; i < getSteps().length; i++) {
+							if (getSteps()[i] != null)
+								((LineProfileStep) getSteps()[i]).clearData();
+						}
+					}
+					else // clear data from this step only
+						step.clearData();
 					refreshStep(step);
 				}
 				break;
