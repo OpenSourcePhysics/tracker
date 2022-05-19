@@ -42,7 +42,6 @@ workspace_trackerJS/installbuilder:
 dreamweaver:
 -- upload installers to installers folder
 -- upload windows/osx/linux upgrade installers, tracker-x.x.x.jar and Tracker.exe to upgrade/ver6 folder 
--- upload windows upgrade installer to installers folder?
 -- upload tracker-X.X.X.jar to archives on Davidson server
 -- update changeLog
 -- upload text files for recording downloads and launches
