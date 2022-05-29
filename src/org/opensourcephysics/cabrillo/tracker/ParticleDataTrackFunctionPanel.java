@@ -73,6 +73,7 @@ public class ParticleDataTrackFunctionPanel extends ModelFunctionPanel {
 			String title = TrackerRes.getString("ParticleDataTrackFunctionPanel.Border.Title"); //$NON-NLS-1$
 			customTitle.setBorder(BorderFactory.createTitledBorder(title));
 		}
+		timeControl.refreshGUI();
 	}
 
 	/**
