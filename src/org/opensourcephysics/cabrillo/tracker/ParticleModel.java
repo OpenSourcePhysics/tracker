@@ -254,6 +254,7 @@ abstract public class ParticleModel extends PointMass {
 			ClipControl.PROPERTY_CLIPCONTROL_FRAMEDURATION, // ParticleModel
 			FunctionTool.PROPERTY_FUNCTIONTOOL_FUNCTION, // ParticleModel (also DynamicSystem)
 			VideoClip.PROPERTY_VIDEOCLIP_STARTTIME,  // ParticleModel
+			VideoClip.PROPERTY_VIDEOCLIP_STARTFRAME,  // ParticleModel
 			VideoClip.PROPERTY_VIDEOCLIP_STEPCOUNT, // ParticleModel
 			TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDTRACK, // ParticleModel
 	};
@@ -335,9 +336,9 @@ abstract public class ParticleModel extends PointMass {
 				tp.changed = true;
 			resetMe = "repaint";
 			break;
+		case DataTrack.PROPERTY_DATATRACK_STARTFRAME:
 		case VideoClip.PROPERTY_VIDEOCLIP_STARTTIME:
 		case ClipControl.PROPERTY_CLIPCONTROL_FRAMEDURATION:
-		case DataTrack.PROPERTY_DATATRACK_STARTFRAME:
 			resetMe = "time";
 			break;
 		case VideoClip.PROPERTY_VIDEOCLIP_STEPSIZE:

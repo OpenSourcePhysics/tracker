@@ -82,7 +82,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 	/**
 	 * no listeners?
 	 */
-	public final String PROPERTY_PARTICLEDATATRACK_DATACLIP = "dataclip";
+	public static final String PROPERTY_PARTICLEDATATRACK_DATACLIP = "dataclip";
 
 	private static String startupFootprint = "CircleFootprint.FilledCircle#5 outline"; //$NON-NLS-1$
 
@@ -105,6 +105,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 	private JCheckBox autoPasteCheckbox;
 	private ActionListener allFootprintsListener, allCircleFootprintsListener;
 	private boolean autoPasteEnabled = true;
+	private int startStep = -1;
 
 	/**
 	 * Public constructor.
@@ -1115,6 +1116,8 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 		int end = clip.getLastFrameNumber();
 		n = Math.min(n, end); // not greater than clip end
 		startFrame = n;
+		// also set startStep
+		startStep = clip.frameToStep(startFrame);
 		refreshInitialTime();
 		adjustVideoClip();
 		setLastValidFrame(-1);
@@ -1131,9 +1134,33 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 	}
 
 	@Override
+	public void setStartStep(int start) {
+		VideoClip clip = tp.getPlayer().getVideoClip();
+		int frame = clip.stepToFrame(start);
+		setStartFrame(frame);
+	}
+	
+	@Override
+	public int getStartStep() {
+		if (getLeader() != this) {
+			return getLeader().getStartStep();
+		}
+		if (startStep < 0 && tp != null) { // occurs after initial loading
+			VideoClip clip = tp.getPlayer().getVideoClip();
+			startStep = clip.frameToStep(startFrame);			
+		}
+		return startStep;
+	}
+	
+	@Override
 	public void setEndFrame(int n) {
 		// set dataclip length
-		getDataClip().setClipLength((n - getStartFrame() + 1));
+//		getDataClip().setClipLength((n - getStartFrame() + 1));
+		
+//		VideoClip vidClip = tp.getPlayer().getVideoClip();
+//		int frames = n - getStartFrame() + 1;
+//		getDataClip().setClipLength(frames/vidClip.getStepSize());
+		
 		tp.getModelBuilder().refreshSpinners();
 	}
 
@@ -1169,15 +1196,22 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 		if (getLeader() != this) {
 			return getLeader().getStartFrame();
 		}
-		return startFrame;
+		VideoClip clip = tp.getPlayer().getVideoClip();
+		return clip.stepToFrame(getStartStep());
 	}
 
 	@Override
 	public int getEndFrame() {
 		// determine end frame based on start frame and clip length
-		int clipEnd = getStartFrame() + getDataClip().getClipLength() - 1;
+		int stepSize = tp.getPlayer().getVideoClip().getStepSize();
+		int finalStep = getDataClip().getClipLength() - 1;
+		int clipEnd = getStartFrame() + stepSize * finalStep;
 		int videoEnd = tp.getPlayer().getVideoClip().getLastFrameNumber();
-		return Math.min(clipEnd, videoEnd);
+		while (videoEnd < clipEnd) {
+			clipEnd -= stepSize;
+		}
+		return clipEnd;
+//		return Math.min(clipEnd, videoEnd);
 	}
 
 	@Override
@@ -1202,7 +1236,9 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 		DataClip dataClip = getDataClip();
 		int len = dataClip.getAvailableClipLength();
 		int frameNum = vidClip.stepToFrame(videoStepNumber);
-		int dataStepNumber = frameNum - getStartFrame();
+//		int startStep = vidClip.frameToStep(getStartFrame());
+//		int dataStepNumber = frameNum - getStartFrame();
+		int dataStepNumber = videoStepNumber - getStartStep();		
 		boolean validData = dataStepNumber >= 0 && dataStepNumber < len;
 		int index = getDataClip().stepToIndex(dataStepNumber);
 		return validData ? index : -1;
@@ -1252,6 +1288,9 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 	public void propertyChange(PropertyChangeEvent e) {
 		super.propertyChange(e);
 		switch (e.getPropertyName()) {
+		case VideoClip.PROPERTY_VIDEOCLIP_STEPSIZE:
+		case VideoClip.PROPERTY_VIDEOCLIP_STARTFRAME:
+		case VideoClip.PROPERTY_VIDEOCLIP_STEPCOUNT:
 		case DataClip.PROPERTY_DATACLIP_CLIPLENGTH:
 		case DataClip.PROPERTY_DATACLIP_STARTINDEX:
 		case DataClip.PROPERTY_DATACLIP_CLIPSTRIDE:
@@ -1825,7 +1864,8 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 					int n = clip.getStartFrameNumber();
 					boolean mustRound = timeOffset % dt > 0;
 					n += clip.getStepSize() * (int) Math.round(timeOffset / dt);
-					setStartFrame(n);
+//					setStartFrame(n);
+					setStartStep(n);
 					if (getStartFrame() != n || mustRound)
 						Toolkit.getDefaultToolkit().beep();
 				}
