@@ -50,6 +50,7 @@ import javax.swing.JOptionPane;
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.controls.XMLControlElement;
+import org.opensourcephysics.controls.XMLProperty;
 import org.opensourcephysics.display.Data;
 import org.opensourcephysics.display.DataClip;
 import org.opensourcephysics.display.Dataset;
@@ -2070,6 +2071,31 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 			// load dataclip
 			XMLControl dataClipControl = control.getChildControl("dataclip"); //$NON-NLS-1$
 			if (dataClipControl != null) {
+				String fileVersion = control.getString("semantic_version"); //$NON-NLS-1$
+				XMLProperty parent = control;
+				while (fileVersion == null && parent.getParentProperty() != null) {
+					parent = parent.getParentProperty();
+					if (parent instanceof XMLControl) {
+						fileVersion = ((XMLControl)parent).getString("semantic_version"); //$NON-NLS-1$
+					}
+				}
+				if (fileVersion != null && !OSPRuntime.isJS) {
+					int result = 0;
+					try {
+						result = Tracker.compareVersions(fileVersion, "6.0.9");
+					} catch (Exception e) {
+					}
+					if (result < 0) { // file version is pre-vers 6.0.9
+						// so inform user that data will be mapped to steps, not frames
+						JOptionPane.showMessageDialog(null,
+								TrackerRes.getString("TrackerPanel.Dialog.ModelVersion.Message1") //$NON-NLS-1$
+										+ " " + fileVersion + ".\n" //$NON-NLS-1$ //$NON-NLS-2$
+										+ TrackerRes.getString("TrackerPanel.Dialog.ModelVersion.Message2") //$NON-NLS-1$
+										+ "\n" + TrackerRes.getString("TrackerPanel.Dialog.ModelVersion.Message3"), //$NON-NLS-1$ //$NON-NLS-2$
+								TrackerRes.getString("TrackerPanel.Dialog.ModelVersion.Title"), //$NON-NLS-1$
+								JOptionPane.INFORMATION_MESSAGE);
+					}
+				}
 				dataClipControl.loadObject(dataTrack.getDataClip());
 			}
 			// load point properties: mass, color, footprint
