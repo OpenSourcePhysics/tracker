@@ -875,6 +875,7 @@ abstract public class ParticleModel extends PointMass {
 			if (model.aAtOrigin)
 				model.aTailsToOriginItem.doClick();
 			if (!refreshDerivsLater && singleStep) {
+				holdPainting(false);
 				model.firePropertyChange(TTrack.PROPERTY_TTRACK_STEP, null, new Integer(n));
 			}
 			// erase refreshed steps
