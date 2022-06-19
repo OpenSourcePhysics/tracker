@@ -566,7 +566,7 @@ public class TableTrackView extends TrackView {
 		TTrack track = getTrack();
 		if (track.ttype == TTrack.TYPE_POINTMASS) {
 			PointMass p = (PointMass) track;
-			boolean hasGaps = p.getGapCount() > 0;
+			boolean hasGaps = p.hasGaps();
 			boolean hasSkips = p.skippedSteps.size() > 0;
 			gapsButton.setIcon(!hasGaps ? null : gapsButton.isSelected() ? SKIPS_ON_ICON : SKIPS_OFF_ICON);
 			gapsButton.setEnabled(hasGaps || hasSkips);
