@@ -554,7 +554,8 @@ public class PrefsDialog extends JDialog {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				Tracker.preferredDecimalSeparator = periodDecimalButton.isSelected() ? "." : //$NON-NLS-1$
-				commaDecimalButton.isSelected() ? "," : null; //$NON-NLS-1$
+					commaDecimalButton.isSelected() ? "," : null; //$NON-NLS-1$
+				OSPRuntime.setPreferredDecimalSeparator(Tracker.preferredDecimalSeparator);
 			}
 		};
 		defaultDecimalButton = new JRadioButton();
