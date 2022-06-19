@@ -1069,30 +1069,77 @@ public class PointMass extends TTrack {
 	 * 
 	 * @return the gap count
 	 */
-	public int getGapCount() {
-		// older trk files don't define keyframes, 
-		// so if none defined make every frame a keyframe
+	public boolean hasGaps() {
+		if (tp == null)
+			return false;
+		// older trk files and some track types don't define keyframes, 
+		// so if none defined look at steps instead
+		VideoClip clip = tp.getPlayer().getVideoClip();
+		int prev = -1;
 		if (keyFrames.isEmpty() && !steps.isEmpty()) {
 			Step[] steps = getSteps();
 			for (int i = 0; i < steps.length; i++) {
 				if (steps[i] != null) {
-					keyFrames.add(i);
+					if (!clip.includesFrame(i))
+						continue;
+					if (prev == -1)
+						prev = i;
+					else {
+						if (i - prev > clip.getStepSize())
+							return true;
+						prev = i;
+					}
 				}
 			}
 		}
-		int prev = -1;
-		int gapCount = 0;
 		for (int n : keyFrames) {
+			if (!clip.includesFrame(n))
+				continue;
 			if (prev == -1)
 				prev = n;
 			else {
-				if (n - prev > 1)
-					gapCount++;
+				if (n - prev > clip.getStepSize())
+					return true;
 				prev = n;
 			}
 		}
-		return gapCount;
+		return false;
 	}
+		
+//	/**
+//	 * Returns the number of gaps (filled or not) in the keyframes
+//	 * 
+//	 * @return the gap count
+//	 */
+//	public int getGapCount() {
+//		if (tp == null)
+//			return 0;
+//		// older trk files and some track types don't define keyframes, 
+//		// so if none defined make every step a keyframe
+//		if (keyFrames.isEmpty() && !steps.isEmpty()) {
+//			Step[] steps = getSteps();
+//			for (int i = 0; i < steps.length; i++) {
+//				if (steps[i] != null) {
+//					keyFrames.add(i);
+//				}
+//			}
+//		}
+//		int prev = -1;
+//		int gapCount = 0;
+//		VideoClip clip = tp.getPlayer().getVideoClip();
+//		for (int n : keyFrames) {
+//			if (!clip.includesFrame(n))
+//				continue;
+//			if (prev == -1)
+//				prev = n;
+//			else {
+//				if (n - prev > clip.getStepSize())
+//					gapCount++;
+//				prev = n;
+//			}
+//		}
+//		return gapCount;
+//	}
 
 	/**
 	 * Returns the number of unfilled gaps in the keyframes
