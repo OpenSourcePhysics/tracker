@@ -25,7 +25,6 @@ import javax.swing.JSpinner;
 import javax.swing.SpinnerModel;
 import javax.swing.SpinnerNumberModel;
 
-import org.opensourcephysics.cabrillo.tracker.ModelBuilder.ModelFrameSpinner;
 import org.opensourcephysics.display.DataClip;
 import org.opensourcephysics.display.DrawingPanel;
 import org.opensourcephysics.display.Interactive;
@@ -364,7 +363,6 @@ public class DataTrackClipControl extends JPanel implements PropertyChangeListen
       s = TrackerRes.getString("DataTrackClipControl.Label.Frame"); //$NON-NLS-1$
       labelSpace = Math.max(labelSpace, g2.getFontMetrics().stringWidth(s));
       g2.setFont(g2.getFont().deriveFont(Font.PLAIN));
-      g2.setColor(videoColor);
       g2.drawString(s, largeGap, yVideoFrame+fontDrop);
       
       labelSpace += 6;
@@ -374,19 +372,13 @@ public class DataTrackClipControl extends JPanel implements PropertyChangeListen
       
       s = "0"; //$NON-NLS-1$
       int frontSpace = g2.getFontMetrics().stringWidth(s);
-//      frontSpace = Math.max(frontSpace, g2.getFontMetrics().stringWidth(s));
 
-//      s = String.valueOf(videoClip.getLastFrameNumber());
       s = String.valueOf(videoClip.getStepCount()-1);
       int endSpace = g2.getFontMetrics().stringWidth(s);
       s = String.valueOf(dataClip.getDataLength()-1);
       endSpace = Math.max(endSpace, g2.getFontMetrics().stringWidth(s));
 
-      int videoClipFrames = videoClip.getLastFrameNumber()-videoClip.getFirstFrameNumber()+1;
-//      if (drawVideoClip) {
-//      	videoClipFrames = videoClip.getFrameCount();
-      	videoClipFrames = videoClip.getStepCount();
-//      }
+      int videoClipFrames = videoClip.getStepCount();
       int dataClipFrames = dataClip.getDataLength();
 			int maxFrames = Math.max(videoClipFrames, dataClipFrames);
 			
@@ -405,12 +397,10 @@ public class DataTrackClipControl extends JPanel implements PropertyChangeListen
       
 			// first draw video line with max "available" data clip 
       double fullClipLength = lengthPerFrame*(dataClip.getClipLength());
-//      int frame0 = drawVideoClip? videoClip.getStartFrameNumber(): videoClip.getFirstFrameNumber();
 
       int startStep = dataTrack.getStartStep();      
       double videoStartClip = leftEnd+lengthPerFrame*(startStep);
 
-//      double videoStartClip = leftEnd+lengthPerFrame*(dataTrack.getStartFrame()-frame0);
       double videoEndClip = videoStartClip + fullClipLength;
       videoStartClip = Math.max(videoStartClip, leftEnd);
       videoEndClip = Math.min(videoEndClip, leftEnd+lineLength);
@@ -421,7 +411,6 @@ public class DataTrackClipControl extends JPanel implements PropertyChangeListen
       g2.draw(path);
       
 			// then draw dataclip actually used on video line
-//      videoStartClip = leftEnd+lengthPerFrame*(dataTrack.getStartFrame()-frame0);
       double clipLength = lengthPerFrame*(dataClip.getAvailableClipLength());
       videoEndClip = videoStartClip + clipLength;
       videoStartClip = Math.max(videoStartClip, leftEnd);
@@ -477,39 +466,38 @@ public class DataTrackClipControl extends JPanel implements PropertyChangeListen
       path.lineTo(videoEndClip, yClipLine+strokeWidth/2);
       g2.draw(path);
       
-      // draw frame, step and index numbers
-      g2.setFont(g2.getFont().deriveFont(Font.PLAIN));
+      // draw step and index numbers
+      g2.setFont(g2.getFont().deriveFont(Font.BOLD));
       int verticalOffset = fontDrop;
       // zero start index for data and video clip
       s = "0"; //$NON-NLS-1$
       g2.drawString(s, (int)(leftEnd-frontSpace-smallGap), yDataLine+verticalOffset);
       g2.drawString(s, (int)(leftEnd-frontSpace-smallGap), yClipLine+verticalOffset);
-      // start frame
-      s = String.valueOf(videoClip.getStartFrameNumber());
-      frontSpace = g2.getFontMetrics().stringWidth(s);
-      g2.setColor(videoColor);
-      g2.drawString(s, (int)(leftEnd-frontSpace-smallGap), yVideoFrame+verticalOffset);
 
-      // end frame
-      s = String.valueOf(videoClip.getEndFrameNumber());
-      g2.drawString(s, (int)(rightVideoEnd+smallGap), yVideoFrame+verticalOffset);
-      g2.setColor(Color.BLACK);
-      
-      // end index for data
+      // data end index 
       s = String.valueOf(dataClipFrames-1);
       g2.drawString(s, (int)(rightDataEnd+smallGap), yDataLine+verticalOffset);
       
-      // end video clip
+      // clip end step
       s = String.valueOf(videoClip.getStepCount() - 1);
       g2.drawString(s, (int)(rightVideoEnd+smallGap), yClipLine+verticalOffset);
       
+      g2.setFont(g2.getFont().deriveFont(Font.PLAIN));
+      // clip start frame
+      s = String.valueOf(videoClip.getStartFrameNumber());
+      frontSpace = g2.getFontMetrics().stringWidth(s);
+      g2.drawString(s, (int)(leftEnd-frontSpace-smallGap), yVideoFrame+verticalOffset);
+
+      // clip end frame
+      s = String.valueOf(videoClip.getEndFrameNumber());
+      g2.drawString(s, (int)(rightVideoEnd+smallGap), yVideoFrame+verticalOffset);
+      
       // start frame
       s = String.valueOf(dataTrack.getStartFrame());
-      g2.setColor(videoColor);
       g2.drawString(s, (int)(videoStartClip), yVideoFrame+verticalOffset);
-      g2.setColor(Color.BLACK);
       
       verticalOffset = -2-strokeWidth/2;
+      g2.setFont(g2.getFont().deriveFont(Font.BOLD));
       
       // start step
       s = String.valueOf(startStep);
@@ -525,14 +513,14 @@ public class DataTrackClipControl extends JPanel implements PropertyChangeListen
 	      g2.drawString(s, (int)(videoEndClip-space), yClipLine+verticalOffset);
 	      // end frame
 	      s = String.valueOf(videoClip.stepToFrame(n));
+	      g2.setFont(g2.getFont().deriveFont(Font.PLAIN));
 	      space = g2.getFontMetrics().stringWidth(s);
 	      verticalOffset = fontDrop;
-	      g2.setColor(videoColor);
 	      g2.drawString(s, (int)(videoEndClip-space), yVideoFrame+verticalOffset);      	
-	      g2.setColor(Color.BLACK);
       }
       
       verticalOffset = fontDrop+strokeWidth+3;
+      g2.setFont(g2.getFont().deriveFont(Font.BOLD));
       s = String.valueOf(dataTrack.getDataClip().getStartIndex());
       g2.drawString(s, (int)(dataStartClip), yDataLine+verticalOffset);
     	n = getLastDisplayedClipIndex();

@@ -106,7 +106,8 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 	private JCheckBox autoPasteCheckbox;
 	private ActionListener allFootprintsListener, allCircleFootprintsListener;
 	private boolean autoPasteEnabled = true;
-	private int startStep = -1;
+	private int startStep = -1, startFrameTemp = -1;
+	private boolean requiresConversion;
 
 	/**
 	 * Public constructor.
@@ -512,7 +513,13 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 	protected JMenu getPointMenu(TrackerPanel trackerPanel) {
 		// prepare menu items
 		createMenuIfNecessary();
-		JMenu menu = (getLeader() == this ? new JMenu() : super.getMenu(trackerPanel, null));
+		// attempting to use dynamic menu fails here
+//		JMenu menu = (getLeader() == this ? new JMenu() : super.getMenu(trackerPanel, null));
+		JMenu menu = new JMenu();
+		if (getLeader() != this) {
+			// call super.getMenu() to populate footprint, v and a menus
+			super.getMenu(trackerPanel, menu);
+		}
 		if (colorItem == null)
 			getMenuItems();
 		colorItem.setText(TrackerRes.getString("TTrack.MenuItem.Color")); //$NON-NLS-1$
@@ -1127,7 +1134,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 		}
 		TFrame.repaintT(tp);
 		firePropertyChange(PROPERTY_DATATRACK_STARTFRAME, null, getStartFrame()); // $NON-NLS-1$
-		if (tp != null) {
+		if (tp != null && !requiresConversion) {
 			tp.getModelBuilder().refreshSpinners();
 			int stepNum = clip.frameToStep(startFrame);
 			tp.getPlayer().setStepNumber(stepNum);
@@ -1233,12 +1240,8 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 	 * @return the data index, or -1 if none
 	 */
 	protected int getDataIndexAtVideoStepNumber(int videoStepNumber) {
-		VideoClip vidClip = tp.getPlayer().getVideoClip();
 		DataClip dataClip = getDataClip();
 		int len = dataClip.getAvailableClipLength();
-		int frameNum = vidClip.stepToFrame(videoStepNumber);
-//		int startStep = vidClip.frameToStep(getStartFrame());
-//		int dataStepNumber = frameNum - getStartFrame();
 		int dataStepNumber = videoStepNumber - getStartStep();		
 		boolean validData = dataStepNumber >= 0 && dataStepNumber < len;
 		int index = getDataClip().stepToIndex(dataStepNumber);
@@ -1270,11 +1273,14 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 
 		if (tp != null) {
 			tp.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_VIDEO, this);
+			if (requiresConversion) {
+				convertFrameToStepParameters();
+			}
 			if (panel != null) {
 				// BH 2021.09.11 null check for panel
 				VideoClip videoClip = panel.getPlayer().getVideoClip();
 				int length = videoClip.getLastFrameNumber() - videoClip.getFirstFrameNumber() + 1;
-				dataClip.setClipLength(Math.min(length, dataClip.getClipLength()));
+				dataClip.setClipLength(Math.min(length, dataClip.getClipLength()));				
 				firePropertyChange("videoclip", null, null); //$NON-NLS-1$
 				if (useDataTime) {
 					panel.getPlayer().getClipControl().setTimeSource(this);
@@ -1918,6 +1924,50 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 			vidClip.setExtraFrames(needed);
 		}
 	}
+	
+	private void convertFrameToStepParameters() {
+		if (tp == null)
+			return;
+		int dataStartStep = -1, dataStepCount = -1;
+		int dataStartFrame = startFrameTemp >= 0? startFrameTemp: getStartFrame();
+		VideoClip vidClip = tp.getPlayer().getVideoClip();
+		int clipStepSize = vidClip.getStepSize();
+		int clipStepCount = vidClip.getStepCount();
+		DataClip data = getDataClip();
+		int dataFrameCount = data.getClipLength();
+		int frameCount = Math.min(dataFrameCount, clipStepCount * clipStepSize);
+		// determine start step
+		for (int i = 0; i < frameCount; i++) {
+			if (vidClip.includesFrame(dataStartFrame + i)) {
+				dataStartStep = vidClip.frameToStep(dataStartFrame + i);
+				dataStartFrame = dataStartFrame + i;
+				break;
+			}
+		}
+		// determine end step and step count
+		for (int i = 0; i < frameCount; i++) {
+			int frame = dataStartFrame + dataFrameCount - i - 1;
+			if (vidClip.includesFrame(frame)) {
+				int dataEndStep = vidClip.frameToStep(frame);
+				dataStepCount = dataEndStep - dataStartStep + 1;
+				break;
+			}
+		}
+		if (dataStartStep == -1 || dataStepCount == -1) {
+			requiresConversion = false;
+			return;
+		}
+		int dataStartIndex = data.stepToIndex(dataStartFrame - startFrameTemp);
+		
+		data.setStride(data.getStride() * clipStepSize);
+		data.setClipLength(dataStepCount);
+		data.setStartIndex(dataStartIndex);
+		setStartStep(dataStartStep);
+		int stepNum = tp.getPlayer().getClipControl().loadedStepNumber;
+		if (stepNum > -1)
+			tp.getPlayer().setStepNumber(stepNum);
+		requiresConversion = false;
+	}
 
 //___________________________________ inner classes _________________________________
 
@@ -2071,6 +2121,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 			// load dataclip
 			XMLControl dataClipControl = control.getChildControl("dataclip"); //$NON-NLS-1$
 			if (dataClipControl != null) {
+				dataClipControl.loadObject(dataTrack.getDataClip());
 				String fileVersion = control.getString("semantic_version"); //$NON-NLS-1$
 				XMLProperty parent = control;
 				while (fileVersion == null && parent.getParentProperty() != null) {
@@ -2086,17 +2137,9 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 					} catch (Exception e) {
 					}
 					if (result < 0) { // file version is pre-vers 6.0.9
-						// so inform user that data will be mapped to steps, not frames
-						JOptionPane.showMessageDialog(null,
-								TrackerRes.getString("TrackerPanel.Dialog.ModelVersion.Message1") //$NON-NLS-1$
-										+ " " + fileVersion + ".\n" //$NON-NLS-1$ //$NON-NLS-2$
-										+ TrackerRes.getString("TrackerPanel.Dialog.ModelVersion.Message2") //$NON-NLS-1$
-										+ "\n" + TrackerRes.getString("TrackerPanel.Dialog.ModelVersion.Message3"), //$NON-NLS-1$ //$NON-NLS-2$
-								TrackerRes.getString("TrackerPanel.Dialog.ModelVersion.Title"), //$NON-NLS-1$
-								JOptionPane.INFORMATION_MESSAGE);
+						dataTrack.requiresConversion = true;
 					}
 				}
-				dataClipControl.loadObject(dataTrack.getDataClip());
 			}
 			// load point properties: mass, color, footprint
 			for (int i = 0; i < dataTrack.morePoints.size(); i++) {
@@ -2110,7 +2153,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 			// load start frame
 			int n = control.getInt("start_frame"); //$NON-NLS-1$
 			if (n != Integer.MIN_VALUE)
-				dataTrack.startFrame = n;
+				dataTrack.startFrame = dataTrack.startFrameTemp = n;
 			else {
 				dataTrack.startFrameUndefined = true;
 			}
