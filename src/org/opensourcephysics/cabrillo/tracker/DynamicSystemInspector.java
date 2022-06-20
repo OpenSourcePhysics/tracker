@@ -170,7 +170,7 @@ public class DynamicSystemInspector extends JDialog implements PropertyChangeLis
 				TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
 				ArrayList<DynamicParticle> list = trackerPanel.getDrawablesTemp(DynamicParticle.class);
 				for (int i = 0, ni = list.size(); i < ni; i++) {
-					DynamicParticle p = list.get(ni);
+					DynamicParticle p = list.get(i);
 					if (p instanceof DynamicSystem)
 						continue; // no other systems
 					// add items to clone menu
