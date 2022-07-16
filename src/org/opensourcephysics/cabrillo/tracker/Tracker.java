@@ -959,8 +959,12 @@ public class Tracker {
 		if (vers.length() > 7 || testOn)
 			vers += " BETA"; //$NON-NLS-1$
 		String date = OSPRuntime.getLaunchJarBuildDate();
-		if (date != null)
-			vers = vers + "\nBuild date " + date; //$NON-NLS-1$
+		String desc = "\nBuild date ";
+		if ("".equals(date)) {
+			date = OSPRuntime.RELEASE_DATE;
+			desc = "\nRelease date ";
+		}
+		vers = vers + desc + date; //$NON-NLS-1$
 
 		if (OSPRuntime.isJS) {
 			vers += "\n\nJavaScript transcription created using the\n" + "java2script/SwingJS framework developed at\n"
