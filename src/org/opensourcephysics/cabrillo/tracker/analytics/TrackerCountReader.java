@@ -50,7 +50,8 @@ public class TrackerCountReader extends JFrame {
 	private String[] versions = {"all", "6.", "5.", "4.",  //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 			"6.0.9", "6.0.8", "6.0.7", "6.0.6",   //$NON-NLS-1$//$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ 
 			"6.0.5", "6.0.4", "6.0.3", "6.0.2",   //$NON-NLS-1$//$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ 
-			"6.0.1", "6.0.0", "5.2.7", "5.2.6",   //$NON-NLS-1$//$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$
+			"6.0.1", "6.0.0", "5.2.9", "5.2.8",   //$NON-NLS-1$//$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$
+			"5.2.7", "5.2.6",   //$NON-NLS-1$//$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$
 			"5.2.5", "5.2.4", "5.2.3", "5.2.2",   //$NON-NLS-1$//$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$
 			"5.1.5", "5.1.4", "5.1.3",   //$NON-NLS-1$//$NON-NLS-2$ //$NON-NLS-3$ 
 			"5.1.2", "5.1.1", "5.1.0", "5.0.7", //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
@@ -110,101 +111,8 @@ public class TrackerCountReader extends JFrame {
 		sendButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				if (textArea.getForeground().equals(Color.RED.darker())) {
-					String text = textArea.getText().trim();
-					String result = send(launchPHPPath+text);
-	      	textArea.setForeground(Color.BLACK);
-					textArea.setText(result);
-					return;
-				}
-				else {
-					String[] ver = null, os = null, eng = null;
-					String action = actionDropdown.getSelectedItem().toString();
-					if (action.contains("list")) { //$NON-NLS-1$
-						String result = null;
-						if (action.contains("launch")) { //$NON-NLS-1$
-							result = send(launchPHPPath+launchListPage);
-					  	if ("".equals(result)) result = "(no launch log failures)"; //$NON-NLS-1$ //$NON-NLS-2$
-						}
-						else {
-							result = send(downloadPHPPath+downloadListFile);
-							if ("".equals(result)) result = "(no download failures)"; //$NON-NLS-1$ //$NON-NLS-2$
-						}
-		      	textArea.setForeground(Color.BLACK);
-						textArea.setText(result);
-						return;
-					}
-					else if (action.equals("version")) { //$NON-NLS-1$
-		      	textArea.setForeground(Color.BLACK);
-						textArea.setText(send(launchPHPPath+"version")); //$NON-NLS-1$
-						return;
-					}
-					else if (action.contains("clear")) { //$NON-NLS-1$
-						String result = null;
-						if (action.contains("launch")) { //$NON-NLS-1$
-							result = send(launchPHPPath+launchClearPage);
-							if ("".equals(result)) result = "(cleared launch log failures)"; //$NON-NLS-1$ //$NON-NLS-2$
-						}
-						else {
-							result = send(downloadPHPPath+downloadClearFile);
-							if ("".equals(result)) result = "(cleared download failures)"; //$NON-NLS-1$ //$NON-NLS-2$
-						}
-		      	textArea.setForeground(Color.BLACK);
-						textArea.setText(result);
-						return;
-					}
-					else { // action is "read..." or "test..."
-						if (versionDropdown.getSelectedItem().equals("all")) { //$NON-NLS-1$
-							ArrayList<String> vers = new ArrayList<String>();
-							for (int i=0; i<versions.length; i++) {
-								if (versions[i].length() >= 4) {
-									vers.add(versions[i]);
-								}
-							}
-							ver = vers.toArray(new String[vers.size()]);
-						}
-						else if (versionDropdown.getSelectedItem().equals("4.") //$NON-NLS-1$
-								|| versionDropdown.getSelectedItem().equals("5.")
-								|| versionDropdown.getSelectedItem().equals("6.")) { //$NON-NLS-1$
-							ArrayList<String> vers = new ArrayList<String>();
-							String s = versionDropdown.getSelectedItem().toString();
-							for (int i=0; i<versions.length; i++) {
-								if (versions[i].startsWith(s) && !versions[i].equals(s)) {
-									vers.add(versions[i]);
-								}
-							}
-							ver = vers.toArray(new String[vers.size()]);
-						}
-						else {
-							ver = new String[] {versionDropdown.getSelectedItem().toString()};
-						}
-						if (osDropdown.getSelectedItem().equals("all")) { //$NON-NLS-1$
-							os = new String[OSs.length-1];
-							for (int i=0; i<os.length; i++) {
-								os[i] = OSs[i+1];
-							}
-						}
-						else {
-							os = new String[] {osDropdown.getSelectedItem().toString()};
-						}
-						if (engineDropdown.getSelectedItem().equals("all")) { //$NON-NLS-1$
-							eng = new String[engines.length-1];
-							for (int i=0; i<eng.length; i++) {
-								eng[i] = engines[i+1];
-							}
-						}
-						else {
-							eng = new String[] {engineDropdown.getSelectedItem().toString()};
-						}
-					}
-					String result = send(actionDropdown.getSelectedItem().toString(), ver, os, eng);
-	      	textArea.setForeground(Color.BLACK);
-					String command = versionDropdown.getSelectedItem()+"_"+osDropdown.getSelectedItem(); //$NON-NLS-1$
-					if (!action.contains("download")) { //$NON-NLS-1$
-						command += "_"+engineDropdown.getSelectedItem(); //$NON-NLS-1$
-					}
-					textArea.setText(action+" "+command+": "+result); //$NON-NLS-1$ //$NON-NLS-2$
-				}
+				send();
+//				javax.swing.SwingUtilities.invokeLater(() -> {send();});
 			}
 		});
 		
@@ -231,9 +139,107 @@ public class TrackerCountReader extends JFrame {
 		pack();		
 	}
 	
-	private String send(String command) {
+	private void send() {
+		if (textArea.getForeground().equals(Color.RED.darker())) {
+			String text = textArea.getText().trim();
+			String result = send(launchPHPPath, text);
+    	textArea.setForeground(Color.BLACK);
+			textArea.setText(result);
+			return;
+		}
+		else {
+			String[] ver = null, os = null, eng = null;
+			String action = actionDropdown.getSelectedItem().toString();
+			if (action.contains("list")) { //$NON-NLS-1$
+				String result = null;
+				if (action.contains("launch")) { //$NON-NLS-1$
+					result = send(launchPHPPath, launchListPage);
+			  	if ("".equals(result)) result = "(no launch log failures)"; //$NON-NLS-1$ //$NON-NLS-2$
+				}
+				else {
+					result = send(downloadPHPPath, downloadListFile);
+					if ("".equals(result)) result = "(no download failures)"; //$NON-NLS-1$ //$NON-NLS-2$
+				}
+      	textArea.setForeground(Color.BLACK);
+				textArea.setText(result);
+				return;
+			}
+			else if (action.equals("version")) { //$NON-NLS-1$
+      	textArea.setForeground(Color.BLACK);
+				textArea.setText(send(launchPHPPath, "version")); //$NON-NLS-1$
+				return;
+			}
+			else if (action.contains("clear")) { //$NON-NLS-1$
+				String result = null;
+				if (action.contains("launch")) { //$NON-NLS-1$
+					result = send(launchPHPPath, launchClearPage);
+					if ("".equals(result)) result = "(cleared launch log failures)"; //$NON-NLS-1$ //$NON-NLS-2$
+				}
+				else {
+					result = send(downloadPHPPath, downloadClearFile);
+					if ("".equals(result)) result = "(cleared download failures)"; //$NON-NLS-1$ //$NON-NLS-2$
+				}
+      	textArea.setForeground(Color.BLACK);
+				textArea.setText(result);
+				return;
+			}
+			else { // action is "read..." or "test..."
+				if (versionDropdown.getSelectedItem().equals("all")) { //$NON-NLS-1$
+					ArrayList<String> vers = new ArrayList<String>();
+					for (int i=0; i<versions.length; i++) {
+						if (versions[i].length() >= 4) {
+							vers.add(versions[i]);
+						}
+					}
+					ver = vers.toArray(new String[vers.size()]);
+				}
+				else if (versionDropdown.getSelectedItem().equals("4.") //$NON-NLS-1$
+						|| versionDropdown.getSelectedItem().equals("5.")
+						|| versionDropdown.getSelectedItem().equals("6.")) { //$NON-NLS-1$
+					ArrayList<String> vers = new ArrayList<String>();
+					String s = versionDropdown.getSelectedItem().toString();
+					for (int i=0; i<versions.length; i++) {
+						if (versions[i].startsWith(s) && !versions[i].equals(s)) {
+							vers.add(versions[i]);
+						}
+					}
+					ver = vers.toArray(new String[vers.size()]);
+				}
+				else {
+					ver = new String[] {versionDropdown.getSelectedItem().toString()};
+				}
+				if (osDropdown.getSelectedItem().equals("all")) { //$NON-NLS-1$
+					os = new String[OSs.length-1];
+					for (int i=0; i<os.length; i++) {
+						os[i] = OSs[i+1];
+					}
+				}
+				else {
+					os = new String[] {osDropdown.getSelectedItem().toString()};
+				}
+				if (engineDropdown.getSelectedItem().equals("all")) { //$NON-NLS-1$
+					eng = new String[engines.length-1];
+					for (int i=0; i<eng.length; i++) {
+						eng[i] = engines[i+1];
+					}
+				}
+				else {
+					eng = new String[] {engineDropdown.getSelectedItem().toString()};
+				}
+			}
+			String result = send(actionDropdown.getSelectedItem().toString(), ver, os, eng);
+    	textArea.setForeground(Color.BLACK);
+			String command = versionDropdown.getSelectedItem()+"_"+osDropdown.getSelectedItem(); //$NON-NLS-1$
+			if (!action.contains("download")) { //$NON-NLS-1$
+				command += "_"+engineDropdown.getSelectedItem(); //$NON-NLS-1$
+			}
+			textArea.setText(action+" "+command+": "+result); //$NON-NLS-1$ //$NON-NLS-2$							
+		}
+  }
+	
+	private String send(String path, String command) {
     try {
-			URL url = new URL(command);
+			URL url = new URL(path+command);
 			Resource res = new Resource(url);
 	    return res.getString().trim();
 		} catch (Exception e) {
@@ -281,7 +287,7 @@ public class TrackerCountReader extends JFrame {
 					else if (ver[i].startsWith("5.2") && !osname.equals(OSs[2])) {
 						continue; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 					}
-					String result = send(downloadPHPPath+command+suffix);
+					String result = send(downloadPHPPath, command+suffix);
 					commands += NEW_LINE+command+": "+result; //$NON-NLS-1$
 					if (action.contains("read")) { //$NON-NLS-1$
 						try {
@@ -294,7 +300,7 @@ public class TrackerCountReader extends JFrame {
 					}
 					if (osname.contains("linux") && !ver[i].startsWith("6")) { //$NON-NLS-1$
 						command = "Tracker-"+ver[i]+"-linux-64bit-installer"+ext; //$NON-NLS-1$ //$NON-NLS-2$
-						result = send(downloadPHPPath+command+suffix);
+						result = send(downloadPHPPath, command+suffix);
 						commands += NEW_LINE+command+": "+result; //$NON-NLS-1$
 						if (action.contains("read")) { //$NON-NLS-1$
 							try {
@@ -315,7 +321,7 @@ public class TrackerCountReader extends JFrame {
 						if (action.contains("test")) { //$NON-NLS-1$
 							command = "log_"+ver[i]+"_"+osname+"_"+eng[k]+"test"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
 						}
-						String result = send(launchPHPPath+command);
+						String result = send(launchPHPPath, command);
 						commands += NEW_LINE+ver[i]+"_"+osname+"_"+eng[k]+": "+result; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 						if (action.contains("read")) { //$NON-NLS-1$
 							try {
