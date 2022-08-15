@@ -141,6 +141,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 		private String originalVideoPath;
 		private String videoTarget;
 		private String trkPath;
+		private int tabID;
 
 		private ArrayList<File> zipList;
 
@@ -150,13 +151,15 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 		private String vidDir;
 
 		protected Export(ArrayList<File> zipList, String name, String originalPath, 
-				String trkPath, String videoTarget, ExportVideoDialog exporter) {
+				String trkPath, String videoTarget, ExportVideoDialog exporter,
+				TrackerPanel panel) {
 			this.name = name;
 			this.zipList = zipList;
 			this.originalVideoPath = originalPath;
 			this.videoTarget = videoTarget;
 			this.trkPath = trkPath;
 			this.exporter = exporter;
+			this.tabID = panel.getID();
 		}
 
 		protected void export() {
@@ -174,7 +177,8 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 				}
 				String extension = vidType.getDefaultExtension();
 				videoTarget = getVideoTarget(XML.getName(trkPath), extension);
-				TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
+//				TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
+				TrackerPanel trackerPanel = frame.getTrackerPanelForID(tabID);
 				exporter.setTrackerPanel(trackerPanel);
 				exporter.setFormat((String) formatDropdown.getSelectedItem());
 				// listen for cancel or saved events
@@ -203,7 +207,8 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 			}
 			
 			// if source is an image video, then copy/extract additional image files
-			TrackerPanel panel = frame.getTrackerPanelForID(panelID);
+//			TrackerPanel panel = frame.getTrackerPanelForID(panelID);
+			TrackerPanel panel = frame.getTrackerPanelForID(tabID);
 			Video vid = panel.getVideo();
 			if (vid instanceof ImageVideo) {
 				ImageVideo imageVid = (ImageVideo) vid;
@@ -270,7 +275,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 			}
 
 			// create and modify TrackerPanel XMLControl
-			TrackerPanel panel = frame.getTrackerPanelForID(panelID);
+			TrackerPanel panel = frame.getTrackerPanelForID(tabID);
 			XMLControl control = new XMLControlElement(panel);
 			// modify video path, clip settings of XMLControl
 			if (exporter != null) {
@@ -308,7 +313,8 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 		 * @param control the XMLControl to be modified
 		 */
 		private void modifyControlForClip(XMLControl control) {
-			TrackerPanel panel = frame.getTrackerPanelForID(panelID);
+//			TrackerPanel panel = frame.getTrackerPanelForID(panelID);
+			TrackerPanel panel = frame.getTrackerPanelForID(tabID);
 			VideoPlayer player = panel.getPlayer();
 
 			// videoclip--convert frame count, start frame, step size and frame shift but
@@ -2117,7 +2123,8 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 					}
 				}
 			}
-			exports.add(new Export(zipList, tabTitle, originalPath, trkPath, videoPath, exporter));
+			exports.add(new Export(zipList, tabTitle, originalPath, 
+					trkPath, videoPath, exporter, panel));
 		}
 		exportIterator = exports.iterator();
 	}
