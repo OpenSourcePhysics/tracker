@@ -196,6 +196,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 	private JMenu fileMenu;
 	private JMenuItem file_newTabItem;
 	private JMenuItem file_replaceTabItem;
+	private JMenu file_openMenu;
 	private JMenuItem file_openItem;
 	private JMenuItem file_openBrowserItem;
 
@@ -204,6 +205,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 
 	private JMenuItem file_closeItem;
 	private JMenuItem file_closeAllItem;
+	private JMenu file_saveMenu;
 	private JMenuItem file_saveItem;
 	private JMenuItem file_saveTabAsItem;
 	private JMenuItem file_saveProjectAsItem;
@@ -542,11 +544,19 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		// new tab item
 		file_newTabItem = new JMenuItem(actions.get("newTab"));
 		file_newTabItem.setAccelerator(KeyStroke.getKeyStroke('N', keyMask));
-		// open item
+		// open menu
+		file_openMenu = new JMenu(TrackerRes.getString("TrackerIO.Dialog.Open.Title")); //$NON-NLS-1$
+
 		file_openItem = new JMenuItem(actions.get("open")); //$NON-NLS-1$
 		file_openItem.setAccelerator(KeyStroke.getKeyStroke('O', keyMask));
+		file_openItem.setText(TrackerRes.getString("TMenuBar.MenuItem.FileChooser")+"...");
+		file_openMenu.setIcon(file_openItem.getIcon()); //$NON-NLS-1$
+		file_openItem.setIcon(null); //$NON-NLS-1$
 		// open library browser item
 		file_openBrowserItem = new JMenuItem(actions.get("openBrowser")); //$NON-NLS-1$
+		file_openBrowserItem.setText(TrackerRes.getString("TMenuBar.MenuItem.LibraryBrowser")+"...");
+		file_openBrowserItem.setIcon(null);
+		
 		// open recent
 		file_openRecentMenu = new JMenu();
 		// import menu
@@ -591,14 +601,22 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 			exporter.setVisible(true);
 		});
 		file_exportMenu.add(file_export_dataItem);
-		// save item
+		// save menu
+		file_saveMenu = new JMenu(TrackerRes.getString("TMenuBar.Menu.Save"));
+
 		file_saveItem = new JMenuItem(actions.get("save")); //$NON-NLS-1$
 		file_saveItem.setAccelerator(KeyStroke.getKeyStroke('S', keyMask));
-		file_saveItem.setDisabledIcon(file_saveItem.getIcon());
+//		file_saveItem.setDisabledIcon(file_saveItem.getIcon());
+		file_saveItem.setText(TrackerRes.getString("TMenuBar.MenuItem.Tab")+"...");
+		file_saveMenu.setIcon(file_saveItem.getIcon());
+		file_saveItem.setIcon(null);
+		
 		// saveAs item
 		file_saveTabAsItem = new JMenuItem(actions.get("saveAs")); //$NON-NLS-1$
 		// save zip item
 		file_saveProjectAsItem = new JMenuItem(actions.get("saveZip")); //$NON-NLS-1$
+		file_saveProjectAsItem.setText(TrackerRes.getString("TMenuBar.MenuItem.Project")+"...");
+		file_saveProjectAsItem.setIcon(null);
 		// saveVideoAs item
 		file_saveVideoAsItem = new JMenuItem(actions.get("saveVideo")); //$NON-NLS-1$
 		// saveTabset item
@@ -1344,20 +1362,24 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 				fileMenu.add(file_replaceTabItem);
 			}
 			fileMenu.addSeparator();
-			fileMenu.add(file_openItem);
+//			fileMenu.add(file_openItem);
+			file_openMenu.add(file_openItem);
+			file_openMenu.add(file_openBrowserItem);
+			fileMenu.add(file_openMenu);
 			if (!OSPRuntime.isJS) {
 				fileMenu.add(file_openRecentMenu);
 			}
-			fileMenu.addSeparator();
-			fileMenu.add(file_openBrowserItem);
+//			fileMenu.addSeparator();
+//			fileMenu.add(file_openBrowserItem);
 			fileMenu.addSeparator();
 			fileMenu.add(file_closeItem);
 			fileMenu.add(file_closeAllItem);
 			fileMenu.addSeparator();
-			fileMenu.add(file_saveItem);
+			fileMenu.add(file_saveMenu);
+			file_saveMenu.add(file_saveItem);
 			fileMenu.add(file_saveTabAsItem);
 			fileMenu.add(file_saveVideoAsItem);
-			fileMenu.add(file_saveProjectAsItem);
+			file_saveMenu.add(file_saveProjectAsItem);
 			fileMenu.add(file_saveTabsetAsItem);
 			fileMenu.addSeparator();
 			fileMenu.add(file_importMenu);
@@ -1380,7 +1402,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 			boolean exportEnabled = panel().isEnabled("file.export"); //$NON-NLS-1$
 			boolean showLib = (panel().isEnabled("file.library") //$NON-NLS-1$
 					&& (openEnabled || exportEnabled));
-			boolean saveEnabled = (panel().isEnabled("file.save") && panel().getDataFile() != null); //$NON-NLS-1$
+			boolean saveEnabled = (panel().isEnabled("file.save")); //$NON-NLS-1$
 			boolean saveAsEnabled = panel().isEnabled("file.saveAs"); //$NON-NLS-1$
 			boolean printEnabled = panel().isEnabled("file.print"); //$NON-NLS-1$
 
@@ -1407,7 +1429,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 			// set close and saveAs names
 			String name = " \"" + panel().getTitle() + "\""; //$NON-NLS-1$ //$NON-NLS-2$
 			file_closeItem.setText(TrackerRes.getString("TActions.Action.Close") + name); //$NON-NLS-1$
-			file_saveItem.setText(TrackerRes.getString("TActions.Action.Save") + name); //$NON-NLS-1$
+//			file_saveItem.setText(TrackerRes.getString("TMenuBar.MenuItem.Tab")+"..."); //$NON-NLS-1$
 			// disable export data menu if no tracks to export
 			file_export_dataItem.setEnabled(!panel().getExportableTracks().isEmpty());
 			
@@ -2392,19 +2414,45 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 //			return;
 		}
 		
-		
+		// get names of current TViews
+		TViewChooser[] choosers = frame.getViewChoosers(panelID);
+		String[] viewNames = new String[4];
+		for (int i = 0; i < choosers.length; i++) {
+			if (choosers[i] == null || i > viewNames.length)
+				continue;
+			int viewType = choosers[i].getSelectedViewType();
+			viewNames[i] = 
+					viewType == TView.VIEW_PLOT? 
+						TrackerRes.getString("PlotTView.Name"):
+					viewType == TView.VIEW_TABLE? 
+						TrackerRes.getString("TableTView.Name"):
+					viewType == TView.VIEW_WORLD? 
+						TrackerRes.getString("WorldTView.Button.World"):
+					viewType == TView.VIEW_PAGE? 
+						TrackerRes.getString("PageTView.Button.Page"):
+					null;
+		}
+				
 		// long t0 = Performance.now(0);
+		// determine if right pane is open or closed
 		JSplitPane pane = frame.getSplitPane(panel(), 0);
 		int max = pane.getMaximumDividerLocation();
 		int cur = pane.getDividerLocation();
 		double loc = 1.0 * cur / max;
 		// TMenuBar menubar = TMenuBar.getMenuBar(trackerPanel);
 		view_rightPaneItem.setSelected(loc < 0.99);
+		String rp = TrackerRes.getString("TMenuBar.MenuItem.WindowRight");
+		view_rightPaneItem.setText(rp + " (" + viewNames[0] + ", " + viewNames[1] + ")");
+		
+		// determine if bottom pane is open or closed
 		pane = frame.getSplitPane(panel, 2);
 		max = pane.getMaximumDividerLocation();
 		cur = pane.getDividerLocation();
 		loc = 1.0 * cur / max;
 		view_bottomPaneItem.setSelected(loc < .95);
+		String bp = TrackerRes.getString("TMenuBar.MenuItem.WindowBottom");
+		view_bottomPaneItem.setText(bp + " (" + viewNames[3] + ", " + viewNames[2] + ")");
+		
 		TrackControl tc = TrackControl.getControl(panel);
 		view_trackControlItem.setSelected(tc.isVisible());
 		view_trackControlItem.setEnabled(!tc.isEmpty());

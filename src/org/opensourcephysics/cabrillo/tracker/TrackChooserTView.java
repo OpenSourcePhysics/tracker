@@ -24,6 +24,7 @@
  */
 package org.opensourcephysics.cabrillo.tracker;
 
+import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -91,10 +92,8 @@ public abstract class TrackChooserTView extends TView {
 	private JComboBox<Object[]> trackComboBox;
 	private JPanel noData;
 	private JLabel noDataLabel;
+	private JLabel viewTypeLabel;
 
-	protected void setNodataLabel(String text) {
-		noDataLabel.setText(text);
-	}
 	/**
 	 * Constructs a TrackChooserView for the specified tracker panel.
 	 *
@@ -130,11 +129,12 @@ public abstract class TrackChooserTView extends TView {
 			}
 		});
 		// create the noData panel
-		noData = new JPanel();
+		noData = new JPanel(new BorderLayout());
 		noDataLabel = new JLabel();
+		noDataLabel.setBorder(BorderFactory.createEmptyBorder(4, 4, 0, 0));
 		Font font = new JTextField().getFont();
 		noDataLabel.setFont(font);
-		noData.add(noDataLabel);
+		noData.add(noDataLabel, BorderLayout.NORTH);
 		noData.setBackground(getBackground());
 		noData.addMouseListener(new MouseAdapter() {
 			@Override
@@ -158,6 +158,8 @@ public abstract class TrackChooserTView extends TView {
 				}
 			}
 		});
+		viewTypeLabel = new JLabel();		
+		viewTypeLabel.setBorder(BorderFactory.createEmptyBorder(2, 6, 2, 0));
 	}
 
 	protected void dropDownAction() {
@@ -360,7 +362,7 @@ public abstract class TrackChooserTView extends TView {
 	 */
 	public void setSelectedTrack(TTrack track) {
 		if (track == null) {
-			setNoData();
+//			setNoData();
 			return;
 		}
 		TrackerPanel trackerPanel = getPanel();
@@ -388,22 +390,23 @@ public abstract class TrackChooserTView extends TView {
 		}
 	}
 
-	private void setNoData() {
-		String msg;
-		switch (getViewType()) {
-		case TView.VIEW_TABLE:
-			msg = "TableTView.Label.NoData"; //$NON-NLS-1$
-			noDataLabel.setText(TrackerRes.getString(msg));
-			break;
-		default:
-		case TView.VIEW_PLOT:
-			msg = "PlotTView.Label.NoData"; //$NON-NLS-1$
-			noDataLabel.setText(TrackerRes.getString(msg));
-			break;
-		}
-		add(noData, "noData");
-		selectedTrack = null;
-	}
+//	private void setNoData() {
+//		String msg;
+//		switch (getViewType()) {
+//		case TView.VIEW_TABLE:
+//			msg = "TableTView.Label.NoData"; //$NON-NLS-1$
+//			noDataLabel.setText(TrackerRes.getString(msg));
+//			break;
+//		default:
+//		case TView.VIEW_PLOT:
+//			msg = "PlotTView.Label.NoData"; //$NON-NLS-1$
+//			noDataLabel.setText(TrackerRes.getString(msg));
+//			break;
+//		}
+//		add(noData, "noData");
+//		selectedTrack = null;
+//	}
+	
 	/**
 	 * Gets the track view for the specified track
 	 *
@@ -440,6 +443,18 @@ public abstract class TrackChooserTView extends TView {
 		}
 		if (trackView != null) {
 			toolbarComponents.addAll(trackView.getToolBarComponents());
+		}
+		else {
+			switch (getViewType()) {
+				case TView.VIEW_TABLE:
+					viewTypeLabel.setText(TrackerRes.getString("TFrame.View.Table"));
+					break;
+				case TView.VIEW_PLOT:
+					viewTypeLabel.setText(TrackerRes.getString("TFrame.View.Plot"));
+					break;
+				default:
+			}
+			toolbarComponents.add(viewTypeLabel);
 		}
 		return toolbarComponents;
 	}

@@ -109,6 +109,7 @@ import org.opensourcephysics.display.DrawingPanel;
 import org.opensourcephysics.display.GUIUtils;
 import org.opensourcephysics.display.Interactive;
 import org.opensourcephysics.display.OSPRuntime;
+import org.opensourcephysics.display.ResizableIcon;
 import org.opensourcephysics.media.core.ImageCoordSystem;
 import org.opensourcephysics.media.core.TPoint;
 import org.opensourcephysics.media.core.TemplateMatcher;
@@ -2492,6 +2493,13 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 		 * Creates the visible components.
 		 */
 		protected void createGUI() {
+			Icon icon = TToolBar.autotrackerOffIcon;
+			if (icon instanceof ResizableIcon) {
+				icon = ((ResizableIcon)icon).getBaseIcon();
+				if (icon instanceof ImageIcon) {
+					setIconImage(((ImageIcon)icon).getImage());
+				}
+			}
 			if (frame != null) {
 				frame.addPropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, this); // $NON-NLS-1$
 			}

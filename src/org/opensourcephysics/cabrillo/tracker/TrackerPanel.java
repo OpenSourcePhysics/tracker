@@ -222,9 +222,6 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	protected Map<Filter, Point> visibleFilters; // TFrame sets locations of filter inspectors
 	protected int trackControlX = Integer.MIN_VALUE, trackControlY; // TFrame sets track control location
 	protected int infoX = Integer.MIN_VALUE, infoY; // TFrame sets info dialog location
-//	protected JPanel noData = new JPanel();
-//	protected JLabel[] noDataLabels = new JLabel[2];
-//	protected boolean isEmpty;
 	protected String defaultSavePath, openedFromPath;
 	protected ModelBuilder modelBuilder;
 	protected TrackControl trackControl;
@@ -345,16 +342,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 
 		badNameLabel = new JLabel();
 		badNameLabel.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
-//		Box box = Box.createVerticalBox();
-//		noData.add(box);
-//		for (int i = 0; i < 2; i++) {
-//			noDataLabels[i] = new JLabel();
-//			noDataLabels[i].setFont(font);
-//			noDataLabels[i].setAlignmentX(0.5f);
-//			box.add(noDataLabels[i]);
-//		}
-//		noData.setOpaque(false);
-
+		
 		massParamListener = new PropertyChangeListener() {
 			@Override
 			public void propertyChange(PropertyChangeEvent e) {
@@ -1077,26 +1065,6 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			list.add(0, mat);
 		}
 		
-		// DB 10.20.20 no longer need this since 
-//		// make GUI changes later in EventQueue
-//    SwingUtilities.invokeLater(() -> {
-//  		// show noData message if panel is empty
-//  		if (getVideo() == null && (userTracks == null || userTracks.isEmpty())) {
-//  			isEmpty = true;
-//  			if (this instanceof WorldTView) {
-//  				noDataLabels[0].setText(TrackerRes.getString("WorldTView.Label.NoData")); //$NON-NLS-1$
-//  				noDataLabels[1].setText(null);
-//  			} else {
-//  				noDataLabels[0].setText(TrackerRes.getString("TrackerPanel.Message.NoData0")); //$NON-NLS-1$
-//  				noDataLabels[1].setText(TrackerRes.getString("TrackerPanel.Message.NoData1")); //$NON-NLS-1$
-//  			}
-//  			add(noData, BorderLayout.NORTH);
-//  		} else {
-//  			isEmpty = false;
-//  			remove(noData);
-//  		}
-//    });
-
 		return list;
 	}
 
@@ -3047,6 +3015,8 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		for (int i = views.size(); --i >= 0;) {
 			views.get(i).refresh();
 		}
+		TMenuBar menubar = getMenuBar(false);
+		FontSizer.setFonts(menubar, level);
 		getTrackBar(true).setFontLevel(level);
 		refreshTrackBar();
 		ArrayList<TTrack> list = getTracks();

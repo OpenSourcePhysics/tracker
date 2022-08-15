@@ -396,7 +396,7 @@ public class WorldTView extends TView {
 	public void refresh() {
 		if (!isViewPaneVisible())
 			return;
-		worldViewLabel.setText(TrackerRes.getString("WorldTView.Button.World")); //$NON-NLS-1$
+		worldViewLabel.setText(TrackerRes.getString("TFrame.View.World")); //$NON-NLS-1$
 		worldPanel().refresh();
 	}
 
@@ -474,7 +474,7 @@ public class WorldTView extends TView {
 	 */
 	@Override
 	public ArrayList<Component> getToolBarComponents() {
-		worldViewLabel.setText(TrackerRes.getString("WorldTView.Button.World")); //$NON-NLS-1$
+		worldViewLabel.setText(TrackerRes.getString("TFrame.View.World")); //$NON-NLS-1$
 		return super.getToolBarComponents();
 	}
 

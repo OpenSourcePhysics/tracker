@@ -63,7 +63,7 @@ import org.opensourcephysics.tools.FontSizer;
 
 /**
  * This is a toolbar that display selected track properties in the NORTH
- * section of a TrackerPanel.
+ * section of a MainTView.
  *
  * @author Douglas Brown
  */
@@ -76,6 +76,8 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 	protected static javax.swing.Timer testTimer;
 	protected static boolean showOutOfMemoryDialog = true;
 	private final static JTextField sizingField = new JTextField("1234567");
+	private JLabel viewLabel = new JLabel();
+
 	static int testIndex;
 
 	static {
@@ -296,7 +298,7 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 		});
 
 		setFloatable(false);
-//		setBorder(BorderFactory.createEmptyBorder(3, 0, 2, 0));
+		viewLabel.setBorder(BorderFactory.createEmptyBorder(2, 6, 2, 0));
 		// select button
 		selectButton = new TButton(selectTrackIcon) {
 			@Override
@@ -507,6 +509,38 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 					add(c);
 				}
 			}
+		}
+		else {
+			ArrayList<TTrack> userTracks = panel.getUserTracks();
+			TFrame frame = panel.getTFrame();
+  		if (userTracks == null || userTracks.isEmpty()) {
+//  			// close right pane
+//  			frame.setDividerLocation(panel, TFrame.SPLIT_MAIN_RIGHT, 1.0);
+    		// show noData message if no video
+    		if (panel.getVideo() == null) {
+    			String name = TrackerRes.getString("TFrame.View.Main");
+    			String hint = TrackerRes.getString("TTrackBar.Hint.OpenFile");
+    			viewLabel.setText(name + ": " + hint); //$NON-NLS-1$
+    			FontSizer.setFonts(viewLabel);
+    			add(viewLabel);
+    		}
+  		}
+//  		if (panel.getVideo() == null && (userTracks == null || userTracks.isEmpty())) {
+//  			String name = TrackerRes.getString("TFrame.View.Main");
+//  			String hint = TrackerRes.getString("TTrackBar.Hint.OpenFile");
+//  			viewLabel.setText(name + ": " + hint); //$NON-NLS-1$
+//  			FontSizer.setFonts(viewLabel);
+//  			add(viewLabel);
+//  			
+//  			// also close right pane
+//  			frame.setDividerLocation(panel, TFrame.SPLIT_MAIN_RIGHT, 1.0);
+//  		}
+  		else if (!frame.areViewsVisible(TFrame.DEFAULT_VIEWS, panel)) {
+  			if (!TFrame.isPortraitOrientation)
+  				frame.setDividerLocation(panel, TFrame.SPLIT_MAIN_RIGHT, TFrame.DEFAULT_MAIN_DIVIDER); 			
+  			else 
+  				frame.setDividerLocation(panel, TFrame.SPLIT_MAIN_BOTTOM, TFrame.DEFAULT_BOTTOM_DIVIDER); 			
+  		}
 		}
 		add(toolbarEnd);
 		if (!OSPRuntime.isJS) /** @j2sNative */

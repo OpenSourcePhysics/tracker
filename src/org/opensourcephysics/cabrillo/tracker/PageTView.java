@@ -458,11 +458,12 @@ public class PageTView extends TView {
 		toolbarComponents.add(filler);
 		toolbarComponents.add(tabTitleLabel);
 		// create the noTab panel
-		noTab = new JPanel();
+		noTab = new JPanel(new BorderLayout());
 		noTabLabel = new JLabel();
+		noTabLabel.setBorder(BorderFactory.createEmptyBorder(4, 4, 0, 0));
 		Font font = new JTextField().getFont();
 		noTabLabel.setFont(font);
-		noTab.add(noTabLabel);
+		noTab.add(noTabLabel, BorderLayout.NORTH);
 		noTab.setBackground(getBackground());
 		noTab.addMouseListener(new MouseAdapter() {
 			@Override

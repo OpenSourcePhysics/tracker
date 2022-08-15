@@ -230,15 +230,15 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	private static final int TFRAME_VIEWCHOOSERS = 1;
 	private static final int TFRAME_SPLITPANES = 2;
 
-	private static final int DEFAULT_VIEWS = 0;
-	private static final int OTHER_VIEWS = 1;
+	protected static final int DEFAULT_VIEWS = 0;
+	protected static final int OTHER_VIEWS = 1;
 
 	protected static final double DEFAULT_MAIN_DIVIDER = 0.67;
 	protected static final double DEFAULT_RIGHT_DIVIDER = 0.57;
 	protected static final double DEFAULT_LEFT_DIVIDER = 0.57;
 	protected static final double DEFAULT_BOTTOM_DIVIDER = 0.50;
 
-	private static boolean isPortraitOrientation;
+	protected static boolean isPortraitOrientation;
 	private static boolean isLayoutChanged;
 	private static boolean isLayoutAdaptive;
 	
@@ -2014,7 +2014,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		int i = panelID.intValue();
 		TMenuBar bar = _amenubars[i];
 		if (bar == null && forceNew) {
-			_amenubars[i] = new TMenuBar(panel);
+			bar = _amenubars[i] = new TMenuBar(panel);
+			FontSizer.setFonts(bar);
 		}
 		return bar;
 	}
@@ -2653,6 +2654,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		boolean portrait = isPortraitLayout();
 		if (trackerPanel.dividerLocs == null) {
 			setDividerLocation(trackerPanel, SPLIT_MAIN_RIGHT, portrait ? 1.0 : DEFAULT_MAIN_DIVIDER);
+			setDividerLocation(trackerPanel, SPLIT_MAIN_RIGHT, 1.0);
 			setDividerLocation(trackerPanel, SPLIT_PLOT_TABLE, DEFAULT_RIGHT_DIVIDER);
 			setDividerLocation(trackerPanel, SPLIT_MAIN_BOTTOM, portrait ? DEFAULT_LEFT_DIVIDER : 1.0);
 //			setDividerLocation(trackerPanel, SPLIT_BOTTOM, 1.0); // becomes previous
