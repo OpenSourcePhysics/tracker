@@ -2052,7 +2052,8 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 						track.setColor(Color.BLUE);
 						track.setStickMode(true);
 						double scale = panel().getCoords().getScaleX(0);
-						track.setCalibrator(scale == 1.0 ? 1.0 : null);
+						boolean uncalibrated = panel().calibrationTools.isEmpty();
+						track.setCalibrator(scale == 1.0 && uncalibrated ? 1.0 : null);
 						// assign a default name
 						String name = TrackerRes.getString("CalibrationStick.New.Name"); //$NON-NLS-1$
 						track.setName(panel().getNextName(name, " "));
