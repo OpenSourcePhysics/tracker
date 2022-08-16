@@ -510,38 +510,34 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 				}
 			}
 		}
-		else {
-			ArrayList<TTrack> userTracks = panel.getUserTracks();
-			TFrame frame = panel.getTFrame();
-  		if (userTracks == null || userTracks.isEmpty()) {
-//  			// close right pane
-//  			frame.setDividerLocation(panel, TFrame.SPLIT_MAIN_RIGHT, 1.0);
-    		// show noData message if no video
-    		if (panel.getVideo() == null) {
-    			String name = TrackerRes.getString("TFrame.View.Main");
-    			String hint = TrackerRes.getString("TTrackBar.Hint.OpenFile");
-    			viewLabel.setText(name + ": " + hint); //$NON-NLS-1$
-    			FontSizer.setFonts(viewLabel);
-    			add(viewLabel);
-    		}
-  		}
-//  		if (panel.getVideo() == null && (userTracks == null || userTracks.isEmpty())) {
-//  			String name = TrackerRes.getString("TFrame.View.Main");
-//  			String hint = TrackerRes.getString("TTrackBar.Hint.OpenFile");
-//  			viewLabel.setText(name + ": " + hint); //$NON-NLS-1$
-//  			FontSizer.setFonts(viewLabel);
-//  			add(viewLabel);
-//  			
-//  			// also close right pane
-//  			frame.setDividerLocation(panel, TFrame.SPLIT_MAIN_RIGHT, 1.0);
-//  		}
-  		else if (!frame.areViewsVisible(TFrame.DEFAULT_VIEWS, panel)) {
-  			if (!TFrame.isPortraitOrientation)
-  				frame.setDividerLocation(panel, TFrame.SPLIT_MAIN_RIGHT, TFrame.DEFAULT_MAIN_DIVIDER); 			
-  			else 
-  				frame.setDividerLocation(panel, TFrame.SPLIT_MAIN_BOTTOM, TFrame.DEFAULT_BOTTOM_DIVIDER); 			
+
+		ArrayList<TTrack> userTracks = panel.getUserTracks();
+		TFrame frame = panel.getTFrame();
+		if ((userTracks == null || userTracks.isEmpty())
+				&& panel.measuringTools.isEmpty()) {
+			// close right/bottom pane
+			if (!TFrame.isPortraitOrientation)
+				frame.setDividerLocation(panel, TFrame.SPLIT_MAIN_RIGHT, 1.0); 			
+			else 
+				frame.setDividerLocation(panel, TFrame.SPLIT_MAIN_BOTTOM, 1.0); 
+			
+  		// show noData message if no video and no calibration tools
+  		if (panel.getVideo() == null && panel.calibrationTools.isEmpty()) {
+  			String name = TrackerRes.getString("TFrame.View.Main");
+  			String hint = TrackerRes.getString("TTrackBar.Hint.OpenFile");
+  			viewLabel.setText(name + ": " + hint); //$NON-NLS-1$
+  			FontSizer.setFonts(viewLabel);
+  			add(viewLabel);
   		}
 		}
+		else if (!frame.areViewsVisible(TFrame.DEFAULT_VIEWS, panel)) {
+			if (!TFrame.isPortraitOrientation)
+				frame.setDividerLocation(panel, TFrame.SPLIT_MAIN_RIGHT, TFrame.DEFAULT_MAIN_DIVIDER); 			
+			else 
+				frame.setDividerLocation(panel, TFrame.SPLIT_MAIN_BOTTOM, TFrame.DEFAULT_BOTTOM_DIVIDER); 
+			
+		}
+		
 		add(toolbarEnd);
 		if (!OSPRuntime.isJS) /** @j2sNative */
 		{
