@@ -374,6 +374,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	}
 
 	private void init(Map<String, Object> options) {
+		setTitle("Tracker" + (OSPRuntime.isJS? " Online": ""));
 		if (options == null)
 			options = new HashMap<>();
 		isLayoutAdaptive = (options.get("-adaptive") != null);
