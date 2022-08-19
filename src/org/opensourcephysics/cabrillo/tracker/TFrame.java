@@ -434,10 +434,13 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	@SuppressWarnings("unused")
 	private Rectangle getAdaptiveBounds(boolean isInit) {
 		Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
-		int w = (int) (0.9 * dim.width);
-		int margin = (int) (0.05 * dim.width);
-		int h = (int) (0.7 * (dim.height - 80));
-		Rectangle rect = new Rectangle(margin, 80, w, h);
+//		int w = (int) (0.9 * dim.width);
+//		int margin = (int) (0.05 * dim.width);
+//		int h = (int) (0.7 * (dim.height - 80));
+		int w = (int) (0.99 * dim.width);
+		int margin = (int) (0.005 * dim.width);
+		int h = (int) (0.98 * (dim.height - 2));
+		Rectangle rect = new Rectangle(margin, 2, w, h);
 		if (isInit) {
 			// JS only
 				Runnable onOrient = new Runnable() {
