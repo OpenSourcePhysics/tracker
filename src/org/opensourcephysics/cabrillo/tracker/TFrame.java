@@ -378,6 +378,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		if (options == null)
 			options = new HashMap<>();
 		isLayoutAdaptive = (options.get("-adaptive") != null);
+		isLayoutAdaptive = true; // pig
 		Dimension dim = (Dimension) options.get("-dim");
 		Rectangle bounds = (Rectangle) options.get("-bounds");
 		Video video = (Video) options.get("-video");
@@ -437,10 +438,10 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 //		int w = (int) (0.9 * dim.width);
 //		int margin = (int) (0.05 * dim.width);
 //		int h = (int) (0.7 * (dim.height - 80));
-		int w = (int) (0.99 * dim.width);
-		int margin = (int) (0.005 * dim.width);
-		int h = (int) (0.98 * (dim.height - 2));
-		Rectangle rect = new Rectangle(margin, 2, w, h);
+		int w = (int) (0.996 * dim.width);
+		int margin = (int) (0.002 * dim.width);
+		int h = (int) (0.95 * (dim.height - 4));
+		Rectangle rect = new Rectangle(margin, 4, w, h);
 		if (isInit) {
 			// JS only
 				Runnable onOrient = new Runnable() {
