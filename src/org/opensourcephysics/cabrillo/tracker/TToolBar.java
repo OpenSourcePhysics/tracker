@@ -66,6 +66,7 @@ import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JToolBar;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
+import javax.swing.border.Border;
 import javax.swing.event.MenuEvent;
 import javax.swing.event.MenuListener;
 
@@ -165,6 +166,7 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 	private static final String BUTTON_MEMORY = "Memory";
 	private static final String BUTTON_REFRESH = "Refresh";
 	private static final String BUTTON_DESKTOP = "SupportDocs";
+	private static final String BUTTON_MAXIMIZE = "Maximize";
 	
 	// instance fields
 	/** effectively final */
@@ -193,6 +195,7 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 	protected ButtonGroup vGroup, aGroup;
 	final protected JMenuItem showTrackControlItem, selectNoneItem, stretchOffItem;
 	final protected JButton notesButton, refreshButton, desktopButton, memoryButton;
+	final protected JButton maximizeButton;
 	final protected Component toolbarFiller;
 	final protected JMenu cloneMenu;
 	final protected ArrayList<PageTView.TabData> pageViewTabs = new ArrayList<PageTView.TabData>();
@@ -202,7 +205,7 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 	protected JMenu rulerMenu, refreshMenu, memoryMenu, desktopMenu;
 	protected JMenu zoomMenu, drawingMenu, calibrationMenu, eyeMenu;
 	protected JMenu openMenu, saveMenu;
-	protected JCheckBoxMenuItem trackControlCheckbox, notesCheckbox;
+	protected JCheckBoxMenuItem trackControlCheckbox, notesCheckbox, maximizeCheckbox;
 	protected JCheckBoxMenuItem axesCheckbox, autotrackerCheckbox, clipCheckbox;
 	protected JCheckBoxMenuItem drawingControlCheckbox;
 	protected ArrayList<JButton> overflowButtons;
@@ -776,6 +779,34 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 		desktopButton.setDisabledIcon(htmlDisabledIcon);
 		desktopButton.setName(BUTTON_DESKTOP);
 		
+		maximizeButton = new TButton(TViewChooser.MAXIMIZE_ICON, TViewChooser.RESTORE_ICON);
+		Border empty = BorderFactory.createEmptyBorder(8, 2, 8, 2);
+		Border etched = BorderFactory.createEtchedBorder();
+		maximizeButton.setBorder(BorderFactory.createCompoundBorder(etched, empty));
+		maximizeButton.setName(BUTTON_MAXIMIZE);
+		maximizeButton.setToolTipText(TrackerRes.getString("TFrame.Maximize.Tooltip")); //$NON-NLS-1$
+		maximizeButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				TFrame.maximize = !TFrame.maximize;
+				maximizeButton.setSelected(TFrame.maximize);
+				if (OSPRuntime.isJS) {
+					maximizeButton.setIcon(TFrame.maximize? TViewChooser.RESTORE_ICON: TViewChooser.MAXIMIZE_ICON);
+				}
+				maximizeButton.setToolTipText(TFrame.maximize ? TrackerRes.getString("TFrame.Restore.Tooltip") : //$NON-NLS-1$
+					TrackerRes.getString("TFrame.Maximize.Tooltip")); //$NON-NLS-1$
+				if (TFrame.maximize) {
+					Rectangle rect = panel().getTFrame().getBounds();
+					// save this for restore??
+					panel().getTFrame().getAdaptiveBounds(false);
+				}
+				else
+					// do we want to restore previous here?
+					panel().getTFrame().getAdaptiveBounds(false);
+			}
+		});
+
+		
 		overflowPopup = new JPopupMenu();
 		overflowButton = new TButton() {
 			@Override
@@ -1127,6 +1158,14 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 				refreshMenu.setIcon(button.getIcon());
 			}
 			return refreshMenu;
+		case BUTTON_MAXIMIZE:
+			if (maximizeCheckbox == null) {
+				maximizeCheckbox = new JCheckBoxMenuItem(getLocalizedName(button), button.getIcon());
+				maximizeCheckbox.addActionListener((e) -> {
+					button.doClick(0);
+				});
+			}
+			return maximizeCheckbox;
 		default:
 			JMenu menu = new JMenu(getLocalizedName(button));
 			menu.setIcon(button.getIcon());
@@ -1192,6 +1231,9 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 				refreshRefreshPopup(refreshMenu.getPopupMenu());
 				Component comp = refreshMenu.getMenuComponent(0);
 				((JMenuItem)comp).setText(TrackerRes.getString("TToolBar.MenuItem.RefreshNow"));
+				break;
+			case BUTTON_MAXIMIZE:
+				maximizeCheckbox.setSelected(maximizeButton.isSelected());
 				break;
 			case BUTTON_DESKTOP:
 				refreshDesktopPopup(desktopMenu.getPopupMenu());
@@ -1613,6 +1655,9 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 			add(index++, memoryButton);
 		}
 		add(index++, refreshButton);
+		
+		if (OSPRuntime.isJS)
+			add(index++, maximizeButton);
 
 		if (TTrackBar.testButton != null)
 			add(index++, TTrackBar.testButton);

@@ -238,12 +238,20 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	protected static final double DEFAULT_LEFT_DIVIDER = 0.57;
 	protected static final double DEFAULT_BOTTOM_DIVIDER = 0.50;
 
+	protected static final double DEFAULT_FRAME_WIDTH = 0.96;
+	protected static final double MAXIMIZED_FRAME_WIDTH = 1.0;
+	protected static final double DEFAULT_FRAME_HEIGHT = 0.80;
+	protected static final double MAXIMIZED_FRAME_HEIGHT = 0.95;
+	protected static final int DEFAULT_FRAME_CEILING = 70;
+	protected static final int MAXIMIZED_FRAME_CEILING = 0;
+
 	protected static boolean isPortraitOrientation;
 	private static boolean isLayoutChanged;
 	private static boolean isLayoutAdaptive;
 	
 	public static boolean haveExportDialog;
 	public static boolean haveThumbnailDialog;
+	public static boolean maximize;
 
 	// instance fields
 
@@ -378,7 +386,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		if (options == null)
 			options = new HashMap<>();
 		isLayoutAdaptive = (options.get("-adaptive") != null);
-		isLayoutAdaptive = true; // pig
+//		isLayoutAdaptive = true; // for testing
 		Dimension dim = (Dimension) options.get("-dim");
 		Rectangle bounds = (Rectangle) options.get("-bounds");
 		Video video = (Video) options.get("-video");
@@ -433,15 +441,18 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	}
 
 	@SuppressWarnings("unused")
-	private Rectangle getAdaptiveBounds(boolean isInit) {
+	protected Rectangle getAdaptiveBounds(boolean isInit) {
 		Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
 //		int w = (int) (0.9 * dim.width);
 //		int margin = (int) (0.05 * dim.width);
 //		int h = (int) (0.7 * (dim.height - 80));
-		int w = (int) (0.96 * dim.width);
-		int margin = (int) (0.02 * dim.width);
-		int h = (int) (0.9 * (dim.height - 70));
-		Rectangle rect = new Rectangle(margin, 70, w, h);
+		double wid = maximize? MAXIMIZED_FRAME_WIDTH: DEFAULT_FRAME_WIDTH;
+		double ht = maximize? MAXIMIZED_FRAME_HEIGHT: DEFAULT_FRAME_HEIGHT;
+		int ceil = maximize? MAXIMIZED_FRAME_CEILING: DEFAULT_FRAME_CEILING;
+		int w = (int) (wid * dim.width);
+		int margin = (int) ((1-wid) * dim.width / 2);
+		int h = (int) (ht * (dim.height - ceil));
+		Rectangle rect = new Rectangle(margin, ceil, w, h);
 		if (isInit) {
 			// JS only
 				Runnable onOrient = new Runnable() {
