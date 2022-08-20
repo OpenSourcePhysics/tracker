@@ -438,10 +438,10 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 //		int w = (int) (0.9 * dim.width);
 //		int margin = (int) (0.05 * dim.width);
 //		int h = (int) (0.7 * (dim.height - 80));
-		int w = (int) (0.996 * dim.width);
-		int margin = (int) (0.002 * dim.width);
-		int h = (int) (0.95 * (dim.height - 4));
-		Rectangle rect = new Rectangle(margin, 4, w, h);
+		int w = (int) (0.96 * dim.width);
+		int margin = (int) (0.02 * dim.width);
+		int h = (int) (0.9 * (dim.height - 70));
+		Rectangle rect = new Rectangle(margin, 70, w, h);
 		if (isInit) {
 			// JS only
 				Runnable onOrient = new Runnable() {
