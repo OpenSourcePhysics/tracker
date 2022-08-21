@@ -238,11 +238,11 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	protected static final double DEFAULT_LEFT_DIVIDER = 0.57;
 	protected static final double DEFAULT_BOTTOM_DIVIDER = 0.50;
 
-	protected static final double DEFAULT_FRAME_WIDTH = 0.96;
+	protected static final double DEFAULT_FRAME_WIDTH = 0.92;
 	protected static final double MAXIMIZED_FRAME_WIDTH = 1.0;
-	protected static final double DEFAULT_FRAME_HEIGHT = 0.80;
-	protected static final double MAXIMIZED_FRAME_HEIGHT = 0.95;
-	protected static final int DEFAULT_FRAME_CEILING = 70;
+	protected static final double DEFAULT_FRAME_HEIGHT = 0.75;
+	protected static final double MAXIMIZED_FRAME_HEIGHT = 1.0;
+	protected static final int DEFAULT_FRAME_CEILING = 60;
 	protected static final int MAXIMIZED_FRAME_CEILING = 0;
 
 	protected static boolean isPortraitOrientation;
