@@ -1656,7 +1656,7 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 		}
 		add(index++, refreshButton);
 		
-		if (OSPRuntime.isJS)
+		if (TFrame.isLayoutAdaptive)
 			add(index++, maximizeButton);
 
 		if (TTrackBar.testButton != null)

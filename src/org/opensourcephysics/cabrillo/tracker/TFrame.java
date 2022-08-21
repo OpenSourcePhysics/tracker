@@ -247,7 +247,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 
 	protected static boolean isPortraitOrientation;
 	private static boolean isLayoutChanged;
-	private static boolean isLayoutAdaptive;
+	protected static boolean isLayoutAdaptive;
 	
 	public static boolean haveExportDialog;
 	public static boolean haveThumbnailDialog;
