@@ -16,11 +16,11 @@
 </p>
 		<p>Each Tracker tab, like &quot;Untitled&quot; above, displays the following components:</p>
 		<ul>
-			<li>A <strong>main video view</strong> that displays video images with track overlays. The video view has a fixed, stable video image. Tracks are marked and edited in the video view.</li>
+			<li>A <strong>main view</strong> that displays video images with track overlays. The main view has a fixed, stable video image. Tracks are marked and edited in the main view.</li>
 			<li>A <strong>menu bar</strong> that offers access to most program commands and settings. Some menu items include icons showing which toolbar buttons perform identical actions.</li>
 			<li>A  <strong><a href="interface.html#toolbar">toolbar</a></strong>, displayed directly below the menu bar, that offers quick access to frequently used controls, calibration and measuring tools, and track settings.</li>
 			<li>A <strong><a href="videos.html#player">player</a></strong> that controls the video playback and video clip settings.</li> 
-			<li><strong><a href="interface.html#views">Additional views</a></strong> in attached view panes, each with its own toolbar. Open, close or resize a view by clicking or dragging the thin dividers between panes or by selecting the desired view from the Window menu. Maximize or restore a view by clicking its Maximize button <img src="../help_images/maximize_button.gif" align="absmiddle"> or double-clicking its toolbar.</li>
+			<li><strong><a href="interface.html#views">Additional views</a></strong> in split panes, each with its own toolbar. Open, close or resize a view by dragging the thin dividers between panes or by selecting the desired view from the Window menu. Maximize or restore a view by clicking its Maximize button <img src="../help_images/maximize_button.gif" align="absmiddle"> or double-clicking its toolbar.</li>
 		</ul>
         
 		<h3><a name="toolbar" id="toolbar"></a>2. Toolbar</h3>
@@ -29,19 +29,16 @@
 </p>
 		<p>The order of the buttons on the main toolbar closely match the steps used to analyze a video. Buttons include (from left to right):</p>
 		<ul>
-			<li><strong>Open</strong> button opens a local video or tracker file in a new tab.</li>
-			<li><strong>Save Tab</strong> button saves the current tab in a <a href="datafile.html">Tracker file (TRK)</a>.</li>
-			<li><strong>Open Library Browser</strong> button opens the OSP <a href="library_browser.html">Library Browser</a> for easy access to local and web-based videos, Tracker tabs and Tracker projects</a>.</li>
-			<li><strong>Save Project</strong> button opens a dialog for building and saving <a href="zip_resource.html"> Tracker projects (TRZ)</a>.</li>      
+			<li><strong>Open</strong> button opens a file chooser for local video and Tracker files or a <a href="library_browser.html">Library Browser</a> for web-based files.</li>
+			<li><strong>Save</strong> button saves the current tab <a href="datafile.html">(TRK file)</a> or the entire project <a href="zip_resource.html">(TRZ file)</a>.</li>
 			<li><strong>Clip Settings</strong> button shows and hides the <a href="videos.html#videoclip">clip inspector</a>.</li>
 			<li><strong>Calibration</strong> button shows and hides <a href="stick.html">calibration sticks</a>, <a href="calibration.html">calibration points</a> and <a href="offset_origin.html">offset origins</a>.</li>
 			<li><strong>Axes</strong> button shows and hides the <a href="axes.html">coordinate axes</a>.</li>
-			<li><strong>Track</strong> button shows and hides the <a href="tracks.html#trackControl">track control</a> used to create and manage <a href="tracks.html">tracks</a> in the current tab.</li>
+			<li><strong>Measurement</strong> button shows and hides measuring tools like <a href="stick.html">tape measures</a>, <a href="calibration.html">protractors</a> and <a href="offset_origin.html">circle fitters</a>.</li>
+            <li><strong>Track</strong> button shows and hides the <a href="tracks.html#trackControl">track control</a> used to create and manage <a href="tracks.html">tracks</a> in the current tab.</li>
 			<li><strong>Autotracker</strong> button shows and hides the <a href="autotracker.html#auto0">autotracker</a>.</li>
 			<li><strong>Visibility</strong> button opens a menu to control the visibility of track trails, labels, paths, positions, velocities and accelerations.</li>
-			<li><strong>Measurement</strong> button shows and hides measuring tools like <a href="stick.html">tape measures</a>, <a href="calibration.html">protractors</a> and <a href="offset_origin.html">circle fitters</a>.</li>
-		  <li><strong>Zoom</strong> button displays and sets the magnification. You can also zoom by right-clicking or using the mouse wheel.</li>
-	  	  <li><strong>Font Size</strong> button controls font and icon sizes.</li>      
+			<li><strong>Zoom</strong> button displays and sets the magnification. You can also zoom by right-clicking or using the mouse wheel.</li>      
 	</ul>
 		<p>Buttons near the right end of the toolbar control documentation tools, memory status and data refresh:</p>
 <ul>
@@ -71,7 +68,7 @@
         </p>
 
 	<h3><a name="interface4" id="interface4"></a>4. Support documents</h3>
-        <p><a href="zip_resource.html">Tracker project files</a> may contain support documents such as instructions, reports, etc. that are not displayed in Tracker itself but instead in a separate desktop application. These documents are called support files.</p>
+        <p><a href="zip_resource.html">Tracker projects (TRZ)</a> may contain support documents such as instructions, reports, etc. that are not displayed in Tracker itself but instead in a separate desktop application. These documents are called support files.</p>
         <p>All support files are opened on the desktop when the Tracker project is opened.  HTML files are displayed in the user's default web browser and PDF files in the user's default PDF viewer.</p>
         <p>A <strong>Documents</strong> button <img src="../help_images/documents_button.gif" align="absmiddle"><img src="../help_images/spacer_thin.gif">is displayed on the toolbar whenever support files or <a href="pageview.html">page view</a> HTML files are available for viewing on the desktop. To open (or re-open) a file, click the Documents button and choose the name of the document from the popup list.</p>
 
@@ -83,7 +80,7 @@
         </p>
         
 <h3><a name="interface6" id="interface6"></a>6. Font sizing</h3>
-		<p>The Font Size determines the size of both fonts and icons. In most cases, the default font size is best, but larger fonts are often useful when making a presentation or using a high screen resolution. To change the font size click the Font Size button or Edit|Font Size menu and choose the desired size from the popup menu. The current size is shown in green. You can also set a preferred font size in the Display tab of the <a href="interface.html#prefs">preferences dialog</a>.</p>
+		<p>The Font Size determines the size of both fonts and icons. In most cases, the default font size is best, but larger fonts are often useful when making a presentation or using a high screen resolution. To change the font size click the Edit|Font Size menu and choose the desired size from the popup menu. The current size is shown in green. You can also set a preferred font size in the Display tab of the <a href="interface.html#prefs">preferences dialog</a>.</p>
 		<p align="center">
         	<img src="../help_images/font_level_menu.gif">
         </p>
