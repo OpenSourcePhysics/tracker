@@ -2592,6 +2592,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 			OSPDesktop.displayURL(helpURL);
 		});
 		helpMenu.add(discussionHelpItem);
+		
 
 		if (!OSPRuntime.isJS && Tracker.trackerHome != null && Tracker.readmeAction != null)
 			helpMenu.add(Tracker.readmeAction);
@@ -2625,6 +2626,25 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		if (!org.opensourcephysics.display.OSPRuntime.isMac()) {
 			helpMenu.addSeparator();
 			helpMenu.add(hintsItem);
+		}
+
+		if (!OSPRuntime.isJS) {
+			JMenuItem trackerOnlineItem = new JMenuItem("Tracker Online"); //$NON-NLS-1$ //$NON-NLS-2$
+			trackerOnlineItem.addActionListener((e) -> {
+				String uRL = "https://physlets.org/tracker/trackerJS/"; //$NON-NLS-1$
+				OSPDesktop.displayURL(uRL);
+			});
+			helpMenu.addSeparator();
+			helpMenu.add(trackerOnlineItem);
+		}
+		else {
+			JMenuItem trackerHomeItem = new JMenuItem("Tracker Home"); //$NON-NLS-1$ //$NON-NLS-2$
+			trackerHomeItem.addActionListener((e) -> {
+				String uRL = "https://physlets.org/tracker/"; //$NON-NLS-1$
+				OSPDesktop.displayURL(uRL);
+			});
+			helpMenu.addSeparator();
+			helpMenu.add(trackerHomeItem);
 		}
 
 		// diagnostics menu
