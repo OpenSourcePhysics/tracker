@@ -796,8 +796,7 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 				maximizeButton.setToolTipText(TFrame.maximize ? TrackerRes.getString("TFrame.Restore.Tooltip") : //$NON-NLS-1$
 					TrackerRes.getString("TFrame.Maximize.Tooltip")); //$NON-NLS-1$
 				if (TFrame.maximize) {
-					Rectangle rect = panel().getTFrame().getBounds();
-					// save this for restore??
+					// save current bounds for restore??
 					panel().getTFrame().getAdaptiveBounds(false);
 				}
 				else
