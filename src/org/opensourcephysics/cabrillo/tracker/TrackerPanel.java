@@ -2752,6 +2752,11 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		case ImageCoordSystem.PROPERTY_COORDS_TRANSFORM: // from coords //$NON-NLS-1$
 			changed = true;
 			doSnap = true;
+			// invalidate user track data BEFORE informing views
+			ArrayList<TTrack> tracks = getUserTracks();
+			for (int i = 0; i < tracks.size(); i++) {
+				tracks.get(i).dataValid = false;
+			}
 			// pass this on to TView classes
 			firePropertyChange(ImageCoordSystem.PROPERTY_COORDS_TRANSFORM, null, null); // to tracks/views //$NON-NLS-1$
 			break;
