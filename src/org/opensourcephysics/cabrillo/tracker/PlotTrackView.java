@@ -82,7 +82,7 @@ public class PlotTrackView extends TrackView {
 	 */
 	private JCheckBox linkCheckBox;
 
-	
+	private boolean liveUpdates = true;
 
 	/**
 	 * Constructs a PlotTrackView for the specified track and trackerPanel.
@@ -137,6 +137,10 @@ public class PlotTrackView extends TrackView {
 			FontSizer.setFonts(plotsButton);
 			FontSizer.setFonts(linkCheckBox);
 		}
+		
+		if (!liveUpdates && isClipAdjusting())
+			return;
+
 		TTrack track;
 		if (!isRefreshEnabled() 
 				|| !viewParent.isViewPaneVisible()
