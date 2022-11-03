@@ -2510,12 +2510,12 @@ public class PointMass extends TTrack {
 	@Override
 	public void setTrackerPanel(TrackerPanel panel) {
 		if (tp != null) {	
-			tp.removePropertyChangeListener(ImageCoordSystem.PROPERTY_COORDS_TRANSFORM, this);
+//			tp.removePropertyChangeListener(ImageCoordSystem.PROPERTY_COORDS_TRANSFORM, this);
 			tp.removePropertyChangeListener(VideoClip.PROPERTY_VIDEOCLIP_STEPSIZE, this);
 		}
 		super.setTrackerPanel(panel);
 		if (tp != null) {
-			tp.addPropertyChangeListener(ImageCoordSystem.PROPERTY_COORDS_TRANSFORM, this);
+//			tp.addPropertyChangeListener(ImageCoordSystem.PROPERTY_COORDS_TRANSFORM, this);
 			tp.addPropertyChangeListener(VideoClip.PROPERTY_VIDEOCLIP_STEPSIZE, this);
 		}
 	}
@@ -2530,8 +2530,8 @@ public class PointMass extends TTrack {
 		if (e.getSource() instanceof TrackerPanel) {
 			switch (e.getPropertyName()) {
 			case ImageCoordSystem.PROPERTY_COORDS_TRANSFORM:
-				updateDerivatives();
-				invalidateData(null);
+//				updateDerivatives();
+//				invalidateData(null);
 				break;
 			case VideoClip.PROPERTY_VIDEOCLIP_STEPSIZE:
 				updateDerivatives();
