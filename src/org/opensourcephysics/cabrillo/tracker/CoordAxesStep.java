@@ -494,15 +494,18 @@ public class CoordAxesStep extends Step {
 			boolean wasAdjusting = isAdjusting();
 			super.setAdjusting(adjusting, e);
 			if (wasAdjusting && !adjusting && !java.lang.Double.isNaN(prevX)) {
-				if (e != null) {
+				if (e != null && e.getID() != MouseEvent.MOUSE_RELEASED) {
 					// first time selected
 					if (prevX == 0 && prevY == 0) {
 						angleIncrement = Math.PI / 9; // keep it at 0!
 						setScreenPosition(e.getX(), e.getY(), CoordAxesStep.this.getTrack().tp);						
 					}
 				}
-				else
+				else {
 					setXY(prevX, prevY);
+					TTrack track = getTrack();
+					track.firePropertyChange(TTrack.PROPERTY_TTRACK_STEP, null, track.tp.getFrameNumber()); //$NON-NLS-1$
+				}
 			}
 		}
 	}
