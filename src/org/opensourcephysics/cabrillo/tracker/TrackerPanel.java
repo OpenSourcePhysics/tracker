@@ -735,6 +735,8 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	public synchronized void addTrack(TTrack track) {
 		if (track == null)
 			return;
+		boolean firstTrack = userTracks == null || userTracks.isEmpty();
+		boolean isUserTrack = false;
 		// BH 2020.07.09
 		userTracks = null;
 		exportableTracks = null;
@@ -760,6 +762,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				});
 			}
 			doAddDrawable = false;
+			isUserTrack = true;
 		} else if (calibrationTools.contains(track)) {
 			// special case: same calibration tool added again?
 			showTrackControlDelayed = false;
@@ -775,6 +778,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 					// tape measure
 					measuringTools.add(tape);
 					visibleMeasuringTools.add(tape);
+					isUserTrack = true;
 				} else {
 					// calibration tape or stick
 					calibrationTools.add(tape);
@@ -804,11 +808,13 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				showTrackControlDelayed = false;
 				measuringTools.add(track);
 				visibleMeasuringTools.add(track);
+				isUserTrack = true;
 				break;
 			default:
 				// all other tracks (point mass, vector, particle model, line profile, etc)
 				// set track name--prevents duplicate names
 				setTrackName(track, track.getName(), false);
+				isUserTrack = true;
 				break;
 			}
 		}
@@ -846,6 +852,14 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		if (autoTracker != null && track != getAxes()) {
 			autoTracker.setTrack(track);
 		}
+		
+		if (firstTrack && isUserTrack && !frame.areViewsVisible(TFrame.DEFAULT_VIEWS, this)) {
+			if (!TFrame.isPortraitOrientation)
+				frame.setDividerLocation(this, TFrame.SPLIT_MAIN_RIGHT, TFrame.DEFAULT_MAIN_DIVIDER); 			
+			else 
+				frame.setDividerLocation(this, TFrame.SPLIT_MAIN_BOTTOM, TFrame.DEFAULT_BOTTOM_DIVIDER); 
+		}
+
 	}
 
 	private void addDataTrackPoints(ParticleDataTrack dt) {
@@ -2060,15 +2074,26 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		//OSPLog.debug("TrackerPanel.refreshTrackData " + Tracker.allowDataRefresh);
 		boolean auto = isAutoRefresh;
 		isAutoRefresh = true;
-		firePropertyChange(TTrack.PROPERTY_TTRACK_DATA, null, null); // causes full view rebuild
+		firePropertyChange(TTrack.PROPERTY_TTRACK_DATA, mode, null); // causes full view rebuild
 		isAutoRefresh = auto;
 	}
 
 	@Override
 	protected void refreshDecimalSeparators() {
 		super.refreshDecimalSeparators();
-		// refresh the trackbar decimal separators
-		getTrackBar(true).refreshDecimalSeparators();
+		char separator = OSPRuntime.getCurrentDecimalSeparator();
+		if (coordStringBuilder != null)
+			coordStringBuilder.setDecimalSeparator(separator);
+		if (getSelectedPoint() != null) {
+			getSelectedPoint().showCoordinates(this);
+		}
+
+		// refresh all track fields
+		ArrayList<TTrack> tracks = getTracksTemp();
+		for (int i = 0, n = tracks.size(); i < n; i++) {
+			tracks.get(i).setDecimalSeparator(separator);
+		}
+		tracks.clear();
 
 		// refresh all plot and table views
 		// just repaint--no data change at all
@@ -2076,34 +2101,32 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 
 		// refresh modelbuilder and databuilder
 		if (modelBuilder != null) {
-			modelBuilder.refreshGUI();
+			modelBuilder.repaint();
 		}
 		if (dataBuilder != null) {
-			dataBuilder.refreshGUI();
+			dataBuilder.repaint();
 		}
 		// refresh DataTool
 		if (getTFrame() != null && frame.getSelectedPanel() == this
 				&& DataTool.getTool(false) != null) {
 			DataTool.getTool(false).refreshDecimalSeparators();
 		}
-
+		
 		// repaint tracks with readouts
 		ArrayList<TapeMeasure> tapes = getDrawablesTemp(TapeMeasure.class);
 		for (int i = 0, n = tapes.size(); i < n; i++) {
 			TapeMeasure tape = tapes.get(i);
-			//tape.inputField.getFormat(); // sets decimal separator
 			tape.repaint(panelID);
 		}
 		tapes.clear();
+		
 		ArrayList<Protractor> prots = getDrawablesTemp(Protractor.class);
 		for (int i = 0, n = prots.size(); i < n; i++) {
 			Protractor p = prots.get(i);
-//			p.inputField.getFormat(); // sets decimal separator
-//			p.xField.getFormat(); // sets decimal separator
-//			p.yField.getFormat(); // sets decimal separator
 			p.repaint(panelID);
 		}
 		prots.clear();
+		
 	}
 
 	/**
@@ -3024,7 +3047,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		FontSizer.setFonts(menubar, level);
 		getTrackBar(true).setFontLevel(level);
 		refreshTrackBar();
-		ArrayList<TTrack> list = getTracks();
+		ArrayList<TTrack> list = getTracksTemp();
 		for (int it = 0, n = list.size(); it < n; it++) {
 			list.get(it).setFontLevel(level);
 		}

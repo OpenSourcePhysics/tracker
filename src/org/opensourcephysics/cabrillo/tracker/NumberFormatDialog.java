@@ -792,13 +792,14 @@ public class NumberFormatDialog extends JDialog {
 			public void actionPerformed(ActionEvent e) {
 				String separator;
 				if (periodDecimalButton.isSelected()) {
-					separator = "."; //$NON-NLS-1$
+					separator = String.valueOf(OSPRuntime.DECIMAL_SEPARATOR_PERIOD); //$NON-NLS-1$
 				} else if (commaDecimalButton.isSelected()) {
-					separator = ","; //$NON-NLS-1$
+					separator = String.valueOf(OSPRuntime.DECIMAL_SEPARATOR_COMMA); //$NON-NLS-1$
 				} else {
 					separator = null;
 				}
 				OSPRuntime.setPreferredDecimalSeparator(separator);
+				sampleField.setDecimalSeparator(OSPRuntime.getCurrentDecimalSeparator());
 				showNumberFormatAndSample(variableList.getSelectedIndices());
 				TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
 				trackerPanel.refreshDecimalSeparators();
@@ -889,8 +890,10 @@ public class NumberFormatDialog extends JDialog {
 		periodDecimalButton.setText(TrackerRes.getString("NumberFormatSetter.Button.DecimalSeparator.Period")); //$NON-NLS-1$
 		commaDecimalButton.setText(TrackerRes.getString("NumberFormatSetter.Button.DecimalSeparator.Comma")); //$NON-NLS-1$
 		defaultDecimalButton.setSelected(OSPRuntime.getPreferredDecimalSeparator() == null);
-		periodDecimalButton.setSelected(".".equals(OSPRuntime.getPreferredDecimalSeparator())); //$NON-NLS-1$
-		commaDecimalButton.setSelected(",".equals(OSPRuntime.getPreferredDecimalSeparator())); //$NON-NLS-1$
+		periodDecimalButton.setSelected(String.valueOf(OSPRuntime.DECIMAL_SEPARATOR_PERIOD)
+				.equals(OSPRuntime.getPreferredDecimalSeparator())); //$NON-NLS-1$
+		commaDecimalButton.setSelected(String.valueOf(OSPRuntime.DECIMAL_SEPARATOR_COMMA)
+				.equals(OSPRuntime.getPreferredDecimalSeparator())); //$NON-NLS-1$
 
 		TTrack track = TTrack.getTrack(trackID);
 		refreshDropdown();

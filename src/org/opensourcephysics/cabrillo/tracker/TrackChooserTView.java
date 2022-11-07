@@ -538,6 +538,19 @@ public abstract class TrackChooserTView extends TView {
 		case TTrack.PROPERTY_TTRACK_DATA:
 			// data structure has changed
 			// or clip has been changed (VideoPlayer)
+			// or decimal separator has changed
+			if (e.getOldValue().equals(Integer.valueOf(DataTable.MODE_FORMAT))) {
+				// decimal separator changed
+				if (this instanceof PlotTView) {
+					for (TrackView nextView: trackViews.values()) {
+						PlotTrackView plotView = (PlotTrackView)nextView;
+						for (TrackPlottingPanel plot: plotView.plots) {
+							plot.refreshDecimalSeparators();
+						}
+					}
+				}
+			}
+
 			view = null;
 			if ((track = getSelectedTrack()) != null && (view = getTrackView(track)) != null) {
 				int frameNo = panel.getFrameNumber();

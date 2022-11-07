@@ -1535,6 +1535,7 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 		Object[] objectsToSize = new Object[] { tLabel, xLabel, yLabel, magLabel, angleLabel, stepLabel, tValueLabel,
 				stepValueLabel, tField, xField, yField, magField, angleField };
 		FontSizer.setFonts(objectsToSize);
+		erase();
 	}
 
 	/**
@@ -1751,6 +1752,19 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 		}
 		return -1;
 	}
+	
+	public void setDecimalSeparator(char c) {
+		if (c != OSPRuntime.DECIMAL_SEPARATOR_PERIOD 
+				&& c != OSPRuntime.DECIMAL_SEPARATOR_COMMA)
+			return;
+		for (String key: numberFields.keySet()) {
+			NumberField[] fields = numberFields.get(key);
+			for (int i = 0; i < fields.length; i++) {
+				fields[i].setDecimalSeparator(c);
+			}
+		}
+	}
+
 
 	/**
 	 * Gets a map of number fields by name.
@@ -3382,12 +3396,13 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 		 * Constructor
 		 */
 		TextLineLabel() {
-			textLine = new DrawableTextLine("", 0, -4.5); //$NON-NLS-1$
+			textLine = new DrawableTextLine("", 0, -4.3); //$NON-NLS-1$
 			textLine.setJustification(TextLine.CENTER);
 			addDrawable(textLine);
 			label = new JLabel();
 			textLine.setFont(label.getFont());
 			textLine.setColor(label.getForeground());
+			setShowCoordinates(false);
 		}
 
 		/**
@@ -3410,6 +3425,7 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 				return;
 			w = -1;
 			textLine.setText(text);
+			setToolTipText(text);
 			if (text.contains("_{")) { //$NON-NLS-1$
 				text = TeXParser.removeSubscripting(text);
 			}

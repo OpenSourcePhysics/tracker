@@ -77,6 +77,7 @@ import org.opensourcephysics.display.Measurable;
 import org.opensourcephysics.display.MeasuredImage;
 import org.opensourcephysics.display.MessageDrawable;
 import org.opensourcephysics.display.OSPFrame;
+import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.display.PlottingPanel;
 import org.opensourcephysics.display.TeXParser;
 import org.opensourcephysics.display.axes.CartesianInteractive;
@@ -1067,6 +1068,14 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 		}
 	}
 
+	@Override
+	protected void refreshDecimalSeparators() {
+		super.refreshDecimalSeparators();
+		char separator = OSPRuntime.getCurrentDecimalSeparator();
+		coordStringBuilder.setDecimalSeparator(separator);
+		plotAxes.clearFormats();
+	}
+
 	/**
 	 * Sets preferred min/max values. Overrides DrawingPanel method.
 	 * 
@@ -1928,7 +1937,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 		bsFrameHighlights.clear();
 		bsFrameHighlights.or(highlightFrames);
 	}
-
+	
 	@Override
 	public void repaint() {
 		if (panelID == null || !frame.getTrackerPanelForID(panelID).isPaintable()) {
