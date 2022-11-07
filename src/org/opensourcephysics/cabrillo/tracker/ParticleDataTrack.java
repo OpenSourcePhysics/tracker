@@ -1734,7 +1734,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 			} else if (xlc.endsWith("y")) { //$NON-NLS-1$
 				yColName = xname.substring(0, xname.length() - 1).trim();
 				yIsY = false;
-			} else if (ylc.endsWith("y")) { //$NON-NLS-1$
+			} else if (ylc.endsWith("y") && xIsX) { //$NON-NLS-1$
 				yColName = yname.substring(0, yname.length() - 1).trim();
 			}
 
