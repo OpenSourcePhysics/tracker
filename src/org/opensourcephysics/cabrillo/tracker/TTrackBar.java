@@ -91,7 +91,7 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 
 
 	// instance fields
-	protected final Component toolbarEnd = Box.createHorizontalGlue();
+	protected final Component toolbarEnd = Box.createGlue();
 	protected int toolbarComponentHeight, numberFieldWidth;
 	protected TButton trackButton;
 	protected JButton maximizeButton;
@@ -490,6 +490,8 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 			// listen to tracks for property changes that affect icon or name
 			track.addListenerNCF(this);
 			add(trackButton);
+			
+			toolbarComponentHeight = selectButton.getPreferredSize().height;
 			ArrayList<Component> list = track.getToolbarTrackComponents(panel);
 			for (Component c : list) {
 				if (c instanceof JComponent && !(c instanceof JButton) && !(c instanceof JCheckBox)) {
@@ -515,6 +517,7 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 		TFrame frame = panel.getTFrame();
 		if ((userTracks == null || userTracks.isEmpty())
 				&& panel.measuringTools.isEmpty()) {
+			// no data-generating tracks exist
 			// close right/bottom pane
 			if (!TFrame.isPortraitOrientation)
 				frame.setDividerLocation(panel, TFrame.SPLIT_MAIN_RIGHT, 1.0); 			
@@ -522,20 +525,15 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 				frame.setDividerLocation(panel, TFrame.SPLIT_MAIN_BOTTOM, 1.0); 
 			
   		// show noData message if no video and no calibration tools
-  		if (panel.getVideo() == null && panel.calibrationTools.isEmpty()) {
+			// and no selected track
+  		if (panel.getVideo() == null && panel.calibrationTools.isEmpty()
+  				&& panel.getSelectedTrack() == null) {
   			String name = TrackerRes.getString("TFrame.View.Main");
   			String hint = TrackerRes.getString("TTrackBar.Hint.OpenFile");
   			viewLabel.setText(name + ": " + hint); //$NON-NLS-1$
   			FontSizer.setFonts(viewLabel);
   			add(viewLabel);
   		}
-		}
-		else if (!frame.areViewsVisible(TFrame.DEFAULT_VIEWS, panel)) {
-			if (!TFrame.isPortraitOrientation)
-				frame.setDividerLocation(panel, TFrame.SPLIT_MAIN_RIGHT, TFrame.DEFAULT_MAIN_DIVIDER); 			
-			else 
-				frame.setDividerLocation(panel, TFrame.SPLIT_MAIN_BOTTOM, TFrame.DEFAULT_BOTTOM_DIVIDER); 
-			
 		}
 		
 		add(toolbarEnd);
@@ -548,7 +546,7 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 		add(maximizeButton);
 		revalidate();
 		TFrame.repaintT(this);
-		toolbarComponentHeight = selectButton.getPreferredSize().height;
+//		toolbarComponentHeight = selectButton.getPreferredSize().height;
 	}
 
 //	public Component add(Component c) {
@@ -575,12 +573,18 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 		jc.setMaximumSize(null);
 		jc.setPreferredSize(null);
 		Dimension dim = jc.getPreferredSize();
+		
 		dim.height = toolbarComponentHeight;
 		if (jc instanceof NumberField) {
 			dim.width = Math.max(numberFieldWidth, dim.width);
 		} else if (jc instanceof TextLineLabel) {
 			dim.width = w;
-		}
+		} else if (jc instanceof JLabel) {
+			// following code is workaround for labels being too often truncated
+			JLabel lab = (JLabel) jc;
+			lab.setToolTipText(lab.getText()); // in case truncated
+			dim.width += 4; // more room so truncation less likely
+		} 
 		jc.setPreferredSize(dim);
 		jc.setMaximumSize(dim);
 	}
@@ -602,18 +606,6 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 		field.setMaximumSize(dim);
 		field.setPreferredSize(dim);
 		revalidate();
-	}
-
-	/**
-	 * Refreshes the decimal separators of displayed NumberFields.
-	 */
-	protected void refreshDecimalSeparators() {
-		for (Component next : getComponents()) {
-			if (next instanceof NumberField) {
-				NumberField field = (NumberField) next;
-				field.setValue(field.getValue());
-			}
-		}
 	}
 
 	/**
