@@ -519,6 +519,7 @@ public class TapeStep extends Step {
 		double angle = coords.getAngle(n);
 		coords.setAngle(n, angle - dTheta);
 		Undo.postCoordsEdit(tape.tp, state);
+		xAxisToTapeAngle = theta;
 	}
 
 	/**
