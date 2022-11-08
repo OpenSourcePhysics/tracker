@@ -2081,9 +2081,8 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	@Override
 	protected void refreshDecimalSeparators() {
 		super.refreshDecimalSeparators();
-		char separator = OSPRuntime.getCurrentDecimalSeparator();
 		if (coordStringBuilder != null)
-			coordStringBuilder.setDecimalSeparator(separator);
+			coordStringBuilder.refreshDecimalSeparators();
 		if (getSelectedPoint() != null) {
 			getSelectedPoint().showCoordinates(this);
 		}
@@ -2091,7 +2090,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		// refresh all track fields
 		ArrayList<TTrack> tracks = getTracksTemp();
 		for (int i = 0, n = tracks.size(); i < n; i++) {
-			tracks.get(i).setDecimalSeparator(separator);
+			tracks.get(i).refreshDecimalSeparators();
 		}
 		tracks.clear();
 

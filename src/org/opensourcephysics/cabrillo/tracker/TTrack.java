@@ -1753,14 +1753,11 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 		return -1;
 	}
 	
-	public void setDecimalSeparator(char c) {
-		if (c != OSPRuntime.DECIMAL_SEPARATOR_PERIOD 
-				&& c != OSPRuntime.DECIMAL_SEPARATOR_COMMA)
-			return;
+	public void refreshDecimalSeparators() {
 		for (String key: numberFields.keySet()) {
 			NumberField[] fields = numberFields.get(key);
 			for (int i = 0; i < fields.length; i++) {
-				fields[i].setDecimalSeparator(c);
+				fields[i].refreshDecimalSeparators(true);
 			}
 		}
 	}

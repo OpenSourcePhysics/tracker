@@ -1071,9 +1071,8 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 	@Override
 	protected void refreshDecimalSeparators() {
 		super.refreshDecimalSeparators();
-		char separator = OSPRuntime.getCurrentDecimalSeparator();
-		coordStringBuilder.setDecimalSeparator(separator);
-		plotAxes.clearFormats();
+		coordStringBuilder.refreshDecimalSeparators();
+		plotAxes.refreshDecimalSeparators();
 	}
 
 	/**

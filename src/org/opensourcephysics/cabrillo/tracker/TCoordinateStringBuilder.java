@@ -86,9 +86,9 @@ public class TCoordinateStringBuilder
     this.yLabel = yLabel;
   }
   
-  public void setDecimalSeparator(char c) {
-  	xField.setDecimalSeparator(c);
-  	yField.setDecimalSeparator(c);
+  public void refreshDecimalSeparators() {
+  	xField.refreshDecimalSeparators(true);
+  	yField.refreshDecimalSeparators(true);
   }
 
 }

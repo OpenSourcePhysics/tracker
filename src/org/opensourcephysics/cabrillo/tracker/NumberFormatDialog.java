@@ -799,7 +799,7 @@ public class NumberFormatDialog extends JDialog {
 					separator = null;
 				}
 				OSPRuntime.setPreferredDecimalSeparator(separator);
-				sampleField.setDecimalSeparator(OSPRuntime.getCurrentDecimalSeparator());
+				sampleField.refreshDecimalSeparators(true);
 				showNumberFormatAndSample(variableList.getSelectedIndices());
 				TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
 				trackerPanel.refreshDecimalSeparators();
