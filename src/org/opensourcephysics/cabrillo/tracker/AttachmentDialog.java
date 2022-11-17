@@ -86,12 +86,12 @@ public class AttachmentDialog extends JDialog implements PropertyChangeListener 
 
 	protected boolean isVisible;
 	protected JButton closeButton, helpButton;
-	protected ArrayList<PointMass> masses;
+	protected ArrayList<TTrack> attachableTracks;
 	protected JTable table;
 	protected int cellheight = 28; // depends on font level
 	protected JComboBox<Object> rendererDropdown, editorDropdown;
 	protected JComboBox<TTrack> measuringToolDropdown;
-	protected PointMass dummyMass;
+	protected TTrack dummyMass;
 	protected Icon dummyIcon = new ShapeIcon(null, 21, 16);
 	protected JScrollPane scrollPane;
 	protected AttachmentCellRenderer attachmentCellRenderer = new AttachmentCellRenderer();
@@ -219,10 +219,10 @@ public class AttachmentDialog extends JDialog implements PropertyChangeListener 
 		if (panelID != null) {
 			TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
 			trackerPanel.removeListeners(panelProps, this);
-			for (TTrack p : masses) {
+			for (TTrack p : attachableTracks) {
 				p.removeListenerNCF(this);
 			}
-			masses.clear();
+			attachableTracks.clear();
 			dummyMass.delete();
 			dummyMass = null;
 			TTrack measuringTool = TTrack.getTrack(trackID);
@@ -291,7 +291,7 @@ public class AttachmentDialog extends JDialog implements PropertyChangeListener 
 			}
 		};
 		attachmentCellRenderer = new AttachmentCellRenderer();
-		table.setDefaultRenderer(PointMass.class, attachmentCellRenderer);
+		table.setDefaultRenderer(TTrack.class, attachmentCellRenderer);
 		table.setDefaultRenderer(String.class, attachmentCellRenderer);
 		table.setRowHeight(cellheight);
 
@@ -472,8 +472,13 @@ public class AttachmentDialog extends JDialog implements PropertyChangeListener 
 	 */
 	protected void refreshDropdowns() {
 		TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
-		masses = trackerPanel.getDrawables(PointMass.class);
-		for (TTrack p : masses) {
+		if (attachableTracks == null)
+			attachableTracks = new ArrayList<TTrack>();
+		else
+			attachableTracks.clear();
+		attachableTracks.addAll(trackerPanel.getDrawables(PointMass.class));
+		attachableTracks.addAll(trackerPanel.getDrawables(RGBRegion.class));
+		for (TTrack p : attachableTracks) {
 			p.removeListenerNCF((PropertyChangeListener) this);
 		}
 		TTrack measuringTool = TTrack.getTrack(trackID);
@@ -481,10 +486,10 @@ public class AttachmentDialog extends JDialog implements PropertyChangeListener 
 			// can't attach calibration stick to models--creates circular dependency
 			TapeMeasure tape = (TapeMeasure) measuringTool;
 			if (tape.isStickMode()) {
-				masses.removeAll(trackerPanel.getDrawablesTemp(ParticleModel.class));
+				attachableTracks.removeAll(trackerPanel.getDrawablesTemp(ParticleModel.class));
 			}
 		}
-		for (TTrack p : masses) {
+		for (TTrack p : attachableTracks) {
 			p.addListenerNCF(this);
 		}
 		FontSizer.setFonts(rendererDropdown, FontSizer.getLevel());
@@ -655,7 +660,7 @@ public class AttachmentDialog extends JDialog implements PropertyChangeListener 
 
 		@Override
 		public Class<?> getColumnClass(int col) {
-			return col == 0 ? String.class : PointMass.class;
+			return col == 0 ? String.class : TTrack.class;
 		}
 
 		@Override
@@ -696,7 +701,7 @@ public class AttachmentDialog extends JDialog implements PropertyChangeListener 
 	}
 
 	/**
-	 * A class to edit PointMass table cells in a JComboBox.
+	 * A class to edit TTrack table cells in a JComboBox.
 	 */
 	class AttachmentCellEditor extends DefaultCellEditor {
 
@@ -722,7 +727,7 @@ public class AttachmentDialog extends JDialog implements PropertyChangeListener 
 			if (attachments[row] != null) {
 				attachments[row].removeStepListener(measuringTool); // $NON-NLS-1$
 			}
-			attachments[row] = obj == dummyMass ? null : (PointMass) obj;
+			attachments[row] = obj == dummyMass ? null : (TTrack) obj;
 			measuringTool.refreshAttachments();
 			refreshGUI();
 
@@ -780,12 +785,12 @@ public class AttachmentDialog extends JDialog implements PropertyChangeListener 
 
 		@Override
 		public int getSize() {
-			return masses == null ? 1 : masses.size() + 1;
+			return attachableTracks == null ? 1 : attachableTracks.size() + 1;
 		}
 
 		@Override
 		public Object getElementAt(int index) {
-			return index == 0 ? dummyMass : masses.get(index - 1);
+			return index == 0 ? dummyMass : attachableTracks.get(index - 1);
 		}
 
 		@Override
