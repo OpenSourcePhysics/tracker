@@ -534,7 +534,6 @@ public class TViewChooser extends JPanel implements PropertyChangeListener, OSPR
 	 * Refreshes the viewPanel.
 	 */
 	private void refreshViewPanel() {
-		System.out.println("pig");
 		viewPanel.removeAll();
 		for (int i = 0; i< 4; i++) {
 			TView view = tViews[i];

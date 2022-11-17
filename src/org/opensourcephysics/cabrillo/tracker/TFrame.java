@@ -2334,6 +2334,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		Tracker.pdfHelpButton.setText(TrackerRes.getString("Tracker.Button.PDFHelp")); //$NON-NLS-1$
 		comps[comps.length - 2] = Tracker.pdfHelpButton;
 		comps[comps.length - 1] = Box.createHorizontalStrut(4);
+		FontSizer.setFonts(comps, FontSizer.getLevel());
 		helpLauncher.setNavbarRightEndComponents(comps);
 		return helpDialog;
 	}
