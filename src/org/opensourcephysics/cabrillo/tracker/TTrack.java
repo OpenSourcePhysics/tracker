@@ -2146,7 +2146,8 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 					if (step == null)
 						continue;
 					TPoint p = getPoint(step, i); // not for CircleFitter--see overridden method
-					if (targetStep == null || !targetStep.valid) {
+//					if (targetStep == null || !targetStep.valid) {
+					if (targetStep == null) {
 						if (p != null) {
 							p.detach();
 						}
