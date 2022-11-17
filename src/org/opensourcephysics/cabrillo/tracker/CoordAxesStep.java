@@ -149,6 +149,8 @@ public class CoordAxesStep extends Step {
 		if (handleEnabled) {
 			Shape hitShape = panelHandleShapes.get(trackerPanel.getID());
 			if (hitShape != null && hitShape.intersects(hitRect)) {
+//				if (handle.x == 0 || handle.y == 0)
+				handle.setPositionOnLine(xpix, ypix, trackerPanel);
 				return (autoTracker != null 
 						&& autoTracker.getTrack() == track 
 						&& track.getTargetIndex() == 1
@@ -508,5 +510,23 @@ public class CoordAxesStep extends Step {
 				}
 			}
 		}
+		
+		/**
+		 * Sets the position of this handle on the line nearest the specified screen
+		 * position.
+		 *
+		 * @param xScreen      the x screen position
+		 * @param yScreen      the y screen position
+		 * @param trackerPanel the trackerPanel drawing this step
+		 */
+		public void setPositionOnLine(int xScreen, int yScreen, TrackerPanel trackerPanel) {
+			double d = 100;
+			double theta = trackerPanel.getCoords().getAngle(trackerPanel.getFrameNumber());
+			p.setLocation(origin.x + d*Math.cos(theta), origin.y - d*Math.sin(theta));
+			TPoint endPt = new TPoint(p);
+			setPositionOnLine(xScreen, yScreen, trackerPanel, origin, endPt);
+			repaint();
+		}
+
 	}
 }
