@@ -41,8 +41,10 @@ import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
+import java.awt.image.DataBuffer;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Iterator;
@@ -542,7 +544,8 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 			});
 		}
 		// new tab item
-		file_newTabItem = new JMenuItem(actions.get("newTab"));
+		file_newTabItem = new JMenuItem(TrackerRes.getString("TActions.Action.NewTab"));
+		file_newTabItem.addActionListener(actions.get("newTab"));
 		file_newTabItem.setAccelerator(KeyStroke.getKeyStroke('N', keyMask));
 		// open menu
 		file_openMenu = new JMenu(TrackerRes.getString("TrackerIO.Dialog.Open.Title")); //$NON-NLS-1$
@@ -571,7 +574,8 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		file_importMenu.add(file_import_dataItem);
 		// close and close all items
 		file_closeItem = new JMenuItem(actions.get("close")); //$NON-NLS-1$
-		file_closeAllItem = new JMenuItem(actions.get("closeAll")); //$NON-NLS-1$
+		file_closeAllItem = new JMenuItem(TrackerRes.getString("TActions.Action.CloseAll")); //$NON-NLS-1$
+		file_closeAllItem.addActionListener(actions.get("closeAll")); //$NON-NLS-1$
 		// export menu
 		file_exportMenu = new JMenu(TrackerRes.getString("TMenuBar.Menu.Export")); //$NON-NLS-1$
 		// export zip item
@@ -607,23 +611,29 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		file_saveItem = new JMenuItem(actions.get("save")); //$NON-NLS-1$
 		file_saveItem.setAccelerator(KeyStroke.getKeyStroke('S', keyMask));
 //		file_saveItem.setDisabledIcon(file_saveItem.getIcon());
-		file_saveItem.setText(TrackerRes.getString("TMenuBar.MenuItem.Tab")+"...");
+		File file = panel().getDataFile();
+		String path = file == null? "...": " \"" + file.getName() + "\"";
+		file_saveItem.setText(TrackerRes.getString("TMenuBar.MenuItem.Tab")+path);
 		file_saveMenu.setIcon(file_saveItem.getIcon());
 		file_saveItem.setIcon(null);
 		
 		// saveAs item
-		file_saveTabAsItem = new JMenuItem(actions.get("saveAs")); //$NON-NLS-1$
+		file_saveTabAsItem = new JMenuItem(TrackerRes.getString("TActions.Action.SaveAs")); //$NON-NLS-1$
+		file_saveTabAsItem.addActionListener(actions.get("saveAs")); //$NON-NLS-1$
 		// save zip item
 		file_saveProjectAsItem = new JMenuItem(actions.get("saveZip")); //$NON-NLS-1$
 		file_saveProjectAsItem.setText(TrackerRes.getString("TMenuBar.MenuItem.Project")+"...");
 		file_saveProjectAsItem.setIcon(null);
 		// saveVideoAs item
 		file_saveVideoAsItem = new JMenuItem(actions.get("saveVideo")); //$NON-NLS-1$
+		file_saveVideoAsItem.setText(TrackerRes.getString("TActions.Action.SaveVideoAs")); //$NON-NLS-1$
 		// saveTabset item
 		file_saveTabsetAsItem = new JMenuItem(actions.get("saveTabsetAs")); //$NON-NLS-1$
+		file_saveTabsetAsItem.setText(TrackerRes.getString("TActions.Action.SaveFrame")); //$NON-NLS-1$
 		// }
 		// properties item
 		file_propertiesItem = new JMenuItem(actions.get("properties")); //$NON-NLS-1$
+		file_propertiesItem.setText(TrackerRes.getString("TActions.Action.Properties")); //$NON-NLS-1$
 		// printFrame item
 		file_printFrameItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.PrintFrame")); //$NON-NLS-1$
 		file_printFrameItem.setAccelerator(KeyStroke.getKeyStroke('P', keyMask));
@@ -845,11 +855,14 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 						Video video = panel().getVideo();
 						if (video != null && video instanceof ImageVideo) {
 							boolean edit = video_editVideoItem.isSelected();
+							ImageVideo iVideo = (ImageVideo) video;
 							if (!edit) {
 								// convert video to non-editable?
-								ImageVideo iVideo = (ImageVideo) video;
 								try {
+									int n = panel().getFrameNumber();
 									iVideo.setEditable(false);
+									iVideo.setFrameNumber(n);
+//									panel().getPlayer().setStepNumber(n);
 									refresh("menuItem.editVideoFrames !edit");
 									TToolBar.refreshMemoryButton(panel());
 								} catch (Exception e1) {
@@ -857,19 +870,35 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 									OSPLog.finer("exception occurred: " + e1);
 								}
 							} else {
-								// warn user that memory requirements may be large
-								String message = TrackerRes.getString("TMenuBar.Dialog.RequiresMemory.Message1"); //$NON-NLS-1$
-								message += "\n" + TrackerRes.getString("TMenuBar.Dialog.RequiresMemory.Message2"); //$NON-NLS-1$ //$NON-NLS-2$
-								int response = javax.swing.JOptionPane.showConfirmDialog(frame,
-										message, TrackerRes.getString("TMenuBar.Dialog.RequiresMemory.Title"), //$NON-NLS-1$
-										javax.swing.JOptionPane.OK_CANCEL_OPTION,
-										javax.swing.JOptionPane.INFORMATION_MESSAGE);
+								// estimate memory required to load images
+								BufferedImage image = iVideo.getImage();
+								DataBuffer buff = image.getRaster().getDataBuffer();
+								long bytes = buff.getSize() * DataBuffer.getDataTypeSize(buff.getDataType()) / 8;
+								bytes = (long) (bytes * iVideo.getFrameCount() / (1024 * 1024));
+								// compare with available memory
+								long[] memory = OSPRuntime.getMemory();
+								long availableMemory = memory[1] - memory[0];
+								int response = javax.swing.JOptionPane.YES_OPTION;
+								if (bytes > availableMemory) {
+									String mem = " ("+bytes+"MB needed, ";
+									// warn user that memory requirements may be large
+									String message = TrackerRes.getString("TMenuBar.Dialog.RequiresMemory.Message1")
+											+ mem + availableMemory + "MB available)"; //$NON-NLS-1$
+									message += "\n" + TrackerRes.getString("TMenuBar.Dialog.RequiresMemory.Message2"); //$NON-NLS-1$ //$NON-NLS-2$
+									response = javax.swing.JOptionPane.showConfirmDialog(frame,
+											message, TrackerRes.getString("TMenuBar.Dialog.RequiresMemory.Title"), //$NON-NLS-1$
+											javax.swing.JOptionPane.OK_CANCEL_OPTION,
+											javax.swing.JOptionPane.INFORMATION_MESSAGE);
+								}
+
 								if (response == javax.swing.JOptionPane.YES_OPTION) {
 									boolean error = false;
 									// convert video to editable
-									ImageVideo iVideo = (ImageVideo) video;
 									try {
+										int n = panel().getFrameNumber();
 										iVideo.setEditable(true);
+										iVideo.setFrameNumber(n);
+//									panel().getPlayer().setStepNumber(n);
 										refresh("memory_issue");
 										TToolBar.refreshMemoryButton(panel());
 									} catch (Exception ex) {
@@ -885,7 +914,10 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 										if (error) {
 											// try to revert to non-editable
 											try {
+												int n = panel().getFrameNumber();
 												iVideo.setEditable(false);
+												iVideo.setFrameNumber(n);
+//											panel().getPlayer().setStepNumber(n);
 											} catch (Exception ex) {
 											} catch (Error er) {
 											}
@@ -1095,17 +1127,26 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 
 		// create new track menu
 		track_createMenu = new JMenu(TrackerRes.getString("TMenuBar.MenuItem.NewTrack")); //$NON-NLS-1$
-		track_newPointMassItem = new JMenuItem(actions.get("pointMass")); //$NON-NLS-1$
-		track_newCMItem = new JMenuItem(actions.get("cm")); //$NON-NLS-1$
-		track_newVectorItem = new JMenuItem(actions.get("vector")); //$NON-NLS-1$
-		track_newVectorSumItem = new JMenuItem(actions.get("vectorSum")); //$NON-NLS-1$
+		track_newPointMassItem = new JMenuItem(TrackerRes.getString("PointMass.Name")); //$NON-NLS-1$
+		track_newPointMassItem.addActionListener(actions.get("pointMass")); //$NON-NLS-1$
+		track_newCMItem = new JMenuItem(TrackerRes.getString("CenterOfMass.Name")); //$NON-NLS-1$
+		track_newCMItem.addActionListener(actions.get("cm")); //$NON-NLS-1$
+		track_newVectorItem = new JMenuItem(TrackerRes.getString("Vector.Name")); //$NON-NLS-1$
+		track_newVectorItem.addActionListener(actions.get("vector")); //$NON-NLS-1$
+		track_newVectorSumItem = new JMenuItem(TrackerRes.getString("VectorSum.Name")); //$NON-NLS-1$
+		track_newVectorSumItem.addActionListener(actions.get("vectorSum")); //$NON-NLS-1$
 //    newOffsetItem = new JMenuItem(actions.get("offsetOrigin")); //$NON-NLS-1$
 //    newCalibrationPointsItem = new JMenuItem(actions.get("calibration")); //$NON-NLS-1$
-		track_newLineProfileItem = new JMenuItem(actions.get("lineProfile")); //$NON-NLS-1$
-		track_newRGBRegionItem = new JMenuItem(actions.get("rgbRegion")); //$NON-NLS-1$
-		track_newProtractorItem = new JMenuItem(actions.get("protractor")); //$NON-NLS-1$
-		track_newTapeItem = new JMenuItem(actions.get("tape")); //$NON-NLS-1$
-		track_newCircleFitterItem = new JMenuItem(actions.get("circleFitter")); //$NON-NLS-1$
+		track_newLineProfileItem = new JMenuItem(TrackerRes.getString("LineProfile.Name")); //$NON-NLS-1$
+		track_newLineProfileItem.addActionListener(actions.get("lineProfile")); //$NON-NLS-1$
+		track_newRGBRegionItem = new JMenuItem(TrackerRes.getString("RGBRegion.Name")); //$NON-NLS-1$
+		track_newRGBRegionItem .addActionListener(actions.get("rgbRegion")); //$NON-NLS-1$
+		track_newProtractorItem = new JMenuItem(TrackerRes.getString("Protractor.Name")); //$NON-NLS-1$
+		track_newProtractorItem.addActionListener(actions.get("protractor")); //$NON-NLS-1$
+		track_newTapeItem = new JMenuItem(TrackerRes.getString("TapeMeasure.Name")); //$NON-NLS-1$
+		track_newTapeItem.addActionListener(actions.get("tape")); //$NON-NLS-1$
+		track_newCircleFitterItem = new JMenuItem(TrackerRes.getString("CircleFitter.Name")); //$NON-NLS-1$
+		track_newCircleFitterItem.addActionListener(actions.get("circleFitter")); //$NON-NLS-1$
 		// clone track menu
 		track_cloneMenu = new JMenu(TrackerRes.getString("TMenuBar.MenuItem.Clone")); //$NON-NLS-1$
 		// measuring tools menu
@@ -1943,7 +1984,12 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 			videoMenu.addSeparator();
 
 			if (importEnabled && video instanceof ImageVideo) {
-				video_editVideoItem.setSelected(((ImageVideo) video).isEditable());
+				boolean editable = ((ImageVideo) video).isEditable();
+				video_editVideoItem.setSelected(editable);
+				String tip = editable?
+						TrackerRes.getString("TMenuBar.MenuItem.StopEditVideoFrames.Tooltip"): //$NON-NLS-1$
+						TrackerRes.getString("TMenuBar.MenuItem.EditVideoFrames.Tooltip"); //$NON-NLS-1$
+				video_editVideoItem.setToolTipText(tip);
 				videoMenu.add(video_editVideoItem);
 				videoMenu.addSeparator();
 			}
@@ -2629,7 +2675,8 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		}
 
 		if (!OSPRuntime.isJS) {
-			JMenuItem trackerOnlineItem = new JMenuItem("Tracker Online"); //$NON-NLS-1$ //$NON-NLS-2$
+			
+			JMenuItem trackerOnlineItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.TrackerOnline")); //$NON-NLS-1$
 			trackerOnlineItem.addActionListener((e) -> {
 				String uRL = "https://physlets.org/tracker/trackerJS/"; //$NON-NLS-1$
 				OSPDesktop.displayURL(uRL);
@@ -2638,7 +2685,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 			helpMenu.add(trackerOnlineItem);
 		}
 		else {
-			JMenuItem trackerHomeItem = new JMenuItem("Tracker Home"); //$NON-NLS-1$ //$NON-NLS-2$
+			JMenuItem trackerHomeItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.TrackerHome")); //$NON-NLS-1$
 			trackerHomeItem.addActionListener((e) -> {
 				String uRL = "https://physlets.org/tracker/"; //$NON-NLS-1$
 				OSPDesktop.displayURL(uRL);
