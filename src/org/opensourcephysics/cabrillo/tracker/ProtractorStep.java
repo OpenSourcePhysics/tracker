@@ -56,7 +56,7 @@ public class ProtractorStep extends Step {
   protected Rotator rotator;
   protected double line1Angle, line2Angle; // in radians
   protected boolean endsEnabled = true, drawArcCircle;
-  protected boolean drawLayoutBounds, drawLayout1, drawLayout2;
+  protected boolean drawLayoutBounds, drawLayout1, drawLayout2, drawLayoutAngle;
   protected MultiShape vertexCircle;
   protected Map<Integer, Shape> panelVertexShapes = new HashMap<Integer, Shape>();
   protected Map<Integer, Shape> panelEnd1Shapes = new HashMap<Integer, Shape>();
@@ -143,7 +143,7 @@ public Interactive findInteractive(
     Shape hitShape;
     Interactive hit = null;
     ProtractorFootprint footprint = null;
-    boolean drawLayout = false, draw1 = false, draw2 = false;
+    drawLayoutAngle = drawLayoutBounds = drawLayout1 = drawLayout2 = false;
     if (protractor.getFootprint()!=null 
     		&& protractor.getFootprint() instanceof ProtractorFootprint) {
     	footprint = (ProtractorFootprint)protractor.getFootprint();
@@ -153,6 +153,7 @@ public Interactive findInteractive(
       hitShape = panelVertexShapes.get(trackerPanel.getID());
       if (!vertex.isAttached() && hitShape != null && hitShape.intersects(hitRect)) {
       	hit = vertex;
+      	drawLayoutAngle = true;
       	if (vertexCircle==null && footprint!=null) {
       		vertexCircle = footprint.getCircleShape(vertex.getScreenPosition(trackerPanel));
       	}
@@ -164,12 +165,14 @@ public Interactive findInteractive(
       hitShape = panelEnd1Shapes.get(trackerPanel.getID());
       if (hit == null && hitShape != null && hitShape.intersects(hitRect)) {
         hit = end1;
-        draw1 = !isRulerVisible;
+        drawLayout1 = true;
+        drawLayoutAngle = true;
       }
       hitShape = panelEnd2Shapes.get(trackerPanel.getID());
       if (hit == null && hitShape != null && hitShape.intersects(hitRect)) {
       	hit = end2;
-      	draw2 = !isRulerVisible;
+      	drawLayout2 = true;
+      	drawLayoutAngle = true;
       }
     }
     hitShape = panelRotatorShapes.get(trackerPanel.getID());
@@ -188,11 +191,15 @@ public Interactive findInteractive(
     if (hit == null && hitShape != null && hitShape.intersects(hitRect)) {
       hit = handle;
       handle.setHandleEnd(end1);
+      drawLayout1 = true;
+      drawLayoutAngle = true;
     }
     hitShape = panelLine2Shapes.get(trackerPanel.getID());
     if (hit == null && hitShape != null && hitShape.intersects(hitRect)) {
       hit = handle;
       handle.setHandleEnd(end2);
+      drawLayout2 = true;
+      drawLayoutAngle = true;
     }
 		if (hit == null && protractor.ruler != null && protractor.ruler.isVisible()) {
 			hit = protractor.ruler.findInteractive(trackerPanel, hitRect);
@@ -200,17 +207,17 @@ public Interactive findInteractive(
     Rectangle layoutRect = panelLayoutBounds.get(trackerPanel.getID());
     if (hit == null && layoutRect != null 
     		&& layoutRect.intersects(hitRect)) {
-      drawLayout = true;
+    	drawLayoutBounds = true;
+      drawLayoutAngle = true;
       hit = protractor;
     }
-    drawLayoutBounds = drawLayout;
-    drawLayout1 = draw1;
-    drawLayout2 = draw2;
  
-  	if (end1.isAttached() && (hit==end1 || hit==handle || hit==rotator)) return null;
-  	if (end2.isAttached() && (hit==end2 || hit==handle || hit==rotator)) return null;
-  	if (vertex.isAttached() && (hit==vertex || hit==handle)) return null;
-  	
+//  	if (end1.isAttached() && (hit==end1 || hit==handle || hit==rotator)) return null;
+//  	if (end2.isAttached() && (hit==end2 || hit==handle || hit==rotator)) return null;
+//  	if (vertex.isAttached() && (hit==vertex || hit==handle)) return null;
+  	if (end1.isAttached() && (hit==end1 || hit==rotator)) return null;
+  	if (end2.isAttached() && (hit==end2 || hit==rotator)) return null;
+  	if (vertex.isAttached() && (hit==vertex)) return null;
     return hit;
   }
 
@@ -233,14 +240,16 @@ public void draw(DrawingPanel panel, Graphics _g) {
     g.setFont(TFrame.textLayoutFont);
     // draw the text layout if not editing and not world view
     if (!protractor.editing && !isWorldView) {
-	    TextLayout layout = panelTextLayouts.get(trackerPanel.getID());
-			Rectangle bounds = panelLayoutBounds.get(trackerPanel.getID());
-			g.setFont(TFrame.textLayoutFont);
-			layout.draw(g, bounds.x, bounds.y + bounds.height);
-			g.setFont(gfont);
-			if (drawLayoutBounds) {
-				g.drawRect(bounds.x - 2, bounds.y - 3, bounds.width + 6, bounds.height + 5);
-			}
+    	if (drawLayoutAngle || trackerPanel.getSelectedTrack() == protractor) {
+    		TextLayout layout = panelTextLayouts.get(trackerPanel.getID());
+				Rectangle bounds = panelLayoutBounds.get(trackerPanel.getID());
+				g.setFont(TFrame.textLayoutFont);
+				layout.draw(g, bounds.x, bounds.y + bounds.height);
+				g.setFont(gfont);
+				if (drawLayoutBounds) {
+					g.drawRect(bounds.x - 2, bounds.y - 3, bounds.width + 6, bounds.height + 5);
+				}
+    	}
     }
     // draw the vertex circle only if vertex not selected
   	if (trackerPanel.getSelectedPoint()==vertex)
@@ -571,7 +580,8 @@ public String toString() {
 			double halfhsin = h * sin / 2;
 			double halfwcos = w * cos / 2;
 			double d = Math.sqrt((halfhsin*halfhsin) + (halfwcos*halfwcos)) + 8; 
-			if (protractor.ruler != null && protractor.ruler.isVisible() && getProtractorAngle(false) < 0) 
+//			if (protractor.ruler != null && protractor.ruler.isVisible() && getProtractorAngle(false) < 0) 
+			if (getProtractorAngle(false) < 0) 
 				p.setLocation((int)(p.x - d*cos - w/2), (int)(p.y + d*sin + h/2));
 			else
 				p.setLocation((int)(p.x + d*cos - w/2), (int)(p.y - d*sin + h/2));
@@ -619,6 +629,8 @@ public String toString() {
     @Override
 	public void setXY(double x, double y) {
       if (getTrack().locked) return;
+    	if (end1.isAttached() || end2.isAttached() || vertex.isAttached())
+	      return;
       double dx = x - getX();
       double dy = y - getY();
       setLocation(x, y);

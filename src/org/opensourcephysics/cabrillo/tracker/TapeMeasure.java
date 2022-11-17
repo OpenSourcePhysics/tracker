@@ -450,6 +450,9 @@ public class TapeMeasure extends InputTrack {
 		case PROPERTY_TTRACK_STEPS:
 			refreshAttachments();
 			break;
+		case TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDTRACK:
+			repaint();
+			break;
 		case TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDPOINT:
 			TapeStep step = (TapeStep) getStep(tp.getFrameNumber());
 			step.rotatorDrawShapes[0] = null;
@@ -1081,6 +1084,7 @@ public class TapeMeasure extends InputTrack {
 			ImageCoordSystem.PROPERTY_COORDS_FIXEDSCALE,  // TapeMeasure
 			ImageCoordSystem.PROPERTY_COORDS_TRANSFORM, // TapeMeasure
 			TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDPOINT, // TapeMeasure
+			TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDTRACK, // TapeMeasure
 			TTrack.PROPERTY_TTRACK_LOCKED, // TapeMeasure
 	};
 

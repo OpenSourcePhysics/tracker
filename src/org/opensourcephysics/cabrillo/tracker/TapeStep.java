@@ -71,7 +71,7 @@ public class TapeStep extends Step {
 	protected double worldLength;
 	protected double xAxisToTapeAngle, tapeAngle;
 	protected boolean endsEnabled = true;
-	protected boolean drawLayoutBounds;
+	protected boolean drawLayout, drawLayoutBounds;
 	protected boolean adjustingTips;
 	protected Map<Integer, Shape> panelEnd1Shapes = new HashMap<Integer, Shape>();
 	protected Map<Integer, Shape> panelEnd2Shapes = new HashMap<Integer, Shape>();
@@ -177,7 +177,9 @@ public class TapeStep extends Step {
 
 		TrackerPanel trackerPanel = (TrackerPanel) panel;
 		setHitRectCenter(xpix, ypix);
-		boolean drawLayout = false;
+		boolean drawOutline = false;
+    drawLayout = false;
+
 		Shape hitShape;
 		Interactive hit = null;
 		// look for ends
@@ -193,6 +195,7 @@ public class TapeStep extends Step {
 		hitShape = panelShaftShapes.get(trackerPanel.getID());
 		if (hit == null && hitShape != null && hitShape.intersects(hitRect)) {
 			hit = handle;
+			drawLayout = true;
 		}
 		// look for rotator hit
 		Shape[] rotatorHitShapes = panelRotatorShapes.get(trackerPanel.getID());
@@ -220,8 +223,9 @@ public class TapeStep extends Step {
 			}
 			Rectangle layoutRect = panelLayoutBounds.get(trackerPanel.getID());
 			if (layoutRect != null && layoutRect.intersects(hitRect)) {
-				drawLayout = true;
+				drawOutline = true;
 				hit = tape;
+				drawLayout = true;
 			}
 			if (hit == null && tape.ruler != null && tape.ruler.isVisible()) {
 				hit = tape.ruler.findInteractive(trackerPanel, hitRect);
@@ -233,13 +237,13 @@ public class TapeStep extends Step {
 			rotatorDrawShapes[index] = ((LineFootprint) footprint).getRotatorShape(
 					middle.getScreenPosition(trackerPanel), getRotatorLocation(index, trackerPanel), null);
 		}
-		if (drawLayout != drawLayoutBounds) {
-			drawLayoutBounds = drawLayout;
+		if (drawOutline != drawLayoutBounds) {
+			drawLayoutBounds = drawOutline;
 		}
 
 		// check for attached ends which cannot be dragged
-		if (end1.isAttached() && (hit == end1 || hit == handle || hit == rotator1)
-				|| end2.isAttached() && (hit == end2 || hit == handle || hit == rotator2)) // BH!! 2021.09.11 was rotator1
+		if (end1.isAttached() && (hit == end1 || hit == rotator1)
+				|| end2.isAttached() && (hit == end2 || hit == rotator2)) // BH!! 2021.09.11 was rotator1
 			return null;
 
 		return hit;
@@ -259,16 +263,18 @@ public class TapeStep extends Step {
 		getMark(trackerPanel).draw(g, false);
 		Paint gpaint = g.getPaint();
 		g.setPaint(footprint.getColor());
-		// draw the text layout unless editing
+		// draw the text layout if tape is selected unless editing
 		if (!tape.editing) {
-			TextLayout layout = panelTextLayouts.get(trackerPanel.getID());
-			Rectangle bounds = panelLayoutBounds.get(trackerPanel.getID());
-			Font gfont = g.getFont();
-			g.setFont(TFrame.textLayoutFont);
-			layout.draw(g, bounds.x, bounds.y + bounds.height);
-			g.setFont(gfont);
-			if (drawLayoutBounds && tape.isFieldsEnabled()) {
-				g.drawRect(bounds.x - 2, bounds.y - 3, bounds.width + 6, bounds.height + 5);
+			if (drawLayout || trackerPanel.getSelectedTrack() == tape) {
+				TextLayout layout = panelTextLayouts.get(trackerPanel.getID());
+				Rectangle bounds = panelLayoutBounds.get(trackerPanel.getID());
+				Font gfont = g.getFont();
+				g.setFont(TFrame.textLayoutFont);
+				layout.draw(g, bounds.x, bounds.y + bounds.height);
+				g.setFont(gfont);
+				if (drawLayoutBounds && tape.isFieldsEnabled()) {
+					g.drawRect(bounds.x - 2, bounds.y - 3, bounds.width + 6, bounds.height + 5);
+				}
 			}
 		}
 		g.setPaint(gpaint);
@@ -801,6 +807,8 @@ public class TapeStep extends Step {
 		public void setXY(double x, double y) {
 			if (getTrack().locked)
 				return;
+    	if (end1.isAttached() || end2.isAttached())
+	      return;
 			double dx = x - getX();
 			double dy = y - getY();
 			setLocation(x, y);

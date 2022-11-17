@@ -50,6 +50,7 @@ import org.opensourcephysics.display.DatasetManager;
 import org.opensourcephysics.display.DrawingPanel;
 import org.opensourcephysics.display.Interactive;
 import org.opensourcephysics.display.TeXParser;
+import org.opensourcephysics.media.core.ImageCoordSystem;
 import org.opensourcephysics.media.core.NumberField;
 import org.opensourcephysics.media.core.TPoint;
 import org.opensourcephysics.media.core.Trackable;
@@ -300,6 +301,11 @@ public class Protractor extends InputTrack {
 		case PROPERTY_TTRACK_STEP:
 		case PROPERTY_TTRACK_STEPS:
 			refreshAttachments();
+			break;
+		case TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDTRACK:
+			if (e.getOldValue() == this && e.getNewValue() != this) {
+				repaint();
+			}
 			break;
 		}
 		super.propertyChange(e);
@@ -608,6 +614,10 @@ public class Protractor extends InputTrack {
 		yLabel.setText(dataVariables[3]);
 		xField.setUnits(trackerPanel.getUnits(this, dataVariables[2]));
 		yField.setUnits(trackerPanel.getUnits(this, dataVariables[3]));
+		ProtractorStep step = (ProtractorStep) getStep(trackerPanel.getFrameNumber());
+		xField.setEnabled(!step.end1.isAttached() || !step.vertex.isAttached());
+		yField.setEnabled(!step.end2.isAttached() || !step.vertex.isAttached());
+	
 
 		// put step number into label
 		VideoClip clip = trackerPanel.getPlayer().getVideoClip();
@@ -748,9 +758,13 @@ public class Protractor extends InputTrack {
 	 */
 	@Override
 	public void setTrackerPanel(TrackerPanel panel) {
+		if (tp != null)
+			removePanelEvents(panelEventsProtractor);
 		super.setTrackerPanel(panel);
-		if (panel != null)
+		if (panel != null) {
 			setFixedPosition(isFixedPosition());
+			addPanelEvents(panelEventsProtractor);
+		}
 	}
 
 	/**
@@ -836,6 +850,10 @@ public class Protractor extends InputTrack {
 	}
 
 //__________________________ static methods ___________________________
+
+	private final static String[] panelEventsProtractor = new String[] { 
+			TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDTRACK
+	};
 
 	/**
 	 * Returns an ObjectLoader to save and load data for this class.
@@ -929,7 +947,7 @@ public class Protractor extends InputTrack {
 			}
 			// load ruler properties
 			if (control.getPropertyNamesRaw().contains("ruler_visible")) { //$NON-NLS-1$
-				protractor.getRuler().setVisible(true);
+				protractor.getRuler().setVisible(control.getBoolean("ruler_visible"));
 			}
 
 			protractor.setLocked(locked);
