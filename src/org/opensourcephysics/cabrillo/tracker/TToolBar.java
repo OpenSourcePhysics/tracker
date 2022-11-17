@@ -845,7 +845,11 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 		JMenuItem openbrowser = new JMenuItem(actions.get("openBrowser"));
 		openbrowser.setIcon(null);
 		popup.add(openbrowser);
-		if (!isButton) {
+		if (isButton) {
+			openfile.setText(TrackerRes.getString("TActions.Action.Open"));
+			openbrowser.setText(TrackerRes.getString("TActions.Action.OpenBrowser"));
+		}
+		else {
 			openfile.setText(TrackerRes.getString("TMenuBar.MenuItem.FileChooser")+"...");
 			openbrowser.setText(TrackerRes.getString("TMenuBar.MenuItem.LibraryBrowser")+"...");
 		}
@@ -868,8 +872,8 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 		popup.add(savetab);				
 		JMenuItem saveproject = new JMenuItem(actions.get("saveZip"));
 		saveproject.setIcon(null);
-		if (!isButton)
-			saveproject.setText(TrackerRes.getString("TMenuBar.MenuItem.Project")+"...");
+		saveproject.setText(TrackerRes.getString(isButton?
+				"TActions.Action.SaveZip": "TMenuBar.MenuItem.Project")+"...");
 		popup.add(saveproject);
 		FontSizer.setFonts(popup, FontSizer.getLevel());
 		return popup;
