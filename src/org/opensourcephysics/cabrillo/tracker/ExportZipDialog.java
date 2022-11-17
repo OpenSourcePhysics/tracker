@@ -331,7 +331,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 				String trkDir = getTempDirectory();
 				String relPath = XML.getPathRelativeTo(videoTarget, trkDir);
 
-				Video newVideo = videoType.getVideo(XML.getName(videoTarget), vidDir);
+				Video newVideo = videoType.getVideo(XML.getName(videoTarget), vidDir, null);
 				clipXMLControl.setValue("video", newVideo); //$NON-NLS-1$
 
 				XMLControl videoControl = clipXMLControl.getChildControl("video"); //$NON-NLS-1$

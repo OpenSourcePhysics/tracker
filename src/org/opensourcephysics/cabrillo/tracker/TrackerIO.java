@@ -1831,6 +1831,8 @@ public class TrackerIO extends VideoIO {
 				Runnable whenDone) {
 			super(frame, "Loading " + XML.getName(paths.get(0)), (whenDone == null ? 0 : 10), PROGRESS_LOAD_INIT,
 					PROGRESS_COMPLETE);
+//			progressMonitor.setMillisToDecideToPopup(OSPRuntime.isJS? 1000: 1000);
+//			progressMonitor.setMillisToPopup(0);
 			if (whenDone != null) {
 				frame.setFrameBlocker(true, null);
 			}
