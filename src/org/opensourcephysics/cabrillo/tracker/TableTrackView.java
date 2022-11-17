@@ -171,7 +171,7 @@ public class TableTrackView extends TrackView {
 	protected int datasetCount;
 	private Map<String, Integer> htNames;
 	private String[] aNames;
-	private boolean dialogLastVisible;
+	protected boolean dialogLastVisible;
 	private boolean showAllColumns;
 	private int varCount; // colCount without DataFunctions or TextColumns
 
@@ -403,7 +403,8 @@ public class TableTrackView extends TrackView {
 			// copy datasets into table data based on checkbox states
 			ArrayList<Dataset> datasets = trackDataManager.getDatasetsRaw();
 			int count = datasets.size();
-			dataTable.setUnits(datasets.get(0).getXColumnName(), "", track.getDataDescription(0)); //$NON-NLS-1$
+			if (count > 0)
+				dataTable.setUnits(datasets.get(0).getXColumnName(), "", track.getDataDescription(0)); //$NON-NLS-1$
 			boolean degrees = frame != null && !frame.isAnglesInRadians();
 
 			dataTableManager.clear();
@@ -449,7 +450,7 @@ public class TableTrackView extends TrackView {
 			for (int i = colCount; i < dataTableManager.getDatasetsRaw().size(); i++) {
 				dataTableManager.setYColumnVisible(i, false);
 			}
-			if (colCount == 0) {
+			if (colCount == 0 && count > 0) {
 				// show independent variable
 				Dataset in = datasets.get(0);
 				String xTitle = in.getXColumnName();
@@ -862,7 +863,7 @@ public class TableTrackView extends TrackView {
 		case TrackerPanel.PROPERTY_TRACKERPANEL_TRACK:
 			if (columnsDialog != null) {
 //				refreshColumnDialog(track, true);
-				dialogLastVisible = setDialogVisible(e.getNewValue() == track, dialogLastVisible);
+				setDialogAsLastVisible(e.getNewValue() == track);
 			}
 			// allow super
 			break;
@@ -2429,17 +2430,19 @@ public class TableTrackView extends TrackView {
 		getOrCreateColumnsDialog(track);
 	}
 
-	public boolean setDialogVisible(boolean vis, boolean dialogLastVisible) {
+	public void setDialogAsLastVisible(boolean vis) {
 		if (columnsDialog != null) {
-			if (vis) {
-				columnsDialog.setVisible(vis);
+			if (vis && dialogLastVisible) {
+				columnsDialog.setVisible(true);
 			} else {
 				vis = columnsDialog.isVisible();
-				if (vis)
+				if (vis) {
+					boolean b = dialogLastVisible;
 					columnsDialog.setVisible(false);
+					dialogLastVisible = b;
+				}
 			}
 		}
-		return vis;
 	}
 
 	public void buildForNewFunction() {
@@ -2471,6 +2474,9 @@ public class TableTrackView extends TrackView {
 			if (vis) {
 				refreshCheckboxes();
 				pack();
+			}
+			else {
+				dialogLastVisible = false;
 			}
 			super.setVisible(vis);
 		}
@@ -2695,7 +2701,7 @@ public class TableTrackView extends TrackView {
 					refresh(frame.getTrackerPanelForID(panelID).getFrameNumber(), DataTable.MODE_TRACK_STATE);
 				}
 			}
-
+			dialogLastVisible = vis;
 			setVisible(vis);
 		}
 		

@@ -54,7 +54,6 @@ import org.opensourcephysics.tools.FunctionTool;
 public class TableTView extends TrackChooserTView {
 
 	protected static final Icon TABLEVIEW_ICON = Tracker.getResourceIcon("datatable.gif", true); //$NON-NLS-1$ ;
-	private boolean dialogLastVisible;
 
 	// instance fields
 
@@ -217,8 +216,7 @@ public class TableTView extends TrackChooserTView {
 			if (e.getNewValue() != null && !frame.isRemovingAll()) {
 				TableTrackView trackview = (TableTrackView) getTrackView(selectedTrack);
 				if (trackview != null) {
-					dialogLastVisible = trackview.setDialogVisible(
-							e.getNewValue() == panel && isVisible(), dialogLastVisible);
+					trackview.setDialogAsLastVisible(e.getNewValue() == panel && isVisible());
 				}
 			}
 			break;
