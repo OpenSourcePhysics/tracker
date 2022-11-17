@@ -14,7 +14,7 @@
 		<ol>
 			<li><strong>digital video</strong> files (.mov, .avi, .mp4, .flv, .wmv, .ogg, etc.) which require a <strong>video engine</strong> (see below).</li>
 			<li><strong>animated GIF</strong> files (.gif).</li>
-			<li><strong>image sequences</strong> consisting of one or more digital images (.jpg, .png, zip or pasted from the clipboard; see below).</li>
+			<li><strong>images and image sequences</strong> consisting of one or more digital images (.jpg, .png, zip or pasted from the clipboard; see below).</li>
 		</ol>
 		<p>Tracker uses the <strong>Xuggle</strong> video engine to open most digital video files including .mov, .avi and .mp4<strong> </strong>on all platforms. Tracker online uses the HTML5 engine to open .mp4 and other web video formats.</p>
 <h3><a name="video1" id="video1"></a>1. Opening or importing a video from a local drive</h3>
@@ -30,23 +30,27 @@
         <p>The <strong>Digital Library Browser</strong> provides access to individual videos or collections of videos and tracker files on the web. Open the library browser by clicking the <strong>Open Library Browser</strong> button or choosing the <strong>File|Open Library Browser</strong> menu item.   For help using the library browser, see <a href="videos.html#browse">Digital Library Browser</a>.</p>
 <p align="center"><img src="../help_images/library_browser.gif" alt="OSP Digital Library Browser"></p>
 
-		<h3><a name="video3" id="video3"></a>3. Opening numbered image sequences (&quot;image videos&quot;)</h3>
-		<p>Tracker will automatically open a sequence of up to 1000 JPG or PNG images that are numbered sequentially. To open a sequence, select only the first image in the sequence.</p>
+		<h3><a name="video3" id="video3"></a>3. Image Video: opening image files</h3>
+		<p> An <strong>image video</strong> is a video type consisting of one or more images that Tracker treats as video frames. Images can be JPG or PNG files, or they can be pasted directly from the clipboard. </p>
+		<p>Image files that have  the same filename with sequential numbering (e.g., image0.jpg,  image1.jpg,  image2.jpg,  image3.jpg,  image4.jpg) can be automatically opened into a single image video (in this case, with 5 frames). To open a sequence, select only the first image in the sequence (in this case,  image0.jpg).</p>
 		<p>Image sequences may be compressed into a <strong>zip file</strong> to reduce size and simplify handling. Tracker opens zipped image videos automatically, and can export video clips directly to zipped image videos.</p>
 	<p>Image sequence numbering must have a fixed format. For example, selecting the first image in a sequence numbered image00.jpg to image14.jpg will open all 15 images, but if the sequence is numbered image0.jpg to image14.jpg then only the first 10 images will be opened (i.e., up to image9.jpg).</p>
         
-<h3><a name="video4" id="video4"></a>4. Pasting images from the clipboard</h3>
+<h3><a name="video4" id="video4"></a>4. Image Video: pasting images from the clipboard</h3>
 		<p>Images that have been copied to the clipboard may be pasted directly into Tracker for analysis. Choose the <strong>Video|Paste Image</strong> or <strong>Video|Paste Image|Replace Video</strong> menu item to create a new image video.</p>
 		<p align="center"><img src="../help_images/video_menu_paste.gif"></p>
         
-		<h3><a name="video5" id="video5"></a>5. Adding and removing images from an image video</h3>
-		<p>Once an image video has been created, you can paste or import additional images using the <strong>Video|Paste Image</strong> or <strong>Video|Import Images</strong> menu choices <strong>Before This Frame</strong> or <strong>After This Frame</strong>.</p>
-		<p align="left">To remove images from an image video use the <strong>Video|Remove This Frame </strong>item.</p>
+		<h3><a name="video5" id="video5"></a>5. Image Video: adding and removing images</h3>
+		<p>Once an image video has been created, you can <strong>edit</strong> it to add or remove frames. You must first enable editing by checking the <strong>Video|Enable Editing</strong> checkbox<strong>.</strong> This reads all image files into memory so that the video is independent of the file system.</p>
+		<p align="center"><img src="../help_images/video_menu_edit.gif"></p>
+		<p>With editing enabled, paste or import additional images using the <strong>Video|Paste Image</strong> or <strong>Video|Import Images</strong> menu choices <strong>Before This Frame</strong> or <strong>After This Frame</strong>.</p>
+		<p align="center"><img src="../help_images/video_menu_paste_before.gif"></p>
+<p>To remove images from an image video use the <strong>Video|Remove This Frame </strong>item.</p>
 		<p align="left">When importing images you can select multiple images in the file chooser by control-clicking or shift-clicking.</p>
 		<p align="center"><img src="../help_images/import_images_dialog.gif" alt="Importing images"></p>
         
 		<h3><a name="video6" id="video6"></a>6. Saving pasted images</h3>
-		<p>When closing or saving an image video that contains pasted images, a warning dialog prompts you to save the images as files if desired. You must save the images if you wish to reopen them at a later time.</p>
+		<p>When you stop editing, close or save an image video that contains pasted images, a warning dialog prompts you to save the images as files if desired. You must save the images if you wish to reopen them at a later time.</p>
 		<p align="center"><img src="../help_images/save_images_dialog.gif" alt="Saving images"></p>
         
 		<h3><a name="videoclip" id="videoclip"></a>7. Video clips</h3>
@@ -66,9 +70,9 @@
 			<li>Changing the step size after marking can result in gaps in the data until missing frames are marked.</li>
 		</ul>
         
-		<h3><a name="inspector" id="inspector"></a>8. Clip inspector</h3>
-		<p>To display the clip inspector, click the <strong>Clip Settings</strong> button on the toolbar <img src="../help_images/clip_settings_button.gif" alt="Clip settings button" align="absmiddle">.</p>
-		<p>The clip inspector shows the current video clip settings and also provides fields for setting a <strong>start time</strong> (time assigned to step 0), the true <strong>frame rate</strong> (important for high-speed or time-lapse videos) and the time interval <strong>dt</strong> between frames (inverse of the frame rate).</p>
+		<h3><a name="inspector" id="inspector"></a>8. Clip settings</h3>
+		<p>To display the clip settings, click the <strong>Clip Settings</strong> button on the toolbar <img src="../help_images/clip_settings_button.gif" alt="Clip settings button" align="absmiddle">.</p>
+		<p>The clip settings dialog shows the current video clip settings and also provides fields for setting a <strong>start time</strong> (time assigned to step 0), the true <strong>frame rate</strong> (important for high-speed or time-lapse videos) and the time interval <strong>dt</strong> between frames (inverse of the frame rate).</p>
 		<p align="center"><img src="../help_images/clip_inspector.gif" alt="Clip inspector dialog"></p>
         
 		<h3><a name="player" id="player"></a>9. Using the video player</h3>
