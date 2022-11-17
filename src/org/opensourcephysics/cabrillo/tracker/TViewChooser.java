@@ -71,7 +71,7 @@ public class TViewChooser extends JPanel implements PropertyChangeListener, OSPR
 	// instance fields
 
 	protected TFrame frame;
-    protected Integer panelID;
+  protected Integer panelID;
 
 	// data model
 	
@@ -520,12 +520,13 @@ public class TViewChooser extends JPanel implements PropertyChangeListener, OSPR
 			if (list != null) {
 				for (Component c : list) {
 					toolbar.add(c);
+					FontSizer.setFont(c);
 				}
 			}
 		}
 		toolbar.add(toolbarFiller);
 		toolbar.add(maximizeButton);
-		FontSizer.setFonts(toolbar);
+//		FontSizer.setFonts(toolbar);
 		toolbar.repaint();
 	}
 
@@ -533,6 +534,7 @@ public class TViewChooser extends JPanel implements PropertyChangeListener, OSPR
 	 * Refreshes the viewPanel.
 	 */
 	private void refreshViewPanel() {
+		System.out.println("pig");
 		viewPanel.removeAll();
 		for (int i = 0; i< 4; i++) {
 			TView view = tViews[i];
