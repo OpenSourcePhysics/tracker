@@ -95,8 +95,9 @@ public class CenterOfMassInspector extends JDialog implements PropertyChangeList
 	@Override
 	public void propertyChange(PropertyChangeEvent e) {
 		switch (e.getPropertyName()) {
-		case TFrame.PROPERTY_TFRAME_TAB:
-			if (!frame.isRemovingAll() && panelID != null && ((TrackerPanel)e.getNewValue()).getID() == panelID) {
+		case TFrame.PROPERTY_TFRAME_TAB:			
+			if (e.getNewValue() != null && !frame.isRemovingAll() 
+					&& panelID != null && ((TrackerPanel)e.getNewValue()).getID() == panelID) {
 				setVisible(isVisible);
 			} else {
 				boolean vis = isVisible;
