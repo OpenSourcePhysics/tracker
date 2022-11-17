@@ -647,16 +647,21 @@ public class LineProfile extends TTrack {
 				if (step != null && clip.includesFrame(step.n)) {
 					double[][] next = step.getProfileData(trackerPanel);
 					if (next != null && next.length > datasetIndex) {
-						if (k == 0)
-							k = next[0].length;
-						if (k != next[0].length)
-							return;
+//						if (k != next[0].length)
+//							return;
 						collectedData.add(next[datasetIndex]);
+						// count is max length
+						if (k == 0) {
+							k = next[0].length;
+							count = next[datasetIndex].length;
+						}
+						else {
+							count = Math.max(count, next[datasetIndex].length);
+						}
 						int stepNumber = clip.frameToStep(i);
 						double t = player.getStepTime(stepNumber) / 1000.0;
 						times.add(t);
 						frames.add(i);
-						count = next[datasetIndex].length;
 					}
 				}
 			}
@@ -687,7 +692,7 @@ public class LineProfile extends TTrack {
 					for (int col = 0; col < cols; col++) {
 						varNames[col+1] = dataVariables[datasetIndex+1]+"_{ "+frames.get(col)+"}";
 						for (int row = 0; row < rows; row++) {
-							validData[col][row] = orig[col][row];
+							validData[col][row] = row < orig[col].length? orig[col][row]: Double.NaN;								
 							if (col == 0)
 								validData[cols][row] = row;
 						}

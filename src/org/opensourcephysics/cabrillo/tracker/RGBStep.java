@@ -93,6 +93,7 @@ public class RGBStep extends Step {
     position.setStepEditTrigger(true);
     points = new TPoint[] {position, track.vertexHandle};
     screenPoints = new Point[getLength()];
+    valid = true;
   }
 
   /**
@@ -408,6 +409,14 @@ public Object clone() {
 	          for (int j = 0; j < h; j++) {
 	          	// include pixel if center is inside region
 	          	centerPt.setLocation(x0+i+.5, y0+j+.5);
+	          	// if image video, check that centerPt is within image bounds
+	        		if (vid.getTypeName().equals(VideoType.TYPE_IMAGE)) {
+	        			ImageVideo iVid = (ImageVideo) vid;
+	        			int wid = iVid.getRGBSize().width;
+	        			int ht = iVid.getRGBSize().height;
+	        			if (wid < centerPt.getX() || ht < centerPt.getY())
+	        				return null;
+	        		}
 	          	if (region.contains(centerPt)) {
 		            int pixel = pixels[i + j*w];
 		            n++; // pixel count
@@ -419,7 +428,7 @@ public Object clone() {
 		            g2 += gp * gp;
 		            int bp = (pixel) & 0xff; // blue
 		            b += bp;
-		            b2 += bp * bp;
+		            b2 += bp * bp;		            
 	          	}
 	          }
 	        }

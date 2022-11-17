@@ -374,6 +374,11 @@ public class LineProfileStep extends Step {
 			return null;
 
 		Shape bounds = new Rectangle(image.getWidth(), image.getHeight());
+		// for image videos use RGB bounds for images of varying size
+		if (trackerPanel.getVideo().getTypeName().equals(VideoType.TYPE_IMAGE)) {
+			ImageVideo iVid = (ImageVideo) trackerPanel.getVideo();
+			bounds = new Rectangle(iVid.getRGBSize().width, iVid.getRGBSize().height);
+		}		
 		// get line profile width and angle/slope data
 		int width = 1 + 2 * line.getSpread();
 		int len = (int) Math.floor(length); // length of line profile data array
@@ -988,14 +993,22 @@ public class LineProfileStep extends Step {
 	 * @return an integer array of values for image pixels along the line
 	 */
 	private double[][] getHorizontalProfileData(TrackerPanel trackerPanel) {
-		if (trackerPanel.getVideo() == null)
+		Video vid = trackerPanel.getVideo();
+		if (vid == null)
 			return null;
+		// get image right away so RGBSize can be set for image videos
+		BufferedImage image = trackerPanel.getVideo().getImage();
 		int spread = line.getSpread();
 		// get line end points
 		int x0 = Math.min((int) lineEnd0.getX(), (int) lineEnd1.getX());
 		x0 = Math.max(x0, 0);
 		int x1 = Math.max((int) lineEnd0.getX(), (int) lineEnd1.getX());
-		x1 = Math.min(x1, (int) trackerPanel.getImageWidth());
+		int w = (int) trackerPanel.getImageWidth();
+		if (vid.getTypeName().equals(VideoType.TYPE_IMAGE)) {
+			ImageVideo iVid = (ImageVideo) vid;
+			w = iVid.getRGBSize().width;
+		}
+		x1 = Math.min(x1, w);
 		int length = x1 - x0;
 		if (length <= 0)
 			return null;
@@ -1008,7 +1021,6 @@ public class LineProfileStep extends Step {
 		double[][] values = new double[8][length];
 		Point2D imagePixel = new Point2D.Double();
 		Point2D worldPixel = new Point2D.Double();
-		BufferedImage image = trackerPanel.getVideo().getImage();
 		if (image != null && image.getType() == BufferedImage.TYPE_INT_RGB) {
 			try {
 				// locate starting pixel
@@ -1033,17 +1045,31 @@ public class LineProfileStep extends Step {
 					return null;
 				}
 			// step along length of the line
-				for (int i = 0; i < length; i++) {
+				outer: for (int i = 0; i < length; i++) {
 					// step through pixels across line width at each point
 					for (int j = 0; j < width; j++) {
+						imagePixel.setLocation(x0 + i + 0.5, y + 0.5);
+						// check image videos to make sure we are inside RGB bounds
+        		if (vid.getTypeName().equals(VideoType.TYPE_IMAGE)) {
+        			ImageVideo iVid = (ImageVideo) vid;
+        			int wid = iVid.getRGBSize().width;
+        			int ht = iVid.getRGBSize().height;
+        			if (wid < imagePixel.getX() || ht < imagePixel.getY())
+        				return null;
+        		}
+
 						// if in the center, get world x of center of pixel
 						if (j == spread) {
-							imagePixel.setLocation(x0 + i + 0.5, y + 0.5);
 							at.transform(imagePixel, worldPixel);
 							values[0][i] = worldPixel.getX();
 							values[1][i] = worldPixel.getY();
 						}
 						int pixel = pixels[i + j * length];
+//            
+//            int alpha = (pixel >> 24) & 0xff; // 255 outside RGB region of jpg image video
+//            if (alpha > 0)
+//            	return null; 
+//            
 						r[j] = (pixel >> 16) & 0xff; // red
 						g[j] = (pixel >> 8) & 0xff; // green
 						b[j] = (pixel) & 0xff; // blue
