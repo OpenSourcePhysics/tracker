@@ -29,6 +29,7 @@ import java.io.IOException;
 
 import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.controls.XML;
+import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.media.core.MediaRes;
 import org.opensourcephysics.media.core.Video;
 import org.opensourcephysics.media.core.VideoFileFilter;
@@ -95,11 +96,11 @@ public boolean isType(Video video) {
    */
 	@Override
 	public Video getVideo(String path) {
-	  return getVideo(path, null);
+	  return getVideo(path, null, null);
   }
 
 	@Override
-	public Video getVideo(String name, String basePath) {
+	public Video getVideo(String name, String basePath, XMLControl control) {
 		XuggleVideo video;
 		try {
 			video = new XuggleVideo(XML.getResolvedPath(name, basePath));
