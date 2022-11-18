@@ -37,6 +37,7 @@ import org.opensourcephysics.display.Dataset;
 import org.opensourcephysics.display.DatasetManager;
 import org.opensourcephysics.display.DrawingPanel;
 import org.opensourcephysics.media.core.ImageCoordSystem;
+import org.opensourcephysics.media.core.NumberField;
 import org.opensourcephysics.media.core.Trackable;
 import org.opensourcephysics.media.core.VideoClip;
 import org.opensourcephysics.numerics.ODE;
@@ -57,6 +58,7 @@ public class DynamicParticle extends ParticleModel implements ODE {
 	
 	// instance fields
 	protected ModelBooster modelBooster = new ModelBooster();
+	protected NumberField cellNumberField;
 
 	protected boolean inSystem; // used only when loading
 	protected String boosterName; // used only when loading
@@ -380,6 +382,13 @@ public class DynamicParticle extends ParticleModel implements ODE {
 		else
 			super.setEndFrame(n);
 	}
+	
+	@Override
+	public void propertyChange(PropertyChangeEvent e) {
+		super.propertyChange(e);
+		if (e.getPropertyName().equals(ImageCoordSystem.PROPERTY_COORDS_TRANSFORM))
+			boost(); // does nothing if no booster, otherwise refreshes parameters
+	}
 
 	/**
 	 * Gets the x- and y-forces based on a specified cartesian state {x, vx, y, vy,
@@ -560,7 +569,11 @@ public class DynamicParticle extends ParticleModel implements ODE {
 				if (name.equals(boostVars[j])) {
 					double value = state[j]; // default
 					if (!Double.isNaN(value)) {
-						Parameter newParam = params[i] = new Parameter(name, String.valueOf(value));
+						if (cellNumberField == null)
+							cellNumberField = new NumberField(0);
+						cellNumberField.setFormatFor(value);
+						String val = cellNumberField.format(value);
+						Parameter newParam = params[i] = new Parameter(name, val);
 						newParam.setDescription(param.getDescription());
 						newParam.setNameEditable(false);
 					}

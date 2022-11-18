@@ -580,9 +580,12 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				// place near top right corner of frame
 				Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
 				Point frameLoc = frame.getLocationOnScreen();
-				int w = modelBuilder.getWidth() + 8;
+				int w = modelBuilder.getWidth() + 20;
+				int h = modelBuilder.getHeight() + 100;
 				int x = Math.min(screen.width - w, frameLoc.x + frame.getWidth() - w);
-				int y = getLocationOnScreen().y;
+				x = Math.max(x, 0);
+				int y = Math.min(screen.height - h, frameLoc.y);
+				y = Math.max(y, 0);
 				modelBuilder.setLocation(x, y);
 			} catch (Exception ex) {
 				/** empty block */
