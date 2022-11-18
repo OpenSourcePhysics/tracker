@@ -301,7 +301,7 @@ public class ModelBuilder extends FunctionTool {
 		if (refreshingLayout)
 			return;
 		refreshingLayout = true;
-		setVisible(false);
+//		setVisible(false);
 		SwingUtilities.invokeLater(new Runnable() {
 
 			@Override
@@ -310,11 +310,13 @@ public class ModelBuilder extends FunctionTool {
 				refreshGUI();
 				validate();
 				Dimension dim = getSize();
+				dim.width = Math.max(dim.width, getToolbar().getMinimumSize().width);
+
 				int height = Toolkit.getDefaultToolkit().getScreenSize().height;
-				height = Math.min((int) (0.95 * height), (int) (550 * (1 + fontLevel / 4.0)));
+				height = Math.min((int) (0.9 * height), (int) (550 * (1 + fontLevel / 4.0)));
 				dim.height = height;
 				setSize(dim);
-				setVisible(true);
+//				setVisible(true);
 //				TFrame.repaintT(ModelBuilder.this);
 			}
 		});

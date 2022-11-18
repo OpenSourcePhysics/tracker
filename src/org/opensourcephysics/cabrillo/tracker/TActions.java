@@ -571,6 +571,7 @@ public class TActions {
 
 	private static void addParticle(ParticleModel model, TrackerPanel trackerPanel, boolean isDynamic) {
 		ModelBuilder builder = model.getModelBuilder();
+		// builder may be null if model track not yet added to trackerPanel
 		if (builder != null) {
 			builder.setVisible(false);
 		}
@@ -581,6 +582,7 @@ public class TActions {
 				((DynamicSystem) model).getSystemInspector().setVisible(true);
 			}
 			model.getModelBuilder().refreshDropdown(model.getName());
+			model.getModelBuilder().setVisible(true);
 		});
 	}
 
