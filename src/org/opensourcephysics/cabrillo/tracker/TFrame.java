@@ -1032,6 +1032,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		if (currentBar == defaultMenuBar) {
 		} else if (objects == null) {
 			// show defaultMenuBar
+			FontSizer.setFonts(defaultMenuBar, FontSizer.getLevel());
 			setJMenuBar(defaultMenuBar);
 			// we need to also remove this menubar from the _amenubars array
 			Disposable.deallocate(_amenubars, id);
@@ -1611,6 +1612,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			// create new default menubar
 			checkLocale();
 			setJMenuBar(defaultMenuBar = new DefaultMenuBar());
+			FontSizer.setFonts(defaultMenuBar, FontSizer.getLevel());
 			// replace and refresh the stored menubars and toolbars
 			for (int i = getTabCount(); --i >= 0;) {
 				Object[] objects = getObjects(i);
@@ -1647,6 +1649,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 				}
 			} else {
 				// show defaultMenuBar
+				FontSizer.setFonts(defaultMenuBar, FontSizer.getLevel());
 				setJMenuBar(defaultMenuBar);
 			}
 			// refresh tabs
@@ -2482,6 +2485,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 //		TrackerRes.locale = Locale.forLanguageTag("es");
 		checkLocale();
 		setJMenuBar(defaultMenuBar = new DefaultMenuBar());
+		FontSizer.setFonts(defaultMenuBar, FontSizer.getLevel());
 		// add listener to change menubar, toolbar, track control when tab changes
 		tabbedPane.addChangeListener(new ChangeListener() {
 			@Override
@@ -2531,6 +2535,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		// refresh current tab items
 		if (objects == null) {
 			// show defaultMenuBar
+			FontSizer.setFonts(defaultMenuBar, FontSizer.getLevel());
 			setJMenuBar(defaultMenuBar);
 		} else if (mainView != null && newPanel != null) {
 			prevPanelID = newPanel.getID();
