@@ -24,8 +24,11 @@
 */
 package org.opensourcephysics.cabrillo.tracker;
 
-import java.awt.BorderLayout;
 import java.awt.Component;
+import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
@@ -38,9 +41,12 @@ import java.util.Iterator;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
+import javax.swing.Box;
 import javax.swing.Icon;
 import javax.swing.JLabel;
 import javax.swing.JMenuItem;
+import javax.swing.JPopupMenu;
+import javax.swing.SwingUtilities;
 
 import org.opensourcephysics.cabrillo.tracker.TrackerIO.ComponentImage;
 import org.opensourcephysics.controls.XML;
@@ -55,7 +61,8 @@ import org.opensourcephysics.tools.FontSizer;
 import org.opensourcephysics.tools.FunctionTool;
 
 /**
- * This is a TView of a TrackerPanel drawn in world space. It is a JPanel with a single component, worldPanel(). 
+ * This is a TView of a TrackerPanel drawn in world space. 
+ * It is a zoomable TView with a single component, worldPanel(). 
  * 
  * An unusual TView,
  * WorldTView is not just a JPanel, it is a full TrackerPanel. A distinction is made for several tracks, including CenterOfMass, PointMass,
@@ -65,7 +72,7 @@ import org.opensourcephysics.tools.FunctionTool;
  * @author Douglas Brown
  */
 @SuppressWarnings("serial")
-public class WorldTView extends TView {
+public class WorldTView extends ZoomTView {
 
 	protected static final Icon WORLDVIEW_ICON = Tracker.getResourceIcon("axes.gif", true); //$NON-NLS-1$ ;
 
@@ -74,12 +81,16 @@ public class WorldTView extends TView {
 			TrackerPanel.PROPERTY_TRACKERPANEL_IMAGE, TrackerPanel.PROPERTY_TRACKERPANEL_VIDEOVISIBLE,
 			TrackerPanel.PROPERTY_TRACKERPANEL_MAGNIFICATION, ImageCoordSystem.PROPERTY_COORDS_TRANSFORM,
 			TTrack.PROPERTY_TTRACK_DATA };
-
-
+	
+	protected static final double ZOOM_MIN = 0.01;
+	protected static final double ZOOM_MAX = 8;
+	private static Point viewLoc = new Point();
+	private static Point mousePtRelativeToViewRect = new Point();
 
 	private Integer worldPanelID;
-
 	protected JLabel worldViewLabel;
+	protected TButton	zoomButton;
+	private AbstractAction zoomAction;
 	
 	/**
 	 * Constructs a WorldTView of the specified TrackerPanel
@@ -87,17 +98,240 @@ public class WorldTView extends TView {
 	 * @param panel the tracker panel to be viewed
 	 */
 	public WorldTView(TrackerPanel panel) {
-		super(panel);
 		// just create a local panel; we will refer to it by its panelID.		
-		WorldPanel worldPanel = new WorldPanel(panel, this);
+		super(new WorldPanel(panel));
+		WorldPanel worldPanel = (WorldPanel)super.getTrackerPanel();
 		worldPanelID = worldPanel.getID();
-		// use BorderLayout so autosizes
-		setLayout(new java.awt.BorderLayout());
-		add(worldPanel, BorderLayout.CENTER);
+		worldPanel.view = this;
+		Icon zoomIcon = Tracker.getResourceIcon("zoom.gif", true); //$NON-NLS-1$
+		zoomAction = new AbstractAction() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				// set zoom center to center of current viewport before zooming
+				Rectangle rect = scrollPane.getViewport().getViewRect();
+				zoomCenter.setLocation(rect.x + rect.width / 2, rect.y + rect.height / 2);
+				String name = e.getActionCommand();
+				if (name.equals("auto")) { //$NON-NLS-1$
+					worldPanel().setMagnification(-1);
+				} else {
+					double mag = Double.parseDouble(name);
+					worldPanel().setMagnification(mag/100);
+				}
+			}
+		};
+
+		zoomButton = new TButton(zoomIcon) {
+			@Override
+			protected JPopupMenu getPopup() {
+				return refreshZoomPopup(new JPopupMenu());
+			}
+		};
 
 		worldViewLabel = new JLabel();
 		worldViewLabel.setBorder(BorderFactory.createEmptyBorder(2, 6, 2, 0));
-		toolbarComponents.add(worldViewLabel);		
+		toolbarComponents.add(worldViewLabel);
+		toolbarComponents.add(Box.createHorizontalStrut(8));
+		toolbarComponents.add(zoomButton);		
+	}
+	
+	@Override
+	protected boolean doResized() {
+		if (!super.doResized())
+			return false;
+		TrackerPanel trackerPanel = worldPanel().getMainPanel();
+		trackerPanel.eraseAll();
+		refreshZoomButton();
+		TFrame.repaintT(worldPanel());
+		return true;
+	}
+
+	@Override
+	protected void doMouseDragged(MouseEvent e) {
+		Rectangle rect = scrollPane.getViewport().getViewRect();
+		Dimension dim = new Dimension();
+		scrollPane.getViewport().getView().getSize(dim);
+		int dx = mousePtRelativeToViewRect.x - e.getPoint().x + rect.x;
+		int dy = mousePtRelativeToViewRect.y - e.getPoint().y + rect.y;
+		int x = Math.max(0, viewLoc.x + dx);
+		x = Math.min(x, dim.width - rect.width);
+		int y = Math.max(0, viewLoc.y + dy);
+		y = Math.min(y, dim.height - rect.height);
+		if (x != rect.x || y != rect.y) {
+			worldPanel().setMouseCursor(Tracker.grabCursor);
+			rect.x = x;
+			rect.y = y;
+			worldPanel().scrollRectToVisible(rect);
+		} else {
+			viewLoc.setLocation(rect.getLocation());
+			mousePtRelativeToViewRect.setLocation(e.getPoint().x - rect.x, e.getPoint().y - rect.y);
+		}		
+	}
+	
+	@Override
+	protected void doMouseReleased(MouseEvent e) {
+		worldPanel().setMouseCursor(Cursor.getDefaultCursor());
+	}
+	
+	@Override
+	protected void doMousePressed(MouseEvent e) {
+		zoomCenter.setLocation(e.getPoint());
+		Rectangle rect = scrollPane.getViewport().getViewRect();
+		worldPanel().setMouseCursor(Tracker.grabCursor);
+		viewLoc.setLocation(rect.getLocation());
+		mousePtRelativeToViewRect.setLocation(e.getPoint().x - rect.x, e.getPoint().y - rect.y);
+	}
+
+	@Override
+	protected void refreshZoomButton() {
+		Runnable runner = new Runnable() {
+			@Override
+			public synchronized void run() {
+				scrollPane.getViewport().setView(worldPanel()); // is this needed?
+				Dimension full = worldPanel().getFullSize();
+				Dimension dim = worldPanel().getSize();
+				double zoom = Math.min(100*dim.height/full.height, 100*dim.width/full.width); // actual
+				zoomButton.setText(TToolBar.zoomFormat.format(zoom) + "%"); //$NON-NLS-1$
+				if (zoom > 105 * worldPanel().getMagnification())
+					worldPanel().setMagnification(-1);
+			}
+		};
+		SwingUtilities.invokeLater(runner);
+	}
+	
+	protected JPopupMenu refreshZoomPopup(JPopupMenu popup) {
+		popup.removeAll();
+		JMenuItem item = new JMenuItem(TrackerRes.getString("MainTView.Popup.MenuItem.ToFit")); //$NON-NLS-1$
+		item.setActionCommand("auto"); //$NON-NLS-1$
+		item.addActionListener(zoomAction);
+		popup.add(item);
+		popup.addSeparator();
+		for (int i = 0, nz = TrackerPanel.ZOOM_LEVELS.length; i < nz; i++) {
+			int n = (int) (100 * TrackerPanel.ZOOM_LEVELS[i]);
+			if (TrackerPanel.ZOOM_LEVELS[i] > ZOOM_MAX)
+				break;
+			String m = String.valueOf(n);
+			item = new JMenuItem(m + "%"); //$NON-NLS-1$
+			item.setActionCommand(m);
+			item.addActionListener(zoomAction);
+			popup.add(item);
+		}
+		FontSizer.setFonts(popup, FontSizer.getLevel());
+		return popup;
+	}
+
+	public BufferedImage render(BufferedImage image) {
+		return worldPanel().render(image);
+	}
+
+	@Override
+	public void refresh() {
+		if (!isViewPaneVisible())
+			return;
+		worldViewLabel.setText(TrackerRes.getString("TFrame.View.World")); //$NON-NLS-1$
+		worldPanel().refresh();
+	}
+
+	@Override
+	public void init() {
+		//worldPanel().initWP();
+	}
+
+	@Override
+	public void cleanup() {
+		super.cleanup();
+		if (worldPanel() != null)
+			worldPanel().cleanup();
+	}
+	
+	@Override
+	public void dispose() {
+		super.dispose();		
+		worldPanel().dispose();
+		worldPanelID = null;
+	}
+	
+	@Override
+	public boolean isCustomState() {
+		Dimension dim = worldPanel().getPreferredSize();
+		return dim.width > 1;
+	}
+
+	@Override
+	public TrackerPanel getTrackerPanel() {
+		return worldPanel().getMainPanel();
+	}
+
+	@Override
+	public String getViewName() {
+		return TrackerRes.getString("TFrame.View.World"); //$NON-NLS-1$
+	}
+
+	@Override
+	public Icon getViewIcon() {
+		return WORLDVIEW_ICON;
+	}
+
+	@Override
+	public int getViewType() {
+		return TView.VIEW_WORLD;
+	}
+
+	@Override
+	public ArrayList<Component> getToolBarComponents() {
+		worldViewLabel.setText(TrackerRes.getString("TFrame.View.World")); //$NON-NLS-1$
+		refreshZoomButton();
+		return super.getToolBarComponents();
+	}
+
+	@Override
+	public void propertyChange(PropertyChangeEvent e) {
+		propertyChangeImpl(e);
+	}
+
+	private void propertyChangeImpl(PropertyChangeEvent e) {
+		// coming to WorldPanel or WorldView
+		switch (e.getPropertyName()) {
+		case TrackerPanel.PROPERTY_TRACKERPANEL_TRACK:
+			if (e.getOldValue() != null) { // track removed
+				TTrack removed = (TTrack) e.getOldValue();
+				removed.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_COLOR, this); // $NON-NLS-1$
+				removed.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_VISIBLE, this); // $NON-NLS-1$
+			}
+			refresh();
+			break;
+		case TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR:
+			for (TTrack track : TTrack.getValues()) {
+				track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_COLOR, this); // $NON-NLS-1$
+				track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_VISIBLE, this); // $NON-NLS-1$
+			}
+			refresh();
+			break;
+		case TrackerPanel.PROPERTY_TRACKERPANEL_STEPNUMBER:
+		case TrackerPanel.PROPERTY_TRACKERPANEL_IMAGE:
+		case TrackerPanel.PROPERTY_TRACKERPANEL_VIDEO:
+		case TrackerPanel.PROPERTY_TRACKERPANEL_VIDEOVISIBLE:
+		case TTrack.PROPERTY_TTRACK_COLOR:
+		case TTrack.PROPERTY_TTRACK_VISIBLE:
+			TFrame.repaintT(worldPanel());
+			break;
+		case ImageCoordSystem.PROPERTY_COORDS_TRANSFORM:
+		case TrackerPanel.PROPERTY_TRACKERPANEL_SIZE:
+		case TTrack.PROPERTY_TTRACK_DATA:
+			refresh();
+			break;
+		case TrackerPanel.PROPERTY_TRACKERPANEL_MAGNIFICATION:
+			break;
+		default:
+			System.err.println("WoldTView.propertyChange " + e.getPropertyName() + " " + e.getSource());
+			break;
+		}
+		// no sending to super? 
+		// no worldPanel().propertyChange(e); ? Original did not pass, either
+	}
+
+	private WorldPanel worldPanel() {
+		return (WorldPanel) frame.getTrackerPanelForID(worldPanelID);
 	}
 
 	static class WorldPanel extends TrackerPanel {
@@ -106,10 +340,12 @@ public class WorldTView extends TView {
 		protected JMenuItem printItem;
 		protected JMenuItem helpItem;
 		protected Integer mainPanelID;
+		protected double zoomFactor = ZOOM_MIN;
+		protected Rectangle scrollRect = new Rectangle();
+		protected WorldTView view;
 		
-
-		private WorldPanel(TrackerPanel panel, WorldTView view) {
-			super(panel.frame, panel, view);
+		private WorldPanel(TrackerPanel panel) {
+			super(panel.frame, panel);
 			mainPanelID = panel.getID();
 			cleanup();
 			// add this view to tracker panel listeners
@@ -124,17 +360,56 @@ public class WorldTView extends TView {
 			setDrawingInImageSpace(false);
 			setShowCoordinates(false);
 		}
+		
+		@Override
+		public void setMagnification(double magnification) {
+			if (magnification == 0 || Double.isNaN(magnification))
+				return;
+//			double prevZoom = getMagnification();
+			Dimension prevSize = getPreferredSize();
+			Point p1 = new TPoint(0, 0).getScreenPosition(this);
+			if (prevSize.width == 1 && prevSize.height == 1) { // zoomed to fit
+				double w = getImageWidth();
+				double h = getImageHeight();
+				Point p2 = new TPoint(w, h).getScreenPosition(this);
+				prevSize.width = p2.x - p1.x;
+				prevSize.height = p2.y - p1.y;
+			}
+			Dimension d;
+			if (magnification < 0) {
+				d = new Dimension(1, 1);
+			} else {
+				zoom = Math.min(Math.max(magnification, MIN_ZOOM), MAX_ZOOM);
+				int w = (int) (imageWidth * zoom);
+				int h = (int) (imageHeight * zoom);
+				d = new Dimension(w, h);
+			}
+			setPreferredSize(d);
+//			firePropertyChange(PROPERTY_TRACKERPANEL_MAGNIFICATION, Double.valueOf(prevZoom), Double.valueOf(getMagnification()));
+			// scroll and revalidate
+			if (view != null) {
+				view.scrollPane.revalidate();
+				// this will fire a full panel repaint
+				view.scrollToZoomCenter(getPreferredSize(), prevSize, p1);
+				eraseAll();
+			}
+		}
+
+		public Dimension getFullSize() {
+			int w = (int)getImageWidth();
+			int h = (int)getImageHeight();
+			return new Dimension(w, h);
+		}
 
 		@Override
 		protected void setGUI() {
 			// set tiny preferred size so auto zooms to very small
-			// DB not needed with BorderLayout
-//			setPreferredSize(new Dimension(1, 1));
+			setPreferredSize(new Dimension(1, 1));
 		}
 
 		@Override
 		protected void setMouseListeners() {
-			// create and add a new mouse controller for tracker
+			// create and add a mouse listener to handle pressed and dragging
 			addMouseListener(new MouseAdapter() {
 				@Override
 				public void mousePressed(MouseEvent e) {
@@ -143,8 +418,8 @@ public class WorldTView extends TView {
 						popup.show(WorldPanel.this, e.getX(), e.getY());
 					}
 				}
-
 			});
+			setInteractiveMouseHandler(null);
 		}
 
 		protected void createWorldPopup() {
@@ -194,7 +469,7 @@ public class WorldTView extends TView {
 				@Override
 				public void actionPerformed(ActionEvent e) {
 					if (frame != null) {
-						frame.showHelp("world", 0); //$NON-NLS-1$
+						frame.showHelp("worldview", 0); //$NON-NLS-1$
 					}
 				}
 			});
@@ -245,52 +520,30 @@ public class WorldTView extends TView {
 		}
 
 
-		/**
-		 * Overrides TrackerPanel getSnapPoint method.
-		 *
-		 * @return the snap point
-		 */
 		@Override
 		public TPoint getSnapPoint() {
 			return getMainPanel().getSnapPoint();
 		}
 
-		/**
-		 * Overrides TrackerPanel getSelectedTrack method. Gets the selected track of
-		 * trackerPanel.
-		 *
-		 * @return the selected track
-		 */
 		@Override
 		public TTrack getSelectedTrack() {
 			return getMainPanel().getSelectedTrack();
 		}
 
-		/**
-		 * Sets the selected track
-		 *
-		 * @param track the track to select
-		 */
 		@Override
 		public void setSelectedTrack(TTrack track) {
 			if (mainPanelID != null)
 				getMainPanel().setSelectedTrack(track);
 		}
 
-		/**
-		 * Overrides DrawingPanel getDrawables method. Returns all drawables in the
-		 * tracker panel plus those in this world view.
-		 *
-		 * @return a list of Drawable objects
-		 */
 		@Override
 		public ArrayList<Drawable> getDrawables() {
 			if (mainPanelID == null) {
 				return super.getDrawables();
 			}
 			TrackerPanel trackerPanel = getMainPanel();
-			// return all drawables in trackerPanel (except PencilScenes) plus those in this
-			// world view
+			// return all drawables in trackerPanel except PencilScenes 
+			// add drawables in this world panel, if any
 			ArrayList<Drawable> list = trackerPanel.getDrawables();
 			list.addAll(super.getDrawables());
 			// remove PencilScenes
@@ -308,22 +561,12 @@ public class WorldTView extends TView {
 			return list;
 		}
 
-		/**
-		 * Overrides VideoPanel getPlayer method. Returns the tracker panel's player.
-		 *
-		 * @return the video player
-		 */
 		@Override
 		public VideoPlayer getPlayer() {
 			// workaround to prevent null pointer exception during instantiation
 			return (mainPanelID == null ? super.getPlayer() : getMainPanel().getPlayer());
 		}
 
-		/**
-		 * Overrides VideoPanel getCoords method. Returns the tracker panel's coords.
-		 *
-		 * @return the current image coordinate system
-		 */
 		@Override
 		public ImageCoordSystem getCoords() {
 			// workaround to prevent null pointer exception during instantiation
@@ -335,11 +578,6 @@ public class WorldTView extends TView {
 			return false;
 		}
 
-		/**
-		 * Overrides InteractivePanel getInteractive method.
-		 * 
-		 * @return null
-		 */
 		@Override
 		public Interactive getInteractive() {
 			return null;
@@ -358,7 +596,8 @@ public class WorldTView extends TView {
 
 		@Override
 		public void propertyChange(PropertyChangeEvent e) {
-			view.propertyChangeImpl(e);
+			if (view != null)
+				view.propertyChangeImpl(e);
 		}
 		
 		@Override
@@ -381,160 +620,13 @@ public class WorldTView extends TView {
 		}
 
 		public boolean isActive() {
+			if (view == null)
+				return false;
 			return (TViewChooser.isSelectedView(view) && view.isViewPaneVisible());
 		}
 
-
 	} // end WorldPanel
-	
-	
-
-	/**
-	 * Refreshes all tracks
-	 */
-	@Override
-	public void refresh() {
-		if (!isViewPaneVisible())
-			return;
-		worldViewLabel.setText(TrackerRes.getString("TFrame.View.World")); //$NON-NLS-1$
-		worldPanel().refresh();
-	}
-
-	/**
-	 * Initializes this view
-	 */
-	@Override
-	public void init() {
-		//worldPanel().initWP();
-	}
-
-	/**
-	 * Cleans up this view
-	 */
-	@Override
-	public void cleanup() {
-		worldPanel().cleanup();
-	}
-
-	
-	/**
-	 * Disposes of the 
-	 */
-	@Override
-	public void dispose() {
-		worldPanel().dispose();
-		worldPanelID = null;
-		super.dispose();
-	}
-
-	/**
-	 * Gets the tracker panel being viewed
-	 *
-	 * @return the tracker panel being viewed
-	 */
-	@Override
-	public TrackerPanel getTrackerPanel() {
-		return worldPanel().getMainPanel();
-	}
-
-	/**
-	 * Gets the name of the view
-	 *
-	 * @return the name of the view
-	 */
-	@Override
-	public String getViewName() {
-		return TrackerRes.getString("TFrame.View.World"); //$NON-NLS-1$
-	}
-
-	/**
-	 * Gets the icon for this view
-	 *
-	 * @return the icon for the view
-	 */
-	@Override
-	public Icon getViewIcon() {
-		return WORLDVIEW_ICON;
-	}
-
-	/**
-	 * Gets the type of view
-	 *
-	 * @return one of the defined types
-	 */
-	@Override
-	public int getViewType() {
-		return TView.VIEW_WORLD;
-	}
-
-	/**
-	 * Gets the toolbar components
-	 *
-	 * @return an ArrayList of components to be added to a toolbar
-	 */
-	@Override
-	public ArrayList<Component> getToolBarComponents() {
-		worldViewLabel.setText(TrackerRes.getString("TFrame.View.World")); //$NON-NLS-1$
-		return super.getToolBarComponents();
-	}
-
-	/**
-	 * Responds to property change events.
-	 *
-	 * @param e the property change event
-	 */
-	@Override
-	public void propertyChange(PropertyChangeEvent e) {
-		propertyChangeImpl(e);
-	}
-
-
-	private void propertyChangeImpl(PropertyChangeEvent e) {
-		// coming to WorldPanel or WorldView
-		switch (e.getPropertyName()) {
-		case TrackerPanel.PROPERTY_TRACKERPANEL_TRACK:
-			if (e.getOldValue() != null) { // track removed
-				TTrack removed = (TTrack) e.getOldValue();
-				removed.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_COLOR, this); // $NON-NLS-1$
-				removed.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_VISIBLE, this); // $NON-NLS-1$
-			}
-			refresh();
-			break;
-		case TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR:
-			for (TTrack track : TTrack.getValues()) {
-				track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_COLOR, this); // $NON-NLS-1$
-				track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_VISIBLE, this); // $NON-NLS-1$
-			}
-			refresh();
-			break;
-		case TrackerPanel.PROPERTY_TRACKERPANEL_STEPNUMBER:
-		case TrackerPanel.PROPERTY_TRACKERPANEL_IMAGE:
-		case TrackerPanel.PROPERTY_TRACKERPANEL_VIDEO:
-		case TrackerPanel.PROPERTY_TRACKERPANEL_VIDEOVISIBLE:
-		case TTrack.PROPERTY_TTRACK_COLOR:
-		case TTrack.PROPERTY_TTRACK_VISIBLE:
-			TFrame.repaintT(worldPanel());
-			break;
-		case ImageCoordSystem.PROPERTY_COORDS_TRANSFORM:
-		case TrackerPanel.PROPERTY_TRACKERPANEL_SIZE:
-		case TTrack.PROPERTY_TTRACK_DATA:
-			refresh();
-			break;
-		case TrackerPanel.PROPERTY_TRACKERPANEL_MAGNIFICATION:
-			break;
-		default:
-			System.err.println("WoldTView.propertyChange " + e.getPropertyName() + " " + e.getSource());
-			break;
-		}
-		// no sending to super? 
-		// no worldPanel().propertyChange(e); ? Original did not pass, either
-	}
-
-	private WorldPanel worldPanel() {
-		// TODO Auto-generated method stub
-		return (WorldPanel) frame.getTrackerPanelForID(worldPanelID);
-	}
-
+		
 	/**
 	 * Returns an XML.ObjectLoader to save and load object data.
 	 *
@@ -557,7 +649,11 @@ public class WorldTView extends TView {
 		 */
 		@Override
 		public void saveObject(XMLControl control, Object obj) {
-			/** empty block */
+			WorldTView view = (WorldTView)obj;
+			control.setValue("zoom", view.worldPanel().getMagnification());
+			Rectangle rect = view.scrollPane.getViewport().getViewRect();
+			int[] rectData = new int[] {rect.x, rect.y, rect.width, rect.height};
+			control.setValue("viewrect", rectData);
 		}
 
 		/**
@@ -580,13 +676,15 @@ public class WorldTView extends TView {
 		 */
 		@Override
 		public Object loadObject(XMLControl control, Object obj) {
+			WorldTView view = (WorldTView)obj;
+			if (control.getPropertyNamesRaw().contains("zoom")) {
+				view.worldPanel().setMagnification(control.getDouble("zoom"));
+				int[] d = (int[]) control.getObject("viewrect");
+				Rectangle rect = new Rectangle(d[0], d[1], d[2], d[3]);
+				view.worldPanel().scrollRectToVisible(rect);						
+			}
 			return obj;
 		}
 
 	}
-
-	public BufferedImage render(BufferedImage image) {
-		return worldPanel().render(image);
-	}
-
 }
