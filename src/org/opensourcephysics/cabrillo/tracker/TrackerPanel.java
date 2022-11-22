@@ -4655,9 +4655,10 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		if (fileDropHandler == null) {
 			// phase II, after setting of dividers
 			// set track control location
-			if (trackControlX != Integer.MIN_VALUE) {				
-				Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
+			if (trackControlX != Integer.MIN_VALUE) {	
 				TrackControl tc = TrackControl.getControl(this);
+				tc.wasVisible = true;
+				Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
 				int x = Math.max(getTFrame().getLocation().x + trackControlX, 0);
 				x = Math.min(x, dim.width - tc.getWidth());
 				int y = Math.max(getTFrame().getLocation().y + trackControlY, 0);
@@ -4974,7 +4975,8 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	public void onLoaded() {
 		if (showTrackControlDelayed && isShowing()) {
 			showTrackControlDelayed = false;
-			TrackControl.getControl(this).setVisible(true);
+			TrackControl tc = TrackControl.getControl(this);
+			tc.setVisible(tc.wasVisible);
 		}
 		TToolBar tbar = getToolBar(true);
 		if (tbar != null) {
