@@ -1899,6 +1899,9 @@ public class PrefsDialog extends JDialog {
 			}
 		}
 
+		int preferredLevel = Tracker.preferredFontLevel + Tracker.preferredFontLevelPlus;
+		fontSizeDropdown.setSelectedIndex(preferredLevel);
+		
 		// trail length
 		if (trailLengthDropdown != null)
 			trailLengthDropdown.setSelectedIndex(Tracker.preferredTrailLengthIndex);
