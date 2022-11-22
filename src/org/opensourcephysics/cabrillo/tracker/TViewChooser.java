@@ -115,7 +115,8 @@ public class TViewChooser extends JPanel implements PropertyChangeListener, OSPR
 		panel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR, this); // $NON-NLS-1$
 		// viewPanel
 		viewPanel = new JPanel(new CardLayout());
-		viewPanel.setBorder(BorderFactory.createEtchedBorder());
+//		viewPanel.setBorder(BorderFactory.createEtchedBorder());
+		viewPanel.setBorder(BorderFactory.createEmptyBorder());
 		add(viewPanel, BorderLayout.CENTER);
 		// toolbar along the bottom when maximized, along the top when restored
 		toolbar = new JToolBar();
