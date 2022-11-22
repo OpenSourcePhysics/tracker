@@ -268,7 +268,6 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	private ArrayList<TTrack> userTracks, exportableTracks;
 	private Map<String, AbstractAction> actions;
 	protected String title;
-	protected WorldTView view;
 
 	/**
 	 * Constructs a blank TrackerPanel with a player.
@@ -276,7 +275,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	 * We need a frame -  at the very least, new TFrame()
 	 */
 	public TrackerPanel() {
-		this(null, null, null,null);
+		this(null, null, null);
 		// no gui, no frame, no panelID. 
 	}
 
@@ -284,7 +283,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	 * Constructs a blank TrackerPanel with a player and GUI.
 	 */
 	public TrackerPanel(TFrame frame) {
-		this(frame, null, null, null);
+		this(frame, null, null);
 	}
 
 	/**
@@ -293,23 +292,23 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	 * @param video the video
 	 */
 	public TrackerPanel(TFrame frame, Video video) {
-		this(frame, video, null, null);
+		this(frame, video, null);
 	}
 
-	public TrackerPanel(TFrame frame, TrackerPanel panel, WorldTView view) {
-		this(frame, null, panel, view);
+	public TrackerPanel(TFrame frame, TrackerPanel panel) {
+		this(frame, null, panel);
 	}
 
-	public TrackerPanel(TFrame frame, Video video, TrackerPanel panel, WorldTView view) {
+	public TrackerPanel(TFrame frame, Video video, TrackerPanel panel) {
 		super(video);
 		setTFrame(frame == null ? new TFrame() : frame);
 		if (panel == null) {
 			andWorld.add(panelID);
 		} else {
-			this.view = view;
+//			this.view = view;
 			panel.andWorld.add(panelID);
 		}
-		this.view = view;
+//		this.view = view;
 		selectedSteps = new StepSet(frame, panelID);		
 		setGUI();
 	}
@@ -322,7 +321,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	}
 
 	public boolean isWorldPanel() {
-		return (view != null);
+		return this.getClass() != TrackerPanel.class;
 	}
 
 	public Map<String, AbstractAction> getActions() {
@@ -3389,7 +3388,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		if (isDisposed)
 			return;
 		isDisposed = true; // stop all firing of events
-		view = null;
+//		view = null;
 		// remove property change listeners
 		if (frame != null) {
 			removePropertyChangeListener(VideoPanel.PROPERTY_VIDEOPANEL_DATAFILE, frame); // $NON-NLS-1$
@@ -3725,7 +3724,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		 */
 		@Override
 		public Object createObject(XMLControl control) {
-			return new TrackerPanel(null, null);
+			return new TrackerPanel(null, (Video)null);
 		}
 
 		/**
@@ -5027,7 +5026,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	
 	public static void main(String[] args) {
 
-		TrackerPanel p = new TrackerPanel(null, null);
+		TrackerPanel p = new TrackerPanel(null, (Video)null);
 
 		try {
 
