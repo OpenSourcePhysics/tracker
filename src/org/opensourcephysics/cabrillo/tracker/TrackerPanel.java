@@ -86,6 +86,7 @@ import org.opensourcephysics.controls.XMLControlElement;
 import org.opensourcephysics.controls.XMLProperty;
 import org.opensourcephysics.controls.XMLPropertyElement;
 import org.opensourcephysics.display.Data;
+import org.opensourcephysics.display.DataFunction;
 import org.opensourcephysics.display.DataTable;
 import org.opensourcephysics.display.DatasetManager;
 import org.opensourcephysics.display.DisplayRes;
@@ -4859,6 +4860,43 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		// post edit and clear tracks
 		Undo.postTrackClear(this, xml);
 		clearTracks();
+	}
+	
+	/**
+	 * Reload tracks from datafile. This may be useful if a user edits
+	 * track data directly in the xml file.
+	 */
+	protected void reload() {
+		File file = getDataFile();
+		if (file == null)
+			return;		
+		TrackChooserTView.ignoreRefresh = true;
+		XMLControl control = new XMLControlElement(file);
+		if (control.failedToRead())
+			return;
+		List<XMLProperty> proplist = control.getPropsRaw();
+		for (int i = 0; i < proplist.size(); i++) {
+			XMLProperty prop = proplist.get(i);
+			if (prop.getPropertyName().equals("tracks")) { //$NON-NLS-1$
+				ArrayList<TTrack> tracks = getTracksTemp();
+				XMLControl[] trackcontrols = prop.getChildControls();
+				outer: for (int j = 0; j < trackcontrols.length; j++) {
+					XMLControl tcon = trackcontrols[j];
+					for (int k = 0; k < tracks.size(); k++) {
+						TTrack track = tracks.get(k);
+						if (track.getName().equals(tcon.getString("name"))) {
+							tcon.loadObject(track);
+							track.erase();
+							track.firePropertyChange(TTrack.PROPERTY_TTRACK_STEPS, TTrack.HINT_STEP_ADDED_OR_REMOVED, null);
+							continue outer;
+						}
+					}
+				}
+				break;
+			}
+		}
+		TrackChooserTView.ignoreRefresh = false;
+		TFrame.repaintT(this);		
 	}
 
 	public void openURLFromDialog() {

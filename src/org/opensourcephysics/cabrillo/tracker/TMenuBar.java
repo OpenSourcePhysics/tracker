@@ -205,6 +205,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 	// used in TFrame -- check!!
 	JMenu file_openRecentMenu;
 
+	private JMenuItem file_reloadItem;
 	private JMenuItem file_closeItem;
 	private JMenuItem file_closeAllItem;
 	private JMenu file_saveMenu;
@@ -573,6 +574,12 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		file_importMenu.add(file_import_TRKItem);
 		file_importMenu.add(file_import_dataItem);
 		// close and close all items
+		file_reloadItem = new JMenuItem(new AbstractAction() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				panel().reload();
+			}			
+		}); //$NON-NLS-1$
 		file_closeItem = new JMenuItem(actions.get("close")); //$NON-NLS-1$
 		file_closeAllItem = new JMenuItem(TrackerRes.getString("TActions.Action.CloseAll")); //$NON-NLS-1$
 		file_closeAllItem.addActionListener(actions.get("closeAll")); //$NON-NLS-1$
@@ -1413,6 +1420,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 //			fileMenu.addSeparator();
 //			fileMenu.add(file_openBrowserItem);
 			fileMenu.addSeparator();
+			fileMenu.add(file_reloadItem);
 			fileMenu.add(file_closeItem);
 			fileMenu.add(file_closeAllItem);
 			fileMenu.addSeparator();
@@ -1470,6 +1478,8 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 			// set close and saveAs names
 			String name = " \"" + panel().getTitle() + "\""; //$NON-NLS-1$ //$NON-NLS-2$
 			file_closeItem.setText(TrackerRes.getString("TActions.Action.Close") + name); //$NON-NLS-1$
+			file_reloadItem.setText(TrackerRes.getString("TMenuBar.MenuItem.Reload") + name); //$NON-NLS-1$
+			file_reloadItem.setEnabled(panel().getDataFile() != null);
 //			file_saveItem.setText(TrackerRes.getString("TMenuBar.MenuItem.Tab")+"..."); //$NON-NLS-1$
 			// disable export data menu if no tracks to export
 			file_export_dataItem.setEnabled(!panel().getExportableTracks().isEmpty());
