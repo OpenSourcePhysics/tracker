@@ -1663,7 +1663,7 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 			add(index++, maximizeButton);
 
 		if (TTrackBar.testButton != null)
-			add(index++, TTrackBar.testButton);
+//			add(index++, TTrackBar.testButton);
 
 //		FontSizer.setFont(newTrackButton);
 //		FontSizer.setFont(zoomButton);

@@ -137,7 +137,7 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 								public void actionPerformed(ActionEvent e) {
 									// test action goes here	
 											
-//									TrackerPanel trackerPanel = frame.getSelectedPanel();	
+//									TrackerPanel trackerPanel = frame.getSelectedPanel();
 											
 									if (!testTimer.isRepeats()) {
 										testTimer.stop();
@@ -146,7 +146,7 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 								}
 							});
 							testTimer.setInitialDelay(0);
-							testTimer.setRepeats(true);
+							testTimer.setRepeats(false);
 							testTimer.start();
 						} // end timer is null
 						else {
@@ -540,7 +540,7 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 		if (!OSPRuntime.isJS) /** @j2sNative */
 		{
 			if (testButton != null) {
-//				add(testButton);
+				add(testButton);
 			}
 		}
 		add(maximizeButton);
