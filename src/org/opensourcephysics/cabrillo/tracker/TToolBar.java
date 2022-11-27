@@ -1640,7 +1640,8 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 		add(index++, getSeparator());
 //		add(fontSizeButton);
 //		add(getSeparator());
-		add(index++, toolbarFiller);
+		add(toolbarFiller);
+//		add(index++, toolbarFiller);
 		if (Tracker.newerVersion != null) {
 			String s = TrackerRes.getString("TTrackBar.Button.Version"); //$NON-NLS-1$
 			TTrackBar.newVersionButton.setText(s + " " + Tracker.newerVersion); //$NON-NLS-1$
