@@ -4611,6 +4611,35 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	}
 
 	public void processPaste(String dataString) throws Exception {
+		XMLControl control = null;
+		// if datastring is an XMLControl string, add xml header 
+		if (dataString.trim().startsWith("<object class=")) {
+			dataString = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+					+ dataString;
+		}
+		// if datastring is XML, read into XMLControl
+		if (dataString.trim().startsWith("<?xml"))
+			control = new XMLControlElement(dataString);
+		if (control != null && !control.failedToRead()) {
+			Class<?> type = control.getObjectClass();
+			if (TTrack.class.isAssignableFrom(type)) {
+				// look for matching track and if found, load it
+				ArrayList<TTrack> tracks = getTracksTemp();
+				for (int k = 0; k < tracks.size(); k++) {
+					TTrack track = tracks.get(k);
+					if (track.getName().equals(control.getString("name"))) {
+						TrackChooserTView.ignoreRefresh = true;
+						control.loadObject(track);
+						track.erase();
+						TrackChooserTView.ignoreRefresh = false;
+						track.firePropertyChange(TTrack.PROPERTY_TTRACK_STEPS, TTrack.HINT_STEP_ADDED_OR_REMOVED, null);
+					}				
+				}
+			}
+		}
+		if (control != null)
+			return;
+		
 		DataTrack dt = ParticleDataTrack.getTrackForDataString(dataString, this);
 		// if track exists with the same data string, return
 		if (dt != null) {
@@ -4878,7 +4907,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		for (int i = 0; i < proplist.size(); i++) {
 			XMLProperty prop = proplist.get(i);
 			if (prop.getPropertyName().equals("tracks")) { //$NON-NLS-1$
-				ArrayList<TTrack> tracks = getTracksTemp();
+				ArrayList<TTrack> tracks = getTracks();
 				XMLControl[] trackcontrols = prop.getChildControls();
 				outer: for (int j = 0; j < trackcontrols.length; j++) {
 					XMLControl tcon = trackcontrols[j];
