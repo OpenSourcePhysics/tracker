@@ -2427,7 +2427,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 						// do any tracks have null source?
 						for (int m = 0, n = list.size(); m < n; m++) {
 							DataTrack next = list.get(m);
-							if (next.getSource() == null) {
+							if (next.getSource() == null && next.isAutoPasteEnabled()) {
 								// null source, so data is pasted
 								needListener = true;
 								break;

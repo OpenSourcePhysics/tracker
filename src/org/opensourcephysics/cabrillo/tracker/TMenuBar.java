@@ -1419,8 +1419,11 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 			}
 //			fileMenu.addSeparator();
 //			fileMenu.add(file_openBrowserItem);
+			if (panel().getDataFile() != null) {
+				fileMenu.addSeparator();
+				fileMenu.add(file_reloadItem);
+			}
 			fileMenu.addSeparator();
-			fileMenu.add(file_reloadItem);
 			fileMenu.add(file_closeItem);
 			fileMenu.add(file_closeAllItem);
 			fileMenu.addSeparator();
@@ -1479,7 +1482,6 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 			String name = " \"" + panel().getTitle() + "\""; //$NON-NLS-1$ //$NON-NLS-2$
 			file_closeItem.setText(TrackerRes.getString("TActions.Action.Close") + name); //$NON-NLS-1$
 			file_reloadItem.setText(TrackerRes.getString("TMenuBar.MenuItem.Reload") + name); //$NON-NLS-1$
-			file_reloadItem.setEnabled(panel().getDataFile() != null);
 //			file_saveItem.setText(TrackerRes.getString("TMenuBar.MenuItem.Tab")+"..."); //$NON-NLS-1$
 			// disable export data menu if no tracks to export
 			file_export_dataItem.setEnabled(!panel().getExportableTracks().isEmpty());
@@ -1842,10 +1844,10 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 			if (pasteEnabled) { // $NON-NLS-1$
 				checkAddMenuSep(editMenu);
 				editMenu.add(edit_pasteItem);
-				if (frame != null) {
-					edit_autopasteCheckbox.setSelected(frame.getAlwaysListenToClipboard());
-					editMenu.add(edit_autopasteCheckbox);
-				}
+//				if (frame != null) {
+//					edit_autopasteCheckbox.setSelected(frame.getAlwaysListenToClipboard());
+//					editMenu.add(edit_autopasteCheckbox);
+//				}
 			}
 
 			edit_deleteTracksMenu.setEnabled(hasTracks);

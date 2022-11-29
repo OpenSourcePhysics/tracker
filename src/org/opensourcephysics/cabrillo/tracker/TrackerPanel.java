@@ -228,6 +228,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	protected TrackControl trackControl;
 	protected boolean isModelBuilderVisible;
 	protected boolean isShiftKeyDown, isControlKeyDown;
+	protected boolean isAutoPaste;
 	
 	private int cursorType;
 	private boolean showTrackControlDelayed;
@@ -1985,6 +1986,8 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	 */
 	public void importDataAsync(String dataString, Object source, Runnable whenDone) {
 		if (dataString == null) {
+			if (isAutoPaste)
+				return;
 			// inform user
 			JOptionPane.showMessageDialog(frame, TrackerRes.getString("TrackerPanel.Dialog.NoData.Message"), //$NON-NLS-1$
 					TrackerRes.getString("TrackerPanel.Dialog.NoData.Title"), //$NON-NLS-1$
@@ -2001,7 +2004,8 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			importDataAsync(ResourceLoader.getString(path), path, whenDone);
 			return;
 		}
-		DataTrack dt = importDatasetManager(datasetManager[0], source);
+		// try to load datasetManager into new or existing DataTrack
+		DataTrack dt = loadIntoDataTrack(datasetManager[0], source);
 		if (dt instanceof ParticleDataTrack) {
 			((ParticleDataTrack) dt).prevDataString = dataString;
 		}
@@ -2010,7 +2014,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	}
 
 	/**
-	 * Imports DatasetManager from a source into a DataTrack. Data must include "x" and "y"
+	 * Loads a DatasetManager from a source into a DataTrack. Data must include "x" and "y"
 	 * columns (may be unnamed), may include "t". DataTrack is the first one found
 	 * that matches the Data name or ID. If none found, a new DataTrack is created.
 	 * Source object (model) may be String path, JPanel controlPanel, Tool tool,
@@ -2018,20 +2022,15 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	 * 
 	 * @param data   the Data to import
 	 * @param source the data source (may be null)
-	 * @return the DataTrack with the Data (may return null)
+	 * @return the loaded DataTrack (may return null)
 	 */
-	@Override
-	public DataTrack importData(Data data, Object source) {
-		return importDatasetManager((DatasetManager) data, source);
-	}
-
-	private DataTrack importDatasetManager(DatasetManager data, Object source) {
+	private DataTrack loadIntoDataTrack(DatasetManager data, Object source) {
 		if (data == null)
 			return null;
-		// find DataTrack with matching name or ID
 		
+		// find DataTrack with matching name or ID		
 		ParticleDataTrack dataTrack = ParticleDataTrack.getTrackForData(data, this);
-
+		
 		// load data into DataTrack
 		try {
 			// create a new DataTrack if none exists
@@ -2052,7 +2051,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				EventQueue.invokeLater(() -> {
 						dt.firePropertyChange(TTrack.PROPERTY_TTRACK_DATA, null, null);
 				});
-			} else {
+			} else if (dataTrack.isAutoPasteEnabled() || !isAutoPaste) {
 				// set data for existing DataTrack
 				dataTrack.setData(data);
 			}
@@ -4609,76 +4608,95 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		tainted = false;
 		dirty = null;
 	}
+	
+	/**
+	 * Pastes a string and imports any objects or data.
+	 * Called by pasteXML menu item
+	 * 
+	 * @param data the data string
+	 */
+	public void doPaste(String data) {
+		if (data != null && !pasteXML(data, false)) {
+			importDataAsync(data, null, null); // create/reload external model
+		}
+	}
 
-	public void processPaste(String dataString) throws Exception {
-		XMLControl control = null;
-		// if datastring is an XMLControl string, add xml header 
-		if (dataString.trim().startsWith("<object class=")) {
-			dataString = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
-					+ dataString;
+	/**
+	 * Pastes a string and reloads external models (DataTracks).
+	 * Called by clipboard listener when auto-pasting
+	 * 
+	 * @param dataString the data string
+	 */
+	public void doAutoPaste(String dataString) throws Exception {
+		if (dataString != null && !pasteXML(dataString, true)) {
+			isAutoPaste = true;
+			importDataAsync(dataString, null, null); // create/reload external model
+			isAutoPaste = false;
 		}
-		// if datastring is XML, read into XMLControl
-		if (dataString.trim().startsWith("<?xml"))
-			control = new XMLControlElement(dataString);
-		if (control != null && !control.failedToRead()) {
-			Class<?> type = control.getObjectClass();
-			if (TTrack.class.isAssignableFrom(type)) {
-				// look for matching track and if found, load it
-				ArrayList<TTrack> tracks = getTracksTemp();
-				for (int k = 0; k < tracks.size(); k++) {
-					TTrack track = tracks.get(k);
-					if (track.getName().equals(control.getString("name"))) {
-						TrackChooserTView.ignoreRefresh = true;
-						control.loadObject(track);
-						track.erase();
-						TrackChooserTView.ignoreRefresh = false;
-						track.firePropertyChange(TTrack.PROPERTY_TTRACK_STEPS, TTrack.HINT_STEP_ADDED_OR_REMOVED, null);
-					}				
-				}
-			}
-		}
-		if (control != null)
-			return;
-		
-		DataTrack dt = ParticleDataTrack.getTrackForDataString(dataString, this);
-		// if track exists with the same data string, return
-		if (dt != null) {
-			// clipboard data has already been pasted
-			return;
-		}
-		// parse the data and find data track
-		DatasetManager[] datasetManager = DataTool.parseData(dataString, null);
-		if (datasetManager != null) {
-			String dataName = datasetManager[0].getName().replaceAll("_", " "); //$NON-NLS-1$ //$NON-NLS-2$ ;
-			boolean foundMatch = false;
-			ArrayList<DataTrack> dataTracks = this.getDrawablesTemp(DataTrack.class);
-			for (DataTrack next : dataTracks) {
-				if (!(next instanceof ParticleDataTrack))
-					continue;
-				ParticleDataTrack track = (ParticleDataTrack) next;
-				String trackName = track.getName("model"); //$NON-NLS-1$
-				if (trackName.equals(dataName) || ("".equals(dataName) && //$NON-NLS-1$
-						trackName.equals(TrackerRes.getString("ParticleDataTrack.New.Name")))) { //$NON-NLS-1$
-					// found the data track
-					foundMatch = true;
-					if (track.isAutoPasteEnabled()) {
-						// set new data immediately
-						track.setData(datasetManager[0]);
-						track.prevDataString = dataString;
-					}
-					break;
-				}
-			}
-			dataTracks.clear();
-			// if no matching track was found then create new track
-			if (!foundMatch && frame.getAlwaysListenToClipboard()) {
-				dt = importDatasetManager(datasetManager[0], null);
-				if (dt != null && dt instanceof ParticleDataTrack) {
-					ParticleDataTrack track = (ParticleDataTrack) dt;
-					track.prevDataString = dataString;
-				}
-			}
-		}
+//		XMLControl control = null;
+//
+//		// if datastring is XML, read into XMLControl
+//		if (dataString.trim().startsWith("<?xml"))
+//			control = new XMLControlElement(dataString);
+//		if (control != null && !control.failedToRead()) {
+//			Class<?> type = control.getObjectClass();
+//			if (TTrack.class.isAssignableFrom(type)) {
+//				// look for matching track and if found, load it
+//				ArrayList<TTrack> tracks = getTracksTemp();
+//				for (int k = 0; k < tracks.size(); k++) {
+//					TTrack track = tracks.get(k);
+//					if (track.getName().equals(control.getString("name"))) {
+//						TrackChooserTView.ignoreRefresh = true;
+//						control.loadObject(track);
+//						track.erase();
+//						TrackChooserTView.ignoreRefresh = false;
+//						track.firePropertyChange(TTrack.PROPERTY_TTRACK_STEPS, TTrack.HINT_STEP_ADDED_OR_REMOVED, null);
+//					}				
+//				}
+//			}
+//		}
+//		if (control != null)
+//			return;
+//		
+//		DataTrack dt = ParticleDataTrack.getTrackForDataString(dataString, this);
+//		// if track exists with the same data string, return
+//		if (dt != null) {
+//			// clipboard data has already been pasted
+//			return;
+//		}
+//		// parse the data and find data track
+//		DatasetManager[] datasetManager = DataTool.parseData(dataString, null);
+//		if (datasetManager != null) {
+//			String dataName = datasetManager[0].getName().replaceAll("_", " "); //$NON-NLS-1$ //$NON-NLS-2$ ;
+//			boolean foundMatch = false;
+//			ArrayList<DataTrack> dataTracks = this.getDrawablesTemp(DataTrack.class);
+//			for (DataTrack next : dataTracks) {
+//				if (!(next instanceof ParticleDataTrack))
+//					continue;
+//				ParticleDataTrack track = (ParticleDataTrack) next;
+//				String trackName = track.getName("model"); //$NON-NLS-1$
+//				if (trackName.equals(dataName) || ("".equals(dataName) && //$NON-NLS-1$
+//						trackName.equals(TrackerRes.getString("ParticleDataTrack.New.Name")))) { //$NON-NLS-1$
+//					// found the data track
+//					foundMatch = true;
+//					if (track.isAutoPasteEnabled()) {
+//						// set new data immediately
+//						track.setData(datasetManager[0]);
+//						track.prevDataString = dataString;
+//					}
+//					break;
+//				}
+//			}
+//			dataTracks.clear();
+//			// if no matching track was found then create new track
+//			if (!foundMatch && frame.getAlwaysListenToClipboard()) {
+//				dt = loadIntoDataTrack(datasetManager[0], null);
+//				if (dt != null && dt instanceof ParticleDataTrack) {
+//					ParticleDataTrack track = (ParticleDataTrack) dt;
+//					track.prevDataString = dataString;
+//				}
+//			}
+//		}
 	}
 
 	public void initialize(FileDropHandler fileDropHandler) {
@@ -4779,11 +4797,6 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		super.paint(g);
 	}
 
-	public void doPaste(String data) {
-		if (data != null && !pasteXML(data))
-			importDataAsync(data, null, null);
-	}
-
 	public void cloneNamed(String name) {
 		TTrack track = getTrack(name);
 		if (track == null)
@@ -4812,16 +4825,25 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		XMLControl control = new XMLControlElement(track);
 		control.setValue("name", name + n); //$NON-NLS-1$
 		// now paste
-		pasteXML(control.toXML());
+		pasteXML(control.toXML(), false);
 	}
 
 	/**
-	 * Try to read data as XML, returning true if successful.
+	 * Try to read data as XML and load an appropriate object. 
+	 * Returns true if successful.
 	 * 
-	 * @param data
-	 * @return true if successfully read as XML.
+	 * @param data string
+	 * @param reloadOnly true to reload tracks, not add new ones
+	 * @return true if successfully read and loaded
 	 */
-	private boolean pasteXML(String data) {
+	private boolean pasteXML(String data, boolean reloadOnly) {
+		// reloadOnly not used for now (Nov 2022)
+		if (reloadOnly)
+			return false;
+		// if data is an XMLControl string without xml header, add one
+		if (data.trim().startsWith("<object class=")) {
+			data = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" + data;
+		}
 		try {
 			XMLControl control = new XMLControlElement();
 			control.readXML(data);
@@ -4839,15 +4861,32 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				Undo.postCoordsEdit(this, state);
 				return true;
 			}
-			Object o = control.loadObject(null);
-			if (o instanceof TTrack) {
-				TTrack track = (TTrack) o;
-				addTrack(track);
-				setSelectedTrack(track);
-				return true;
+			if (TTrack.class.isAssignableFrom(type)) {
+				if (reloadOnly) {
+					// look for matching track and if found, load it
+					ArrayList<TTrack> tracks = getTracksTemp();
+					for (int k = 0; k < tracks.size(); k++) {
+						TTrack track = tracks.get(k);
+						if (track.getName().equals(control.getString("name"))) {
+							TrackChooserTView.ignoreRefresh = true;
+							control.loadObject(track);
+							track.erase();
+							TrackChooserTView.ignoreRefresh = false;
+							track.firePropertyChange(TTrack.PROPERTY_TTRACK_STEPS, TTrack.HINT_STEP_ADDED_OR_REMOVED, null);
+							return true;
+						}				
+					}
+				}
+				else {
+					TTrack track = (TTrack) control.loadObject(null);
+					addTrack(track);
+					setSelectedTrack(track);
+					return true;
+				}
 			}
-			if (o instanceof VideoClip) {
-				VideoClip clip = (VideoClip) o;
+
+			if (VideoClip.class.isAssignableFrom(type)) {
+				VideoClip clip = (VideoClip) control.loadObject(null);
 				VideoClip prev = getPlayer().getVideoClip();
 				XMLControl state = new XMLControlElement(prev);
 				// make new XMLControl with no stored object
@@ -4903,6 +4942,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		XMLControl control = new XMLControlElement(file);
 		if (control.failedToRead())
 			return;
+		
 		List<XMLProperty> proplist = control.getPropsRaw();
 		for (int i = 0; i < proplist.size(); i++) {
 			XMLProperty prop = proplist.get(i);
@@ -4921,7 +4961,11 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 						}
 					}
 				}
-				break;
+			}
+			else if (prop.getPropertyName().equals("coords")) { //$NON-NLS-1$
+				ImageCoordSystem coords = getCoords();
+				XMLControl coordsControl = prop.getChildControls()[0];
+				coordsControl.loadObject(coords);
 			}
 		}
 		TrackChooserTView.ignoreRefresh = false;

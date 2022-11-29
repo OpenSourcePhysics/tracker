@@ -138,7 +138,7 @@ class ClipboardListener extends Thread implements ClipboardOwner {
 			}
 			if (trackerPanel == null)
 				return;
-			trackerPanel.processPaste(dataString);
+			trackerPanel.doAutoPaste(dataString);
 		}
 	}
 

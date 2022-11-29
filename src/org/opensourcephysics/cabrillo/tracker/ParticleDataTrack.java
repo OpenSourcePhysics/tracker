@@ -639,6 +639,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 //				list.add(getLeader().reloadButton);
 //			}
 		}
+		massField.setEnabled(true);
 		return list;
 	}
 
@@ -674,14 +675,11 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 			//TTrackBar trackbar = TTrackBar.getTrackbar(trackerPanel);
 			//trackbar.refresh();
 		}
+		tframe.checkClipboardListener();
 	}
 
-	/**
-	 * Determines if autopaste is enabled for this track.
-	 * 
-	 * @return true if autopaste is enabled
-	 */
-	protected boolean isAutoPasteEnabled() {
+	@Override
+	public boolean isAutoPasteEnabled() {
 		// only the leader is autopaste enabled
 		return autoPasteEnabled;
 	}
