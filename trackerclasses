@@ -861,6 +861,7 @@ org/opensourcephysics/cabrillo/tracker/VectorSumInspector.js
 org/opensourcephysics/cabrillo/tracker/WorldGrid.js
 org/opensourcephysics/cabrillo/tracker/WorldRuler.js
 org/opensourcephysics/cabrillo/tracker/WorldTView.js
+org/opensourcephysics/cabrillo/tracker/ZoomTView.js
 org/opensourcephysics/cabrillo/tracker/analytics/DownloadCounter.js
 org/opensourcephysics/cabrillo/tracker/analytics/LaunchCounter.js
 org/opensourcephysics/cabrillo/tracker/analytics/TrackerCountReader.js
