@@ -2005,7 +2005,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			return;
 		}
 		// try to load datasetManager into new or existing DataTrack
-		DataTrack dt = loadIntoDataTrack(datasetManager[0], source);
+		DataTrack dt = loadIntoDataTrack(datasetManager[0], source, isAutoPaste);
 		if (dt instanceof ParticleDataTrack) {
 			((ParticleDataTrack) dt).prevDataString = dataString;
 		}
@@ -2022,9 +2022,11 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	 * 
 	 * @param data   the Data to import
 	 * @param source the data source (may be null)
+	 * @param reloadOnly true to disallow new DataTracks
 	 * @return the loaded DataTrack (may return null)
 	 */
-	private DataTrack loadIntoDataTrack(DatasetManager data, Object source) {
+	private DataTrack loadIntoDataTrack(DatasetManager data, Object source, 
+			boolean reloadOnly) {
 		if (data == null)
 			return null;
 		
@@ -2034,7 +2036,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		// load data into DataTrack
 		try {
 			// create a new DataTrack if none exists
-			if (dataTrack == null) {
+			if (dataTrack == null && !reloadOnly) {
 				dataTrack = new ParticleDataTrack(data, source);
 				dataTrack.setColorToDefault(getDrawablesTemp(PointMass.class).size());
 				clearTemp();
@@ -2051,7 +2053,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				EventQueue.invokeLater(() -> {
 						dt.firePropertyChange(TTrack.PROPERTY_TTRACK_DATA, null, null);
 				});
-			} else if (dataTrack.isAutoPasteEnabled() || !isAutoPaste) {
+			} else if (dataTrack != null && (dataTrack.isAutoPasteEnabled() || !isAutoPaste)) {
 				// set data for existing DataTrack
 				dataTrack.setData(data);
 			}
