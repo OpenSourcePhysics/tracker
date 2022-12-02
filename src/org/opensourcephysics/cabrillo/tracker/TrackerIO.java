@@ -2249,7 +2249,7 @@ public class TrackerIO extends VideoIO {
 				if (OSPRuntime.unzipFiles) {
 					desktopFiles.addAll(tempFiles);
 				} else {
-					// BH 2022.12.02 associated files link not working in JavaScript
+					// Bug #144 BH 2022.12.02 associated files link not working in JavaScript
 					for (String f : tempFiles) {
 						desktopFiles.add(path + "!/" + f);
 					}
