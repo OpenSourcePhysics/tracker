@@ -2246,8 +2246,14 @@ public class TrackerIO extends VideoIO {
 				if (path.equals(nonURIPath))
 					Tracker.addRecent(nonURIPath, false); // add at beginning
 				paths.addAll(trkFiles);
-				desktopFiles.addAll(tempFiles);
-				
+				if (OSPRuntime.unzipFiles) {
+					desktopFiles.addAll(tempFiles);
+				} else {
+					// BH 2022.12.02 associated files link not working in JavaScript
+					for (String f : tempFiles) {
+						desktopFiles.add(path + "!/" + f);
+					}
+				}
 			}
 			return PROGRESS_COMPLETE;
 		}
