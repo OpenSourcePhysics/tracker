@@ -520,6 +520,7 @@ public class Tracker {
 			return locales;
 		locales = new Locale[] { Locale.ENGLISH, // SwingJS -- only this one is declared statically
 				new Locale("ar"), // arabic //$NON-NLS-1$
+				new Locale("ca"), // catalan //$NON-NLS-1$
 				new Locale("cs"), // czech //$NON-NLS-1$
 				new Locale("da"), // danish //$NON-NLS-1$
 				new Locale("de"), // Locale.GERMAN,
