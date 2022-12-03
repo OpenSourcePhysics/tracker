@@ -539,7 +539,7 @@ public abstract class TrackChooserTView extends TView {
 			// data structure has changed
 			// or clip has been changed (VideoPlayer)
 			// or decimal separator has changed
-			if (e.getOldValue().equals(Integer.valueOf(DataTable.MODE_FORMAT))) {
+			if (Integer.valueOf(DataTable.MODE_FORMAT).equals(e.getOldValue())) {
 				// decimal separator changed
 				if (this instanceof PlotTView) {
 					for (TrackView nextView: trackViews.values()) {
