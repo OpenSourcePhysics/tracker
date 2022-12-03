@@ -2110,9 +2110,10 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			dataBuilder.repaint();
 		}
 		// refresh DataTool
-		if (getTFrame() != null && frame.getSelectedPanel() == this
-				&& DataTool.getTool(false) != null) {
-			DataTool.getTool(false).refreshDecimalSeparators();
+		
+		DataTool tool = DataTool.getTool(false);
+		if (tool != null && getTFrame() != null && frame.getSelectedPanel() == this) {
+			tool.refreshDecimalSeparators();
 		}
 		
 		// repaint tracks with readouts
@@ -4182,9 +4183,10 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			}
 
 			// save DataTool tabs
-			if (DataTool.getTool(false) != null) {
+			DataTool tool = DataTool.getTool(false);
+			if (tool != null) {
 				ArrayList<DataToolTab> tabs = new ArrayList<DataToolTab>();
-				List<DataToolTab> tools = DataTool.getTool(true).getTabs();
+				List<DataToolTab> tools = tool.getTabs();
 				int n = tools.size();
 				if (n > 0) {
 					ArrayList<TTrack> tracks = trackerPanel.getTracks();

@@ -2516,8 +2516,8 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		view_trackControlItem.setEnabled(!tc.isEmpty());
 		view_notesItem.setSelected(frame.notesVisible());
 		view_dataBuilderItem.setSelected(panel.dataBuilder != null && panel.dataBuilder.isVisible());
-		view_dataToolItem.setSelected(DataTool.getTool(false) != null && 
-				DataTool.getTool(false).isVisible());
+		DataTool tool = DataTool.getTool(false);
+		view_dataToolItem.setSelected(tool != null && tool.isVisible());
 
 		if (isTainted(MENU_VIEW)) {
 			// OSPLog.debug("TMenuBar window menu rebuild");

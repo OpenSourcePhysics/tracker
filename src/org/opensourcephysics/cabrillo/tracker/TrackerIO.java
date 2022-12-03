@@ -1001,10 +1001,9 @@ public class TrackerIO extends VideoIO {
 		String source = (String) video.getProperty("absolutePath"); //$NON-NLS-1$
 		String extension = XML.getExtension(source);
 		if (file == null) {
-			File target = getChooserFileForExtension(extension);
-			if (target == null)
+			file = getChooserFileForExtension(extension);
+			if (file == null)
 				return null;
-			return saveVideo(target, trackerPanel);
 		}
 		boolean success = true;
 		if (isImageVideo) {
@@ -1014,15 +1013,14 @@ public class TrackerIO extends VideoIO {
 			// check for zipped image video
 			if (paths.length > 0 && paths[0] != null && paths[0].contains("!")) {
 				String zipPath = paths[0].substring(0, paths[0].indexOf("!"));
-				paths = new String[] {zipPath};
+				paths = new String[] { zipPath };
 			}
 			ImageVideoRecorder.setChooserExtension(extension);
 			String[] targets = ImageVideoRecorder.getFileNames(file.getName(), paths.length);
 			String[] jarURLParts = ResourceLoader.getJarURLParts(source); // null if not a zip/jar/trz file
-			String srcDir = jarURLParts == null? 
-					XML.forwardSlash(source).contains(":/")? "":
-					XML.getDirectoryPath(source)+"/": 
-					jarURLParts[0]+"!/";
+			String srcDir = (jarURLParts == null
+					? XML.forwardSlash(source).contains(":/") ? "" : XML.getDirectoryPath(source) + "/"
+					: jarURLParts[0] + "!/");
 			for (int i = 0; i < paths.length; i++) {
 				File in = new File(srcDir + paths[i]);
 				File out = new File(targetDir, targets[i]);
@@ -1032,16 +1030,17 @@ public class TrackerIO extends VideoIO {
 				if (!success)
 					return null;
 			}
+		} else {
+			// JavaScript needs this to be a local path, probably /TEMP/
+			success = ResourceLoader.copyAllFiles(new File(ResourceLoader.getNonURIPath(source)), file);
 		}
-		else {
-			success = ResourceLoader.copyAllFiles(new File(source), file);
-		}
-		if (success) {
+		if (!success)
+			return null;
+		if (!OSPRuntime.isJS) {
 			Tracker.addRecent(XML.getAbsolutePath(file), false); // add at beginning
 			trackerPanel.getTFrame().refreshMenus(trackerPanel, TMenuBar.REFRESH_TRACKERIO_SAVEVIDEO);
-			return file;
 		}
-		return null;
+		return file;
 	}
 
 	/**
@@ -2246,8 +2245,14 @@ public class TrackerIO extends VideoIO {
 				if (path.equals(nonURIPath))
 					Tracker.addRecent(nonURIPath, false); // add at beginning
 				paths.addAll(trkFiles);
-				desktopFiles.addAll(tempFiles);
-				
+				if (OSPRuntime.unzipFiles) {
+					desktopFiles.addAll(tempFiles);
+				} else {
+					// Bug #144 BH 2022.12.02 associated files link not working in JavaScript
+					for (String f : tempFiles) {
+						desktopFiles.add(path + "!/" + f);
+					}
+				}
 			}
 			return PROGRESS_COMPLETE;
 		}
