@@ -2717,7 +2717,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 			logItem.setAccelerator(KeyStroke.getKeyStroke('L', keyMask));
 			logItem.addActionListener((e) -> {
 				Point p = new JFrame().getLocation(); // default location of new frame or dialog
-				OSPLog log = OSPLog.getOSPLog();
+				JFrame log = OSPLog.getFrame();
 				FontSizer.setFonts(log, FontSizer.getLevel());
 				if (log.getLocation().x == p.x && log.getLocation().y == p.y) {
 					// center on screen

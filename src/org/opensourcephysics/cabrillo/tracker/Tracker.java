@@ -33,6 +33,7 @@ import java.awt.Font;
 import java.awt.Frame;
 import java.awt.Image;
 import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
@@ -83,6 +84,7 @@ import javax.swing.WindowConstants;
 import javax.swing.border.BevelBorder;
 import javax.swing.event.MouseInputAdapter;
 
+import org.opensourcephysics.cabrillo.tracker.TrackerIO.AsyncLoader;
 import org.opensourcephysics.cabrillo.tracker.deploy.TrackerStarter;
 import org.opensourcephysics.controls.ConsoleLevel;
 import org.opensourcephysics.controls.OSPLog;
@@ -316,7 +318,7 @@ public class Tracker {
 
 	private static boolean declareLocales = true;// !OSPRuntime.isJS;
 
-	private static void initClass() {
+	private static void initClass(boolean isHeadless) {
 
 		if (defaultLocale != null)
 			return;
@@ -349,10 +351,12 @@ public class Tracker {
 			locales = new Locale[] { Locale.ENGLISH };
 			incompleteLocales = new Object[][] {};
 		}
+		
+		OSPLog.getOSPLog(!isHeadless);
 
 		setDefaultConfig(getFullConfig());
 		loadPreferences();
-		if (!OSPRuntime.isJS) /** @j2sNative */
+		if (!OSPRuntime.isJS && !isHeadless) /** @j2sNative */
 		{
 			// load current version after a delay to allow video engines to load
 			// and every 24 hours thereafter (if program is left running)
@@ -405,96 +409,6 @@ public class Tracker {
 			checkForUpgradeIntervals.put(s, 10000);
 
 		}
-
-		// create splash frame
-		Color darkred = new Color(153, 0, 0);
-		Color darkblue = new Color(51, 51, 102);
-		Color grayblue = new Color(116, 147, 179);
-		Color darkgrayblue = new Color(83, 105, 128);
-		Color lightblue = new Color(169, 193, 217);
-		Color background = new Color(250, 250, 230);
-		splash = new JFrame("Tracker"); //$NON-NLS-1$ // name shown on task bar
-		splash.setIconImage(TRACKER_ICON.getImage()); // icon shown on task bar
-		splash.setUndecorated(true);
-		splash.setAlwaysOnTop(true);
-		splash.setResizable(false);
-		JPanel contentPane = new JPanel(new BorderLayout());
-		contentPane.setBackground(background);
-		contentPane.setBorder(BorderFactory.createBevelBorder(BevelBorder.RAISED, grayblue, darkgrayblue));
-		splash.setContentPane(contentPane);
-		MouseInputAdapter splashMouseListener = new MouseInputAdapter() {
-			Point mouseLoc;
-			Point splashLoc;
-
-			@Override
-			public void mousePressed(MouseEvent e) {
-				splashLoc = splash.getLocation(); // original screen position of splash
-				mouseLoc = e.getPoint(); // original screen position of mouse
-				mouseLoc.x += splashLoc.x;
-				mouseLoc.y += splashLoc.y;
-			}
-
-			@Override
-			public void mouseDragged(MouseEvent e) {
-				Point loc = splash.getLocation();
-				loc.x += e.getPoint().x;
-				loc.y += e.getPoint().y;
-				splash.setLocation(splashLoc.x + loc.x - mouseLoc.x, splashLoc.y + loc.y - mouseLoc.y);
-			}
-		};
-		contentPane.addMouseListener(splashMouseListener);
-		contentPane.addMouseMotionListener(splashMouseListener);
-
-		// tracker logo north
-		JLabel trackerLogoLabel = new JLabel(trackerLogoIcon);
-		trackerLogoLabel.setBorder(BorderFactory.createEmptyBorder(12, 24, 4, 24));
-		contentPane.add(trackerLogoLabel, BorderLayout.NORTH);
-
-		// tip of the day and progress bar in the center
-		String tip = TrackerRes.getString("Tracker.Splash.HelpMessage"); //$NON-NLS-1$
-		tip += " " + TrackerRes.getString("TMenuBar.Menu.Help"); //$NON-NLS-1$ //$NON-NLS-2$
-		tip += "|" + TrackerRes.getString("TMenuBar.MenuItem.GettingStarted"); //$NON-NLS-1$ //$NON-NLS-2$
-		JLabel helpLabel = new JLabel(tip);
-		helpLabel.setBorder(BorderFactory.createEmptyBorder(0, 12, 0, 12));
-		Font font = helpLabel.getFont().deriveFont(Font.PLAIN).deriveFont(14f);
-		helpLabel.setFont(font);
-		helpLabel.setForeground(darkred);
-		helpLabel.setAlignmentX(0.5f);
-		progressBar = new JProgressBar(0, 100);
-		progressBar.setValue(0);
-		JPanel progressPanel = new JPanel(new BorderLayout());
-		progressPanel.setBorder(BorderFactory.createEmptyBorder(12, 50, 16, 50));
-		progressPanel.add(progressBar, BorderLayout.CENTER);
-		progressPanel.setOpaque(false);
-		Box center = Box.createVerticalBox();
-		center.add(helpLabel);
-		center.add(progressPanel);
-//		contentPane.add(center, BorderLayout.CENTER);
-
-		// version south
-//		String vers = author + "   " + osp + "   Ver " + OSPRuntime.VERSION; //$NON-NLS-1$ //$NON-NLS-2$
-		String vers = "Ver " + OSPRuntime.VERSION; //$NON-NLS-1$ //$NON-NLS-2$
-		if (OSPRuntime.VERSION.length() > 7 || testOn)
-			vers += " BETA"; //$NON-NLS-1$
-		JLabel versionLabel = new JLabel(vers);
-		versionLabel.setForeground(darkblue);
-		font = font.deriveFont(Font.BOLD).deriveFont(10f);
-		versionLabel.setFont(font);
-		versionLabel.setHorizontalAlignment(SwingConstants.CENTER);
-		versionLabel.setOpaque(false);
-		versionLabel.setBorder(BorderFactory.createEmptyBorder(1, 0, 1, 0));
-		JPanel versionPanel = new JPanel(new BorderLayout());
-		versionPanel.setBackground(new Color(212, 230, 247));
-		versionPanel.add(versionLabel, BorderLayout.CENTER);
-		versionPanel.setBorder(BorderFactory.createLineBorder(lightblue));
-		contentPane.add(versionPanel, BorderLayout.SOUTH);
-
-//		splash.pack();
-//		Dimension size = splash.getSize();
-//		Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
-//		int x = dim.width / 2;
-//		int y = 3 * dim.height / 5; // below center
-//		splash.setLocation(x - size.width / 2, y - size.height / 2);
 
 		VideoIO.setDefaultXMLExtension("trk"); //$NON-NLS-1$
 
@@ -596,6 +510,8 @@ public class Tracker {
 	 */
 	private TFrame frame;
 
+	private boolean headless;
+
 	/**
 	 * Constructs Tracker with a blank tab and splash.
 	 */
@@ -622,18 +538,41 @@ public class Tracker {
 	 * @param whenLoaded
 	 */
 	private Tracker(String[] args, boolean addTabIfEmpty, boolean showSplash, Runnable whenLoaded) {
+		Map<String, Object> options = parseArgs(args);
+		headless = Boolean.TRUE.equals(options.get("-headless"))
+				|| "true".equals(System.getProperty("java.awt.headless"));
+		String importVideoName = (String) options.get("-importVideo");
+		String exportVideoName = (String) options.get("-exportVideo");
+		if (headless) {
+			if (exportVideoName == null && whenLoaded == null) {
+				// nothing to do;
+				return;
+			}
+			Runnable r = whenLoaded;
+			whenLoaded = () -> {
+				try {
+					if (r != null) {
+						r.run();
+					}
+				} catch (Throwable t) {
+					t.printStackTrace();
+				}
+				System.exit(0);
+			};
+		}
 
 		// BH SwingJS This next call was originally a part of a static { } block.
 		// but that does not work in JavaScript, because when the class is first loaded
 		// there is no JSAppletViewer or JSDummyApplet "top" level object set yet.
 		// We run initClass once, based on loading the default locale once (which is
 		// always non null).
-		initClass();
+		initClass(headless);
 //		helper = new StateHelper(this);
 //		helper.next(STATE_INIT);
 
-		if (splash != null) {
+		if (!headless) {
 			if (showSplash && !OSPRuntime.isJS) {
+				getSplash();
 				// set font level resize and center splash frame
 				FontSizer.setFonts(splash);
 				splash.pack();
@@ -643,8 +582,9 @@ public class Tracker {
 				splash.setLocation(x, y);
 			}
 			splash.setVisible(showSplash && !OSPRuntime.isJS);
+			frame = createFrame(options);
 		}
-		frame = createFrame(TFrame.parseArgs(args));
+		AsyncLoader loader = null;
 		if (args != null) {
 			// parse file names
 			for (int i = 0; i < args.length; i++) {
@@ -657,9 +597,27 @@ public class Tracker {
 					rootXMLPath = args[i].substring(0, args[i].lastIndexOf("/") + 1); //$NON-NLS-1$
 					OSPLog.fine("Setting rootPath: " + rootXMLPath); //$NON-NLS-1$
 				}
-				frame.doOpenURL(args[i]);
+				String url = args[i];
+				if (headless) {
+					loader = TrackerIO.openURL(url, null, null);
+					break;
+				} else {
+					frame.doOpenURL(url);
+				}
 				addTabIfEmpty = false;
 			}
+		}
+		if (addTabIfEmpty) {
+			if (headless && importVideoName != null) {
+				loader = TrackerIO.openURL(importVideoName, null, null);
+			}
+		}
+
+		if (loader != null) {
+			if (exportVideoName != null)
+				TrackerIO.exportVideoImages(loader.panel(), exportVideoName);
+			whenLoaded.run();
+			System.exit(0);
 		}
 		if (addTabIfEmpty) {
 			// add an empty tab if requested
@@ -674,6 +632,177 @@ public class Tracker {
 		}
 	}
 
+
+	/**
+	 * Create a map of known arguments, setting any found arguments to null. Integer
+	 * arguments are stringified and rounded in case JavaScript is passing numbers.
+	 * 
+	 * @param args
+	 * @return HashMap
+	 */
+	private static Map<String, Object> parseArgs(String[] args) {
+		Map<String, Object> options = new HashMap<>();
+
+		if (args == null || args.length == 0)
+			return options;
+		for (int i = 0; i < args.length; i++) {
+			String arg = args[i];
+			if (arg == null)
+				continue;
+			int i1 = i;
+			try {
+				switch (arg.toLowerCase()) {
+				case "-headless":
+					System.setProperty("java.awt.headless", "true");					args[i] = null;
+					options.put("-headless", true);
+					break;
+				case "-importvideo":
+					args[i] = null;
+					String importName = args[++i];
+					options.put("-importVideo", importName);
+					args[i] = null;
+					break;
+				case "-exportvideo":
+					args[i] = null;
+					String exportName = args[++i];
+					options.put("-exportVideo", exportName);
+					args[i] = null;
+					break;
+				case "-adaptive":
+					args[i] = null;
+					options.put("-adaptive", true);
+					break;
+				case "-bounds":
+					args[i] = null;
+					i1 = i + 4;
+					int bx = getIntArg(args, ++i);
+					int by = getIntArg(args, ++i);
+					int bw = getIntArg(args, ++i);
+					int bh = getIntArg(args, ++i);
+					options.put("-bounds", new Rectangle(bx, by, bw, bh));
+					break;
+				case "-dim":
+					args[i] = null;
+					i1 = i + 2;
+					int w = getIntArg(args, ++i);
+					int h = getIntArg(args, ++i);
+					options.put("-dim", new Dimension(w, h));
+					break;
+				}
+			} catch (NumberFormatException e) {
+				System.err.println("Tracker: Could not parse argument " + arg);
+				i = i1;
+			}
+		}
+		System.out.println("Tracker.parseArgs: " + options);
+		return options;
+	}
+
+	private static int getIntArg(String[] args, int i) throws NumberFormatException {
+		String a = args[i];
+		args[i] = null;
+		/**
+		 * @j2sNative return a|0;
+		 */
+		{
+			return Integer.parseInt(a);
+		}
+	}
+
+	private void getSplash() {
+		if (splash != null)
+			return;
+		// create splash frame
+		Color darkred = new Color(153, 0, 0);
+		Color darkblue = new Color(51, 51, 102);
+		Color grayblue = new Color(116, 147, 179);
+		Color darkgrayblue = new Color(83, 105, 128);
+		Color lightblue = new Color(169, 193, 217);
+		Color background = new Color(250, 250, 230);
+		
+		splash = new JFrame("Tracker"); //$NON-NLS-1$ // name shown on task bar
+		splash.setIconImage(TRACKER_ICON.getImage()); // icon shown on task bar
+		splash.setUndecorated(true);
+		splash.setAlwaysOnTop(true);
+		splash.setResizable(false);
+		JPanel contentPane = new JPanel(new BorderLayout());
+		contentPane.setBackground(background);
+		contentPane.setBorder(BorderFactory.createBevelBorder(BevelBorder.RAISED, grayblue, darkgrayblue));
+		splash.setContentPane(contentPane);
+		MouseInputAdapter splashMouseListener = new MouseInputAdapter() {
+			Point mouseLoc;
+			Point splashLoc;
+
+			@Override
+			public void mousePressed(MouseEvent e) {
+				splashLoc = splash.getLocation(); // original screen position of splash
+				mouseLoc = e.getPoint(); // original screen position of mouse
+				mouseLoc.x += splashLoc.x;
+				mouseLoc.y += splashLoc.y;
+			}
+
+			@Override
+			public void mouseDragged(MouseEvent e) {
+				Point loc = splash.getLocation();
+				loc.x += e.getPoint().x;
+				loc.y += e.getPoint().y;
+				splash.setLocation(splashLoc.x + loc.x - mouseLoc.x, splashLoc.y + loc.y - mouseLoc.y);
+			}
+		};
+		contentPane.addMouseListener(splashMouseListener);
+		contentPane.addMouseMotionListener(splashMouseListener);
+
+		// tracker logo north
+		JLabel trackerLogoLabel = new JLabel(trackerLogoIcon);
+		trackerLogoLabel.setBorder(BorderFactory.createEmptyBorder(12, 24, 4, 24));
+		contentPane.add(trackerLogoLabel, BorderLayout.NORTH);
+
+		// tip of the day and progress bar in the center
+		String tip = TrackerRes.getString("Tracker.Splash.HelpMessage"); //$NON-NLS-1$
+		tip += " " + TrackerRes.getString("TMenuBar.Menu.Help"); //$NON-NLS-1$ //$NON-NLS-2$
+		tip += "|" + TrackerRes.getString("TMenuBar.MenuItem.GettingStarted"); //$NON-NLS-1$ //$NON-NLS-2$
+		JLabel helpLabel = new JLabel(tip);
+		helpLabel.setBorder(BorderFactory.createEmptyBorder(0, 12, 0, 12));
+		Font font = helpLabel.getFont().deriveFont(Font.PLAIN).deriveFont(14f);
+		helpLabel.setFont(font);
+		helpLabel.setForeground(darkred);
+		helpLabel.setAlignmentX(0.5f);
+		progressBar = new JProgressBar(0, 100);
+		progressBar.setValue(0);
+		JPanel progressPanel = new JPanel(new BorderLayout());
+		progressPanel.setBorder(BorderFactory.createEmptyBorder(12, 50, 16, 50));
+		progressPanel.add(progressBar, BorderLayout.CENTER);
+		progressPanel.setOpaque(false);
+		Box center = Box.createVerticalBox();
+		center.add(helpLabel);
+		center.add(progressPanel);
+//		contentPane.add(center, BorderLayout.CENTER);
+
+		// version south
+//		String vers = author + "   " + osp + "   Ver " + OSPRuntime.VERSION; //$NON-NLS-1$ //$NON-NLS-2$
+		String vers = "Ver " + OSPRuntime.VERSION; //$NON-NLS-1$ //$NON-NLS-2$
+		if (OSPRuntime.VERSION.length() > 7 || testOn)
+			vers += " BETA"; //$NON-NLS-1$
+		JLabel versionLabel = new JLabel(vers);
+		versionLabel.setForeground(darkblue);
+		font = font.deriveFont(Font.BOLD).deriveFont(10f);
+		versionLabel.setFont(font);
+		versionLabel.setHorizontalAlignment(SwingConstants.CENTER);
+		versionLabel.setOpaque(false);
+		versionLabel.setBorder(BorderFactory.createEmptyBorder(1, 0, 1, 0));
+		JPanel versionPanel = new JPanel(new BorderLayout());
+		versionPanel.setBackground(new Color(212, 230, 247));
+		versionPanel.add(versionLabel, BorderLayout.CENTER);
+		versionPanel.setBorder(BorderFactory.createLineBorder(lightblue));
+		contentPane.add(versionPanel, BorderLayout.SOUTH);
+
+//		splash.pack();
+//		Dimension size = splash.getSize();
+//		Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
+//		int x = dim.width / 2;
+//		int y = 3 * dim.height / 5; // below center
+//		splash.setLocation(x - size.width / 2, y - size.height / 2);
+	}
 
 	/**
 	 * Replace any open tabs with a single tab loaded with the given path.
@@ -1939,7 +2068,8 @@ public class Tracker {
 
 		OSPLog.debug(Performance.timeCheckStr("Tracker.main start", Performance.TIME_RESET));
 
-		initClass();
+		boolean isHeadless = (args != null && args.length > 0 && ("-headless".equals(args[0])) || "true".equals(System.getProperty("java.awt.headless")));
+		initClass(isHeadless);
 
 //		String[] vars = {"TRACKER_HOME", "XUGGLE_HOME", "DYLD_LIBRARY_PATH"}; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$
 //		for (String next: vars) {
@@ -2143,11 +2273,12 @@ public class Tracker {
 	 *
 	 * @param args array of tracker or video file names
 	 */
-	private static TFrame start(String[] args) {
+	private static void start(String[] args) {
 		FontSizer.setLevel(preferredFontLevel + preferredFontLevelPlus);
 		Dataset.maxPointsMultiplier = 6; // increase max points in dataset
+		// idea is Tracker.jar -headless -output "xxx.zip"
+		// to use Xuggle to create an image video set
 		Tracker tracker = new Tracker(args, true, true, null);
-
 		OSPRuntime.setAppClass(tracker);
 		if (OSPRuntime.isMac()) {
 			// instantiate the OSXServices class by reflection
@@ -2163,7 +2294,8 @@ public class Tracker {
 		}
 
 		final TFrame frame = tracker.getFrame();
-
+		if (frame == null)
+			return;
 		if (!OSPRuntime.isJS)
 			frame.setVisible(true);
 
@@ -2200,13 +2332,6 @@ public class Tracker {
 
 		if (OSPRuntime.isJS)
 			frame.setVisible(true);
-
-		if (testingFinal) return frame; //TEST_BH
-
-
-		return frame;
-
-		
 	}
 
 	private static void showJavaMessages(TFrame frame) {
@@ -2868,7 +2993,8 @@ public class Tracker {
 	 * 
 	 * @param frame
 	 * @param ignoreLowMemory
-	 * @return MEMORY_OK, MEMORY_IGNORE, MEMORY_DONTIGNORE, MEMORY_OUT, MEMORY_INCREASE
+	 * @return MEMORY_OK, MEMORY_IGNORE, MEMORY_DONTIGNORE, MEMORY_OUT,
+	 *         MEMORY_INCREASE
 	 */
 	public static int checkMemory(TFrame frame, boolean ignoreLowMemory) {
 
@@ -2882,17 +3008,14 @@ public class Tracker {
 		String remains = " " + remaining + " MB";
 		String limit = " " + max + " MB";
 		if (danger) {
-			String message = TrackerRes.getString("Tracker.Dialog.OutOfMemory.Message1") + limit 
-					+ "\n"
+			String message = TrackerRes.getString("Tracker.Dialog.OutOfMemory.Message1") + limit + "\n"
 					+ TrackerRes.getString("Tracker.Dialog.OutOfMemory.Message2");
 			String stop = TrackerRes.getString("Tracker.Dialog.OutOfMemory.Stop");
 			String increase = TrackerRes.getString("Tracker.Dialog.OutOfMemory.Increase");
 
-			int response = JOptionPane.showOptionDialog(frame, message, TrackerRes.getString("Tracker.Dialog.OutOfMemory.Title"), //$NON-NLS-1$
-					JOptionPane.DEFAULT_OPTION, 
-					JOptionPane.WARNING_MESSAGE,
-					null,
-					new String[] {stop, increase},
+			int response = JOptionPane.showOptionDialog(frame, message,
+					TrackerRes.getString("Tracker.Dialog.OutOfMemory.Title"), //$NON-NLS-1$
+					JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, new String[] { stop, increase },
 					increase);
 			if (response == 1) { // increase memory
 				return MEMORY_INCREASE;
@@ -2900,14 +3023,19 @@ public class Tracker {
 			return MEMORY_OUT;
 		}
 		if (warning) {
-			String percent = " (" + (int)(100 * remaining / max) + "%)";
+			String percent = " (" + (int) (100 * remaining / max) + "%)";
 			String message = TrackerRes.getString("Tracker.Dialog.LowMemory.Message1") + "\n"
 					+ TrackerRes.getString("Tracker.Dialog.LowMemory.Remaining") + remains + percent + "\n"
 					+ TrackerRes.getString("Tracker.Dialog.LowMemory.Message2") + "\n\n"
 					+ TrackerRes.getString("Tracker.Dialog.LowMemory.Message3");
-			return (JOptionPane.showConfirmDialog(frame, message,
-					TrackerRes.getString("Tracker.Dialog.LowMemory.Title"), //$NON-NLS-1$
-					JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE) == JOptionPane.YES_OPTION ? MEMORY_LOW_IGNORE : MEMORY_LOW_DONTIGNORE);
+			if (frame == null)
+				System.out.println(message);
+			else
+				return (JOptionPane.showConfirmDialog(frame, message,
+						TrackerRes.getString("Tracker.Dialog.LowMemory.Title"), //$NON-NLS-1$
+						JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE) == JOptionPane.YES_OPTION
+								? MEMORY_LOW_IGNORE
+								: MEMORY_LOW_DONTIGNORE);
 		}
 		return MEMORY_OK;
 	}

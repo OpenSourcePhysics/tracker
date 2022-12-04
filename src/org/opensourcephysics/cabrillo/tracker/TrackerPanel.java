@@ -85,8 +85,6 @@ import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.controls.XMLControlElement;
 import org.opensourcephysics.controls.XMLProperty;
 import org.opensourcephysics.controls.XMLPropertyElement;
-import org.opensourcephysics.display.Data;
-import org.opensourcephysics.display.DataFunction;
 import org.opensourcephysics.display.DataTable;
 import org.opensourcephysics.display.DatasetManager;
 import org.opensourcephysics.display.DisplayRes;
@@ -277,7 +275,12 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	 * We need a frame -  at the very least, new TFrame()
 	 */
 	public TrackerPanel() {
-		this(null, null, null);
+		this(null, null, null, true);
+		// no gui, create frame, no panelID. 
+	}
+
+	public TrackerPanel(boolean ignored) {
+		this(null, null, null, false);
 		// no gui, no frame, no panelID. 
 	}
 
@@ -285,7 +288,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	 * Constructs a blank TrackerPanel with a player and GUI.
 	 */
 	public TrackerPanel(TFrame frame) {
-		this(frame, null, null);
+		this(frame, null, null, true);
 	}
 
 	/**
@@ -294,16 +297,20 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	 * @param video the video
 	 */
 	public TrackerPanel(TFrame frame, Video video) {
-		this(frame, video, null);
+		this(frame, video, null, true);
 	}
 
 	public TrackerPanel(TFrame frame, TrackerPanel panel) {
-		this(frame, null, panel);
+		this(frame, null, panel, true);
 	}
 
 	public TrackerPanel(TFrame frame, Video video, TrackerPanel panel) {
+	    this(frame, video, panel, true);	
+	}
+	
+	private TrackerPanel(TFrame frame, Video video, TrackerPanel panel, boolean createFrame) {
 		super(video);
-		setTFrame(frame == null ? new TFrame() : frame);
+		setTFrame(frame == null && createFrame ? new TFrame() : frame);
 		if (panel == null) {
 			andWorld.add(panelID);
 		} else {
@@ -317,9 +324,8 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	
 	public void setTFrame(TFrame frame) {
 		this.frame = frame;
-		panelID = frame.allocatePanel(this); 
+		panelID = (frame == null ? Integer.valueOf(0) : frame.allocatePanel(this)); 
 		System.out.println("TrackerPanel " + this + " created");
-		// If have GUI.... what?
 	}
 
 	public boolean isWorldPanel() {
@@ -753,7 +759,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		}
 
 		// set angle format of the track
-		track.setAnglesInRadians(frame.isAnglesInRadians());
+		track.setAnglesInRadians(frame != null && frame.isAnglesInRadians());
 		showTrackControlDelayed = true;
 		boolean doAddDrawable = true;
 		if (track instanceof ParticleDataTrack) {
@@ -857,7 +863,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			autoTracker.setTrack(track);
 		}
 		
-		if (firstTrack && isUserTrack && !frame.areViewsVisible(TFrame.DEFAULT_VIEWS, this)) {
+		if (firstTrack && isUserTrack && frame != null && !frame.areViewsVisible(TFrame.DEFAULT_VIEWS, this)) {
 			if (!TFrame.isPortraitOrientation)
 				frame.setDividerLocation(this, TFrame.SPLIT_MAIN_RIGHT, TFrame.DEFAULT_MAIN_DIVIDER); 			
 			else 
@@ -2747,7 +2753,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			// show crosshair cursor if shift key down or automarking
 			boolean invertCursor = isShiftKeyDown;
 			setCursorForMarking(invertCursor, null);
-			firePropertyChange(PROPERTY_TRACKERPANEL_STEPNUMBER, null, e.getNewValue()); // to views //$NON-NLS-1$
+ 			firePropertyChange(PROPERTY_TRACKERPANEL_STEPNUMBER, null, e.getNewValue()); // to views //$NON-NLS-1$
 			doSnap = true;
 			break;
 		case Video.PROPERTY_VIDEO_COORDS: // from video //$NON-NLS-1$
@@ -3608,7 +3614,8 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			TTrack.nameDialog.setVisible(false);
 			TTrack.nameDialog.getContentPane().remove(badNameLabel);
 		}
-		frame.refreshMenus(this, TMenuBar.REFRESH_TPANEL_SETTRACKNAME);
+		if (frame != null)
+			frame.refreshMenus(this, TMenuBar.REFRESH_TPANEL_SETTRACKNAME);
 	}
 
 	/**
@@ -3751,8 +3758,10 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			switch (trackerPanel.progress) {
 			case VideoIO.PROGRESS_LOAD_INIT:
 				// immediately set the frame
-				trackerPanel.frame = asyncloader.getFrame();
-				trackerPanel.frame.holdPainting(true);
+					trackerPanel.frame = asyncloader.getFrame();
+				if (trackerPanel.frame != null) {
+					trackerPanel.frame.holdPainting(true);
+				}
 				// load the dividers
 				trackerPanel.dividerLocs = (double[]) control.getObject("dividers"); //$NON-NLS-1$
 				// load the track control location
@@ -3784,7 +3793,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 						result = Tracker.compareVersions(fileVersion, OSPRuntime.VERSION);
 					} catch (Exception e) {
 					}
-					if (result > 0) { // file is newer version than Tracker
+					if (result > 0 && trackerPanel.frame != null) { // file is newer version than Tracker
 						JOptionPane.showMessageDialog(trackerPanel,
 								TrackerRes.getString("TrackerPanel.Dialog.Version.Message1") //$NON-NLS-1$
 										+ " " + fileVersion + " " //$NON-NLS-1$ //$NON-NLS-2$
@@ -5190,19 +5199,19 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	}
 
 	boolean hasToolBar() {
-		return (frame.getToolBar(panelID, false) != null);
+		return (frame != null && frame.getToolBar(panelID, false) != null);
 	}
 
 	boolean hasMenuBar() {
-		return (frame.getMenuBar(panelID, false) != null);
+		return (frame != null && frame.getMenuBar(panelID, false) != null);
 	}
 
 	boolean hasTrackBar() {
-		return (frame.getTrackBar(panelID, false) != null);
+		return (frame != null && frame.getTrackBar(panelID, false) != null);
 	}
 
 	public TMenuBar getMenuBar(boolean forceNew) {
-		return frame.getMenuBar(panelID, forceNew);
+		return (frame == null ? null : frame.getMenuBar(panelID, forceNew));
 	}
 
 	public TToolBar getToolBar(boolean forceNew) {
@@ -5210,7 +5219,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	}
 
 	public TTrackBar getTrackBar(boolean forceNew) {
-		return frame.getTrackBar(panelID, forceNew);
+		return (frame == null ? null : frame.getTrackBar(panelID, forceNew));
 	}
 
 	@Override

@@ -276,7 +276,7 @@ public class TActions {
 				new AbstractAction(TrackerRes.getString("TActions.Action.SaveVideoAs")) { //$NON-NLS-1$
 					@Override
 					public void actionPerformed(ActionEvent e) {
-						TrackerIO.saveVideo(null, panel());
+						TrackerIO.saveVideo(null, panel(), false, true);
 					}
 				});
 

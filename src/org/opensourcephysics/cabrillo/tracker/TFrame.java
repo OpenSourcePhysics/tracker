@@ -292,66 +292,6 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	private Notes notes;
 
 	/**
-	 * Create a map of known arguments, setting any found arguments to null. Integer
-	 * arguments are stringified and rounded in case JavaScript is passing numbers.
-	 * 
-	 * @param args
-	 * @return HashMap
-	 */
-	static Map<String, Object> parseArgs(String[] args) {
-		Map<String, Object> map = new HashMap<>();
-
-		if (args == null || args.length == 0)
-			return map;
-		for (int i = 0; i < args.length; i++) {
-			String arg = args[i];
-			if (arg == null)
-				continue;
-			int i1 = i;
-			try {
-				switch (arg) {
-				case "-adaptive":
-					args[i] = null;
-					map.put("-adaptive", true);
-					break;
-				case "-bounds":
-					args[i] = null;
-					i1 = i + 4;
-					int bx = getIntArg(args, ++i);
-					int by = getIntArg(args, ++i);
-					int bw = getIntArg(args, ++i);
-					int bh = getIntArg(args, ++i);
-					map.put("-bounds", new Rectangle(bx, by, bw, bh));
-					break;
-				case "-dim":
-					args[i] = null;
-					i1 = i + 2;
-					int w = getIntArg(args, ++i);
-					int h = getIntArg(args, ++i);
-					map.put("-dim", new Dimension(w, h));
-					break;
-				}
-			} catch (NumberFormatException e) {
-				System.err.println("Tracker: Could not parse argument " + arg);
-				i = i1;
-			}
-		}
-		System.out.println("Tracker.parseArgs: " + map);
-		return map;
-	}
-
-	private static int getIntArg(String[] args, int i) throws NumberFormatException {
-		String a = args[i];
-		args[i] = null;
-		/**
-		 * @j2sNative return a|0;
-		 */
-		{
-			return Integer.parseInt(a);
-		}
-	}
-
-	/**
 	 * Constructs an empty TFrame.
 	 */
 	public TFrame() {
@@ -2177,7 +2117,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		}
 		if (notesVisible())
 			notes.refreshTextAndFonts();
-		FontSizer.setFonts(OSPLog.getOSPLog(), level);
+			OSPLog.setFonts(level);
 		if (Tracker.readmeDialog != null) {
 			FontSizer.setFonts(Tracker.readmeDialog, level);
 		}
@@ -3057,6 +2997,11 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 				panel.setMouseCursor(Cursor.getDefaultCursor());
 			}
 		});
+	}
+	
+	public void addTabFromLoader(TrackerPanel trackerPanel) {
+		addTab(trackerPanel, ADD_NOSELECT | ADD_NOREFRESH, null);
+		getSplitPane(trackerPanel, 0).setDividerLocation(DEFAULT_RIGHT_DIVIDER);
 	}
 
 	/**

@@ -47,7 +47,10 @@ import java.awt.print.PrinterException;
 import java.awt.print.PrinterJob;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.text.DecimalFormat;
@@ -63,7 +66,9 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.function.Function;
 import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
+import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.JButton;
@@ -73,7 +78,6 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JSplitPane;
 import javax.swing.SwingUtilities;
 import javax.swing.filechooser.FileFilter;
 
@@ -96,6 +100,7 @@ import org.opensourcephysics.media.core.ImageVideoType;
 import org.opensourcephysics.media.core.IncrementallyLoadable;
 import org.opensourcephysics.media.core.MediaRes;
 import org.opensourcephysics.media.core.Video;
+import org.opensourcephysics.media.core.VideoAdapter;
 import org.opensourcephysics.media.core.VideoClip;
 import org.opensourcephysics.media.core.VideoFileFilter;
 import org.opensourcephysics.media.core.VideoIO;
@@ -118,8 +123,7 @@ import javajs.async.AsyncSwingWorker;
  */
 public class TrackerIO extends VideoIO {
 
-	static final String[] XUGGLE_VIDEO_EXTENSIONS = 
-		{"mov", "flv", "mp4", "wmv", "avi" };
+	static final String[] XUGGLE_VIDEO_EXTENSIONS = { "mov", "flv", "mp4", "wmv", "avi" };
 
 	public interface TrackerMonitor {
 
@@ -139,13 +143,14 @@ public class TrackerIO extends VideoIO {
 
 	}
 
-	public static final Runnable NULL_RUNNABLE = () -> {};
+	public static final Runnable NULL_RUNNABLE = () -> {
+	};
 
 	protected static boolean isffmpegError = false;
 	protected static TFrame theFrame;
 	protected static PropertyChangeListener ffmpegListener;
 	private static boolean loadInSeparateThread = true;
-	
+
 //	public static boolean isLoadInSeparateThread() {
 //		return loadInSeparateThread;
 //	}
@@ -155,7 +160,7 @@ public class TrackerIO extends VideoIO {
 //	  loadInSeparateThread = b;
 //	  OSPLog.debug("TrackerIO set loading " + loadInSeparateThread + " for " + why);
 //	}
-	
+
 	private static Set<TrackerMonitor> monitors = new HashSet<>();
 	protected static double defaultBadFrameTolerance = 0.2;
 	protected static boolean dataCopiedToClipboard;
@@ -164,75 +169,75 @@ public class TrackerIO extends VideoIO {
 		if (!OSPRuntime.isJS) /** @j2sNative */
 		{
 			ffmpegListener = (e) -> {
-					if (e.getPropertyName().equals("ffmpeg_error")) { //$NON-NLS-1$
-						if (!isffmpegError) { // first error thrown
-							isffmpegError = true;
-							if (!Tracker.warnXuggleError) {
-								if (e.getNewValue() != null) {
-									String s = e.getNewValue().toString();
-									int n = s.indexOf("]"); //$NON-NLS-1$
-									if (n > -1)
-										s = s.substring(n + 1);
-									s += TrackerRes.getString("TrackerIO.ErrorFFMPEG.LogMessage"); //$NON-NLS-1$
-									OSPLog.warning(s);
-								}
-								return;
+				if (e.getPropertyName().equals("ffmpeg_error")) { //$NON-NLS-1$
+					if (!isffmpegError) { // first error thrown
+						isffmpegError = true;
+						if (!Tracker.warnXuggleError) {
+							if (e.getNewValue() != null) {
+								String s = e.getNewValue().toString();
+								int n = s.indexOf("]"); //$NON-NLS-1$
+								if (n > -1)
+									s = s.substring(n + 1);
+								s += TrackerRes.getString("TrackerIO.ErrorFFMPEG.LogMessage"); //$NON-NLS-1$
+								OSPLog.warning(s);
 							}
-							// warn user that a Xuggle error has occurred
-							Box box = Box.createVerticalBox();
-							box.add(new JLabel(TrackerRes.getString("TrackerIO.Dialog.ErrorFFMPEG.Message1"))); //$NON-NLS-1$
-							String error = e.getNewValue().toString();
-							int n = error.lastIndexOf("]"); //$NON-NLS-1$
-							if (n > -1) {
-								error = error.substring(n + 1).trim();
-							}
-							box.add(new JLabel("  ")); //$NON-NLS-1$
-							JLabel erLabel = new JLabel("\"" + error + "\""); //$NON-NLS-1$ //$NON-NLS-2$
-							erLabel.setBorder(BorderFactory.createEmptyBorder(0, 60, 0, 0));
-							box.add(erLabel);
-							box.add(new JLabel("  ")); //$NON-NLS-1$
-							box.add(new JLabel(TrackerRes.getString("TrackerIO.Dialog.ErrorFFMPEG.Message2"))); //$NON-NLS-1$
-
-							box.add(new JLabel("  ")); //$NON-NLS-1$
-							box.setBorder(BorderFactory.createEmptyBorder(20, 15, 0, 15));
-
-							JDialog dialog = new JDialog(theFrame, false);
-							JPanel contentPane = new JPanel(new BorderLayout());
-							dialog.setContentPane(contentPane);
-							contentPane.add(box, BorderLayout.CENTER);
-							JButton closeButton = new JButton(TrackerRes.getString("Dialog.Button.Close")); //$NON-NLS-1$
-							closeButton.setForeground(new Color(0, 0, 102));
-							closeButton.addActionListener(new ActionListener() {
-								@Override
-								public void actionPerformed(ActionEvent e) {
-									dialog.setVisible(false);
-								}
-							});
-							JButton dontShowAgainButton = new JButton(
-									TrackerRes.getString("Tracker.Dialog.NoVideoEngine.Checkbox")); //$NON-NLS-1$
-							dontShowAgainButton.setForeground(new Color(0, 0, 102));
-							dontShowAgainButton.addActionListener((ee) -> {
-								Tracker.warnXuggleError = false;
-								dialog.setVisible(false);
-							});
-							JPanel buttonbar = new JPanel();
-							buttonbar.add(dontShowAgainButton);
-							buttonbar.add(closeButton);
-							buttonbar.setBorder(BorderFactory.createEtchedBorder());
-							contentPane.add(buttonbar, BorderLayout.SOUTH);
-							FontSizer.setFonts(dialog, FontSizer.getLevel());
-							dialog.pack();
-							dialog.setTitle(TrackerRes.getString("TrackerIO.Dialog.ErrorFFMPEG.Title")); //$NON-NLS-1$
-							// center dialog on the screen
-							Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
-							int x = (dim.width - dialog.getBounds().width) / 2;
-							int y = (dim.height - dialog.getBounds().height) / 2;
-							dialog.setLocation(x, y);
-							dialog.setVisible(true);
+							return;
 						}
+						// warn user that a Xuggle error has occurred
+						Box box = Box.createVerticalBox();
+						box.add(new JLabel(TrackerRes.getString("TrackerIO.Dialog.ErrorFFMPEG.Message1"))); //$NON-NLS-1$
+						String error = e.getNewValue().toString();
+						int n = error.lastIndexOf("]"); //$NON-NLS-1$
+						if (n > -1) {
+							error = error.substring(n + 1).trim();
+						}
+						box.add(new JLabel("  ")); //$NON-NLS-1$
+						JLabel erLabel = new JLabel("\"" + error + "\""); //$NON-NLS-1$ //$NON-NLS-2$
+						erLabel.setBorder(BorderFactory.createEmptyBorder(0, 60, 0, 0));
+						box.add(erLabel);
+						box.add(new JLabel("  ")); //$NON-NLS-1$
+						box.add(new JLabel(TrackerRes.getString("TrackerIO.Dialog.ErrorFFMPEG.Message2"))); //$NON-NLS-1$
+
+						box.add(new JLabel("  ")); //$NON-NLS-1$
+						box.setBorder(BorderFactory.createEmptyBorder(20, 15, 0, 15));
+
+						JDialog dialog = new JDialog(theFrame, false);
+						JPanel contentPane = new JPanel(new BorderLayout());
+						dialog.setContentPane(contentPane);
+						contentPane.add(box, BorderLayout.CENTER);
+						JButton closeButton = new JButton(TrackerRes.getString("Dialog.Button.Close")); //$NON-NLS-1$
+						closeButton.setForeground(new Color(0, 0, 102));
+						closeButton.addActionListener(new ActionListener() {
+							@Override
+							public void actionPerformed(ActionEvent e) {
+								dialog.setVisible(false);
+							}
+						});
+						JButton dontShowAgainButton = new JButton(
+								TrackerRes.getString("Tracker.Dialog.NoVideoEngine.Checkbox")); //$NON-NLS-1$
+						dontShowAgainButton.setForeground(new Color(0, 0, 102));
+						dontShowAgainButton.addActionListener((ee) -> {
+							Tracker.warnXuggleError = false;
+							dialog.setVisible(false);
+						});
+						JPanel buttonbar = new JPanel();
+						buttonbar.add(dontShowAgainButton);
+						buttonbar.add(closeButton);
+						buttonbar.setBorder(BorderFactory.createEtchedBorder());
+						contentPane.add(buttonbar, BorderLayout.SOUTH);
+						FontSizer.setFonts(dialog, FontSizer.getLevel());
+						dialog.pack();
+						dialog.setTitle(TrackerRes.getString("TrackerIO.Dialog.ErrorFFMPEG.Title")); //$NON-NLS-1$
+						// center dialog on the screen
+						Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
+						int x = (dim.width - dialog.getBounds().width) / 2;
+						int y = (dim.height - dialog.getBounds().height) / 2;
+						dialog.setLocation(x, y);
+						dialog.setVisible(true);
 					}
+				}
 			};
-			OSPLog.getOSPLog().addPropertyChangeListener(ffmpegListener);
+			OSPLog.addPropertyChangeListener(ffmpegListener);
 		}
 		zipFileFilter = new SingleExtFileFilter("zip", TrackerRes.getString("TrackerIO.ZipFileFilter.Description")); //$NON-NLS-1$ //$NON-NLS-2$
 		trzFileFilter = new SingleExtFileFilter("trz", TrackerRes.getString("TrackerIO.ZIPResourceFilter.Description")); //$NON-NLS-1$ //$NON-NLS-2$
@@ -260,10 +265,9 @@ public class TrackerIO extends VideoIO {
 		delimitedTextFileFilter = new SingleExtFileFilter(null, "Delimited Text Files") { //$NON-NLS-1$
 			@Override
 			public boolean accept(File f, boolean checkDir) {
-				String ext = getExtension(f); 
-				return (checkDir && f.isDirectory()
-						|| "txt".equalsIgnoreCase(ext) //$NON-NLS-1$
-						|| "csv".equalsIgnoreCase(ext));  //$NON-NLS-1$
+				String ext = getExtension(f);
+				return (checkDir && f.isDirectory() || "txt".equalsIgnoreCase(ext) //$NON-NLS-1$
+						|| "csv".equalsIgnoreCase(ext)); //$NON-NLS-1$
 			}
 
 		};
@@ -281,21 +285,18 @@ public class TrackerIO extends VideoIO {
 
 	public static String selectedVideoFormat;
 
-
-	//	public static final int PROGRESS_LOAD_INIT               = 0; See VideoIO
-	public static final int PROGRESS_PANEL_READY                 = 5;
-	//	public static final int PROGRESS_VIDEO_LOADING           = 10; See VideoIO
-	//	public static final int PROGRESS_VIDEO_PROCESSING        = 20; See VideoIO
-	//	public static final int PROGRESS_VIDEO_READY             = 80; See VideoIO
-	public static final int PROGRESS_VIDEO_LOADED            = PROGRESS_VIDEO_READY + 5; // 85
+	// public static final int PROGRESS_LOAD_INIT = 0; See VideoIO
+	public static final int PROGRESS_PANEL_READY = 5;
+	// public static final int PROGRESS_VIDEO_LOADING = 10; See VideoIO
+	// public static final int PROGRESS_VIDEO_PROCESSING = 20; See VideoIO
+	// public static final int PROGRESS_VIDEO_READY = 80; See VideoIO
+	public static final int PROGRESS_VIDEO_LOADED = PROGRESS_VIDEO_READY + 5; // 85
 	public static final int PROGRESS_TOOLBAR_AND_COORD_READY = PROGRESS_VIDEO_READY + 10; // 90
-	public static final int PROGRESS_TRACKS_ADDED            = PROGRESS_VIDEO_READY + 12; // 92
-	public static final int PROGRESS_TRACKS_INITIALIZED      = PROGRESS_VIDEO_READY + 15; // 95
-	// BH unnec. public static final int PROGRESS_PENCIL_DRAWINGS_READY   = PROGRESS_VIDEO_READY + 19; // 99
-	//	public static final int PROGRESS_COMPLETE                = 100; See VideoIO
-
-
-
+	public static final int PROGRESS_TRACKS_ADDED = PROGRESS_VIDEO_READY + 12; // 92
+	public static final int PROGRESS_TRACKS_INITIALIZED = PROGRESS_VIDEO_READY + 15; // 95
+	// BH unnec. public static final int PROGRESS_PENCIL_DRAWINGS_READY =
+	// PROGRESS_VIDEO_READY + 19; // 99
+	// public static final int PROGRESS_COMPLETE = 100; See VideoIO
 
 	/**
 	 * private constructor to prevent instantiation
@@ -305,8 +306,8 @@ public class TrackerIO extends VideoIO {
 	}
 
 	/**
-	 * Gets the delimiters for copied or exported data
-	 * This overrides the VideoIO method since the TrackerRes strings have already been translated
+	 * Gets the delimiters for copied or exported data This overrides the VideoIO
+	 * method since the TrackerRes strings have already been translated
 	 *
 	 * @return the delimiter map
 	 */
@@ -433,9 +434,10 @@ public class TrackerIO extends VideoIO {
 
 	/**
 	 * Displays a file chooser and returns the chosen files.
+	 * 
 	 * @param frame TODO
-	 * @param type may be open, open video, save, insert image, export file, import
-	 *             file, save tabset, open data, open trk
+	 * @param type  may be open, open video, save, insert image, export file, import
+	 *              file, save tabset, open data, open trk
 	 *
 	 * @return the files, or null if no files chosen
 	 */
@@ -455,14 +457,13 @@ public class TrackerIO extends VideoIO {
 		};
 		Runnable okOpen = () -> {
 			if (frame != null)
-			frame.setCursor(Cursor.getDefaultCursor());
+				frame.setCursor(Cursor.getDefaultCursor());
 			if (processFiles != null) {
 				File[] files = chooser.getSelectedFiles();
 				File file = chooser.getSelectedFile();
 				resetChooser.run();
-				processFiles.apply(files != null && files.length > 0 ? files 
-						: file != null ? new File[] { file } 
-						: null);
+				processFiles
+						.apply(files != null && files.length > 0 ? files : file != null ? new File[] { file } : null);
 			}
 		};
 
@@ -558,7 +559,7 @@ public class TrackerIO extends VideoIO {
 			chooser.addChoosableFileFilter(trkFileFilter);
 			chooser.setDialogTitle(TrackerRes.getString("TrackerIO.Dialog.SaveTabset.Title")); //$NON-NLS-1$
 			String filename = ""; //$NON-NLS-1$
-			File[] theFile = new File[] {new File(filename + "." + defaultXMLExt)}; //$NON-NLS-1$
+			File[] theFile = new File[] { new File(filename + "." + defaultXMLExt) }; //$NON-NLS-1$
 			String parent = XML.getDirectoryPath(filename);
 			if (!parent.equals("")) { //$NON-NLS-1$
 				XML.createFolders(parent);
@@ -608,7 +609,8 @@ public class TrackerIO extends VideoIO {
 	 * @param extension the extension
 	 * @return the file, or null if no file chosen
 	 */
-	public static File getChooserFileForExtension(String extension) {
+	public static File getChooserFileForName(String name) {
+		String extension = XML.getExtension(name);
 		if (extension != null && !extension.trim().equals("")) { //$NON-NLS-1$
 			extension = extension.trim().toLowerCase();
 		} else {
@@ -616,6 +618,7 @@ public class TrackerIO extends VideoIO {
 		}
 		String ext = extension;
 		getChooser().setDialogTitle(MediaRes.getString("VideoIO.Dialog.SaveVideoAs.Title")); //$NON-NLS-1$
+		chooser.setSelectedFile(new File(name));
 		chooser.resetChoosableFileFilters();
 		chooser.setAccessory(null);
 		chooser.setMultiSelectionEnabled(false);
@@ -681,7 +684,7 @@ public class TrackerIO extends VideoIO {
 			for (int j = 0; j < nf; j++) {
 				final File file = fileList.get(j);
 				OSPRuntime.cacheJSFile(file, true);
-				//OSPLog.debug("file to load: " + file.getAbsolutePath()); //$NON-NLS-1$
+				// OSPLog.debug("file to load: " + file.getAbsolutePath()); //$NON-NLS-1$
 				// load a new tab unless file is video or delimited text
 				// and there is a trackerPanel to import it
 				if (!haveOneVideo && !haveOneData) {
@@ -704,8 +707,7 @@ public class TrackerIO extends VideoIO {
 							}
 						}
 						// if targetPanel has image video and file is image, add after current frame
-						File[] added = insertImagesIntoVideo(new File[] { file }, targetPanel,
-								frameNumber + 1);
+						File[] added = insertImagesIntoVideo(new File[] { file }, targetPanel, frameNumber + 1);
 						frameNumber += added.length;
 					} else {
 						// if targetPanel not null and file is video then import
@@ -719,9 +721,9 @@ public class TrackerIO extends VideoIO {
 								importVideo(file.getAbsolutePath(), targetPanel, null);/// NULL_RUNNABLE);
 							}
 						};
-						run("TFrame.loadFiles", runner); 
+						run("TFrame.loadFiles", runner);
 					}
-				} 
+				}
 //				else {
 //					// else inform user that file is not acceptable
 //					JOptionPane.showMessageDialog(this, "\"" + file.getName() + "\" " //$NON-NLS-1$ //$NON-NLS-2$
@@ -748,31 +750,31 @@ public class TrackerIO extends VideoIO {
 	 * Loads data or a video from a specified file into a new TrackerPanel. If file
 	 * is null, a file chooser is displayed.
 	 *
-	 * @param file  the file to be loaded (may be null)
-	 * @param frame the frame for the TrackerPanel
+	 * @param file     the file to be loaded (may be null)
+	 * @param frame    the frame for the TrackerPanel
 	 * @param whenDone to do when completed, or null
 	 */
 	public static void openFileFromDialog(File file, TFrame frame, Runnable whenDone) {
 		// TFrame.doOpenFileFromDialog()
 		// TFrame.doOpenExportedAndUpdateLibrary (Java only)
 		// ExportVideoDialog (Java only)
-		//OSPLog.debug("TrackerIO openTabFileAsync " + file); //$NON-NLS-1$
+		// OSPLog.debug("TrackerIO openTabFileAsync " + file); //$NON-NLS-1$
 		if (file == null) {
 			getChooserFilesAsync(frame, "open", (files) -> {
-					File f = null;
-					if (files != null) {
-						f = files[0];
-					}
-					if (f == null) {
-						frame.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
-						OSPLog.finer("no file to open"); //$NON-NLS-1$
-					} else {
+				File f = null;
+				if (files != null) {
+					f = files[0];
+				}
+				if (f == null) {
+					frame.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+					OSPLog.finer("no file to open"); //$NON-NLS-1$
+				} else {
 //						if (!frame.haveContent()) {
 //							frame.removeTabNow(0);
 //						}
-						openFiles(frame, listOf(f), whenDone);
-					}
-					return null;
+					openFiles(frame, listOf(f), whenDone);
+				}
+				return null;
 			});
 		} else {
 			openFiles(frame, listOf(file), whenDone);
@@ -780,7 +782,7 @@ public class TrackerIO extends VideoIO {
 	}
 
 	/**
-	 * Open one or more files sequentially. 
+	 * Open one or more files sequentially.
 	 * 
 	 * @param frame
 	 * @param files
@@ -803,25 +805,27 @@ public class TrackerIO extends VideoIO {
 //		String path0 = path;
 		startLoading(files, null, frame, null, () -> {
 			for (int i = 0; i < paths.size(); i++) {
-				addToLibrary(frame, paths.get(i));				
+				addToLibrary(frame, paths.get(i));
 			}
 //			if (path0 != null)
 //				addToLibrary(frame, path0);
 		});
 	}
-	
+
 	/**
-	 * Loads data or a video from a specified path into a TrackerPanel. The initiator for AsyncLoader
+	 * Loads data or a video from a specified path into a TrackerPanel. The
+	 * initiator for AsyncLoader
 	 *
-	 * @param paths         a list of absolute paths of a file or url to open sequentially
+	 * @param paths         a list of absolute paths of a file or url to open
+	 *                      sequentially
 	 * @param existingPanel a TrackerPanel to load (only for a video; may be null)
 	 * @param frame         the frame for the TrackerPanel
 	 * @param desktopFiles  a list of HTML and/or PDF files to open on the desktop
 	 *                      (may be null)
 	 */
 	private static AsyncLoader startLoading(List<String> paths, TrackerPanel existingPanel, TFrame frame,
-		  LibraryBrowser libraryBrowser, Runnable whenDone) {
-		// importVideo 
+			LibraryBrowser libraryBrowser, Runnable whenDone) {
+		// importVideo
 		// openFromLibary
 		// ..TFrame.openLibraryResource
 		// openFiles
@@ -830,14 +834,16 @@ public class TrackerIO extends VideoIO {
 		// ..TrackerIO.openFileFromDialog
 		// openURL
 		// ..TFrame.doOpenURL
-		//OSPLog.debug("TrackerIO openTabPathAsync " + paths); //$NON-NLS-1$
+		// OSPLog.debug("TrackerIO openTabPathAsync " + paths); //$NON-NLS-1$
 		loadIncrementally = true;
 		AsyncLoader loader = new AsyncLoader(paths, existingPanel, frame, libraryBrowser, whenDone);
-		loader.execute();
+		if (frame == null)
+			loader.executeSynchronously();
+		else
+			loader.execute();
 		return loader;
 	}
 
-	
 //
 //	/**
 //	 * Loads data or a video from a specified url into a new TrackerPanel.
@@ -854,12 +860,15 @@ public class TrackerIO extends VideoIO {
 //	}
 
 	/**
-	 * Called by open-addToLibrary, importVideo, openAllCollection, openTabFileAsyncFinally
+	 * Called by open-addToLibrary, importVideo, openAllCollection,
+	 * openTabFileAsyncFinally
+	 * 
 	 * @param name
 	 * @param r
 	 */
 	static void run(String name, Runnable r) {
-		//OSPLog.debug("TrackerIO run loading " + loadInSeparateThread + " for " + name);
+		// OSPLog.debug("TrackerIO run loading " + loadInSeparateThread + " for " +
+		// name);
 		if (loadInSeparateThread) {
 			Thread t = new Thread(r);
 			t.setName(name);
@@ -880,14 +889,15 @@ public class TrackerIO extends VideoIO {
 //	public static void open(String path, TFrame frame) {
 //		openAsync(path, frame, null);
 //	}
-	
-	public static void openURL(String path, TFrame frame, Runnable whenDone) {
+
+	public static AsyncLoader openURL(String path, TFrame frame, Runnable whenDone) {
 		// TFrame.doOpenURL
-		frame.loadedFiles.clear();
-		//OSPLog.debug("TrackerIO open " + path); //$NON-NLS-1$
-		startLoading(listOf(path), null, frame, null, () -> {
-			if (trzFileFilter.accept(new File(path), false)
-					&& !ResourceLoader.isHTTP(path) && !path.contains("/OSP/Cache/")) {
+		if (frame != null)
+			frame.loadedFiles.clear();
+		// OSPLog.debug("TrackerIO open " + path); //$NON-NLS-1$
+		return startLoading(listOf(path), null, frame, null, () -> {
+			if (frame != null && trzFileFilter.accept(new File(path), false) && !ResourceLoader.isHTTP(path)
+					&& !path.contains("/OSP/Cache/")) {
 				addToLibrary(frame, path);
 			}
 			if (whenDone != null)
@@ -898,8 +908,9 @@ public class TrackerIO extends VideoIO {
 	/**
 	 * Loads a set of trk, trz, zip, or video files into one or more new
 	 * TrackerPanels (tabs).
-	 * @param uriPaths     an array of URL paths to be loaded
-	 * @param frame        the frame for the TrackerPanels
+	 * 
+	 * @param uriPaths an array of URL paths to be loaded
+	 * @param frame    the frame for the TrackerPanels
 	 */
 	public static AsyncLoader openFromLibrary(List<String> uriPaths, TFrame frame, Runnable whenDone) {
 		// TFrame.openLibraryResource
@@ -917,7 +928,7 @@ public class TrackerIO extends VideoIO {
 //			} : null); // BH Q: Could be null_runable ? better: add whenDone to this method?
 
 		// open in separate background thread if flagged
-			// from TFrame.openLibaryResource
+		// from TFrame.openLibaryResource
 		return startLoading(uriPaths, null, frame, frame.libraryBrowser, whenDone);
 	}
 
@@ -926,19 +937,19 @@ public class TrackerIO extends VideoIO {
 		// BH! Q: this was effectively TRUE -- "any directory is OK" why?
 
 		if (!OSPRuntime.autoAddLibrary) {
-			//OSPLog.debug("skipping TrackerIO addToLibrary " + path); //$NON-NLS-1$
+			// OSPLog.debug("skipping TrackerIO addToLibrary " + path); //$NON-NLS-1$
 			return;
 		}
 
 		run("addToLibrary", () -> {
-			
-				frame.getLibraryBrowser().open(path);
-				OSPRuntime.trigger(1000, (e) -> {
-						LibraryTreePanel treePanel = frame.getLibraryBrowser().getSelectedTreePanel();
-						if (treePanel != null) {
-							treePanel.refreshSelectedNode();
-						}
-				});
+
+			frame.getLibraryBrowser().open(path);
+			OSPRuntime.trigger(1000, (e) -> {
+				LibraryTreePanel treePanel = frame.getLibraryBrowser().getSelectedTreePanel();
+				if (treePanel != null) {
+					treePanel.refreshSelectedNode();
+				}
+			});
 		});
 	}
 
@@ -968,9 +979,9 @@ public class TrackerIO extends VideoIO {
 		if (TrackerPanel.class.equals(type)) {
 			// choose the elements and load the tracker panel
 			choose(trackerPanel, control, false, () -> {
-					trackerPanel.changed = true;
-					control.loadObject(trackerPanel);
-					TToolBar.refreshMemoryButton(trackerPanel);
+				trackerPanel.changed = true;
+				control.loadObject(trackerPanel);
+				TToolBar.refreshMemoryButton(trackerPanel);
 			});
 		} else {
 			JOptionPane.showMessageDialog(trackerPanel.getTFrame(),
@@ -988,55 +999,96 @@ public class TrackerIO extends VideoIO {
 	 * @param trackerPanel the tracker panel with the video
 	 * @return the saved file, or null if not saved
 	 */
-	public static File saveVideo(File file, TrackerPanel trackerPanel) {
+	public static File saveVideo(File file, TrackerPanel trackerPanel, boolean asZipFile, boolean notify) {
 		Video video = trackerPanel.getVideo();
 		if (video == null)
 			return null;
 		boolean isImageVideo = video instanceof ImageVideo;
 		if (isImageVideo) {
+			asZipFile |= OSPRuntime.isJS;
 			boolean saved = ((ImageVideo) video).saveInvalidImages();
 			if (!saved)
 				return null;
 		}
 		String source = (String) video.getProperty("absolutePath"); //$NON-NLS-1$
-		String extension = XML.getExtension(source);
-		if (file == null) {
-			file = getChooserFileForExtension(extension);
-			if (file == null)
-				return null;
+		String name = XML.getName(source);
+		if (asZipFile) {
+			int pt = name.indexOf("00.");
+			if (pt > 0)
+				name = name.substring(0, pt);
 		}
+		if (file == null && (file = getChooserFileForName(name)) == null) {
+			return null;
+		}
+		if (asZipFile && !file.getName().endsWith(".zip"))
+			file = new File(file.getAbsolutePath() + ".zip");
 		boolean success = true;
-		if (isImageVideo) {
+		if (isImageVideo || asZipFile) {
 			String targetDir = XML.forwardSlash(file.getParent());
-			ImageVideo iv = (ImageVideo) video;
-			String[] paths = iv.getValidPaths();
+			String[] paths = (video instanceof ImageVideo ? ((ImageVideo) video).getValidPaths()
+					: new String[video.getFrameCount()]);
 			// check for zipped image video
-			if (paths.length > 0 && paths[0] != null && paths[0].contains("!")) {
-				String zipPath = paths[0].substring(0, paths[0].indexOf("!"));
-				paths = new String[] { zipPath };
-			}
-			ImageVideoRecorder.setChooserExtension(extension);
-			String[] targets = ImageVideoRecorder.getFileNames(file.getName(), paths.length);
+			// BH -- I don't think we do this anymore; these are saved as resources instead
+//			if (paths.length > 0 && paths[0] != null && paths[0].contains("!")) {
+//				String zipPath = paths[0].substring(0, paths[0].indexOf("!"));
+//				paths = new String[] { zipPath };
+//			}
+			name = file.getName();
+			String[] targets = ImageVideoRecorder.getFileNames(name, paths.length, isImageVideo ? XML.getExtension(name) : "png");
 			String[] jarURLParts = ResourceLoader.getJarURLParts(source); // null if not a zip/jar/trz file
 			String srcDir = (jarURLParts == null
 					? XML.forwardSlash(source).contains(":/") ? "" : XML.getDirectoryPath(source) + "/"
 					: jarURLParts[0] + "!/");
-			for (int i = 0; i < paths.length; i++) {
-				File in = new File(srcDir + paths[i]);
-				File out = new File(targetDir, targets[i]);
-				if (i == 0)
-					file = out; // file is first image in series
-				success = ResourceLoader.copyAllFiles(in, out);
-				if (!success)
+			ZipOutputStream zos = null;
+			if (asZipFile) {
+				try {
+					zos = new ZipOutputStream(new FileOutputStream(file));
+				} catch (FileNotFoundException e) {
 					return null;
+				}
 			}
+			for (int i = 0; i < paths.length; i++) {
+				File in = (paths[i] == null ? null : new File(srcDir + paths[i]));
+				File out = (zos == null ? new File(targetDir, targets[i]) : null);
+				if (in == null) {
+					if (zos == null) {
+						success = false;
+						break;
+					}						
+					try {
+						zos.putNextEntry(new ZipEntry(targets[i]));
+						zos.write(getImageBytes(trackerPanel, i));
+						zos.closeEntry();
+					} catch (IOException e) {
+						success = false;
+					}
+				} else {
+					success = ResourceLoader.copyAllFiles(in, zos == null ? out : zos);
+				}
+				if (!success)
+					break;
+			}
+			if (zos != null) {
+				try {
+					zos.close();
+				} catch (IOException e) {
+				}
+			}
+			if (success && !OSPRuntime.isJS) {
+				String msg = targets.length + " files were saved in " + (asZipFile ? file : targetDir);
+				if (notify)
+					JOptionPane.showMessageDialog(null, msg, "", JOptionPane.INFORMATION_MESSAGE);
+				else
+					System.out.println(msg);
+			}
+
 		} else {
 			// JavaScript needs this to be a local path, probably /TEMP/
 			success = ResourceLoader.copyAllFiles(new File(ResourceLoader.getNonURIPath(source)), file);
 		}
 		if (!success)
 			return null;
-		if (!OSPRuntime.isJS) {
+		if (notify && !OSPRuntime.isJS) {
 			Tracker.addRecent(XML.getAbsolutePath(file), false); // add at beginning
 			trackerPanel.getTFrame().refreshMenus(trackerPanel, TMenuBar.REFRESH_TRACKERIO_SAVEVIDEO);
 		}
@@ -1061,7 +1113,7 @@ public class TrackerIO extends VideoIO {
 				if (file != null) {
 					OSPRuntime.cacheJSFile(file, true);
 					run("importVideo", () -> {
-							importVideo(file.getAbsolutePath(), trackerPanel, whenDone);
+						importVideo(file.getAbsolutePath(), trackerPanel, whenDone);
 					});
 				}
 				return null;
@@ -1103,7 +1155,7 @@ public class TrackerIO extends VideoIO {
 //	}
 
 	public static void importVideo(String path, TrackerPanel trackerPanel, Runnable whenDone) {
-		//OSPLog.debug("TrackerIO importing file: " + path); //$NON-NLS-1$
+		// OSPLog.debug("TrackerIO importing file: " + path); //$NON-NLS-1$
 		TFrame frame = trackerPanel.getTFrame();
 		frame.loadedFiles.clear();
 		loader = startLoading(listOf(path), trackerPanel, frame, frame.libraryBrowser, whenDone);
@@ -1127,7 +1179,8 @@ public class TrackerIO extends VideoIO {
 	 * @param trackerPanel         the TrackerPanel to check
 	 * @param tolerance            the unacceptable variation limit
 	 * @param showDialog           true to display the results in a dialog
-	 * @param onlyIfFound          true to display the dialog only if problems are found
+	 * @param onlyIfFound          true to display the dialog only if problems are
+	 *                             found
 	 * @param showSetDefaultButton true to show the "Don't show again" button
 	 * @return a BitSet indicating frames with odd durations
 	 */
@@ -1152,7 +1205,8 @@ public class TrackerIO extends VideoIO {
 			if (err > tolerance) {
 				videoDurMS -= durMS;
 				outliers.set(i);
-				//OSPLog.debug("Frame " + i +" duration " + durMS + " outlier for average " + frameDur);
+				// OSPLog.debug("Frame " + i +" duration " + durMS + " outlier for average " +
+				// frameDur);
 				// restart
 				i = -1;
 			}
@@ -1201,7 +1255,7 @@ public class TrackerIO extends VideoIO {
 					message += " " + i + " (" + format.format(video.getFrameDuration(i)) + "ms)"; //$NON-NLS-1$
 					if (i < last)
 						message += ","; //$NON-NLS-1$
-					if (count%6 == 0)
+					if (count % 6 == 0)
 						message += "\n";
 				}
 				message += "\n\n" + TrackerRes.getString("TrackerIO.Dialog.DurationVaries.Recommended") + ":  " //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
@@ -1327,26 +1381,26 @@ public class TrackerIO extends VideoIO {
 		XMLControl control = new XMLControlElement(trackerPanel);
 		choose(trackerPanel, control, true, () -> {
 
-				getChooser().setSelectedFile(
-						new File(MediaRes.getString("VideoIO.FileName.Untitled") + "." + defaultXMLExt)); //$NON-NLS-1$ $NON-NLS-2$
-				TFrame frame = trackerPanel.getTFrame();
-				getChooserFilesAsync(frame, "export file", (files) -> {
-						if (files == null) {
-							return null;
-						}
-						File file = files[0];
-						if (!defaultXMLExt.equals(getExtension(file))) {
-							String filename = XML.stripExtension(file.getPath());
-							file = new File(filename + "." + defaultXMLExt); //$NON-NLS-1$
-						}
-						if (canWrite(file))
-							try {
-								control.write(new FileWriter(file));
-							} catch (IOException ex) {
-								ex.printStackTrace();
-							}
-						return null;
-				});
+			getChooser()
+					.setSelectedFile(new File(MediaRes.getString("VideoIO.FileName.Untitled") + "." + defaultXMLExt)); //$NON-NLS-1$ $NON-NLS-2$
+			TFrame frame = trackerPanel.getTFrame();
+			getChooserFilesAsync(frame, "export file", (files) -> {
+				if (files == null) {
+					return null;
+				}
+				File file = files[0];
+				if (!defaultXMLExt.equals(getExtension(file))) {
+					String filename = XML.stripExtension(file.getPath());
+					file = new File(filename + "." + defaultXMLExt); //$NON-NLS-1$
+				}
+				if (canWrite(file))
+					try {
+						control.write(new FileWriter(file));
+					} catch (IOException ex) {
+						ex.printStackTrace();
+					}
+				return null;
+			});
 		});
 	}
 
@@ -1403,7 +1457,7 @@ public class TrackerIO extends VideoIO {
 					names.add(children[i].getPropertyName());
 					originals.add(children[i]);
 				}
-			} else if (prop.getPropertyType() == XMLProperty.TYPE_OBJECT) { //$NON-NLS-1$
+			} else if (prop.getPropertyType() == XMLProperty.TYPE_OBJECT) { // $NON-NLS-1$
 				primitives.add(prop);
 			}
 		}
@@ -1414,8 +1468,7 @@ public class TrackerIO extends VideoIO {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				// remove primitives from control
-				if (e.getID() != ActionEvent.ACTION_PERFORMED
-						|| vControl == null || vClipControl == null) {
+				if (e.getID() != ActionEvent.ACTION_PERFORMED || vControl == null || vClipControl == null) {
 					return;
 				}
 				for (XMLProperty prop : primitives) {
@@ -1784,8 +1837,6 @@ public class TrackerIO extends VideoIO {
 		private final ArrayList<String> desktopFiles = new ArrayList<>();
 //		private final long t0;
 
-		
-
 		private static final int TYPE_UNK = 0;
 		private static final int TYPE_TRZ = 1;
 		private static final int TYPE_TRK = 2;
@@ -1813,7 +1864,8 @@ public class TrackerIO extends VideoIO {
 		private Loader loader;
 		private int videoCount;
 		private boolean ignoreLowMemory;
-		
+		private TrackerPanel panel;
+
 		@Override
 		public void finalize() {
 			OSPLog.finalized(this);
@@ -1823,16 +1875,16 @@ public class TrackerIO extends VideoIO {
 		 * 
 		 * @param paths         or more paths to load in sequence
 		 * @param existingPanel (video only)
-		 * @param frame
+		 * @param frame         can be null if asynchronous
 		 * @param whenDone
 		 */
 		public AsyncLoader(List<String> paths, TrackerPanel existingPanel, TFrame frame, LibraryBrowser libraryBrowser,
 				Runnable whenDone) {
-			super(frame, "Loading " + XML.getName(paths.get(0)), (whenDone == null ? 0 : 10), PROGRESS_LOAD_INIT,
-					PROGRESS_COMPLETE);
+			super(frame, "Loading " + XML.getName(paths.get(0)), (frame == null || whenDone == null ? 0 : 10),
+					PROGRESS_LOAD_INIT, PROGRESS_COMPLETE);
 //			progressMonitor.setMillisToDecideToPopup(OSPRuntime.isJS? 1000: 1000);
 //			progressMonitor.setMillisToPopup(0);
-			if (whenDone != null) {
+			if (whenDone != null && frame != null) {
 				frame.setFrameBlocker(true, null);
 			}
 
@@ -1858,7 +1910,7 @@ public class TrackerIO extends VideoIO {
 			ignoreLowMemory = false;
 			xmlPath = null;
 			panelID = null;
-			//title = null;
+			// title = null;
 			panelChanged = false;
 			nonURIPath = null;
 			frameCount = 0;
@@ -1872,46 +1924,46 @@ public class TrackerIO extends VideoIO {
 			nonURIPath = ResourceLoader.getNonURIPath(path);
 			if (rawPath.startsWith("//") && nonURIPath.startsWith("/") && !nonURIPath.startsWith("//")) //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 				nonURIPath = "/" + nonURIPath; //$NON-NLS-1$
-			if (frame.loadedFiles.contains(nonURIPath)) {
+			if (frame != null && frame.loadedFiles.contains(nonURIPath)) {
 //				OSPLog.debug("TrackerIO path already loaded " + nonURIPath); //$NON-NLS-1$
 				return false;
 			}
-			frame.loadedFiles.add(nonURIPath);
+			if (frame != null)
+				frame.loadedFiles.add(nonURIPath);
 			if (!ResourceLoader.isHTTP(path))
 				path = nonURIPath;
 
 			setCanceled(false);
 
-			if (zipFileFilter.accept(new File(path)) &&
-					getZippedImagePaths(path) != null) {				
+			if (zipFileFilter.accept(new File(path)) && getZippedImagePaths(path) != null) {
 				type = TYPE_VIDEO;
 				if (!ResourceLoader.isHTTP(path))
 					path = getZippedImagePaths(path)[0];
 				newPanel();
 				return true;
 			}
-			
-			// load data from zip or trz file			
+
+			// load data from zip or trz file
 			boolean isTRZ = ResourceLoader.isJarZipTrz(path, false);
-			
+
 			if (isTRZ || path.indexOf("&TrackerSet=") >= 0) {
 				type = TYPE_TRZ;
 				// doesn't seem to be necessary? panelID = frame.getCleanTrackerPanel().getID();
-				frame.holdPainting(true);
+				if (frame != null)
+					frame.holdPainting(true);
 				return true;
 			}
 
-			
 			// BH note - this file is not likely to exist without its pathname.
 			// changed to just check extensions, not if directory (which requires an
 			// existence check)
-			File testFile = new File(path);			
+			File testFile = new File(path);
 			if (videoFileFilter.accept(testFile, false)) {
 				type = TYPE_VIDEO;
 				newPanel();
 				return true;
 			}
-			
+
 			// check for unsupported video type
 			for (String ext : KNOWN_VIDEO_EXTENSIONS) {
 				if (path.endsWith("." + ext)) {
@@ -1919,14 +1971,14 @@ public class TrackerIO extends VideoIO {
 					return true;
 				}
 			}
-			
+
 			// check for text data files
 			if (delimitedTextFileFilter.accept(testFile, false)) {
 				type = TYPE_TEXT;
 				newPanel();
 				return true;
 			}
-			
+
 			// load data from TRK file
 			control = new XMLControlElement();
 			xmlPath = control.read(path);
@@ -1941,7 +1993,8 @@ public class TrackerIO extends VideoIO {
 			if (TrackerPanel.class.isAssignableFrom(ctype)) {
 				type = TYPE_TRK;
 				if (panelID == null)
-					panelID = frame.getCleanTrackerPanel().getID();
+					panelID = (frame == null ? (panel = new TrackerPanel(false)).getID()
+							: frame.getCleanTrackerPanel().getID());
 				return true;
 			}
 
@@ -1950,10 +2003,11 @@ public class TrackerIO extends VideoIO {
 				return true;
 			}
 			// FAILURE
+			if (frame == null)
+				return !control.failedToRead();
 			if (control.failedToRead()) {
-				JOptionPane.showMessageDialog(frame,
-						MediaRes.getString("VideoIO.Dialog.BadFile.Message") + //$NON-NLS-1$
-								ResourceLoader.getNonURIPath(path));
+				JOptionPane.showMessageDialog(frame, MediaRes.getString("VideoIO.Dialog.BadFile.Message") + //$NON-NLS-1$
+						ResourceLoader.getNonURIPath(path));
 			} else {
 				JOptionPane.showMessageDialog(frame, "\"" + XML.getName(path) + "\" " + //$NON-NLS-1$ //$NON-NLS-2$
 						MediaRes.getString("VideoIO.Dialog.XMLMismatch.Message"), //$NON-NLS-1$
@@ -1964,10 +2018,9 @@ public class TrackerIO extends VideoIO {
 			cancelAsync();
 			return false;
 		}
-		
+
 		private void newPanel() {
-			panelID = (existingPanelID == null ? frame.getCleanTrackerPanel().getID() 
-					: existingPanelID);
+			panelID = (existingPanelID == null ? frame.getCleanTrackerPanel().getID() : existingPanelID);
 			panelChanged = panel().changed;
 		}
 
@@ -2016,7 +2069,7 @@ public class TrackerIO extends VideoIO {
 					path = paths.remove(0);
 					if (setupLoader())
 						progress = 0;
-				} else {
+				} else if (frame != null) {
 					// remove the empty tab if there is more than 1 tab
 					frame.removeEmptyTabIfTabCountGreaterThan(1);
 				}
@@ -2036,7 +2089,7 @@ public class TrackerIO extends VideoIO {
 					break;
 				case Tracker.MEMORY_INCREASE:
 					setCanceled(true);
-					cancelAsync();					
+					cancelAsync();
 					Tracker.askToSetMemory(frame);
 					break;
 				}
@@ -2044,13 +2097,13 @@ public class TrackerIO extends VideoIO {
 			return progress;
 		}
 
-		private TrackerPanel panel() {
-			return frame.getTrackerPanelForID(panelID);
+		public TrackerPanel panel() {
+			return (frame == null ? panel : frame.getTrackerPanelForID(panelID));
 		}
 
 		@Override
 		public void doneAsync() {
-			
+
 			if (path.equals(path0)) {
 				doneLoading();
 			}
@@ -2058,32 +2111,33 @@ public class TrackerIO extends VideoIO {
 
 		private int loadFrame(int progress) {
 			// loadObject will initiate its own loader.
-			
+
 //			Tracker.addRecent(ResourceLoader.getNonURIPath(XML.forwardSlash(rawPath)), false); // add at beginning
-			frame.whenObjectLoadingComplete = new Function<List<String>, Void>() {
+			if (frame != null)
+				frame.whenObjectLoadingComplete = new Function<List<String>, Void>() {
 
-				@Override
-				public Void apply(List<String> files) {
-					if (files.size() > 0) {
-						File dataFile = new File(files.remove(0));
-						paths.addAll(files);
-						Runnable done = whenDone;
-						whenDone = new Runnable() {
+					@Override
+					public Void apply(List<String> files) {
+						if (files.size() > 0) {
+							File dataFile = new File(files.remove(0));
+							paths.addAll(files);
+							Runnable done = whenDone;
+							whenDone = new Runnable() {
 
-							@Override
-							public void run() {
-								frame.setSelectedTab(dataFile);								
-								if (done != null)
-									done.run();
-							}
-							
-						};
-					}
+								@Override
+								public void run() {
+									frame.setSelectedTab(dataFile);
+									if (done != null)
+										done.run();
+								}
+
+							};
+						}
 //					TMenuBar.refreshMenus(frame.getSelectedPanel(), TMenuBar.REFRESH_TRACKERIO_OPENFRAME);
-					return null;
-				}
-				
-			};
+						return null;
+					}
+
+				};
 			control.loadObject(frame);
 			return PROGRESS_COMPLETE;
 		}
@@ -2105,7 +2159,8 @@ public class TrackerIO extends VideoIO {
 
 			Map<String, ZipEntry> contents = ResourceLoader.getZipContents(path, true);
 			if (contents == null) {
-				frame.sayFileNotFound(path);
+				if (frame != null)
+					frame.sayFileNotFound(path);
 				cancelAsync();
 				return PROGRESS_COMPLETE;
 			}
@@ -2149,7 +2204,7 @@ public class TrackerIO extends VideoIO {
 				}
 			}
 			contents = null;
-			if (trkFiles.isEmpty()) { // test this for incomplete state if aborted?
+			if (frame != null && trkFiles.isEmpty()) { // test this for incomplete state if aborted?
 				String s = TrackerRes.getString("TrackerIO.Dialog.NotATrackerFile.Message"); //$NON-NLS-1$
 				JOptionPane.showMessageDialog(frame, s + " \"" + name + "\".", //$NON-NLS-1$ //$NON-NLS-2$
 						TrackerRes.getString("TFrame.Dialog.LibraryError.Title"), //$NON-NLS-1$
@@ -2271,8 +2326,8 @@ public class TrackerIO extends VideoIO {
 					videoCount++;
 				return p;
 			}
-			
-			// 
+
+			//
 			trackerPanel.setIgnoreRepaint(true);
 
 			// find page view files and add to TrackerPanel.pageViewFilePaths
@@ -2281,7 +2336,7 @@ public class TrackerIO extends VideoIO {
 			while (desktopFiles.size() > 0) {
 				trackerPanel.supplementalFilePaths.add(desktopFiles.remove(0));
 			}
-			if (ResourceLoader.isJarZipTrz(xmlPath,  true)) {
+			if (ResourceLoader.isJarZipTrz(xmlPath, true)) {
 				String parent = xmlPath.substring(0, xmlPath.indexOf("!")); //$NON-NLS-1$
 				parent = ResourceLoader.getNonURIPath(parent); // strip protocol
 				String parentName = XML.stripExtension(XML.getName(parent));
@@ -2318,7 +2373,8 @@ public class TrackerIO extends VideoIO {
 				cancelAsync();
 				return PROGRESS_COMPLETE;
 			}
-			frame.addTab(trackerPanel, TFrame.ADD_SELECT | TFrame.ADD_NOREFRESH, null);
+			if (frame != null)
+				frame.addTab(trackerPanel, TFrame.ADD_SELECT | TFrame.ADD_NOREFRESH, null);
 			trackerPanel.setIgnoreRepaint(false);
 			if (control.failedToRead()) {
 				JOptionPane.showMessageDialog(trackerPanel.getTFrame(), "\"" + XML.getName(path) + "\" " + //$NON-NLS-1$ //$NON-NLS-2$
@@ -2327,9 +2383,9 @@ public class TrackerIO extends VideoIO {
 						JOptionPane.WARNING_MESSAGE);
 			}
 
-			checkDone(false);			
+			checkDone(false);
 			// remove empty tab if running in Java
-			
+
 //			if (!OSPRuntime.isJS) {
 //				TToolBar tbar = trackerPanel.getToolBar(false);
 //				SwingUtilities.invokeLater(()->{
@@ -2349,14 +2405,15 @@ public class TrackerIO extends VideoIO {
 
 		void checkDone(boolean b) {
 //			if (b == (panel().getVideo() instanceof AsyncVideoI)) {
-				if (panelList.size() == 0 && paths.size() == 0)
-					doneLoading();
+			if (panelList.size() == 0 && paths.size() == 0)
+				doneLoading();
 //			}
 		}
-		
+
 		private int loadData(int progress) {
 			// was refresh
-			frame.addTab(panel(), TFrame.ADD_SELECT | TFrame.ADD_NOREFRESH, null);
+			if (frame != null)
+				frame.addTab(panel(), TFrame.ADD_SELECT | TFrame.ADD_NOREFRESH, null);
 			panel().importDataAsync(path, null, null);
 			return PROGRESS_COMPLETE;
 		}
@@ -2367,8 +2424,8 @@ public class TrackerIO extends VideoIO {
 				// check for unsupported MP4 videos
 				if (!checkMP4(path, libraryBrowser, panel()))
 					return PROGRESS_COMPLETE;
-				//trackerPanel.setTFrame(frame);
-	//			OSPLog.debug("TrackerIO opening video path " + path); //$NON-NLS-1$
+				// trackerPanel.setTFrame(frame);
+				// OSPLog.debug("TrackerIO opening video path " + path); //$NON-NLS-1$
 				// download web videos to the OSP cache
 				if (ResourceLoader.isHTTP(path)) {
 					String name = ResourceLoader.getNonURIPath(XML.getName(path));
@@ -2377,23 +2434,21 @@ public class TrackerIO extends VideoIO {
 						path = localFile.toURI().toString();
 					}
 				}
-	
+
 				// attempt to load video
 				if (!Tracker.warnXuggleError)
 					OSPLog.setConsoleMessagesLogged(false);
 				video = getVideo(path, null);
 			}
-			
-			if (video != null 
-					&& video instanceof IncrementallyLoadable 
-					&& loadIncrementally) {
-				IncrementallyLoadable iVideo = (IncrementallyLoadable)video;
+
+			if (video != null && video instanceof IncrementallyLoadable && loadIncrementally) {
+				IncrementallyLoadable iVideo = (IncrementallyLoadable) video;
 				try {
 					if (iVideo.loadMoreFrames(incrementToLoad)) {
 						setFrameCount(iVideo.getLoadedFrameCount());
 						progress = getFrameCount() / incrementToLoad;
 						progress = 1 + (progress % 95);
-						return progress;					
+						return progress;
 					}
 				} catch (IOException e) {
 					e.printStackTrace();
@@ -2406,7 +2461,7 @@ public class TrackerIO extends VideoIO {
 			}
 			if (video == null) {
 				// unable to load video
-				if (frame.libraryBrowser != null) 
+				if (frame != null && frame.libraryBrowser != null)
 					frame.libraryBrowser.setMessage(null, null);
 				String codec = getVideoCodec(path);
 				handleUnsupportedVideo(path, XML.getExtension(path), codec, panel(), "OpenTabPathVideo null video");
@@ -2431,16 +2486,15 @@ public class TrackerIO extends VideoIO {
 			int n = thePath.indexOf("!/");
 			if (n > 0)
 				thePath = thePath.substring(0, n);
-			Tracker.addRecent(ResourceLoader.getNonURIPath(thePath), false); // add at beginning			
+			Tracker.addRecent(ResourceLoader.getNonURIPath(thePath), false); // add at beginning
 			return PROGRESS_COMPLETE;
 		}
 
 		private void finalizeVideoLoading(Video video) {
 			TrackerPanel trackerPanel = panel();
-			frame.addTab(trackerPanel, TFrame.ADD_NOSELECT | TFrame.ADD_NOREFRESH, null);
-			JSplitPane pane = frame.getSplitPane(trackerPanel, 0);
-			pane.setDividerLocation(TFrame.DEFAULT_RIGHT_DIVIDER);
-
+			if (frame != null) {
+				frame.addTabFromLoader(trackerPanel);
+			}
 			// BH ?? TMenuBar.refreshMenus(trackerPanel, TMenuBar.REFRESH_BEFORESETVIDEO);
 			trackerPanel.setVideo(video);
 			// panel is changed if video imported into existing trackerPanel
@@ -2453,13 +2507,15 @@ public class TrackerIO extends VideoIO {
 				ImageCoordSystem coords = trackerPanel.getCoords();
 				coords.setAllOriginsXY(video.getWidth() / 2, video.getHeight() / 2);
 			}
-			TFrame.repaintT(trackerPanel);
-			frame.setSelectedTab(trackerPanel);
-			// check for video frames with durations that vary by 20% from average
+			if (frame != null) {
+				TFrame.repaintT(trackerPanel);
+				frame.setSelectedTab(trackerPanel);
+				// check for video frames with durations that vary by 20% from average
+			}
 			if (Tracker.warnVariableDuration)
 				findBadVideoFrames(trackerPanel, defaultBadFrameTolerance, true, true, true);
 			// show dialog only if bad frames found, and include "don't show again" button
-			
+
 			checkDone(false);
 		}
 
@@ -2473,24 +2529,27 @@ public class TrackerIO extends VideoIO {
 		}
 
 		private void doneLoading() {
-			TrackerPanel trackerPanel = panel();
-			frame.setFrameBlocker(false, trackerPanel);
-			if (xmlPath0 != null && !ResourceLoader.isJarZipTrz(xmlPath0,  true)) { //$NON-NLS-1$
-				Tracker.addRecent(ResourceLoader.getNonURIPath(XML.forwardSlash(xmlPath0)), false); // add at beginning
-			}
+			if (frame != null) {
+				TrackerPanel trackerPanel = panel();
+				frame.setFrameBlocker(false, trackerPanel);
+				if (xmlPath0 != null && !ResourceLoader.isJarZipTrz(xmlPath0, true)) { // $NON-NLS-1$
+					Tracker.addRecent(ResourceLoader.getNonURIPath(XML.forwardSlash(xmlPath0)), false); // add at
+																										// beginning
+				}
 
-			TToolBar.refreshMemoryButton(trackerPanel);
+				TToolBar.refreshMemoryButton(trackerPanel);
 
-			switch (type) {
-			case TYPE_VIDEO:
-				trackerPanel.changed = panelChanged;
-				// fall through
-			case TYPE_TRK:
-				frame.clearHoldPainting();
-				trackerPanel.notifyLoadingComplete();
-				frame.refresh();
+				switch (type) {
+				case TYPE_VIDEO:
+					trackerPanel.changed = panelChanged;
+					// fall through
+				case TYPE_TRK:
+					frame.clearHoldPainting();
+					trackerPanel.notifyLoadingComplete();
+					frame.refresh();
 //				TFrame.repaintT(trackerPanel);
 
+				}
 			}
 //			OSPLog.debug(Performance.timeCheckStr("TrackerIO.asyncLoad done " + path, Performance.TIME_MARK));
 //			OSPLog.debug("!!! " + Performance.now(t0) + " AyncLoad " + path);
@@ -2519,6 +2578,8 @@ public class TrackerIO extends VideoIO {
 		@Override
 		public void cancelAsync() {
 			super.cancelAsync();
+			if (frame == null)
+				return;
 			TrackerPanel trackerPanel = panel();
 			frame.clearHoldPainting();
 			frame.setFrameBlocker(false, trackerPanel);
@@ -2575,7 +2636,7 @@ public class TrackerIO extends VideoIO {
 			case TYPE_TRK:
 				if (type == TYPE_TRK && progress > PROGRESS_VIDEO_PROCESSING && progress < PROGRESS_VIDEO_READY)
 					return "Video " + videoCount + ": frames loaded " + panel().framesLoaded;
-		  default:
+			default:
 				return String.format("Completed %d%%.\n", progressPercent);
 			}
 		}
@@ -2639,14 +2700,14 @@ public class TrackerIO extends VideoIO {
 					progress = 20 + ((framesLoaded / 20) % 60);
 				}
 
-				monitor.setProgressAsync(progress);				
+				monitor.setProgressAsync(progress);
 				monitor.setTitle(
 						TrackerRes.getString("TFrame.ProgressDialog.Title.FramesLoaded") + ": " + framesLoaded); //$NON-NLS-1$ //$NON-NLS-2$
 				break;
 			}
 		}
 	}
-	
+
 	protected static Object[] getVideoFormats() {
 		return videoFormatDescriptions.toArray();
 	}
@@ -2681,7 +2742,7 @@ public class TrackerIO extends VideoIO {
 		}
 		return (preferred == null && hasSelected ? selected : preferred);
 	}
-	
+
 	private static FileFilter[] imageFilters;
 
 	private static FileFilter videoFilter;
@@ -2689,7 +2750,6 @@ public class TrackerIO extends VideoIO {
 //	public static boolean haveVideo(List<File> files) {
 //		return (files != null && files.size() == 1 && isVideo(files.get(0)));
 //	}
-
 
 	/**
 	 * Returns true if the specified file is an image.
@@ -2712,5 +2772,22 @@ public class TrackerIO extends VideoIO {
 			videoFilter = new VideoFileFilter();
 		return videoFilter.accept(f);
 	}
+
+	public static void exportVideoImages(TrackerPanel panel, String exportVideoName) {
+		if (panel != null)
+			saveVideo(new File(exportVideoName), panel, true, false);
+	}
+
+	public static byte[] getImageBytes(TrackerPanel panel, int i) throws IOException {
+		VideoAdapter video = (VideoAdapter) panel.getVideo();
+		video.setNotify(false);
+		video.setFrameNumber(i);
+		video.setNotify(true);
+		BufferedImage img = video.getRawBufferedImage();
+		ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		ImageIO.write(img, "png", bos);
+		return bos.toByteArray();
+	}
+
 
 }

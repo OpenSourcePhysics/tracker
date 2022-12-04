@@ -221,7 +221,7 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 	 * @j2sIgnore
 	 */
 	private static void setJava() {
-		OSPLog.getOSPLog().addPropertyChangeListener(OSPRuntime.PROPERTY_ERROR_OUTOFMEMORY, new PropertyChangeListener() { //$NON-NLS-1$
+		OSPLog.addPropertyChangeListener(OSPRuntime.PROPERTY_ERROR_OUTOFMEMORY, new PropertyChangeListener() { //$NON-NLS-1$
 			@Override
 			public void propertyChange(PropertyChangeEvent e) {
 				if (e.getNewValue().equals(OSPRuntime.OUT_OF_MEMORY_ERROR)) {

@@ -34,30 +34,30 @@ public class DownloadCounter {
 	static String dataFile = "download_counts.csv"; //$NON-NLS-1$
 	static String NEW_LINE = System.getProperty("line.separator", "\n"); //$NON-NLS-1$ //$NON-NLS-2$
 	
-  public static void main(String[] args) {
-    
-	Toolkit.getDefaultToolkit().beep();
-		
-    // create StringBuffer and append date/time
-    StringBuffer buffer = new StringBuffer();
-  	buffer.append(getDateAndTime());
-  	
-    // get file names (first line of dataFile except data/time)
-  	String[] filenames = getFileNames(dataFile);
-  	
-  	// go through file names and append tabs and download counts
-		for (int j = 0; j<filenames.length; j++) {
-	  	String count = getDownloadCount(filenames[j]);
-	  	buffer.append("\t"+count); //$NON-NLS-1$
-  	}
-		
+	public static void main(String[] args) {
+
+		Toolkit.getDefaultToolkit().beep();
+
+		// create StringBuffer and append date/time
+		StringBuffer buffer = new StringBuffer();
+		buffer.append(getDateAndTime());
+
+		// get file names (first line of dataFile except data/time)
+		String[] filenames = getFileNames(dataFile);
+
+		// go through file names and append tabs and download counts
+		for (int j = 0; j < filenames.length; j++) {
+			String count = getDownloadCount(filenames[j]);
+			buffer.append("\t" + count); //$NON-NLS-1$
+		}
+
 		// get current contents and add StringBuffer at end
 		String contents = read(dataFile);
 		contents += buffer.toString();
-		
+
 		// write the new contents to dataFile
 		write(contents, dataFile);
-  }
+	}
   
   /**
    * Reads the first line of the data file and returns an array of file names.
