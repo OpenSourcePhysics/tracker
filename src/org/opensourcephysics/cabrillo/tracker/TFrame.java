@@ -1659,13 +1659,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	@Override
 	public void setVisible(boolean visible) {
 		super.setVisible(visible);
-		if (!Tracker.splash.isVisible())
-			return;
-//    Tracker.setProgress(100);
-		// dispose of splash automatically after short time
-		OSPRuntime.trigger(1000, (e) -> {
-				Tracker.splash.dispose();
-		});
+		Tracker.checkSplash();
 	}
 
 

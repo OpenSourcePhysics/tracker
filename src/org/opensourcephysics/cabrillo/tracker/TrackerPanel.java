@@ -2567,23 +2567,12 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	}
 
 	/**
-	 * Returns true if this is the default configuration.
-	 *
-	 * @return true if this is the default configuration
-	 */
-	public boolean isDefaultConfiguration() {
-		return Tracker.areEqual(getEnabled(), Tracker.defaultConfig);
-	}
-
-	/**
 	 * Gets the enabled property set.
 	 *
 	 * @return the set of enabled properties
 	 */
 	public Set<String> getEnabled() {
-		if (enabled == null)
-			enabled = new TreeSet<String>();
-		return enabled;
+		return (enabled == null ? (enabled = new TreeSet<String>()) : enabled);
 	}
 
 	/**
@@ -4136,7 +4125,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			}
 
 			// save custom configurations
-			if (!trackerPanel.isDefaultConfiguration() && trackerPanel.isEnabled("config.saveWithData")) { //$NON-NLS-1$
+			if (!Tracker.isDefaultConfiguration(trackerPanel.getEnabled()) && trackerPanel.isEnabled("config.saveWithData")) { //$NON-NLS-1$
 				control.setValue("configuration", new Configuration(trackerPanel)); //$NON-NLS-1$
 			}
 

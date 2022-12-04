@@ -129,6 +129,9 @@ public class Tracker {
 	// enabling all resources and setting J2S parameters
 	// such as allowed AJAX databases.
 
+	public static boolean loadTabsInSeparateThread = !OSPRuntime.isJS;
+
+
 	public static String TRACKER_TEST_URL = "https://physlets.org/tracker/counter/counter.php";
 
 	public static boolean doHoldRepaint = true; // BH testing if false
@@ -141,8 +144,7 @@ public class Tracker {
 	public static boolean allowViews = true;
 	public static boolean allowMenuRefresh = true;
 	public static boolean allowToolbarRefresh = true;
-
-	public static boolean loadTabsInSeparateThread = !OSPRuntime.isJS;
+	public static boolean timeLogEnabled = false; 
 
 	static {
 		XML.setLoader(Preferences.class, new Preferences.Loader());
@@ -175,7 +177,7 @@ public class Tracker {
 	}
 
 	// define static constants
-	/** tracker version and copyright */
+	// tracker version and copyright
 	// 3/09/21: abandon Tracker.VERSION for OSPRuntime.VERSION for smaller
 	// tracker_starter.jar
 //	public static final String VERSION = "5.9.20210307"; //$NON-NLS-1$
@@ -217,13 +219,14 @@ public class Tracker {
 	static final int MEMORY_INCREASE       = 4;
 
 	// for testing
-	public static boolean timeLogEnabled = false;
 	static boolean testOn = false;
-	static String testString;
+	
+	private static String testString;
 
 	// define static fields
 	static String trackerHome;
-	static String[] fullConfig = { "file.new", "file.open", "file.close", //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+	
+	private static String[] fullConfig = { "file.new", "file.open", "file.close", //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 			"file.import", "file.export", "file.save", //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 			"file.saveAs", "file.print", "file.library", //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 			"edit.copyObject", "edit.copyData", "edit.copyImage", //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
@@ -251,33 +254,51 @@ public class Tracker {
 			"button.xMass", "button.axes", "button.path", "button.drawing", //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
 			"number.formats", "number.units", "text.columns", "plot.compare", //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
 			"config.saveWithData", "data.builder", "data.tool" }; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+	
+	
 	static Set<String> defaultConfig;
-	static boolean xuggleCopied;
-	static boolean usesXuggleServer;
-	static String[] mainArgs;
-	static JFrame splash;
-	public static Icon trackerLogoIcon;
-	static JProgressBar progressBar;
-	static String counterPath = "https://physlets.org/tracker/counter/counter.php?"; //$NON-NLS-1$
+	
+	private static boolean usesXuggleServer;
+	private static String[] mainArgs;
+	private static JFrame splash;
+	
+	private static Icon trackerLogoIcon;
+	private static JProgressBar progressBar;
+	private static String counterPath = "https://physlets.org/tracker/counter/counter.php?"; //$NON-NLS-1$
+	private static Tracker sharedTracker;
+
+    private static String rootXMLPath = ""; // path to root directory of trk files //$NON-NLS-1$
+	private static Cursor zoomInCursor, zoomOutCursor;
+	private static Locale[] locales;
+	private static Locale defaultLocale;
+
+	// preferences
+	
 	static String latestVersion; // last version for which user has been informed
 	static String newerVersion; // new version available if non-null
-	static boolean checkedForNewerVersion = false; // true if checked for new version
+
+	static boolean checkedForNewerVersion; // true if checked for new version
+	
 	static String trackerWebsite = "physlets.org/tracker"; //$NON-NLS-1$
-	static String trackerDownloadFolder = "/upgrade/"; //$NON-NLS-1$
-	static String author = "Douglas Brown"; //$NON-NLS-1$
-	static String osp = "Open Source Physics"; //$NON-NLS-1$
+	static Cursor grabCursor;
+	static boolean showHints = true;
+	static boolean startupHintShown;
+	
+	static ArrayList<String> checkForUpgradeChoices;
+	static Map<String, Integer> checkForUpgradeIntervals;
+	
+	// static String trackerDownloadFolder = "/upgrade/"; //$NON-NLS-1$
+	// static String author = "Douglas Brown"; //$NON-NLS-1$
+	// static String osp = "Open Source Physics"; //$NON-NLS-1$
+	
 	static AbstractAction aboutXuggleAction, aboutThreadsAction;
 	static Action aboutTrackerAction, readmeAction;
 	static Action aboutJavaAction, startLogAction, trackerPrefsAction;
-	private static Tracker sharedTracker;
 	static String readmeFileName = "Tracker_README.txt"; //$NON-NLS-1$
 	static JDialog readmeDialog, startLogDialog, trackerPrefsDialog;
 	static JTextArea trackerPrefsTextArea;
 	static String prefsPath;
-	public static String rootXMLPath = ""; // path to root directory of trk files //$NON-NLS-1$
-	static Cursor zoomInCursor, zoomOutCursor, grabCursor;
-	static boolean showHints = true;
-	static boolean startupHintShown;
+
 	static String pdfHelpPath = "/tracker_help.pdf"; //$NON-NLS-1$
 	static JButton pdfHelpButton;
 	static ArrayList<String> recentFiles = new ArrayList<String>();
@@ -285,11 +306,7 @@ public class Tracker {
 	static int requestedMemorySize = -1, originalMemoryRequest = 0;
 	static long lastMillisChecked;
 	static int maxFontLevel = 6;
-	private static Locale[] locales;
 	static Object[][] incompleteLocales;
-	static Locale defaultLocale;
-	static ArrayList<String> checkForUpgradeChoices;
-	static Map<String, Integer> checkForUpgradeIntervals;
 
 	static Collection<String> initialAutoloadSearchPaths = new TreeSet<String>();
 
@@ -581,8 +598,8 @@ public class Tracker {
 				int x = (dim.width - splash.getBounds().width) / 2;
 				int y = (dim.height - splash.getBounds().height) / 2;
 				splash.setLocation(x, y);
+				splash.setVisible(true);
 			}
-			splash.setVisible(showSplash && !OSPRuntime.isJS);
 			frame = createFrame(options);
 		}
 		AsyncLoader loader = null;
@@ -3039,6 +3056,16 @@ public class Tracker {
 								: MEMORY_LOW_DONTIGNORE);
 		}
 		return MEMORY_OK;
+	}
+
+	static void checkSplash() {
+		if (splash == null || !splash.isVisible())
+			return;
+		OSPRuntime.trigger(1000, (e) -> {splash.dispose(); splash = null;});
+	}
+
+	static boolean isDefaultConfiguration(Set<String> panelConfig) {
+		return areEqual(panelConfig, defaultConfig);
 	}
 
 }
