@@ -13,17 +13,19 @@
 		<p>A <strong>Tracker project</strong> consists of the following  resources zipped together in a single file with extension<strong> .trz</strong>.</p>
 		<ul>
 		  <li>one or more Tracker tab files and associated videos </li>
-		  <li>an html information page with  title, description, thumbnail image and metadata (authors, contact, keywords) for search and display in the <a href="library_browser.html">Library Browser</a></li>
+		  <li>an automatically generated html information page with  title, description, thumbnail image and metadata (authors, contact, keywords) for search and display in the <a href="library_browser.html">Library Browser</a></li>
 		  <li>optional support documentation in PDF, HTML or other format displayable in a default desktop viewer</li>
 		  <li>optional external link or separate html file for display in the <a href="library_browser.html">Library Browser</a></li>
 	</ul>
 		<p>Like a traditional Tracker tab file (<strong>.trk</strong>), a Tracker project file can be opened in Tracker just by double-clicking it. </p>
-<p>Since they are self-contained and self-documenting, Tracker project files are the best way to save and share your Tracker projects. With searchable keywords and other metadata, you can browse and find projects easily with the <a href="library_browser.html">Library Browser</a>.</p>
-	<p>The figure below shows a typical Tracker project open in the Library Browser. The left pane shows a tree node with the  icon and  title of the project, and the right pane displays an html page with information about the project. The searchable metadata is displayed in a tooltip when   the mouse hovers over a tree node as shown. </p>
+<p>Since they are self-contained and self-documenting, Tracker project files are the best way to save and share your Tracker experiments. With searchable keywords and other metadata, you can browse and find projects easily with the <a href="library_browser.html">Library Browser</a>.</p>
+	<p>The figure below shows a typical Tracker project open in the Library Browser. The left pane shows a tree node with the  icon and  title of the project, and the right pane displays an html page with information about the project. The searchable metadata is displayed in a tooltip when   the mouse hovers over a tree node as shown, and in a status bar at the bottom of the browser window. </p>
 <p align="center"><img src="../help_images/library_browser.gif" alt="ZIP resource open in Digital Library Browser"></p>
      <h5>Fig. 1 A Tracker Project displayed in the Library Browser</h5>
      
 	<h3><a name="trz1" id="trz1"></a>1. Preparing for a Tracker project</h3>
+	<p>A &quot;bare bones&quot; project may consist of only a single tab with no description or metadata. In this case no preparation is needed and the project will still automatically include the video and a simple html page with a thumbnail image of the tab.</p>
+	<p>But if you will be sharing your project with others it is strongly recommended that you add a title, description, metadata and support documents such as instructions, journal or lab  report. This way the project becomes a true stand-alone file with everything another user needs to load, perform and understand your experiment. In this case some additional preparation is needed.</p>
 	<ol>
 	  <ol>
 	    <li>Prepare your supporting documents (instructions, report forms, etc).
@@ -38,7 +40,7 @@
     </ol>
      
 	<h3><a name="trz2" id="trz2"></a>2. Building and saving a Tracker project</h3>
-	<p>Click the <strong>Save Project</strong> button <img src="../help_images/export_zip_button.gif" alt="Save project button" align="absmiddle"> on the toolbar or choose the <strong>File|Save Project As...</strong> menu item to open a <strong>Tracker Project</strong> window with eight control panes for defining the project properties.  The control panes toggle open and closed with a mouse click and display a property summary when closed. </p>
+	<p>Click the <strong>Save Project</strong> button <img src="../help_images/export_zip_button.gif" alt="Save project button" align="absmiddle"> on the toolbar or choose the <strong>File|Save Project As...</strong> menu item to open a <strong>Tracker Project</strong> window with eight control panes for defining the project properties.  The control panes toggle open and closed with a mouse click and display a property summary when closed. Every property has a default so none are actually required.</p>
 	<p>When your project is ready click the <strong>Save As...</strong> button  to save it as a Tracker project file (.trz). The tabs, videos and optional support files are zipped together along with automatically generated  thumbnail image and html information files.</p>
 	<p align="center"><img src="../help_images/export_zip_dialog.gif" alt="Export ZIP dialog" align="top"></p>
     <h5>Fig. 2 Tracker Project window</h5>
@@ -61,13 +63,13 @@
       <p>6. <strong>Thumbnail</strong>.  Check Preview to display the thumbnail image to be shown in the information page. Click Settings to open a separate dialog that enables you to control the source, size and format of the thumbnail image. (Default: 320 x 240)</p>
         <p align="center"><img src="../help_images/project_thumbnail_preview.gif" alt="thumnnail pane with preview" vspace="5" align="texttop"><img src="../help_images/spacer.gif" vspace="5" align="texttop"><img src="../help_images/thumbnail_dialog.gif" alt="Thumbnail dialog" vspace="5" align="texttop"></p>
 	  
-      <p>7. <strong>Support Files</strong>. Support files are typically project instructions or reports that open automatically whenever the Tracker project is opened. Click Add to add a support file to your project. You can add as many as you wish but having too many can be confusing when opening the project. To remove a file, select it in the list and click Remove. Most support files are PDF documents or HTML pages but you may also add DOC, TXT and other file types. Images required by HTML support files are automatically included. Note it is NOT necessary to add HTML pages displayed in a Tracker <a href="pageview.html">page view</a>--these are included automatically in the project.</p>
+      <p>7. <strong>Support Files</strong>. Support files are typically project instructions or reports that open automatically whenever the Tracker project is opened. Click Add to add a support file to your project. You can add as many as you wish but having too many can be confusing when opening the project. To remove a file, select it in the list and click Remove. Most support files are PDF documents or HTML pages but you may also add DOC, TXT and other file types. Images required by HTML support files are automatically included. Note it is NOT necessary to add HTML pages displayed in a Tracker <a href="pageview.html">page view</a>--these are included automatically in the project. (Default: none)</p>
         <p align="center"><img src="../help_images/project_support_files.gif" alt="support files pane" vspace="5" align="top"></p>
 	  
-      <p>8. <strong>Advanced</strong>:  Enter the URL of a web page into the Link field to include a hyperlink to it  in the information page.  To replace the automatically generated information page entirely, click the Open icon and select an external html file to take its place. The title and metadata you have defined will be added to the html code when copying the  file so the Library Browser will still be able to find your project when searching.</p>
+      <p>8. <strong>Advanced</strong>:  Enter the URL of a web page into the Link field to include a hyperlink to it  in the information page.  To replace the automatically generated information page entirely, click the Open icon and select an external html file to take its place. The title and metadata you have defined will be added to the html code when copying the  file so the Library Browser will still be able to find your project when searching. (Default: none)</p>
         <p align="center"><img src="../help_images/project_advanced.gif" alt="advanced pane" vspace="5" align="top"></p>
     
-    <h3><a name="zip_sharing" id="zip_sharing"></a>2. Sharing Tracker projects</h3>
+    <h3><a name="zip_sharing" id="zip_sharing"></a>3. Sharing Tracker projects</h3>
     <p>Since Tracker project files (.trz) are  fully self-contained you can <strong>email</strong> them directly to teachers, colleagues or friends. To share with peers in a classroom simply <strong>copy</strong> them to a shared local directory. Any Tracker user with access to your project file can open it with just a double-click.</p>
 <p><strong>Sharing on the web</strong> makes your Tracker projects available to  Tracker users worldwide.  There are two ways to do this:</p>
     <ol>
