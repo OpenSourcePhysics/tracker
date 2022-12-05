@@ -3920,7 +3920,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				case TrackerIO.PROGRESS_VIDEO_LOADED:
 					// load the toolbar
 					child = control.getChildControl("toolbar"); //$NON-NLS-1$
-					if (child != null) {
+					if (child != null && trackerPanel.frame != null) {
 						TToolBar toolbar = new TToolBar(trackerPanel);
 						child.loadObject(toolbar);
 						trackerPanel.frame.setToolBar(trackerPanel, toolbar);
