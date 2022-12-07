@@ -33,6 +33,7 @@ import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.media.core.MediaRes;
 import org.opensourcephysics.media.core.Video;
 import org.opensourcephysics.media.core.VideoFileFilter;
+import org.opensourcephysics.media.core.VideoIO;
 import org.opensourcephysics.media.core.VideoRecorder;
 import org.opensourcephysics.media.mov.MovieFactory;
 import org.opensourcephysics.media.mov.MovieVideoType;
@@ -104,6 +105,10 @@ public boolean isType(Video video) {
 		XuggleVideo video;
 		try {
 			video = new XuggleVideo(XML.getResolvedPath(name, basePath));
+			if (!video.isFullyLoaded()) {
+				// step thru container quickly and find all video frames
+				while (video.loadMoreFrames(500)) {}
+			}			
 			video.setProperty("video_type", this); //$NON-NLS-1$
 		} catch (IOException ex) {
 			OSPLog.fine(getDescription() + ": " + ex.getMessage()); //$NON-NLS-1$
