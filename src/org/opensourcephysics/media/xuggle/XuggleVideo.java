@@ -527,6 +527,7 @@ public class XuggleVideo extends VideoAdapter implements SmoothPlayable, Increme
 		if (isFullyLoaded()) 
 			return false;
 		int finalIndex = index + n;
+		long lastDTS = Long.MIN_VALUE;
 		while (index < finalIndex && container.readNextPacket(packet) >= 0) {
 			if (VideoIO.isCanceled()) {
 //				failDetectTimer.stop();
@@ -536,6 +537,7 @@ public class XuggleVideo extends VideoAdapter implements SmoothPlayable, Increme
 				throw new IOException("Canceled by user"); //$NON-NLS-1$
 			}
 			if (isCurrentStream()) {
+				// wouldn't we want to exit the while loop if the stream has changed?
 				long dts = packet.getTimeStamp(); // decode time stamp
 				if (keyTimeStamp == Long.MIN_VALUE || packet.isKeyPacket()) {
 					keyTimeStamp = dts;
@@ -555,6 +557,9 @@ public class XuggleVideo extends VideoAdapter implements SmoothPlayable, Increme
 						continue;
 					}					
 				}
+				if (dts == lastDTS)
+					continue;
+				lastDTS = dts;
 				// save valid buffered images for cache
 				if (picture.isComplete() && imageList.size() < CACHE_MAX - firstDisplayPacket) {
 					imageList.add(getBufferedImage());
