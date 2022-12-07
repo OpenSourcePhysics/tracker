@@ -1019,7 +1019,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 		yData.setYColumnVisible(true);
 		int xcol = (xIndex >= 0 ? 1 : 0);
 		// use x mean value for filler points (y = Double.NaN)
-		double xMean = getMean(xcol == 1 ? xData.getYPoints() : xData.getXPoints());
+		double xMean = xData.getMean(xcol);
 		// append data to dataset
 		int n;
 		// x == x here means !Double.isNaN(x);
@@ -1060,8 +1060,8 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 	protected void showPlotCoordinates(int index) {
 		String msg = ""; //$NON-NLS-1$
 		if (index >= 0 && dataset.getIndex() > index) {
-			double x = dataset.getXPoints()[index];
-			double y = dataset.getYPoints()[index];
+			double x = dataset.getX(index);
+			double y = dataset.getYShifted(index);
 			TTrack track = TTrack.getTrack(trackID);
 			msg = coordStringBuilder.getCoordinateString(track.tp, x, y);
 			setMessage(msg, MessageDrawable.BOTTOM_LEFT);
@@ -1257,25 +1257,6 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 		return plotTrackView.frame.getTrackerPanelForID(plotTrackView.panelID);
 	}
 
-	/**
-	 * Calculates the mean of a data array.
-	 *
-	 * @param data the data array
-	 * @return the mean
-	 */
-	private double getMean(double[] data) {
-		double sum = 0.0;
-		int count = 0;
-		for (int i = 0; i < data.length; i++) {
-			if (Double.isNaN(data[i])) {
-				continue;
-			}
-			count++;
-			sum += data[i];
-		}
-		return sum / count;
-	}
-
 	protected void createXYPopups() {
 		if (popup == null)
 			buildPopupMenu();
@@ -1410,10 +1391,10 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 	 * @param newXArray expanded array of independent variable values
 	 */
 	private void padDataset(Dataset dataset, double[] newXArray) {
-		double[] xArray = dataset.getXPoints();
-		double[] yArray = dataset.getYPoints();
+		double[] xArray = dataset.getXPointsRaw();
+		double[] yArray = dataset.getYPointsRaw();
 		Map<Double, Double> valueMap = new HashMap<Double, Double>();
-		for (int k = 0; k < xArray.length; k++) {
+		for (int k = 0, n = dataset.getIndex(); k < n; k++) {
 			valueMap.put(xArray[k], yArray[k]);
 		}
 		// pad y-values of nextOut with NaN where needed
@@ -1816,24 +1797,25 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 		nextOut.setYColumnVisible(false);
 		nextOut.setConnected(false);
 		nextOut.setMarkerShape(Dataset.NO_MARKER);
-		double[] tArray = nextOut.getXPoints();
+		double[] tArray = nextOut.getXPointsRaw();
 		if (!guests.isEmpty()) {
 			// expand tArray by collecting all values in a TreeSet
 			TreeSet<Double> tSet = new TreeSet<Double>();
-			for (double t : tArray) {
-				tSet.add(t);
+			for (int t = 0, n = nextOut.getIndex(); t < n; t++) {
+				tSet.add(tArray[t]);
 			}
 			for (TTrack guest : guests) {
 				DatasetManager guestData = guest.getData(guest.tp, plotTrackView.myDatasetIndex);
 				Dataset nextGuestIn = guestData.getDataset(0);
-				double[] guestTArray = nextGuestIn.getXPoints();
-				for (double t : guestTArray) {
-					tSet.add(t);
+				double[] guestTArray = nextGuestIn.getXPointsRaw();
+				for (int t = 0, n = nextOut.getIndex(); t < n; t++) {
+					tSet.add(guestTArray[t]);
 				}
 			}
-			tArray = new double[tSet.size()];
-			Double[] temp = tSet.toArray(new Double[tArray.length]);
-			for (int k = 0; k < tArray.length; k++) {
+			int n = tSet.size();
+			tArray = new double[n];
+			Double[] temp = tSet.toArray(new Double[n]);
+			for (int k = 0; k < n; k++) {
 				tArray[k] = temp[k];
 			}
 			// finished expanding tArray
