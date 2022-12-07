@@ -35,6 +35,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.io.IOException;
 import java.util.ArrayList;
 
 import javax.swing.BorderFactory;
@@ -54,12 +55,16 @@ import javax.swing.border.Border;
 
 import org.opensourcephysics.cabrillo.tracker.TTrack.TextLineLabel;
 import org.opensourcephysics.controls.OSPLog;
+import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.desktop.OSPDesktop;
 import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.display.OSPRuntime.Disposable;
 import org.opensourcephysics.media.core.NumberField;
 import org.opensourcephysics.media.core.TPoint;
+import org.opensourcephysics.media.core.Video;
+import org.opensourcephysics.media.core.VideoClip;
 import org.opensourcephysics.tools.FontSizer;
+import org.opensourcephysics.tools.ResourceLoader;
 
 /**
  * This is a toolbar that display selected track properties in the NORTH
@@ -137,7 +142,41 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 								public void actionPerformed(ActionEvent e) {
 									// test action goes here	
 											
-//									TrackerPanel trackerPanel = frame.getSelectedPanel();
+									TrackerPanel trackerPanel = frame.getSelectedPanel();
+									VideoClip clip = trackerPanel.getPlayer().getVideoClip();
+									String path = clip.getVideoPath();
+									path = XML.forwardSlash(path);
+									path = ResourceLoader.getNonURIPath(path);
+									
+									if (!"".equals(path)) {
+										path = XML.stripExtension(path) + ".zip";
+										String src = trackerPanel.openedFromPath;
+										
+										System.out.println("pig source path "+src);
+										System.out.println("pig video path "+path);
+										
+										// assemble command 
+										final ArrayList<String> cmd = new ArrayList<String>();
+										cmd.add("C:/Program Files/Java/jre1.8.0_321/bin/java");
+										cmd.add("-Djava.awt.headless=true");
+										cmd.add("-jar");
+										cmd.add("C:/Program Files/Tracker/tracker.jar");
+										cmd.add("-headless");
+										cmd.add(src);
+										cmd.add("-exportVideo");
+										cmd.add(path);
+										
+										ProcessBuilder builder = new ProcessBuilder(cmd);
+										try {
+											Process process = builder.start();
+											int n = process.waitFor();
+											System.out.println("pig done "+n);
+										} catch (Exception e1) {
+											e1.printStackTrace();
+										}
+									    
+									}
+									
 											
 									if (!testTimer.isRepeats()) {
 										testTimer.stop();
