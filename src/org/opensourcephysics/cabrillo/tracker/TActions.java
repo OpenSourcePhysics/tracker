@@ -32,7 +32,6 @@ import java.util.Map;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
-import javax.swing.Icon;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
@@ -730,9 +729,9 @@ public class TActions {
 	private static AbstractAction getAsyncAction(AbstractAction a, boolean useSeparateThread) {
 		Object nameObj = a.getValue(Action.NAME);
 		String name = nameObj == null ? null : nameObj.toString();
-		Object iconObj = a.getValue(Action.SMALL_ICON);
-		Icon icon = iconObj == null ? null : (Icon) iconObj;
-		return new AbstractAction(name, icon) {
+//		Object iconObj = a.getValue(Action.SMALL_ICON);
+//		Icon icon = iconObj == null ? null : (Icon) iconObj;
+		return new AbstractAction(name, null) {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				SwingUtilities.invokeLater(()->{
