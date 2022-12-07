@@ -371,7 +371,7 @@ public class TableTView extends TrackChooserTView {
 							columns = fixColumnList(columns);
 							for (int j = 1; j < columns.length; j++) {
 	//							htOrder.put(name, j);
-								tableView.setVisible(columns[j] = fixName(columns[j], track), true);
+								tableView.setVisible(columns[j] = fixColumnName(columns[j], track), true);
 							}
 							setColumnOrder(tableView, track, columns);
 							tableView.setRefreshing(true);
@@ -436,7 +436,7 @@ public class TableTView extends TrackChooserTView {
 			return obj;
 		}
 
-		private String fixName(String name, TTrack track) {
+		private String fixColumnName(String name, TTrack track) {
 			switch (name) {
 			case "theta":
 				return (track.ttype == TTrack.TYPE_POINTMASS ? "\u03b8r"//$NON-NLS-1$
