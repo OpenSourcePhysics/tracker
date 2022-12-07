@@ -25,10 +25,8 @@
 package org.opensourcephysics.cabrillo.tracker;
 
 import java.beans.PropertyChangeEvent;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
@@ -39,7 +37,6 @@ import javax.swing.SwingUtilities;
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.display.DataTable;
-import org.opensourcephysics.display.DataTable.DataTableColumnModel;
 import org.opensourcephysics.tools.FontSizer;
 import org.opensourcephysics.tools.FunctionTool;
 
@@ -370,7 +367,8 @@ public class TableTView extends TrackChooserTView {
 							tableView.bsCheckBoxes.clear();
 							tableView.textColumnsVisible.clear();
 							// then select checkboxes specified in track_columns
-							Map<String, Integer> htOrder = new HashMap<String, Integer>(); // BH! never used
+//							Map<String, Integer> htOrder = new HashMap<String, Integer>(); // BH! never used
+							columns = fixColumnList(columns);
 							for (int j = 1; j < columns.length; j++) {
 								String name = columns[j];
 								switch (name) {
@@ -406,8 +404,18 @@ public class TableTView extends TrackChooserTView {
 								case "y_tail": //$NON-NLS-1$
 									name = "ytail"; //$NON-NLS-1$
 									break;
+								case "vx":
+								case "vy":
+								case "ax":
+								case "ay":
+								case "px":
+								case "py":
+								case "pixelx":
+								case "pixely":
+									name = name.substring(0, name.length() - 1) + "_{" + name.charAt(name.length() - 1) + "}";
+									break;
 								}
-								htOrder.put(name, j);
+	//							htOrder.put(name, j);
 								tableView.setVisible(columns[j] = name, true);
 							}
 							setColumnOrder(tableView, track, columns);
@@ -471,6 +479,24 @@ public class TableTView extends TrackChooserTView {
 				}
 			}
 			return obj;
+		}
+
+		/**
+		 * Older versions might not include t column.
+		 * 
+		 * @param columns
+		 * @return
+		 */
+		private String[] fixColumnList(String[] columns) {
+			if (columns.length < 2 || "t".equals(columns[1])) 
+				return columns;
+				String[] newCols = new String[columns.length + 1];
+				newCols[0] = columns[0];
+				newCols[1] = "t";
+				for (int i = 1; i < columns.length; i++) {
+					newCols[i + 1] = columns[i];
+				}
+			return newCols;
 		}
 
 		/**

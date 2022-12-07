@@ -1423,8 +1423,7 @@ public class TableTrackView extends TrackView {
 	}
 
 	protected void tableHeaderMousePressed(MouseEvent e) {
-		java.awt.Point mousePt = e.getPoint();
-		int col = dataTable.columnAtPoint(mousePt);
+		int col = dataTable.columnAtPoint(e.getPoint());
 		if (OSPRuntime.isPopupTrigger(e)) {
 			getMenuItems();
 			if (dataTable.getRowCount() > 0 && dataTable.getSelectedRowCount() == 0) {
