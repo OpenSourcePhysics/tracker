@@ -108,17 +108,17 @@ public class TButton extends JButton {
     });
   }
   
-  /**
-   * Constructs an icon-only TButton with an AbstractAction.
-   *
-   * @param action the AbstractAction
-   */
-  public TButton(AbstractAction action) {
-  	this();
-  	addActionListener(action);
-  	setIcon((Icon)action.getValue(Action.SMALL_ICON));
-  }  
-  
+//  /**
+//   * Constructs an icon-only TButton with an AbstractAction.
+//   *
+//   * @param action the AbstractAction
+//   */
+//  public TButton(AbstractAction action) {
+//  	this();
+//  	addActionListener(action);
+//  	setIcon((Icon)action.getValue(Action.SMALL_ICON));
+//  }  
+//  
   /**
    * Constructs a TButton with a TTrack.
    *

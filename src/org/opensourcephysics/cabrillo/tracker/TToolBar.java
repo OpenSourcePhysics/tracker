@@ -173,7 +173,8 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 	//protected TrackerPanel trackerPanel; // manages & displays track data
 
 	final protected WindowListener infoListener;
-	final protected JButton openButton, openBrowserButton, saveButton, saveZipButton;
+//	final protected JButton openButton, openBrowserButton, saveButton, saveZipButton;
+	final protected JButton openButton, saveButton;
 	final protected TButton newTrackButton;
 	final protected JButton trackControlButton, clipSettingsButton;
 	final protected CalibrationButton calibrationButton;
@@ -326,7 +327,7 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 		openButton.setIcon(Tracker.getResourceIcon("open.gif", true));
 		openButton.setName(BUTTON_OPEN);
 		
-		openBrowserButton = new TButton(actions.get("openBrowser")); //$NON-NLS-1$
+//		openBrowserButton = new TButton(actions.get("openBrowser")); //$NON-NLS-1$
 //		saveButton = new TButton(actions.get("save")); //$NON-NLS-1$
 		saveButton = new TButton() {
 			@Override
@@ -348,19 +349,19 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 				saveButton.setToolTipText(TrackerRes.getString("TToolBar.Button.Save.Tooltip")); //$NON-NLS-1$
 			}
 		});
-		saveZipButton = new TButton(actions.get("saveZip")); //$NON-NLS-1$
-		saveZipButton.addActionListener((e) -> {
-				final ExportZipDialog zipDialog = ExportZipDialog.getDialog(panel());
-				final boolean isVis = zipDialog.isVisible();
-				Runnable runner = new Runnable() {
-
-					@Override
-					public void run() {
-						zipDialog.setVisible(!isVis);
-					}
-				};
-				SwingUtilities.invokeLater(runner);
-		});
+//		saveZipButton = new TButton(actions.get("saveZip")); //$NON-NLS-1$
+//		saveZipButton.addActionListener((e) -> {
+//				final ExportZipDialog zipDialog = ExportZipDialog.getDialog(panel());
+//				final boolean isVis = zipDialog.isVisible();
+//				Runnable runner = new Runnable() {
+//
+//					@Override
+//					public void run() {
+//						zipDialog.setVisible(!isVis);
+//					}
+//				};
+//				SwingUtilities.invokeLater(runner);
+//		});
 		// clip settings button
 		clipSettingsButton = new TButton(clipOffIcon, clipOnIcon);
 		clipSettingsButton.addActionListener((e) -> {
@@ -1829,8 +1830,8 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 		vStretchMenu.setText(TrackerRes.getString("PointMass.MenuItem.Velocity")); //$NON-NLS-1$
 		aStretchMenu.setText(TrackerRes.getString("PointMass.MenuItem.Acceleration")); //$NON-NLS-1$
 		openButton.setToolTipText(TrackerRes.getString("TToolBar.Button.Open.Tooltip")); //$NON-NLS-1$
-		openBrowserButton.setToolTipText(TrackerRes.getString("TToolBar.Button.OpenBrowser.Tooltip")); //$NON-NLS-1$
-		saveZipButton.setToolTipText(TrackerRes.getString("TToolBar.Button.SaveZip.Tooltip")); //$NON-NLS-1$
+//		openBrowserButton.setToolTipText(TrackerRes.getString("TToolBar.Button.OpenBrowser.Tooltip")); //$NON-NLS-1$
+//		saveZipButton.setToolTipText(TrackerRes.getString("TToolBar.Button.SaveZip.Tooltip")); //$NON-NLS-1$
 		clipSettingsButton.setToolTipText(MediaRes.getString("VideoPlayer.Button.ClipSettings.ToolTip")); //$NON-NLS-1$
 		axesButton.setToolTipText(TrackerRes.getString("TToolbar.Button.AxesVisible.Tooltip")); //$NON-NLS-1$
 		zoomButton.setToolTipText(TrackerRes.getString("TToolBar.Button.Zoom.Tooltip")); //$NON-NLS-1$
