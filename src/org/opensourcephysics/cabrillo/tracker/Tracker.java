@@ -671,7 +671,8 @@ public class Tracker {
 			try {
 				switch (arg.toLowerCase()) {
 				case "-headless":
-					System.setProperty("java.awt.headless", "true");					args[i] = null;
+					System.setProperty("java.awt.headless", "true");					
+					args[i] = null;
 					options.put("-headless", true);
 					break;
 				case "-importvideo":
