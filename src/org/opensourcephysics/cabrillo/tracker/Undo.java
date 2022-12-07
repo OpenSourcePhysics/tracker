@@ -390,6 +390,22 @@ public class Undo {
 		return undo;
 	}
 
+	/**
+	 * Returns XMLControl for a VideoClip after adding absolutePath of video
+	 */
+	public static XMLControl getXMLControl(VideoClip clip) {
+		XMLControl control = new XMLControlElement(clip);
+		if (clip.getVideo() != null) {
+			// add absolute path to video
+			String fullpath = (String)clip.getVideo().getProperty("absolutePath");
+			XMLControl child = control.getChildControl("video");
+			if (child != null)
+				child.setValue("absolutePath", fullpath);
+		}
+		return control;
+	}
+
+
 //______________________ inner UndoableEdit classes ______________________
 
 	/**
@@ -675,6 +691,7 @@ public class Undo {
 
 		private VideoReplace(TrackerPanel panel, XMLControl control) {
 			super(panel, panel.getPlayer().getVideoClip(), control);
+			redo = getXMLControl(panel.getPlayer().getVideoClip()).toXML();
 		}
 
 		@Override
@@ -685,7 +702,7 @@ public class Undo {
 				((ImageVideo) video).saveInvalidImages();
 			}
 			// refresh redo state
-			redo = new XMLControlElement(panel().getPlayer().getVideoClip()).toXML();
+			redo = getXMLControl(panel().getPlayer().getVideoClip()).toXML();
 			super.undo();
 		}
 
@@ -697,7 +714,7 @@ public class Undo {
 				((ImageVideo) video).saveInvalidImages();
 			}
 			// refresh undo state
-			undo = new XMLControlElement(panel().getPlayer().getVideoClip()).toXML();
+			undo = getXMLControl(panel().getPlayer().getVideoClip()).toXML();
 			super.redo();
 		}
 
