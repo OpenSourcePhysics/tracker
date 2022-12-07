@@ -154,8 +154,7 @@ public class TActions {
 
 		// openBrowser
 		actions.put("openBrowser", //$NON-NLS-1$
-				getAsyncAction(new AbstractAction(TrackerRes.getString("TActions.Action.OpenBrowser"), //$NON-NLS-1$
-						Tracker.getResourceIcon("open_catalog.gif", true) //$NON-NLS-1$
+				getAsyncAction(new AbstractAction(TrackerRes.getString("TActions.Action.OpenBrowser"), null //$NON-NLS-1$						
 				) {
 					@Override
 					public void actionPerformed(ActionEvent e) {
