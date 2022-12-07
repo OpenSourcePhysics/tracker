@@ -370,53 +370,8 @@ public class TableTView extends TrackChooserTView {
 //							Map<String, Integer> htOrder = new HashMap<String, Integer>(); // BH! never used
 							columns = fixColumnList(columns);
 							for (int j = 1; j < columns.length; j++) {
-								String name = columns[j];
-								switch (name) {
-								case "theta":
-									name = (track.ttype == TTrack.TYPE_POINTMASS ? "\u03b8r"//$NON-NLS-1$
-											: "\u03b8"); //$NON-NLS-1$
-									break;
-								case "theta_v": //$NON-NLS-1$
-									name = "\u03b8v"; //$NON-NLS-1$ //$NON-NLS-2$
-									break;
-								case "theta_a": //$NON-NLS-1$
-									name = "\u03b8a"; //$NON-NLS-1$ //$NON-NLS-2$
-									break;
-								case "theta_p": //$NON-NLS-1$
-									name = "\u03b8p"; //$NON-NLS-1$ //$NON-NLS-2$
-									break;
-								case "n":
-									if (track.ttype == TTrack.TYPE_POINTMASS) // $NON-NLS-1$
-										name = "step"; //$NON-NLS-1$
-									break;
-								case "KE": //$NON-NLS-1$
-									name = "K"; //$NON-NLS-1$
-									break;
-								case "x-comp": //$NON-NLS-1$
-									name = "x"; //$NON-NLS-1$
-									break;
-								case "y-comp": //$NON-NLS-1$
-									name = "y"; //$NON-NLS-1$
-									break;
-								case "x_tail": //$NON-NLS-1$
-									name = "xtail"; //$NON-NLS-1$
-									break;
-								case "y_tail": //$NON-NLS-1$
-									name = "ytail"; //$NON-NLS-1$
-									break;
-								case "vx":
-								case "vy":
-								case "ax":
-								case "ay":
-								case "px":
-								case "py":
-								case "pixelx":
-								case "pixely":
-									name = name.substring(0, name.length() - 1) + "_{" + name.charAt(name.length() - 1) + "}";
-									break;
-								}
 	//							htOrder.put(name, j);
-								tableView.setVisible(columns[j] = name, true);
+								tableView.setVisible(columns[j] = fixName(columns[j], track), true);
 							}
 							setColumnOrder(tableView, track, columns);
 							tableView.setRefreshing(true);
@@ -479,6 +434,42 @@ public class TableTView extends TrackChooserTView {
 				}
 			}
 			return obj;
+		}
+
+		private String fixName(String name, TTrack track) {
+			switch (name) {
+			case "theta":
+				return (track.ttype == TTrack.TYPE_POINTMASS ? "\u03b8r"//$NON-NLS-1$
+						: "\u03b8"); //$NON-NLS-1$
+			case "theta_v": //$NON-NLS-1$
+				return "\u03b8v"; //$NON-NLS-1$ //$NON-NLS-2$
+			case "theta_a": //$NON-NLS-1$
+				return "\u03b8a"; //$NON-NLS-1$ //$NON-NLS-2$
+			case "theta_p": //$NON-NLS-1$
+				return "\u03b8p"; //$NON-NLS-1$ //$NON-NLS-2$
+			case "n":
+				return (track.ttype == TTrack.TYPE_POINTMASS ? "step" : name);
+			case "KE": //$NON-NLS-1$
+				return "K"; //$NON-NLS-1$
+			case "x-comp": //$NON-NLS-1$
+				return "x"; //$NON-NLS-1$
+			case "y-comp": //$NON-NLS-1$
+				return "y"; //$NON-NLS-1$
+			case "x_tail": //$NON-NLS-1$
+				return "xtail"; //$NON-NLS-1$
+			case "y_tail": //$NON-NLS-1$
+				return "ytail"; //$NON-NLS-1$
+			case "vx":
+			case "vy":
+			case "ax":
+			case "ay":
+			case "px":
+			case "py":
+			case "pixelx":
+			case "pixely":
+				return name.substring(0, name.length() - 1) + "_{" + name.charAt(name.length() - 1) + "}";
+			}
+			return name;
 		}
 
 		/**
