@@ -304,10 +304,23 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		this(frame, null, panel, true);
 	}
 
+	/**
+	 * load with video -- not supported
+	 * 
+	 * @param frame
+	 * @param video
+	 * @param panel
+	 */
 	public TrackerPanel(TFrame frame, Video video, TrackerPanel panel) {
 	    this(frame, video, panel, true);	
 	}
 	
+	/**
+	 * @param frame
+	 * @param video  always null -- video will come from VideoClip
+	 * @param panel
+	 * @param createFrame
+	 */
 	private TrackerPanel(TFrame frame, Video video, TrackerPanel panel, boolean createFrame) {
 		super(video);
 		setTFrame(frame == null && createFrame ? new TFrame() : frame);

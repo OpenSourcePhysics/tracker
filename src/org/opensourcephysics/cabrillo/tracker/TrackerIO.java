@@ -1025,7 +1025,7 @@ public class TrackerIO extends VideoIO {
 		boolean success = true;
 		if (isImageVideo || asZipFile) {
 			String targetDir = XML.forwardSlash(file.getParent());
-			String[] paths = (video instanceof ImageVideo ? ((ImageVideo) video).getValidPaths()
+			String[] paths = (isImageVideo ? ((ImageVideo) video).getValidPaths()
 					: new String[video.getFrameCount()]);
 			// check for zipped image video
 			// BH -- I don't think we do this anymore; these are saved as resources instead
@@ -1036,9 +1036,14 @@ public class TrackerIO extends VideoIO {
 			name = file.getName();
 			String[] targets = ImageVideoRecorder.getFileNames(name, paths.length, isImageVideo ? XML.getExtension(name) : "png");
 			String[] jarURLParts = ResourceLoader.getJarURLParts(source); // null if not a zip/jar/trz file
-			String srcDir = (jarURLParts == null
-					? XML.forwardSlash(source).contains(":/") ? "" : XML.getDirectoryPath(source) + "/"
-					: jarURLParts[0] + "!/");
+			String srcDir;
+			if (jarURLParts == null) {
+				srcDir = (XML.forwardSlash(source).contains(":/") ? "" : XML.getDirectoryPath(source) + "/");
+			} else {
+				// could have images in subdirectories
+				srcDir =  XML.getDirectoryPath(source) + "/";
+			}
+			
 			ZipOutputStream zos = null;
 			if (asZipFile) {
 				try {

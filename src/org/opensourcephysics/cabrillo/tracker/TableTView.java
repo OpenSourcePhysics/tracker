@@ -25,10 +25,8 @@
 package org.opensourcephysics.cabrillo.tracker;
 
 import java.beans.PropertyChangeEvent;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
@@ -39,7 +37,6 @@ import javax.swing.SwingUtilities;
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.display.DataTable;
-import org.opensourcephysics.display.DataTable.DataTableColumnModel;
 import org.opensourcephysics.tools.FontSizer;
 import org.opensourcephysics.tools.FunctionTool;
 
@@ -370,45 +367,11 @@ public class TableTView extends TrackChooserTView {
 							tableView.bsCheckBoxes.clear();
 							tableView.textColumnsVisible.clear();
 							// then select checkboxes specified in track_columns
-							Map<String, Integer> htOrder = new HashMap<String, Integer>(); // BH! never used
+//							Map<String, Integer> htOrder = new HashMap<String, Integer>(); // BH! never used
+							columns = fixColumnList(columns);
 							for (int j = 1; j < columns.length; j++) {
-								String name = columns[j];
-								switch (name) {
-								case "theta":
-									name = (track.ttype == TTrack.TYPE_POINTMASS ? "\u03b8r"//$NON-NLS-1$
-											: "\u03b8"); //$NON-NLS-1$
-									break;
-								case "theta_v": //$NON-NLS-1$
-									name = "\u03b8v"; //$NON-NLS-1$ //$NON-NLS-2$
-									break;
-								case "theta_a": //$NON-NLS-1$
-									name = "\u03b8a"; //$NON-NLS-1$ //$NON-NLS-2$
-									break;
-								case "theta_p": //$NON-NLS-1$
-									name = "\u03b8p"; //$NON-NLS-1$ //$NON-NLS-2$
-									break;
-								case "n":
-									if (track.ttype == TTrack.TYPE_POINTMASS) // $NON-NLS-1$
-										name = "step"; //$NON-NLS-1$
-									break;
-								case "KE": //$NON-NLS-1$
-									name = "K"; //$NON-NLS-1$
-									break;
-								case "x-comp": //$NON-NLS-1$
-									name = "x"; //$NON-NLS-1$
-									break;
-								case "y-comp": //$NON-NLS-1$
-									name = "y"; //$NON-NLS-1$
-									break;
-								case "x_tail": //$NON-NLS-1$
-									name = "xtail"; //$NON-NLS-1$
-									break;
-								case "y_tail": //$NON-NLS-1$
-									name = "ytail"; //$NON-NLS-1$
-									break;
-								}
-								htOrder.put(name, j);
-								tableView.setVisible(columns[j] = name, true);
+	//							htOrder.put(name, j);
+								tableView.setVisible(columns[j] = fixColumnName(columns[j], track), true);
 							}
 							setColumnOrder(tableView, track, columns);
 							tableView.setRefreshing(true);
@@ -471,6 +434,60 @@ public class TableTView extends TrackChooserTView {
 				}
 			}
 			return obj;
+		}
+
+		private String fixColumnName(String name, TTrack track) {
+			switch (name) {
+			case "theta":
+				return (track.ttype == TTrack.TYPE_POINTMASS ? "\u03b8r"//$NON-NLS-1$
+						: "\u03b8"); //$NON-NLS-1$
+			case "theta_v": //$NON-NLS-1$
+				return "\u03b8v"; //$NON-NLS-1$ //$NON-NLS-2$
+			case "theta_a": //$NON-NLS-1$
+				return "\u03b8a"; //$NON-NLS-1$ //$NON-NLS-2$
+			case "theta_p": //$NON-NLS-1$
+				return "\u03b8p"; //$NON-NLS-1$ //$NON-NLS-2$
+			case "n":
+				return (track.ttype == TTrack.TYPE_POINTMASS ? "step" : name);
+			case "KE": //$NON-NLS-1$
+				return "K"; //$NON-NLS-1$
+			case "x-comp": //$NON-NLS-1$
+				return "x"; //$NON-NLS-1$
+			case "y-comp": //$NON-NLS-1$
+				return "y"; //$NON-NLS-1$
+			case "x_tail": //$NON-NLS-1$
+				return "xtail"; //$NON-NLS-1$
+			case "y_tail": //$NON-NLS-1$
+				return "ytail"; //$NON-NLS-1$
+			case "vx":
+			case "vy":
+			case "ax":
+			case "ay":
+			case "px":
+			case "py":
+			case "pixelx":
+			case "pixely":
+				return name.substring(0, name.length() - 1) + "_{" + name.charAt(name.length() - 1) + "}";
+			}
+			return name;
+		}
+
+		/**
+		 * Older versions might not include t column.
+		 * 
+		 * @param columns
+		 * @return
+		 */
+		private String[] fixColumnList(String[] columns) {
+			if (columns.length < 2 || "t".equals(columns[1])) 
+				return columns;
+				String[] newCols = new String[columns.length + 1];
+				newCols[0] = columns[0];
+				newCols[1] = "t";
+				for (int i = 1; i < columns.length; i++) {
+					newCols[i + 1] = columns[i];
+				}
+			return newCols;
 		}
 
 		/**
