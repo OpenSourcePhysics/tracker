@@ -1221,7 +1221,7 @@ public class Tracker {
 	 */
 	protected static void createActions() {
 		// about Tracker
-		aboutTrackerAction = new AbstractAction(TrackerRes.getString("Tracker.Action.AboutTracker"), null) { //$NON-NLS-1$
+		aboutTrackerAction = new AbstractAction(TrackerRes.getString("Tracker.Action.AboutTracker")) { //$NON-NLS-1$
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				showAboutTracker();
@@ -1229,7 +1229,7 @@ public class Tracker {
 		};
 
 		if (prefsPath != null) {
-			trackerPrefsAction = new AbstractAction(TrackerRes.getString("Tracker.Prefs.MenuItem.Text") + "...", null) { //$NON-NLS-1$ //$NON-NLS-2$
+			trackerPrefsAction = new AbstractAction(TrackerRes.getString("Tracker.Prefs.MenuItem.Text") + "...") { //$NON-NLS-1$ //$NON-NLS-2$
 				@Override
 				public void actionPerformed(ActionEvent e) {
 					if (trackerPrefsDialog == null) {
@@ -1272,7 +1272,7 @@ public class Tracker {
 		if (!OSPRuntime.isJS) /** @j2sNative */
 		{
 			// Tracker README
-			readmeAction = new AbstractAction(TrackerRes.getString("Tracker.Readme") + "...", null) { //$NON-NLS-1$ //$NON-NLS-2$
+			readmeAction = new AbstractAction(TrackerRes.getString("Tracker.Readme") + "...") { //$NON-NLS-1$ //$NON-NLS-2$
 				@Override
 				public void actionPerformed(ActionEvent e) {
 					if (readmeDialog == null && trackerHome != null) {
@@ -1316,7 +1316,7 @@ public class Tracker {
 			// Start log
 			final String startLogPath = System.getenv("START_LOG"); //$NON-NLS-1$
 			if (startLogPath != null) {
-				startLogAction = new AbstractAction(TrackerRes.getString("Tracker.StartLog") + "...", null) { //$NON-NLS-1$ //$NON-NLS-2$
+				startLogAction = new AbstractAction(TrackerRes.getString("Tracker.StartLog") + "...") { //$NON-NLS-1$ //$NON-NLS-2$
 					@Override
 					public void actionPerformed(ActionEvent e) {
 						if (startLogDialog == null) {
@@ -1353,7 +1353,7 @@ public class Tracker {
 			}
 
 			// about Java
-			aboutJavaAction = new AbstractAction(TrackerRes.getString("Tracker.Action.AboutJava"), null) { //$NON-NLS-1$
+			aboutJavaAction = new AbstractAction(TrackerRes.getString("Tracker.Action.AboutJava")) { //$NON-NLS-1$
 				@Override
 				public void actionPerformed(ActionEvent e) {
 					Diagnostics.aboutJava();
@@ -1362,7 +1362,7 @@ public class Tracker {
 
 			// about Xuggle--only if xuggle resources present?
 			if (MovieFactory.xuggleIsPresent || true) {
-				aboutXuggleAction = new AbstractAction(TrackerRes.getString("Tracker.Action.AboutXuggle"), null) { //$NON-NLS-1$
+				aboutXuggleAction = new AbstractAction(TrackerRes.getString("Tracker.Action.AboutXuggle")) { //$NON-NLS-1$
 					@Override
 					public void actionPerformed(ActionEvent e) {
 						MovieFactory.showAbout(MovieFactory.ENGINE_XUGGLE, "Tracker"); //$NON-NLS-1$
@@ -1371,7 +1371,7 @@ public class Tracker {
 			}
 
 			// about threads
-			aboutThreadsAction = new AbstractAction(TrackerRes.getString("Tracker.Action.AboutThreads"), null) { //$NON-NLS-1$
+			aboutThreadsAction = new AbstractAction(TrackerRes.getString("Tracker.Action.AboutThreads")) { //$NON-NLS-1$
 				@Override
 				public void actionPerformed(ActionEvent e) {
 					DiagnosticsForThreads.aboutThreads();

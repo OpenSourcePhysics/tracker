@@ -456,7 +456,7 @@ public class WorldTView extends ZoomTView {
 			};
 			copyImageItem = new JMenuItem(copyImageAction);
 			// print menu item
-			Action printAction = new AbstractAction(TrackerRes.getString("TActions.Action.Print"), null) { //$NON-NLS-1$
+			Action printAction = new AbstractAction(TrackerRes.getString("TActions.Action.Print")) { //$NON-NLS-1$
 				@Override
 				public void actionPerformed(ActionEvent e) {
 					copyImage("print");

@@ -27,7 +27,6 @@ package org.opensourcephysics.cabrillo.tracker;
 import java.beans.PropertyChangeEvent;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.Map;
 
 import javax.swing.Icon;
