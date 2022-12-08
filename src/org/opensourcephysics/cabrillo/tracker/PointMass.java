@@ -2905,10 +2905,11 @@ public class PointMass extends TTrack {
 			else
 				p.setAccelerationFootprint(p.getAccelerationFootprints()[0].getName());
 
-			// load step data
+			// load step and keyframe data
+			p.keyFrames.clear();
+			// no keyframes in early pointmass xml, so for those treat all as keyframes 
 			int[] keys = (int[]) control.getObject("keyFrames"); //$NON-NLS-1$
 			if (keys != null) {
-				p.keyFrames.clear();
 				for (int i : keys) {
 					p.keyFrames.add(i);
 				}
@@ -2920,6 +2921,8 @@ public class PointMass extends TTrack {
 						p.steps.setStep(n, null);
 						continue;
 					}
+					if (keys == null)
+						p.keyFrames.add(n);
 					PositionStep step = (PositionStep) p.getStep(n);
 					if (step != null) {
 						step.getPosition().setLocation(data[n].x, data[n].y);
