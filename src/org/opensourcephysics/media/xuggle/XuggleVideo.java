@@ -532,6 +532,7 @@ public class XuggleVideo extends VideoAdapter implements SmoothPlayable, Increme
 			return false;
 		int finalIndex = index + n;
 		long lastDTS = Long.MIN_VALUE;
+		boolean haveImages = false;
 		while (index < finalIndex && container.readNextPacket(packet) >= 0) {
 			if (VideoIO.isCanceled()) {
 //				failDetectTimer.stop();
@@ -557,7 +558,8 @@ public class XuggleVideo extends VideoAdapter implements SmoothPlayable, Increme
 					offset += bytesDecoded;
 					if (!picture.isComplete()) {
 //						System.out.println("!! XuggleVideo picture was incomplete!");
-						firstDisplayPacket++;
+						if (!haveImages)
+							firstDisplayPacket++;
 						continue;
 					}					
 				}
@@ -565,13 +567,16 @@ public class XuggleVideo extends VideoAdapter implements SmoothPlayable, Increme
 					continue;
 				lastDTS = dts;
 				// save valid buffered images for cache
+				boolean isComplete = picture.isComplete();
+				if (isComplete)
+					haveImages = true;
 				if (picture.isComplete() && imageList.size() < CACHE_MAX - firstDisplayPacket) {
 					imageList.add(getBufferedImage());
 				}
 				
 //				dumpImage(containerFrame, getBufferedImage(), "C");				
-//				System.out.println(" frame " + containerFrame + " dts=" + dts + " kts=" + keyTimeStamp + " "
-//						+ packet.getFormattedTimeStamp() + " " + picture.getFormattedTimeStamp());
+//				System.out.println(index + " dts=" + dts + " kts=" + keyTimeStamp + " "
+//						+ packet.getFormattedTimeStamp() + " " + picture.getFormattedTimeStamp() + " " + picture.isComplete());
 				
 				packetTSList.add(dts);
 				keyTSList.add(keyTimeStamp);
