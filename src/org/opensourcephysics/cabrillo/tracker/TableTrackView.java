@@ -2020,13 +2020,6 @@ public class TableTrackView extends TrackView {
 	}
 	
 	/**
-	 * Gets datasetIndex data to save in XMLControl.
-	 */
-	protected String[] getDatasetIndexData() {
-		return new String[] {getTrack().getName(), String.valueOf(myDatasetIndex)};
-	}
-
-	/**
 	 * A class to provide textColumn data for the dataTable.
 	 */
 	private class TextColumnTableModel extends DataTable.OSPTableModel {

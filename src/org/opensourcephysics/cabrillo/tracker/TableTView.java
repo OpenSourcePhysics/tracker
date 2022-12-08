@@ -43,8 +43,8 @@ import org.opensourcephysics.tools.FunctionTool;
 /**
  * This JPanel is the only child of TViewChooser viewPanel. It presents a JTable
  * selected from a dropdown list and maintains the JDialog for column choosing
- * for that table. It does not maintain the JTable -- that is
- * TableTrackView (a JScrollPane).
+ * for that table. It does not maintain the JTable -- that is TableTrackView (a
+ * JScrollPane).
  *
  * @author Douglas Brown
  */
@@ -64,23 +64,23 @@ public class TableTView extends TrackChooserTView {
 	}
 
 	/**
-	 * We want to do this once, specifically as soon as we are attached through to the
-	 * JFrame top ancestor.
+	 * We want to do this once, specifically as soon as we are attached through to
+	 * the JFrame top ancestor.
 	 */
 	@Override
 	public void addNotify() {
 		super.addNotify();
-		frame.removePropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, this); 
-		frame.addPropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, this); 
+		frame.removePropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, this);
+		frame.addPropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, this);
 	}
-	
+
 	/**
 	 * ...and remove listener when we are detached.
 	 */
 	@Override
 	public void removeNotify() {
 		if (panelID != null && frame != null) {
-			frame.removePropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, this); 
+			frame.removePropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, this);
 		}
 		super.removeNotify();
 	}
@@ -217,7 +217,7 @@ public class TableTView extends TrackChooserTView {
 				}
 			}
 			break;
-		case FunctionTool.PROPERTY_FUNCTIONTOOL_FUNCTION: //$NON-NLS-1$
+		case FunctionTool.PROPERTY_FUNCTIONTOOL_FUNCTION: // $NON-NLS-1$
 			super.propertyChange(e);
 //			if (getSelectedTrack() != null) {
 //				TableTrackView trackView = (TableTrackView) getTrackView(selectedTrack);
@@ -226,7 +226,7 @@ public class TableTView extends TrackChooserTView {
 //			}
 			// refresh all trackviews, not just selected track
 			if (trackViews != null) {
-				for (TrackView next: trackViews.values()) {
+				for (TrackView next : trackViews.values()) {
 					TableTrackView trackView = (TableTrackView) next;
 					trackView.refreshNameMaps();
 					trackView.buildForNewFunction();
@@ -248,6 +248,7 @@ public class TableTView extends TrackChooserTView {
 			frame.removePropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, this); // $NON-NLS-1$
 		}
 	}
+
 	/**
 	 * Returns an XML.ObjectLoader to save and load object data.
 	 *
@@ -262,6 +263,11 @@ public class TableTView extends TrackChooserTView {
 	 */
 	static class Loader implements XML.ObjectLoader {
 
+		private TableTrackView tableTrackView;
+		private TTrack track;
+		private TableTView view;
+		private Map<TTrack, TrackView> trackViews;
+
 		/**
 		 * Saves object data.
 		 *
@@ -271,9 +277,9 @@ public class TableTView extends TrackChooserTView {
 		@Override
 		public void saveObject(XMLControl control, Object obj) {
 			TableTView view = (TableTView) obj;
-			TTrack track = view.getSelectedTrack();
-			if (track != null) { // contains at least one track
-				control.setValue("selected_track", track.getName()); //$NON-NLS-1$
+			TTrack selectedTrack = view.getSelectedTrack();
+			if (selectedTrack != null) { // contains at least one track
+				control.setValue("selected_track", selectedTrack.getName()); //$NON-NLS-1$
 				// save customized tables
 				ArrayList<TTrack> customized = new ArrayList<TTrack>();
 				Map<TTrack, TrackView> views = view.trackViews;
@@ -286,28 +292,26 @@ public class TableTView extends TrackChooserTView {
 					ArrayList<String[][]> formattedColumns = new ArrayList<String[][]>();
 					String[][] data = new String[customized.size()][];
 					ArrayList<String[]> datasetIndices = new ArrayList<String[]>();
-					Iterator<TTrack> it = customized.iterator();
-					int i = -1;
-					while (it.hasNext()) {
-						i++;
-						track = it.next();
+					for (int i = 0, n = customized.size(); i < n; i++) {
+						TTrack track = customized.get(i);
+						String name= track.getName();
 						TableTrackView trackView = (TableTrackView) view.getTrackView(track);
 						String[] columns = trackView.getOrderedVisibleColumns();
 						data[i] = new String[columns.length + 1];
+						data[i][0] = name;
 						System.arraycopy(columns, 0, data[i], 1, columns.length);
-						data[i][0] = track.getName();
 						String[][] formats = trackView.getColumnFormats();
 						if (formats.length > 0) {
 							String[][] withName = new String[formats.length][3];
 							for (int j = 0; j < formats.length; j++) {
-								withName[j][0] = track.getName();
+								withName[j][0] = name;
 								withName[j][1] = formats[j][0];
 								withName[j][2] = formats[j][1];
 							}
 							formattedColumns.add(withName);
 						}
 						if (trackView.myDatasetIndex > -1) {
-							datasetIndices.add(trackView.getDatasetIndexData());
+							datasetIndices.add(new String[] { name, Integer.toString(trackView.myDatasetIndex) });
 						}
 					}
 					control.setValue("track_columns", data); //$NON-NLS-1$
@@ -343,100 +347,93 @@ public class TableTView extends TrackChooserTView {
 		 */
 		@Override
 		public Object loadObject(XMLControl control, Object obj) {
-			TableTView view = (TableTView) obj;
+			view = (TableTView) obj;
+			trackViews = view.trackViews;
 			String[][] data = (String[][]) control.getObject("track_columns"); //$NON-NLS-1$
-			if (data != null) {
-				Map<TTrack, TrackView> views = view.trackViews;
-				if (views == null) {
-					// new view has never been refreshed
-					view.refresh();
-					views = view.trackViews;
-				}
-				if (views != null)
-					for (TTrack track : views.keySet()) {
-						TableTrackView tableView = (TableTrackView) view.getTrackView(track);
-						if (tableView == null)
-							continue;
-						String trackName = track.getName();
-						for (int i = 0; i < data.length; i++) {
-							String[] columns = data[i];
-							if (columns == null || columns[0] == null || !columns[0].equals(trackName))
-								continue;
-							tableView.setRefreshing(false); // prevents refreshes
-							// start by unchecking all checkboxes
-							tableView.bsCheckBoxes.clear();
-							tableView.textColumnsVisible.clear();
-							// then select checkboxes specified in track_columns
-//							Map<String, Integer> htOrder = new HashMap<String, Integer>(); // BH! never used
-							columns = fixColumnList(columns);
-							for (int j = 1; j < columns.length; j++) {
-	//							htOrder.put(name, j);
-								tableView.setVisible(columns[j] = fixColumnName(columns[j], track), true);
-							}
-							setColumnOrder(tableView, track, columns);
-							tableView.setRefreshing(true);
-						}
-					}
+			if (data != null && trackViews == null) {
+				// new view has never been refreshed
+				view.refresh();
+				trackViews = view.trackViews;
 			}
-			String[][][] formats = (String[][][]) control.getObject("column_formats"); //$NON-NLS-1$
-			if (formats != null) {
-				Map<TTrack, TrackView> views = view.trackViews;
-				if (views != null)
-					for (TTrack track : views.keySet()) {
-						TableTrackView tableView = (TableTrackView) view.getTrackView(track);
-						if (tableView == null)
-							continue;
-						for (int i = 0; i < formats.length; i++) {
-							String[][] patterns = formats[i];
-							if (!patterns[0][0].equals(track.getName()))
-								continue;
-							tableView.setRefreshing(false); // prevents refreshes
+			if (trackViews != null && data != null) {
+				for (int i = 0; i < data.length; i++) {
+					String[] columns = data[i];
+					if (columns != null && setTrackAndTableView(columns[0])) {
+						tableTrackView.setRefreshing(false); // prevents refreshes
+						// start by unchecking all checkboxes
+						tableTrackView.bsCheckBoxes.clear();
+						tableTrackView.textColumnsVisible.clear();
+						// now select checkboxes specified in track_columns
+//    							Map<String, Integer> htOrder = new HashMap<String, Integer>(); // BH! never used
+						columns = fixColumnList(columns);
+						for (int j = 1; j < columns.length; j++) {
+							// htOrder.put(name, j);
+							tableTrackView.setVisible(columns[j] = fixColumnName(columns[j], track), true);
+						}
+						setColumnOrder(tableTrackView, track, columns);
+						tableTrackView.setRefreshing(true);
+					}
+				}
+				String[][][] formats = (String[][][]) control.getObject("column_formats"); //$NON-NLS-1$
+				if (formats != null) {
+					for (int i = 0; i < formats.length; i++) {
+						String[][] patterns = formats[i];
+						if (setTrackAndTableView(patterns[0][0])) {
+							tableTrackView.setRefreshing(false); // prevents refreshes
 							for (int j = 0; j < patterns.length; j++) {
-								tableView.dataTable.setFormatPattern(patterns[j][1], patterns[j][2]);
+								tableTrackView.dataTable.setFormatPattern(patterns[j][1], patterns[j][2]);
 							}
-							tableView.setRefreshing(true);
+							tableTrackView.setRefreshing(true);
 						}
 					}
-			}
-			String[][] datasetIndices = (String[][]) control.getObject("dataset_indices"); //$NON-NLS-1$
-			if (datasetIndices != null) {
-				Map<TTrack, TrackView> views = view.trackViews;
-				if (views != null)
-					for (TTrack track : views.keySet()) {
-						TableTrackView tableView = (TableTrackView) view.getTrackView(track);
-						if (tableView == null)
-							continue;
-						for (int i = 0; i < datasetIndices.length; i++) {
-							String[] indices = datasetIndices[i];
-							if (!indices[0].equals(track.getName()))
-								continue;
-							int n = Integer.parseInt(indices[1]);
-							tableView.setDatasetIndex(n);
+				}
+				String[][] datasetIndices = (String[][]) control.getObject("dataset_indices"); //$NON-NLS-1$
+				if (datasetIndices != null) {
+					for (int i = 0; i < datasetIndices.length; i++) {
+						String[] indices = datasetIndices[i];
+						if (setTrackAndTableView(indices[0])) {
+							tableTrackView.setRefreshing(false); // prevents refreshes
+							tableTrackView.setDatasetIndex(Integer.parseInt(indices[1]));
+							tableTrackView.setRefreshing(true);
 						}
 					}
-				
-			}
-			TTrack track = view.getTrack(control.getString("selected_track")); //$NON-NLS-1$
-			if (track != null) {
-				view.setSelectedTrack(track);
-
-				// code below for legacy files??
-				TableTrackView trackView = (TableTrackView) view.getTrackView(track);
-				String[] columns = (String[]) control.getObject("visible_columns"); //$NON-NLS-1$
-				if (columns != null) {
-					trackView.setRefreshing(false); // prevents refreshes
-					trackView.bsCheckBoxes.clear();
-					for (int i = 0; i < columns.length; i++) {
-						trackView.setVisible(columns[i], true);
-					}
-					trackView.setRefreshing(true);
-					trackView.refresh(view.getPanel().getFrameNumber(), DataTable.MODE_TRACK_LOADER);
 				}
 			}
+			TTrack selectedTrack = view.getTrack(control.getString("selected_track")); //$NON-NLS-1$
+			if (selectedTrack != null) {
+				view.setSelectedTrack(selectedTrack);
+				// code below for legacy files??
+				String[] visibleColumns = (String[]) control.getObject("visible_columns"); //$NON-NLS-1$
+				if (visibleColumns != null) {
+					tableTrackView = (TableTrackView) view.getTrackView(selectedTrack);
+					tableTrackView.setRefreshing(false); // prevents refreshes
+					tableTrackView.bsCheckBoxes.clear();
+					for (int i = 0; i < visibleColumns.length; i++) {
+						tableTrackView.setVisible(fixColumnName(visibleColumns[i], selectedTrack), true);
+					}
+					tableTrackView.setRefreshing(true);
+					tableTrackView.refresh(view.getPanel().getFrameNumber(), DataTable.MODE_TRACK_LOADER);
+				}
+			}
+			tableTrackView = null;
+			view = null;
+			trackViews = null;
 			return obj;
 		}
 
-		private String fixColumnName(String name, TTrack track) {
+		private boolean setTrackAndTableView(String name) {
+			for (TTrack track : trackViews.keySet()) {
+				if ((tableTrackView = (TableTrackView) view.getTrackView(track)) != null
+						&& name.equals(track.getName())) {
+					this.track = track;
+					return true;
+				}
+			}
+			tableTrackView = null;
+			return false;
+		}
+
+		private static String fixColumnName(String name, TTrack track) {
 			switch (name) {
 			case "theta":
 				return (track.ttype == TTrack.TYPE_POINTMASS ? "\u03b8r"//$NON-NLS-1$
@@ -478,20 +475,21 @@ public class TableTView extends TrackChooserTView {
 		 * @param columns
 		 * @return
 		 */
-		private String[] fixColumnList(String[] columns) {
-			if (columns.length < 2 || "t".equals(columns[1])) 
+		private static String[] fixColumnList(String[] columns) {
+			if (columns.length < 2 || "t".equals(columns[1]))
 				return columns;
-				String[] newCols = new String[columns.length + 1];
-				newCols[0] = columns[0];
-				newCols[1] = "t";
-				for (int i = 1; i < columns.length; i++) {
-					newCols[i + 1] = columns[i];
-				}
+			String[] newCols = new String[columns.length + 1];
+			newCols[0] = columns[0];
+			newCols[1] = "t";
+			for (int i = 1; i < columns.length; i++) {
+				newCols[i + 1] = columns[i];
+			}
 			return newCols;
 		}
 
 		/**
 		 * Move columns so the table column order matches the saved track_columns order
+		 * 
 		 * @param tableView
 		 * @param track
 		 * @param columns
@@ -506,7 +504,7 @@ public class TableTView extends TrackChooserTView {
 			String[] checkedBoxes = tableView.getVisibleColumns();
 			if (checkedBoxes.length == 0)
 				return;
-			
+
 			// expand to include independent variable
 			String[] visibleColumns = new String[checkedBoxes.length + 1];
 			visibleColumns[0] = track.getDataName(0);
@@ -529,7 +527,7 @@ public class TableTView extends TrackChooserTView {
 				try {
 					tableView.dataTable.setModelColumnOrder(desiredIndexes);
 				} catch (ArrayIndexOutOfBoundsException e) {
-					System.err.println("TableTView.Loader invokelater exception " + Arrays.toString(desiredIndexes));					
+					System.err.println("TableTView.Loader invokelater exception " + Arrays.toString(desiredIndexes));
 				}
 // BH not necessary to use general JTable calls here?
 //				outer: for (int targetIndex = 0; targetIndex < d.length; targetIndex++) {
@@ -548,6 +546,7 @@ public class TableTView extends TrackChooserTView {
 //				}
 			});
 		}
+
 	}
 
 	@Override
@@ -556,9 +555,8 @@ public class TableTView extends TrackChooserTView {
 
 	@Override
 	public void dispose() {
-		frame.removePropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, this); 
+		frame.removePropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, this);
 		super.dispose();
 	}
-	
 
 }
