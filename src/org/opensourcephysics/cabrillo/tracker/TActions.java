@@ -32,7 +32,6 @@ import java.util.Map;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
-import javax.swing.Icon;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
@@ -154,8 +153,7 @@ public class TActions {
 
 		// openBrowser
 		actions.put("openBrowser", //$NON-NLS-1$
-				getAsyncAction(new AbstractAction(TrackerRes.getString("TActions.Action.OpenBrowser"), //$NON-NLS-1$
-						Tracker.getResourceIcon("open_catalog.gif", true) //$NON-NLS-1$
+				getAsyncAction(new AbstractAction(TrackerRes.getString("TActions.Action.OpenBrowser"), null //$NON-NLS-1$						
 				) {
 					@Override
 					public void actionPerformed(ActionEvent e) {
@@ -731,9 +729,9 @@ public class TActions {
 	private static AbstractAction getAsyncAction(AbstractAction a, boolean useSeparateThread) {
 		Object nameObj = a.getValue(Action.NAME);
 		String name = nameObj == null ? null : nameObj.toString();
-		Object iconObj = a.getValue(Action.SMALL_ICON);
-		Icon icon = iconObj == null ? null : (Icon) iconObj;
-		return new AbstractAction(name, icon) {
+//		Object iconObj = a.getValue(Action.SMALL_ICON);
+//		Icon icon = iconObj == null ? null : (Icon) iconObj;
+		return new AbstractAction(name, null) {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				SwingUtilities.invokeLater(()->{

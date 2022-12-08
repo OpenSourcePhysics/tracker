@@ -496,6 +496,11 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	 */
 	@Override
 	public void setVideo(Video newVideo) {
+//		if (newVideo != null && newVideo.getProperty("base") == null) {
+//			String path = (String)newVideo.getProperty("absolutePath");
+//			if (path != null)
+//				newVideo.setProperty("base", XML.getDirectoryPath(path));
+//		}
 		XMLControl state = null;
 		boolean undoable = true;
 		Video oldVideo = getVideo();
@@ -505,7 +510,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			undoable = vid.isFileBased();
 		}
 		if (newVideo != oldVideo && undoable) {
-			state = new XMLControlElement(getPlayer().getVideoClip());
+			state = Undo.getXMLControl(getPlayer().getVideoClip());
 		}
 		if (newVideo != oldVideo && oldVideo != null) {
 			// clear filters from old video
@@ -4903,7 +4908,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			if (VideoClip.class.isAssignableFrom(type)) {
 				VideoClip clip = (VideoClip) control.loadObject(null);
 				VideoClip prev = getPlayer().getVideoClip();
-				XMLControl state = new XMLControlElement(prev);
+				XMLControl state = Undo.getXMLControl(prev);
 				// make new XMLControl with no stored object
 				state = new XMLControlElement(state.toXML());
 				getPlayer().setVideoClip(clip);

@@ -231,6 +231,11 @@ public class XuggleVideo extends VideoAdapter implements SmoothPlayable, Increme
 		if (fileName.indexOf(":") == -1) { //$NON-NLS-1$
 			// if name is relative, path is name
 			setProperty("path", XML.forwardSlash(fileName)); //$NON-NLS-1$
+		} else if (fileName.contains("!/")) {
+			// else path is relative to parent directory of TRZ/ZIP
+			String dir = fileName.substring(0, fileName.indexOf("!/"));
+			dir = XML.getDirectoryPath(dir);
+			setProperty("path", XML.getPathRelativeTo(fileName, dir)); //$NON-NLS-1$
 		} else {
 			// else path is relative to user directory
 			setProperty("path", XML.getRelativePath(fileName)); //$NON-NLS-1$
