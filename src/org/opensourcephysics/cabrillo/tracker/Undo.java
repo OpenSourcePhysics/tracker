@@ -399,7 +399,7 @@ public class Undo {
 			// add absolute path to video
 			String fullpath = (String)clip.getVideo().getProperty("absolutePath");
 			XMLControl child = control.getChildControl("video");
-			if (child != null)
+			if (child != null) 
 				child.setValue("absolutePath", fullpath);
 		}
 		return control;
@@ -728,6 +728,12 @@ public class Undo {
 			}
 			XMLControl control = new XMLControlElement(xml);
 			VideoClip clip = (VideoClip) control.loadObject(null);
+			Video newVid = clip.getVideo();
+			if (VideoIO.loadIncrementally && newVid != null 
+					&& newVid instanceof IncrementallyLoadable) {
+				// load one last time to finalize
+				control.loadObject(clip); //$NON-NLS-1$
+			}
 			panel.getPlayer().setVideoClip(clip);
 			video = panel.getVideo();
 			if (video != null) {
