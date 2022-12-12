@@ -140,7 +140,6 @@ public class XuggleVideo extends VideoAdapter implements SmoothPlayable, Increme
 	// maps frame number to timestamp of key packet (first packet loaded)
 	private Long[] keyTimeStamps;
 	// array of frame start times in milliseconds
-	private double[] startTimes;
 //	private final Timer failDetectTimer;
 
 	private IContainer container;
@@ -533,6 +532,7 @@ public class XuggleVideo extends VideoAdapter implements SmoothPlayable, Increme
 			return false;
 		int finalIndex = index + n;
 		long lastDTS = Long.MIN_VALUE;
+		boolean haveImages = false;
 		while (index < finalIndex && container.readNextPacket(packet) >= 0) {
 			if (VideoIO.isCanceled()) {
 //				failDetectTimer.stop();
@@ -558,7 +558,8 @@ public class XuggleVideo extends VideoAdapter implements SmoothPlayable, Increme
 					offset += bytesDecoded;
 					if (!picture.isComplete()) {
 //						System.out.println("!! XuggleVideo picture was incomplete!");
-						firstDisplayPacket++;
+						if (!haveImages)
+							firstDisplayPacket++;
 						continue;
 					}					
 				}
@@ -566,13 +567,16 @@ public class XuggleVideo extends VideoAdapter implements SmoothPlayable, Increme
 					continue;
 				lastDTS = dts;
 				// save valid buffered images for cache
+				boolean isComplete = picture.isComplete();
+				if (isComplete)
+					haveImages = true;
 				if (picture.isComplete() && imageList.size() < CACHE_MAX - firstDisplayPacket) {
 					imageList.add(getBufferedImage());
 				}
 				
 //				dumpImage(containerFrame, getBufferedImage(), "C");				
-//				System.out.println(" frame " + containerFrame + " dts=" + dts + " kts=" + keyTimeStamp + " "
-//						+ packet.getFormattedTimeStamp() + " " + picture.getFormattedTimeStamp());
+//				System.out.println(index + " dts=" + dts + " kts=" + keyTimeStamp + " "
+//						+ packet.getFormattedTimeStamp() + " " + picture.getFormattedTimeStamp() + " " + picture.isComplete());
 				
 				packetTSList.add(dts);
 				keyTSList.add(keyTimeStamp);
@@ -645,107 +649,6 @@ public class XuggleVideo extends VideoAdapter implements SmoothPlayable, Increme
 	}
 
 	/**
-	 * Gets the start time of the specified frame in milliseconds.
-	 *
-	 * @param n the frame number
-	 * @return the start time of the frame in milliseconds, or -1 if not known
-	 */
-	@Override
-	public double getFrameTime(int n) {
-		if ((n >= startTimes.length) || (n < 0)) {
-			return -1;
-		}
-		return startTimes[n];
-	}
-
-	/**
-	 * Gets the current frame time in milliseconds.
-	 *
-	 * @return the current time in milliseconds, or -1 if not known
-	 */
-	@Override
-	public double getTime() {
-		return getFrameTime(getFrameNumber());
-	}
-
-	/**
-	 * not called
-	 * 
-	 * Sets the frame number to (nearly) a desired time in milliseconds.
-	 *
-	 * @param millis the desired time in milliseconds
-	 */
-	@Override
-	public void setTime(double millis) {
-		millis = Math.abs(millis);
-		for (int i = 0; i < startTimes.length; i++) {
-			double t = startTimes[i];
-			if (millis < t) { // find first frame with later start time
-				setFrameNumber(i - 1);
-				break;
-			}
-		}
-	}
-
-	/**
-	 * Gets the start frame time in milliseconds.
-	 *
-	 * @return the start time in milliseconds, or -1 if not known
-	 */
-	@Override
-	public double getStartTime() {
-		return getFrameTime(getStartFrameNumber());
-	}
-
-	/**
-	 * Sets the start frame to (nearly) a desired time in milliseconds.
-	 *
-	 * @param millis the desired start time in milliseconds
-	 */
-	@Override
-	public void setStartTime(double millis) {
-		millis = Math.abs(millis);
-		for (int i = 0; i < startTimes.length; i++) {
-			double t = startTimes[i];
-			if (millis < t) { // find first frame with later start time
-				setStartFrameNumber(i - 1);
-				break;
-			}
-		}
-	}
-
-	/**
-	 * Gets the end frame time in milliseconds.
-	 *
-	 * @return the end time in milliseconds, or -1 if not known
-	 */
-	@Override
-	public double getEndTime() {
-		int n = getEndFrameNumber();
-		if (n < getFrameCount() - 1)
-			return getFrameTime(n + 1);
-		return getDuration();
-	}
-
-	/**
-	 * Sets the end frame to (nearly) a desired time in milliseconds.
-	 *
-	 * @param millis the desired end time in milliseconds
-	 */
-	@Override
-	public void setEndTime(double millis) {
-		millis = Math.abs(millis);
-		millis = Math.min(getDuration(), millis);
-		for (int i = 0; i < startTimes.length; i++) {
-			double t = startTimes[i];
-			if (millis < t) { // find first frame with later start time
-				setEndFrameNumber(i - 1);
-				break;
-			}
-		}
-	}
-
-	/**
 	 * Gets the duration of the video.
 	 *
 	 * @return the duration of the video in milliseconds, or -1 if not known
@@ -771,6 +674,26 @@ public class XuggleVideo extends VideoAdapter implements SmoothPlayable, Increme
 		if (isPlaying()) {
 			startPlayingAtFrame(getFrameNumber());
 		}
+	}
+
+	/**
+	 * Sets the playSmoothly flag.
+	 * 
+	 * @param smooth true to play smoothly
+	 */
+	@Override
+	public void setSmoothPlay(boolean smooth) {
+		playSmoothly = smooth;
+	}
+
+	/**
+	 * Gets the playSmoothly flag.
+	 * 
+	 * @return true if playing smoothly
+	 */
+	@Override
+	public boolean isSmoothPlay() {
+		return playSmoothly;
 	}
 
 	/**
@@ -841,26 +764,6 @@ public class XuggleVideo extends VideoAdapter implements SmoothPlayable, Increme
 		resampler = null;
 		
 		keyTS0 = /*keyTS1 =*/ Long.MIN_VALUE;
-	}
-
-	/**
-	 * Sets the playSmoothly flag.
-	 * 
-	 * @param smooth true to play smoothly
-	 */
-	@Override
-	public void setSmoothPlay(boolean smooth) {
-		playSmoothly = smooth;
-	}
-
-	/**
-	 * Gets the playSmoothly flag.
-	 * 
-	 * @return true if playing smoothly
-	 */
-	@Override
-	public boolean isSmoothPlay() {
-		return playSmoothly;
 	}
 
 //______________________________  private methods _________________________
@@ -1145,7 +1048,7 @@ public class XuggleVideo extends VideoAdapter implements SmoothPlayable, Increme
 	 * @param frameNumber the Tracker frame number
 	 * @return true if loaded successfully
 	 */
-	private boolean loadPictureForFrame(int frameNumber) {
+	private BufferedImage loadPictureForFrame(int frameNumber) {
 		int index = frameNumberToContainerIndex(frameNumber);
 		long targetTS = packetTimeStamps[index];
 		// check to see if seek is needed
@@ -1161,9 +1064,9 @@ public class XuggleVideo extends VideoAdapter implements SmoothPlayable, Increme
 				}
 			}
 		}
-//		System.out.println("loadPicture " + picture.isComplete() + " tf=" + trackerFrameNumber + " xf=" + index
-//				+ " cts=" + currentTS);
-		return picture.isComplete();
+		System.out.println("loadPicture " + picture.isComplete() +  " index=" + index
+				+ " cts=" + currentTS);
+		return (picture.isComplete() ? getBufferedImage() : null);
 	}
 
 	private int frameNumberToContainerIndex(int n) {
@@ -1195,10 +1098,7 @@ public class XuggleVideo extends VideoAdapter implements SmoothPlayable, Increme
 			return null;
 		int index = frameNumberToContainerIndex(frameNumber);
 		BufferedImage bi = getCachedImage(index);
-		if (bi == null)
-			bi = (loadPictureForFrame(frameNumber) ? getBufferedImage() : null);
-		//dumpImage(frameNumber, bi, "");
-		return bi;
+		return (bi == null ? loadPictureForFrame(frameNumber) : bi);
 	}
 	
 	IVideoPicture newPic;

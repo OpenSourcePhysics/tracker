@@ -90,8 +90,7 @@ public class TActions {
 
 		// clear tracks
 		actions.put("clearTracks", //$NON-NLS-1$
-				new AbstractAction(TrackerRes.getString("TActions.Action.ClearTracks"), //$NON-NLS-1$
-						null) {
+				new AbstractAction(TrackerRes.getString("TActions.Action.ClearTracks")) {
 					@Override
 					public void actionPerformed(ActionEvent e) {
 						panel().checkAndClearTracks();
@@ -100,7 +99,7 @@ public class TActions {
 
 		// new tab
 		actions.put("newTab", //$NON-NLS-1$
-				getAsyncAction(new AbstractAction(TrackerRes.getString("TActions.Action.NewTab"), null) { //$NON-NLS-1$
+				getAsyncAction(new AbstractAction(TrackerRes.getString("TActions.Action.NewTab")) { //$NON-NLS-1$
 					@Override
 					public void actionPerformed(ActionEvent e) {
 						
@@ -153,8 +152,7 @@ public class TActions {
 
 		// openBrowser
 		actions.put("openBrowser", //$NON-NLS-1$
-				getAsyncAction(new AbstractAction(TrackerRes.getString("TActions.Action.OpenBrowser"), null //$NON-NLS-1$						
-				) {
+				getAsyncAction(new AbstractAction(TrackerRes.getString("TActions.Action.OpenBrowser")) { //$NON-NLS-1$						
 					@Override
 					public void actionPerformed(ActionEvent e) {
 						
@@ -235,7 +233,7 @@ public class TActions {
 
 		// save tab as
 		actions.put("saveAs", //$NON-NLS-1$
-				new AbstractAction(TrackerRes.getString("TActions.Action.SaveAs"), null) { //$NON-NLS-1$
+				new AbstractAction(TrackerRes.getString("TActions.Action.SaveAs")) { //$NON-NLS-1$
 					@Override
 					public void actionPerformed(ActionEvent e) {
 						TrackerPanel trackerPanel = panel();
@@ -257,8 +255,7 @@ public class TActions {
 
 		// save tabset as
 		actions.put("saveTabsetAs", //$NON-NLS-1$
-				new AbstractAction(TrackerRes.getString("TActions.Action.SaveFrame"), //$NON-NLS-1$
-						null) {
+				new AbstractAction(TrackerRes.getString("TActions.Action.SaveFrame")) { //$NON-NLS-1$
 					@Override
 					public void actionPerformed(ActionEvent e) {
 						TrackerPanel trackerPanel = panel();
@@ -289,7 +286,7 @@ public class TActions {
 
 		// delete track
 		actions.put("deleteTrack", //$NON-NLS-1$
-				new AbstractAction(TrackerRes.getString("TActions.Action.Delete"), null) { //$NON-NLS-1$
+				new AbstractAction(TrackerRes.getString("TActions.Action.Delete")) { //$NON-NLS-1$
 					@Override
 					public void actionPerformed(ActionEvent e) {
 						// action command is name of track to delete
@@ -300,7 +297,7 @@ public class TActions {
 				});
 
 		actions.put("config", //$NON-NLS-1$
-				new AbstractAction(TrackerRes.getString("TActions.Action.Config"), null) { //$NON-NLS-1$
+				new AbstractAction(TrackerRes.getString("TActions.Action.Config")) { //$NON-NLS-1$
 					@Override
 					public void actionPerformed(ActionEvent e) {						
 						frame.showPrefsDialog();
@@ -329,7 +326,7 @@ public class TActions {
 
 		// about video
 		actions.put("aboutVideo", //$NON-NLS-1$
-				new AbstractAction(TrackerRes.getString("TActions.AboutVideo"), null) { //$NON-NLS-1$
+				new AbstractAction(TrackerRes.getString("TActions.AboutVideo")) { //$NON-NLS-1$
 					@Override
 					public void actionPerformed(ActionEvent e) {
 						
@@ -345,7 +342,7 @@ public class TActions {
 
 		// print
 		actions.put("print", //$NON-NLS-1$
-				new AbstractAction(TrackerRes.getString("TActions.Action.Print"), null) { //$NON-NLS-1$
+				new AbstractAction(TrackerRes.getString("TActions.Action.Print")) { //$NON-NLS-1$
 					@Override
 					public void actionPerformed(ActionEvent e) {
 						new TrackerIO.ComponentImage(panel()).print();
@@ -354,7 +351,7 @@ public class TActions {
 
 		// exit
 		actions.put("exit", //$NON-NLS-1$
-				new AbstractAction(TrackerRes.getString("TActions.Action.Exit"), null) { //$NON-NLS-1$
+				new AbstractAction(TrackerRes.getString("TActions.Action.Exit")) { //$NON-NLS-1$
 					@Override
 					public void actionPerformed(ActionEvent e) {
 						exitAction(panel());
@@ -363,7 +360,7 @@ public class TActions {
 
 		// new point mass
 		actions.put("pointMass", //$NON-NLS-1$
-				getAsyncAction(new AbstractAction(TrackerRes.getString("PointMass.Name"), null) { //$NON-NLS-1$
+				getAsyncAction(new AbstractAction(TrackerRes.getString("PointMass.Name")) { //$NON-NLS-1$
 					@Override
 					public void actionPerformed(ActionEvent e) {
 						pointMassAction(panel());
@@ -372,7 +369,7 @@ public class TActions {
 
 		// new center of mass
 		actions.put("cm", //$NON-NLS-1$
-				getAsyncAction(new AbstractAction(TrackerRes.getString("CenterOfMass.Name"), null) { //$NON-NLS-1$
+				getAsyncAction(new AbstractAction(TrackerRes.getString("CenterOfMass.Name")) { //$NON-NLS-1$
 					@Override
 					public void actionPerformed(ActionEvent e) {
 						cmAction(panel());
@@ -381,7 +378,7 @@ public class TActions {
 
 		// new vector
 		actions.put("vector", //$NON-NLS-1$
-				getAsyncAction(new AbstractAction(TrackerRes.getString("Vector.Name"), null) { //$NON-NLS-1$
+				getAsyncAction(new AbstractAction(TrackerRes.getString("Vector.Name")) { //$NON-NLS-1$
 					@Override
 					public void actionPerformed(ActionEvent e) {
 						vectorAction(panel());
@@ -390,7 +387,7 @@ public class TActions {
 
 		// new vector sum
 		actions.put("vectorSum", //$NON-NLS-1$
-				getAsyncAction(new AbstractAction(TrackerRes.getString("VectorSum.Name"), null) { //$NON-NLS-1$
+				getAsyncAction(new AbstractAction(TrackerRes.getString("VectorSum.Name")) { //$NON-NLS-1$
 					@Override
 					public void actionPerformed(ActionEvent e) {
 						vectorSumAction(panel());
@@ -399,7 +396,7 @@ public class TActions {
 
 		// new offset origin item
 		actions.put("offsetOrigin", //$NON-NLS-1$
-				getAsyncAction(new AbstractAction(TrackerRes.getString("OffsetOrigin.Name"), null) { //$NON-NLS-1$
+				getAsyncAction(new AbstractAction(TrackerRes.getString("OffsetOrigin.Name")) { //$NON-NLS-1$
 					@Override
 					public void actionPerformed(ActionEvent e) {
 						offsetOriginAction(panel());
@@ -408,7 +405,7 @@ public class TActions {
 
 		// new calibration item
 		actions.put("calibration", //$NON-NLS-1$
-				getAsyncAction(new AbstractAction(TrackerRes.getString("Calibration.Name"), null) { //$NON-NLS-1$
+				getAsyncAction(new AbstractAction(TrackerRes.getString("Calibration.Name")) { //$NON-NLS-1$
 					@Override
 					public void actionPerformed(ActionEvent e) {
 						calibrationAction(panel());
@@ -417,7 +414,7 @@ public class TActions {
 
 		// new line profile item
 		actions.put("lineProfile", //$NON-NLS-1$
-				getAsyncAction(new AbstractAction(TrackerRes.getString("LineProfile.Name"), null) { //$NON-NLS-1$
+				getAsyncAction(new AbstractAction(TrackerRes.getString("LineProfile.Name")) { //$NON-NLS-1$
 					@Override
 					public void actionPerformed(ActionEvent e) {
 						lineProfileAction(panel());
@@ -426,7 +423,7 @@ public class TActions {
 
 		// new RGBRegion item
 		actions.put("rgbRegion", //$NON-NLS-1$
-				getAsyncAction(new AbstractAction(TrackerRes.getString("RGBRegion.Name"), null) { //$NON-NLS-1$
+				getAsyncAction(new AbstractAction(TrackerRes.getString("RGBRegion.Name")) { //$NON-NLS-1$
 					@Override
 					public void actionPerformed(ActionEvent e) {
 						rgbRegionAction(panel());
@@ -435,7 +432,7 @@ public class TActions {
 
 		// new analytic particle item
 		actions.put("analyticParticle", //$NON-NLS-1$
-				getAsyncAction(new AbstractAction(TrackerRes.getString("AnalyticParticle.Name"), null) {//$NON-NLS-1$
+				getAsyncAction(new AbstractAction(TrackerRes.getString("AnalyticParticle.Name")) {//$NON-NLS-1$
 					@Override
 					public void actionPerformed(ActionEvent e) {
 						analyticalParticleAction(panel());
@@ -444,7 +441,7 @@ public class TActions {
 
 		// new dynamic particle item
 		actions.put("dynamicParticle", //$NON-NLS-1$
-				getAsyncAction(new AbstractAction(TrackerRes.getString("DynamicParticle.Name"), null) { //$NON-NLS-1$
+				getAsyncAction(new AbstractAction(TrackerRes.getString("DynamicParticle.Name")) { //$NON-NLS-1$
 					@Override
 					public void actionPerformed(ActionEvent e) {
 						dynamicParticleAction(panel());
@@ -453,7 +450,7 @@ public class TActions {
 
 		// new dynamic particle polar item
 		actions.put("dynamicParticlePolar", //$NON-NLS-1$
-				getAsyncAction(new AbstractAction(TrackerRes.getString("DynamicParticlePolar.Name"), null) { //$NON-NLS-1$
+				getAsyncAction(new AbstractAction(TrackerRes.getString("DynamicParticlePolar.Name")) { //$NON-NLS-1$
 					@Override
 					public void actionPerformed(ActionEvent e) {
 						dynamicParticlePolarAction(panel());
@@ -462,7 +459,7 @@ public class TActions {
 
 		// new dynamic system item
 		actions.put("dynamicSystem", //$NON-NLS-1$
-				getAsyncAction(new AbstractAction(TrackerRes.getString("DynamicSystem.Name"), null) { //$NON-NLS-1$
+				getAsyncAction(new AbstractAction(TrackerRes.getString("DynamicSystem.Name")) { //$NON-NLS-1$
 					@Override
 					public void actionPerformed(ActionEvent e) {
 						dynamicSystemAction(panel());
@@ -471,7 +468,7 @@ public class TActions {
 
 		// new (read-only) tape measure
 		actions.put("tape", //$NON-NLS-1$
-				getAsyncAction(new AbstractAction(TrackerRes.getString("TapeMeasure.Name"), null) {//$NON-NLS-1$
+				getAsyncAction(new AbstractAction(TrackerRes.getString("TapeMeasure.Name")) {//$NON-NLS-1$
 					@Override
 					public void actionPerformed(ActionEvent e) {
 						tapeAction(panel());
@@ -480,7 +477,7 @@ public class TActions {
 
 		// new protractor
 		actions.put("protractor", //$NON-NLS-1$
-				getAsyncAction(new AbstractAction(TrackerRes.getString("Protractor.Name"), null) { //$NON-NLS-1$
+				getAsyncAction(new AbstractAction(TrackerRes.getString("Protractor.Name")) { //$NON-NLS-1$
 					@Override
 					public void actionPerformed(ActionEvent e) {
 						protractorAction(panel());
@@ -489,7 +486,7 @@ public class TActions {
 
 		// new circle track
 		actions.put("circleFitter", //$NON-NLS-1$
-				getAsyncAction(new AbstractAction(TrackerRes.getString("CircleFitter.Name"), null) { //$NON-NLS-1$
+				getAsyncAction(new AbstractAction(TrackerRes.getString("CircleFitter.Name")) { //$NON-NLS-1$
 					@Override
 					public void actionPerformed(ActionEvent e) {
 						circleFitterAction(panel());
@@ -507,7 +504,7 @@ public class TActions {
 		// clear filters action
 		actions.put("clearFilters", //$NON-NLS-1$
 				new AbstractAction(// $NON-NLS-1$
-						TrackerRes.getString("TActions.Action.ClearFilters"), null) { //$NON-NLS-1$
+						TrackerRes.getString("TActions.Action.ClearFilters")) { //$NON-NLS-1$
 					@Override
 					public void actionPerformed(ActionEvent e) {
 						clearFiltersAction(panel(), true);
@@ -516,7 +513,7 @@ public class TActions {
 
 		// new DataTrack from text file item
 		actions.put("dataTrack", //$NON-NLS-1$
-				new AbstractAction(TrackerRes.getString("ParticleDataTrack.Name"), null) { //$NON-NLS-1$
+				new AbstractAction(TrackerRes.getString("ParticleDataTrack.Name")) { //$NON-NLS-1$
 					@Override
 					public void actionPerformed(ActionEvent e) {
 						dataTrackActionAsync(panel());
@@ -525,7 +522,7 @@ public class TActions {
 
 		// open video
 		actions.put("openVideo", //$NON-NLS-1$
-				new AbstractAction(TrackerRes.getString("TActions.Action.ImportVideo"), null) { //$NON-NLS-1$
+				new AbstractAction(TrackerRes.getString("TActions.Action.ImportVideo")) { //$NON-NLS-1$
 					@Override
 					public void actionPerformed(ActionEvent e) {
 						TrackerIO.importVideo(panel(), null);// , TrackerIO.NULL_RUNNABLE);
@@ -534,7 +531,7 @@ public class TActions {
 
 		// close video
 		actions.put("closeVideo", //$NON-NLS-1$
-				new AbstractAction(TrackerRes.getString("TActions.Action.CloseVideo"), null) { //$NON-NLS-1$
+				new AbstractAction(TrackerRes.getString("TActions.Action.CloseVideo")) { //$NON-NLS-1$
 					@Override
 					public void actionPerformed(ActionEvent e) {
 						TrackerPanel trackerPanel = panel();
@@ -731,7 +728,7 @@ public class TActions {
 		String name = nameObj == null ? null : nameObj.toString();
 //		Object iconObj = a.getValue(Action.SMALL_ICON);
 //		Icon icon = iconObj == null ? null : (Icon) iconObj;
-		return new AbstractAction(name, null) {
+		return new AbstractAction(name) {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				SwingUtilities.invokeLater(()->{
