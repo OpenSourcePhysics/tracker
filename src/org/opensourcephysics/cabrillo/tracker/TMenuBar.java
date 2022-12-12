@@ -580,6 +580,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 				panel().reload();
 			}			
 		}); //$NON-NLS-1$
+		file_reloadItem.setAccelerator(KeyStroke.getKeyStroke('R', keyMask));
 		file_closeItem = new JMenuItem(actions.get("close")); //$NON-NLS-1$
 		file_closeAllItem = new JMenuItem(TrackerRes.getString("TActions.Action.CloseAll")); //$NON-NLS-1$
 		file_closeAllItem.addActionListener(actions.get("closeAll")); //$NON-NLS-1$
