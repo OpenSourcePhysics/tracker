@@ -496,14 +496,9 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	 */
 	@Override
 	public void setVideo(Video newVideo) {
-//		if (newVideo != null && newVideo.getProperty("base") == null) {
-//			String path = (String)newVideo.getProperty("absolutePath");
-//			if (path != null)
-//				newVideo.setProperty("base", XML.getDirectoryPath(path));
-//		}
 		XMLControl state = null;
-		boolean undoable = true;
 		Video oldVideo = getVideo();
+		boolean undoable = oldVideo != null;
 		if (newVideo != oldVideo && oldVideo instanceof ImageVideo) {
 			ImageVideo vid = (ImageVideo) getVideo();
 			vid.saveInvalidImages();
