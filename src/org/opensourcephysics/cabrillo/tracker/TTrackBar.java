@@ -152,9 +152,6 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 										path = XML.stripExtension(path) + ".zip";
 										String src = trackerPanel.openedFromPath;
 										
-										System.out.println("pig source path "+src);
-										System.out.println("pig video path "+path);
-										
 										// assemble command 
 										final ArrayList<String> cmd = new ArrayList<String>();
 										cmd.add("C:/Program Files/Java/jre1.8.0_321/bin/java");
