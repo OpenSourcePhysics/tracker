@@ -2465,7 +2465,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		if (mainView == null && objects != null)
 			return;
 		TrackerPanel oldPanel = (newPanel != null && prevPanelID == newPanel.panelID ? newPanel : deactivateOldTrackerPanel(prevPanelID));
-		System.out.println("TFrame.doTabStateChanged state=" + state + " " + oldPanel + "----->" + newPanel);
+//		System.out.println("TFrame.doTabStateChanged state=" + state + " " + oldPanel + "----->" + newPanel);
 		// refresh current tab items
 		if (objects == null) {
 			// show defaultMenuBar
