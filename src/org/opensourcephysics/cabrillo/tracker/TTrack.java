@@ -1148,6 +1148,8 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 	 * @param name the name of the desired footprint
 	 */
 	public void setFootprint(String name) {
+		if (name == null)
+			return;
 		String props = null;
 		int n = name.indexOf("#"); //$NON-NLS-1$
 		if (n > -1) {
