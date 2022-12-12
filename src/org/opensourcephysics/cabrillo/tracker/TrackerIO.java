@@ -697,7 +697,10 @@ public class TrackerIO extends VideoIO {
 					targetPanel.importDataAsync(XML.getAbsolutePath(file), null, null);
 				} else {
 					// import video
-					if (targetPanel.getVideo() instanceof ImageVideo && isImageFile(file)) {
+					boolean addFramesAllowed = false; // doesn't work with zipped images
+					if (addFramesAllowed
+							&& targetPanel.getVideo() instanceof ImageVideo 
+							&& isImageFile(file)) {
 						if (frameNumber < 0) {
 							frameNumber = 0;
 							targetPanel.setMouseCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
