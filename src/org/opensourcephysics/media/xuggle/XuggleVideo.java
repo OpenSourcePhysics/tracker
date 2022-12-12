@@ -237,8 +237,8 @@ public class XuggleVideo extends VideoAdapter implements SmoothPlayable, Increme
 			dir = XML.getDirectoryPath(dir);
 			setProperty("path", XML.getPathRelativeTo(fileName, dir)); //$NON-NLS-1$
 		} else {
-			// else path is relative to user directory
-			setProperty("path", XML.getRelativePath(fileName)); //$NON-NLS-1$
+			// else path is absolute
+			setProperty("path", res.getAbsolutePath()); //$NON-NLS-1$
 		}
 		OSPLog.finest("Xuggle video loading " + path + " local?: " + isLocal); //$NON-NLS-1$ //$NON-NLS-2$
 //		failDetectTimer.start();
