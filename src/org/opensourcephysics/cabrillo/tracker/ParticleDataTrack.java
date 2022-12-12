@@ -271,22 +271,39 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 		getDataClip().addPropertyChangeListener(this);
 		try {
 			setCoreData(coreData, true);
+			setMoreData(pointData);
 		} catch (Exception e) {
 		}
-
-		for (int i = 0; i < pointData.size(); i++) {
-			// get the new data
+	}
+	
+	protected void setMoreData(ArrayList<Object[]> pointData) {
+		boolean empty = morePoints.isEmpty();
+		
+		for (int i = 0; i < pointData.size(); i++) {			
 			Object[] next = pointData.get(i);
+			String name = (String)next[0];
 			double[][] xyArray = (double[][]) next[1];
-			ParticleDataTrack target = new ParticleDataTrack(next, this);
-			target.setTrackerPanel(tp);
-			if (tp != null) {
-				tp.addTrack(target);
+			ParticleDataTrack target = null;
+			
+			if (empty) {
+				target = new ParticleDataTrack(next, this);
+				target.setTrackerPanel(tp);
+				if (tp != null) {
+					tp.addTrack(target);
+				}				
 			}
-
+			else {
+				for (int j = 0; j < morePoints.size(); j++) {
+					ParticleDataTrack p = morePoints.get(j);
+					if (p != null && p.getName(null) != null && p.getName(null).equals(name)) {
+						target = p;
+					}
+				}				
+			}
 			// set target's data
-			target.setCoreData(xyArray, true);
-		}
+			if (target != null)
+				target.setCoreData(xyArray, true);
+		}		
 	}
 
 	protected void doAllColor() {
@@ -823,7 +840,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 	@Override
 	public String getName(String context) {
 		// point context: full name (eg "example A" or "example elbow")
-		if (context.contains("point")) { //$NON-NLS-1$
+		if (context != null && context.contains("point")) { //$NON-NLS-1$
 			return getName();
 		}
 		// for other contexts, return modelName only (eg "example")
@@ -1955,7 +1972,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 			requiresConversion = false;
 			return;
 		}
-		int dataStartIndex = data.stepToIndex(dataStartFrame - startFrameTemp);
+		int dataStartIndex = data.stepToIndex(dataStartFrame - Math.max(0, startFrameTemp) );
 		
 		data.setStride(data.getStride() * clipStepSize);
 		data.setClipLength(dataStepCount);
@@ -2089,28 +2106,19 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 
 		@Override
 		public Object createObject(XMLControl control) {
-			double[][] coreData = new double[3][];
-			coreData[0] = (double[]) control.getObject("x"); //$NON-NLS-1$
-			coreData[1] = (double[]) control.getObject("y"); //$NON-NLS-1$
-			coreData[2] = (double[]) control.getObject("t"); //$NON-NLS-1$
-			int i = 0;
-			ArrayList<Object[]> pointData = new ArrayList<Object[]>();
-			double[][] next = new double[2][];
-			next[0] = (double[]) control.getObject("x" + i); //$NON-NLS-1$
-			while (next[0] != null) {
-				next[1] = (double[]) control.getObject("y" + i); //$NON-NLS-1$ )
-				String name = control.getString("pointname" + i); //$NON-NLS-1$
-				pointData.add(new Object[] { name, next });
-				i++;
-				next = new double[2][];
-				next[0] = (double[]) control.getObject("x" + i); //$NON-NLS-1$
-			}
+			double[][] coreData = getCoreData(control);
+			ArrayList<Object[]> pointData = getMoreData(control);
 			return new ParticleDataTrack(coreData, pointData);
 		}
 
 		@Override
 		public Object loadObject(XMLControl control, Object obj) {
 			ParticleDataTrack dataTrack = (ParticleDataTrack) obj;
+			// if reloading trackerPanel, reset the core data and point data
+			if (dataTrack.getPointName().equals(control.getString("pointname"))) { //$NON-NLS-1$
+				dataTrack.setCoreData(getCoreData(control), true);
+				dataTrack.setMoreData(getMoreData(control));
+			}
 			// load track data and mass
 			XML.getLoader(TTrack.class).loadObject(control, obj);
 			dataTrack.mass = control.getDouble("mass"); //$NON-NLS-1$
@@ -2163,17 +2171,44 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 			} else {
 				dataTrack.modelFootprint.setColor(dataTrack.getColor());
 			}
-			dataTrack.inspectorX = control.getInt("inspector_x"); //$NON-NLS-1$
-			dataTrack.inspectorY = control.getInt("inspector_y"); //$NON-NLS-1$
-			dataTrack.inspectorH = control.getInt("inspector_h"); //$NON-NLS-1$
-			dataTrack.showModelBuilder = control.getBoolean("inspector_visible"); //$NON-NLS-1$
+			if (dataTrack.inspectorX == Integer.MIN_VALUE) {
+				dataTrack.inspectorX = control.getInt("inspector_x"); //$NON-NLS-1$
+				dataTrack.inspectorY = control.getInt("inspector_y"); //$NON-NLS-1$
+				dataTrack.inspectorH = control.getInt("inspector_h"); //$NON-NLS-1$
+				dataTrack.showModelBuilder = control.getBoolean("inspector_visible"); //$NON-NLS-1$
+			}
 			return dataTrack;
 		}
+		
+		private double[][] getCoreData(XMLControl control) {
+			double[][] coreData = new double[3][];
+			coreData[0] = (double[]) control.getObject("x"); //$NON-NLS-1$
+			coreData[1] = (double[]) control.getObject("y"); //$NON-NLS-1$
+			coreData[2] = (double[]) control.getObject("t"); //$NON-NLS-1$
+			return coreData;
+		}
+
+		private ArrayList<Object[]> getMoreData(XMLControl control) {
+			int i = 0;
+			ArrayList<Object[]> pointData = new ArrayList<Object[]>();
+			double[][] next = new double[2][];
+			next[0] = (double[]) control.getObject("x" + i); //$NON-NLS-1$
+			while (next[0] != null) {
+				next[1] = (double[]) control.getObject("y" + i); //$NON-NLS-1$ )
+				String name = control.getString("pointname" + i); //$NON-NLS-1$
+				pointData.add(new Object[] { name, next });
+				i++;
+				next = new double[2][];
+				next[0] = (double[]) control.getObject("x" + i); //$NON-NLS-1$
+			}
+			return pointData;
+		}
+
 	}
 	
 	@Override
 	public void dispose() {
 	    super.dispose();
 	}
-
+	
 }
