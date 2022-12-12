@@ -377,7 +377,14 @@ public class TableTrackView extends TrackView {
 		if (isClipAdjusting())
 			return;
 		// main entry point for a new or revised track -- from TrackChooserTView
-
+		if (mode == DataTable.MODE_TRACK_DATA && getTrack() instanceof PointMass) {
+			// reload toolbar since data gaps may have changed
+			TViewChooser chooser = getOwner();
+			if (chooser != null) {
+				chooser.refreshToolbar();
+			}
+			
+		}
 		forceRefresh = true; // for now, at least
 
 		if (!forceRefresh && !isRefreshEnabled() || !viewParent.isViewPaneVisible())
