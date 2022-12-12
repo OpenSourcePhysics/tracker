@@ -364,7 +364,7 @@ public class TableTView extends TrackChooserTView {
 						tableTrackView.textColumnsVisible.clear();
 						// now select checkboxes specified in track_columns
 //    							Map<String, Integer> htOrder = new HashMap<String, Integer>(); // BH! never used
-						columns = fixColumnList(columns);
+						columns = fixColumnList(columns, track);
 						for (int j = 1; j < columns.length; j++) {
 							// htOrder.put(name, j);
 							tableTrackView.setVisible(columns[j] = fixColumnName(columns[j], track), true);
@@ -474,12 +474,13 @@ public class TableTView extends TrackChooserTView {
 		 * @param columns
 		 * @return
 		 */
-		private static String[] fixColumnList(String[] columns) {
-			if (columns.length < 2 || "t".equals(columns[1]))
+		private static String[] fixColumnList(String[] columns, TTrack track) {
+			String indepVar = track.getDataName(0);
+			if (columns.length < 2 || indepVar.equals(columns[1]))
 				return columns;
 			String[] newCols = new String[columns.length + 1];
 			newCols[0] = columns[0];
-			newCols[1] = "t";
+			newCols[1] = indepVar;
 			for (int i = 1; i < columns.length; i++) {
 				newCols[i + 1] = columns[i];
 			}
