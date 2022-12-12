@@ -1127,7 +1127,7 @@ abstract public class ParticleModel extends PointMass {
 	}
 
 	private void positionModelBuilder() {
-		if (inspectorX != Integer.MIN_VALUE) {
+		if (inspectorX != Integer.MIN_VALUE && inspectorX != Integer.MAX_VALUE) {
 			// trackerPanel will select this track when getModelBuilder() is called
 			// only if loader has set the showModelBuilder flag (so refreshing is false)
 			refreshing = !showModelBuilder;
@@ -1142,7 +1142,7 @@ abstract public class ParticleModel extends PointMass {
 			int y = Math.max(tframe.getLocation().y + inspectorY, 0);
 			y = Math.min(y, dim.height - modelBuilder.getHeight());
 			modelBuilder.setLocation(x, y);
-			inspectorX = Integer.MIN_VALUE;
+			inspectorX = Integer.MAX_VALUE;
 		}
 	}
 
@@ -1266,9 +1266,12 @@ abstract public class ParticleModel extends PointMass {
 			else
 				p.setAccelerationFootprint(p.getAccelerationFootprints()[0].getName());
 
-			p.inspectorX = control.getInt("inspector_x"); //$NON-NLS-1$
-			p.inspectorY = control.getInt("inspector_y"); //$NON-NLS-1$
-			p.inspectorH = control.getInt("inspector_h"); //$NON-NLS-1$
+			if (p.inspectorX == Integer.MIN_VALUE) {
+				p.inspectorX = control.getInt("inspector_x"); //$NON-NLS-1$
+				p.inspectorY = control.getInt("inspector_y"); //$NON-NLS-1$
+				p.inspectorH = control.getInt("inspector_h"); //$NON-NLS-1$
+			}
+
 			p.showModelBuilder = control.getBoolean("inspector_visible"); //$NON-NLS-1$
 			Parameter[] params = (Parameter[]) control.getObject("user_parameters"); //$NON-NLS-1$
 			p.getParamEditor().setParameters(params);
@@ -1290,6 +1293,11 @@ abstract public class ParticleModel extends PointMass {
 			p.getInitEditor().setParameters(params);
 			UserFunction[] functions = (UserFunction[]) control.getObject("main_functions"); //$NON-NLS-1$
 			p.getFunctionEditor().setMainFunctions(functions);
+			// may be reloading same tab so delete existing support functions if any
+			UserFunction[] funcs = p.getFunctionEditor().getSupportFunctions();
+			for (int k = 0; k < funcs.length; k++) {
+				p.getFunctionEditor().removeObject(funcs[k], false);
+			}
 			functions = (UserFunction[]) control.getObject("support_functions"); //$NON-NLS-1$
 			if (functions != null) {
 				for (int i = 0; i < functions.length; i++) {
