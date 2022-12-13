@@ -291,18 +291,18 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 				if (tp != null) {
 					tp.addTrack(target);
 				}				
+				target.setCoreData(xyArray, true);
 			}
 			else {
 				for (int j = 0; j < morePoints.size(); j++) {
 					ParticleDataTrack p = morePoints.get(j);
 					if (p != null && p.getName(null) != null && p.getName(null).equals(name)) {
 						target = p;
+						target.setCoreData(xyArray, true);
+						break;
 					}
 				}				
 			}
-			// set target's data
-			if (target != null)
-				target.setCoreData(xyArray, true);
 		}		
 	}
 
@@ -839,8 +839,15 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 
 	@Override
 	public String getName(String context) {
+		if (context == null) {
+			String mod = getLeader().modelName;
+			String fullName = getName();
+			int n = fullName.indexOf(mod);
+			if (fullName.startsWith(mod))
+				return fullName.substring(mod.length(), fullName.length()).trim();
+		}
 		// point context: full name (eg "example A" or "example elbow")
-		if (context != null && context.contains("point")) { //$NON-NLS-1$
+		if (context.contains("point")) { //$NON-NLS-1$
 			return getName();
 		}
 		// for other contexts, return modelName only (eg "example")

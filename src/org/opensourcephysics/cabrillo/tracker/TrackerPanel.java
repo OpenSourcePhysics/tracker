@@ -4968,7 +4968,18 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 					XMLControl tcon = trackcontrols[j];
 					for (int k = 0; k < tracks.size(); k++) {
 						TTrack track = tracks.get(k);
-						if (track.getName().equals(tcon.getString("name"))) {
+						String name = tcon.getString("name");
+						boolean match = track.getName().equals(name);
+						// special handling for ParticleDataTrack: find the primary track
+						if (track.getClass().getSimpleName().equals("ParticleDataTrack")) {
+							ParticleDataTrack pdt = (ParticleDataTrack) track;
+							if (pdt.getName().startsWith(name) 
+									&& (pdt.getSource() == null
+											|| !pdt.getSource().getClass().getSimpleName().equals("ParticleDataTrack"))) {
+								match = true;
+							}
+						}
+						if (match) {
 							tcon.loadObject(track);
 							track.erase();
 							track.firePropertyChange(TTrack.PROPERTY_TTRACK_STEPS, TTrack.HINT_STEP_ADDED_OR_REMOVED, null);
