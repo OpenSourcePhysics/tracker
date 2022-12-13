@@ -2501,7 +2501,10 @@ public class TrackerIO extends VideoIO {
 		private void finalizeVideoLoading(Video video) {
 			TrackerPanel trackerPanel = panel();
 			if (frame != null) {
-				frame.addTabFromLoader(trackerPanel);
+				Integer panelID = trackerPanel.getID();
+				int tab = frame.getTab(panelID);
+				if (tab < 0)
+					frame.addTabFromLoader(trackerPanel);
 			}
 			// BH ?? TMenuBar.refreshMenus(trackerPanel, TMenuBar.REFRESH_BEFORESETVIDEO);
 			trackerPanel.setVideo(video);
