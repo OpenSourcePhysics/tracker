@@ -2721,13 +2721,16 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 				JFrame log = OSPLog.getFrame();
 				FontSizer.setFonts(log, FontSizer.getLevel());
 				if (log.getLocation().x == p.x && log.getLocation().y == p.y) {
-					// center on screen
-					Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
-					int x = (dim.width - log.getBounds().width) / 2;
-					int y = (dim.height - log.getBounds().height) / 2;
-					log.setLocation(x, y);
+					// center on screen AFTER setting visible so GUI will be complete
+					SwingUtilities.invokeLater(() -> {
+						// center on screen
+						Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
+						int x = (dim.width - log.getBounds().width) / 2;
+						int y = (dim.height - log.getBounds().height) / 2;
+						log.setLocation(x, y);
+					});
 				}
-				log.setVisible(true);
+				OSPLog.getOSPLog().setVisible(true);
 			});
 			diagMenu.add(logItem);
 			if (Tracker.startLogAction != null) {
