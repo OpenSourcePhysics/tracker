@@ -181,7 +181,7 @@ public class Tracker {
 	// 3/09/21: abandon Tracker.VERSION for OSPRuntime.VERSION for smaller
 	// tracker_starter.jar
 //	public static final String VERSION = "5.9.20210307"; //$NON-NLS-1$
-	public static final String COPYRIGHT = "Copyright (c) 2022 D Brown, W Christian, R M Hanson"; //$NON-NLS-1$
+	public static final String COPYRIGHT = "Copyright (c) 2023 D Brown, W Christian, R M Hanson"; //$NON-NLS-1$
 
 	/**
 	 * Gets an icon from a class resource image.
