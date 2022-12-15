@@ -283,8 +283,19 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 			} else if (panel.getVideo() != null) {
 				XMLControl videoControl = control.getChildControl("videoclip").getChildControl("video"); //$NON-NLS-1$ //$NON-NLS-2$
 				if (videoControl != null) {
-					videoControl.setValue("path", XML.forwardSlash(videoTarget)); //$NON-NLS-1$
-					// leave "paths" unchanged--not needed
+					String vidPath = XML.forwardSlash(videoTarget);
+					videoControl.setValue("path", vidPath); //$NON-NLS-1$
+					// change "paths" too
+					videoControl.setValue("paths", null); //$NON-NLS-1$ // eliminates unneeded list of images
+//					String[] paths = (String[])videoControl.getObject("paths");
+//					if (paths != null && paths.length > 0) {
+//						String base = XML.getDirectoryPath(vidPath);
+//						for (int i = 0; i < paths.length; i++) {
+//							String name = XML.getName(paths[i]);
+//							paths[i] = base + ("".equals(base)? "": "/") + name;
+//						}
+//						videoControl.setValue("paths", paths); //$NON-NLS-1$
+//					}
 				}
 			}
 
@@ -2101,11 +2112,12 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 					boolean videoexists = new File(tempPath).exists();
 					
 					// deal with zipped images
-					String[] imagePaths = VideoIO.getZippedImagePaths(originalPath);
+					String[] imagePaths = VideoIO.getZippedImagePaths(originalPath); // absolute
 					if (imagePaths != null) {
 						videoexists = new File(imagePaths[0]).exists();						
 					}
 					if (!videoexists) {
+						// must copy video file(s)
 						new File(getTempDirectory() + videoSubdirectory).mkdirs();
 						if (imagePaths != null) {
 							originalPath = imagePaths[0];
@@ -2194,10 +2206,37 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 								+ "\n\n" + names //$NON-NLS-1$
 								+ "\n\n" + TrackerRes.getString("ZipResourceDialog.BadModels.Question"), //$NON-NLS-1$ //$NON-NLS-2$
 						TrackerRes.getString("ZipResourceDialog.BadModels.Title"), //$NON-NLS-1$
-						javax.swing.JOptionPane.YES_NO_CANCEL_OPTION, javax.swing.JOptionPane.WARNING_MESSAGE);
+						javax.swing.JOptionPane.YES_NO_OPTION, javax.swing.JOptionPane.WARNING_MESSAGE);
 				if (response != javax.swing.JOptionPane.YES_OPTION) {
 					return;
 				}
+			}
+		}
+		else { // copying video
+			// warn if image videos include non-sequence images
+			Integer[] badImageVideoTabs = getTabsWithUnexportableImages();
+			if (badImageVideoTabs.length > 0) {
+				// show names of bad models and offer to exclude them from export
+				String names = ""; //$NON-NLS-1$
+				for (Integer next : badImageVideoTabs) {
+					if (!"".equals(names)) { //$NON-NLS-1$
+						names += ", "; //$NON-NLS-1$
+					}
+					names += "'" + frame.getTabTitle(next) + "'"; //$NON-NLS-1$ //$NON-NLS-2$
+				}
+				
+				int response = javax.swing.JOptionPane.showConfirmDialog(frame,
+						TrackerRes.getString("ExportZipDialog.BadImageVideos.Message1") //$NON-NLS-1$
+								+ "\n" + TrackerRes.getString("ExportZipDialog.BadImageVideos.Message2") //$NON-NLS-1$ //$NON-NLS-2$
+								+ "\n" + TrackerRes.getString("ExportZipDialog.BadImageVideos.Message3") //$NON-NLS-1$ //$NON-NLS-2$
+								+ "\n\n" + names //$NON-NLS-1$
+								+ "\n\n" + TrackerRes.getString("ExportZipDialog.BadImageVideos.Question"), //$NON-NLS-1$ //$NON-NLS-2$
+						TrackerRes.getString("ExportZipDialog.BadImageVideos.Title"), //$NON-NLS-1$
+						javax.swing.JOptionPane.YES_NO_OPTION, javax.swing.JOptionPane.WARNING_MESSAGE);
+				if (response != javax.swing.JOptionPane.YES_OPTION) {
+					return;
+				}
+				
 			}
 		}
 
@@ -2447,6 +2486,45 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 			allModels.addAll(models);
 		}
 		return allModels;
+	}
+
+	/**
+	 * Returns a list of tabs with image videos that have non-sequentially numbered images.
+	 */
+	private Integer[] getTabsWithUnexportableImages() {
+		ArrayList<Integer> tabs = new ArrayList<Integer>();
+		// process TrackerPanels according to checkbox status
+		for (int i = 0; i < tabCheckboxes.size(); i++) {
+			JCheckBox box = tabCheckboxes.get(i);
+			if (!box.isSelected())
+				continue;
+			TrackerPanel panel = frame.getTrackerPanelForTab(i);
+			if (panel == null)
+				continue;
+			Video video = panel.getVideo();
+			if (video instanceof ImageVideo) {
+				ImageVideo iv = (ImageVideo)video;
+				if (!iv.isFileBased()) {
+					if (!iv.saveInvalidImages()) {
+						tabs.add(i);
+						continue;
+					}
+				}
+				String[] paths = iv.getValidPaths();
+				if (paths.length > 1) {
+					String imagePath = paths[0];
+					for (int k = 1; k < paths.length; k++) {
+						String next = ImageVideo.getNextImagePathInSequence(imagePath);
+						if (!paths[k].equals(next)) {
+							tabs.add(i);
+							break;
+						}
+						imagePath = paths[i];
+					}				
+				}
+			}
+		}
+		return tabs.toArray(new Integer[tabs.size()]);
 	}
 
 	/**
