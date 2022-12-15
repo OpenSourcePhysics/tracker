@@ -2519,7 +2519,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 							tabs.add(i);
 							break;
 						}
-						imagePath = paths[i];
+						imagePath = paths[k];
 					}				
 				}
 			}
