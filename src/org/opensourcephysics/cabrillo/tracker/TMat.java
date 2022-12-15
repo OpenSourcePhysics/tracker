@@ -27,7 +27,6 @@ package org.opensourcephysics.cabrillo.tracker;
 import java.beans.*;
 import java.awt.*;
 import java.awt.geom.*;
-import java.awt.image.BufferedImage;
 
 import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.display.*;
@@ -246,20 +245,15 @@ public class TMat implements Measurable, Trackable, PropertyChangeListener {
 		int h = (int) TrackerPanel.getDefaultImageHeight();
 		Video video = trackerPanel.getVideo();
 		if (video != null) {
-			if (video instanceof ImageVideo && video.getFilterStack().isEmpty()) {
-				Dimension dim = ((ImageVideo) video).getSize();
+			// BH It is possible that this is executing prior to JSMovieVideo obtaining its
+			// first image, but still having known width and height. So do not call getImage() here.
+			boolean useRaw = video instanceof ImageVideo 
+					&& video.getFilterStack().isEmpty();			
+			Dimension d = video.getImageSize(!useRaw);
+			if (d.width > 0) {
 				haveVideo = true;
-				w = dim.width;
-				h = dim.height;
-			} else {
-				// BH It is possible that this is executing prior to JSMovieVideo obtaining its
-				// first image, but still having known width and height. So do not call getImage() here.
-				Dimension d = video.getImageSize(true);
-				if (d.width > 0) {
-					haveVideo = true;
-					w = d.width;
-					h = d.height;
-				}
+				w = d.width;
+				h = d.height;
 			}
 		}
 		mat.x = Math.min((w - mat.width) / 2, 0);

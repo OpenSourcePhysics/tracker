@@ -959,6 +959,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 							clip.setStepCount(imageVid.getFrameCount());
 							panel().getPlayer().setStepNumber(clip.frameToStep(n + 1));
 							refresh("menuItem.pageInsertAfter");
+							checkMatSize();
 						}
 					}
 				});
@@ -976,6 +977,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 							clip.setStepCount(imageVid.getFrameCount());
 							panel().getPlayer().setStepNumber(clip.frameToStep(n));
 							refresh("menuItem.pastImageBefore");
+							checkMatSize();
 						}
 					}
 				});
@@ -1004,11 +1006,13 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		addImageAfterItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.AddAfter")); //$NON-NLS-1$
 		addImageAfterItem.addActionListener((e) -> {
 				TrackerIO.insertImagesIntoVideo(panel(),  panel().getFrameNumber() + 1);
+				checkMatSize();
 //				refresh("menuItem.addAfter");
 		});
 		addImageBeforeItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.AddBefore")); //$NON-NLS-1$
 		addImageBeforeItem.addActionListener((e) -> {
 				TrackerIO.insertImagesIntoVideo(panel(), panel().getFrameNumber());
+				checkMatSize();
 //				refresh("menuItem.addBefore");
 		});
 		video_importImageMenu.add(addImageBeforeItem);
@@ -1570,13 +1574,13 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		edit_matsize_matSizeItem.setActionCommand(dimensionString);
 
 		if (video != null) {
-			BufferedImage image = video.getImage();
-			vidWidth = image.getWidth();
-			vidHeight = image.getHeight();
-			// can't use raw video size here--image size changes with filters
-//			Dimension d = video.getImageSize(true);
-//      vidWidth = d.width;
-//      vidHeight = d.height;
+//			BufferedImage image = video.getImage();
+//			vidWidth = image.getWidth();
+//			vidHeight = image.getHeight();
+			// use image size WITH filters
+			Dimension d = video.getImageSize(true);
+      vidWidth = d.width;
+      vidHeight = d.height;
 			String s = TrackerRes.getString("TMenuBar.Menu.Video"); //$NON-NLS-1$
 			String description = " (" + s.toLowerCase() + ")"; //$NON-NLS-1$ //$NON-NLS-2$
 			dimensionString = vidWidth + "x" + vidHeight;
