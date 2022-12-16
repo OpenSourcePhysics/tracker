@@ -5,6 +5,9 @@ workspace_trackerJS:
 -- check out master and merge SwingJS?
 -- add version tag to master and push all code to GitHub
 -- build tracker.jar, tracker_starter.jar using build-tracker-jar.xml file in tracker/jarscripts
+-- temporarily change version to 5.3.x from 6.1.x. 
+-- build tracker-5.3.x.jar using tracker_jar_xuggle3.4 target in build-tracker-jar.xml
+-- change version back to 6.1.x
 
 workspace_trackerJS/launch4j:
 -- update version number
@@ -16,6 +19,7 @@ workspace_trackerJS/installbuilder:
 -- update version number in tracker_upgrade_installer.xml
 -- build Windows and Linux installers & upgrade installers in workspace_trackerJS/installbuilder
 
+-- For both vers 6.0.x (Xuggle 5.7) & 5.2.x (Xuggle 3.4):
 -- on Mac: replace tracker.jar, tracker_starter.jar, tracker-x.x.x.jar in Desktop Tracker.app/Contents/Java 
 -- on Mac: replace xuggle-xuggler-server-all.jar and supporting jars in Desktop Tracker.app/Contents/Java & Xuggle
 -- on Mac: replace Tracker_README.txt in Desktop Tracker.app/Contents/Resources 
@@ -25,7 +29,7 @@ workspace_trackerJS/installbuilder:
 -- on Mac: test Desktop Tracker.app, clean up Java folder (old jars, start log and xuggle jars)
 -- on Mac: compress Desktop Tracker.app to Tracker.app.zip
 
--- on Win: duplicate folder D:\BitRockTrackerWorkspace\TrackerBuildYYY (previous OSX release), rename to XXX
+-- on Win: duplicate folder BitRockTrackerWorkspace\TrackerBuildYYY (previous OSX release), rename to XXX
 -- on Win: replace Tracker.app.zip in D:\BitRockWorkspace\TrackerBuildXXX\bin with new one
 -- on Win: replace tracker-x.x.x.jar, tracker_starter.jar in bin
 -- on Win: update Tracker.cfg, Info.plist in bin
@@ -35,9 +39,9 @@ workspace_trackerJS/installbuilder:
 
 -- test installers & upgrade installers
 
--- delete output files in TrackerBuildXXX folder
+-- delete output files in TrackerBuildXXX folder, both 6.1.x & 5.3.x
 -- zip the entire TrackerBuildXXX folder and send to Wolfgang via dropbox for building/notarizing
--- use the tracker-X.X.X-osx-installer.dmg returned by Wolfgang
+-- use the tracker-X.X.X-osx-installer.dmg files returned by Wolfgang
 
 dreamweaver:
 -- upload installers to installers folder
