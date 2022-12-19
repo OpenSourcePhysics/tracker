@@ -2921,9 +2921,6 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 							target = file.getAbsolutePath();
 							notfound = false;
 						}
-//						if (ResourceLoader.getResourceZipURLsOK(target) != null) {
-//							notfound = false;
-//						}
 					}
 					if (notfound) {
 						String s = TrackerRes.getString("TFrame.Dialog.LibraryError.FileNotFound.Message"); //$NON-NLS-1$
