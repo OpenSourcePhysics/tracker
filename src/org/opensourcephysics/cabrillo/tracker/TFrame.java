@@ -248,6 +248,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	protected static boolean isPortraitOrientation;
 	private static boolean isLayoutChanged;
 	protected static boolean isLayoutAdaptive;
+	private static boolean loadFailed;
 	
 	public static boolean haveExportDialog;
 	public static boolean haveThumbnailDialog;
@@ -2864,7 +2865,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 
 			OSPRuntime.trigger(200, (ev) -> {
 				libraryBrowser.doneLoading();
-				requestFocus();
+				if (!loadFailed)
+					requestFocus();
 				if (panelID != null) {
 					TrackerPanel panel = getTrackerPanelForID(panelID);
 					panel.changed = false;
@@ -2882,6 +2884,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	}
 
 	public void openLibraryResource(LibraryResource record, Runnable whenDone) {
+		loadFailed = false;
 		try {
 			libraryBrowser.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
 			String target = record.getAbsoluteTarget();
@@ -2893,13 +2896,16 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 				String fileName = record.getProperty("download_filename"); //$NON-NLS-1$
 				try {
 					target = ResourceLoader.downloadToOSPCache(target, fileName, false).toURI().toString();
-					if (VideoIO.isCanceled())
+					if (VideoIO.isCanceled()) {
+						loadFailed = true;
 						return;
+					}
 				} catch (Exception ex) {
 					String s = TrackerRes.getString("TFrame.Dialog.LibraryError.Message"); //$NON-NLS-1$
 					JOptionPane.showMessageDialog(libraryBrowser, s + " \"" + record.getName() + "\"", //$NON-NLS-1$ //$NON-NLS-2$
 							TrackerRes.getString("TFrame.Dialog.LibraryError.Title"), //$NON-NLS-1$
 							JOptionPane.WARNING_MESSAGE);
+					loadFailed = true;
 					return;
 				}
 			}
@@ -2907,12 +2913,27 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			String lcTarget = target.toLowerCase();
 			if (lcTarget.endsWith(".trk") || ResourceLoader.isJarZipTrz(lcTarget, false)) {
 				if (ResourceLoader.getResourceZipURLsOK(target) == null) {
-					String s = TrackerRes.getString("TFrame.Dialog.LibraryError.FileNotFound.Message"); //$NON-NLS-1$
-					JOptionPane.showMessageDialog(libraryBrowser, s + " \"" + XML.getName(target) + "\"", //$NON-NLS-1$ //$NON-NLS-2$
-							TrackerRes.getString("TFrame.Dialog.LibraryError.FileNotFound.Title"), //$NON-NLS-1$
-							JOptionPane.WARNING_MESSAGE);
-					libraryBrowser.setVisible(true);
-					return;
+					boolean notfound = true;
+					// look at cache if http and not web connected
+					if (ResourceLoader.isHTTP(target) && !ResourceLoader.isWebConnected()) {
+						File file = ResourceLoader.getOSPCacheFile(target);
+						if (file != null && file.exists()) {
+							target = file.getAbsolutePath();
+							notfound = false;
+						}
+//						if (ResourceLoader.getResourceZipURLsOK(target) != null) {
+//							notfound = false;
+//						}
+					}
+					if (notfound) {
+						String s = TrackerRes.getString("TFrame.Dialog.LibraryError.FileNotFound.Message"); //$NON-NLS-1$
+						JOptionPane.showMessageDialog(libraryBrowser, s + " \"" + XML.getName(target) + "\"", //$NON-NLS-1$ //$NON-NLS-2$
+								TrackerRes.getString("TFrame.Dialog.LibraryError.FileNotFound.Title"), //$NON-NLS-1$
+								JOptionPane.WARNING_MESSAGE);
+						libraryBrowser.setVisible(true);
+						loadFailed = true;
+						return;
+					}
 				}
 				try {
 					ArrayList<String> uriPaths = new ArrayList<String>();
@@ -2920,6 +2941,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 					VideoIO.loader = TrackerIO.openFromLibrary(uriPaths, this, whenDone);
 					whenDone = null;
 				} catch (Throwable t) {
+					loadFailed = true;
 				}
 				return;
 			}
@@ -2934,6 +2956,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 					if (libraryBrowser != null)
 						libraryBrowser.setMessage(null, null);
 					VideoIO.handleUnsupportedVideo(path, ext, null, getSelectedPanel(), "TFrame known video ext");
+					loadFailed = true;
 					return;
 				}
 			}
