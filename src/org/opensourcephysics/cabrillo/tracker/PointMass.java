@@ -2921,7 +2921,7 @@ public class PointMass extends TTrack {
 						p.steps.setStep(n, null);
 						continue;
 					}
-					if (keys == null)
+					if (keys == null || keys.length == 0)
 						p.keyFrames.add(n);
 					PositionStep step = (PositionStep) p.getStep(n);
 					if (step != null) {
