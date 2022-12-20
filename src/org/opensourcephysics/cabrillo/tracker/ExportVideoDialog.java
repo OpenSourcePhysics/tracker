@@ -938,9 +938,14 @@ public class ExportVideoDialog extends JDialog {
 			return new BufferedImage[] { getResizedImage(trackerPanel.getMattedImage(), size) };
 		}
 		if (view instanceof WorldTView) { // world view
-			BufferedImage image = (BufferedImage) view.createImage(size.width, size.height);
-			image = ((WorldTView) view).render(image);
-			return new BufferedImage[] { getResizedImage(image, size) };
+			WorldTView wtv = (WorldTView) view;
+			// render using the full size of the worldPanel before clipping
+			Dimension dim = wtv.scrollPane.getViewport().getView().getSize();
+			BufferedImage image = (BufferedImage) view.createImage(dim.width, dim.height);
+			image = ((WorldTView) view).render(image);	
+			// rect is the clipping rectangle
+			Rectangle rect = wtv.scrollPane.getViewport().getViewRect();
+			return new BufferedImage[] { getClippedImage(image, rect) };
 		}
 		if (view instanceof PlotTrackView) { // plot view
 			BufferedImage image = ((PlotTrackView) view).exportImage(size.width, size.height);
@@ -952,6 +957,31 @@ public class ExportVideoDialog extends JDialog {
 		view.paint(g2);
 		g2.dispose();
 		return new BufferedImage[] { image };
+	}
+
+	/**
+	 * Clips a source image and returns the clipped image. This method re-uses the
+	 * same image and returns the original image if the clip is the whole image.
+	 * 
+	 * @param source the source image
+	 * @param rect   the desired clipping Rectangle
+	 * @return a BufferedImage
+	 */
+	private BufferedImage getClippedImage(BufferedImage source, Rectangle rect) {		
+		if (rect.width == source.getWidth() && rect.height == source.getHeight())
+			return source;
+		if (sizedImage == null 
+				|| sizedImage.getWidth() != rect.width 
+				|| sizedImage.getHeight() != rect.height) {
+			sizedImage = new BufferedImage(rect.width, rect.height, source.getType());
+		}
+		BufferedImage img = source.getSubimage(rect.x, rect.y, rect.width, rect.height);		
+		Graphics2D g2 = sizedImage.createGraphics();
+		g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, 
+				RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+		g2.drawImage(img, 0, 0, null);	
+		g2.dispose();
+		return sizedImage;
 	}
 
 	/**
