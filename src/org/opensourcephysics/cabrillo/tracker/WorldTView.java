@@ -285,6 +285,12 @@ public class WorldTView extends ZoomTView {
 	}
 
 	@Override
+	public Dimension getSize() {
+		return scrollPane.getViewport().getExtentSize();
+//		return super.getSize();
+	}
+
+	@Override
 	public void propertyChange(PropertyChangeEvent e) {
 		propertyChangeImpl(e);
 	}
