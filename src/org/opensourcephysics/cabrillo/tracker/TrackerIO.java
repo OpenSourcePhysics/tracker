@@ -2746,8 +2746,11 @@ public class TrackerIO extends VideoIO {
 			if (format.equals(selected))
 				hasSelected = true;
 			if (preferred == null && format.contains("." + extensions[0])) { //$NON-NLS-1$
-				if (extensions.length > 1 && !format.toLowerCase().contains(extensions[1]))
-					continue;
+				if (extensions.length > 1) {
+					String ext = extensions[1].equals("jpg")? "jpeg": extensions[1];
+					if (!format.toLowerCase().contains(ext))
+						continue;
+				}
 				preferred = format;
 			}
 		}
