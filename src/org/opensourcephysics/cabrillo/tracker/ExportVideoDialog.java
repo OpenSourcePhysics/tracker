@@ -118,12 +118,12 @@ public class ExportVideoDialog extends JDialog {
 
 		if (videoExporter == null) {
 			videoExporter = new ExportVideoDialog(panel);
-			videoExporter.setFontLevel(FontSizer.getLevel());
 		}
 
 		// refresh format dropdown
 		videoExporter.refreshFormatDropdown(VideoIO.getPreferredExportExtension());
 		videoExporter.setTrackerPanel(panel);
+		videoExporter.setFontLevel(FontSizer.getLevel());
 		return videoExporter;
 	}
 
