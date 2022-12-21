@@ -3495,7 +3495,7 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 				@Override
 				public void windowClosing(WindowEvent e) {
 					String newName = nameField.getText();
-					if (target != null)
+					if (target != null && tp != null)
 						tp.setTrackName(target, newName, true);
 				}
 			});
