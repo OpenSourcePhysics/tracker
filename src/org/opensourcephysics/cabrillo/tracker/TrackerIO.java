@@ -976,6 +976,22 @@ public class TrackerIO extends VideoIO {
 	}
 
 	protected static void importXMLAction(TrackerPanel trackerPanel, File file) {
+		// pig check for trz file and import trk file inside
+		if (trzFileFilter.accept(file) || zipFileFilter.accept(file)) {
+			String path = file.getAbsolutePath();
+			Map<String, ZipEntry> contents = ResourceLoader.getZipContents(path, true);
+			if (contents != null) {
+				for (String key: contents.keySet()) {
+					ZipEntry entry = contents.get(key);
+					String name = entry.getName();
+					if (name != null && name.toLowerCase().endsWith(".trk")) {
+						name = file.getAbsolutePath() + "!/" + name;
+						file = new File(name);
+						break;
+					}
+				}
+			}
+		}
 		OSPLog.fine("importing from " + file); //$NON-NLS-1$
 		XMLControlElement control = new XMLControlElement(file.getAbsolutePath());
 		Class<?> type = control.getObjectClass();
@@ -983,7 +999,24 @@ public class TrackerIO extends VideoIO {
 			// choose the elements and load the tracker panel
 			choose(trackerPanel, control, false, () -> {
 				trackerPanel.changed = true;
-				control.loadObject(trackerPanel);
+				// import videoclip, coords and/or tracks
+				VideoClip vidClip = (VideoClip)control.getObject("videoclip");
+				if (vidClip != null) {
+					trackerPanel.getPlayer().setVideoClip(vidClip);						
+				}					
+				
+				ImageCoordSystem coords = (ImageCoordSystem)control.getObject("coords");
+				if (coords != null)
+					trackerPanel.setCoords(coords);
+				
+				ArrayList<?> tracks = ArrayList.class.cast(control.getObject("tracks")); //$NON-NLS-1$
+				if (tracks != null) {
+					for (int i = 0, n = tracks.size(); i < n; i++) {
+						trackerPanel.addTrack((TTrack) tracks.get(i));
+					}
+				}
+				// refresh views
+				trackerPanel.refreshTrackData(DataTable.MODE_REFRESH);
 				TToolBar.refreshMemoryButton(trackerPanel);
 			});
 		} else {
@@ -1026,7 +1059,8 @@ public class TrackerIO extends VideoIO {
 		if (asZipFile && !file.getName().endsWith(".zip"))
 			file = new File(file.getAbsolutePath() + ".zip");
 		boolean success = true;
-		if (isImageVideo || asZipFile) {
+		boolean isZipSource = source.endsWith(".zip");
+		if (!isZipSource && (isImageVideo || asZipFile)) {
 			String targetDir = XML.forwardSlash(file.getParent());
 			String[] paths = (isImageVideo ? ((ImageVideo) video).getValidPaths()
 					: new String[video.getFrameCount()]);
@@ -1422,35 +1456,30 @@ public class TrackerIO extends VideoIO {
 	 * @param ok           run only if not canceled
 	 */
 	public static void choose(TrackerPanel trackerPanel, XMLControl control, boolean isExport, Runnable ok) {
+		// eliminate some unwanted content immediately
+		control.setValue("clipcontrol", null);
+		control.setValue("toolbar", null);
 		// create the lists
 
 		ArrayList<XMLControl> choices = new ArrayList<XMLControl>();
 		ArrayList<String> names = new ArrayList<String>();
 		ArrayList<XMLControl> originals = new ArrayList<XMLControl>();
 		ArrayList<XMLProperty> primitives = new ArrayList<XMLProperty>(); // non-object properties
-		// add direct child controls except clipcontrol and toolbar
-		XMLControl vidClipControl = null, vidControl = null;
+		// add child controls for videoclip (if not JS and has video) and coords
 		XMLControl[] children = control.getChildControls();
 		for (int i = 0; i < children.length; i++) {
 			String name = children[i].getPropertyName();
 			if (name.equals("coords")) { //$NON-NLS-1$
 				name = TrackerRes.getString("TMenuBar.MenuItem.Coords"); //$NON-NLS-1$
 			} else if (name.equals("videoclip")) { //$NON-NLS-1$
-				name = TrackerRes.getString("TMenuBar.MenuItem.VideoClip"); //$NON-NLS-1$
-				vidControl = children[i].getChildControl("video"); //$NON-NLS-1$
-				if (vidControl != null) {
-					vidClipControl = children[i];
-					originals.add(vidControl);
-					choices.add(vidControl);
-					names.add(name + " " + TrackerRes.getString("TrackerIO.Export.Option.WithoutVideo")); //$NON-NLS-1$//$NON-NLS-2$
-					name = name + " " + TrackerRes.getString("TrackerIO.Export.Option.WithVideo"); //$NON-NLS-1$ //$NON-NLS-2$
+				if (children[i].getChildControl("video") == null
+						|| OSPRuntime.isJS) { //$NON-NLS-1$
+					control.setValue("videoclip", null);
+					continue;
 				}
+				name = TrackerRes.getString("TMenuBar.MenuItem.VideoClip"); //$NON-NLS-1$
 			}
 			originals.add(children[i]);
-			if (name.equals("clipcontrol")) //$NON-NLS-1$
-				continue;
-			if (name.equals("toolbar")) //$NON-NLS-1$
-				continue;
 			choices.add(children[i]);
 			names.add(name);
 		}
@@ -1462,49 +1491,29 @@ public class TrackerIO extends VideoIO {
 				children = prop.getChildControls();
 				for (int i = 0; i < children.length; i++) {
 					choices.add(children[i]);
-					names.add(children[i].getPropertyName());
+					names.add(children[i].getString("name"));
 					originals.add(children[i]);
 				}
-			} else if (prop.getPropertyType() == XMLProperty.TYPE_OBJECT) { // $NON-NLS-1$
+			} else if (prop.getPropertyType() != XMLProperty.TYPE_OBJECT) { // $NON-NLS-1$
 				primitives.add(prop);
 			}
 		}
 		// show the dialog for user input and make changes if approved
-		XMLControl vControl = vidControl, vClipControl = vidClipControl;
 		ActionListener listener = new ActionListener() {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				// remove primitives from control
-				if (e.getID() != ActionEvent.ACTION_PERFORMED || vControl == null || vClipControl == null) {
+				if (e.getID() != ActionEvent.ACTION_PERFORMED) {
 					return;
 				}
+				// remove primitives from control
 				for (XMLProperty prop : primitives) {
 					control.setValue(prop.getPropertyName(), null);
 				}
 				control.getPropertyContent().removeAll(primitives);
 				// compare choices with originals and remove unwanted object content
-				boolean removeVideo = false;
 				for (XMLControl next : originals) {
-					if (next == vControl) {
-						removeVideo = choices.contains(next);
-						continue;
-					} else if (next == vClipControl) {
-						if (!choices.contains(next)) {
-							if (removeVideo) {
-								// remove video from clip property
-								XMLProperty prop = vControl.getParentProperty();
-								vClipControl.setValue("video", null); //$NON-NLS-1$
-								vClipControl.getPropertyContent().remove(prop);
-							} else {
-								// remove video clip property entirely
-								XMLProperty prop = next.getParentProperty();
-								control.setValue(prop.getPropertyName(), null);
-								control.getPropertyContent().remove(prop);
-							}
-						}
-						continue;
-					} else if (!choices.contains(next)) {
+					if (!choices.contains(next)) {
 						XMLProperty prop = next.getParentProperty();
 						XMLProperty parent = prop.getParentProperty();
 						if (parent == control) {
