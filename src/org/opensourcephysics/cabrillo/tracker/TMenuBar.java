@@ -645,13 +645,13 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		// printFrame item
 		file_printFrameItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.PrintFrame")); //$NON-NLS-1$
 		file_printFrameItem.setAccelerator(KeyStroke.getKeyStroke('P', keyMask));
-//		file_printFrameItem.addActionListener(new ActionListener() {
-//			@Override
-//			public void actionPerformed(ActionEvent e) {
-//				Component c = trackerPanel.getTFrame();
-//				new TrackerIO.ComponentImage(c).print();
-//			}
-//		});
+		file_printFrameItem.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				Component c = panel().getTFrame();
+				new TrackerIO.ComponentImage(c).print();
+			}
+		});
 		// exit item
 //		if (!OSPRuntime.isApplet) {
 			file_exitItem = new JMenuItem(actions.get("exit")); //$NON-NLS-1$
