@@ -331,7 +331,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 	// help menu
 	private JMenu helpMenu;
 
-	private int enabledCount = 0;
+	protected int enabledNewTrackCount = 0;
 	private Integer panelID;
 
 //	/**
@@ -1409,60 +1409,83 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 	}
 
 	protected void refreshFileMenu(boolean opening) {
-		if (!opening) {
-			fileMenu.add(file_newTabItem);
-			if (file_replaceTabItem != null) {
-				fileMenu.add(file_replaceTabItem);
+		
+		boolean newtabEnabled = panel().isEnabled("file.new"); //$NON-NLS-1$
+		boolean openEnabled = panel().isEnabled("file.open"); //$NON-NLS-1$
+		boolean closeEnabled = panel().isEnabled("file.close"); //$NON-NLS-1$
+		boolean importEnabled = panel().isEnabled("file.import"); //$NON-NLS-1$
+		boolean exportEnabled = panel().isEnabled("file.export"); //$NON-NLS-1$
+		boolean showLib = (panel().isEnabled("file.library") //$NON-NLS-1$
+				&& (openEnabled || exportEnabled));
+		boolean saveEnabled = (panel().isEnabled("file.save")); //$NON-NLS-1$
+		boolean saveAsEnabled = panel().isEnabled("file.saveAs"); //$NON-NLS-1$
+		boolean printEnabled = panel().isEnabled("file.print"); //$NON-NLS-1$
+
+//		if (!opening) {
+			fileMenu.removeAll();
+			if (newtabEnabled) {
+				fileMenu.add(file_newTabItem);
+				if (file_replaceTabItem != null) {
+					fileMenu.add(file_replaceTabItem);
+				}
+				fileMenu.addSeparator();
 			}
-			fileMenu.addSeparator();
 //			fileMenu.add(file_openItem);
-			file_openMenu.add(file_openItem);
-			file_openMenu.add(file_openBrowserItem);
-			fileMenu.add(file_openMenu);
-			if (!OSPRuntime.isJS) {
+			file_openMenu.removeAll();
+			if (openEnabled) {
+				file_openMenu.add(file_openItem);
+				if (showLib)				
+					file_openMenu.add(file_openBrowserItem);
+				fileMenu.add(file_openMenu);
+			}
+			if (openEnabled && !OSPRuntime.isJS) {
 				fileMenu.add(file_openRecentMenu);
 			}
 //			fileMenu.addSeparator();
 //			fileMenu.add(file_openBrowserItem);
-			if (panel().getDataFile() != null) {
-				fileMenu.addSeparator();
+			if (openEnabled && panel().getDataFile() != null) {
+				checkAddMenuSep(fileMenu);
 				fileMenu.add(file_reloadItem);
 			}
-			fileMenu.addSeparator();
-			fileMenu.add(file_closeItem);
-			fileMenu.add(file_closeAllItem);
-			fileMenu.addSeparator();
-			fileMenu.add(file_saveMenu);
-			file_saveMenu.add(file_saveItem);
-			fileMenu.add(file_saveTabAsItem);
-			fileMenu.add(file_saveVideoAsItem);
-			file_saveMenu.add(file_saveProjectAsItem);
-			fileMenu.add(file_saveTabsetAsItem);
-			fileMenu.addSeparator();
-			fileMenu.add(file_importMenu);
-			fileMenu.add(file_exportMenu);
-			fileMenu.addSeparator();
+			if (closeEnabled) {
+				checkAddMenuSep(fileMenu);
+				fileMenu.add(file_closeItem);
+				fileMenu.add(file_closeAllItem);
+			}
+			if (saveEnabled || saveAsEnabled) {
+				checkAddMenuSep(fileMenu);
+			}
+			if (saveEnabled) {
+				fileMenu.add(file_saveMenu);
+			}
+			if (saveAsEnabled) {
+				file_saveMenu.add(file_saveItem);
+				fileMenu.add(file_saveTabAsItem);
+				if (panel().getVideo() != null) 
+					fileMenu.add(file_saveVideoAsItem);
+				file_saveMenu.add(file_saveProjectAsItem);
+				if (frame != null && frame.getTabCount() > 1)
+					fileMenu.add(file_saveTabsetAsItem);
+			}
+			if (importEnabled || exportEnabled) {
+				checkAddMenuSep(fileMenu);
+				if (importEnabled)
+					fileMenu.add(file_importMenu);
+				if (exportEnabled)
+					fileMenu.add(file_exportMenu);
+			}
+			checkAddMenuSep(fileMenu);
 			fileMenu.add(file_propertiesItem);
 			fileMenu.addSeparator();
-			fileMenu.add(file_printFrameItem);
+			if (printEnabled)
+				fileMenu.add(file_printFrameItem);
 			fileMenu.add(file_exitItem);
-			return;
-		}
-		// opening
-		if (isTainted(MENU_FILE)) {
-			// refresh file menu
+//			return;
+//		}
 			
-			boolean newtabEnabled = panel().isEnabled("file.new"); //$NON-NLS-1$
-			boolean openEnabled = panel().isEnabled("file.open"); //$NON-NLS-1$
-			boolean closeEnabled = panel().isEnabled("file.close"); //$NON-NLS-1$
-			boolean importEnabled = panel().isEnabled("file.import"); //$NON-NLS-1$
-			boolean exportEnabled = panel().isEnabled("file.export"); //$NON-NLS-1$
-			boolean showLib = (panel().isEnabled("file.library") //$NON-NLS-1$
-					&& (openEnabled || exportEnabled));
-			boolean saveEnabled = (panel().isEnabled("file.save")); //$NON-NLS-1$
-			boolean saveAsEnabled = panel().isEnabled("file.saveAs"); //$NON-NLS-1$
-			boolean printEnabled = panel().isEnabled("file.print"); //$NON-NLS-1$
-
+		// opening
+		if (opening && isTainted(MENU_FILE)) {
+			// refresh file menu
 			file_newTabItem.setEnabled(newtabEnabled);			
 			checkShowMenuSep(fileMenu, file_openItem, openEnabled);
 			file_openItem.setEnabled(openEnabled);
@@ -1494,7 +1517,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 			FontSizer.setMenuFonts(fileMenu);
 			setMenuTainted(MENU_FILE, false);
 		}
-		if (!OSPRuntime.isJS) {
+		if (opening && !OSPRuntime.isJS) {
 			if (frame != null) {
 				System.out.println("TMenuBar mem test " + OSPRuntime.getMemoryStr()); // TEST_BH
 				frame.refreshOpenRecentMenu(file_openRecentMenu);
@@ -1906,7 +1929,8 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		if (isTainted(MENU_COORDS)) {
 			// refresh coords menu
 			coordsMenu.removeAll();
-			coordsMenu.add(coords_showUnitDialogItem);
+			if (panel().isEnabled("number.units")) //$NON-NLS-1$
+				coordsMenu.add(coords_showUnitDialogItem);
 			if (panel().isEnabled("coords.locked")) { //$NON-NLS-1$
 				checkAddMenuSep(coordsMenu);
 				coordsMenu.add(coords_lockedCoordsItem);
@@ -1951,7 +1975,6 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 			coords_refFrameMenu.setEnabled(!coords.isLocked());
 			// add default reference frame item
 			refreshTracks(MENU_COORDS);
-			FontSizer.setMenuFonts(coordsMenu);
 			if (coordsMenu.getItemCount() == 0) {
 				coordsMenu.add(coords_emptyCoordsItem);
 			}
@@ -1960,6 +1983,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		if (opening) {
 			refreshTrackNames(MENU_COORDS);
 		}
+		FontSizer.setMenuFonts(coordsMenu);
 		// OSPLog.debug("!!! " + Performance.now(t0) + " TMenuBar coords refresh");
 
 	}
@@ -1996,9 +2020,12 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 					videoMenu.add(video_closeVideoItem);
 			}
 			checkAddMenuSep(videoMenu);
-			videoMenu.add(video_clipSettingsItem);
+			
+			if (panel().isEnabled("button.clipSettings")) {//$NON-NLS-1$
+				videoMenu.add(video_clipSettingsItem);
+			}
 			videoMenu.add(video_goToItem);
-			videoMenu.addSeparator();
+			checkAddMenuSep(videoMenu);
 
 			if (importEnabled && video instanceof ImageVideo) {
 				boolean editable = ((ImageVideo) video).isEditable();
@@ -2094,19 +2121,18 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 //				if (isXtractorType) videoMenu.add(checkDurationsItem);
 					videoMenu.add(video_aboutVideoItem);
 				}
-
-				// hack to eliminate extra separator at end of video menu
-				int n = videoMenu.getItemCount();
-				if (n > 0 && videoMenu.getMenuComponent(n - 1) instanceof JSeparator) {
-					videoMenu.remove(n - 1);
-				}
-
-				// add empty menu items to menus with no items
-				if (videoMenu.getItemCount() == 0) {
-					videoMenu.add(video_emptyVideoItem);
-				}
 			}
-			FontSizer.setMenuFonts(videoMenu);
+			// eliminate possible extra separator at end of video menu
+			int n = videoMenu.getMenuComponentCount();
+			if (n > 0 && videoMenu.getMenuComponent(n - 1) instanceof JSeparator) {
+				videoMenu.remove(n - 1);
+			}
+
+			// add empty menu items to menus with no items
+			if (videoMenu.getItemCount() == 0) {
+				videoMenu.add(video_emptyVideoItem);
+			}
+			
 			setMenuTainted(MENU_VIDEO, false);
 			videoFiltersMenuItems = video_filtersMenu.getMenuComponents();
 		}
@@ -2230,7 +2256,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 			// refresh track menu
 			trackMenu.removeAll();
 			track_cloneMenu.removeAll();
-			enabledCount = refreshTracksCreateMenu(track_createMenu, enabledCount, false);
+			enabledNewTrackCount = refreshTracksCreateMenu(track_createMenu, enabledNewTrackCount, false);
 			if (track_createMenu.getItemCount() > 0)
 				trackMenu.add(track_createMenu);
 			if (hasTracks && panel().isEnabled("new.clone")) //$NON-NLS-1$
@@ -2898,7 +2924,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 	 */
 	protected JPopupMenu refreshTrackControlPopup(JPopupMenu popup) {
 		JMenu menu = new JMenu();
-		refreshTracksCreateMenu(menu, enabledCount, true);
+		refreshTracksCreateMenu(menu, enabledNewTrackCount, true);
 		FontSizer.setMenuFonts(menu);
 		int n = menu.getPopupMenu().getComponentCount();
 		popup.removeAll();
