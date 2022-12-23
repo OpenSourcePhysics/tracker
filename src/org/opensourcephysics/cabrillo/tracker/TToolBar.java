@@ -49,7 +49,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
@@ -63,10 +62,10 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
 import javax.swing.JRadioButtonMenuItem;
+import javax.swing.JSeparator;
 import javax.swing.JToolBar;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
-import javax.swing.border.Border;
 import javax.swing.event.MenuEvent;
 import javax.swing.event.MenuListener;
 
@@ -419,7 +418,7 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 		});
 		zoomButton.setName(BUTTON_ZOOM);
 
-		// new track button
+		// new track button--no longer used, now use trackControlButton
 		newTrackButton = new TButton(pointmassOffIcon) {
 
 			@Override
@@ -845,7 +844,10 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 		popup.add(openfile);
 		JMenuItem openbrowser = new JMenuItem(actions.get("openBrowser"));
 		openbrowser.setIcon(null);
-		popup.add(openbrowser);
+		boolean showbrowser = (panel().isEnabled("file.library") //$NON-NLS-1$
+				&& panel().isEnabled("file.open"));
+		if (showbrowser)
+			popup.add(openbrowser);
 		if (isButton) {
 			openfile.setText(TrackerRes.getString("TActions.Action.Open"));
 			openbrowser.setText(TrackerRes.getString("TActions.Action.OpenBrowser"));
@@ -1373,16 +1375,44 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 			});
 			xMassMenuItem.setIconTextGap(gap);
 		}
-		popup.add(pathVisMenuItem);
-		popup.add(pVisMenuItem);
-		popup.add(vVisMenuItem);
-		popup.add(aVisMenuItem);
-		popup.addSeparator();
-		popup.add(trailsMenu);
-		popup.add(labelsMenuItem);			
-		popup.addSeparator();
-		popup.add(stretchMenu);
-		popup.add(xMassMenuItem);			
+		
+		if (panel().isEnabled("button.path") //$NON-NLS-1$
+				|| panel().isEnabled("button.x") //$NON-NLS-1$
+				|| panel().isEnabled("button.v") //$NON-NLS-1$
+				|| panel().isEnabled("button.a")) {//$NON-NLS-1$
+			if (panel().isEnabled("button.path")) //$NON-NLS-1$
+				popup.add(pathVisMenuItem);
+			if (panel().isEnabled("button.x")) //$NON-NLS-1$
+				popup.add(pVisMenuItem);
+			if (panel().isEnabled("button.v")) //$NON-NLS-1$
+				popup.add(vVisMenuItem);
+			if (panel().isEnabled("button.a")) //$NON-NLS-1$
+				popup.add(aVisMenuItem);
+			popup.addSeparator();
+		}
+			
+		if (panel().isEnabled("button.trails") //$NON-NLS-1$
+				|| panel().isEnabled("button.labels")) { //$NON-NLS-1$
+			if (panel().isEnabled("button.trails")) //$NON-NLS-1$
+				popup.add(trailsMenu);
+			if (panel().isEnabled("button.labels")) //$NON-NLS-1$
+				popup.add(labelsMenuItem);			
+			popup.addSeparator();
+		}
+
+		if (panel().isEnabled("button.stretch") //$NON-NLS-1$
+			|| panel().isEnabled("button.xMass")) { //$NON-NLS-1$
+			if (panel().isEnabled("button.stretch")) //$NON-NLS-1$
+				popup.add(stretchMenu);
+			if (panel().isEnabled("button.xMass")) //$NON-NLS-1$
+				popup.add(xMassMenuItem);			
+		}
+
+		// remove dangling separator
+		int n = popup.getComponentCount();
+		if (n > 0 && popup.getComponent(n - 1) instanceof JSeparator) {
+			popup.remove(n - 1);
+		}
 		
 		// refresh text strings
 		pathVisMenuItem.setText(TrackerRes.getString("TToolBar.Menuitem.Paths.Text"));
@@ -1586,7 +1616,37 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 			add(index++, axesButton);
 			addSeparator = true;
 		}
-		add(index++, rulerButton);
+		
+		boolean newTracksEnabled = false;
+		boolean measuringToolsEnabled = false;
+		boolean eyeEnabled = false;
+		String[] fullconfig = Tracker.getFullConfig().toArray(new String[0]);
+		
+		for (int i = 0; i < fullconfig.length; i++) {
+			if (fullconfig[i].startsWith("new.") && !fullconfig[i].endsWith("clone")) {
+				if (panel().isEnabled(fullconfig[i])) {
+					if (fullconfig[i].endsWith("tapeMeasure")
+							|| fullconfig[i].endsWith("protractor")
+							|| fullconfig[i].endsWith("circleFitter"))
+						measuringToolsEnabled = true;
+					else
+						newTracksEnabled = true;						
+				}
+			}
+			else if (fullconfig[i].startsWith("button.")
+					&& !fullconfig[i].endsWith("clipSettings")
+					&& !fullconfig[i].endsWith("axes")
+					&& !fullconfig[i].endsWith("drawing")) {
+				if (panel().isEnabled(fullconfig[i])) {
+					eyeEnabled = true;
+				}
+			}
+		}
+
+		if (measuringToolsEnabled) {
+			add(index++, rulerButton);
+			addSeparator = true;
+		}
 		
 		if (addSeparator) {
 			add(index++, getSeparator());
@@ -1594,13 +1654,18 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 		if (panel().isCreateTracksEnabled()) {
 //			add(newTrackButton);
 		}
-		FontSizer.setFonts(trackControlButton);
-		add(index++, trackControlButton);
+
+		if (newTracksEnabled) {
+			FontSizer.setFonts(trackControlButton);
+			add(index++, trackControlButton);
+		}
 		if (panel().isEnabled("track.autotrack")) //$NON-NLS-1$
 			add(index++, autotrackerButton);
 		add(index++, getSeparator());
+		
 		if (useEyeButton) {
-			add(index++, eyeButton);
+			if (eyeEnabled)
+				add(index++, eyeButton);
 		}
 		else {
 			if (panel().isEnabled("button.trails") //$NON-NLS-1$
