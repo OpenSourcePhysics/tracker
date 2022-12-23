@@ -554,11 +554,22 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 		if ((userTracks == null || userTracks.isEmpty())
 				&& panel.measuringTools.isEmpty()) {
 			// no data-generating tracks exist
-			// close right/bottom pane
-			if (!TFrame.isPortraitOrientation)
-				frame.setDividerLocation(panel, TFrame.SPLIT_MAIN_RIGHT, 1.0); 			
-			else 
-				frame.setDividerLocation(panel, TFrame.SPLIT_MAIN_BOTTOM, 1.0); 
+			// close right/bottom pane if only views there are plots and tables
+			TViewChooser[] choosers = frame.getViewChoosers(panelID);
+			boolean close = true;
+			for (int i = 0; i < choosers.length; i++) {
+				if (choosers[i] == null)
+					continue;
+				int viewType = choosers[i].getSelectedViewType();
+				if (viewType == TView.VIEW_WORLD || viewType == TView.VIEW_PAGE)
+					close = false;
+			}
+			if (close) {
+				if (!TFrame.isPortraitOrientation)
+					frame.setDividerLocation(panel, TFrame.SPLIT_MAIN_RIGHT, 1.0); 			
+				else 
+					frame.setDividerLocation(panel, TFrame.SPLIT_MAIN_BOTTOM, 1.0); 
+			}
 			
   		// show noData message if no video and no calibration tools
 			// and no selected track
