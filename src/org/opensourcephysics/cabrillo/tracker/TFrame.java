@@ -3295,9 +3295,13 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			fileMenu.add(newItem);
 			// if (!OSPRuntime.isApplet) {
 			fileMenu.addSeparator();
-			// open file item
+			// open menu
 			Icon icon = Tracker.getResourceIcon("open.gif", true); //$NON-NLS-1$
-			JMenuItem openItem = new JMenuItem(TrackerRes.getString("TActions.Action.Open"), icon); //$NON-NLS-1$
+			JMenu openMenu = new JMenu(TrackerRes.getString("TrackerIO.Dialog.Open.Title"));
+			openMenu.setIcon(icon);
+			fileMenu.add(openMenu);
+			// open file item
+			JMenuItem openItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.FileChooser")+"..."); //$NON-NLS-1$
 			openItem.setAccelerator(KeyStroke.getKeyStroke('O', keyMask));
 			openItem.addActionListener(new ActionListener() {
 				@Override
@@ -3305,7 +3309,18 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 					doOpenFileFromDialog();
 				}
 			});
-			fileMenu.add(openItem);
+			openMenu.add(openItem);
+
+			// openBrowser item
+			icon = Tracker.getResourceIcon("open_catalog.gif", true); //$NON-NLS-1$
+			JMenuItem openBrowserItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.LibraryBrowser")+"..."); //$NON-NLS-1$
+			openBrowserItem.addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					getLibraryBrowser().setVisible(true);
+				}
+			});
+			openMenu.add(openBrowserItem);
 			// open recent menu
 			recentMenu = new JMenu();
 			fileMenu.add(recentMenu);
@@ -3327,17 +3342,6 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 
 			});
 
-			fileMenu.addSeparator();
-			// openBrowser item
-			icon = Tracker.getResourceIcon("open_catalog.gif", true); //$NON-NLS-1$
-			JMenuItem openBrowserItem = new JMenuItem(TrackerRes.getString("TActions.Action.OpenBrowser"), icon); //$NON-NLS-1$
-			openBrowserItem.addActionListener(new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					getLibraryBrowser().setVisible(true);
-				}
-			});
-			fileMenu.add(openBrowserItem);
 			fileMenu.addSeparator();
 			// exit item
 			JMenuItem exitItem = new JMenuItem(TrackerRes.getString("TActions.Action.Exit")); //$NON-NLS-1$
