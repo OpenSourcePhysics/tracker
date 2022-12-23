@@ -577,7 +577,7 @@ public class ExportVideoDialog extends JDialog {
 			}
 			DefaultComboBoxModel<String> model = new DefaultComboBoxModel<>(items);
 			next.setModel(model);
-			next.setSelectedItem(n);
+			next.setSelectedIndex(n);
 		}
 		refreshGUI();
 		pack();
