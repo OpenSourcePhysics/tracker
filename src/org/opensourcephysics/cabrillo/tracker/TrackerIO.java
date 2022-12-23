@@ -976,7 +976,7 @@ public class TrackerIO extends VideoIO {
 	}
 
 	protected static void importXMLAction(TrackerPanel trackerPanel, File file) {
-		// pig check for trz file and import trk file inside
+		// check for trz/zip file and import trk file inside, if any
 		if (trzFileFilter.accept(file) || zipFileFilter.accept(file)) {
 			String path = file.getAbsolutePath();
 			Map<String, ZipEntry> contents = ResourceLoader.getZipContents(path, true);
@@ -2755,9 +2755,9 @@ public class TrackerIO extends VideoIO {
 			if (format.equals(selected))
 				hasSelected = true;
 			if (preferred == null && format.contains("." + extensions[0])) { //$NON-NLS-1$
-				if (extensions.length > 1) {
-					String ext = extensions[1].equals("jpg")? "jpeg": extensions[1];
-					if (!format.toLowerCase().contains(ext))
+				if (extensions.length > 1) { // these are zipped images
+					VideoIO.ZipImageVideoType type = (VideoIO.ZipImageVideoType) videoFormats.get(format);
+					if (!type.getImageExtension().equals(extensions[1]))
 						continue;
 				}
 				preferred = format;
