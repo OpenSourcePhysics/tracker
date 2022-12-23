@@ -1716,7 +1716,8 @@ public class TrackerIO extends VideoIO {
 	 * path points to the extracted HTML file. This ensures that the HTML page can
 	 * be opened on the desktop.
 	 */
-	private static void findPageViewFiles(XMLControl control, Map<String, String> pageViewFiles) {
+	private static void findPageViewFiles(XMLControl control, Map<String, String> pageViewFiles,
+			String trkPath) {
 		// extract page view filenames from control xml
 		String xml = control.toXML();
 		// basic unit is a tab with title and text
@@ -1727,11 +1728,12 @@ public class TrackerIO extends VideoIO {
 			// get text and check if it is a loadable path
 			token = "<property name=\"text\" type=\"string\">"; //$NON-NLS-1$
 			j = xml.indexOf(token);
-			String path = xml.substring(j + token.length());
+			String path = xml.substring(j + token.length()); // relative to TRK
 			j = path.indexOf("</property>"); //$NON-NLS-1$
 			path = path.substring(0, j);
 			if (path.endsWith(".html") || path.endsWith(".htm")) { //$NON-NLS-1$ //$NON-NLS-2$
-				Resource res = ResourceLoader.getResource(path);
+				String base = XML.getDirectoryPath(trkPath);
+				Resource res = ResourceLoader.getResource(base + "/" + path);
 				if (res != null) {
 					// found an HTML file, so add it to the map
 					String urlPath = res.getURL().toExternalForm();
@@ -2248,7 +2250,7 @@ public class TrackerIO extends VideoIO {
 						String className = XMLControlElement.getClassName(data);
 						if (className.endsWith("TrackerPanel")) { //$NON-NLS-1$
 							if (haveHTML)
-								findPageViewFiles(new XMLControlElement(data), pageViewTabs);
+								findPageViewFiles(new XMLControlElement(data), pageViewTabs, next);
 						} else if (trkForTFrame == null && className.endsWith("TFrame")) { //$NON-NLS-1$
 							trkForTFrame = next;
 						}
@@ -2348,7 +2350,7 @@ public class TrackerIO extends VideoIO {
 			trackerPanel.setIgnoreRepaint(true);
 
 			// find page view files and add to TrackerPanel.pageViewFilePaths
-			findPageViewFiles(control, trackerPanel.pageViewFilePaths);
+			findPageViewFiles(control, trackerPanel.pageViewFilePaths, path);
 
 			while (desktopFiles.size() > 0) {
 				trackerPanel.supplementalFilePaths.add(desktopFiles.remove(0));
