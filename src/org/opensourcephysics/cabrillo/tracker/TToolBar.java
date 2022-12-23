@@ -1533,11 +1533,8 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 	}
 	
 	private void add(int index, Component comp) {
-		boolean putFillerAtEnd = true;
 		if (overflowIndex < 0 || overflowIndex > index) {
 			add(comp);
-			if (comp == toolbarFiller)
-				putFillerAtEnd = false;
 		}
 		else {
 			if (comp instanceof JButton) {			
@@ -1555,8 +1552,7 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 		}
 		if (index == overflowIndex) {
 			add(overflowButton);
-			if (putFillerAtEnd)
-				add(toolbarFiller);
+			add(toolbarFiller);
 		}
 	}
 	
@@ -1566,7 +1562,8 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
   	int w = getWidth();
   	for (int i = n - 1; i > -1; i--) {
   		Component c = getComponent(i);
-  		if (w > c.getLocation().x + c.getWidth() 
+  		int end = c.getLocation().x + c.getWidth();
+  		if (w > end
   			&& c instanceof JButton
   			&& ((JButton)c).getName() != null) {
   			return i;
@@ -1706,7 +1703,7 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 		add(index++, getSeparator());
 //		add(fontSizeButton);
 //		add(getSeparator());
-		add(toolbarFiller);
+		add(index++, toolbarFiller);
 //		add(index++, toolbarFiller);
 		if (Tracker.newerVersion != null) {
 			String s = TrackerRes.getString("TTrackBar.Button.Version"); //$NON-NLS-1$
@@ -1729,17 +1726,13 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 		if (TFrame.isLayoutAdaptive)
 			add(index++, maximizeButton);
 
-		if (TTrackBar.testButton != null)
+//		if (TTrackBar.testButton != null)
 //			add(index++, TTrackBar.testButton);
 
-//		FontSizer.setFont(newTrackButton);
-//		FontSizer.setFont(zoomButton);
 		//OSPLog.debug(Performance.timeCheckStr("TToolBar rebuild", Performance.TIME_MARK));
 		
-		index--; // must undo last increment
-		validate();
-		int i = overflow >= 0? index: getLastVisibleComponentIndex();
-		if (i < index)
+		int i = getLastVisibleComponentIndex();
+		if (overflow == -1 && i < getComponentCount()-1)
 			rebuild(i);
 		//OSPLog.debug(Performance.timeCheckStr("TToolBar rebuild validate", Performance.TIME_MARK));
 
