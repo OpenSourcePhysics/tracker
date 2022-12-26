@@ -290,7 +290,7 @@ public class PencilScene implements Interactive, Trackable, Comparable<PencilSce
 			frame.getTrackerPanelForID(panelID).setMessage(TrackerRes.getString("PencilCaption.Hint")); //$NON-NLS-1$
 			return ia;
 		}
-		return null;
+		return ia;
 	}
 
 	@Override

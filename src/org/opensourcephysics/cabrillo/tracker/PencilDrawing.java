@@ -101,6 +101,8 @@ public class PencilDrawing implements Drawable, Measurable {
     g2.setStroke(drawingStroke);
   	switch(style) {
   	case STYLE_ARROW:
+  		if (arrowhead == null)
+  			drawArrow();
 	    Shape s = panel.transformShape(arrowhead[0]);
       g2.draw(s);
 	    s = panel.transformShape(arrowhead[1]);
