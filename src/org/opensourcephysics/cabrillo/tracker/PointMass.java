@@ -2906,14 +2906,6 @@ public class PointMass extends TTrack {
 				p.setAccelerationFootprint(p.getAccelerationFootprints()[0].getName());
 
 			// load step and keyframe data
-			p.keyFrames.clear();
-			// no keyframes in early pointmass xml, so for those treat all as keyframes 
-			int[] keys = (int[]) control.getObject("keyFrames"); //$NON-NLS-1$
-			if (keys != null) {
-				for (int i : keys) {
-					p.keyFrames.add(i);
-				}
-			}
 			FrameData[] data = (FrameData[]) control.getObject("framedata"); //$NON-NLS-1$
 			if (data != null) {
 				for (int n = 0; n < data.length; n++) {
@@ -2921,8 +2913,6 @@ public class PointMass extends TTrack {
 						p.steps.setStep(n, null);
 						continue;
 					}
-					if (keys == null || keys.length == 0)
-						p.keyFrames.add(n);
 					PositionStep step = (PositionStep) p.getStep(n);
 					if (step != null) {
 						step.getPosition().setLocation(data[n].x, data[n].y);
@@ -2943,6 +2933,23 @@ public class PointMass extends TTrack {
 				// BH! don't set dataValid = false???
 				p.fireDataButDontInvalidateIt();
 			}
+			
+			p.keyFrames.clear();
+			// no keyframes in early pointmass xml, so for those treat all as keyframes 
+			int[] keys = (int[]) control.getObject("keyFrames"); //$NON-NLS-1$
+			if (keys != null && keys.length > 0) {
+				for (int i : keys) {
+					p.keyFrames.add(i);
+				}
+			}
+			else {
+				Step[] steps = p.getSteps();
+				for (int i = 0; i < steps.length; i++) {
+					if (steps[i] != null)
+						p.keyFrames.add(i);						
+				}
+			}
+			
 			p.setLocked(locked);
 			return obj;
 		}
