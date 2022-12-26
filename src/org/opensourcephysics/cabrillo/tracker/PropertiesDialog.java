@@ -120,7 +120,9 @@ public class PropertiesDialog extends JDialog {
 		if (videoTable != null) {
 			videoTable.setRowHeight(font.getSize() + 4);
 		}
-		trkTable.setRowHeight(font.getSize() + 4);
+		if (trkTable != null) {
+			trkTable.setRowHeight(font.getSize() + 4);
+		}
 	}
 
 	@Override
@@ -144,45 +146,50 @@ public class PropertiesDialog extends JDialog {
 
 		// Tracker File tab
 		TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
-		trkPanel = new JPanel(new BorderLayout());
-		tabbedPane.addTab(TrackerRes.getString("PropertiesDialog.Tab.TrackerFile"), trkPanel); //$NON-NLS-1$
-		trkProps.add(TrackerRes.getString("TActions.Dialog.AboutVideo.Name")); //$NON-NLS-1$
-		trkProps.add(TrackerRes.getString("TActions.Dialog.AboutVideo.Path")); //$NON-NLS-1$
 		String path = XML.forwardSlash(trackerPanel.openedFromPath);
-		path = ResourceLoader.getNonURIPath(path);
 		String name = XML.getName(path);
-		trkValues.add(name);
-		trkValues.add(path);
-		TableModel model = new TRKTableModel();
-		trkTable = new JTable(model);
-		trkTable.setBackground(trkPanel.getBackground());
-		trkTable.setDefaultRenderer(String.class, cellRenderer);
-		trkTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-		trkTable.setColumnSelectionAllowed(true);
-		trkTable.getColumnModel().getColumn(0).setPreferredWidth(50);
-		trkTable.getColumnModel().getColumn(1).setPreferredWidth(250);
-		trkPanel.add(trkTable.getTableHeader(), BorderLayout.NORTH);
-		trkPanel.add(trkTable, BorderLayout.CENTER);
-		ToolTipManager.sharedInstance().setInitialDelay(0);
-		ToolTipManager.sharedInstance().setDismissDelay(20000);
-		ToolTipManager.sharedInstance().registerComponent(trkTable);
-		JButton button = new JButton(TrackerRes.getString("PropertiesDialog.Button.CopyFilePath")); //$NON-NLS-1$
-		button.setForeground(new Color(0, 0, 102));
-		button.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				trkTable.setRowSelectionInterval(1, 1);
-				trkTable.setColumnSelectionInterval(1, 1);
-				String s = trkTable.getValueAt(1, 1).toString();
-				Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-				StringSelection stringSelection = new StringSelection(s);
-				clipboard.setContents(stringSelection, stringSelection);
-			}
-		});
-		button.setEnabled(trackerPanel.openedFromPath != null);
+		TableModel model = null;
+		JButton button = null;
 		JPanel buttonPanel = new JPanel();
-		buttonPanel.add(button);
-		trkPanel.add(buttonPanel, BorderLayout.SOUTH);
+
+		if (path != null && path.length() > 0) {
+			model = new TRKTableModel();
+			trkPanel = new JPanel(new BorderLayout());
+			tabbedPane.addTab(TrackerRes.getString("PropertiesDialog.Tab.TrackerFile"), trkPanel); //$NON-NLS-1$
+			trkProps.add(TrackerRes.getString("TActions.Dialog.AboutVideo.Name")); //$NON-NLS-1$
+			trkProps.add(TrackerRes.getString("TActions.Dialog.AboutVideo.Path")); //$NON-NLS-1$
+			path = ResourceLoader.getNonURIPath(path);
+			trkValues.add(name);
+			trkValues.add(path);
+			trkTable = new JTable(model);
+			trkTable.setBackground(trkPanel.getBackground());
+			trkTable.setDefaultRenderer(String.class, cellRenderer);
+			trkTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+			trkTable.setColumnSelectionAllowed(true);
+			trkTable.getColumnModel().getColumn(0).setPreferredWidth(50);
+			trkTable.getColumnModel().getColumn(1).setPreferredWidth(250);
+			trkPanel.add(trkTable.getTableHeader(), BorderLayout.NORTH);
+			trkPanel.add(trkTable, BorderLayout.CENTER);
+			ToolTipManager.sharedInstance().setInitialDelay(0);
+			ToolTipManager.sharedInstance().setDismissDelay(20000);
+			ToolTipManager.sharedInstance().registerComponent(trkTable);
+			button = new JButton(TrackerRes.getString("PropertiesDialog.Button.CopyFilePath")); //$NON-NLS-1$
+			button.setForeground(new Color(0, 0, 102));
+			button.addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					trkTable.setRowSelectionInterval(1, 1);
+					trkTable.setColumnSelectionInterval(1, 1);
+					String s = trkTable.getValueAt(1, 1).toString();
+					Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+					StringSelection stringSelection = new StringSelection(s);
+					clipboard.setContents(stringSelection, stringSelection);
+				}
+			});
+			button.setEnabled(trackerPanel.openedFromPath != null);
+			buttonPanel.add(button);
+			trkPanel.add(buttonPanel, BorderLayout.SOUTH);
+		}
 
 		// Video tab
 		Video video = trackerPanel.getVideo();
