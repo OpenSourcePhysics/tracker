@@ -4966,6 +4966,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				XMLControl[] trackcontrols = prop.getChildControls();
 				outer: for (int j = 0; j < trackcontrols.length; j++) {
 					XMLControl tcon = trackcontrols[j];
+					boolean found = false;
 					for (int k = 0; k < tracks.size(); k++) {
 						TTrack track = tracks.get(k);
 						String name = tcon.getString("name");
@@ -4980,10 +4981,21 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 							}
 						}
 						if (match) {
+							found = true;
 							tcon.loadObject(track);
 							track.erase();
 							track.firePropertyChange(TTrack.PROPERTY_TTRACK_STEPS, TTrack.HINT_STEP_ADDED_OR_REMOVED, null);
 							continue outer;
+						}
+					}
+					if (!found) {
+						TTrack track = (TTrack)tcon.loadObject(null);
+						addTrack(track);
+						TViewChooser[] choosers = frame.getViewChoosers(this);
+						int[] views = frame.getSelectedViewTypes(this);
+						for (int k = 0; k < choosers.length; k++) {
+							// this creates new view types if needed
+							choosers[k].setSelectedViewType(views[k]);
 						}
 					}
 				}
