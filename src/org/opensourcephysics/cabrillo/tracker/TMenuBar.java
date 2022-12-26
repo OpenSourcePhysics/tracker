@@ -30,7 +30,6 @@ import java.awt.Container;
 import java.awt.Dimension;
 //import java.awt.Frame;
 import java.awt.Image;
-import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
@@ -2747,20 +2746,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 			JMenuItem logItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.MessageLog")); //$NON-NLS-1$
 			logItem.setAccelerator(KeyStroke.getKeyStroke('L', keyMask));
 			logItem.addActionListener((e) -> {
-				Point p = new JFrame().getLocation(); // default location of new frame or dialog
-				JFrame log = OSPLog.getFrame();
-				FontSizer.setFonts(log, FontSizer.getLevel());
-				if (log.getLocation().x == p.x && log.getLocation().y == p.y) {
-					// center on screen AFTER setting visible so GUI will be complete
-					SwingUtilities.invokeLater(() -> {
-						// center on screen
-						Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
-						int x = (dim.width - log.getBounds().width) / 2;
-						int y = (dim.height - log.getBounds().height) / 2;
-						log.setLocation(x, y);
-					});
-				}
-				OSPLog.getOSPLog().setVisible(true);
+				OSPLog.showLogInvokeLater();
 			});
 			diagMenu.add(logItem);
 			if (Tracker.startLogAction != null) {
