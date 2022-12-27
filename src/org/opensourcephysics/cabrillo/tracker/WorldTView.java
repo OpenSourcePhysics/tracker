@@ -153,6 +153,22 @@ public class WorldTView extends ZoomTView {
 		scrollPane.getViewport().getView().getSize(dim);
 		int dx = mousePtRelativeToViewRect.x - e.getPoint().x + rect.x;
 		int dy = mousePtRelativeToViewRect.y - e.getPoint().y + rect.y;
+		if (e.isAltDown()) {
+			zoomCenter.setLocation(e.getPoint());
+			boolean zoomed = false;
+			if (dy - dx > 4) {
+				zoomIn(true); // zoom by a step
+				zoomed = true;
+			} else if (dx - dy > 4) {
+				zoomOut(true); // zoom by a step
+				zoomed = true;
+			}
+			if (zoomed) {
+				viewLoc.setLocation(rect.getLocation());
+				mousePtRelativeToViewRect.setLocation(e.getPoint().x - rect.x, e.getPoint().y - rect.y);
+			}
+			return;
+		}
 		int x = Math.max(0, viewLoc.x + dx);
 		x = Math.min(x, dim.width - rect.width);
 		int y = Math.max(0, viewLoc.y + dy);
