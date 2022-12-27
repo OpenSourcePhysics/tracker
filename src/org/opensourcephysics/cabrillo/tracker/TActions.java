@@ -334,7 +334,7 @@ public class TActions {
 							TrackerPanel trackerPanel = panel();
 							PropertiesDialog dialog = frame.getPropertiesDialog(trackerPanel);
 							if (trackerPanel.getVideo() != null)
-								dialog.tabbedPane.setSelectedIndex(1);
+								dialog.tabbedPane.setSelectedIndex(trackerPanel.openedFromPath == null? 0: 1);
 							dialog.setVisible(true);
 						}
 					}

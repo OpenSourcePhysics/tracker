@@ -128,7 +128,7 @@ public class PropertiesDialog extends JDialog {
 	@Override
 	public void setVisible(boolean vis) {
 		super.setVisible(vis);
-		if (!OSPRuntime.isJS)
+		if (!vis && !OSPRuntime.isJS)
 			dispose();
 	}
 
