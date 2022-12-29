@@ -32,6 +32,8 @@ import java.awt.event.ActionListener;
 import java.awt.event.ComponentListener;
 import java.beans.PropertyChangeEvent;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
 import javax.swing.BorderFactory;
 import javax.swing.JComboBox;
@@ -47,7 +49,10 @@ import org.opensourcephysics.media.core.Trackable;
 import org.opensourcephysics.tools.FontSizer;
 import org.opensourcephysics.tools.FunctionPanel;
 import org.opensourcephysics.tools.FunctionTool;
+import org.opensourcephysics.tools.ParamEditor;
+import org.opensourcephysics.tools.Parameter;
 import org.opensourcephysics.tools.ToolsRes;
+import org.opensourcephysics.tools.FunctionEditor.FObject;
 
 /**
  * A FunctionTool for building particle models.
@@ -442,6 +447,37 @@ public class ModelBuilder extends FunctionTool {
 			boosterDropdown.removeAllItems();
 		}
 		validate();
+	}
+	
+	/**
+	 * Sets the value of all Parameters that are synced
+	 * and have the same name as a specified Parameter
+	 * 
+	 * @param param the Parameter to sync to
+	 */
+	protected void syncParameters(Parameter param) {
+		if (param == null || !param.isSynced())
+			return;
+		
+		Set<String> panelnames = getPanelNames();
+		for (String name: panelnames) {
+			FunctionPanel panel = getPanel(name);
+			// ignore external model panels, they don't use parameters
+			if (panel instanceof ParticleDataTrackFunctionPanel)
+				continue;
+			ParamEditor editor = panel.getParamEditor();
+			List<FObject> objects = editor.getObjects();
+			for (int i = 0; i < objects.size(); i++) {
+				Parameter next = (Parameter) objects.get(i);
+				if (next.getName().equals(param.getName())) {
+					if (next.equals(param))
+						break;
+					if (next.isSynced())
+						// set expression and post undoable edit
+						editor.setExpression(next.getName(), param.getExpression(), true);
+				}
+			}
+		}
 	}
 
 	/**

@@ -76,6 +76,8 @@ public abstract class ModelFunctionPanel extends FunctionPanel {
 	protected void createGUI() {
 		super.createGUI();
 		box.add(initEditor, 1);
+		if (haveGUI())
+			getParamEditor().setSyncing(true);
 	}
 
 	/**
@@ -217,9 +219,31 @@ public abstract class ModelFunctionPanel extends FunctionPanel {
 	public void propertyChange(PropertyChangeEvent e) {
 		super.propertyChange(e);
 		switch (e.getPropertyName()) {
+		case Parameter.PROPERTY_PARAMETER_SYNCED:
+			if (functionTool != null) {
+				ModelBuilder builder = (ModelBuilder)functionTool;
+				builder.syncParameters((Parameter)e.getNewValue());
+			}
+			break;
 		case FunctionEditor.PROPERTY_FUNCTIONEDITOR_EDIT:
 			if (e.getSource() == paramEditor) {
 				initEditor.getTable().selectOnFocus = false;
+				if (functionTool != null) {
+					String paramName = (String)e.getOldValue();
+					Parameter param = (Parameter)paramEditor.getObject(paramName);
+					if (param == null)
+						break;
+					if (param.isSynced() && e.getNewValue() instanceof FunctionEditor.DefaultEdit) {
+						FunctionEditor.DefaultEdit edit = (FunctionEditor.DefaultEdit)e.getNewValue();
+						if (edit.getEditType() == FunctionEditor.EXPRESSION_EDIT) {  
+							ModelBuilder builder = (ModelBuilder)functionTool;
+							builder.syncParameters(param);
+						}
+						else if (edit.getEditType() == FunctionEditor.NAME_EDIT) {  
+							param.setSynced(false);
+						}
+					}
+				}
 			}
 			break;
 		case FunctionEditor.PROPERTY_FUNCTIONEDITOR_ANGLESINRADIANS:
