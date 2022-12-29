@@ -498,6 +498,7 @@ abstract public class ParticleModel extends PointMass {
 				public void actionPerformed(ActionEvent e) {
 					positionModelBuilder();
 					getModelBuilder().setVisible(true);
+					getModelBuilder().setSelectedPanel(ParticleModel.this.getName());
 				}
 			});
 			// create the useDefaultRefFrameItem item
@@ -1031,6 +1032,7 @@ abstract public class ParticleModel extends PointMass {
 	public ModelBuilder getModelBuilder() {
 		if (tp == null)
 			return null;
+		boolean newBuilder = tp.modelBuilder == null;
 		if (modelBuilder == null) {
 			modelBuilder = tp.getModelBuilder();
 			modelBuilder.addPanel(getName(), functionPanel);
@@ -1041,6 +1043,19 @@ abstract public class ParticleModel extends PointMass {
 			if (getInitEditor().getValues()[0] == 0) {
 				refreshInitialTime();
 				getInitEditor().getTable().clearSelection();
+			}
+		}
+		if (newBuilder) {
+			ArrayList<ParticleModel> models = tp.getDrawables(ParticleModel.class);
+			for (int i = 0; i < models.size(); i++) {
+				if (models.get(i) instanceof ParticleDataTrack) {
+					ParticleDataTrack model = (ParticleDataTrack)models.get(i);
+					model = model.getLeader();
+					model.getModelBuilder();
+				}
+				else {
+					models.get(i).getModelBuilder(); // adds all tabs to builder
+				}
 			}
 		}
 		return modelBuilder;
