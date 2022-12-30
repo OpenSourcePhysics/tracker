@@ -68,6 +68,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.zip.ZipEntry;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -2901,15 +2902,30 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 						return;
 					}
 				} catch (Exception ex) {
-					String s = TrackerRes.getString("TFrame.Dialog.LibraryError.Message"); //$NON-NLS-1$
-					JOptionPane.showMessageDialog(libraryBrowser, s + " \"" + record.getName() + "\"", //$NON-NLS-1$ //$NON-NLS-2$
-							TrackerRes.getString("TFrame.Dialog.LibraryError.Title"), //$NON-NLS-1$
-							JOptionPane.WARNING_MESSAGE);
 					loadFailed = true;
-					return;
+				}
+				if (target != null && target.endsWith(".zip")) {
+					// check target to make sure it is a readable zip file
+					Map<String, ZipEntry> contents = ResourceLoader.getZipContents(target, true);
+					if (contents.isEmpty()) {
+						loadFailed = true;
+					}
 				}
 			}
 
+			if (target == null) {
+				loadFailed = true;
+			}
+			if (loadFailed) {
+				String name = record.getName();
+				if (name == null || "".equals(name))
+					name = TrackerRes.getString("TrackerPanel.DataBuilder.TrackType.Unknown");
+				String s = TrackerRes.getString("TFrame.Dialog.LibraryError.Message"); //$NON-NLS-1$
+				JOptionPane.showMessageDialog(libraryBrowser, s + " \"" + name + "\"", //$NON-NLS-1$ //$NON-NLS-2$
+						TrackerRes.getString("TFrame.Dialog.LibraryError.Title"), //$NON-NLS-1$
+						JOptionPane.WARNING_MESSAGE);
+				return;
+			}
 			String lcTarget = target.toLowerCase();
 			if (lcTarget.endsWith(".trk") || ResourceLoader.isJarZipTrz(lcTarget, false)) {
 				if (ResourceLoader.getResourceZipURLsOK(target) == null) {
