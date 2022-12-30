@@ -464,7 +464,7 @@ public class HelpFinder {
 		for (int i = 1; i < sections.length; i++) {
 			// find section-identifying ID anchor
 			String s = sections[i];
-			String[] anchorSplit = s.split("<a name=\""); //$NON-NLS-1$
+			String[] anchorSplit = s.split("<a name=\"|<a id=\""); //$NON-NLS-1$
 			if (anchorSplit.length < 2)
 				continue;
 			String name = anchorSplit[1];
