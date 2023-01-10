@@ -3669,7 +3669,12 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 				track.setFootprint(s.trim());
 			// visible and trail
 			track.setVisible(control.getBoolean("visible")); //$NON-NLS-1$
-			track.setTrailLength(TToolBar.trailLengths[Tracker.preferredTrailLengthIndex]);
+			int index = Tracker.preferredTrailLengthIndex;
+			if (track.tp != null && track.tp.getTFrame() != null) {
+					TToolBar toolbar = track.tp.getTFrame().getToolBar(track.tp.getID(), false);
+					index = toolbar.trailLengthIndex;
+			}						
+			track.setTrailLength(TToolBar.trailLengths[index]);
 			track.setTrailVisible(control.getBoolean("trail")); //$NON-NLS-1$
 			// number formats
 			track.customNumberFormats = (String[]) control.getObject("number_formats"); //$NON-NLS-1$
