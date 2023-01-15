@@ -28,12 +28,14 @@ import org.opensourcephysics.controls.XMLControlElement;
 import org.opensourcephysics.controls.XMLProperty;
 import org.opensourcephysics.display.Drawable;
 import org.opensourcephysics.display.OSPRuntime;
+import org.opensourcephysics.display.TextFrame;
 import org.opensourcephysics.tools.AbstractAutoloadManager;
 import org.opensourcephysics.tools.DataFunctionPanel;
 import org.opensourcephysics.tools.FontSizer;
 import org.opensourcephysics.tools.FunctionPanel;
 import org.opensourcephysics.tools.FunctionTool;
 import org.opensourcephysics.tools.Parameter;
+import org.opensourcephysics.tools.ResourceLoader;
 import org.opensourcephysics.tools.ToolsRes;
 
 import javajs.async.AsyncDialog;
@@ -80,6 +82,9 @@ public class TrackDataBuilder extends FunctionTool {
 		super.createGUI();
 		createButtons();
 		setToolbarComponents(new Component[] { loadButton, saveButton, Box.createHorizontalGlue(), autoloadButton });
+		setHelpAction((e)-> {
+			frame.showHelp("datatable#databuilder", 0);			
+		});
 	}
 
 	/**
