@@ -1179,6 +1179,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		});
 		// right Pane item
 		view_rightPaneItem = new JCheckBoxMenuItem(TrackerRes.getString("TMenuBar.MenuItem.WindowRight"), false); //$NON-NLS-1$
+		view_rightPaneItem.setAccelerator(KeyStroke.getKeyStroke('R', keyMask));
 		view_rightPaneItem.addActionListener((e) -> {
 				if (frame != null) {
 					JSplitPane pane = frame.getSplitPane(panel(), 0);
@@ -1192,6 +1193,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		});
 		// bottom Pane item
 		view_bottomPaneItem = new JCheckBoxMenuItem(TrackerRes.getString("TMenuBar.MenuItem.WindowBottom"), false); //$NON-NLS-1$
+		view_bottomPaneItem.setAccelerator(KeyStroke.getKeyStroke('B', keyMask));
 		view_bottomPaneItem.addActionListener((e) -> {
 				if (frame != null) {
 					JSplitPane pane = frame.getSplitPane(panel(), 2);
@@ -2324,7 +2326,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 			tracksMenuItems = trackMenu.getMenuComponents();
 		}
 		if (opening) {
-			// could be trackMenu or the toolbar Create popup
+			// could be trackMenu or the Trackcontrol new popup
 			if (trackMenu.getItemCount() == 0) {
 				// no update was necessary; this must be due to popup menu stealing the items
 				for (int i = 0; i < tracksMenuItems.length; i++) {
@@ -2490,16 +2492,16 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 //		boolean toolEnabled = panel.isEnabled("data.tool");  //$NON-NLS-1$
 
 		if (!opening) {
-				return;
 //			viewMenu.add(view_restoreItem);
-//			viewMenu.add(view_rightPaneItem);
-//			viewMenu.add(view_bottomPaneItem);
+			// add right and bottom view items so keyboard accelerators work
+			viewMenu.add(view_rightPaneItem);
+			viewMenu.add(view_bottomPaneItem);
 //			viewMenu.addSeparator();
 //			viewMenu.add(view_trackControlItem);
 //			viewMenu.add(view_notesItem);
 //			viewMenu.add(view_dataBuilderItem);
 //			viewMenu.add(view_dataToolItem);
-//			return;
+			return;
 		}
 		
 		// get names of current TViews
@@ -2552,7 +2554,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		if (isTainted(MENU_VIEW)) {
 			// OSPLog.debug("TMenuBar window menu rebuild");
 			// rebuild window menu
-			for (int i = viewMenu.getItemCount(); --i > 0;) {
+			for (int i = viewMenu.getItemCount(); --i > -1;) {
 				viewMenu.remove(i);
 			}
 //			viewMenu.removeAll();
@@ -2904,13 +2906,14 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 	}
 	
 	/**
-	 * Refreshes and returns the toolbar Create button popup menu.
+	 * Refreshes and returns the TrackControl New button popup menu.
 	 *
 	 * @return the popup
 	 */
 	protected JPopupMenu refreshTrackControlPopup(JPopupMenu popup) {
 		JMenu menu = new JMenu();
-		refreshTracksCreateMenu(menu, enabledNewTrackCount, true);
+		boolean noTools = false; // include measuring and calibration tools
+		refreshTracksCreateMenu(menu, enabledNewTrackCount, noTools);
 		FontSizer.setMenuFonts(menu);
 		int n = menu.getPopupMenu().getComponentCount();
 		popup.removeAll();
