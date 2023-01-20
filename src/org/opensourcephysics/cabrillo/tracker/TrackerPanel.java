@@ -166,13 +166,13 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 
 // static fields
 	/** The minimum zoom level */
-	public static final double MIN_ZOOM = 0.15;
+	public static final double MIN_ZOOM = 0.1;
 	/** The maximum zoom level */
 	public static final double MAX_ZOOM = 20;
 	/** The zoom step size */
 	public static final double ZOOM_STEP = Math.pow(2, 1.0 / 6);
 	/** The fixed zoom levels */
-	public static final double[] ZOOM_LEVELS = { 0.25, 0.5, 1, 2, 4, 8, 12, 20 };
+	public static final double[] ZOOM_LEVELS = { 0.1, 0.25, 0.5, 1, 2, 4, 8, 12, 20 };
 	/** Calibration tool types */
 	public static final String STICK = "Stick", TAPE = "CalibrationTapeMeasure", //$NON-NLS-1$ //$NON-NLS-2$
 			CALIBRATION = "Calibration", OFFSET = "OffsetOrigin"; //$NON-NLS-1$ //$NON-NLS-2$
@@ -225,7 +225,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	protected ModelBuilder modelBuilder;
 	protected TrackControl trackControl;
 	protected boolean isModelBuilderVisible;
-	protected boolean isShiftKeyDown, isControlKeyDown;
+	protected boolean isShiftKeyDown, isControlKeyDown, isEnterKeyDown;
 	protected boolean isAutoPaste;
 	
 	private int cursorType;
@@ -414,7 +414,12 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 						}
 					}
 				} else if (e.getKeyCode() == KeyEvent.VK_ENTER && selectedTrack != null
-						&& cursorType == selectedTrack.getMarkingCursorType(e) && getFrameNumber() > 0) {
+						&& cursorType == selectedTrack.getMarkingCursorType(e) 
+						&& getFrameNumber() > 0) {
+					if (isEnterKeyDown)
+						return;
+					isEnterKeyDown = true;
+					// clone the previous frame step if present
 					int n = getFrameNumber();
 					Step step = selectedTrack.getStep(n - 1);
 					if (step != null) {
@@ -433,8 +438,13 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 							clone = vector.createStep(n, tail.x, tail.y, dx, dy);
 						}
 						if (clone != null && selectedTrack.isAutoAdvance()) {
-							getPlayer().step();
-							hideMouseBox();
+							// display clone briefly, then step forward
+							selectedTrack.repaintStep(clone);
+							SwingUtilities.invokeLater(() -> {
+								getPlayer().step();
+								hideMouseBox();								
+								isEnterKeyDown = false;
+							});
 						} else {
 							setMouseCursor(Cursor.getDefaultCursor());
 							if (clone != null) {
@@ -2363,6 +2373,10 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		selectedTrack = getSelectedTrack();
 		int n = getFrameNumber();
 		if (selectedTrack != null) {
+			if (selectedTrack instanceof MarkingRequired) {
+				MarkingRequired tool = (MarkingRequired)selectedTrack;
+				invert = invert && !tool.requiresMarking();
+			}
 			markable = !(selectedTrack.isStepComplete(n) || selectedTrack.isLocked()
 					|| popup != null && popup.isVisible());
 			marking = markable && (selectedTrack.isMarkByDefault() != invert);

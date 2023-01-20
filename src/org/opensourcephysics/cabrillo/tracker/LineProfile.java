@@ -43,7 +43,7 @@ import org.opensourcephysics.controls.*;
  *
  * @author Douglas Brown
  */
-public class LineProfile extends TTrack {
+public class LineProfile extends TTrack implements MarkingRequired {
 
 	@Override
 	public String[] getFormatVariables() {
@@ -128,6 +128,7 @@ public class LineProfile extends TTrack {
 	protected boolean loading;
 	protected boolean showTimeData = false;
 	protected int datasetIndex = -1; // positive for time data
+	protected JLabel unmarkedLabel;
 
 	/**
 	 * Constructs a LineProfile.
@@ -223,6 +224,9 @@ public class LineProfile extends TTrack {
 		xaxisOrientationItem = new JRadioButtonMenuItem(TrackerRes.getString("LineProfile.MenuItem.XAxis")); //$NON-NLS-1$
 		orientationMenu.add(xaxisOrientationItem);
 		group.add(xaxisOrientationItem);
+		unmarkedLabel = new JLabel();
+		unmarkedLabel.setForeground(Color.red.darker());
+
 	}
 
 	/**
@@ -330,6 +334,19 @@ public class LineProfile extends TTrack {
 	 */
 	public int getSpread() {
 		return spread;
+	}
+
+	@Override
+	public boolean isMarkByDefault() {
+		return requiresMarking() || super.isMarkByDefault();
+	}
+
+	/**
+	 * Implements MarkingRequired interface.
+	 */
+	@Override
+	public boolean requiresMarking() {
+		return getStep(0) == null;		
 	}
 
 	/**
@@ -777,13 +794,18 @@ public class LineProfile extends TTrack {
 		spreadField.setIntValue(getSpread());
 		spreadField.setEnabled(!isLocked());
 		list.add(spreadField);
+		if (getStep(0) == null) {
+			list.add(stepSeparator);
+			unmarkedLabel.setText(TrackerRes.getString("LineProfile.Unmarked.Hint")); //$NON-NLS-1$
+			list.add(unmarkedLabel);
+		}
 		return list;
 	}
 
 	@Override
 	public void setFontLevel(int level) {
 		super.setFontLevel(level);
-		Object[] objectsToSize = new Object[] { spreadLabel };
+		Object[] objectsToSize = new Object[] { unmarkedLabel, spreadLabel };
 		FontSizer.setFonts(objectsToSize, level);
 	}
 

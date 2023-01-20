@@ -233,7 +233,7 @@ public class CircleFitter extends TTrack {
 		});
 
 		clickToMarkLabel = new JLabel();
-		clickToMarkLabel.setForeground(Color.green.darker());
+		clickToMarkLabel.setForeground(Color.red.darker());
 
 		// create actions, listeners, labels and fields for data points
 		final Action dataPointAction = new AbstractAction() {

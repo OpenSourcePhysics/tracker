@@ -42,7 +42,7 @@ import org.opensourcephysics.controls.*;
  *
  * @author Douglas Brown
  */
-public class OffsetOrigin extends TTrack {
+public class OffsetOrigin extends TTrack implements MarkingRequired {
 
 	@Override
 	public Map<String, String[]> getFormatMap() {
@@ -452,7 +452,15 @@ public class OffsetOrigin extends TTrack {
 
 	@Override
 	public boolean isMarkByDefault() {
-		return getStep(0) == null || super.isMarkByDefault();
+		return requiresMarking() || super.isMarkByDefault();
+	}
+
+	/**
+	 * Implements MarkingRequired interface.
+	 */
+	@Override
+	public boolean requiresMarking() {
+		return getStep(0) == null;		
 	}
 
 	/**

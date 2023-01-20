@@ -44,7 +44,7 @@ import org.opensourcephysics.controls.*;
  *
  * @author Douglas Brown
  */
-public class Calibration extends TTrack {
+public class Calibration extends TTrack implements MarkingRequired {
 
 	@Override
 	public String[] getFormatVariables() {
@@ -661,9 +661,16 @@ public class Calibration extends TTrack {
 
 	@Override
 	public boolean isMarkByDefault() {
+		return requiresMarking() || super.isMarkByDefault();
+	}
+	
+	/**
+	 * Implements MarkingRequired interface.
+	 */
+	@Override
+	public boolean requiresMarking() {
 		Step step = getStep(0);
-		boolean incomplete = step == null || step.getPoints()[1] == null;
-		return incomplete || super.isMarkByDefault();
+		return step == null || step.getPoints()[1] == null;		
 	}
 
 	/**

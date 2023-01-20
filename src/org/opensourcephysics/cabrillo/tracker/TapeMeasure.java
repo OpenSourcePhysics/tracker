@@ -70,7 +70,7 @@ import org.opensourcephysics.tools.FontSizer;
  *
  * @author Douglas Brown
  */
-public class TapeMeasure extends InputTrack {
+public class TapeMeasure extends InputTrack  implements MarkingRequired {
 
 	@Override
 	public String[] getFormatVariables() {
@@ -379,8 +379,16 @@ public class TapeMeasure extends InputTrack {
 
 	@Override
 	public boolean isMarkByDefault() {
+		return requiresMarking() || super.isMarkByDefault();
+	}
+
+	/**
+	 * Implements MarkingRequired interface.
+	 */
+	@Override
+	public boolean requiresMarking() {
 		boolean incomplete = getStep(0) == null || isIncomplete;
-		return (isCalibrator && incomplete) || super.isMarkByDefault();
+		return isCalibrator && incomplete;		
 	}
 
 	/**
@@ -806,11 +814,11 @@ public class TapeMeasure extends InputTrack {
 				: TrackerRes.getString("TapeMeasure.Label.UnmarkedTape"); //$NON-NLS-1$
 		if (!exists) {
 			end1Label.setText(unmarked); // $NON-NLS-1$
-			end1Label.setForeground(Color.green.darker());
+			end1Label.setForeground(Color.red.darker());
 			list.add(end1Label);
 		} else if (!complete) {
 			end1Label.setText(unmarked); // $NON-NLS-1$ //$NON-NLS-2$
-			end1Label.setForeground(Color.green.darker());
+			end1Label.setForeground(Color.red.darker());
 			list.add(end1Label);
 		} else {
 			rulerCheckbox.setText(TrackerRes.getString("InputTrack.Checkbox.Ruler")); //$NON-NLS-1$

@@ -78,7 +78,7 @@ import org.opensourcephysics.tools.FontSizer;
  *
  * @author Douglas Brown
  */
-public class RGBRegion extends TTrack {
+public class RGBRegion extends TTrack implements MarkingRequired {
 
 	@Override
 	public String[] getFormatVariables() {
@@ -161,6 +161,7 @@ public class RGBRegion extends TTrack {
 	protected JCheckBoxMenuItem fixedPositionItem, fixedShapeItem;
 	protected JLabel widthLabel, heightLabel, helpLabel;
 	protected TButton editPolygonButton;
+	protected JLabel unmarkedLabel;
 	protected int maxEdgeLength = defaultMaxEdgeLength;
 	protected int shapeType = SHAPE_ELLIPSE;
 	protected JComboBox<String> shapeTypeDropdown;
@@ -182,8 +183,8 @@ public class RGBRegion extends TTrack {
 		setName(TrackerRes.getString("RGBRegion.New.Name")); //$NON-NLS-1$
 		// assign default plot variables
 		setProperty("yVarPlot0", dataVariables[6]); //$NON-NLS-1$
-		setProperty("yMinPlot0", new Double(0)); //$NON-NLS-1$
-		setProperty("yMaxPlot0", new Double(255)); //$NON-NLS-1$
+		setProperty("yMinPlot0", Double.valueOf(0)); //$NON-NLS-1$
+		setProperty("yMaxPlot0", Double.valueOf(255)); //$NON-NLS-1$
 		// assign default table variables: x, y and luma
 		setProperty("tableVar0", "0"); //$NON-NLS-1$ //$NON-NLS-2$
 		setProperty("tableVar1", "1"); //$NON-NLS-1$ //$NON-NLS-2$
@@ -202,6 +203,7 @@ public class RGBRegion extends TTrack {
 		heightLabel = new JLabel("h");
 		heightLabel.setBorder(BorderFactory.createEmptyBorder(0, 4, 0, 2));
 		helpLabel = new JLabel();
+		helpLabel.setForeground(Color.red.darker());
 		helpLabel.setBorder(BorderFactory.createEmptyBorder(0, 4, 0, 2));
 		
 		editPolygonButton = new TButton() {
@@ -311,6 +313,10 @@ public class RGBRegion extends TTrack {
 		yField.addFocusListener(positionFocusListener);
 		
 		vertexHandle = new VertexHandle();
+		
+		unmarkedLabel = new JLabel();
+		unmarkedLabel.setForeground(Color.red.darker());
+
 	}
 	
 	private void refreshShapeSize(IntegerField field) {
@@ -595,6 +601,20 @@ public class RGBRegion extends TTrack {
 	@Override
 	public boolean isAutoAdvance() {
 		return !isFixedPosition() && !isPolygonEditing();
+	}
+
+	@Override
+	public boolean isMarkByDefault() {
+		return requiresMarking() || super.isMarkByDefault();
+	}
+
+	/**
+	 * Implements MarkingRequired interface.
+	 */
+	@Override
+	public boolean requiresMarking() {
+		RGBStep step = (RGBStep) getStep(0);
+		return step == null && shapeType != SHAPE_POLYGON;		
 	}
 
 	/**
@@ -942,11 +962,18 @@ public class RGBRegion extends TTrack {
 			list.add(heightField);
 		}
 		
-		if (step == null)
+		if (step == null) {
+			if (shapeType != SHAPE_POLYGON) {
+				list.add(magSeparator);
+				unmarkedLabel.setText(TrackerRes.getString("RGBRegion.Unmarked.Hint")); //$NON-NLS-1$
+				list.add(unmarkedLabel);
+			}
 			return list;
+		}
 		
-		if (shapeType == SHAPE_POLYGON && !step.isPolygonClosed())
+		if (shapeType == SHAPE_POLYGON && !step.isPolygonClosed()) {
 			return list;
+		}
 
 		stepLabel.setText(TrackerRes.getString("TTrack.Label.Step")); //$NON-NLS-1$
 		xLabel.setText(dataVariables[1]);
@@ -1013,7 +1040,7 @@ public class RGBRegion extends TTrack {
 	@Override
 	public void setFontLevel(int level) {
 		super.setFontLevel(level);
-		Object[] objectsToSize = new Object[] { widthLabel };
+		Object[] objectsToSize = new Object[] { unmarkedLabel, widthLabel };
 		FontSizer.setFonts(objectsToSize, level);
 	}
 
