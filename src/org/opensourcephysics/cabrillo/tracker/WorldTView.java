@@ -82,7 +82,7 @@ public class WorldTView extends ZoomTView {
 			TrackerPanel.PROPERTY_TRACKERPANEL_MAGNIFICATION, ImageCoordSystem.PROPERTY_COORDS_TRANSFORM,
 			TTrack.PROPERTY_TTRACK_DATA };
 	
-	protected static final double ZOOM_MIN = 0.01;
+	protected static final double ZOOM_MIN = 0.25;
 	protected static final double ZOOM_MAX = 8;
 	private static Point viewLoc = new Point();
 	private static Point mousePtRelativeToViewRect = new Point();
@@ -223,9 +223,10 @@ public class WorldTView extends ZoomTView {
 		popup.add(item);
 		popup.addSeparator();
 		for (int i = 0, nz = TrackerPanel.ZOOM_LEVELS.length; i < nz; i++) {
+			if (TrackerPanel.ZOOM_LEVELS[i] > ZOOM_MAX
+					|| TrackerPanel.ZOOM_LEVELS[i] < ZOOM_MIN)
+				continue;
 			int n = (int) (100 * TrackerPanel.ZOOM_LEVELS[i]);
-			if (TrackerPanel.ZOOM_LEVELS[i] > ZOOM_MAX)
-				break;
 			String m = String.valueOf(n);
 			item = new JMenuItem(m + "%"); //$NON-NLS-1$
 			item.setActionCommand(m);
