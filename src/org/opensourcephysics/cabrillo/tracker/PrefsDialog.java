@@ -1148,7 +1148,7 @@ public class PrefsDialog extends JDialog {
 		dataGapSubPanelBorder = BorderFactory
 				.createTitledBorder(TrackerRes.getString("PrefsDialog.DataGap.BorderTitle")); //$NON-NLS-1$
 		dataGapSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, dataGapSubPanelBorder));
-
+		
 		showGapsCheckbox = new JCheckBox();
 		showGapsCheckbox.setOpaque(false);
 		showGapsCheckbox.setSelected(Tracker.showGaps);
@@ -1173,6 +1173,18 @@ public class PrefsDialog extends JDialog {
 			}
 		});
 		dataGapSubPanel.add(autofillCheckbox);
+		
+		// trails subpanel
+		JPanel trailLengthSubPanel = new JPanel();
+		box.add(trailLengthSubPanel);
+		trailLengthSubPanel.setBackground(color);
+		trailLengthSubPanelBorder = BorderFactory
+				.createTitledBorder(TrackerRes.getString("PrefsDialog.Trails.BorderTitle")); //$NON-NLS-1$
+		trailLengthSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, trailLengthSubPanelBorder));		
+		
+		trailLengthDropdown = new JComboBox();
+		trailLengthSubPanel.add(trailLengthDropdown);
+
 		// end actions panel
 
 		// general panel
@@ -1604,6 +1616,7 @@ public class PrefsDialog extends JDialog {
 		unitsSubPanelBorder.setTitle(TrackerRes.getString("TMenuBar.Menu.AngleUnits")); //$NON-NLS-1$
 		resetToStep0SubPanelBorder.setTitle(TrackerRes.getString("PrefsDialog.Marking.BorderTitle")); //$NON-NLS-1$
 		dataGapSubPanelBorder.setTitle(TrackerRes.getString("PrefsDialog.DataGap.BorderTitle")); //$NON-NLS-1$
+		trailLengthSubPanelBorder.setTitle(TrackerRes.getString("PrefsDialog.Trails.BorderTitle")); //$NON-NLS-1$
 		decimalSeparatorBorder.setTitle(TrackerRes.getString("NumberFormatSetter.TitledBorder.DecimalSeparator.Text")); //$NON-NLS-1$
 		defaultDecimalButton.setText(TrackerRes.getString("NumberFormatSetter.Button.DecimalSeparator.Default")); //$NON-NLS-1$
 		periodDecimalButton.setText(TrackerRes.getString("NumberFormatSetter.Button.DecimalSeparator.Period")); //$NON-NLS-1$
@@ -1809,12 +1822,16 @@ public class PrefsDialog extends JDialog {
 		TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
 		Tracker.showGaps = showGapsCheckbox.isSelected();
 		if (trailLengthDropdown != null) {
-			Tracker.preferredTrailLengthIndex = trailLengthDropdown.getSelectedIndex();
-			// refresh the toolbar
-			if (panelID != null) {
-				TToolBar toolbar = trackerPanel.getToolBar(true);
-				toolbar.trailButton.setSelected(toolbar.trailLengthIndex != 0);
-				toolbar.refresh(TToolBar.REFRESH_PREFS_TRUE);
+			int index = trailLengthDropdown.getSelectedIndex();
+			if (index != Tracker.preferredTrailLengthIndex) {
+				Tracker.preferredTrailLengthIndex = index;
+				// refresh the toolbar
+				if (panelID != null) {
+					TToolBar toolbar = trackerPanel.getToolBar(true);
+					toolbar.trailLengthIndex = Tracker.preferredTrailLengthIndex;
+					toolbar.trailButton.setSelected(toolbar.trailLengthIndex != 0);
+					toolbar.refresh(TToolBar.REFRESH_PREFS_TRUE);
+				}
 			}
 		}
 		Tracker.isRadians = radiansButton.isSelected();
