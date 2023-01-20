@@ -210,7 +210,7 @@ public class Tracker {
 	static final String SQUARED = "\u00b2"; //$NON-NLS-1$
 	static final String DOT = "\u00b7"; //$NON-NLS-1$
 	static final Level DEFAULT_LOG_LEVEL = ConsoleLevel.OUT_CONSOLE;
-	static final int DEFAULT_TRAIL_LENGTH_INDEX = 2;
+	static final int DEFAULT_TRAIL_LENGTH_INDEX = 1;
 
     static final int MEMORY_OK             = 0;
 	static final int MEMORY_LOW_IGNORE     = 1;
