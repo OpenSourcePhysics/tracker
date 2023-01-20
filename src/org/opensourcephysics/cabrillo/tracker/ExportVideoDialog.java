@@ -268,6 +268,7 @@ public class ExportVideoDialog extends JDialog {
 		formatPanel = new JPanel(new GridLayout(0, 1));
 		formatDropdown = new JComboBox<>();
 		formatDropdown.setName("ExportVideo.format");
+		formatDropdown.setMaximumRowCount(TrackerIO.videoFormatDescriptions.size());
 
 		formatPanel.add(formatDropdown);
 
