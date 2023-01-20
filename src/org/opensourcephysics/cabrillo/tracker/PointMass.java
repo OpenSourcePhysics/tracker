@@ -928,7 +928,7 @@ public class PointMass extends TTrack {
 		mass = Math.abs(mass);
 		mass = Math.max(mass, MINIMUM_MASS);
 		this.mass = mass;
-		firePropertyChange(PROPERTY_TTRACK_MASS, null, new Double(mass)); // $NON-NLS-1$
+		firePropertyChange(PROPERTY_TTRACK_MASS, null, Double.valueOf(mass)); // $NON-NLS-1$
 		invalidateData(this);// to views
 		// store the mass in the data properties
 		if (datasetManager != null) {
