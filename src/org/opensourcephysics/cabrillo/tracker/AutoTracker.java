@@ -4017,12 +4017,20 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 					String pattern = table.getFormatPattern("x"); //$NON-NLS-1$
 					if (pattern == null || pattern.equals("")) { //$NON-NLS-1$
 						xRenderer = table.getDefaultRenderer(Double.class);
+						if (xRenderer instanceof TableTrackView.NumberRenderer) {
+							TableTrackView.NumberRenderer xnRenderer = (TableTrackView.NumberRenderer)xRenderer;
+							xnRenderer.nf.setFixedPattern("0.00", 0);
+						}
 					} else {
 						xFormat.applyPattern(pattern);
 					}
 					pattern = table.getFormatPattern("y"); //$NON-NLS-1$
 					if (pattern == null || pattern.equals("")) { //$NON-NLS-1$
 						yRenderer = table.getDefaultRenderer(Double.class);
+						if (yRenderer instanceof TableTrackView.NumberRenderer) {
+							TableTrackView.NumberRenderer ynRenderer = (TableTrackView.NumberRenderer)yRenderer;
+							ynRenderer.nf.setFixedPattern("0.00", 0);
+						}
 					} else {
 						yFormat.applyPattern(pattern);
 					}
