@@ -2530,8 +2530,8 @@ public class PointMass extends TTrack {
 		if (e.getSource() instanceof TrackerPanel) {
 			switch (e.getPropertyName()) {
 			case ImageCoordSystem.PROPERTY_COORDS_TRANSFORM:
+				invalidateData(Boolean.FALSE);
 //				updateDerivatives();
-//				invalidateData(null);
 				break;
 			case VideoClip.PROPERTY_VIDEOCLIP_STEPSIZE:
 				updateDerivatives();

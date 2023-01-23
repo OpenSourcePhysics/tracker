@@ -530,8 +530,6 @@ public abstract class TrackChooserTView extends TView {
 					if (coords.isAdjusting())
 						return;
 				}
-				// invalidate data
-				track.invalidateData(Boolean.FALSE);
 				Step step = track.getStep(panel.getSelectedPoint(), panel);
 				view.refresh(step == null ? panel.getFrameNumber() : step.getFrameNumber(),
 						DataTable.MODE_TRACK_TRANSFORM);
