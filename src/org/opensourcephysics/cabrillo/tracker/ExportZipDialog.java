@@ -413,17 +413,21 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 							PointMass.FrameData[] pointMassKeyFrames = (PointMass.FrameData[]) array;
 							newFrameNumbers.clear();
 							newFrameNum = 0;
+							
 							for (int i = 0; i < pointMassKeyFrames.length; i++) {
 								if (pointMassKeyFrames[i] == null || !realClip.includesFrame(i))
 									continue;
 								newFrameNum = realClip.frameToStep(i); // new frame number equals step number
 								newFrameNumbers.put(newFrameNum, i);
 							}
-							PointMass.FrameData[] newKeys = new PointMass.FrameData[newFrameNum + 1];
+							PointMass.FrameData[] newData = new PointMass.FrameData[newFrameNum + 1];
+							int[] keys = new int[newFrameNumbers.size()];
 							for (Integer k : newFrameNumbers.keySet()) {
-								newKeys[k] = pointMassKeyFrames[newFrameNumbers.get(k)];
+								keys[k] = k;
+								newData[k] = pointMassKeyFrames[newFrameNumbers.get(k)];
 							}
-							trackControl.setValue("framedata", newKeys); //$NON-NLS-1$
+							trackControl.setValue("framedata", newData); //$NON-NLS-1$							
+							trackControl.setValue("keyFrames", keys); //$NON-NLS-1$							
 						}
 
 						else if (Vector.class.isAssignableFrom(trackType)) {
