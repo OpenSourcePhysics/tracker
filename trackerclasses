@@ -780,6 +780,7 @@ org/opensourcephysics/cabrillo/tracker/LineFootprint.js
 org/opensourcephysics/cabrillo/tracker/LineProfile.js
 org/opensourcephysics/cabrillo/tracker/LineProfileStep.js
 org/opensourcephysics/cabrillo/tracker/MainTView.js
+org/opensourcephysics/cabrillo/tracker/MarkingRequired.js
 org/opensourcephysics/cabrillo/tracker/Mark.js
 org/opensourcephysics/cabrillo/tracker/ModelBuilder.js
 org/opensourcephysics/cabrillo/tracker/ModelFunctionPanel.js
