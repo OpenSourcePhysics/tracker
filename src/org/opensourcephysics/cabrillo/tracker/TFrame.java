@@ -3261,8 +3261,10 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		state = (blocking ? STATE_BLOCKED : STATE_ACTIVE);
 		if (blocking) {
 			frameBlocker = new Object();
-			if (notesVisible())
+			if (notesVisible()) {
 				setNotesVisible(false);
+				notes.wasVisible = true;
+			}
 			panel = getSelectedPanel();
 			if (panel != null)
 				panel.onBlocked();
@@ -3270,6 +3272,10 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			frameBlocker = null;
 			if (panel != null) // null for file not found
 				panel.onLoaded();
+			if (notesVisible()) {
+				setNotesVisible(true);
+				notes.wasVisible = false;
+			}
 		}
 	}
 
@@ -3475,6 +3481,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		private JCheckBox displayWhenLoadedCheckbox;
 		private int thisFontLevel;
 		private Integer panelID;
+		private boolean wasVisible;
 
 		private Notes() {
 			createNotesGUI();
@@ -3693,7 +3700,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	 * @return true only if the notesDialog is not null and is visible
 	 */
 	boolean notesVisible() {
-		return (notes != null && notes.isVisible());
+		return (notes != null && (notes.isVisible() || notes.wasVisible));
 	}
 
 	/**
