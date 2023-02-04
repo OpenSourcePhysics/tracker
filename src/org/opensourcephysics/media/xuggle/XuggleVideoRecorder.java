@@ -68,6 +68,7 @@ public class XuggleVideoRecorder extends ScratchVideoRecorder {
 	private IConverter outConverter;
 //	private IRational timebase = IRational.make(1, 9000);	
 	private Dimension converterDim;
+	private ICodec codec;
 
 	/**
    * Constructs a XuggleVideoRecorder object.
@@ -99,7 +100,6 @@ public class XuggleVideoRecorder extends ScratchVideoRecorder {
    */
 	@Override
   protected void finalize() {
-		//BH ??
   	reset();
   }
   
@@ -158,11 +158,21 @@ public class XuggleVideoRecorder extends ScratchVideoRecorder {
 		VideoFileFilter xuggleFilter = (VideoFileFilter)fileFilter;
 		format.setOutputFormat(xuggleFilter.getContainerType(), null, null);
 		
+//		String typicalName = "typical." +videoType.getDefaultExtension(); //$NON-NLS-1$
+//		ICodec codec = ICodec.guessEncodingCodec(format, null, typicalName, null, ICodec.Type.CODEC_TYPE_VIDEO);
+
+// Just checking to make sure this is OK.
+		ID id = format.isCodecSupportedForOutput(ID.AV_CODEC_ID_H264) ? 
+				ID.AV_CODEC_ID_H264 : format.getOutputDefaultVideoCodec();		
+		codec = ICodec.findEncodingCodec(id);
+		System.out.println(format + "\n" + codec);
+		
+		
 		// set the pixel type--may depend on selected fileFilter?
 		IPixelFormat.Type pixelType = IPixelFormat.Type.YUV420P;
 
 		// open the output stream, write the images, close the stream
-		openStream(format, pixelType);
+		openStream(format, codec, pixelType);
 		
 		// open temp images and encode
 		long timeStamp = 0;
@@ -210,20 +220,17 @@ public class XuggleVideoRecorder extends ScratchVideoRecorder {
    * @throws IOException
    */
 	@SuppressWarnings("deprecation")
-	private boolean openStream(IContainerFormat format, IPixelFormat.Type pixelType) 
+	private boolean openStream(IContainerFormat format, ICodec codec, IPixelFormat.Type pixelType) 
 			throws IOException {
 		outContainer = IContainer.make();
 		if (outContainer.open(scratchFile.getAbsolutePath(), IContainer.Type.WRITE, format)<0) {
 			OSPLog.finer("Xuggle could not open output file"); //$NON-NLS-1$
 			return false;
 		}	
-		String typicalName = "typical."+videoType.getDefaultExtension(); //$NON-NLS-1$
-		ICodec codec = ICodec.guessEncodingCodec(format, null, typicalName, null, ICodec.Type.CODEC_TYPE_VIDEO);
-		outStream = outContainer.addNewStream(0);
-				
+		outStream = outContainer.addNewStream(0);				
 		outStreamCoder = outStream.getStreamCoder();	
 		outStreamCoder.setNumPicturesInGroupOfPictures(10);		
-  	outStreamCoder.setCodec(codec);
+		outStreamCoder.setCodec(codec);
 		outStreamCoder.setBitRate(250000);
 //		outStreamCoder.setBitRateTolerance(9000);	
 		outStreamCoder.setPixelType(pixelType);
@@ -238,7 +245,13 @@ public class XuggleVideoRecorder extends ScratchVideoRecorder {
 //		outStreamCoder.setGlobalQuality(0);
 
 		IRational frameRate = IRational.make(1000/frameDuration);
-		boolean hasTimeBaseLimit = typicalName.endsWith(".avi") || typicalName.endsWith(".mpg"); //$NON-NLS-1$ //$NON-NLS-2$
+		boolean hasTimeBaseLimit = false;
+		switch (videoType.getDefaultExtension()) {
+		case "avi":
+		case "mpg":
+			hasTimeBaseLimit = true;
+			break;
+		}
 		if (hasTimeBaseLimit && frameRate.getDenominator()>65535) { // maximum timebase = 2^16 - 1
 			double fps = 1000/frameDuration;
 			int denom = 63000; // 7 x 9000
@@ -386,12 +399,17 @@ public class XuggleVideoRecorder extends ScratchVideoRecorder {
 	      if (id != null) {
 	        ICodec codec = ICodec.findEncodingCodec(id);
 	        if (codec != null) {
-	          System.out.print(codec + " ");
+	          System.out.print(codec.getID() + " ");
 	        }
 	      }
 	    }
 	    System.out.println("");
 	  }
+	}
+
+	@Override
+	public String getCodec() {
+		return (codec == null ? null : codec.getID().toString());
 	}
 	
 }

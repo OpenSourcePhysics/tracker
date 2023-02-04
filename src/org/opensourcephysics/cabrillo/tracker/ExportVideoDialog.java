@@ -863,7 +863,8 @@ public class ExportVideoDialog extends JDialog {
 				if (showOpenDialog) {
 					int response = javax.swing.JOptionPane.showConfirmDialog(frame,
 							TrackerRes.getString("ExportVideoDialog.Complete.Message1") //$NON-NLS-1$
-									+ " " + XML.getName(savedFilePath) + XML.NEW_LINE //$NON-NLS-1$
+									+ " " + XML.getName(savedFilePath) 
+								    + (recorder.getCodec() == null ? "" : " (codec=" + recorder.getCodec() + ")") + XML.NEW_LINE //$NON-NLS-1$
 									+ TrackerRes.getString("ExportVideoDialog.Complete.Message2"), //$NON-NLS-1$
 							TrackerRes.getString("ExportVideoDialog.Complete.Title"), //$NON-NLS-1$
 							javax.swing.JOptionPane.YES_NO_OPTION,
@@ -887,8 +888,8 @@ public class ExportVideoDialog extends JDialog {
 				playControl.step();
 			}
 		} catch (Exception ex) {
-			
-			JOptionPane.showMessageDialog(trackerPanel, ex.getStackTrace(), "Exception saving video: ", //$NON-NLS-1$
+			this.savedFilePath = null;
+			JOptionPane.showMessageDialog(trackerPanel, ex.toString(), "Exception saving video: ", //$NON-NLS-1$
 					JOptionPane.WARNING_MESSAGE);
 			monitor.close();
 			playControl.removePropertyChangeListener(ClipControl.PROPERTY_CLIPCONTROL_STEPNUMBER, listener); //$NON-NLS-1$
