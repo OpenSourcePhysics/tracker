@@ -19,7 +19,7 @@ workspace_trackerJS/installbuilder:
 -- update version number in tracker_upgrade_installer.xml
 -- build Windows and Linux installers & upgrade installers in workspace_trackerJS/installbuilder
 
--- For both vers 6.0.x (Xuggle 5.7) & 5.2.x (Xuggle 3.4):
+-- For both vers 6.1.x (Xuggle 5.7+) & vers 5.3.x (Xuggle 3.4):
 -- on Mac: replace tracker.jar, tracker_starter.jar, tracker-x.x.x.jar in Desktop Tracker.app/Contents/Java 
 -- on Mac: replace xuggle-xuggler-server-all.jar and supporting jars in Desktop Tracker.app/Contents/Java & Xuggle
 -- on Mac: replace Tracker_README.txt in Desktop Tracker.app/Contents/Resources 

@@ -1,0 +1,30 @@
+﻿Vernier Format 2
+saved_data.cmbl 1/27/2009 11:47:50 .
+Data Set
+X	Y
+x	y
+	
+
+2	4
+3	5
+4	6
+5	4
+6	8
+7	9
+8	10
+9	11
+10	13
+
+
+
+0	Vernier Format 2
+1	filename date time .
+2	datasetname
+3	longa \t longb
+4	shorta	\t shortb
+5	unitsa \t unitsb
+6	??
+7...	a \t b
+
+
+

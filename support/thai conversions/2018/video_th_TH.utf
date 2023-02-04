@@ -1,0 +1,311 @@
+# This is the thai video.properties file
+
+ClipInspector.Title=การตั้งค่าเฟรม
+ClipInspector.StartFrame.Message=เฟรมเริ่มต้น
+ClipInspector.EndFrame.Message=เฟรมสุดท้าย
+ClipInspector.Label.StartFrame=เฟรมเริ่มต้น:
+ClipInspector.Label.StepSize=ขนาดของขั้น:
+ClipInspector.Label.StepCount=จำนวนขั้น:
+ClipInspector.Label.DeltaT=ขั้นเวลา dt:
+ClipInspector.Label.PlayRate=อัตราการเล่น:
+Dialog.Button.OK=ตกลง
+Dialog.Button.Cancel=ยกเลิก
+Dialog.Button.Reset=เริ่มใหม่
+Dialog.Button.Save=บันทึก
+Filter.Baseline.Dialog.NotImage.Message=ไม่สามารถอ่านไฟล์ภาพได้
+Filter.Baseline.Dialog.NotImage.Title=ไม่สามารถอ่านภาพได้
+Filter.Baseline.Dialog.SmallImage.Message1=รูปภาพ
+Filter.Baseline.Dialog.SmallImage.Message2=มีขนาดเล็กกว่าวิดีโอ
+Filter.Baseline.Dialog.SmallImage.Title=ภาพเล็ก
+Filter.Baseline.Title=ลบภาพภูมิหลัง
+Filter.Baseline.Button.Disable=เลิกใช้งาน
+Filter.Baseline.Button.Load=โหลด
+Filter.Baseline.Button.Capture=จับภาพนิ่ง
+Filter.Baseline.Button.Clear=เคลียร์
+arFilter.Baseline.Button.Close=ปิด
+Filter.Baseline.Button.Enable=เปิดใช้งาน
+Filter.Brightness.Title=ความสว่าง และความต่างแสง
+Filter.Brightness.Label.Brightness=ความสว่าง:
+Filter.Brightness.ToolTip.Brightness=ตั้งค่าความสว่าง
+Filter.Brightness.Label.Contrast=ความต่างแสง:
+Filter.Brightness.ToolTip.Contrast=ตั้งค่าความต่างแสง
+Filter.DarkGhost.Title=Dark Ghost
+Filter.DarkGhost.Label.Fade=การจาง: 
+Filter.DarkGhost.ToolTip.Fade=ตั้งค่าระดับการจาง
+Filter.Deinterlace.Button.Odd=คี่
+Filter.Deinterlace.Button.Even=คู่
+Filter.Deinterlace.Title=เลือกบริเวณ
+Filter.Ghost.Title=Ghost
+Filter.Ghost.Label.Fade=การจาง: 
+Filter.Ghost.ToolTip.Fade=ตั้งค่าระดับการจาง
+Filter.MenuItem.Enabled=ถูกเปิดใช้งานแล้ว
+Filter.MenuItem.Properties=คุณสมบัติ...
+Filter.MenuItem.Delete=ลบ
+Filter.Sum.Title=เพิ่มวิดีโอเฟรม
+Filter.Sum.Label.Percent=Sum percent:
+Filter.Sum.ToolTip.Percent=Set sum percent
+Filter.Sum.CheckBox.ShowMean=แสดงค่าเฉลี่ย
+Filter.Sum.Label.FrameCount=จำนวนเฟรม:
+Filter.Sum.Button.Disable=เลิกใช้งาน
+Filter.Sum.Button.Clear=ล้างค่า
+Filter.Sum.Button.Close=ปิด
+Filter.Sum.Button.Enable=เปิดการใช้งาน
+Filter.Threshold.Title=เกณฑ์
+Filter.Threshold.Label.Threshold=เกณฑ์: 
+Filter.Threshold.ToolTip.Threshold=ตั้งเกณฑ์
+GifVideoType.Description=Animated GIF
+QTVideoType.Description=QuickTime MOV
+VideoClip.Dialog.BadVideo.Message=ไม่สามารถเปิดวิดีโอได้: 
+VideoClip.Dialog.BadVideo.Title=วิดีโอล้มเหลว
+VideoClip.Dialog.VideoNotFound.Message=ไม่เจอ คุณอยากค้นหาวิดีโอมั้ย?
+VideoClip.Dialog.VideoNotFound.Title=หาวิดีโอไม่เจอ
+VideoFileFilter.Description=ไฟล์วิดีโอ
+VideoFrame.Title=เฟรมวิดีโอ
+VideoFrame.Menu.Edit=แก้ไข
+VideoFrame.MenuItem.View=ดู
+VideoFrame.MenuItem.Open=เปิด...
+VideoFrame.MenuItem.Import=นำเข้า...
+VideoFrame.MenuItem.Save=บันทึก
+VideoFrame.MenuItem.SaveAs=บันทึกเป็น...
+VideoFrame.MenuItem.RecordVideo=บันทึกวิดีโอ...
+VideoFrame.MenuItem.Exit=ออก
+VideoGrabber.Action.SaveAs=บันทึกเป็น...
+VideoGrabber.Title.Capturing=จับภาพ
+VideoGrabber.Action.Clear=เคลียร์
+VideoGrabber.Title.Saved=บันทึก: 
+VideoGrabber.Action.Capture=CaptureVideoIO.File
+Name.Untitled=ไม่มีชื่อ
+VideoIO.Dialog.SaveAs.Title=บันทึกเป็น
+VideoIO.Dialog.FindQT.Title=หาไฟล์ QTJava.zip
+VideoIO.Dialog.Open.Title=เปิด
+VideoIO.Dialog.XMLMismatch.Message=มีข้อมูล xml สำหรับแอพลิเคชั่นอื่น
+VideoIO.Dialog.XMLMismatch.Title= XML ไม่ตรงกัน
+VideoIO.Dialog.BadVideo.Message=ไม่สามารถเปิดวิดีโอได้: 
+VideoIO.Dialog.BadFile.Message=ไม่สามารถเปิดไฟล์ได้: 
+VideoIO.Dialog.NoRecorder.Message=ไม่มีเครื่องบันทึกวิดีโอที่ใช้งานได้
+VideoIO.Dialog.FileExists.Title=แทนที่ไฟล์?
+VideoIO.Dialog.FileExists.Message=มีอยู่แล้ว คุณต้องการแทนที่มันมั้ย?
+VideoIO.Dialog.AddFrame.Button.Add=เพิ่ม
+VideoIO.Dialog.AddFrame.Button.Skip=ข้าม
+VideoIO.Dialog.AddFrame.Button.End=จบ
+VideoIO.Dialog.AddFrame.Message=เพิ่มเฟรมปัจจุบันลงในวิดีโอ?
+VideoIO.Dialog.AddFrame.Title=เพิ่มเฟรม
+VideoPlayer.Readout.MenuItem.Step=ขั้น
+VideoPlayer.Readout.MenuItem.Time=เวลา
+VideoPlayer.Readout.MenuItem.Frame=เฟรม
+VideoPlayer.Readout.ToolTip.Time=เวลาในหน่วยวินาที
+VideoPlayer.Readout.ToolTip.Step=ลำดับที่ของขั้น
+VideoPlayer.Readout.ToolTip.Frame=ลำดับที่ของเฟรม
+VideoPlayer.Button.StepForward.ToolTip=ไปข้างหน้า
+VideoPlayer.Button.StepBack.ToolTip=ย้อนกลับ
+VideoPlayer.Button.ClipSettings.ToolTip=ตั้งค่าวิดีโอ
+VideoPlayer.Button.Looping.ToolTip=การวนรอบ
+VideoPlayer.Button.Pause.ToolTip=หยุดชั่วคราว
+VideoPlayer.Button.Play.ToolTip=เล่น
+VideoPlayer.Button.Reset.ToolTip=ตั้งค่าเป็นขั้นที่ 0
+VideoPlayer.Slider.ToolTip=กดและลากที่สไลเดอร์เพื่อสแกนวิดีโอ
+ScratchVideoRecorder.Dialog.SaveVideo.Message=คุณต้องการที่จะบันทึกวิดีโอที่บันทึกไว้หรือไม่?
+ScratchVideoRecorder.Dialog.SaveVideo.Title=บันทึกวิดีโอ?
+
+# Additions by Doug Brown 2006-10-05
+VideoGrabber.Label.PlayRate=เฟรมต่อวินาที:
+VideoGrabber.Action.Loop=วนรอบ
+
+# Additions by Doug Brown 2006-11-10
+ClipInspector.Label.EndFrame=เฟรมสุดท้าย:
+ClipInspector.Label.StartTime=เวลาเริ่มต้น:
+
+# Additions by Doug Brown 2006-12-31
+QTPlayer.Title=QuickTime Player
+QT.Dialog.NotFound.Title=ไม่พบไฟล์ QuickTime
+QT.Dialog.NotFound.Message=ไม่พบไฟล์ QuickTime สำหรับ Java 
+ImageVideo.Dialog.LoadSequence.Message=เป็นส่วนหนึ่งของลำดับภาพต่อเนื่อง
+ImageVideo.Dialog.LoadSequence.Query=คุณต้องการที่จะโหลด์ภาพอย่างเดียวหรือลำดับภาพทั้งหมด?
+ImageVideo.Dialog.LoadSequence.Title=โหลด์ลำดับภาพ?
+ImageVideo.Dialog.LoadSequence.Button.SingleImage=ภาพอย่างเดียว
+ImageVideo.Dialog.LoadSequence.Button.AllImages=ลำดับภาพทั้งหมด
+VideoIO.ImageFileFilter.Description=ไฟล์รูปภาพ
+
+# Additions by Doug Brown 2007-02-13
+Filter.Resize.Title=เปลี่ยนขนาดฟิล์เตอร์
+Filter.Resize.Label.Width=กว้าง
+Filter.Resize.Label.Height=สูง
+Filter.Resize.Label.Input=การนำเข้า
+Filter.Resize.Label.Output=การแสดงผล
+Filter.Button.Clear=เคลียร์
+Filter.Button.Enable=เปิดการใช้งาน
+Filter.Button.Disable=ปิดการใช้งาน
+Filter.Button.Close=ปิด
+Filter.Button.Undo=เลิกทำ
+Filter.Button.Redo=ทำซ้ำ
+
+# Additions by Doug Brown 2007-02-13
+Filter.GrayScale.Title=การเปลี่ยนเป็น GrayScale
+Filter.GrayScale.Label.Type=ชนิด
+Filter.GrayScale.Label.Weight=การถ่วงน้ำหนัก
+Filter.GrayScale.Button.Video=วิดีโอ
+Filter.GrayScale.Button.Flat=Flat
+Filter.GrayScale.Button.Custom=กำหนดเอง
+Filter.GrayScale.Label.Red=แดง
+Filter.GrayScale.Label.Green=เขียว
+Filter.GrayScale.Label.Blue=น้ำเงิน
+
+# Additions by Doug Brown 2008-11-21
+ImageVideoType.Description=ลำดับภาพ
+ImageVideo.Dialog.UnsavedImages.Title=บันทึกภาพ?
+ImageVideo.Dialog.UnsavedImages.Message1=ลำดับภาพชุดนี้มีภาพที่ยังไม่ได้บันทึกอย่างน้อยหนึ่งภาพ 
+ImageVideo.Dialog.UnsavedImages.Message2=คุณต้องการที่จะบันทึกภาพเหล่านั้นหรือไม่? 
+
+# Additions by Doug Brown 2009-03-05
+GIFVideoType.GIFFileFilter.Description=ไฟล์ GIF (*.gif)
+ImageVideo.Dialog.MissingImages.Message=ระบบหาภาพต่อไปนี้ไม่เจอ
+ImageVideo.Dialog.MissingImages.Title=Missing Images
+ImageVideoType.JPGFileFilter.Description=ไฟล์ JPEG (*.jpg)
+ImageVideoType.PNGFileFilter.Description=ไฟล์ PNG (*.png)
+QTVideoType.MOVFileFilter.Description=ไฟล์ MOV (*.mov)
+
+# Additions by Doug Brown 2009-09-21
+ClipInspector.Label.FPS=จำนวนเฟรมต่อวินาที:
+ClipInspector.Label.FrameDt=เฟรม dt:
+ClipInspector.Label.StepDt=ขั้น dt:
+VideoPlayer.InMarker.ToolTip=เฟรมเริ่มต้น
+VideoPlayer.OutMarker.ToolTip=เฟรมสุดท้าย
+VideoPlayer.Readout.ToolTip=(กดเพื่อแก้ไข)
+VideoPlayer.Button.StepSize.ToolTip=ช่วงการวิเคราะห์ (กดเพื่อแก้ไข)
+VideoPlayer.Button.StepSize.Other=อื่น ๆ...
+VideoPlayer.Button.StepSize.Popup.Menu=ช่วงการวิเคราะห์
+VideoPlayer.Dialog.StepSize.Message=ใส่ค่าจำนวนเฟรมต่อขั้น:
+VideoPlayer.Dialog.StepSize.Title=ตั้งค่าขนาดของขั้น
+VideoPlayer.Spinner.Rate.ToolTip=อัตราการเล่น (%  ของการเล่นปกติ)
+VideoPlayer.Readout.Menu.SetTime=ตั้งเวลา...
+VideoPlayer.Readout.Menu.Display=แสดงผล
+VideoPlayer.Dialog.SetTime.Title=เวลาที่เฟรม
+VideoPlayer.Dialog.SetTime.Message=ใส่ค่าเวลาเป็นวินาที:
+VideoPlayer.Slider.Popup.Menu.SetIn=ตั้งค่าเฟรมเริ่มต้นที่นี่
+VideoPlayer.Slider.Popup.Menu.SetOut=ตั้งค่าเฟรมสุดท้ายที่นี่
+
+# Additions by Doug Brown 2010-12-01
+ASFFileFilter.Description=ไฟล์วิดีโอสำหรับ Windows
+AVIFileFilter.Description=วิดีโอในรูปแบบไฟล์ AVI 
+FLVFileFilter.Description=วิดีโอในรูปแบบFlash 
+GIFFileFilter.Description=ภาพเคลื่อนไหวแบบ GIF
+JPGFileFilter.Description=ภายนิ่งในรูปแบบ JPEG 
+MOVFileFilter.Description=โปรแกรม QuickTime Movie
+MP4FileFilter.Description=วิดีโอ MPEG4 
+PNGFileFilter.Description=ภาย PNG 
+VIDEOFileFilter.Description=ไฟล์วิVideo Files
+VideoPlayer.InOutMarker.ToolTip=(Drag เพื่อเปลี่ยน)
+XuggleVideoType.Description=วิดีโอ Xuggle
+ 
+# Additions by Doug Brown 2011-01-29
+VideoEnginePanel.TitledBorder.Title=เปิดด้วย
+Filter.Rotate.Title=หมุนฟิลเตอร์
+Filter.Rotate.Button.None=ไม่มี
+Filter.Rotate.Button.CW=-90º
+Filter.Rotate.Button.CCW=+90º
+Filter.Rotate.Button.180=180º
+Filter.Rotate.Checkbox.Reverse=ย้อนกลับ
+Filter.Rotate.Label.Rotate=การหมุน
+
+# Additions by Doug Brown 2011-04-06
+Filter.Perspective.Title=ฟิลเตอร์สำหรับมุมมอง
+PerspectiveFilter.Shape.Rectangle=แบบสี่เหลี่ยมผืนผ้า
+PerspectiveFilter.Shape.Any=แบบใดๆ
+PerspectiveFilter.Label.Shape=รูปร่าง:
+PerspectiveFilter.Button.Help=ช่วยเหลือ
+PerspectiveFilter.Button.Color=สี
+PerspectiveFilter.Tab.Input=นำเข้า
+PerspectiveFilter.Tab.Output=แสดงผล
+PerspectiveFilter.Corners.Title=ตำแหน่งของมุมเป็นพิกเซล
+PerspectiveFilter.Dialog.Color.Title=สีของเส้น
+PerspectiveFilter.Help.Title=ความช่วยเหลือสำหรับฟิลเตอร์มุมมอง
+PerspectiveFilter.Help.Message1=ฟิลเตอร์มุมมองช่วยแก้ไขความบิดเบือนของรูปที่เกิดจากการถ่ายภาพได้
+PerspectiveFilter.Help.Message2=from an angle rather than straight-on.  It does so by mapping a distorted plane shape in
+PerspectiveFilter.Help.Message3=the input image to a straight-on plane shape (rectangle by default) in the output image.
+PerspectiveFilter.Help.Message4=The input and output shapes are adjusted by dragging their corners. 
+PerspectiveFilter.Help.Message5=To use the filter: 
+PerspectiveFilter.Help.Message6=1. Select the Input tab and define the distorted plane in the input image. 
+PerspectiveFilter.Help.Message7=2. Select the Output tab and define the straight-on plane in the output image. 
+PerspectiveFilter.Help.Message8=3. Adjust the output plane dimensions so that the horizontal and vertical
+PerspectiveFilter.Help.Message9=ขนาดเท่ากัน (ไม่จำเป็นสำหรับการเคลื่อนที่ 1 มิติ)
+DVFileFilter.Description=วิดีโอ DV 
+
+# Additions by Doug Brown 2011-12-15
+ClipInspector.Title.Frames=เฟรม
+ClipInspector.Title.FrameTimes=เวลาของเฟรม
+VideoPlayer.Readout.Menu.Renumber=เรียงลำดับ...
+VideoPlayer.Dialog.SetFrameNumber.Title=เรียงลำดับเฟรมจริงของวิดีโอ
+VideoPlayer.Dialog.SetFrameNumber.Message=ใส่เลขลำดับของเฟรมที่ต้องการ:
+
+# Additions by Doug Brown 2012-04-07
+VideoFilter.Deinterlace=Deinterlace
+VideoFilter.Ghost=Ghost
+VideoFilter.DarkGhost=Dark Ghost
+VideoFilter.Negative=Negative
+VideoFilter.GrayScale=ภาพขาวดำ
+VideoFilter.Brightness=ความสว่าง
+VideoFilter.Baseline=Baseline
+VideoFilter.Sum=ผลรวม
+VideoFilter.Resize=ปรับขนาด
+VideoFilter.Rotate=หมุน
+VideoFilter.Perspective=มุมมอง
+VideoIO.Dialog.SaveVideoAs.Title=บันทึกวิดีโอเป็น
+
+# Additions by Doug Brown 2012-12-17
+VideoIO.Engine.None=ไม่มี
+VideoIO.Dialog.TryDifferentEngine.Message1=ไม่สามารถเปิดวิดีโอได้ด้วยระบบที่ใช้งานอยู่
+VideoIO.Dialog.TryDifferentEngine.Message2=เปิดวิดีโอด้วยระบบอื่นโดยกดปุ่มด้านล่าง
+VideoIO.Dialog.Label.Path=Path
+
+# Additions by Doug Brown 2013-01-26
+VideoPlayer.Popup.Menu.SetTimeToZero=ตั้งเวลาให้เป็นศูนย์
+VideoFilter.RadialDistortion=การบิดเบือนในแนวรัศมี
+RadialDistortionFilter.Inspector.Title=การบิดเบือนในแนวรัศมี
+RadialDistortionFilter.Label.Angle=ค่าขอบเขตการมองเห็น
+RadialDistortionFilter.Label.Diameter=เส้นผ่านศุนย์กลาง
+RadialDistortionFilter.BorderTitle.Source=นำเข้าภาพ
+RadialDistortionFilter.BorderTitle.Output=นำออกภาพ
+RadialDistortionFilter.BorderTitle.Circle=พิกเซลคงที่
+RadialDistortionFilter.Label.ProjectionType=การฉายภาพ
+RadialDistortionFilter.ProjectionType.Rectilinear=เป็นเส้นตรง
+RadialDistortionFilter.ProjectionType.Equisolid=Fisheye
+RadialDistortionFilter.ProjectionType.Equidistant=Equidistant
+RadialDistortionFilter.ProjectionType.Stereographic=Stereographic
+RadialDistortionFilter.ProjectionType.Orthographic=Orthographic
+RadialDistortionFilter.Help.Title=Radial Distortion Filter Help
+RadialDistortionFilter.Help.Message.Rectilinear=Rectilinear (equal distance)):  r ~ tan(\u0398)
+RadialDistortionFilter.Help.Message.Equisolid=Fisheye (equal solid angle):  r ~ 2 sin(\u0398/2)
+RadialDistortionFilter.Help.Message.Equidistant=Equidistant (equal angle):  r ~ \u0398
+RadialDistortionFilter.Help.Message.Stereographic=Stereographic:  r ~ 2 tan(\u0398/2)
+RadialDistortionFilter.Help.Message.Orthographic=Orthographic:  r ~ sin(\u0398)
+RadialDistortionFilter.Help.Message1=A radial distortion filter corrects the distortion associated with fisheye
+RadialDistortionFilter.Help.Message2=and other lens types. It works by applying a radial transformation to the
+RadialDistortionFilter.Help.Message3=ภาพ,เลื่อนแต่ละจุดเข้าหาหรือออกห่างจากจุดศูนย์กลางเป็นจำนวน
+RadialDistortionFilter.Help.Message4=ขึ้นกับระยะทางเชิงรัศมี r และ ชนิดของเงา (projection) ของ
+RadialDistortionFilter.Help.Message5=นำเข้าและส่งออกภาพ
+RadialDistortionFilter.Help.Message6=แต่ละชนิดของการฉายภาพถูกกำหนดโดยความสัมพันธ์ระหว่าง r และ ray 
+RadialDistortionFilter.Help.Message7=angle \u0398 from the optical axis. The following types are available: 
+RadialDistortionFilter.Help.Message8=ใช้ฟิลเตอร์: 
+RadialDistortionFilter.Help.Message9=1. Set the input and output projection types
+RadialDistortionFilter.Help.Message10=2. Set the diagonal field of view of the input image
+RadialDistortionFilter.Help.Message11=3. ปรับเส้นผ่านศูนย์กลางของ fixed pixel circle ตามต้องการ
+
+# Additions by Doug Brown 2014-10-24
+VideoIO.Dialog.TryDifferentEngine.Checkbox=เปลี่ยนระบบวิดีโอที่ตั้งไว้
+
+# Additions by Doug Brown 2015-12-21
+PerspectiveFilter.Checkbox.Fixed=คงที่
+Filter.Strobe.Title=Strobe
+VideoFilter.Strobe=Strobe
+Filter.Strobe.RadioButton.Dark=ความมืด
+Filter.Strobe.RadioButton.Dark.Tooltip=ระดับความมืดตรงข้ามกับความสว่าง
+Filter.Strobe.RadioButton.Bright=ความสว่าง
+Filter.Strobe.RadioButton.Bright.Tooltip=ระดับความสว่างตรงข้ามกับความมืด
+
+# Additions by Doug Brown 2016-07-04
+VideoPlayer.Readout.Menu.GoTo=ไปที่
+VideoPlayer.GoToDialog.Title=ไปที่
+
+# Additions by Doug Brown 2017-10-13
+Filter.MenuItem.Copy=คัดลอก
+VideoPlayer.Slider.Popup.Menu.TrimFrames=ตัดเฟรมตอนท้าย

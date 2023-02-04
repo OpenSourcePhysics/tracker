@@ -1,0 +1,8 @@
+See ReadMe.txt in the "thai conversions" folder
+
+--rename Thammarong's files using extension utf rather than properties
+--in the Command Prompt window, enter (without quotes) eg:  "thaiconv -r tracker_th_TH.utf -out 0 > tracker_th_TH.properties" to convert to TIS-620
+--copy eg tracker_th_TH.properties file to C:\Users\Doug\Eclipse\workspace_trackerJS\build\properties 
+--run the Tracker Develop "encode_thai_properties" ant target to convert the TIS-620 .properties files to escaped latin .props files
+
+
