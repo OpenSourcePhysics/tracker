@@ -210,11 +210,11 @@ public class Tracker {
 	static final String SQUARED = "\u00b2"; //$NON-NLS-1$
 	static final String DOT = "\u00b7"; //$NON-NLS-1$
 	static final Level DEFAULT_LOG_LEVEL = ConsoleLevel.OUT_CONSOLE;
-	static final int DEFAULT_TRAIL_LENGTH_INDEX = 1;
+	static final int DEFAULT_TRAIL_LENGTH_INDEX = 2; // long trails
 
-    static final int MEMORY_OK             = 0;
+  static final int MEMORY_OK             = 0;
 	static final int MEMORY_LOW_IGNORE     = 1;
-    static final int MEMORY_LOW_DONTIGNORE = 2;
+  static final int MEMORY_LOW_DONTIGNORE = 2;
 	static final int MEMORY_OUT            = 3;
 	static final int MEMORY_INCREASE       = 4;
 
@@ -469,8 +469,6 @@ public class Tracker {
 				new Locale("pl"), // polish //$NON-NLS-1$
 				new Locale("pt", "BR"), // Brazil portuguese //$NON-NLS-1$ //$NON-NLS-2$
 				new Locale("pt", "PT"), // Portugal portuguese //$NON-NLS-1$
-				// BH missing PORTUGUESE?
-//		OSPRuntime.PORTUGUESE,
 				new Locale("sk"), // slovak //$NON-NLS-1$
 				new Locale("sl"), // slovenian //$NON-NLS-1$
 				new Locale("sv"), // swedish //$NON-NLS-1$
