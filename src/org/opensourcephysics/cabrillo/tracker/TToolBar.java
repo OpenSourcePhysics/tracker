@@ -1061,75 +1061,85 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 		switch(button.getName()) {
 		case BUTTON_OPEN:
 			if (openMenu == null) {
-				openMenu = new JMenu(getLocalizedName(button));
+				openMenu = new JMenu();
 				openMenu.setIcon(button.getIcon());
 			}
+			openMenu.setText(getLocalizedName(button));
 			return openMenu;
 		case BUTTON_SAVE:
 			if (saveMenu == null) {
-				saveMenu = new JMenu(getLocalizedName(button));
+				saveMenu = new JMenu();
 				saveMenu.setIcon(button.getIcon());
 			}
+			saveMenu.setText(getLocalizedName(button));
 			return saveMenu;
 		case BUTTON_CLIP:
 			if (clipCheckbox == null) {
-				clipCheckbox = new JCheckBoxMenuItem(getLocalizedName(button), button.getIcon());
+				clipCheckbox = new JCheckBoxMenuItem("", button.getIcon());
 				clipCheckbox.addActionListener((e) -> {
 					button.doClick(0);
 				});
 			}
+			clipCheckbox.setText(getLocalizedName(button));
 			return clipCheckbox;
 		case BUTTON_CALIBRATION:
 			if (calibrationMenu == null) {
-				calibrationMenu = new JMenu(getLocalizedName(button));
+				calibrationMenu = new JMenu();
 				calibrationMenu.setIcon(calibrationOnlyIcon);
 			}
+			calibrationMenu.setText(getLocalizedName(button));
 			return calibrationMenu;
 		case BUTTON_AXES:
 			if (axesCheckbox == null) {
-				axesCheckbox = new JCheckBoxMenuItem(getLocalizedName(button), button.getIcon());
+				axesCheckbox = new JCheckBoxMenuItem("", button.getIcon());
 				axesCheckbox.addActionListener((e) -> {
 					button.doClick(0);
 				});
 			}
+			axesCheckbox.setText(getLocalizedName(button));
 			return axesCheckbox;
 		case BUTTON_MEASURE:
 			if (rulerMenu == null) {
-				rulerMenu = new JMenu(getLocalizedName(button));
+				rulerMenu = new JMenu();
 				rulerMenu.setIcon(rulerOnlyIcon);
 			}
+			rulerMenu.setText(getLocalizedName(button));
 			return rulerMenu;
 		case BUTTON_TRACK_CONTROL:
 			if (trackControlCheckbox == null) {
-				trackControlCheckbox = new JCheckBoxMenuItem(getLocalizedName(button), button.getIcon());
+				trackControlCheckbox = new JCheckBoxMenuItem("", button.getIcon());
 				trackControlCheckbox.addActionListener((e) -> {
 					button.doClick(0);
 				});
 			}
+			trackControlCheckbox.setText(getLocalizedName(button));
 			return trackControlCheckbox;
 		case BUTTON_AUTOTRACKER:
 			if (autotrackerCheckbox == null) {
-				autotrackerCheckbox = new JCheckBoxMenuItem(getLocalizedName(button), button.getIcon());
+				autotrackerCheckbox = new JCheckBoxMenuItem("", button.getIcon());
 				autotrackerCheckbox.addActionListener((e) -> {
 					button.doClick(0);
 				});
 			}
+			autotrackerCheckbox.setText(getLocalizedName(button));
 			return autotrackerCheckbox;
 		case BUTTON_TRACK_DISPLAY:
 			if (eyeMenu == null) {
-				eyeMenu = new JMenu(getLocalizedName(button));
+				eyeMenu = new JMenu();
 				eyeMenu.setIcon(button.getIcon());
 			}
+			eyeMenu.setText(getLocalizedName(button));
 			return eyeMenu;
 		case BUTTON_ZOOM:
 			if (zoomMenu == null) {
-				zoomMenu = new JMenu(getLocalizedName(button));
+				zoomMenu = new JMenu();
 				zoomMenu.setIcon(button.getIcon());
 			}
+			zoomMenu.setText(getLocalizedName(button));
 			return zoomMenu;
 		case BUTTON_DRAWINGS:
 			if (drawingMenu == null) {
-				drawingMenu = new JMenu(getLocalizedName(button));
+				drawingMenu = new JMenu();
 				drawingMenu.setIcon(pencilIcon);
 				drawingControlCheckbox = new JCheckBoxMenuItem();
 				drawingControlCheckbox.addActionListener((e) -> {
@@ -1137,40 +1147,46 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 					button.doClick();
 				});
 			}
+			drawingMenu.setText(getLocalizedName(button));
 			return drawingMenu;
 		case BUTTON_NOTES:
 			if (notesCheckbox == null) {
-				notesCheckbox = new JCheckBoxMenuItem(getLocalizedName(button), button.getIcon());
+				notesCheckbox = new JCheckBoxMenuItem("", button.getIcon());
 				notesCheckbox.addActionListener((e) -> {
 					button.doClick(0);
 				});
 			}
+			notesCheckbox.setText(getLocalizedName(button));
 			return notesCheckbox;
 		case BUTTON_DESKTOP:
 			if (desktopMenu == null) {
-				desktopMenu = new JMenu(getLocalizedName(button));
+				desktopMenu = new JMenu();
 				desktopMenu.setIcon(button.getIcon());
 			}
+			desktopMenu.setText(getLocalizedName(button));
 			return desktopMenu;
 		case BUTTON_MEMORY:
 			if (memoryMenu == null) {
-				memoryMenu = new JMenu(getLocalizedName(button));
+				memoryMenu = new JMenu();
 				memoryMenu.setIcon(button.getIcon());
 			}
+			memoryMenu.setText(getLocalizedName(button));
 			return memoryMenu;
 		case BUTTON_REFRESH:
 			if (refreshMenu == null) {
-				refreshMenu = new JMenu(getLocalizedName(button));
+				refreshMenu = new JMenu();
 				refreshMenu.setIcon(button.getIcon());
 			}
+			refreshMenu.setText(getLocalizedName(button));
 			return refreshMenu;
 		case BUTTON_MAXIMIZE:
 			if (maximizeCheckbox == null) {
-				maximizeCheckbox = new JCheckBoxMenuItem(getLocalizedName(button), button.getIcon());
+				maximizeCheckbox = new JCheckBoxMenuItem("", button.getIcon());
 				maximizeCheckbox.addActionListener((e) -> {
 					button.doClick(0);
 				});
 			}
+			maximizeCheckbox.setText(getLocalizedName(button));
 			return maximizeCheckbox;
 		default:
 			JMenu menu = new JMenu(getLocalizedName(button));
@@ -1479,6 +1495,7 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 		case REFRESH_TFRAME_LOCALE2:
 			doRefresh = true;
 			aGroup = vGroup = null;
+			enabledCount = -1; // forces rebuild in case buttons overflow as menu items
 			break;
 		case REFRESH_PREFS_TRUE:
 		case REFRESH_TFRAME_REFRESH_TRUE:
