@@ -185,11 +185,11 @@ public class PrefsDialog extends JDialog {
 	 *
 	 * @param panel the tracker panel
 	 */
-	public PrefsDialog(TrackerPanel panel) {
+	public PrefsDialog(TrackerPanel panel, TFrame frame) {
 		// non-modal
-		super(panel.getTFrame(), false);
-		frame = panel.getTFrame();
-		panelID = panel.getID();
+		super(panel==null? null: panel.getTFrame(), false);
+		panelID = panel==null? null: panel.getID();
+		this.frame = frame;
 		setTitle(TrackerRes.getString("ConfigInspector.Title")); //$NON-NLS-1$
 		findTrackerJars();
 		createGUI();
@@ -1209,7 +1209,8 @@ public class PrefsDialog extends JDialog {
 				@Override
 				public void actionPerformed(ActionEvent e) {
 					Tracker.recentFiles.clear();
-					frame.refreshMenus(frame.getTrackerPanelForID(panelID), TMenuBar.REFRESH_PREFS_CLEARRECENT);
+					if (panelID != null)
+						frame.refreshMenus(frame.getTrackerPanelForID(panelID), TMenuBar.REFRESH_PREFS_CLEARRECENT);
 					clearRecentButton.setEnabled(false);
 				}
 			});
@@ -1819,14 +1820,16 @@ public class PrefsDialog extends JDialog {
 	private void applyPrefs() {
 		// look/feel, language, video, hints, font size & decimal separator are set
 		// directly by components
-		TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
+		
+		TrackerPanel trackerPanel = panelID==null? null:
+			frame.getTrackerPanelForID(panelID);
 		Tracker.showGaps = showGapsCheckbox.isSelected();
 		if (trailLengthDropdown != null) {
 			int index = trailLengthDropdown.getSelectedIndex();
 			if (index != Tracker.preferredTrailLengthIndex) {
 				Tracker.preferredTrailLengthIndex = index;
 				// refresh the toolbar
-				if (panelID != null) {
+				if (trackerPanel != null) {
 					TToolBar toolbar = trackerPanel.getToolBar(true);
 					toolbar.trailLengthIndex = Tracker.preferredTrailLengthIndex;
 					toolbar.trailButton.setSelected(toolbar.trailLengthIndex != 0);
@@ -1841,7 +1844,8 @@ public class PrefsDialog extends JDialog {
 			// update recent menu
 			Integer val = (Integer) recentSizeSpinner.getValue();
 			Tracker.setRecentSize(val);
-			trackerPanel.refreshMenus(TMenuBar.REFRESH_PREFS_APPLYPREFS);
+			if (trackerPanel != null)
+				trackerPanel.refreshMenus(TMenuBar.REFRESH_PREFS_APPLYPREFS);
 			// update configuration
 			updateConfig();
 			Tracker.isXuggleFast = xuggleFastButton.isSelected();

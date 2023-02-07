@@ -1688,13 +1688,14 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	public PrefsDialog getPrefsDialog() {
 		TrackerPanel trackerPanel = getSelectedPanel();
 		if (prefsDialog != null) {
-			if (prefsDialog.panelID != trackerPanel.getID()) {
-				prefsDialog.panelID = trackerPanel.getID();
+			Integer id = trackerPanel==null? null: trackerPanel.getID();
+			if (prefsDialog.panelID != id) {
+				prefsDialog.panelID = id;
 				prefsDialog.refreshGUI();
 			}
 		} else {
 			// create PrefsDialog
-			prefsDialog = new PrefsDialog(trackerPanel);
+			prefsDialog = new PrefsDialog(trackerPanel, this);
 			// center on screen
 			Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
 			int x = (dim.width - prefsDialog.getBounds().width) / 2;
@@ -3400,6 +3401,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			editMenu.add(languageMenu);
 			// preferences item
 			JMenuItem prefsItem = new JMenuItem(TrackerRes.getString("TActions.Action.Config")); //$NON-NLS-1$
+			prefsItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, keyMask));
 			prefsItem.addActionListener(new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent e) {

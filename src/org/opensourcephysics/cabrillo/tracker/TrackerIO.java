@@ -1732,8 +1732,10 @@ public class TrackerIO extends VideoIO {
 			j = path.indexOf("</property>"); //$NON-NLS-1$
 			path = path.substring(0, j);
 			if (path.endsWith(".html") || path.endsWith(".htm")) { //$NON-NLS-1$ //$NON-NLS-2$
-				String base = XML.getDirectoryPath(trkPath);
-				Resource res = ResourceLoader.getResource(base + "/" + path);
+				String base = XML.getDirectoryPath(trkPath); // "" for null trkPath
+				Resource res = "".equals(base)? 
+						ResourceLoader.getResource(path):
+						ResourceLoader.getResource(base + "/" + path);
 				if (res != null) {
 					// found an HTML file, so add it to the map
 					String urlPath = res.getURL().toExternalForm();
