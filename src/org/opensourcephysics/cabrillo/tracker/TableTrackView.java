@@ -495,25 +495,20 @@ public class TableTrackView extends TrackView {
 		String tooltip = root + " "; //$NON-NLS-1$
 		String units = ""; //$NON-NLS-1$
 		if (yIsAngle) { // angle columns
+			String t = frame.getTrackerPanelForID(panelID).getTimeUnit();
+			if (degrees) {
+				tooltip += TrackerRes.getString("TableTrackView.Degrees.Tooltip"); //$NON-NLS-1$
+			} else {
+				tooltip += TrackerRes.getString("TableTrackView.Radians.Tooltip"); //$NON-NLS-1$
+			}
 			if (yTitle.startsWith(Tracker.THETA)) {
 				if (degrees) {
 					units = Tracker.DEGREES;
-					tooltip += TrackerRes.getString("TableTrackView.Degrees.Tooltip"); //$NON-NLS-1$
-				} else {
-					tooltip += TrackerRes.getString("TableTrackView.Radians.Tooltip"); //$NON-NLS-1$
 				}
 			} else if (yTitle.startsWith(Tracker.OMEGA)) {
-				if (degrees) {
-					tooltip += TrackerRes.getString("TableTrackView.DegreesPerSecond.Tooltip"); //$NON-NLS-1$
-				} else {
-					tooltip += TrackerRes.getString("TableTrackView.RadiansPerSecond.Tooltip"); //$NON-NLS-1$
-				}
+					tooltip += "/" + t; //$NON-NLS-1$
 			} else if (yTitle.startsWith(Tracker.ALPHA)) {
-				if (degrees) {
-					tooltip += TrackerRes.getString("TableTrackView.DegreesPerSecondSquared.Tooltip"); //$NON-NLS-1$
-				} else {
-					tooltip += TrackerRes.getString("TableTrackView.RadiansPerSecondSquared.Tooltip"); //$NON-NLS-1$
-				}
+					tooltip += "/" + t + "^2"; //$NON-NLS-1$
 			}
 			TableCellRenderer precisionRenderer = dataTable.getPrecisionRenderer(yTitle);
 			if (degrees) {

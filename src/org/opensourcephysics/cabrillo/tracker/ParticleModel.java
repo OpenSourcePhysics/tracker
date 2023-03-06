@@ -257,6 +257,7 @@ abstract public class ParticleModel extends PointMass {
 			VideoClip.PROPERTY_VIDEOCLIP_STARTFRAME,  // ParticleModel
 			VideoClip.PROPERTY_VIDEOCLIP_STEPCOUNT, // ParticleModel
 			TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDTRACK, // ParticleModel
+			TrackerPanel.PROPERTY_TRACKERPANEL_UNITS
 	};
 	
 	@Override
@@ -330,6 +331,9 @@ abstract public class ParticleModel extends PointMass {
 					refreshSteps(name);
 				}
 			}
+			return;
+		case TrackerPanel.PROPERTY_TRACKERPANEL_UNITS:
+			setAnglesInRadians(tp.getTFrame().isAnglesInRadians());
 			return;
 		case FunctionTool.PROPERTY_FUNCTIONTOOL_FUNCTION:
 			if (!loading)
@@ -666,13 +670,15 @@ abstract public class ParticleModel extends PointMass {
 	protected void setAnglesInRadians(boolean radians) {
 		super.setAnglesInRadians(radians);
 		functionPanel.initEditor.setAnglesInDegrees(!radians);
-		String s = TrackerRes.getString("DynamicParticle.Parameter.InitialTheta.Description") + " "; //$NON-NLS-1$ //$NON-NLS-2$
-		s += radians ? TrackerRes.getString("TableTrackView.Radians.Tooltip") : //$NON-NLS-1$
-				TrackerRes.getString("TableTrackView.Degrees.Tooltip"); //$NON-NLS-1$
+		// set "tooltip" description for theta
+		String units = radians ? TrackerRes.getString("TableTrackView.Radians.Tooltip") : //$NON-NLS-1$
+			TrackerRes.getString("TableTrackView.Degrees.Tooltip"); //$NON-NLS-1$
+		String s = TrackerRes.getString("DynamicParticle.Parameter.InitialTheta.Description"); //$NON-NLS-1$
+		s += " " + units;
 		functionPanel.initEditor.setDescription(FunctionEditor.THETA, s);
-		s = TrackerRes.getString("DynamicParticle.Parameter.InitialOmega.Description") + " "; //$NON-NLS-1$ //$NON-NLS-2$
-		s += radians ? TrackerRes.getString("TableTrackView.RadiansPerSecond.Tooltip") : //$NON-NLS-1$
-				TrackerRes.getString("TableTrackView.DegreesPerSecond.Tooltip"); //$NON-NLS-1$
+		// set description for omega
+		s = TrackerRes.getString("DynamicParticle.Parameter.InitialOmega.Description"); //$NON-NLS-1$ //$NON-NLS-2$
+		s += " " + units + "/" + tp.getTimeUnit();
 		functionPanel.initEditor.setDescription(FunctionEditor.OMEGA, s);
 	}
 

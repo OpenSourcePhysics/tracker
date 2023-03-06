@@ -254,7 +254,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	protected PropertyChangeListener massParamListener, massChangeListener;
 	@SuppressWarnings("unchecked")
 	protected TreeMap<String, String>[] formatPatterns = new TreeMap[TTrack.getDefaultFormatPatterns().length];
-	protected String lengthUnit = "m", massUnit = "kg", timeUnit = "s"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+	protected String lengthUnit = "m", massUnit = "kg"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 	protected boolean unitsVisible = true; // visible by default
 	protected TCoordinateStringBuilder coordStringBuilder;
 	protected ArrayList<Integer> andWorld = new ArrayList<Integer>();
@@ -1923,6 +1923,22 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		}
 		firePropertyChange(PROPERTY_TRACKERPANEL_UNITS, false, true);
 		return true;
+	}
+
+	@Override
+	public boolean setTimeUnit(String unit) {
+		if (super.setTimeUnit(unit)) {
+			refreshTrackBar();
+			VideoClip clip = getPlayer().getVideoClip();
+			ClipControl clipControl = getPlayer().getClipControl();
+			TFrame frame = getTFrame();
+			ClipInspector inspector = clip.getClipInspector(clipControl, frame);
+			inspector.setTimeUnit(unit);
+			//getTrackBar().refresh();
+			firePropertyChange(PROPERTY_TRACKERPANEL_UNITS, false, true);
+			return true;
+		}
+		return false;
 	}
 
 	/**

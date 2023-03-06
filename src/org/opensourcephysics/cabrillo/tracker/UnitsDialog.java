@@ -33,7 +33,7 @@ import javax.swing.border.TitledBorder;
 import org.opensourcephysics.tools.FontSizer;
 
 /**
- * A dialog to set length, mass and angle units.
+ * A dialog to set time. length, mass and angle units.
  *
  * @author Douglas Brown
  */
@@ -94,8 +94,8 @@ public class UnitsDialog extends JDialog {
     // fields
     lengthUnitField = new UnitField(5);
     massUnitField = new UnitField(5);
-    timeUnitField = new JTextField(5);
-    timeUnitField.setEditable(false);
+    timeUnitField = new UnitField(5);
+//    timeUnitField.setEditable(false);
     
     // angle unit buttons
     degreesButton = new JRadioButton();
@@ -131,7 +131,7 @@ public class UnitsDialog extends JDialog {
     closeButton = new JButton();
     closeButton.addActionListener(new ActionListener() {
       @Override
-	public void actionPerformed(ActionEvent e) {
+      public void actionPerformed(ActionEvent e) {
         setVisible(false);
       }
     });
@@ -176,14 +176,14 @@ public class UnitsDialog extends JDialog {
    * Updates the GUI.
    */
   protected void refreshGUI() {
-	TrackerPanel pane = frame.getTrackerPanelForID(panelID);  
+  	TrackerPanel panel = frame.getTrackerPanelForID(panelID);  
     setTitle(TrackerRes.getString("UnitsDialog.Title")); //$NON-NLS-1$
     closeButton.setText(TrackerRes.getString("Dialog.Button.OK")); //$NON-NLS-1$
   	lengthLabel.setText(TrackerRes.getString("NumberFormatSetter.Help.Dimensions.2")); //$NON-NLS-1$
   	massLabel.setText(TrackerRes.getString("NumberFormatSetter.Help.Dimensions.4")); //$NON-NLS-1$
-  	lengthUnitField.setText(pane.lengthUnit);
-  	massUnitField.setText(pane.massUnit);
-  	timeUnitField.setText(pane.timeUnit);
+  	lengthUnitField.setText(panel.lengthUnit);
+  	massUnitField.setText(panel.massUnit);
+  	timeUnitField.setText(panel.getTimeUnit());
   	timeLabel.setText(TrackerRes.getString("NumberFormatSetter.Help.Dimensions.3")); //$NON-NLS-1$
     degreesButton.setText(TrackerRes.getString("TMenuBar.MenuItem.Degrees")); //$NON-NLS-1$
     radiansButton.setText(TrackerRes.getString("TMenuBar.MenuItem.Radians")); //$NON-NLS-1$
@@ -192,10 +192,10 @@ public class UnitsDialog extends JDialog {
     unitsBorder.setTitle(TrackerRes.getString("UnitsDialog.Border.LMT.Text")); //$NON-NLS-1$
     angleBorder.setTitle(TrackerRes.getString("NumberFormatSetter.TitledBorder.Units.Text")); //$NON-NLS-1$
     
-    boolean hasLengthUnit = pane.lengthUnit!=null; 
-    boolean hasMassUnit = pane.massUnit!=null; 
+    boolean hasLengthUnit = panel.lengthUnit!=null; 
+    boolean hasMassUnit = panel.massUnit!=null; 
   	visibleCheckbox.setText(TrackerRes.getString("UnitsDialog.Checkbox.Visible.Text")); //$NON-NLS-1$
-    visibleCheckbox.setSelected(pane.isUnitsVisible());
+    visibleCheckbox.setSelected(panel.isUnitsVisible());
     visibleCheckbox.setEnabled(hasLengthUnit && hasMassUnit);
   	visibleCheckbox.setToolTipText(hasLengthUnit && hasMassUnit?
   			TrackerRes.getString("UnitsDialog.Checkbox.Visible.Tooltip"): //$NON-NLS-1$
@@ -207,6 +207,7 @@ public class UnitsDialog extends JDialog {
    	massUnitField.setBackground(hasMassUnit? Color.WHITE: _RED);
    	massUnitField.setToolTipText(hasMassUnit? null: 
   			TrackerRes.getString("UnitsDialog.Field.Undefined.Tooltip")); //$NON-NLS-1$
+   	timeUnitField.setBackground(Color.WHITE);
    	
    	// set label sizes
     labels.add(lengthLabel);
@@ -252,6 +253,9 @@ public class UnitsDialog extends JDialog {
 		} else if (field == massUnitField) {
 			trackerPanel.setMassUnit(field.getText());
 			refreshGUI();
+		} else if (field == timeUnitField) {
+			trackerPanel.setTimeUnit(field.getText());
+			refreshGUI();
 		}
 	}
   
@@ -269,7 +273,7 @@ public class UnitsDialog extends JDialog {
   		super(len);
       addKeyListener(new KeyAdapter() {
         @Override
-		public void keyPressed(KeyEvent e) {      
+        public void keyPressed(KeyEvent e) {      
           if(e.getKeyCode()==KeyEvent.VK_ENTER) {
             setUnit(UnitField.this);
           } 
@@ -277,11 +281,11 @@ public class UnitsDialog extends JDialog {
             setBackground(Color.yellow);
           }
         }
-
       });
+      
       addFocusListener(new FocusAdapter() {
         @Override
-		public void focusLost(FocusEvent e) {
+        public void focusLost(FocusEvent e) {
     			if (getBackground()==Color.yellow) {
             setUnit(UnitField.this);
     			}
