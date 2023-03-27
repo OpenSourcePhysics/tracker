@@ -1964,17 +1964,6 @@ public class TrackerIO extends VideoIO {
 				return true;
 			}
 
-			// load data from zip or trz file
-			boolean isTRZ = ResourceLoader.isJarZipTrz(path, false);
-
-			if (isTRZ || path.indexOf("&TrackerSet=") >= 0) {
-				type = TYPE_TRZ;
-				// doesn't seem to be necessary? panelID = frame.getCleanTrackerPanel().getID();
-				if (frame != null)
-					frame.holdPainting(true);
-				return true;
-			}
-
 			// BH note - this file is not likely to exist without its pathname.
 			// changed to just check extensions, not if directory (which requires an
 			// existence check)
@@ -1984,6 +1973,18 @@ public class TrackerIO extends VideoIO {
 				newPanel();
 				return true;
 			}
+			
+			// load data from zip or trz file
+			boolean isTRZ = ResourceLoader.isJarZipTrz(path, false);
+			if (isTRZ || path.indexOf("&TrackerSet=") >= 0) {
+				type = TYPE_TRZ;
+				// doesn't seem to be necessary? panelID = frame.getCleanTrackerPanel().getID();
+				if (frame != null)
+					frame.holdPainting(true);
+				return true;
+			}
+
+
 
 			// check for unsupported video type
 			for (String ext : KNOWN_VIDEO_EXTENSIONS) {
