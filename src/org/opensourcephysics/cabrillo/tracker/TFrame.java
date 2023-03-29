@@ -2981,6 +2981,13 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		}
 	}
 
+	@Override
+	public void setCursor(Cursor c) {
+		super.setCursor(c);
+		if (tabbedPane != null)
+			tabbedPane.setCursor(c);
+		defaultMenuBar.setCursor(c);		
+	}
 	/**
 	 * Java only; from ExportVideoDialog
 	 * 
@@ -3346,7 +3353,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			openMenu.add(openBrowserItem);
 			// open recent menu
 			recentMenu = new JMenu();
-			fileMenu.add(recentMenu);
+			if (!OSPRuntime.isJS)
+				fileMenu.add(recentMenu);
 			fileMenu.addMenuListener(new MenuListener() {
 
 				@Override
