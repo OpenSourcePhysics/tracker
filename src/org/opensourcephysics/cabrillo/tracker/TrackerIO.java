@@ -1975,6 +1975,8 @@ public class TrackerIO extends VideoIO {
 			}
 			
 			// load data from zip or trz file
+			// note that when the ZIP/TRZ file is saved locally, 
+			// it reads _TrackerSet_ not &TrackerSet= 
 			boolean isTRZ = ResourceLoader.isJarZipTrz(path, false);
 			if (isTRZ || path.indexOf("&TrackerSet=") >= 0) {
 				type = TYPE_TRZ;
@@ -2172,17 +2174,19 @@ public class TrackerIO extends VideoIO {
 			boolean isWebPath = ResourceLoader.isHTTP(path);
 			if (isWebPath) {
 				File localFile = ResourceLoader.downloadToOSPCache(path, name, false);
-				if (localFile != null) {
+				if (localFile == null) {
+					path = null;
+				} else {
 					// set path to downloaded file
 					path = localFile.toURI().toString();
 					OSPLog.debug("TrackerIO downloaded zip file: " + path); //$NON-NLS-1$
 				}
 			}
 
-			Map<String, ZipEntry> contents = ResourceLoader.getZipContents(path, true);
+			Map<String, ZipEntry> contents = (path == null ? null : ResourceLoader.getZipContents(path, true));
 			if (contents == null) {
 				if (frame != null)
-					frame.sayFileNotFound(path);
+					frame.sayFileNotFound(path == null ? name : path);
 				cancelAsync();
 				return PROGRESS_COMPLETE;
 			}
