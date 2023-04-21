@@ -136,7 +136,7 @@
 			<attribute name="Class-Path" value=". xuggle-xuggler-server-all.jar"/>
 			<attribute name="permissions" value="all-permissions"/>
 		</manifest >
-		<jar jarfile="${output}/tracker-6.1.${date}.jar" basedir="${temp}" manifest="${temp}/meta-inf/TRACKER.mf" 
+		<jar jarfile="${output}/tracker.jar" basedir="${temp}" manifest="${temp}/meta-inf/TRACKER.mf" 
 			includes="
 			**/epsgraphics/,
             **/controls/,
@@ -154,7 +154,19 @@
             **/opensourcephysics/resources/" 
         	excludes="**/html/, **/*.zip, **/*.mp4">
 		</jar>
-		<jar jarfile="${output}/tracker.jar" basedir="${temp}" manifest="${temp}/meta-inf/TRACKER.mf" 
+		<delete dir="${temp}"/>
+	</target>
+
+	<!--tracker_jar: copy bin and create tracker jar from temp directory-->
+    <target name="tracker_test_jar" depends="copy_bin_for_tracker">
+		<manifest file="${temp}/meta-inf/TRACKER.mf">
+			<attribute name="Built-By" value="${author}"/>
+			<attribute name="Build-Date" value="${buildtime.isoformat}"/>
+			<attribute name="Main-Class" value="org.opensourcephysics.cabrillo.tracker.Tracker"/>
+			<attribute name="Class-Path" value=". xuggle-xuggler-server-all.jar"/>
+			<attribute name="permissions" value="all-permissions"/>
+		</manifest >
+		<jar jarfile="${output}/tracker-6.1.2.${date}.jar" basedir="${temp}" manifest="${temp}/meta-inf/TRACKER.mf" 
 			includes="
 			**/epsgraphics/,
             **/controls/,
