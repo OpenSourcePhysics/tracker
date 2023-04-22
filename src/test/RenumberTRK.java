@@ -8,15 +8,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.io.File;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.util.Enumeration;
-import java.util.List;
-import java.util.Map;
-import java.util.zip.ZipEntry;
-
 import javax.swing.JButton;
-import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
@@ -24,17 +16,12 @@ import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.tree.TreePath;
 
-import org.opensourcephysics.controls.ControlsRes;
-import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.controls.XMLControlElement;
 import org.opensourcephysics.controls.XMLProperty;
 import org.opensourcephysics.controls.XMLTreeNode;
 import org.opensourcephysics.controls.XMLTreePanel;
 import org.opensourcephysics.display.OSPRuntime;
-import org.opensourcephysics.media.core.*;
-import org.opensourcephysics.tools.ResourceLoader;
-
 import javajs.async.AsyncFileChooser;
 
 
