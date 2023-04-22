@@ -477,6 +477,8 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 								if (calKeyFrames[i] == null)
 									continue;
 								newFrameNum = realClip.frameToStep(i);
+								// newFrameNum may be negative if keyframe < startFrame
+								newFrameNum = Math.max(0, newFrameNum);
 								newFrameNumbers.put(newFrameNum, i);
 							}
 							double[][] newKeys = new double[newFrameNum + 1][];
