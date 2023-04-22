@@ -1066,8 +1066,10 @@ public class XuggleVideo extends VideoAdapter implements SmoothPlayable, Increme
 				}
 			}
 		}
-		System.out.println("loadPicture " + picture.isComplete() +  " index=" + index
-				+ " cts=" + currentTS);
+		System.out.println("XuggleVideo.loadPicture " + picture.isComplete() +  " index=" + index
+				+ " cts=" + currentTS
+				+ " firstDisplay=" + firstDisplayPacket
+				+ " codec=" + videoDecoder.getCodecID());
 		return (picture.isComplete() ? getBufferedImage() : null);
 	}
 
