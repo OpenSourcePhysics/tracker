@@ -63,6 +63,7 @@ import javax.swing.JOptionPane;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import org.opensourcephysics.cabrillo.tracker.TrackerIO.AsyncLoader;
 import org.opensourcephysics.cabrillo.tracker.WorldTView.WorldPanel;
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
@@ -78,6 +79,7 @@ import org.opensourcephysics.media.core.NumberField;
 import org.opensourcephysics.media.core.TPoint;
 import org.opensourcephysics.media.core.Trackable;
 import org.opensourcephysics.media.core.VideoClip;
+import org.opensourcephysics.media.core.VideoPanel;
 import org.opensourcephysics.media.core.VideoPlayer;
 import org.opensourcephysics.tools.FontSizer;
 
@@ -2906,10 +2908,10 @@ public class PointMass extends TTrack {
 				p.setAccelerationFootprint(p.getAccelerationFootprints()[0].getName());
 
 			// load step and keyframe data
-			Integer offset = (Integer) control.getObject("framedataoffset");
-			int arrayOffset = (offset == null ? 0 : offset.intValue()); //$NON-NLS-1$
 			FrameData[] data = (FrameData[]) control.getObject("framedata"); //$NON-NLS-1$
 			if (data != null) {
+				TrackerPanel panel = ((AsyncLoader) ((XMLControlElement) control).getData()).panel();
+				int arrayOffset = panel.getPlayer().getVideoClip().frameShift;
 				for (int n = 0; n < data.length - arrayOffset; n++) {
 					if (data[n + arrayOffset] == null) {
 						p.steps.setStep(n, null);
