@@ -56,6 +56,7 @@ import java.io.IOException;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.BitSet;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -1849,7 +1850,7 @@ public class TrackerIO extends VideoIO {
 
 	}
 
-	static class AsyncLoader extends AsyncSwingWorker implements TrackerMonitor {
+	static class AsyncLoader extends AsyncSwingWorker implements TrackerMonitor, XMLControlElement.FrameDataAdjusterI {
 
 		private final List<String> paths;
 		private final Integer existingPanelID;
@@ -2672,6 +2673,17 @@ public class TrackerIO extends VideoIO {
 
 		public void setLoader(Loader loader) {
 			this.loader = loader;
+		}
+
+		@Override
+		public Object[] adjustFrameData(Object[] data) {
+			int arrayOffset = panel().getPlayer().getVideoClip().frameShift;
+			if (arrayOffset > 0) {
+				if (arrayOffset >= data.length)
+					return null;
+				data = Arrays.copyOfRange(data, arrayOffset, data.length);
+			}
+			return data;
 		}
 
 	}
