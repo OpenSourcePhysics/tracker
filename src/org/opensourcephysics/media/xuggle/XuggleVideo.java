@@ -182,6 +182,7 @@ public class XuggleVideo extends VideoAdapter implements SmoothPlayable, Increme
 	private double frameStartPlayTime;
 	private boolean playSmoothly = false;
 	private boolean isLocal;
+	private int packetCount;
 	
 
 	/**
@@ -427,14 +428,14 @@ public class XuggleVideo extends VideoAdapter implements SmoothPlayable, Increme
 //		failDetectTimer.stop();
 
 		// throw IOException if no frames were loaded		
-		frameCount = packetTSList.size();
-		if (frameCount == firstDisplayPacket) {
+		packetCount = frameCount = packetTSList.size();
+		if (packetCount == firstDisplayPacket) {
 			firePropertyChange(PROPERTY_VIDEO_PROGRESS, path, null);
 			dispose();
 			throw new IOException("packets loaded but no complete picture"); //$NON-NLS-1$
 		}
 		
-		OSPLog.finest("XuggleVideo found " + firstDisplayPacket + " incomplete out of " + frameCount + " total frames");
+		OSPLog.finest("XuggleVideo found " + firstDisplayPacket + " incomplete out of " + packetCount + " total packets");
 
 		// create imageCache
 		imageCache = new BufferedImage[imageList.size() + firstDisplayPacket];
@@ -479,16 +480,17 @@ public class XuggleVideo extends VideoAdapter implements SmoothPlayable, Increme
 //			}
 //		}
 		
-		packetTimeStamps = packetTSList.toArray(new Long[frameCount]);
-		keyTimeStamps = keyTSList.toArray(new Long[frameCount]);
+		packetTimeStamps = packetTSList.toArray(new Long[packetCount]);
+		keyTimeStamps = keyTSList.toArray(new Long[packetCount]);
 		// no longer need packetTSList and keyTSList
 		packetTSList = null;
 		keyTSList = null;
 		// set initial video clip properties
 		startFrameNumber = 0;
+		frameCount = packetCount - firstDisplayPacket;
 		endFrameNumber = frameCount - 1;
 		// create startTimes array
-		startTimes = new double[frameCount];
+		startTimes = new double[endFrameNumber + 1];
 		startTimes[0] = 0;
 		for (int i = 1; i < startTimes.length; i++) {
 			startTimes[i] = seconds.get(i) * 1000;
@@ -1070,7 +1072,7 @@ public class XuggleVideo extends VideoAdapter implements SmoothPlayable, Increme
 	}
 
 	private int frameNumberToContainerIndex(int n) {
-		return (n + firstDisplayPacket) % frameCount;
+		return (n + firstDisplayPacket) % packetCount;
 	}
 
 //	/**

@@ -2906,10 +2906,12 @@ public class PointMass extends TTrack {
 				p.setAccelerationFootprint(p.getAccelerationFootprints()[0].getName());
 
 			// load step and keyframe data
+			Integer offset = (Integer) control.getObject("framedataoffset");
+			int arrayOffset = (offset == null ? 0 : offset.intValue()); //$NON-NLS-1$
 			FrameData[] data = (FrameData[]) control.getObject("framedata"); //$NON-NLS-1$
 			if (data != null) {
-				for (int n = 0; n < data.length; n++) {
-					if (data[n] == null) {
+				for (int n = 0; n < data.length - arrayOffset; n++) {
+					if (data[n + arrayOffset] == null) {
 						p.steps.setStep(n, null);
 						continue;
 					}
@@ -2918,7 +2920,7 @@ public class PointMass extends TTrack {
 						step.getPosition().setLocation(data[n].x, data[n].y);
 						step.erase();
 					} else {
-						p.createStep(n, data[n].x, data[n].y);
+						p.createStep(n, data[n + arrayOffset].x, data[n + arrayOffset].y);
 					}
 				}
 				if (!p.isDependent()) {
