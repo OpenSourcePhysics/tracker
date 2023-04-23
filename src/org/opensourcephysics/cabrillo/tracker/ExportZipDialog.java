@@ -365,24 +365,13 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 
 			// imageCoordSystem
 			XMLControl coordsControl = control.getChildControl("coords"); //$NON-NLS-1$
-			Object array = coordsControl.getObject("framedata"); //$NON-NLS-1$
-			ImageCoordSystem.FrameData[] coordKeyFrames = (ImageCoordSystem.FrameData[]) array;
+			Object[] array = (Object[]) coordsControl.getObject("framedata"); //$NON-NLS-1$
+//			ImageCoordSystem.FrameData[] coordKeyFrames = (ImageCoordSystem.FrameData[]) array;
 			Map<Integer, Integer> newFrameNumbers = new TreeMap<Integer, Integer>();
-
-			int newFrameNum = 0;
-			for (int i = 0; i < coordKeyFrames.length; i++) {
-				if (coordKeyFrames[i] == null)
-					continue;
-				if (i >= realClip.getEndFrameNumber())
-					break;
-				newFrameNum = Math.max(realClip.frameToStep(i), 0);
-				if (i > realClip.getStartFrameNumber() && !realClip.includesFrame(i))
-					newFrameNum++;
-				newFrameNumbers.put(newFrameNum, i);
-			}
+			int newFrameNum = setNewFrameNumbersCoord(realClip, array, newFrameNumbers);
 			ImageCoordSystem.FrameData[] newKeyFrames = new ImageCoordSystem.FrameData[newFrameNum + 1];
 			for (Integer k : newFrameNumbers.keySet()) {
-				newKeyFrames[k] = coordKeyFrames[newFrameNumbers.get(k)];
+				newKeyFrames[k] = (ImageCoordSystem.FrameData) array[newFrameNumbers.get(k)];
 			}
 			coordsControl.setValue("framedata", newKeyFrames); //$NON-NLS-1$
 
@@ -409,23 +398,15 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 						XMLControl trackControl = (XMLControl) item.getPropertyContent().get(0);
 						Class<?> trackType = trackControl.getObjectClass();
 						if (PointMass.class.equals(trackType)) {
-							array = trackControl.getObject("framedata"); //$NON-NLS-1$
-							PointMass.FrameData[] pointMassKeyFrames = (PointMass.FrameData[]) array;
-							newFrameNumbers.clear();
-							newFrameNum = 0;
-							
-							for (int i = 0; i < pointMassKeyFrames.length; i++) {
-								if (pointMassKeyFrames[i] == null || !realClip.includesFrame(i))
-									continue;
-								newFrameNum = realClip.frameToStep(i); // new frame number equals step number
-								newFrameNumbers.put(newFrameNum, i);
-							}
+							array = (Object[]) trackControl.getObject("framedata"); //$NON-NLS-1$
+							//PointMass.FrameData[] pointMassKeyFrames = (PointMass.FrameData[]) array;
+							newFrameNum = setNewFrameNumbersPointVector(realClip, array, newFrameNumbers);
 							PointMass.FrameData[] newData = new PointMass.FrameData[newFrameNum + 1];
 							int[] keys = new int[newFrameNumbers.size()];
 							int index = 0;
 							for (Integer k : newFrameNumbers.keySet()) {
 								keys[index] = k;
-								newData[k] = pointMassKeyFrames[newFrameNumbers.get(k)];
+								newData[k] = (PointMass.FrameData) array[newFrameNumbers.get(k)];
 								index++;
 							}
 							trackControl.setValue("framedata", newData); //$NON-NLS-1$							
@@ -433,86 +414,41 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 						}
 
 						else if (Vector.class.isAssignableFrom(trackType)) {
-							array = trackControl.getObject("framedata"); //$NON-NLS-1$
-							Vector.FrameData[] vectorKeyFrames = (Vector.FrameData[]) array;
-							newFrameNumbers.clear();
-							newFrameNum = 0;
-							for (int i = 0; i < vectorKeyFrames.length; i++) {
-								if (vectorKeyFrames[i] == null || !realClip.includesFrame(i))
-									continue;
-								newFrameNum = realClip.frameToStep(i);
-								newFrameNumbers.put(newFrameNum, i);
-							}
+							array = (Object[]) trackControl.getObject("framedata"); //$NON-NLS-1$
+							newFrameNum = setNewFrameNumbersPointVector(realClip, array, newFrameNumbers);
 							Vector.FrameData[] newKeys = new Vector.FrameData[newFrameNum + 1];
 							for (Integer k : newFrameNumbers.keySet()) {
-								newKeys[k] = vectorKeyFrames[newFrameNumbers.get(k)];
+								newKeys[k] = (Vector.FrameData) array[newFrameNumbers.get(k)];
 								newKeys[k].independent = newKeys[k].xc != 0 || newKeys[k].yc != 0;
 							}
 							trackControl.setValue("framedata", newKeys); //$NON-NLS-1$
 						}
 
 						else if (ParticleModel.class.isAssignableFrom(trackType)) {
-							int frameNum = trackControl.getInt("start_frame"); //$NON-NLS-1$
-							if (frameNum > 0) {
-								int newStartFrameNum = realClip.frameToStep(frameNum);
-								// start frame should round up
-								if (frameNum > realClip.getStartFrameNumber() && !realClip.includesFrame(frameNum))
-									newStartFrameNum++;
-								trackControl.setValue("start_frame", newStartFrameNum); //$NON-NLS-1$
-							}
-							frameNum = trackControl.getInt("end_frame"); //$NON-NLS-1$
-							if (frameNum > 0) {
-								int newEndFrameNum = realClip.frameToStep(frameNum);
-								// end frame should round down
-								trackControl.setValue("end_frame", newEndFrameNum); //$NON-NLS-1$
-							}
+							updateRange(realClip, trackControl, "start_frame", "end_frame");
 						}
 
 						else if (Calibration.class.equals(trackType) || OffsetOrigin.class.equals(trackType)) {
-							array = trackControl.getObject("world_coordinates"); //$NON-NLS-1$
-							double[][] calKeyFrames = (double[][]) array;
-							newFrameNumbers.clear();
-							newFrameNum = 0;
-							for (int i = 0; i < calKeyFrames.length; i++) {
-								if (calKeyFrames[i] == null)
-									continue;
-								newFrameNum = realClip.frameToStep(i);
-								// newFrameNum may be negative if keyframe < startFrame
-								newFrameNum = Math.max(0, newFrameNum);
-								newFrameNumbers.put(newFrameNum, i);
-							}
+							array = (Object[]) trackControl.getObject("world_coordinates"); //$NON-NLS-1$
+							newFrameNum = setNewFrameNumbersCalibration(realClip, array, newFrameNumbers);
 							double[][] newKeys = new double[newFrameNum + 1][];
 							for (Integer k : newFrameNumbers.keySet()) {
-								newKeys[k] = calKeyFrames[newFrameNumbers.get(k)];
+								newKeys[k] = (double[]) array[newFrameNumbers.get(k)];
 							}
 							trackControl.setValue("world_coordinates", newKeys); //$NON-NLS-1$
 						}
 
 						else if (CircleFitter.class.equals(trackType)) {
-							int frameNum = trackControl.getInt("absolute_start"); //$NON-NLS-1$
-							if (frameNum > 0) {
-								int newStartFrameNum = realClip.frameToStep(frameNum);
-								// start frame should round up
-								if (frameNum > realClip.getStartFrameNumber() && !realClip.includesFrame(frameNum))
-									newStartFrameNum++;
-								trackControl.setValue("absolute_start", newStartFrameNum); //$NON-NLS-1$
-							}
-							frameNum = trackControl.getInt("absolute_end"); //$NON-NLS-1$
-							if (frameNum > 0) {
-								int newEndFrameNum = realClip.frameToStep(frameNum);
-								// end frame should round down
-								trackControl.setValue("absolute_end", newEndFrameNum); //$NON-NLS-1$
-							}
+							updateRange(realClip, trackControl, "absolute_start", "absolute_end");
 							// change and trim keyframe numbers
-							array = trackControl.getObject("framedata"); //$NON-NLS-1$
-							double[][] keyFrameData = (double[][]) array;
+							array = (Object[]) trackControl.getObject("framedata"); //$NON-NLS-1$
 							ArrayList<double[]> newKeyFrameData = new ArrayList<double[]>();
 							newFrameNumbers.clear();
 							newFrameNum = 0;
-							for (int i = 0; i < keyFrameData.length; i++) {
-								if (keyFrameData[i] == null)
+							for (int i = 0; i < array.length; i++) {
+								if (array[i] == null)
 									continue;
-								double[] stepData = keyFrameData[i];
+								double[] stepData = (double[]) array[i];
 								int keyFrameNum = (int) stepData[0];
 								newFrameNum = realClip.frameToStep(keyFrameNum);
 								if (newFrameNum > realClip.getLastFrameNumber()
@@ -533,47 +469,26 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 						}
 
 						else if (TapeMeasure.class.equals(trackType)) {
-							array = trackControl.getObject("framedata"); //$NON-NLS-1$
-							TapeMeasure.FrameData[] tapeKeyFrames = (TapeMeasure.FrameData[]) array;
-							if (tapeKeyFrames.length > 0) {
-								newFrameNumbers.clear();
-								newFrameNum = 0;
-								int newKeysLength = 0;
-								int nonNullIndex = 0;
-								for (int i = 0; i <= realClip.getEndFrameNumber(); i++) {
-									if (i < tapeKeyFrames.length && tapeKeyFrames[i] != null) {
-										nonNullIndex = i;
-									}
-									if (!realClip.includesFrame(i))
-										continue;
-									newFrameNum = realClip.frameToStep(i); // new frame number equals step number
-									if (nonNullIndex > -1) {
-										newFrameNumbers.put(newFrameNum, nonNullIndex);
-										newKeysLength = newFrameNum + 1;
-										nonNullIndex = -1;
-									} else if (i < tapeKeyFrames.length) {
-										newFrameNumbers.put(newFrameNum, i);
-										newKeysLength = newFrameNum + 1;
-									}
-								}
-								TapeMeasure.FrameData[] newKeys = new TapeMeasure.FrameData[newKeysLength];
+							array = (Object[]) trackControl.getObject("framedata"); //$NON-NLS-1$
+							if (array.length > 0) {
+								newFrameNum = setNewFrameNumbersTape(realClip, array, newFrameNumbers);
+								TapeMeasure.FrameData[] newKeys = new TapeMeasure.FrameData[newFrameNum + 1];
 								for (Integer k : newFrameNumbers.keySet()) {
-									newKeys[k] = tapeKeyFrames[newFrameNumbers.get(k)];
+									newKeys[k] = (TapeMeasure.FrameData) array[newFrameNumbers.get(k)];
 								}
 								trackControl.setValue("framedata", newKeys); //$NON-NLS-1$
 							}
 						}
 
 						else if (Protractor.class.equals(trackType)) {
-							array = trackControl.getObject("framedata"); //$NON-NLS-1$
-							double[][] protractorData = (double[][]) array;
+							array = (Object[]) trackControl.getObject("framedata"); //$NON-NLS-1$
 							newFrameNumbers.clear();
 							newFrameNum = 0;
 							int nonNullIndex = 0;
-							for (int i = 0; i < protractorData.length; i++) {
+							for (int i = 0; i < array.length; i++) {
 								if (i > realClip.getEndFrameNumber())
 									break;
-								if (protractorData[i] != null) {
+								if (array[i] != null) {
 									nonNullIndex = i;
 								}
 								if (!realClip.includesFrame(i))
@@ -588,7 +503,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 							}
 							double[][] newKeys = new double[newFrameNum + 1][];
 							for (Integer k : newFrameNumbers.keySet()) {
-								newKeys[k] = protractorData[newFrameNumbers.get(k)];
+								newKeys[k] = (double[]) array[newFrameNumbers.get(k)];
 							}
 							trackControl.setValue("framedata", newKeys); //$NON-NLS-1$
 						}
@@ -598,6 +513,121 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 			}
 		}
 
+
+	}
+
+	/**
+	 * Why the difference?
+	 * 
+	 * @param realClip
+	 * @param array
+	 * @param newFrameNumbers
+	 * @return
+	 */
+	protected static int setNewFrameNumbersCoord(VideoClip realClip, Object[] array, Map<Integer, Integer> newFrameNumbers) {
+		newFrameNumbers.clear();
+		int newFrameNum = 0;
+		for (int i = 0; i < array.length; i++) {
+			if (array[i] == null)
+				continue;
+			if (i >= realClip.getEndFrameNumber())
+				break;
+			newFrameNum = Math.max(realClip.frameToStep(i), 0);
+			if (i > realClip.getStartFrameNumber() && !realClip.includesFrame(i))
+				newFrameNum++;
+			newFrameNumbers.put(newFrameNum, i);
+		}
+		return newFrameNum;
+	}
+
+	/**
+	 * why the difference here?
+	 * 
+	 * @param realClip
+	 * @param array
+	 * @param newFrameNumbers
+	 * @return
+	 */
+	public static int setNewFrameNumbersPointVector(VideoClip realClip, Object[] array, Map<Integer, Integer> newFrameNumbers) {
+		newFrameNumbers.clear();
+		int newFrameNum = 0;
+		for (int i = 0; i < array.length; i++) {
+			if (array[i] == null || !realClip.includesFrame(i))
+				continue;
+			newFrameNum = realClip.frameToStep(i);
+			newFrameNumbers.put(newFrameNum, i);
+		}
+		return newFrameNum;
+	}
+
+	/**
+	 * why the difference?
+	 * 
+	 * @param realClip
+	 * @param array
+	 * @param newFrameNumbers
+	 * @return
+	 */
+	public static int setNewFrameNumbersCalibration(VideoClip realClip, Object[] array, Map<Integer, Integer> newFrameNumbers) {
+		newFrameNumbers.clear();
+		int newFrameNum = 0;
+		for (int i = 0; i < array.length; i++) {
+			if (array[i] == null)
+				continue;
+			newFrameNum = realClip.frameToStep(i);
+			// newFrameNum may be negative if keyframe < startFrame
+			newFrameNum = Math.max(0, newFrameNum);
+			newFrameNumbers.put(newFrameNum, i);
+		}
+		return newFrameNum;
+	}
+
+	/**
+	 * Why the difference?
+	 * 
+	 * @param realClip
+	 * @param array
+	 * @param newFrameNumbers
+	 * @return
+	 */
+	public static int setNewFrameNumbersTape(VideoClip realClip, Object[] array, Map<Integer, Integer> newFrameNumbers) {
+		newFrameNumbers.clear();
+		int newFrameNum = 0;
+		int nonNullIndex = 0;
+		for (int i = 0; i <= realClip.getEndFrameNumber(); i++) {
+			if (i < array.length && array[i] != null) {
+				nonNullIndex = i;
+			}
+			if (!realClip.includesFrame(i))
+				continue;
+			int n = realClip.frameToStep(i); // new frame number equals step number
+			if (nonNullIndex > -1) {
+				newFrameNumbers.put(n, nonNullIndex);
+				newFrameNum = n;
+				nonNullIndex = -1;
+			} else if (i < array.length) {
+				newFrameNumbers.put(n, i);
+				newFrameNum = n;
+			}
+		}
+		return newFrameNum;
+	}
+
+	protected static void updateRange(VideoClip realClip, XMLControl trackControl, String start, String end) {
+		int frameNum = trackControl.getInt(start);
+		if (frameNum > 0) {
+			int newStartFrameNum = realClip.frameToStep(frameNum);
+			// start frame should round up
+			if (frameNum > realClip.getStartFrameNumber() && !realClip.includesFrame(frameNum))
+				newStartFrameNum++;
+			trackControl.setValue(start, newStartFrameNum);
+		}
+		frameNum = trackControl.getInt(end);
+		if (frameNum > 0) {
+			int newEndFrameNum = realClip.frameToStep(frameNum);
+			// end frame should round down
+			trackControl.setValue(end, newEndFrameNum);
+		}
 	}
 
 	protected void nextExport(ArrayList<File> zipList) {
