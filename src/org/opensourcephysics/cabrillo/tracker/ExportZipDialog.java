@@ -742,10 +742,11 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 						ZipInputStream zipFile = new ZipInputStream(new FileInputStream(panel.openedFromPath));
 						ZipEntry nextEntry;
 						while ((nextEntry = zipFile.getNextEntry()) != null) {
+							System.out.println("EZD " + nextEntry);
 							// ignore entries pointing to subdirectories other than html
 							String name = XML.forwardSlash(nextEntry.getName());
 							if (name.contains("/")) { //$NON-NLS-1$
-								if (!name.contains("html/") || name.contains("_info.")) { //$NON-NLS-1$ //$NON-NLS-2$
+								if (nextEntry.isDirectory() || !name.contains("html/") || name.contains("_info.")) { //$NON-NLS-1$ //$NON-NLS-2$
 									continue;
 								}
 							}
