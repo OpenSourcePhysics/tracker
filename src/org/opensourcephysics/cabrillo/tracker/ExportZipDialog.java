@@ -517,7 +517,10 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 	}
 
 	/**
-	 * Why the difference?
+	 * Why the difference? The coordinate system MUST have data for frame 0
+	 * plus any later frames where the coordinate system changes. This is
+	 * essentially the same as the keyframe requirements for calibration points
+	 * and tape below.
 	 * 
 	 * @param realClip
 	 * @param array
@@ -541,7 +544,9 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 	}
 
 	/**
-	 * why the difference here?
+	 * why the difference here?  PointMass and Vector can have non-null frameData
+	 * elements anywhere without problem. So we only need to convert the frame
+	 * numbers of each non-null element in the clip.
 	 * 
 	 * @param realClip
 	 * @param array
@@ -561,7 +566,11 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 	}
 
 	/**
-	 * why the difference?
+	 * why the difference? Calibration Points (when not fixed) use keyframes, 
+	 * meaning that each step is a copy of the previous step unless a new
+	 * keyframe is defined at that step. So we have to make sure there is a
+	 * keyFrame at step 0. It does seem like this, the tape and the coords
+	 * could have the same end?
 	 * 
 	 * @param realClip
 	 * @param array
@@ -572,7 +581,8 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 		newFrameNumbers.clear();
 		int newFrameNum = 0;
 		for (int i = 0; i < array.length; i++) {
-			if (array[i] == null)
+			if (array[i] == null) // note we're not checking if it's in the clip
+				// because we have to make sure we set the 0 keyframe
 				continue;
 			newFrameNum = realClip.frameToStep(i);
 			// newFrameNum may be negative if keyframe < startFrame
@@ -583,7 +593,8 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 	}
 
 	/**
-	 * Why the difference?
+	 * Why the difference? Tapes also use keyframes. 
+	 * Not sure why I use nonNullIndex in this method!
 	 * 
 	 * @param realClip
 	 * @param array
