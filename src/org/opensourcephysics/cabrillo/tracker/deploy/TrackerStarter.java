@@ -733,9 +733,16 @@ public class TrackerStarter {
 	    			ver = ver.substring(0, n);
 	    		}
 					if (new OSPRuntime.Version(ver).isValid()) {
-						preferredVersionString = versionStr;
-						logMessage("preferred Tracker version: " + preferredVersionString); //$NON-NLS-1$
-						useDefaultTrackerJar = false;					} 
+						if (new File(trackerHome, jar).exists()) {
+							preferredVersionString = versionStr;
+							logMessage("preferred Tracker version: " + preferredVersionString); //$NON-NLS-1$
+							useDefaultTrackerJar = false;
+						}
+						else {
+							useDefaultTrackerJar = true; 
+							logMessage("preferred Tracker not found: " + jar); //$NON-NLS-1$
+						}
+					} 
 					else {
 						logMessage("version number not valid: " + ver); //$NON-NLS-1$
 					}
@@ -745,7 +752,10 @@ public class TrackerStarter {
 				}
 			}
 			if (useDefaultTrackerJar) {
-				logMessage("no preferred Tracker version, using tracker.jar (presumed "+versionStr+")"); //$NON-NLS-1$				
+				if (jar == null)
+					logMessage("no preferred Tracker version, using tracker.jar (presumed "+OSPRuntime.VERSION+")"); //$NON-NLS-1$	
+				else
+					logMessage("using default tracker.jar (presumed "+OSPRuntime.VERSION+")"); //$NON-NLS-1$	
 			}
 			
 			// determine if preferred tracker will use Xuggle 3.4 or Xuggle server

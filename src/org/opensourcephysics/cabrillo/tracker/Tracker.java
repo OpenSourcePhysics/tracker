@@ -2586,6 +2586,8 @@ public class Tracker {
 					control.setValue("warn_xuggle_error", warnXuggleError); //$NON-NLS-1$
 				// always save preferred tracker.jar
 				String jar = preferredTrackerJar == null ? "tracker.jar" : preferredTrackerJar; //$NON-NLS-1$
+				if (!new File(trackerHome, jar).exists())
+					jar = "tracker.jar";
 				control.setValue("tracker_jar", jar); //$NON-NLS-1$
 				if (preferredJRE != null)
 					control.setValue("java_vm", preferredJRE); //$NON-NLS-1$
