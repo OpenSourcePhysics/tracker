@@ -77,6 +77,7 @@ import org.opensourcephysics.media.core.ImageCoordSystem;
 import org.opensourcephysics.media.core.NumberField;
 import org.opensourcephysics.media.core.TPoint;
 import org.opensourcephysics.media.core.Trackable;
+import org.opensourcephysics.media.core.Video;
 import org.opensourcephysics.media.core.VideoClip;
 import org.opensourcephysics.media.core.VideoPlayer;
 import org.opensourcephysics.tools.FontSizer;
@@ -2529,6 +2530,10 @@ public class PointMass extends TTrack {
 	public void propertyChange(PropertyChangeEvent e) {
 		if (e.getSource() instanceof TrackerPanel) {
 			switch (e.getPropertyName()) {
+			case Video.PROPERTY_VIDEO_COORDS:
+				invalidateData(Boolean.FALSE);
+				updateDerivatives();
+				break;
 			case ImageCoordSystem.PROPERTY_COORDS_TRANSFORM:
 				invalidateData(Boolean.FALSE);
 //				updateDerivatives();

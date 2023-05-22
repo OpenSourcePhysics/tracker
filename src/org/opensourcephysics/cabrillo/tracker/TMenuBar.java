@@ -1953,6 +1953,15 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 				coordsMenu.add(coords_refFrameMenu);
 			}
 
+			// add default reference frame item
+			refreshTracks(MENU_COORDS);
+			if (coordsMenu.getItemCount() == 0) {
+				coordsMenu.add(coords_emptyCoordsItem);
+			}
+			setMenuTainted(MENU_COORDS, false);
+		}
+		if (opening) {
+			refreshTrackNames(MENU_COORDS);
 			// update coords menu items
 			ImageCoordSystem coords = panel().getCoords();
 			boolean defaultCoords = !(coords instanceof ReferenceFrame);
@@ -1974,15 +1983,6 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 			tapes.clear();
 			coords_fixedScaleItem.setEnabled(defaultCoords && !coords.isLocked() && !stickAttached);
 			coords_refFrameMenu.setEnabled(!coords.isLocked());
-			// add default reference frame item
-			refreshTracks(MENU_COORDS);
-			if (coordsMenu.getItemCount() == 0) {
-				coordsMenu.add(coords_emptyCoordsItem);
-			}
-			setMenuTainted(MENU_COORDS, false);
-		}
-		if (opening) {
-			refreshTrackNames(MENU_COORDS);
 		}
 		FontSizer.setMenuFonts(coordsMenu);
 		// OSPLog.debug("!!! " + Performance.now(t0) + " TMenuBar coords refresh");
@@ -2211,7 +2211,8 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 
 			switch (menu) {
 			case MENU_COORDS:
-				if (track.ttype == TTrack.TYPE_POINTMASS) {
+				if (track.ttype == TTrack.TYPE_POINTMASS
+						&& !track.getClass().getSimpleName().endsWith("DataTrack")) {
 					JRadioButtonMenuItem item = new JRadioButtonMenuItem(trackName);
 					item.addActionListener(actions.get("refFrame")); //$NON-NLS-1$
 					coords_refFrameGroup.add(item);

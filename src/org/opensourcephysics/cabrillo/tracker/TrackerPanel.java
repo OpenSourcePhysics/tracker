@@ -1304,6 +1304,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			}
 		} else {
 			// BH note that video.setCoords will loop around and fire ImageCoordSystem.PROPERTY_COORDS_TRANSFORM itself
+			// DB 5/21/23 correction: video.setCoords fires Video.PROPERTY_VIDEO_COORDS, not ImageCoordSystem.PROPERTY_COORDS_TRANSFORM
 			video.setCoords(_coords);
 		}
 	}
