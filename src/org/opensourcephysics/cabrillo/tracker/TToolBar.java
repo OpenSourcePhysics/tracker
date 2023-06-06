@@ -937,21 +937,23 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 				String title = XML.getName(next);
 				String path = ResourceLoader.getNonURIPath(next);
 				JMenu menu = new JMenu(title);
+				menu.setToolTipText(path);
 				fileMenu.add(menu);
 				
 				if (!OSPRuntime.skipDisplayOfPDF) {
 					JMenuItem item = new JMenuItem(TrackerRes.getString("TToolBar.Overflow.Open"));
 					item.setActionCommand(path);
-					item.setToolTipText(path);
 					item.addActionListener((e) -> {
 							OSPDesktop.displayURL(e.getActionCommand());
 					});
 					menu.add(item);
+					menu.addSeparator();
 				}
 				
-				JMenuItem item = new JMenuItem(TrackerRes.getString("TToolBar.Overflow.Save"));
+				JMenuItem item = new JMenuItem(
+						TrackerRes.getString("TToolBar.Overflow.Save")+"...");
 				item.setActionCommand(path);
-				item.setToolTipText(path);
+//				item.setToolTipText(path);
 				item.addActionListener((e) -> {
 					AsyncFileChooser chooser = TrackerIO.getChooser();
 					File proposed = new File(OSPRuntime.chooserDir, title);
