@@ -24,8 +24,6 @@
  */
 package org.opensourcephysics.cabrillo.tracker;
 
-import java.awt.*;
-
 /**
  * A MarkingRequired track requires marking.
  *

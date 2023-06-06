@@ -33,7 +33,6 @@ import javax.swing.*;
 
 import org.opensourcephysics.display.*;
 import org.opensourcephysics.media.core.*;
-import org.opensourcephysics.cabrillo.tracker.Vector;
 import org.opensourcephysics.controls.*;
 
 /**

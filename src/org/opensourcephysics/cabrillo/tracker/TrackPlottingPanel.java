@@ -77,7 +77,6 @@ import org.opensourcephysics.display.Measurable;
 import org.opensourcephysics.display.MeasuredImage;
 import org.opensourcephysics.display.MessageDrawable;
 import org.opensourcephysics.display.OSPFrame;
-import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.display.PlottingPanel;
 import org.opensourcephysics.display.TeXParser;
 import org.opensourcephysics.display.axes.CartesianInteractive;

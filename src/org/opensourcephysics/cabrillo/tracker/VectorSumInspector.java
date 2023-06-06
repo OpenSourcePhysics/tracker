@@ -32,7 +32,6 @@ import java.awt.event.*;
 import javax.swing.*;
 import javax.swing.border.*;
 
-import org.opensourcephysics.cabrillo.tracker.Vector;
 import org.opensourcephysics.tools.FontSizer;
 
 /**

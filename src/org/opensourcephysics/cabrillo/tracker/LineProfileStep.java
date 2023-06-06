@@ -1045,7 +1045,7 @@ public class LineProfileStep extends Step {
 					return null;
 				}
 			// step along length of the line
-				outer: for (int i = 0; i < length; i++) {
+				for (int i = 0; i < length; i++) {
 					// step through pixels across line width at each point
 					for (int j = 0; j < width; j++) {
 						imagePixel.setLocation(x0 + i + 0.5, y + 0.5);

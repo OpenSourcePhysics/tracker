@@ -148,7 +148,6 @@ public Interactive findInteractive(
     		&& protractor.getFootprint() instanceof ProtractorFootprint) {
     	footprint = (ProtractorFootprint)protractor.getFootprint();
     }
-    boolean isRulerVisible = protractor.ruler != null && protractor.ruler.isVisible();
     if (endsEnabled) {
       hitShape = panelVertexShapes.get(trackerPanel.getID());
       if (!vertex.isAttached() && hitShape != null && hitShape.intersects(hitRect)) {

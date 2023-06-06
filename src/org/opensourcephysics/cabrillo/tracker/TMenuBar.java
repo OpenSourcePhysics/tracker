@@ -219,7 +219,6 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 	private JMenu file_exportMenu;
 	private JMenuItem file_export_zipItem;
 	private JMenuItem file_export_videoItem;
-	private JMenuItem file_export_TRKItem;
 	private JMenuItem file_export_thumbnailItem;
 	private JMenuItem file_export_dataItem;
 //	private JMenuItem file_export_captureVideoItem;
@@ -595,8 +594,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 			exporter.setVisible(true);
 		});
 		file_exportMenu.add(file_export_videoItem);
-		// export TRK item
-		file_export_TRKItem = new JMenuItem(actions.get("export")); //$NON-NLS-1$
+		new JMenuItem(actions.get("export"));
 //		file_exportMenu.add(file_export_TRKItem);
 		// export thumbnail item
 		file_export_thumbnailItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.Thumbnail") + "..."); //$NON-NLS-1$ //$NON-NLS-2$

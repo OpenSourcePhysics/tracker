@@ -1182,7 +1182,7 @@ public class PrefsDialog extends JDialog {
 				.createTitledBorder(TrackerRes.getString("PrefsDialog.Trails.BorderTitle")); //$NON-NLS-1$
 		trailLengthSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, trailLengthSubPanelBorder));		
 		
-		trailLengthDropdown = new JComboBox();
+		trailLengthDropdown = new JComboBox<String>();
 		trailLengthSubPanel.add(trailLengthDropdown);
 
 		// end actions panel

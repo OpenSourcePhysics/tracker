@@ -33,7 +33,6 @@ import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.media.core.MediaRes;
 import org.opensourcephysics.media.core.Video;
 import org.opensourcephysics.media.core.VideoFileFilter;
-import org.opensourcephysics.media.core.VideoIO;
 import org.opensourcephysics.media.core.VideoRecorder;
 import org.opensourcephysics.media.mov.MovieFactory;
 import org.opensourcephysics.media.mov.MovieVideoType;

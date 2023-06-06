@@ -2917,7 +2917,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			if (target == null) {
 				loadFailed = true;
 			}
-			if (loadFailed) {
+			if (target == null) {
 				String name = record.getName();
 				if (name == null || "".equals(name))
 					name = TrackerRes.getString("TrackerPanel.DataBuilder.TrackType.Unknown");

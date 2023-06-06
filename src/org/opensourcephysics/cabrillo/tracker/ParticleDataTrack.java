@@ -842,12 +842,11 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 		if (context == null) {
 			String mod = getLeader().modelName;
 			String fullName = getName();
-			int n = fullName.indexOf(mod);
 			if (fullName.startsWith(mod))
 				return fullName.substring(mod.length(), fullName.length()).trim();
 		}
 		// point context: full name (eg "example A" or "example elbow")
-		if (context.contains("point")) { //$NON-NLS-1$
+		else if (context.contains("point")) { //$NON-NLS-1$
 			return getName();
 		}
 		// for other contexts, return modelName only (eg "example")
