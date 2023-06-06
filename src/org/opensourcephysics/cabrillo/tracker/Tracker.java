@@ -464,6 +464,7 @@ public class Tracker {
 				new Locale("it"), // Locale.ITALIAN,
 				new Locale("iw", "IL"), // hebrew //$NON-NLS-1$ //$NON-NLS-2$
 				new Locale("ko"), // korean //$NON-NLS-1$
+				new Locale("lv"), // latvian //$NON-NLS-1$
 				new Locale("ms", "MY"), // malaysian //$NON-NLS-1$ //$NON-NLS-2$
 				new Locale("nl", "NL"), // dutch //$NON-NLS-1$ //$NON-NLS-2$
 				new Locale("pl"), // polish //$NON-NLS-1$

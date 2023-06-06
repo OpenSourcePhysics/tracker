@@ -95,6 +95,7 @@ import org.opensourcephysics.display.Interactive;
 import org.opensourcephysics.display.MessageDrawable;
 import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.media.core.AsyncVideoI;
+import org.opensourcephysics.media.core.BarrelPincushionFilter;
 import org.opensourcephysics.media.core.BaselineFilter;
 import org.opensourcephysics.media.core.BrightnessFilter;
 import org.opensourcephysics.media.core.ClipControl;
@@ -4794,6 +4795,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		addFilter(RotateFilter.class);
 		addFilter(PerspectiveFilter.class);
 		addFilter(RadialDistortionFilter.class);
+		addFilter(BarrelPincushionFilter.class);
 	}
 
 	private ArrayList<Drawable> tempA;

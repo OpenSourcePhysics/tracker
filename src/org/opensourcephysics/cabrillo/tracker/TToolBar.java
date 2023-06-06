@@ -83,6 +83,9 @@ import org.opensourcephysics.media.core.MediaRes;
 import org.opensourcephysics.media.core.TPoint;
 import org.opensourcephysics.media.core.VideoClip;
 import org.opensourcephysics.tools.FontSizer;
+import org.opensourcephysics.tools.ResourceLoader;
+
+import javajs.async.AsyncFileChooser;
 
 /**
  * This is the main toolbar for Tracker.
@@ -932,14 +935,39 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 			popup.add(fileMenu);
 			for (String next : panel.supplementalFilePaths) {
 				String title = XML.getName(next);
-				String path = next;
-				JMenuItem item = new JMenuItem(title);
+				String path = ResourceLoader.getNonURIPath(next);
+				JMenu menu = new JMenu(title);
+				fileMenu.add(menu);
+				
+				if (!OSPRuntime.skipDisplayOfPDF) {
+					JMenuItem item = new JMenuItem(TrackerRes.getString("TToolBar.Overflow.Open"));
+					item.setActionCommand(path);
+					item.setToolTipText(path);
+					item.addActionListener((e) -> {
+							OSPDesktop.displayURL(e.getActionCommand());
+					});
+					menu.add(item);
+				}
+				
+				JMenuItem item = new JMenuItem(TrackerRes.getString("TToolBar.Overflow.Save"));
 				item.setActionCommand(path);
 				item.setToolTipText(path);
 				item.addActionListener((e) -> {
-						OSPDesktop.displayURL(e.getActionCommand());
+					AsyncFileChooser chooser = TrackerIO.getChooser();
+					File proposed = new File(OSPRuntime.chooserDir, title);
+					chooser.setSelectedFile(proposed);
+					TrackerIO.getChooserFilesAsync(frame, "save document", (files) -> {
+						if (files == null) {
+							return null;
+						}
+						File target = files[0];
+						if (TrackerIO.canWrite(target)) {
+							ResourceLoader.copyFile(new File(path), target);
+						}
+						return null;
+					});
 				});
-				fileMenu.add(item);
+				menu.add(item);					
 			}
 		}
 		if (!pageViewTabs.isEmpty()) {

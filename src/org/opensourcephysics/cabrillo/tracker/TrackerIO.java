@@ -577,8 +577,22 @@ public class TrackerIO extends VideoIO {
 			ret = (processFiles != null || chooser.getSelectedOption() != JFileChooser.APPROVE_OPTION ? null
 					: fixXML(theFile[0]));
 			break;
+		case "save document": //$NON-NLS-1$
+			isSave = true;
+			chooser.resetChoosableFileFilters();
+			chooser.setAcceptAllFileFilterUsed(true);
+			chooser.setDialogTitle(TrackerRes.getString("TMenuBar.Menu.Save")); //$NON-NLS-1$
+			chooser.showSaveDialog(null, () -> {
+				File fil = chooser.getSelectedFile();
+				resetChooser.run();
+				if (processFiles != null) {
+					processFiles.apply(new File[] { fil });
+				}
+			}, resetChooser);
+			f = chooser.getSelectedFile();
+			return (f == null ? null : new File[] { f });
 		default:
-			return getChooserFilesAsync(frame, type, processFiles);
+			return getChooserFilesAsync(frame, "save document", processFiles);
 		}
 		ret = processChoose(chooser, ret, processFiles != null);
 		if (processFiles == null) {
