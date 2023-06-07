@@ -944,6 +944,7 @@ org/opensourcephysics/frames/ImageFrame.js
 org/opensourcephysics/js/JSUtil.js
 org/opensourcephysics/media/core/AsyncVideoI.js
 org/opensourcephysics/media/core/BaselineFilter.js
+org/opensourcephysics/media/core/BarrelPincushionFilter.js
 org/opensourcephysics/media/core/BrightnessFilter.js
 org/opensourcephysics/media/core/ClipControl.js
 org/opensourcephysics/media/core/ClipInspector.js
