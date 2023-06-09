@@ -2323,6 +2323,7 @@ public class TrackerIO extends VideoIO {
 					tempFiles.addAll(otherFiles);
 				}
 				// open tempfiles on the desktop
+				OSPRuntime.skipDisplayOfPDF = true; // pig for testing
 //				if (!OSPRuntime.getSkipDisplayOfPDF()) { // pig newer code?
 				if (!OSPRuntime.skipDisplayOfPDF) {
 					Thread displayURLOpener = new Thread(() -> {
@@ -2333,6 +2334,13 @@ public class TrackerIO extends VideoIO {
 					});
 					displayURLOpener.setName("displayURLOpener");
 					displayURLOpener.start();
+				}
+				else if (!tempFiles.isEmpty()) {
+					for (String relpath : tempFiles) {
+						String s = OSPRuntime.unzipFiles ? relpath : path + "!/" + relpath;
+						System.out.println("skipped displaying document found in TRZ: "+s); // pig
+					}
+					
 				}
 			}
 			// load trk files into Tracker
