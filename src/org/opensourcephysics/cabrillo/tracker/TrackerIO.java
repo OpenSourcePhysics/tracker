@@ -2323,7 +2323,7 @@ public class TrackerIO extends VideoIO {
 					tempFiles.addAll(otherFiles);
 				}
 				// open tempfiles on the desktop
-				if (!OSPRuntime.skipDisplayOfPDF) {
+				if (!OSPRuntime.getSkipDisplayOfPDF()) {
 					Thread displayURLOpener = new Thread(() -> {
 						for (String relpath : tempFiles) {
 							if (!ResourceLoader.wasPDFOpen(relpath))

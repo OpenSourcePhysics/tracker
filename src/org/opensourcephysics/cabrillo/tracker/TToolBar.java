@@ -939,8 +939,7 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 				JMenu menu = new JMenu(title);
 				menu.setToolTipText(path);
 				fileMenu.add(menu);
-				
-				if (!OSPRuntime.skipDisplayOfPDF) {
+				if (!OSPRuntime.getSkipDisplayOfPDF()) {
 					JMenuItem item = new JMenuItem(TrackerRes.getString("TToolBar.Overflow.Open"));
 					item.setActionCommand(path);
 					item.addActionListener((e) -> {
