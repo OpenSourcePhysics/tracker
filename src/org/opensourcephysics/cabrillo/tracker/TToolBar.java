@@ -938,10 +938,9 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 				String path = ResourceLoader.getNonURIPath(next);
 				JMenuItem item = new JMenuItem(title);
 				item.setActionCommand(path);
-				fileMenu.add(item);				
 				item.addActionListener((e) -> {
 					OSPDesktop.displayURL(e.getActionCommand());
-				});
+				});				
 			}
 		}
 		if (!pageViewTabs.isEmpty()) {
@@ -959,7 +958,7 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 				item.setActionCommand(path);
 				item.setToolTipText(path);
 				item.addActionListener((e) -> {
-						OSPDesktop.displayURL(e.getActionCommand());
+					OSPDesktop.displayURL(e.getActionCommand());
 				});
 				pageMenu.add(item);
 			}
