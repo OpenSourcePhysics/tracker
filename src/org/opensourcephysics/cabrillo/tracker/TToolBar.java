@@ -936,40 +936,12 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 			for (String next : panel.supplementalFilePaths) {
 				String title = XML.getName(next);
 				String path = ResourceLoader.getNonURIPath(next);
-				JMenu menu = new JMenu(title);
-				menu.setToolTipText(path);
-				fileMenu.add(menu);
-				
-				if (!OSPRuntime.skipDisplayOfPDF) {
-					JMenuItem item = new JMenuItem(TrackerRes.getString("TToolBar.Overflow.Open"));
-					item.setActionCommand(path);
-					item.addActionListener((e) -> {
-							OSPDesktop.displayURL(e.getActionCommand());
-					});
-					menu.add(item);
-					menu.addSeparator();
-				}
-				
-				JMenuItem item = new JMenuItem(
-						TrackerRes.getString("TToolBar.Overflow.Save")+"...");
+				JMenuItem item = new JMenuItem(title);
 				item.setActionCommand(path);
-//				item.setToolTipText(path);
+				fileMenu.add(item);				
 				item.addActionListener((e) -> {
-					AsyncFileChooser chooser = TrackerIO.getChooser();
-					File proposed = new File(OSPRuntime.chooserDir, title);
-					chooser.setSelectedFile(proposed);
-					TrackerIO.getChooserFilesAsync(frame, "save document", (files) -> {
-						if (files == null) {
-							return null;
-						}
-						File target = files[0];
-						if (TrackerIO.canWrite(target)) {
-							ResourceLoader.copyFile(new File(path), target);
-						}
-						return null;
-					});
+					OSPDesktop.displayURL(e.getActionCommand());
 				});
-				menu.add(item);					
 			}
 		}
 		if (!pageViewTabs.isEmpty()) {
