@@ -937,6 +937,7 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 				String title = XML.getName(next);
 				String path = ResourceLoader.getNonURIPath(next);
 				JMenuItem item = new JMenuItem(title);
+				fileMenu.add(item);
 				item.setActionCommand(path);
 				item.addActionListener((e) -> {
 					OSPDesktop.displayURL(e.getActionCommand());
