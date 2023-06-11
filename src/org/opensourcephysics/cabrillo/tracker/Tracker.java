@@ -104,6 +104,7 @@ import org.opensourcephysics.media.core.Video;
 import org.opensourcephysics.media.core.VideoIO;
 import org.opensourcephysics.media.mov.MovieFactory;
 import org.opensourcephysics.tools.DataFunctionPanel;
+import org.opensourcephysics.tools.DatasetCurveFitter;
 import org.opensourcephysics.tools.Diagnostics;
 import org.opensourcephysics.tools.DiagnosticsForThreads;
 import org.opensourcephysics.tools.FontSizer;
@@ -2577,6 +2578,8 @@ public class Tracker {
 					control.setValue("trail_length", TToolBar.trailLengthNames[preferredTrailLengthIndex]); //$NON-NLS-1$
 				if (!centerCalibrationStick) // true by default
 					control.setValue("center_stick", centerCalibrationStick); //$NON-NLS-1$
+				if (DatasetCurveFitter.isFixedDecimalFormat) // false by default
+					control.setValue("decimal_format", DatasetCurveFitter.isFixedDecimalFormat); //$NON-NLS-1$
 				if (!isXuggleFast) // true by default
 					control.setValue("xuggle_smooth", true); //$NON-NLS-1$
 				if (!warnNoVideoEngine) // true by default
@@ -2729,6 +2732,9 @@ public class Tracker {
 					}
 				}
 				preferredPointMassFootprint = control.getString("pointmass_footprint"); //$NON-NLS-1$
+				if (control.getPropertyNamesRaw().contains("decimal_format")) { //$NON-NLS-1$
+					DatasetCurveFitter.isFixedDecimalFormat = control.getBoolean("decimal_format"); //$NON-NLS-1$;
+				}				
 				if (control.getPropertyNamesRaw().contains("memory_size")) //$NON-NLS-1$
 					requestedMemorySize = control.getInt("memory_size"); //$NON-NLS-1$
 				if (control.getPropertyNamesRaw().contains("look_feel")) //$NON-NLS-1$
