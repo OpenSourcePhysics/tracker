@@ -2336,6 +2336,7 @@ public class TrackerIO extends VideoIO {
 				else if (!tempFiles.isEmpty()) {
 					for (String relpath : tempFiles) {
 						String s = OSPRuntime.unzipFiles ? relpath : path + "!/" + relpath;
+            JOptionPane.showMessageDialog(null, s, "Cannot show supplemental files.", JOptionPane.INFORMATION_MESSAGE);
 						System.out.println("skipped displaying document found in TRZ: "+s); // pig
 					}
 					
