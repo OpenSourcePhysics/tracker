@@ -231,6 +231,7 @@ public class TableTrackView extends TrackView {
 	private JMenu copyDataMenu;
 	private JMenuItem copyDataRawItem, copyDataFormattedItem;
 	private JMenu setDelimiterMenu;
+	private JMenuItem includeHeadersItem;
 	private JMenuItem copyImageItem, snapshotItem, printItem, helpItem;
 
 	/**
@@ -1574,6 +1575,13 @@ public class TableTrackView extends TrackView {
 			}
 
 		});
+		includeHeadersItem = new JCheckBoxMenuItem(new AbstractAction() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				dataTable.includeHeadersInCopiedData = includeHeadersItem.isSelected();
+			}
+		});
+		includeHeadersItem.setSelected(dataTable.includeHeadersInCopiedData);
 		Action copyImageAction = new AbstractAction() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -1936,6 +1944,7 @@ public class TableTrackView extends TrackView {
 		menu.add(copyDataFormattedItem);
 		menu.addSeparator();
 		menu.add(setDelimiterMenu);
+		menu.add(includeHeadersItem);
 		if (dataTable.getSelectedRowCount() == 0)
 			menu.setText(TrackerRes.getString("TableTrackView.Action.CopyData")); //$NON-NLS-1$
 		else
@@ -1943,6 +1952,7 @@ public class TableTrackView extends TrackView {
 		copyDataRawItem.setText(TrackerRes.getString("TableTrackView.MenuItem.Unformatted")); //$NON-NLS-1$
 		copyDataFormattedItem.setText(TrackerRes.getString("TableTrackView.MenuItem.Formatted")); //$NON-NLS-1$
 		setDelimiterMenu.setText(TrackerRes.getString("TableTrackView.Menu.SetDelimiter")); //$NON-NLS-1$
+		includeHeadersItem.setText(TrackerRes.getString("TableTrackView.MenuItem.IncludeHeaders")); //$NON-NLS-1$
 		return menu;
 	}
 
