@@ -4795,7 +4795,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		addFilter(RotateFilter.class);
 		addFilter(PerspectiveFilter.class);
 		addFilter(RadialDistortionFilter.class);
-		addFilter(BarrelPincushionFilter.class);
+//		addFilter(BarrelPincushionFilter.class);
 	}
 
 	private ArrayList<Drawable> tempA;
