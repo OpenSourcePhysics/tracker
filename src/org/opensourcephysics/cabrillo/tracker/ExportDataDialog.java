@@ -266,6 +266,12 @@ public class ExportDataDialog extends JDialog {
   				Dataset dataset = sets.get(j);
     			allColumns.add(dataset.getYColumnName()); 				
   			}
+  			
+  			// add text column names, if any
+  			ArrayList<String> textColNames = next.getTextColumnNames();
+  			for (int m = 0; m < textColNames.size(); m++) {
+    			allColumns.add(textColNames.get(m)); 				
+  			}
     	}
     }
     // if this is a new panel, clear selected tracks and select default
@@ -506,6 +512,7 @@ public class ExportDataDialog extends JDialog {
 		}
 
 		ArrayList<String> allColumnNames = allColumnsMap.get(trackType);
+		// allColumnNames includes text columns if any
 		int datasetCount = allColumnNames.size();
 		// get column names to export		
 		BitSet namesBS = getSelectedColumnsBitSet(trackType);
@@ -538,18 +545,20 @@ public class ExportDataDialog extends JDialog {
 		if (frameIndex == -1)
 			return null;
 		
-		// set up arrays for data values and frame numbers
+		// set up arrays for data values, text values and frame numbers
 		int colsPerTrack = selectedColumnNames.length;
 		double[][][] dataValues = new double[selectedTrackCount][colsPerTrack][];
+		String[][][] textValues = new String[selectedTrackCount][colsPerTrack][];
 		double[][] frameNumbers = new double[selectedTrackCount][];
 		for (int i = 0; i < selectedTrackCount; i++) {
+			TTrack track = selectedTracks[i];
 			// for each selected track, get list of datasets
 			ArrayList<Dataset> datasets = selectedTrackData[i];
 			
 			Dataset dataset = datasets.get(frameIndex);
 			frameNumbers[i] = getPoints(dataset, isFrames);
 			// for each selected column name look for dataset with same name
-			for (int k = 0; k < selectedColumnNames.length; k++) {
+			outer: for (int k = 0; k < selectedColumnNames.length; k++) {
 				String colName = selectedColumnNames[k];
 				for (int j = 0; j < datasetCount; j++) {
 					// look thru all datasets to find column with colName
@@ -568,8 +577,20 @@ public class ExportDataDialog extends JDialog {
 								angles[m] *= (180 / Math.PI);
 							}
 						}
+						continue outer;
 					}
 				}
+				// if column name not found, look for text column
+  			ArrayList<String> textColNames = track.getTextColumnNames();
+  			for (int m = 0; m < textColNames.size(); m++) {
+    			if (textColNames.get(m).equals(colName)) {
+    				textValues[i][k] = new String[frameNumbers[i].length];
+    				for (int a = 0; a < frameNumbers[i].length; a++) {
+    					textValues[i][k][a] = track.getTextColumnEntry(colName, (int)frameNumbers[i][a]);
+    				}
+    			}
+  			}
+
 			}
 		}
 		
@@ -714,8 +735,16 @@ public class ExportDataDialog extends JDialog {
 					for (int k = 0; k < colsPerTrack; k++) {
 						buf.append(TrackerIO.getDelimiter());
 						if (indices[j][i - min] > -1) {
-							if (data[k] == null)
+							if (data[k] == null) {
+								// could be a text column
+								String[][] text = textValues[j];
+								if (text[k] != null) {
+									String s = text[k][indices[j][i - min]];
+									if (s != null && !s.equals("null"))
+										buf.append(s);
+								}
 								continue;
+							}
 							value = data[k][indices[j][i - min]];
 							if (!Double.isNaN(value)) {
 								String pattern = patterns[j][k];
