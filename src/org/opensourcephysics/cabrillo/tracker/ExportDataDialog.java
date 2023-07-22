@@ -110,6 +110,8 @@ public class ExportDataDialog extends JDialog {
 	private NumberField.NumberFormatter defaultFormatter;
 	private Class<? extends TTrack> trackType;
 	private boolean asFormatted = true;
+	private int firstTextColumnIndex = -1;
+	private int firstSelectedTextColumnIndex = -1;
 	private ActionListener checkboxListener = (e) -> {
 		showColumnsDialogAction(Integer.parseInt(e.getActionCommand()));
 	};
@@ -266,13 +268,18 @@ public class ExportDataDialog extends JDialog {
   				Dataset dataset = sets.get(j);
     			allColumns.add(dataset.getYColumnName()); 				
   			}
-  			
-  			// add text column names, if any
-  			ArrayList<String> textColNames = next.getTextColumnNames();
-  			for (int m = 0; m < textColNames.size(); m++) {
-    			allColumns.add(textColNames.get(m)); 				
-  			}
     	}
+			
+			// add text column names, if any
+			ArrayList<String> textColNames = next.getTextColumnNames();
+			for (int m = 0; m < textColNames.size(); m++) {
+				if (!allColumns.contains(textColNames.get(m))) {
+					if (firstTextColumnIndex==-1)
+						firstTextColumnIndex = allColumns.size();
+					allColumns.add(textColNames.get(m)); 				
+				}
+			}
+
     }
     // if this is a new panel, clear selected tracks and select default
 		if (panel.getID() != panelID) {
@@ -518,9 +525,14 @@ public class ExportDataDialog extends JDialog {
 		BitSet namesBS = getSelectedColumnsBitSet(trackType);
 		String[] selectedColumnNames = new String[namesBS.cardinality()];
 		n = 0;
+		firstSelectedTextColumnIndex = -1;
 		for (int k = namesBS.nextSetBit(0); k >= 0; k = namesBS.nextSetBit(k + 1)) {
 			selectedColumnNames[n++] = allColumnNames.get(k);
+			if (k >= firstTextColumnIndex && firstSelectedTextColumnIndex == -1) {
+				firstSelectedTextColumnIndex = n-1;
+			}
 		}
+		
 		String xVar = null;  // set below
 		// collect selected track data
 		int selectedTrackCount = selectedTracks.length;
@@ -690,6 +702,8 @@ public class ExportDataDialog extends JDialog {
 			TTrack track = selectedTracks[i];
 			buf.append(track.getName());
 			for (int j = 0; j < colsPerTrack; j++) {
+				if (isUndefinedTextColumn(j, textValues[i][j]))
+					continue;				
 				buf.append(TrackerIO.getDelimiter());
 			}
 		}
@@ -711,6 +725,10 @@ public class ExportDataDialog extends JDialog {
 //					units = "("+Tracker.DEGREES+")";
 //				}
 //				buf.append(TeXParser.removeSubscripting(selectedColumnNames[j]) + units);
+				
+				if (isUndefinedTextColumn(j, textValues[i][j]))
+					continue;
+
 				buf.append(TeXParser.removeSubscripting(selectedColumnNames[j]));
 				buf.append(TrackerIO.getDelimiter());
 			}
@@ -733,6 +751,9 @@ public class ExportDataDialog extends JDialog {
 				for (int j = 0; j < selectedTrackCount; j++) {
 					double[][] data = dataValues[j];
 					for (int k = 0; k < colsPerTrack; k++) {
+						if (isUndefinedTextColumn(k, textValues[j][k]))
+							continue;
+
 						buf.append(TrackerIO.getDelimiter());
 						if (indices[j][i - min] > -1) {
 							if (data[k] == null) {
@@ -764,6 +785,13 @@ public class ExportDataDialog extends JDialog {
 		}
 		
 		return buf.toString();
+	}
+	
+	private boolean isUndefinedTextColumn(int col, String[] textEntries) {
+		if (firstSelectedTextColumnIndex > -1 && col >= firstSelectedTextColumnIndex) {
+			return textEntries == null;
+		}
+		return false;
 	}
 	
 	private double[] getPoints(Dataset dataset, boolean isY) {
