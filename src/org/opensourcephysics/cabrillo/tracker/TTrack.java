@@ -3160,18 +3160,32 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 			return null;
 		// find named text column
 		String[] entries = this.textColumnEntries.get(textColumnName);
+		// entries index is frame number
 		if (entries != null && entries.length > 0) {
 			DatasetManager data = getData(tp);
-			double[] x = data.getDataset(0).getXPointsRaw();
+			double[] x = data.getDataset(0).getXPoints();
 			int len = data.getDataset(0).getIndex();
+			
+			ArrayList<Dataset> datasets = data.getDatasetsRaw();
+			boolean isFrames = this.getClass() != LineProfile.class;
+			int frameIndex = isFrames? -1: 0;
+			for (int i = 0; i < datasets.size(); i++) {
+				if (datasets.get(i).getYColumnName().equals("frame")) {
+					frameIndex = i;
+					break;
+				}
+			}
+
 			double[] values = new double[len];
 			for (int i = 0; i < values.length; i++) {
-				if (entries.length > i) {
-					if (entries[i] == null) {
+				// get frame number = entries index
+				int frame = frameIndex < 0? i: (int)datasets.get(frameIndex).getY(i);
+				if (entries.length > frame) {
+					if (entries[frame] == null) {
 						values[i] = Double.NaN;
 					} else
 						try {
-							values[i] = Double.parseDouble(entries[i]);
+							values[i] = Double.parseDouble(entries[frame]);
 						} catch (Exception ex) {
 							return null;
 						}
