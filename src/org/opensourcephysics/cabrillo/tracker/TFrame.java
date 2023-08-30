@@ -762,6 +762,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		if (!haveContent() && getTabCount() == 1) {
 			removeTabNow(0);
 			Disposable.dump();
+			if (isExit)
+				System.exit(0);
 			return;
 		}
 		hideNotes();
