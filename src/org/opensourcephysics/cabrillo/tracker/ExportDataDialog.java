@@ -528,7 +528,9 @@ public class ExportDataDialog extends JDialog {
 		firstSelectedTextColumnIndex = -1;
 		for (int k = namesBS.nextSetBit(0); k >= 0; k = namesBS.nextSetBit(k + 1)) {
 			selectedColumnNames[n++] = allColumnNames.get(k);
-			if (k >= firstTextColumnIndex && firstSelectedTextColumnIndex == -1) {
+			if (firstTextColumnIndex > -1 
+					&& k >= firstTextColumnIndex 
+					&& firstSelectedTextColumnIndex == -1) {
 				firstSelectedTextColumnIndex = n-1;
 			}
 		}
