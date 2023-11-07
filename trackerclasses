@@ -407,10 +407,10 @@ java/util/zip/ZipOutputStream.js
 javajs/api/GenericImageEncoder.js
 javajs/api/GenericLineReader.js
 javajs/api/GenericOutputChannel.js
-javajs/api/GenericZipInputStream.js
+
 javajs/api/JSFunction.js
 javajs/api/JSONEncodable.js
-javajs/api/ZInputStream.js
+
 javajs/async/Assets.js
 javajs/async/AsyncDialog.js
 javajs/async/AsyncFileChooser.js
