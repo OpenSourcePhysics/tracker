@@ -54,6 +54,7 @@ java/awt/LayoutManager2.js
 java/awt/LightweightDispatcher.js
 java/awt/Paint.js
 java/awt/Point.js
+java/awt/Polygon.js
 java/awt/Queue.js
 java/awt/Rectangle.js
 java/awt/RenderingHints.js
