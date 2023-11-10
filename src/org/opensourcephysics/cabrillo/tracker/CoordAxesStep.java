@@ -205,6 +205,12 @@ public class CoordAxesStep extends Step {
 				n = track.tp.getFrameNumber();
 			double x = coords.getOriginX(n);
 			double y = coords.getOriginY(n);
+			// check for NaN (may occur after video is loaded in Tracker online)
+			if (Double.isNaN(x) || Double.isNaN(y)) {
+				x = trackerPanel.getImageWidth() / 2;
+				y = trackerPanel.getImageHeight() / 2;
+				coords.setOriginXY(n, x, y);
+			}
 			origin.setLocation(x, y);
 			// get default axes shape and handle hit shape (positive x-axis)
 			Point p0 = screenPoints[0] = origin.getScreenPosition(trackerPanel);
