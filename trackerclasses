@@ -54,6 +54,7 @@ java/awt/LayoutManager2.js
 java/awt/LightweightDispatcher.js
 java/awt/Paint.js
 java/awt/Point.js
+java/awt/Polygon.js
 java/awt/Queue.js
 java/awt/Rectangle.js
 java/awt/RenderingHints.js
@@ -407,10 +408,10 @@ java/util/zip/ZipOutputStream.js
 javajs/api/GenericImageEncoder.js
 javajs/api/GenericLineReader.js
 javajs/api/GenericOutputChannel.js
-javajs/api/GenericZipInputStream.js
+
 javajs/api/JSFunction.js
 javajs/api/JSONEncodable.js
-javajs/api/ZInputStream.js
+
 javajs/async/Assets.js
 javajs/async/AsyncDialog.js
 javajs/async/AsyncFileChooser.js

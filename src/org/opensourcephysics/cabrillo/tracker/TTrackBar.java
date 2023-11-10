@@ -330,6 +330,10 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 
 		setFloatable(false);
 		viewLabel.setBorder(BorderFactory.createEmptyBorder(2, 6, 2, 0));
+		if (OSPRuntime.isJS) {
+		  viewLabel.setEnabled(false); 
+		  // disables touch to select text
+		}
 		// select button
 		selectButton = new TButton(selectTrackIcon) {
 			@Override
