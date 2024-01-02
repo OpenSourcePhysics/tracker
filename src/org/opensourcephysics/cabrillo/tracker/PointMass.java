@@ -420,6 +420,7 @@ public class PointMass extends TTrack {
 	protected GeneralPath trace = new GeneralPath();
 	protected Stroke traceStroke = new BasicStroke(1);
 	protected boolean drawsTrace; // ParticleModel
+	protected boolean loading;
 
 	/**
 	 * Constructs a PointMass with mass 1.0.
@@ -530,7 +531,7 @@ public class PointMass extends TTrack {
 			step = new PositionStep(this, n, x, y);
 			steps.setStep(n, step);
 			step.setFootprint(getFootprint());
-			if (isAutofill()) {
+			if (!loading && isAutofill()) {
 				markInterpolatedSteps(step, true);
 			}
 		} else if (x != step.getPosition().x || y != step.getPosition().y) {
@@ -540,21 +541,23 @@ public class PointMass extends TTrack {
 			step.erase();
 		}
 		step.valid = true;
-		if (!autoTrackerMarking && tp != null && tp.isAutoRefresh()) {
-			updateDerivatives(n);
-		}
-		firePropertyChange(PROPERTY_TTRACK_STEP, HINT_STEP_ADDED_OR_REMOVED, new Integer(n)); // $NON-NLS-1$
-		// check independent point masses for skipped steps during marking
-		if (skippedStepWarningOn && steps.isPreceded(n) && tp != null && !isDependent()
-				&& !AutoTracker.mayLeaveGaps()) {
-			VideoClip clip = tp.getPlayer().getVideoClip();
-			int stepNumber = clip.frameToStep(n);
-			if (stepNumber > 0) {
-				Step prev = getStep(clip.stepToFrame(stepNumber - 1));
-				if (prev == null) {
-					JDialog warning = getSkippedStepWarningDialog();
-					if (warning != null)
-						warning.setVisible(true);
+		if (!loading) {
+			if (!autoTrackerMarking && tp != null && tp.isAutoRefresh()) {
+				updateDerivatives(n);
+			}
+			firePropertyChange(PROPERTY_TTRACK_STEP, HINT_STEP_ADDED_OR_REMOVED, new Integer(n)); // $NON-NLS-1$
+			// check independent point masses for skipped steps during marking
+			if (skippedStepWarningOn && steps.isPreceded(n) && tp != null && !isDependent()
+					&& !AutoTracker.mayLeaveGaps()) {
+				VideoClip clip = tp.getPlayer().getVideoClip();
+				int stepNumber = clip.frameToStep(n);
+				if (stepNumber > 0) {
+					Step prev = getStep(clip.stepToFrame(stepNumber - 1));
+					if (prev == null) {
+						JDialog warning = getSkippedStepWarningDialog();
+						if (warning != null)
+							warning.setVisible(true);
+					}
 				}
 			}
 		}
@@ -1275,7 +1278,7 @@ public class PointMass extends TTrack {
 	 * 
 	 * @param startStep the start step
 	 * @param endStep   the end step
-	 * @return true if new steps were marked
+	 * @return true if changed (step added or removed)
 	 */
 	public boolean markInterpolatedSteps(PositionStep startStep, PositionStep endStep) {
 		if (isLocked())
@@ -1287,7 +1290,7 @@ public class PointMass extends TTrack {
 		if (range < 2)
 			return false;
 		Step[] stepArray = getSteps();
-		boolean newlyMarked = false;
+		boolean changed = false;
 		for (int i = startStepNum + 1; i < endStepNum; i++) {
 			// mark new points or move existing points here
 			double x1 = startStep.getPosition().getX();
@@ -1300,7 +1303,7 @@ public class PointMass extends TTrack {
 			PositionStep step = (PositionStep) stepArray[frameNum];
 			if (isAutofill()) {
 				if (step == null) {
-					newlyMarked = true;
+					changed = true;
 					step = new PositionStep(this, frameNum, x, y);
 					steps.setStep(frameNum, step);
 					step.setFootprint(getFootprint());
@@ -1310,12 +1313,13 @@ public class PointMass extends TTrack {
 				}
 				step.valid = true;
 			}
-			else if (step != null) { // autofill off
-				deleteStep(step.n);
-				newlyMarked = true;
+			else if (step != null) { // autofill is off
+				// delete step without undo
+				steps.setStep(step.n, null);
+				changed = true;
 			}
 		}
-		return newlyMarked;
+		return changed;
 	}
 
 	@Override
@@ -1387,7 +1391,17 @@ public class PointMass extends TTrack {
 				keyFrames.remove(i);
 				continue;
 			}
-
+			// if x or y are NaN, remove the step
+			TPoint p = ((PositionStep) curStep).getPosition();
+			Point2D wp = p.getWorldPosition(panel);
+			double x = wp.getX(); // x
+			double y = wp.getY(); // y
+			if (Double.isNaN(x) || Double.isNaN(y)) {
+				stepArray[i] = null;
+				keyFrames.remove(i);
+				continue;
+			}
+			
 			boolean inFrame = clip.includesFrame(i);
 			if (!inFrame)
 				continue;
@@ -1410,10 +1424,9 @@ public class PointMass extends TTrack {
 			to = player.getStepTime(stepNumber - aDerivSpill) / 1000.0;
 			double dt_a2 = (tf - to) * (tf - to) / (4 * aDerivSpill * aDerivSpill);
 			// assemble the data values for this step
-			TPoint p = ((PositionStep) stepArray[i]).getPosition();
-			Point2D wp = p.getWorldPosition(panel);
-			double x = validData[0][pt] = wp.getX(); // x
-			double y = validData[1][pt] = wp.getY(); // y
+			// already got x, y above
+			validData[0][pt] = x;
+			validData[1][pt] = y;
 			double r = validData[2][pt] = Math.sqrt(x * x + y * y); // mag
 			double slope = validData[3][pt] = Math.atan2(y, x); // ang between +/-pi
 			validData[12][pt] = theta_data[i]; // theta
@@ -2913,6 +2926,7 @@ public class PointMass extends TTrack {
 			// load step and keyframe data
 			FrameData[] data = (FrameData[]) control.getObject("framedata"); //$NON-NLS-1$
 			if (data != null) {
+				p.loading = true;
 				for (int n = 0; n < data.length; n++) {
 					if (data[n] == null) {
 						p.steps.setStep(n, null);
@@ -2926,6 +2940,7 @@ public class PointMass extends TTrack {
 						p.createStep(n, data[n].x, data[n].y);
 					}
 				}
+				
 				if (!p.isDependent()) {
 					// delete existing steps, if any, beyond the frame data length
 					Step[] steps = p.getSteps();
@@ -2937,6 +2952,7 @@ public class PointMass extends TTrack {
 				p.updateDerivatives();
 				// BH! don't set dataValid = false???
 				p.fireDataButDontInvalidateIt();
+				p.loading = false;
 			}
 			
 			p.keyFrames.clear();
