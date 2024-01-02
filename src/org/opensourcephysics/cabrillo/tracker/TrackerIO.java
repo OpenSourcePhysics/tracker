@@ -1966,8 +1966,18 @@ public class TrackerIO extends VideoIO {
 			}
 			if (frame != null)
 				frame.loadedFiles.add(nonURIPath);
-			if (!ResourceLoader.isHTTP(path))
+			if (!ResourceLoader.isHTTP(path)) {
+				if (path.contains("&")) {
+					new AsyncDialog().showMessageDialog(null, 
+							TrackerRes.getString("ZipResourceDialog.Dialog.BadFileName.Message") + " \n\"&\"" , //$NON-NLS-1$ //$NON-NLS-2$
+							TrackerRes.getString("ZipResourceDialog.Dialog.BadFileName.Title"), //$NON-NLS-1$
+							JOptionPane.WARNING_MESSAGE, (ev) -> {
+							});
+					setCanceled(true);
+					return false;
+				}
 				path = nonURIPath;
+			}
 
 			setCanceled(false);
 
@@ -2337,7 +2347,6 @@ public class TrackerIO extends VideoIO {
 					for (String relpath : tempFiles) {
 						String s = OSPRuntime.unzipFiles ? relpath : path + "!/" + relpath;
             JOptionPane.showMessageDialog(null, s, "Cannot show supplemental files.", JOptionPane.INFORMATION_MESSAGE);
-						System.out.println("skipped displaying document found in TRZ: "+s); // pig
 					}
 					
 				}
