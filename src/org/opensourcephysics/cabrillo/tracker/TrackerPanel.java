@@ -2340,13 +2340,18 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		ArrayList<TTrack> list = getTracksTemp();
 		int n = list.size();
 		String proposed = null;
-		// test A-Z
-		for (int i = 65; i <= 90 && proposed == null; i++) {
-			proposed = p + (char) i;
-			for (int it = 0; it < n; it++) {
-				if (proposed.equals(list.get(it).getName())) {
-					proposed = null;
-					break;
+		// test A-Z, then AA-ZZ, etc
+		for (int j = 0; j < 10; j++) {
+			for (int i = 65; i <= 90 && proposed == null; i++) {
+				proposed = p + (char) i;
+				for (int k = 0; k < j; k++) {
+					proposed += (char) i; 
+				}
+				for (int it = 0; it < n; it++) {
+					if (proposed.equals(list.get(it).getName())) {
+						proposed = null;
+						break;
+					}
 				}
 			}
 		}
