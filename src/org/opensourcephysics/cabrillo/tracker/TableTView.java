@@ -361,7 +361,7 @@ public class TableTView extends TrackChooserTView {
 						tableTrackView.setRefreshing(false); // prevents refreshes
 						// start by unchecking all checkboxes
 						tableTrackView.bsCheckBoxes.clear();
-						tableTrackView.textColumnsVisible.clear();
+						tableTrackView.bsTextColumnsVisible.clear();
 						// now select checkboxes specified in track_columns
 //    							Map<String, Integer> htOrder = new HashMap<String, Integer>(); // BH! never used
 						columns = fixColumnList(columns, track);

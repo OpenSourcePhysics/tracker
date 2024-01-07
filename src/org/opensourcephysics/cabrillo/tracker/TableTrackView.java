@@ -191,7 +191,7 @@ public class TableTrackView extends TrackView {
 	final private Map<String, TableCellRenderer> degreeRenderers = new HashMap<String, TableCellRenderer>();
 
 	final protected ArrayList<String> textColumnNames = new ArrayList<String>();
-	final protected Set<String> textColumnsVisible = new TreeSet<String>();
+	final protected BitSet bsTextColumnsVisible = new BitSet();
 
 	/**
 	 * used when sorting
@@ -685,11 +685,15 @@ public class TableTrackView extends TrackView {
 		if (i == null)
 			return;
 		int index = i.intValue();
-		if (index >= trackDataManager.getDatasetsRaw().size()) {
-			if (visible)
-				textColumnsVisible.add(name);
-			else
-				textColumnsVisible.remove(name);
+		if (index >= trackDataManager.getDatasetsRaw().size()) { // must be a text column
+			ArrayList<String> names = getTrack().getTextColumnNames();
+			for (int j = 0; j < names.size(); j++) {
+				String next = names.get(j);
+				if (next.equals(name)) {
+					bsTextColumnsVisible.set(j, visible);
+					break;
+				}
+			}
 		}
 		// call setVisible(int,boolean) AFTER above since it calls refresh
 		setVisible(index, visible);
@@ -898,11 +902,7 @@ public class TableTrackView extends TrackView {
 			refreshNameMaps();
 
 			if (added != null && removed != null) {
-				// name change only--replace in textColumnsVisible if visible
-				if (textColumnsVisible.contains(removed)) {
-					textColumnsVisible.remove(removed);
-					textColumnsVisible.add(added);
-				}
+				// name change only--take no action
 			} else if (added != null) {
 				// new column is visible by default
 				setVisible(added, true);
@@ -2037,14 +2037,19 @@ public class TableTrackView extends TrackView {
 	private class TextColumnTableModel extends DataTable.OSPTableModel {
 		@Override
 		public String getColumnName(int col) {
-			int i = 0;
-			for (String name : getTrack().getTextColumnNames()) {
-				if (textColumnsVisible.contains(name)) {
-					if (i++ == col)
-						return name;
-				}
+			String result = "unknown";
+			int n = -1;
+			for (int j = 0; j <= col; j++) {
+				n = bsTextColumnsVisible.nextSetBit(n+1);
+				if (n == Integer.MAX_VALUE) {
+		       break; // or (i+1) would overflow
+		    }
 			}
-			return "unknown"; //$NON-NLS-1$
+			ArrayList<String> names = getTrack().getTextColumnNames();
+			if (n >= 0 && names.size() > n) {
+				result = names.get(n);
+			}				
+			return result; //$NON-NLS-1$
 		}
 
 		@Override
@@ -2055,7 +2060,7 @@ public class TableTrackView extends TrackView {
 		@Override
 		public int getColumnCount() {
 			// don't include text columns in time data
-			return myDatasetIndex > -1? 0: textColumnsVisible.size();
+			return myDatasetIndex > -1? 0: bsTextColumnsVisible.cardinality();
 		}
 
 		@Override
@@ -2114,7 +2119,7 @@ public class TableTrackView extends TrackView {
 		@Override
 		public String toString() {
 			return "TableTrackView.TextColumnTableModel n=" + textColumnNames.size() + " vis="
-					+ textColumnsVisible.size();
+					+ bsTextColumnsVisible.cardinality();
 		}
 
 	}
@@ -2512,13 +2517,12 @@ public class TableTrackView extends TrackView {
 				boolean add = checkBoxes[i].isSelected();
 				String name = checkBoxes[i].getText();
 				bsCheckBoxes.set(i, add);
-				// if name is a text column, add/remove to textColumnsVisible
-				for (String next : getTrack().getTextColumnNames()) {
+				// if name is a text column, set bsTextColumnsVisible
+				ArrayList<String> names = getTrack().getTextColumnNames();
+				for (int j = 0; j < names.size(); j++) {
+					String next = names.get(j);
 					if (next.equals(name)) {
-						if (add)
-							textColumnsVisible.add(name);
-						else
-							textColumnsVisible.remove(name);
+						bsTextColumnsVisible.set(j, add);
 						break;
 					}
 				}
