@@ -578,68 +578,6 @@ public class PrefsDialog extends JDialog {
 		decimalSubPanel.add(periodDecimalButton);
 		decimalSubPanel.add(commaDecimalButton);
 
-//		// footprint and trail length subpanels side by side
-//		horz = Box.createHorizontalBox();
-//		box.add(horz);
-//
-//		// pointmass footprint subpanel
-//		JPanel footprintSubPanel = new JPanel();
-//		horz.add(footprintSubPanel);
-//		footprintSubPanel.setBackground(color);
-//
-//		pointmassFootprintSubPanelBorder = BorderFactory
-//				.createTitledBorder(TrackerRes.getString("PrefsDialog.PointMassFootprint.BorderTitle")); //$NON-NLS-1$
-//		footprintSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, pointmassFootprintSubPanelBorder));
-//		footprintDropdown = new JComboBox<Footprint>();
-//		footprintDropdown.setRenderer(new FootprintRenderer());
-//		Footprint[] footprints = new Footprint[PointMass.footprintNames.length];
-//		for (int i = 0; i < footprints.length; i++) {
-//			String name = PointMass.footprintNames[i];
-//			if (name.equals("CircleFootprint.Circle")) { //$NON-NLS-1$
-//				footprints[i] = CircleFootprint.getFootprint(name);
-//			} else {
-//				footprints[i] = PointShapeFootprint.getFootprint(name);
-//			}
-//		}
-//		for (int i = 0; i < footprints.length; i++) {
-//			footprintDropdown.addItem(footprints[i]);
-//		}
-//		footprintSubPanel.add(footprintDropdown);
-//		final ActionListener al = new ActionListener() {
-//			@Override
-//			public void actionPerformed(ActionEvent e) {
-//				footprintDropdown.repaint();
-//			}
-//		};
-//		footprintDropdown.setAction(new AbstractAction() {
-//			@Override
-//			public void actionPerformed(ActionEvent e) {
-//				if (refreshing)
-//					return;
-//				Footprint footprint = (Footprint) footprintDropdown.getSelectedItem();
-//				if (footprint instanceof CircleFootprint) {
-//					CircleFootprint cfp = (CircleFootprint) footprint;
-//					cfp.showProperties(trackerPanel.getTFrame(), al);
-//					Tracker.preferredPointMassFootprint = footprint.getName() + "#" + cfp.getProperties(); //$NON-NLS-1$
-//				} else
-//					Tracker.preferredPointMassFootprint = footprint.getName();
-//			}
-//		});
-//
-//		// trailLength subpanel
-//		JPanel trailLengthSubPanel = new JPanel();
-//		horz.add(trailLengthSubPanel);
-//		trailLengthSubPanel.setBackground(color);
-//
-//		trailLengthSubPanelBorder = BorderFactory
-//				.createTitledBorder(TrackerRes.getString("PrefsDialog.Trails.BorderTitle")); //$NON-NLS-1$
-//		trailLengthSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, trailLengthSubPanelBorder));
-//		trailLengthDropdown = new JComboBox<String>();
-//		trailLengthDropdown.addItem(TrackerRes.getString("TrackControl.TrailMenu.NoTrail")); //$NON-NLS-1$
-//		trailLengthDropdown.addItem(TrackerRes.getString("TrackControl.TrailMenu.ShortTrail")); //$NON-NLS-1$
-//		trailLengthDropdown.addItem(TrackerRes.getString("TrackControl.TrailMenu.LongTrail")); //$NON-NLS-1$
-//		trailLengthDropdown.addItem(TrackerRes.getString("TrackControl.TrailMenu.FullTrail")); //$NON-NLS-1$
-//		trailLengthSubPanel.add(trailLengthDropdown);
 		// end display panel
 
 		// create button border && openFileIcon
@@ -1174,17 +1112,71 @@ public class PrefsDialog extends JDialog {
 		});
 		dataGapSubPanel.add(autofillCheckbox);
 		
+		// footprint and trail length subpanels side by side in horz box
+		horz = Box.createHorizontalBox();
+		box.add(horz);
+	
+		// pointmass footprint subpanel
+		JPanel footprintSubPanel = new JPanel();
+		horz.add(footprintSubPanel);
+		footprintSubPanel.setBackground(color);
+	
+		pointmassFootprintSubPanelBorder = BorderFactory
+				.createTitledBorder(TrackerRes.getString("PrefsDialog.PointMassFootprint.BorderTitle")); //$NON-NLS-1$
+		footprintSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, pointmassFootprintSubPanelBorder));
+		footprintDropdown = new JComboBox<Footprint>();
+		footprintDropdown.setRenderer(new FootprintRenderer());
+		Footprint[] footprints = new Footprint[PointMass.footprintNames.length];
+		for (int i = 0; i < footprints.length; i++) {
+			String name = PointMass.footprintNames[i];
+			if (name.equals("CircleFootprint.Circle")) { //$NON-NLS-1$
+				footprints[i] = CircleFootprint.getFootprint(name);
+			} else {
+				footprints[i] = PointShapeFootprint.getFootprint(name);
+			}
+		}
+		for (int i = 0; i < footprints.length; i++) {
+			footprintDropdown.addItem(footprints[i]);
+		}
+		footprintSubPanel.add(footprintDropdown);
+		final ActionListener al = new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				footprintDropdown.repaint();
+			}
+		};
+		footprintDropdown.setAction(new AbstractAction() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if (refreshing)
+					return;
+				Footprint footprint = (Footprint) footprintDropdown.getSelectedItem();
+				if (footprint instanceof CircleFootprint) {
+					CircleFootprint cfp = (CircleFootprint) footprint;
+					cfp.showProperties(frame, al);
+					Tracker.preferredPointMassFootprint = footprint.getName() + "#" + cfp.getProperties(); //$NON-NLS-1$
+				} else
+					Tracker.preferredPointMassFootprint = footprint.getName();
+			}
+		});
+	
+		// trailLength subpanel
+//		JPanel trailLengthSubPanel = new JPanel();
 		// trails subpanel
 		JPanel trailLengthSubPanel = new JPanel();
-		box.add(trailLengthSubPanel);
+		trailLengthSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, trailLengthSubPanelBorder));				
+		horz.add(trailLengthSubPanel);
 		trailLengthSubPanel.setBackground(color);
+	
 		trailLengthSubPanelBorder = BorderFactory
 				.createTitledBorder(TrackerRes.getString("PrefsDialog.Trails.BorderTitle")); //$NON-NLS-1$
-		trailLengthSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, trailLengthSubPanelBorder));		
-		
+		trailLengthSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, trailLengthSubPanelBorder));
 		trailLengthDropdown = new JComboBox<String>();
+		trailLengthDropdown.addItem(TrackerRes.getString("TrackControl.TrailMenu.NoTrail")); //$NON-NLS-1$
+		trailLengthDropdown.addItem(TrackerRes.getString("TrackControl.TrailMenu.ShortTrail")); //$NON-NLS-1$
+		trailLengthDropdown.addItem(TrackerRes.getString("TrackControl.TrailMenu.LongTrail")); //$NON-NLS-1$
+		trailLengthDropdown.addItem(TrackerRes.getString("TrackControl.TrailMenu.FullTrail")); //$NON-NLS-1$
 		trailLengthSubPanel.add(trailLengthDropdown);
-
 		// end actions panel
 
 		// general panel
