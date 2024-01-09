@@ -471,7 +471,7 @@ public class Tracker {
 				new Locale("pl"), // polish //$NON-NLS-1$
 				new Locale("pt", "BR"), // Brazil portuguese //$NON-NLS-1$ //$NON-NLS-2$
 				new Locale("pt", "PT"), // Portugal portuguese //$NON-NLS-1$
-//				new Locale("ru"), // russian //$NON-NLS-1$
+				new Locale("ru"), // russian //$NON-NLS-1$
 				new Locale("sk"), // slovak //$NON-NLS-1$
 				new Locale("sl"), // slovenian //$NON-NLS-1$
 				new Locale("sv"), // swedish //$NON-NLS-1$
