@@ -32,7 +32,9 @@ import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.awt.FontMetrics;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.GraphicsEnvironment;
 import java.awt.Point;
 import java.awt.Rectangle;
@@ -53,7 +55,9 @@ import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
-import java.awt.font.TextLayout;
+import java.awt.font.LineMetrics;
+import org.opensourcephysics.display.OSPRuntime.TextLayout;
+import java.awt.geom.Rectangle2D;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
@@ -152,8 +156,22 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	public static Font textLayoutFont = new JTextField().getFont();
 
 	static {
+//		String s = "STRICT";
+//		// System.out.println(textLayoutFont.hasLayoutAttributes());
+//		// was false
+//		LineMetrics lm = textLayoutFont.getLineMetrics(s, OSPRuntime.frc);
+//		System.out.println(" A:" + lm.getAscent()+ " D:" + lm.getDescent() + " H:" + lm.getHeight() + " L:" + lm.getLeading());
+//
+//		System.out.println("Font.SB:" + textLayoutFont.getStringBounds(s, OSPRuntime.frc));
+//		java.awt.font.TextLayout tl = new java.awt.font.TextLayout(s, textLayoutFont, OSPRuntime.frc);
+//		System.out.println("TextLayout.getBounds:" + tl.getBounds());
+//		System.out.println("TextLayout[0, -ascent, advance, ascent+decent+ leading:" 
+//		+ new Rectangle2D.Float(0, -tl.getAscent(), tl.getAdvance(),
+//                                     tl.getAscent() + tl.getDescent() +
+//                                     tl.getLeading()));
+//		
+		new TextLayout("X", textLayoutFont);	
 		ToolTipManager.sharedInstance().setDismissDelay(2000);
-		new TextLayout("X", textLayoutFont, OSPRuntime.frc);
 	}
 
 	// static fields
