@@ -156,21 +156,34 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	public static Font textLayoutFont = new JTextField().getFont();
 
 	static {
-//		String s = "STRICT";
-//		// System.out.println(textLayoutFont.hasLayoutAttributes());
-//		// was false
-//		LineMetrics lm = textLayoutFont.getLineMetrics(s, OSPRuntime.frc);
-//		System.out.println(" A:" + lm.getAscent()+ " D:" + lm.getDescent() + " H:" + lm.getHeight() + " L:" + lm.getLeading());
-//
-//		System.out.println("Font.SB:" + textLayoutFont.getStringBounds(s, OSPRuntime.frc));
-//		java.awt.font.TextLayout tl = new java.awt.font.TextLayout(s, textLayoutFont, OSPRuntime.frc);
-//		System.out.println("TextLayout.getBounds:" + tl.getBounds());
-//		System.out.println("TextLayout[0, -ascent, advance, ascent+decent+ leading:" 
-//		+ new Rectangle2D.Float(0, -tl.getAscent(), tl.getAdvance(),
-//                                     tl.getAscent() + tl.getDescent() +
-//                                     tl.getLeading()));
+		String s = "STRICT";
+		// System.out.println(textLayoutFont.hasLayoutAttributes());
+		// was false
+		LineMetrics lm = textLayoutFont.getLineMetrics(s, OSPRuntime.frc);
+		System.out.println(" A:" + lm.getAscent()+ " D:" + lm.getDescent() + " H:" + lm.getHeight() + " L:" + lm.getLeading());
+
+		System.out.println("Font.SB:\n" + textLayoutFont.getStringBounds(s, OSPRuntime.frc));
+		java.awt.font.TextLayout tl = new java.awt.font.TextLayout(s, textLayoutFont, OSPRuntime.frc);
+		System.out.println("TextLayout.getBounds:\n" + tl.getBounds());
+		System.out.println("TextLayout[0, -ascent, advance, ascent+decent+ leading:\n" 
+		+ new Rectangle2D.Float(0, -tl.getAscent(), tl.getAdvance(),
+                                     tl.getAscent() + tl.getDescent() +
+                                     tl.getLeading()));
 //		
-		new TextLayout("X", textLayoutFont);	
+//		java: "STRICT"
+//
+//			Font.SB:java.awt.geom.Rectangle2D$Float[x=0.0,y=-12.064453,w=43.0,h=15.09375]
+//			TextLayout.getBounds:java.awt.geom.Rectangle2D$Float[x=0.546875,y=-8.734375,w=42.546875,h=8.875]
+//			TextLayout.ascent,etc:java.awt.geom.Rectangle2D$Float[x=0.0,y=-12.064453,w=43.0,h=15.09375]
+//
+//		JavaScript "STRICT"
+//
+//			A:12.0 D:4.0 H:17.6 L:1.6
+//			Font.SB:java.awt.geom.Rectangle2D$Float[x=0.0,y=-4.0,w=43.0,h=16.0]
+//			TextLayout.getBounds:java.awt.geom.Rectangle2D$Float[x=0.0,y=-4.0,w=43.0,h=13.0]
+//			TextLayout[0, -ascent, advance, ascent+decent+ leading:java.awt.geom.Rectangle2D$Float[x=0.0,y=-12.0,w=43.0,h=17.6]
+		
+		// no longer needed for JavaScript new TextLayout("X", textLayoutFont);	
 		ToolTipManager.sharedInstance().setDismissDelay(2000);
 	}
 
