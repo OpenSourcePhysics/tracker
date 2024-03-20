@@ -24,18 +24,33 @@
  */
 package org.opensourcephysics.cabrillo.tracker;
 
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Paint;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.RenderingHints;
+import java.awt.Shape;
+import java.awt.Stroke;
 import java.awt.event.MouseEvent;
-import java.awt.geom.*;
-import java.awt.font.*;
+import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
-import org.opensourcephysics.display.*;
-import org.opensourcephysics.media.core.*;
+import org.opensourcephysics.display.DrawingPanel;
+import org.opensourcephysics.display.Interactive;
+import org.opensourcephysics.display.OSPRuntime;
+import org.opensourcephysics.display.OSPRuntime.TextLayout;
+import org.opensourcephysics.media.core.TPoint;
+import org.opensourcephysics.media.core.Trackable;
+import org.opensourcephysics.media.core.VideoClip;
+import org.opensourcephysics.media.core.VideoPanel;
 import org.opensourcephysics.tools.FontSizer;
-
-import java.util.*;
 
 /**
  * This is a Step that represents a position. It is used by PointMass tracks.
@@ -273,7 +288,7 @@ public class PositionStep extends Step {
 			}
 			if (s.length() == 0)
 				s = " "; //$NON-NLS-1$
-			TextLayout layout = new TextLayout(s, TFrame.textLayoutFont, OSPRuntime.frc);
+			TextLayout layout = new TextLayout(s, TFrame.textLayoutFont);
 			panelTextLayouts.put(trackerPanel.getID(), layout);
 			// get layout position (bottom left corner of text)
 			p = getLayoutPosition(trackerPanel);
