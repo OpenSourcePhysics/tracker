@@ -1145,6 +1145,11 @@ sun/awt/image/DataStealer.js
 sun/awt/image/IntegerComponentRaster.js
 sun/awt/image/IntegerInterleavedRaster.js
 sun/awt/image/SunWritableRaster.js
+sun/font/AttributeMap.js
+sun/font/AttributeValues.js
+sun/font/CoreMetrics.js
+sun/font/EAttribute.js
+sun/font/FontLineMetrics.js
 sun/font/FontDesignMetrics.js
 sun/java2d/StateTrackable.js
 sun/java2d/StateTrackableDelegate.js
