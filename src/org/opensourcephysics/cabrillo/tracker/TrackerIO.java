@@ -1992,7 +1992,7 @@ public class TrackerIO extends VideoIO {
 			// BH note - this file is not likely to exist without its pathname.
 			// changed to just check extensions, not if directory (which requires an
 			// existence check)
-			File testFile = new File(path);
+			File testFile = new ResourceLoader.RemoteFile(path);
 			if (videoFileFilter.accept(testFile, false)) {
 				type = TYPE_VIDEO;
 				newPanel();
@@ -2863,6 +2863,5 @@ public class TrackerIO extends VideoIO {
 		ImageIO.write(img, "png", bos);
 		return bos.toByteArray();
 	}
-
-
+	
 }
