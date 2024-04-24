@@ -1677,6 +1677,13 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 		}
 		if (panel().isEnabled("track.autotrack")) //$NON-NLS-1$
 			add(index++, autotrackerButton);
+		else {
+			// if not enabled, close autotracker if visible
+			AutoTracker autoTracker = panel().getAutoTracker(false);
+			if (autoTracker != null)
+				autoTracker.getWizard().setVisible(false);
+		}
+		
 		add(index++, getSeparator());
 		
 		if (useEyeButton) {

@@ -358,7 +358,9 @@ public class TMouseHandler implements InteractiveMouseHandler {
 
 	private void markPoint(TrackerPanel trackerPanel, MouseEvent e, AutoTracker autoTracker) {
 		iad = null;
-		boolean autotrackTrigger = (AutoTracker.isAutoTrackTrigger(e) && selectedTrack.isAutoTrackable()
+		boolean autotrackEneabled = trackerPanel.isEnabled("track.autotrack");
+		boolean autotrackTrigger = autotrackEneabled
+				&& (AutoTracker.isAutoTrackTrigger(e) && selectedTrack.isAutoTrackable()
 				&& trackerPanel.getVideo() != null);
 		KeyFrameData keyFrameData = (autotrackTrigger ? getActiveKeyFrame(autoTracker) : null);
 		// create step

@@ -24,6 +24,7 @@
  */
 package org.opensourcephysics.cabrillo.tracker;
 
+import java.awt.AWTException;
 import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -35,10 +36,12 @@ import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GridLayout;
+import java.awt.MouseInfo;
 import java.awt.Paint;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
+import java.awt.Robot;
 import java.awt.Shape;
 import java.awt.Stroke;
 import java.awt.Toolkit;
@@ -201,6 +204,10 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 	private int goodMatch = 4, possibleMatch = 1;
 	private int evolveAlpha, tetherAlpha;
 	private TPoint hitPt = new TPoint();
+	private long currentms = 0;
+  private Robot robot;
+  private boolean odd = true;
+
 
 	/*
 	 * trackFrameData maps tracks to indexFrameData which maps point index to
@@ -223,6 +230,11 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 		panelID = panel.getID();
 		panel.addDrawable(this);
 		panel.addListeners(panelProps, this);
+	  try {
+			robot = new Robot();
+		} catch (AWTException e) {
+		}
+		
 		stepper = new Runnable() {
 			@Override
 			public void run() {
@@ -884,6 +896,17 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 					}
 				}
 				if (active && !paused) { // actively tracking
+					long ms = System.currentTimeMillis();
+					if (robot != null && ms - currentms > 30000) {
+			  		// move mouse every 30 seconds to prevent computer from sleeping
+						// while autotracking very long videos
+						currentms = ms;
+			    	odd = !odd;
+			      Point p = MouseInfo.getPointerInfo().getLocation();
+			      int x = odd? p.x + 1: p.x - 1;
+			      int y = odd? p.y + 1: p.y - 1;
+			      robot.mouseMove(x, y);						
+					}
 					SwingUtilities.invokeLater(stepper);
 				} else if (stepping) { // user set the frame number, so stop stepping
 					stop(true, false);
