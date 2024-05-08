@@ -369,7 +369,7 @@ public class XuggleVideo extends VideoAdapter implements SmoothPlayable, Increme
 						break;
 					offset += bytesDecoded;
 					if (!picture.isComplete()) {
-//						System.out.println("!! XuggleVideo picture was incomplete!");
+						System.out.println("!! XuggleVideo picture was incomplete!");
 						if (!haveImages)
 							firstDisplayPacket++;
 						continue;
@@ -458,21 +458,6 @@ public class XuggleVideo extends VideoAdapter implements SmoothPlayable, Increme
 				continuePlaying();
 			});
 		}
-	}
-
-	/**
-	 * Gets the duration of the video.
-	 *
-	 * @return the duration of the video in milliseconds, or -1 if not known
-	 */
-	@Override
-	public double getDuration() {
-		int n = getFrameCount() - 1;
-		if (n == 0)
-			return 100; // arbitrary duration for single-frame video!
-		// assume last and next-to-last frames have same duration
-		double delta = getFrameTime(n) - getFrameTime(n - 1);
-		return getFrameTime(n) + delta;
 	}
 
 	/**

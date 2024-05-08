@@ -341,19 +341,14 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 				VideoType videoType = TrackerIO.videoFormats.get(formatDropdown.getSelectedItem());
 				String trkDir = getTempDirectory();
 				String relPath = XML.getPathRelativeTo(videoTarget, trkDir);
-
-				Video newVideo = videoType.getVideo(XML.getName(videoTarget), vidDir, null);
-				clipXMLControl.setValue("video", newVideo); //$NON-NLS-1$
-
-				XMLControl videoControl = clipXMLControl.getChildControl("video"); //$NON-NLS-1$
+				XMLControl videoControl = videoType.getVideoControlForExportOnly(videoTarget, vidDir, clipXMLControl);
 				if (videoControl != null) {
 					videoControl.setValue("path", relPath); //$NON-NLS-1$
 					videoControl.setValue("filters", null); //$NON-NLS-1$
 					if (videoType instanceof ImageVideoType) {
-						videoControl.setValue("paths", null); //$NON-NLS-1$ // eliminates unneeded full list of image
-																// files
+						// eliminates unneeded full list of image files
+						videoControl.setValue("paths", null); //$NON-NLS-1$ 
 						videoControl.setValue("delta_t", player.getMeanStepDuration()); //$NON-NLS-1$
-
 					}
 				}
 			}

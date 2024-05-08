@@ -88,17 +88,6 @@ public boolean isType(Video video) {
   	return singleTypeFilter.accept(new File(name));
   }
 
-  /**
-   * Opens a named video as a XuggleVideo. Overrrides MovieVideoType.
-   *
-   * @param path the path to the video
-   * @return a new Xuggle video
-   */
-	@Override
-	public Video getVideo(String path) {
-	  return getVideo(path, null, null);
-  }
-
 	@Override
 	public Video getVideo(String name, String basePath, XMLControl control) {
 		XuggleVideo video;
