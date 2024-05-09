@@ -32,9 +32,7 @@ import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
-import java.awt.FontMetrics;
 import java.awt.Graphics;
-import java.awt.Graphics2D;
 import java.awt.GraphicsEnvironment;
 import java.awt.Point;
 import java.awt.Rectangle;
@@ -55,9 +53,6 @@ import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
-import java.awt.font.LineMetrics;
-import org.opensourcephysics.display.OSPRuntime.TextLayout;
-import java.awt.geom.Rectangle2D;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
@@ -130,7 +125,7 @@ import org.opensourcephysics.media.core.VideoFileFilter;
 import org.opensourcephysics.media.core.VideoIO;
 import org.opensourcephysics.media.core.VideoPanel;
 import org.opensourcephysics.media.core.VideoPlayer;
-import org.opensourcephysics.media.mov.MovieVideoI;
+import org.opensourcephysics.media.mov.MovieVideo;
 import org.opensourcephysics.tools.FontSizer;
 import org.opensourcephysics.tools.LaunchPanel;
 import org.opensourcephysics.tools.Launcher;
@@ -1538,7 +1533,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			panel = (TrackerPanel) e.getSource();
 			refreshTab(panel);
 			break;
-		case MovieVideoI.PROPERTY_VIDEO_PROGRESS: // from currently loading (xuggle) video
+		case MovieVideo.PROPERTY_VIDEO_PROGRESS: // from currently loading (xuggle) video
 			Object val = e.getNewValue(); // may be null
 			String vidName = XML.forwardSlash((String) e.getOldValue());
 			if (val != null)
@@ -1548,7 +1543,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 				} catch (Exception ex) {
 				}
 			break;
-		case MovieVideoI.PROPERTY_VIDEO_STALLED: // from stalled xuggle video
+		case MovieVideo.PROPERTY_VIDEO_STALLED: // from stalled xuggle video
 			String fileName = XML.getName((String) e.getNewValue());
 			String s = TrackerRes.getString("TFrame.Dialog.StalledVideo.Message0") //$NON-NLS-1$
 					+ "\n" + TrackerRes.getString("TFrame.Dialog.StalledVideo.Message1") //$NON-NLS-1$ //$NON-NLS-2$

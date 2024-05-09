@@ -2062,6 +2062,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 				videoMenu.add(video_playAllStepsItem);
 				// smooth play item for xuggle videos
 				if (video instanceof SmoothPlayable) {
+					// Xuggle only
 					video_playXuggleSmoothlyItem.setSelected(((SmoothPlayable) video).isSmoothPlay());
 					videoMenu.add(video_playXuggleSmoothlyItem);
 				}

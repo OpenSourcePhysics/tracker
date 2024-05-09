@@ -49,6 +49,7 @@ import org.opensourcephysics.media.core.VideoFileFilter;
 import org.opensourcephysics.media.core.VideoIO;
 import org.opensourcephysics.media.core.VideoType;
 import org.opensourcephysics.media.mov.MovieFactory;
+import org.opensourcephysics.media.mov.MovieVideo;
 import org.opensourcephysics.media.mov.MovieVideoType;
 import org.opensourcephysics.media.mov.SmoothPlayable;
 import org.opensourcephysics.tools.Resource;
@@ -89,7 +90,7 @@ import com.xuggle.xuggler.video.IConverter;
  * ALWAYS includes any !isComplete() pictures. These images are always precalculated.
  * 
  */
-public class XuggleVideo extends VideoAdapter implements SmoothPlayable, IncrementallyLoadable {
+public class XuggleVideo extends MovieVideo implements SmoothPlayable, IncrementallyLoadable {
 
 	public static boolean registered;
 	public static final String[][] RECORDABLE_EXTENSIONS = { { "mov", "mov" }, //$NON-NLS-1$ //$NON-NLS-2$
@@ -474,6 +475,37 @@ public class XuggleVideo extends VideoAdapter implements SmoothPlayable, Increme
 	}
 
 	/**
+	 * Gets the duration of the media, including a time for the last frame
+	 * 
+	 * From XuggleVideo code, now also for JSMovieVideo
+	 * 
+	 * <pre>
+	 * 
+	 * // ....[0][1][2]...[startFrame][i]...[j][endFrame]...[frameCount-1]
+	 * // ....|-----------------duration---------------------------------]
+	 * // ....^..^..^..^..^...........^..^..^..^.........^..^ startTimes[i]
+	 * // ............................|--| frameDuration[i]
+	 * // ..................................................|------------|
+	 * // ..................................................frameDuration[frameCoumt-1]
+	 * // (note that final frame duration is defined 
+	 * // as frameDuration[frameCount-2] here)
+	 * 
+	 * </pre>
+	 *
+	 * @return the duration of the media in milliseconds or -1 if no video, or 100
+	 *         if one frame
+	 */
+	@Override
+	public double getDuration() {
+		int n = getFrameCount();
+		if (n == 1)
+			return 100; // arbitrary duration for single-frame video!
+		// assume last and next-to-last frames have same duration
+		// getFrameTime(n-1) + (getFrameTime(n-1) - getFrameTime(n-2));
+		return 2 * getFrameTime(--n) - getFrameTime(--n);
+	}
+
+	/**
 	 * Sets the playSmoothly flag.
 	 * 
 	 * @param smooth true to play smoothly
@@ -583,7 +615,8 @@ public class XuggleVideo extends VideoAdapter implements SmoothPlayable, Increme
 	 */
 	protected void continuePlaying() {
 		int n = getFrameNumber();
-		if (n < getEndFrameNumber()) {
+		int endNo = getEndFrameNumber();
+		if (n < endNo) {
 			long elapsedTime = System.currentTimeMillis() - systemStartPlayTime;
 			double frameTime = frameStartPlayTime + getRate() * elapsedTime;
 			int frameToPlay = getFrameNumberBefore(frameTime);
@@ -593,7 +626,7 @@ public class XuggleVideo extends VideoAdapter implements SmoothPlayable, Increme
 				frameToPlay = getFrameNumberBefore(frameTime);
 			}
 			if (frameToPlay == -1) {
-				frameToPlay = getEndFrameNumber();
+				frameToPlay = endNo;
 			}
 			setFrameNumber(frameToPlay);
 		} else if (looping) {
@@ -1031,4 +1064,5 @@ public class XuggleVideo extends VideoAdapter implements SmoothPlayable, Increme
 	public void setLoadableFrameCount(int n) {
 		endFrameNumber = n - 1;
 	}
+
 }

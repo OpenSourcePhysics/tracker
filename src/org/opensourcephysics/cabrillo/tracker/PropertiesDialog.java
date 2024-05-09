@@ -62,7 +62,7 @@ import org.opensourcephysics.media.core.ImageVideo;
 import org.opensourcephysics.media.core.Video;
 import org.opensourcephysics.media.core.VideoClip;
 import org.opensourcephysics.media.core.VideoType;
-import org.opensourcephysics.media.mov.MovieVideoI;
+import org.opensourcephysics.media.mov.MovieVideo;
 import org.opensourcephysics.tools.FontSizer;
 import org.opensourcephysics.tools.ResourceLoader;
 
@@ -217,7 +217,7 @@ public class PropertiesDialog extends JDialog {
 				// or image extension if a zipped image video
 				int n = type.lastIndexOf("("); //$NON-NLS-1$
 				if (n > -1) {
-					if (video instanceof MovieVideoI) {
+					if (video instanceof MovieVideo) {
 						type = type.substring(0, n);
 						type += "(Xuggle)"; //$NON-NLS-1$
 					}
