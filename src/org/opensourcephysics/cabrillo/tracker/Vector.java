@@ -543,8 +543,8 @@ public class Vector extends TTrack {
 		trackerPanel = trackerPanel.getMainPanel();
 		Boolean vis = visMap.get(trackerPanel.getID());
 		if (vis == null) {
-			vis = Boolean.valueOf(true); // vectors are visible by default
-			visMap.put(trackerPanel.getID(), vis);
+			// vectors are visible by default
+			visMap.put(trackerPanel.getID(), vis = Boolean.TRUE);
 		}
 		return vis.booleanValue();
 	}
