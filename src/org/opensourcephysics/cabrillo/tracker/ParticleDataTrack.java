@@ -105,7 +105,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 	private JCheckBoxMenuItem linesVisibleCheckbox, linesClosedCheckbox, linesBoldCheckbox;
 	private JCheckBox autoPasteCheckbox;
 	private ActionListener allFootprintsListener, allCircleFootprintsListener;
-	private boolean autoPasteEnabled = true;
+	private boolean autoPasteEnabled = false;
 	private int startStep = -1, startFrameTemp = -1;
 	private boolean requiresConversion;
 
@@ -139,7 +139,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 		dataSource = source;
 		points = new Point2D.Double[] { new Point2D.Double() };
 		tracePtsPerStep = 1;
-
+		autoPasteEnabled = !OSPRuntime.isJS;
 		// set footprint and model footprint
 		setFootprint(startupFootprint);
 		defaultFootprint = getFootprint();
@@ -629,7 +629,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 
 				@Override
 				public void actionPerformed(ActionEvent e) {
-					doAutoPaste();
+					doAutoPaste(autoPasteCheckbox.isSelected());
 				}
 			});
 		}
@@ -660,8 +660,8 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 		return list;
 	}
 
-	protected void doAutoPaste() {
-		setAutoPasteEnabled(autoPasteCheckbox.isSelected());
+	protected void doAutoPaste(boolean tf) {
+		setAutoPasteEnabled(tf);
 		if (tp == null)
 			return;
 		if (tframe == null)
