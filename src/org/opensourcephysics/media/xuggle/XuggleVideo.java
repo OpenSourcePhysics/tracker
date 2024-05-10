@@ -133,7 +133,6 @@ public class XuggleVideo extends MovieVideo implements SmoothPlayable, Increment
 //	private ArrayList<BufferedImage> imageList;
 	private int index = 0;
 	private long keyTimeStamp = Long.MIN_VALUE;
-	private ArrayList<Double> seconds;
 	private int[] frameRefs;
 
 	/**
@@ -215,7 +214,7 @@ public class XuggleVideo extends MovieVideo implements SmoothPlayable, Increment
 		packetTSList = new ArrayList<Long>();
 		keyTSList = new ArrayList<Long>();
 
-		seconds = new ArrayList<Double>();
+		frameTimes = new ArrayList<Double>();
 		firePropertyChange(PROPERTY_VIDEO_PROGRESS, fileName, 0);
 
 //		imageList = new ArrayList<BufferedImage>();
@@ -261,12 +260,7 @@ public class XuggleVideo extends MovieVideo implements SmoothPlayable, Increment
 		frameCount = packetCount - firstDisplayPacket;
 		endFrameNumber = frameCount - 1;
 		// create startTimes array
-		startTimes = new double[endFrameNumber + 1];
-		startTimes[0] = 0;
-		for (int i = 1; i < startTimes.length; i++) {
-			startTimes[i] = seconds.get(i) * 1000;
-		}
-
+		setStartTimes();
 //		if (imageCache.length > firstDisplayPacket)
 //			setImage(imageCache[firstDisplayPacket]);
 
@@ -338,7 +332,7 @@ public class XuggleVideo extends MovieVideo implements SmoothPlayable, Increment
 				keyTSList.add(keyTimeStamp);
 				if (keyTS0 == Long.MIN_VALUE)
 					keyTS0 = dts;
-				seconds.add((dts - keyTS0) * timebase.getValue());
+				frameTimes.add((dts - keyTS0) * timebase.getValue());
 				firePropertyChange(PROPERTY_VIDEO_PROGRESS, path, index);
 				frameRefs[FRAME] = index++;
 			}
@@ -525,7 +519,7 @@ public class XuggleVideo extends MovieVideo implements SmoothPlayable, Increment
 			timebase.delete();
 			timebase = null;
 		}
-		seconds = null;
+		frameTimes = null;
 
 		imageCache = null;
 
