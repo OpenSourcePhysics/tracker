@@ -1239,104 +1239,80 @@ public class TrackerIO extends VideoIO {
 	 * @param onlyIfFound          true to display the dialog only if problems are
 	 *                             found
 	 * @param showSetDefaultButton true to show the "Don't show again" button
-	 * @return a BitSet indicating frames with odd durations
+	 * @return null if dialog or a BitSet indicating frames with odd durations
 	 */
 	public static BitSet findBadVideoFrames(TrackerPanel trackerPanel, double tolerance, boolean showDialog,
 			boolean onlyIfFound, boolean showSetDefaultButton) {
-		BitSet outliers = new BitSet();
-//		if (OSPRuntime.isJS)
-//			return outliers;
 		Video video = trackerPanel.getVideo();
 		if (video == null)
+			return new BitSet();
+		BitSet outliers = video.getOutliers(tolerance);
+		if (!showDialog || outliers.isEmpty() && onlyIfFound) {
 			return outliers;
-		double videoDurMS = video.getDuration();
-		double frameDur = 0;
-		int nFrames = video.getFrameCount();
-		for (int i = 0; i < nFrames; i++) {
-			if (i == 0)
-				frameDur = videoDurMS / (nFrames - outliers.cardinality());
-			if (outliers.get(i))
-				continue;
-			double durMS = video.getFrameDuration(i);
-			double err = Math.abs(frameDur - durMS) / frameDur;
-			if (err > tolerance) {
-				videoDurMS -= durMS;
-				outliers.set(i);
-				// OSPLog.debug("Frame " + i +" duration " + durMS + " outlier for average " +
-				// frameDur);
-				// restart
-				i = -1;
-			}
 		}
-		outliers.clear(nFrames - 1);
-		if (showDialog) {
-			NumberFormat format = NumberFormat.getInstance();
-			String message = TrackerRes.getString("TrackerIO.Dialog.DurationIsConstant.Message"); //$NON-NLS-1$
-			int messageType = JOptionPane.INFORMATION_MESSAGE;
-			if (outliers.isEmpty() && onlyIfFound) {
-				return outliers;
+		NumberFormat format = NumberFormat.getInstance();
+		String message = TrackerRes.getString("TrackerIO.Dialog.DurationIsConstant.Message"); //$NON-NLS-1$
+		int messageType = JOptionPane.INFORMATION_MESSAGE;
+		if (!outliers.isEmpty()) {
+			messageType = JOptionPane.WARNING_MESSAGE;
+			// get last bad frame
+			int last = outliers.length() - 1;
+			// find longest section of good frames
+			int maxClear = -1;
+			int start = 0, end = 0;
+			int prevBadFrame = -1;
+			for (int i = outliers.nextSetBit(0); i >= 0; i = outliers.nextSetBit(i + 1)) {
+				int clear = i - prevBadFrame - 2;
+				if (clear > maxClear) {
+					start = prevBadFrame + 1;
+					end = i - 1;
+					maxClear = clear;
+					prevBadFrame = i;
+				}
 			}
-			if (!outliers.isEmpty()) {
-				messageType = JOptionPane.WARNING_MESSAGE;
-				// get last bad frame
-				int last = outliers.length() - 1;
-				// find longest section of good frames
-				int maxClear = -1;
-				int start = 0, end = 0;
-				int prevBadFrame = -1;
-				for (int i = outliers.nextSetBit(0); i >= 0; i = outliers.nextSetBit(i + 1)) {
-					int clear = i - prevBadFrame - 2;
-					if (clear > maxClear) {
-						start = prevBadFrame + 1;
-						end = i - 1;
-						maxClear = clear;
-						prevBadFrame = i;
+			VideoClip clip = trackerPanel.getPlayer().getVideoClip();
+			if (clip.getEndFrameNumber() - last - 1 > maxClear) {
+				start = last + 1;
+				end = clip.getEndFrameNumber();
+			}
+			// assemble message
+			format.setMaximumFractionDigits(2);
+			format.setMinimumFractionDigits(2);
+			message = TrackerRes.getString("TrackerIO.Dialog.DurationVaries.Message1"); //$NON-NLS-1$
+			message += " " + (int) (tolerance * 100) + "%."; //$NON-NLS-1$ //$NON-NLS-2$
+			message += "\n" + TrackerRes.getString("TrackerIO.Dialog.DurationVaries.Message2"); //$NON-NLS-1$//$NON-NLS-2$
+			message += "\n" + TrackerRes.getString("TrackerIO.Dialog.DurationVaries.Message3"); //$NON-NLS-1$ //$NON-NLS-2$
+			message += "\n\n" + TrackerRes.getString("TrackerIO.Dialog.DurationVaries.Message4"); //$NON-NLS-1$ //$NON-NLS-2$
+			int count = 2;
+			for (int i = outliers.nextSetBit(0); i >= 0; i = outliers.nextSetBit(i + 1)) {
+				count++;
+				message += " " + i + " (" + format.format(video.getFrameDuration(i)) + "ms)"; //$NON-NLS-1$
+				if (i < last)
+					message += ","; //$NON-NLS-1$
+				if (count % 6 == 0)
+					message += "\n";
+			}
+			message += "\n\n" + TrackerRes.getString("TrackerIO.Dialog.DurationVaries.Recommended") + ":  " //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+					+ TrackerRes.getString("TrackerIO.Dialog.DurationVaries.Start") + " " + start + ",  " //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+					+ TrackerRes.getString("TrackerIO.Dialog.DurationVaries.End") + " " + end + "\n "; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+		} else { // all frames have identical durations
+			format.setMaximumFractionDigits(2);
+			format.setMinimumFractionDigits(2);
+			double frameDur = trackerPanel.getPlayer().getClipControl().getMeanFrameDuration();
+			message += ": " + format.format(frameDur) + "ms"; //$NON-NLS-1$ //$NON-NLS-2$
+		}
+		String close = TrackerRes.getString("Dialog.Button.OK"); //$NON-NLS-1$
+		String dontShow = TrackerRes.getString("Tracker.Dialog.NoVideoEngine.Checkbox"); //$NON-NLS-1$
+		String[] buttons = showSetDefaultButton ? new String[] { dontShow, close } : new String[] { close };
+		new AsyncDialog().showOptionDialog(theFrame, message,
+				TrackerRes.getString("TrackerIO.Dialog.DurationVaries.Title"), //$NON-NLS-1$
+				JOptionPane.YES_NO_OPTION, messageType, null, buttons, close, (e) -> {
+					int response = e.getID();
+					if (response >= 0 && response < buttons.length && buttons[response].equals(dontShow)) {
+						Tracker.warnVariableDuration = false;
 					}
-				}
-				VideoClip clip = trackerPanel.getPlayer().getVideoClip();
-				if (clip.getEndFrameNumber() - last - 1 > maxClear) {
-					start = last + 1;
-					end = clip.getEndFrameNumber();
-				}
-				// assemble message
-				format.setMaximumFractionDigits(2);
-				format.setMinimumFractionDigits(2);
-				message = TrackerRes.getString("TrackerIO.Dialog.DurationVaries.Message1"); //$NON-NLS-1$
-				message += " " + (int) (tolerance * 100) + "%."; //$NON-NLS-1$ //$NON-NLS-2$
-				message += "\n" + TrackerRes.getString("TrackerIO.Dialog.DurationVaries.Message2"); //$NON-NLS-1$//$NON-NLS-2$
-				message += "\n" + TrackerRes.getString("TrackerIO.Dialog.DurationVaries.Message3"); //$NON-NLS-1$ //$NON-NLS-2$
-				message += "\n\n" + TrackerRes.getString("TrackerIO.Dialog.DurationVaries.Message4"); //$NON-NLS-1$ //$NON-NLS-2$
-				int count = 2;
-				for (int i = outliers.nextSetBit(0); i >= 0; i = outliers.nextSetBit(i + 1)) {
-					count++;
-					message += " " + i + " (" + format.format(video.getFrameDuration(i)) + "ms)"; //$NON-NLS-1$
-					if (i < last)
-						message += ","; //$NON-NLS-1$
-					if (count % 6 == 0)
-						message += "\n";
-				}
-				message += "\n\n" + TrackerRes.getString("TrackerIO.Dialog.DurationVaries.Recommended") + ":  " //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-						+ TrackerRes.getString("TrackerIO.Dialog.DurationVaries.Start") + " " + start + ",  " //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-						+ TrackerRes.getString("TrackerIO.Dialog.DurationVaries.End") + " " + end + "\n "; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-			} else { // all frames have identical durations
-				format.setMaximumFractionDigits(2);
-				format.setMinimumFractionDigits(2);
-				frameDur = trackerPanel.getPlayer().getClipControl().getMeanFrameDuration();
-				message += ": " + format.format(frameDur) + "ms"; //$NON-NLS-1$ //$NON-NLS-2$
-			}
-			String close = TrackerRes.getString("Dialog.Button.OK"); //$NON-NLS-1$
-			String dontShow = TrackerRes.getString("Tracker.Dialog.NoVideoEngine.Checkbox"); //$NON-NLS-1$
-			String[] buttons = showSetDefaultButton ? new String[] { dontShow, close } : new String[] { close };
-			new AsyncDialog().showOptionDialog(theFrame, message,
-					TrackerRes.getString("TrackerIO.Dialog.DurationVaries.Title"), //$NON-NLS-1$
-					JOptionPane.YES_NO_OPTION, messageType, null, buttons, close, (e) -> {
-						int response = e.getID();
-						if (response >= 0 && response < buttons.length && buttons[response].equals(dontShow)) {
-							Tracker.warnVariableDuration = false;
-						}
-					});
-		}
-		return outliers;
+				});
+		return null;
 	}
 
 	/**
@@ -1992,7 +1968,7 @@ public class TrackerIO extends VideoIO {
 			// BH note - this file is not likely to exist without its pathname.
 			// changed to just check extensions, not if directory (which requires an
 			// existence check)
-			File testFile = new File(path);
+			File testFile = new ResourceLoader.RemoteFile(path);
 			if (videoFileFilter.accept(testFile, false)) {
 				type = TYPE_VIDEO;
 				newPanel();
@@ -2863,6 +2839,5 @@ public class TrackerIO extends VideoIO {
 		ImageIO.write(img, "png", bos);
 		return bos.toByteArray();
 	}
-
-
+	
 }

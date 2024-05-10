@@ -24,16 +24,29 @@
  */
 package org.opensourcephysics.cabrillo.tracker;
 
-import java.util.*;
-import java.awt.*;
+import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Paint;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.Shape;
+import java.awt.Stroke;
 import java.awt.event.MouseEvent;
-import java.awt.font.*;
-import java.awt.geom.*;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Rectangle2D;
+import java.util.HashMap;
+import java.util.Map;
 
-import org.opensourcephysics.display.*;
-import org.opensourcephysics.media.core.*;
+import org.opensourcephysics.controls.XMLControl;
+import org.opensourcephysics.controls.XMLControlElement;
+import org.opensourcephysics.display.DrawingPanel;
+import org.opensourcephysics.display.Interactive;
+import org.opensourcephysics.display.OSPRuntime.TextLayout;
+import org.opensourcephysics.media.core.NumberField;
+import org.opensourcephysics.media.core.TPoint;
+import org.opensourcephysics.media.core.VideoPanel;
 import org.opensourcephysics.tools.FontSizer;
-import org.opensourcephysics.controls.*;
 
 /**
  * This is a Step for a Protractor. It is used for measuring angles.
@@ -355,7 +368,7 @@ protected Mark getMark(TrackerPanel trackerPanel) {
       panelRotatorShapes.put(trackerPanel.getID(), shapes[5]);
       // get new text layouts
       String s = protractor.angleField.getText();
-      TextLayout layout = new TextLayout(s, TFrame.textLayoutFont, OSPRuntime.frc);
+      TextLayout layout = new TextLayout(s, TFrame.textLayoutFont);
       panelTextLayouts.put(trackerPanel.getID(), layout);
       // get layout position (bottom left corner of text)
       p = getLayoutPosition(trackerPanel, layout, vertex);
@@ -375,7 +388,7 @@ protected Mark getMark(TrackerPanel trackerPanel) {
         Map<Integer, Rectangle> lBounds = k==0? panelLayout1Bounds: panelLayout2Bounds;
 	      s = getFormattedLength(end);
 	      s += trackerPanel.getUnits(protractor, Protractor.dataVariables[2+k]);    
-	      layout = new TextLayout(s, TFrame.textLayoutFont, OSPRuntime.frc);
+	      layout = new TextLayout(s, TFrame.textLayoutFont);
 	      layouts.put(trackerPanel.getID(), layout);
 	      p = getLayoutPosition(trackerPanel, layout, end);
 	      bounds = lBounds.get(trackerPanel.getID());

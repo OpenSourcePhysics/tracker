@@ -33,7 +33,7 @@ import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.Stroke;
 import java.awt.event.MouseEvent;
-import java.awt.font.TextLayout;
+import org.opensourcephysics.display.OSPRuntime.TextLayout;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
 import java.util.HashMap;
@@ -397,7 +397,7 @@ public class TapeStep extends Step {
 			String s = tape.getFormattedLength(tapeLength);
 			s += trackerPanel.getUnits(tape, TapeMeasure.dataVariables[1]);
 
-			TextLayout layout = new TextLayout(s, TFrame.textLayoutFont, OSPRuntime.frc);
+			TextLayout layout = new TextLayout(s, TFrame.textLayoutFont);
 			panelTextLayouts.put(trackerPanel.getID(), layout);
 			// get layout position (bottom left corner of text)
 			Rectangle2D rect = layout.getBounds();

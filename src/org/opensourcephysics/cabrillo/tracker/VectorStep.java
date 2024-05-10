@@ -32,7 +32,7 @@ import java.awt.Paint;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Shape;
-import java.awt.font.TextLayout;
+import org.opensourcephysics.display.OSPRuntime.TextLayout;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
 import java.beans.PropertyChangeEvent;
@@ -541,7 +541,7 @@ public class VectorStep extends Step implements PropertyChangeListener {
 			if (clip.getStepCount() != 1) {
 				s += clip.frameToStep(getFrameNumber());
 			}
-			TextLayout layout = new TextLayout(s, TFrame.textLayoutFont, OSPRuntime.frc);
+			TextLayout layout = new TextLayout(s, TFrame.textLayoutFont);
 			textLayouts.put(trackerPanel.getID(), layout);
 			// get layout position (bottom left corner of text)
 			Point lp = getLayoutPosition(trackerPanel, layout);

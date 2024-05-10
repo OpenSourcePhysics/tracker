@@ -1785,17 +1785,7 @@ public class PointMass extends TTrack {
 	 * @return <code>true</code> if velocities are visible
 	 */
 	public boolean isVVisible() {//TrackerPanel panel) {
-		if (vVisibleOnAll)
-			return true;
-		return vvis;
-//		panel = panel.getMainPanel();
-//		
-//		Boolean vis = panelVVisMap.get(panel.getID());
-//		if (vis == null) {
-//			vis = Boolean.valueOf(false); // not visible by default
-//			panelVVisMap.put(panel.getID(), vis);
-//		}
-//		return vis.booleanValue();
+		return (vVisibleOnAll || vvis);
 	}
 
 	/**
@@ -1863,16 +1853,7 @@ public class PointMass extends TTrack {
 	 * @return <code>true</code> if positions are visible
 	 */
 	public boolean isPositionVisible() {//TrackerPanel panel) {
-		if (xVisibleOnAll)
-			return true;
-		return xvis;
-//		panel = panel.getMainPanel();
-//		Boolean vis = panelXVisMap.get(panel.getID());
-//		if (vis == null) {
-//			vis = Boolean.valueOf(true); // positions are visible by default
-//			panelXVisMap.put(panel.getID(), vis);
-//		}
-//		return vis.booleanValue();
+		return (xVisibleOnAll || xvis);
 	}
 
 	/**
