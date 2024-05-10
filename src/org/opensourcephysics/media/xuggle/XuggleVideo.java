@@ -25,9 +25,7 @@
  */
 package org.opensourcephysics.media.xuggle;
 
-import java.awt.Frame;
 import java.awt.image.BufferedImage;
-import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -40,6 +38,7 @@ import javax.swing.SwingUtilities;
 
 import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.controls.XML;
+import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.media.core.DoubleArray;
 import org.opensourcephysics.media.core.ImageCoordSystem;
 import org.opensourcephysics.media.core.IncrementallyLoadable;
@@ -119,7 +118,6 @@ public class XuggleVideo extends MovieVideo implements SmoothPlayable, Increment
 	// maps frame number to timestamp of key packet (first packet loaded)
 	private Long[] keyTimeStamps;
 	// array of frame start times in milliseconds
-//	private final Timer failDetectTimer;
 
 	private IContainer container;
 	private IStreamCoder videoDecoder;
@@ -167,34 +165,12 @@ public class XuggleVideo extends MovieVideo implements SmoothPlayable, Increment
 	 * Initializes this video and loads a video file specified by name
 	 *
 	 * @param fileName the name of the video file
+	 * @param control 
 	 * @throws IOException
 	 */
-	public XuggleVideo(String fileName) throws IOException {
-		Frame[] frames = Frame.getFrames();
-		for (int i = 0, n = frames.length; i < n; i++) {
-			if (frames[i].getName().equals("Tracker")) { //$NON-NLS-1$
-				addPropertyChangeListener(PROPERTY_VIDEO_PROGRESS, (PropertyChangeListener) frames[i]);
-				addPropertyChangeListener(PROPERTY_VIDEO_STALLED, (PropertyChangeListener) frames[i]);
-				break;
-			}
-		}
+	public XuggleVideo(String fileName, XMLControl control) throws IOException {
+		addFramePropertyListeners();
 		frameRefs = new int[] { -1, -1 };
-		// timer to detect failures
-//		failDetectTimer = new Timer(5000, new ActionListener() {
-//			@Override
-//			public void actionPerformed(ActionEvent e) {
-//				if (VideoIO.isCanceled()) {
-//					failDetectTimer.stop();
-//					return;
-//				}
-//				if (frameRefs[FRAME] == frameRefs[PREVFRAME]) {
-//					firePropertyChange(PROPERTY_VIDEO_STALLED, null, fileName);
-//					failDetectTimer.stop();
-//				}
-//				frameRefs[PREVFRAME] = frameRefs[FRAME];
-//			}
-//		});
-//		failDetectTimer.setRepeats(true);
 		Resource res = ResourceLoader.getResource(fileName);
 		if (res == null) {
 			throw new IOException("unable to create resource for " + fileName); //$NON-NLS-1$
@@ -219,7 +195,8 @@ public class XuggleVideo extends MovieVideo implements SmoothPlayable, Increment
 			setProperty("path", res.getAbsolutePath()); //$NON-NLS-1$
 		}
 		OSPLog.finest("Xuggle video loading " + path + " local?: " + isLocal); //$NON-NLS-1$ //$NON-NLS-2$
-//		failDetectTimer.start();
+	    startFailDetection();
+		stopFailDetection();
 		frameCount = -1;
 		String err = openContainer();
 		if (err != null) {
@@ -229,7 +206,7 @@ public class XuggleVideo extends MovieVideo implements SmoothPlayable, Increment
 //		OSPLog.finest("XuggleVideo found " + firstDisplayPacket + " incomplete out of " + frameCount + " total frames");
 //		if (frameCount == 0) {
 //			firePropertyChange(PROPERTY_VIDEO_PROGRESS, fileName, null);
-//			failDetectTimer.stop();
+//			stopFailDetection();
 //			dispose();
 //			throw new IOException("packets loaded but no complete picture"); //$NON-NLS-1$
 //		}
@@ -253,7 +230,7 @@ public class XuggleVideo extends MovieVideo implements SmoothPlayable, Increment
 	}
 
 	private void finalizeLoading() throws IOException {
-//		failDetectTimer.stop();
+		stopFailDetection();
 
 		// throw IOException if no frames were loaded
 		packetCount = frameCount = packetTSList.size();
@@ -313,7 +290,7 @@ public class XuggleVideo extends MovieVideo implements SmoothPlayable, Increment
 		boolean haveImages = false;
 		while (index < finalIndex && container.readNextPacket(packet) >= 0) {
 			if (VideoIO.isCanceled()) {
-//				failDetectTimer.stop();
+				stopFailDetection();
 				firePropertyChange(PROPERTY_VIDEO_PROGRESS, path, null);
 				// clean up
 				dispose();
@@ -979,28 +956,6 @@ public class XuggleVideo extends MovieVideo implements SmoothPlayable, Increment
 		return true;
 	}
 
-	/**
-	 * Returns an XML.ObjectLoader to save and load XuggleVideo data.
-	 *
-	 * @return the object loader
-	 */
-	public static XML.ObjectLoader getLoader() {
-		return new Loader();
-	}
-
-	/**
-	 * A class to save and load XuggleVideo data.
-	 */
-	static public class Loader extends MovieVideo.Loader {
-
-		@Override
-		protected VideoAdapter createVideo(String path) throws IOException {
-			XuggleVideo video = new XuggleVideo(path);
-			setVideo(path, video, MovieFactory.ENGINE_XUGGLE);
-			return video;
-		}
-	}
-
 	@Override
 	public String getTypeName() {
 		return MovieFactory.ENGINE_XUGGLE;
@@ -1025,5 +980,28 @@ public class XuggleVideo extends MovieVideo implements SmoothPlayable, Increment
 	public void setLoadableFrameCount(int n) {
 		endFrameNumber = n - 1;
 	}
+
+	/**
+	 * Returns an XML.ObjectLoader to save and load XuggleVideo data.
+	 *
+	 * @return the object loader
+	 */
+	public static XML.ObjectLoader getLoader() {
+		return new Loader();
+	}
+
+	/**
+	 * A class to save and load XuggleVideo data.
+	 */
+	static public class Loader extends MovieVideo.Loader {
+
+		@Override
+		protected VideoAdapter createVideo(XMLControl control, String path) throws IOException {
+			XuggleVideo video = new XuggleVideo(path, control);
+			setVideo(path, video, MovieFactory.ENGINE_XUGGLE);
+			return video;
+		}
+	}
+
 
 }

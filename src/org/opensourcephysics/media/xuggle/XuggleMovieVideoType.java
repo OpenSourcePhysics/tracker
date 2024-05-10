@@ -130,7 +130,7 @@ public class XuggleMovieVideoType extends MovieVideoType {
 	public Video getVideo(String name, String basePath, XMLControl control) {
 		XuggleVideo video;
 		try {
-			video = new XuggleVideo(XML.getResolvedPath(name, basePath));
+			video = new XuggleVideo(XML.getResolvedPath(name, basePath), control);
 			if (!video.isFullyLoaded()) {
 				// step thru container quickly and find all video frames
 				while (video.loadMoreFrames(500)) {
