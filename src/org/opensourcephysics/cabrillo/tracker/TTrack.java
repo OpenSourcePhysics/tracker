@@ -3049,7 +3049,11 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 	}
 
 	int getMarkingCursorType(InputEvent e) {
-		if (e != null && AutoTracker.isAutoTrackTrigger(e) && tp.getVideo() != null
+		boolean autotrackEneabled = tp.isEnabled("track.autotrack");
+		if (autotrackEneabled
+				&& e != null 
+				&& AutoTracker.isAutoTrackTrigger(e) 
+				&& tp.getVideo() != null
 				&& isAutoTrackable(getTargetIndex())) {
 			Step step = getStep(tp.getFrameNumber());
 			TPoint[] pts = (step == null ? null : step.getPoints());
