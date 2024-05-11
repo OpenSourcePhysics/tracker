@@ -131,6 +131,7 @@ import org.opensourcephysics.media.mov.SmoothPlayable;
 import org.opensourcephysics.tools.DataFunctionPanel;
 import org.opensourcephysics.tools.DataTool;
 import org.opensourcephysics.tools.DataToolTab;
+import org.opensourcephysics.tools.FileDropHandler;
 import org.opensourcephysics.tools.FontSizer;
 import org.opensourcephysics.tools.FunctionEditor;
 import org.opensourcephysics.tools.FunctionPanel;

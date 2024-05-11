@@ -126,6 +126,8 @@ import org.opensourcephysics.media.core.VideoIO;
 import org.opensourcephysics.media.core.VideoPanel;
 import org.opensourcephysics.media.core.VideoPlayer;
 import org.opensourcephysics.media.mov.MovieVideo;
+import org.opensourcephysics.tools.FileDropHandler;
+import org.opensourcephysics.tools.FileDropHandler.FileImporter;
 import org.opensourcephysics.tools.FontSizer;
 import org.opensourcephysics.tools.LaunchPanel;
 import org.opensourcephysics.tools.Launcher;
@@ -144,7 +146,7 @@ import org.opensourcephysics.tools.ToolsRes;
  * @author Douglas Brown
  */
 @SuppressWarnings("serial")
-public class TFrame extends OSPFrame implements PropertyChangeListener {
+public class TFrame extends OSPFrame implements PropertyChangeListener, FileImporter {
 
 	// preloading for JavaScript
 
@@ -3859,6 +3861,12 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 				+ "\n" + MediaRes.getString("VideoIO.Dialog.Label.Path") + ": " //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 				+ path, TrackerRes.getString("TFrame.Dialog.FileNotFound.Title"), //$NON-NLS-1$
 				JOptionPane.WARNING_MESSAGE);
+	}
+
+	@Override
+	public boolean importData(List<File> fileList, Component component) {
+		return TrackerIO.loadFiles(this, fileList,
+				(component instanceof TrackerPanel ? (TrackerPanel) component : null));
 	}
 
 }

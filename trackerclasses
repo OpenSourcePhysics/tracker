@@ -771,7 +771,6 @@ org/opensourcephysics/cabrillo/tracker/DynamicSystemInspector.js
 org/opensourcephysics/cabrillo/tracker/ExportDataDialog.js
 org/opensourcephysics/cabrillo/tracker/ExportVideoDialog.js
 org/opensourcephysics/cabrillo/tracker/ExportZipDialog.js
-org/opensourcephysics/cabrillo/tracker/FileDropHandler.js
 org/opensourcephysics/cabrillo/tracker/FirstDerivative.js
 org/opensourcephysics/cabrillo/tracker/Footprint.js
 org/opensourcephysics/cabrillo/tracker/HelpFinder.js
