@@ -1020,7 +1020,7 @@ org/opensourcephysics/media/gif/ScreenDescriptor.js
 org/opensourcephysics/media/mov/JSMovieVideo.js
 org/opensourcephysics/media/mov/JSMovieVideoType.js
 org/opensourcephysics/media/mov/MovieFactory.js
-org/opensourcephysics/media/mov/MovieVideoI.js
+org/opensourcephysics/media/mov/MovieVideo.js
 org/opensourcephysics/media/mov/MovieVideoType.js
 org/opensourcephysics/media/mov/SmoothPlayable.js
 org/opensourcephysics/numerics/AbstractODESolver.js
