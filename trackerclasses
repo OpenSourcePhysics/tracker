@@ -1069,6 +1069,7 @@ org/opensourcephysics/tools/DataToolTable.js
 org/opensourcephysics/tools/DatasetCurveFitter.js
 org/opensourcephysics/tools/Diagnostics.js
 org/opensourcephysics/tools/EjsTool.js
+org/opensourcephysics/tools/FileDropHandler.js
 org/opensourcephysics/tools/FitBuilder.js
 org/opensourcephysics/tools/FitFunctionPanel.js
 org/opensourcephysics/tools/FontSizer.js
