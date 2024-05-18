@@ -230,11 +230,17 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 		panelID = panel.getID();
 		panel.addDrawable(this);
 		panel.addListeners(panelProps, this);
-	  try {
-			robot = new Robot();
+		try {
+			/**
+			 * @j2sNative
+			 * 
+			 */
+			{
+				robot = new Robot();
+			}
 		} catch (AWTException e) {
 		}
-		
+
 		stepper = new Runnable() {
 			@Override
 			public void run() {
@@ -898,14 +904,14 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 				if (active && !paused) { // actively tracking
 					long ms = System.currentTimeMillis();
 					if (robot != null && ms - currentms > 30000) {
-			  		// move mouse every 30 seconds to prevent computer from sleeping
+						// move mouse every 30 seconds to prevent computer from sleeping
 						// while autotracking very long videos
 						currentms = ms;
-			    	odd = !odd;
-			      Point p = MouseInfo.getPointerInfo().getLocation();
-			      int x = odd? p.x + 1: p.x - 1;
-			      int y = odd? p.y + 1: p.y - 1;
-			      robot.mouseMove(x, y);						
+						odd = !odd;
+						Point p = MouseInfo.getPointerInfo().getLocation();
+						int x = odd ? p.x + 1 : p.x - 1;
+						int y = odd ? p.y + 1 : p.y - 1;
+						robot.mouseMove(x, y);
 					}
 					SwingUtilities.invokeLater(stepper);
 				} else if (stepping) { // user set the frame number, so stop stepping
