@@ -260,11 +260,13 @@ public class XuggleVideo extends MovieVideo implements SmoothPlayable, Increment
 		frameCount = packetCount - firstDisplayPacket;
 		endFrameNumber = frameCount - 1;
 		// create startTimes array
+		rawDuration = container.getDuration()/1e6;
 		setStartTimes();
+
 //		if (imageCache.length > firstDisplayPacket)
 //			setImage(imageCache[firstDisplayPacket]);
 
-		seekToStart();
+		seekToStart();	
 		loadPictureFromNextPacket();
 		BufferedImage img = getImage(0);
 		firePropertyChange(PROPERTY_VIDEO_PROGRESS, path, null);
@@ -307,7 +309,7 @@ public class XuggleVideo extends MovieVideo implements SmoothPlayable, Increment
 						break;
 					offset += bytesDecoded;
 					if (!picture.isComplete()) {
-						System.out.println("!! XuggleVideo picture was incomplete!");
+						System.out.println("!! XuggleVideo picture was incomplete! dts=" + dts + " index=" + index);
 						if (!haveImages)
 							firstDisplayPacket++;
 						continue;

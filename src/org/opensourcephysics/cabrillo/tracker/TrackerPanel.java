@@ -95,7 +95,6 @@ import org.opensourcephysics.display.Interactive;
 import org.opensourcephysics.display.MessageDrawable;
 import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.media.core.AsyncVideoI;
-import org.opensourcephysics.media.core.BarrelPincushionFilter;
 import org.opensourcephysics.media.core.BaselineFilter;
 import org.opensourcephysics.media.core.BrightnessFilter;
 import org.opensourcephysics.media.core.ClipControl;
