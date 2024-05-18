@@ -3864,9 +3864,16 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 	}
 
 	@Override
-	public boolean importData(List<File> fileList, Component component) {
-		return TrackerIO.loadFiles(this, fileList,
-				(component instanceof TrackerPanel ? (TrackerPanel) component : null));
+	public boolean importData(Object data, Component component) {
+		if (data instanceof List) {
+			return TrackerIO.loadFiles(this, (List<File>) data,
+					(component instanceof TrackerPanel ? (TrackerPanel) component : null));
+		}
+		if (data instanceof URL) {
+			loadExperimentURL(data.toString());
+			return true;
+		}
+		return false;
 	}
 
 }

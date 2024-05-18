@@ -1020,7 +1020,7 @@ org/opensourcephysics/media/gif/ScreenDescriptor.js
 org/opensourcephysics/media/mov/JSMovieVideo.js
 org/opensourcephysics/media/mov/JSMovieVideoType.js
 org/opensourcephysics/media/mov/MovieFactory.js
-org/opensourcephysics/media/mov/MovieVideoI.js
+org/opensourcephysics/media/mov/MovieVideo.js
 org/opensourcephysics/media/mov/MovieVideoType.js
 org/opensourcephysics/media/mov/SmoothPlayable.js
 org/opensourcephysics/numerics/AbstractODESolver.js
@@ -1069,6 +1069,7 @@ org/opensourcephysics/tools/DataToolTable.js
 org/opensourcephysics/tools/DatasetCurveFitter.js
 org/opensourcephysics/tools/Diagnostics.js
 org/opensourcephysics/tools/EjsTool.js
+org/opensourcephysics/tools/FileDropHandler.js
 org/opensourcephysics/tools/FitBuilder.js
 org/opensourcephysics/tools/FitFunctionPanel.js
 org/opensourcephysics/tools/FontSizer.js
