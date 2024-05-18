@@ -845,7 +845,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 
 	@Override
 	public void setVisible(boolean vis) {
-		System.out.println("pig start setting vis "+vis);
+		//System.out.println("pig start setting vis "+vis);
 		if (panelID == null)
 			return;
 		if (vis) {
@@ -853,7 +853,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 		}
 		isVisible = vis;
 		super.setVisible(vis);
-		System.out.println("pig completed setting vis "+vis);
+		//System.out.println("pig completed setting vis "+vis);
 	}
 
 	@Override
