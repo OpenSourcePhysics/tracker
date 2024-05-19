@@ -52,7 +52,6 @@ import com.xuggle.xuggler.ICodec;
 import com.xuggle.xuggler.IContainer;
 import com.xuggle.xuggler.IPacket;
 import com.xuggle.xuggler.IPixelFormat;
-import com.xuggle.xuggler.IRational;
 import com.xuggle.xuggler.IStream;
 import com.xuggle.xuggler.IStreamCoder;
 import com.xuggle.xuggler.IVideoPicture;
@@ -86,7 +85,7 @@ import com.xuggle.xuggler.video.IConverter;
  */
 public class XuggleVideo extends MovieVideo implements SmoothPlayable, IncrementallyLoadable {
 
-	private final static int FRAME = 1;
+//	private final static int FRAME = 1;
 //	private final static int PREVFRAME = 0;
 
 	static {
@@ -105,7 +104,7 @@ public class XuggleVideo extends MovieVideo implements SmoothPlayable, Increment
 	 * for debugging, 0, meaning "just the incomplete frames"; for general purposes,
 	 * up to CACHE_MAX images.
 	 */
-	private static final int CACHE_MAX = 0;
+	private int cacheMax = 0;
 
 	private RandomAccessFile raf;
 
@@ -120,16 +119,19 @@ public class XuggleVideo extends MovieVideo implements SmoothPlayable, Increment
 	private IVideoResampler resampler;
 	private IPacket packet;
 	private IVideoPicture picture;
-	private IRational timebase;
+	private double timebase;
 	private IConverter converter;
 
 	// all of the following used during loading only
 	private ArrayList<Long> packetTSList;
 	private ArrayList<Long> keyTSList;
-//	private ArrayList<BufferedImage> imageList;
+	private ArrayList<BufferedImage> imageList;
 	private int index = 0;
 	private long keyTimeStamp = Long.MIN_VALUE;
-	private int[] frameRefs;
+	
+	// deprecated private int[] frameRefs;
+
+	private int packetCount;
 
 	/**
 	 * The firstDisplayPacket is the index of the first displayable video frame.
@@ -138,6 +140,7 @@ public class XuggleVideo extends MovieVideo implements SmoothPlayable, Increment
 	 */
 	private int firstDisplayPacket = 0;
 
+	
 	/**
 	 * true when firstDisplayPacket > 0; indicating that early B(-like?) frames must
 	 * be decoded. This seems to disallow key frames. But I can't be sure. Maybe
@@ -150,10 +153,53 @@ public class XuggleVideo extends MovieVideo implements SmoothPlayable, Increment
 	private long keyTS0 = Long.MIN_VALUE;
 //	private long keyTS1 = Long.MIN_VALUE;
 
+	/**
+	 * systemStartPlayTime is the system time when play starts
+	 */
 	private long systemStartPlayTime;
+	/**
+	 * frameStartPlayTime is the frame time where play starts
+	 */
 	private double frameStartPlayTime;
+	
 	private boolean playSmoothly = false;
-	private int packetCount;
+	
+	
+	/**
+	 * times from this engine for its reading of the starting times;
+	 * distinct from startTimes, which may come from another creator
+	 * via a video XMLControlElement
+	 */
+	protected double[] rawStartTimes;
+
+	/**
+	 * 
+	 * Currently not called.
+	 * 
+	 * Gets the number of the last frame before the specified time in milliseconds for the "raw"
+	 * start times - the ones for this engine, not the ones from controls.
+	 * 
+	 * If rawStartTimes is null (always the case in JavaScript), then just use startTimes.
+	 * 
+	 * It is not clear yet whether 
+	 * 
+	 * A 0.1-ms slop is added to ensure that double rounding errors are not involved 
+	 *
+	 * @param time the time in milliseconds
+	 * @return the frame number, or -1 if not found
+	 */
+	protected int getRawFrameNumberBefore(double time) {
+		if (rawStartTimes == null)
+			return getFrameNumberBefore(time);
+		time += TIME_SLOP_MS;
+		for (int i = 0; i < rawStartTimes.length; i++) {
+			if (time < rawStartTimes[i]) {
+				return i - 1;
+			}
+		}
+		return (time < rawDuration * 1000 ? rawStartTimes.length - 1 : -1);
+	}
+
 
 	/**
 	 * Initializes this video and loads a video file specified by name
@@ -171,9 +217,9 @@ public class XuggleVideo extends MovieVideo implements SmoothPlayable, Increment
 			// no need to actually load anthing?
 			return;
 		}
-	    startFailDetection();
-		stopFailDetection();
-		frameRefs = new int[] { -1, -1 };
+//	    startFailDetection();
+//		stopFailDetection();
+		//frameRefs = new int[] { -1, -1 };
 		frameCount = -1;
 		this.control = control;
 		String err = openContainer();
@@ -195,9 +241,9 @@ public class XuggleVideo extends MovieVideo implements SmoothPlayable, Increment
 
 	}
 
-	private void finalizeLoading() throws IOException {
-		stopFailDetection();
-
+	@Override
+	protected void finalizeLoading() throws IOException {
+		//stopFailDetection();
 		// throw IOException if no frames were loaded
 		packetCount = frameCount = packetTSList.size();
 		if (packetCount == firstDisplayPacket) {
@@ -210,13 +256,14 @@ public class XuggleVideo extends MovieVideo implements SmoothPlayable, Increment
 				"XuggleVideo found " + firstDisplayPacket + " incomplete out of " + packetCount + " total packets");
 
 //		// create imageCache
-//		int nImages = imageList.size();
-//		imageCache = new BufferedImage[nImages + firstDisplayPacket];
-//		for (int i = 0, p = firstDisplayPacket; i < nImages; i++)
-//			imageCache[p++] = imageList.get(i);
-//		// no longer need imageList
-//		imageList = null;
-
+		if (cacheMax > 0) {
+		int nImages = imageList.size();
+		imageCache = new BufferedImage[nImages + firstDisplayPacket];
+		for (int i = 0, p = firstDisplayPacket; i < nImages; i++)
+			imageCache[p++] = imageList.get(i);
+			// no longer need imageList
+			imageList = null;
+		}
 		packetTimeStamps = packetTSList.toArray(new Long[packetCount]);
 		keyTimeStamps = keyTSList.toArray(new Long[packetCount]);
 		// no longer need packetTSList and keyTSList
@@ -238,7 +285,7 @@ public class XuggleVideo extends MovieVideo implements SmoothPlayable, Increment
 		if (control == null) {
 			rawStartTimes = null;
 		} else {
-			
+			setForControl();
 		}
 
 //		if (imageCache.length > firstDisplayPacket)
@@ -256,6 +303,12 @@ public class XuggleVideo extends MovieVideo implements SmoothPlayable, Increment
 		setImage(img);
 	}
 
+	private void setForControl() {
+		// TODO Auto-generated method stub
+		
+	}
+
+
 	@Override
 	public boolean loadMoreFrames(int n) throws IOException {
 		if (isFullyLoaded())
@@ -266,7 +319,7 @@ public class XuggleVideo extends MovieVideo implements SmoothPlayable, Increment
 		boolean haveImages = false;
 		while (index < finalIndex && container.readNextPacket(packet) >= 0) {
 			if (VideoIO.isCanceled()) {
-				stopFailDetection();
+				//stopFailDetection();
 				firePropertyChange(PROPERTY_VIDEO_PROGRESS, path, null);
 				// clean up
 				dispose();
@@ -302,9 +355,9 @@ public class XuggleVideo extends MovieVideo implements SmoothPlayable, Increment
 				boolean isComplete = picture.isComplete();
 				if (isComplete)
 					haveImages = true;
-//				if (isComplete && imageList.size() < CACHE_MAX - firstDisplayPacket) {
-//					imageList.add(getBufferedImage());
-//				}
+				if (cacheMax > 0 && isComplete && imageList.size() < cacheMax - firstDisplayPacket) {
+					imageList.add(getBufferedImage());
+				}
 
 //				dumpImage(containerFrame, getBufferedImage(), "C");				
 //				System.out.println(index + " dts=" + dts + " kts=" + keyTimeStamp + " "
@@ -314,9 +367,9 @@ public class XuggleVideo extends MovieVideo implements SmoothPlayable, Increment
 				keyTSList.add(keyTimeStamp);
 				if (keyTS0 == Long.MIN_VALUE)
 					keyTS0 = dts;
-				frameTimes.add((dts - keyTS0) * timebase.getValue());
+				frameTimes.add((dts - keyTS0) * timebase);
 				firePropertyChange(PROPERTY_VIDEO_PROGRESS, path, index);
-				frameRefs[FRAME] = index++;
+				//frameRefs[FRAME] = index++;
 			}
 		}
 		boolean continuing = (index == finalIndex);
@@ -415,13 +468,11 @@ public class XuggleVideo extends MovieVideo implements SmoothPlayable, Increment
 	 *         if one frame
 	 */
 	@Override
-	public double getDuration() {
+	public double getFrameCountDurationMS() {
 		int n = getFrameCount();
 		if (n == 1)
 			return 100; // arbitrary duration for single-frame video!
-		// assume last and next-to-last frames have same duration
-		// getFrameTime(n-1) + (getFrameTime(n-1) - getFrameTime(n-2));
-		return 2 * getFrameTime(--n) - getFrameTime(--n);
+		return rawDuration * 1000;
 	}
 
 	/**
@@ -497,10 +548,6 @@ public class XuggleVideo extends MovieVideo implements SmoothPlayable, Increment
 			resampler = null;
 		}
 
-		if (timebase != null) {
-			timebase.delete();
-			timebase = null;
-		}
 		frameTimes = null;
 
 		imageCache = null;
@@ -520,9 +567,7 @@ public class XuggleVideo extends MovieVideo implements SmoothPlayable, Increment
 	 * @param frameNumber the frame number at which playing will start
 	 */
 	private void startPlayingAtFrame(int frameNumber) {
-		// systemStartPlayTime is the system time when play starts
 		systemStartPlayTime = System.currentTimeMillis();
-		// frameStartPlayTime is the frame time where play starts
 		frameStartPlayTime = getFrameTime(frameNumber);
 		setFrameNumber(frameNumber);
 	}
@@ -587,7 +632,7 @@ public class XuggleVideo extends MovieVideo implements SmoothPlayable, Increment
 					streamIndex = i;
 					// System.out.println("XuggleVideo Stream index set to " + i);
 					videoDecoder = coder;
-					timebase = nextStream.getTimeBase().copy();
+					timebase = nextStream.getTimeBase().getValue();
 					break;
 				}
 			}
@@ -596,10 +641,12 @@ public class XuggleVideo extends MovieVideo implements SmoothPlayable, Increment
 			}
 		} else {
 			videoDecoder = container.getStream(streamIndex).getStreamCoder();
-			timebase = container.getStream(streamIndex).getTimeBase().copy();
+			timebase = container.getStream(streamIndex).getTimeBase().getValue();
 		}
-//		if (videoDecoder.open(null, null) < 0) {
 		if (videoDecoder.open() < 0) {
+			// deprecated to open(options,options) but there is no obvious way to 
+			// make that the same.
+			// https://github.com/artclarke/xuggle-xuggler/blob/master/generated/java/com/xuggle/xuggler/IStreamCoder.java
 			return "unable to open video decoder in " + path;
 		}
 		newPicture();
@@ -613,13 +660,63 @@ public class XuggleVideo extends MovieVideo implements SmoothPlayable, Increment
 		picture = IVideoPicture.make(videoDecoder.getPixelType(), videoDecoder.getWidth(), videoDecoder.getHeight());
 	}
 
+	/**
+	 * uses seekKeyFrame: 
+	 *  
+	 * Seeks to timestamp in the container.
+	 * 
+	 * Seeking will be done so that the point from which all active streams can be
+	 * presented successfully will be closest to targetTimeStamp and within
+	 * minTimeStamp/maxTimeStamp.
+	 * 
+	 * If flags contain SEEK_FLAG_BYTE, then all time stamps are in bytes and are
+	 * the file position (this may not be supported by all demuxers). If flags
+	 * contain SEEK_FLAG_FRAME, then all time stamps are in frames in the stream
+	 * with streamIndex (this may not be supported by all demuxers). Otherwise all
+	 * time stamps are in units of the stream selected by stream_index or if
+	 * stream_index is -1, in microseconds. If flags contain SEEK_FLAG_ANY, then
+	 * non-keyframes are treated as keyframes (this may not be supported by all
+	 * demuxers). If flags contain SEEK_FLAG_BACKWARDS, then we will attempt to
+	 * search backwards in the container (this may not be supported by all demuxers
+	 * and file protocols).
+	 * 
+	 * This is part of the new seek API which is still under construction. It may
+	 * change in future Xuggler versions.
+	 * 
+	 * Parameters: streamIndex - index of the stream which is used as time base
+	 * reference minTimeStamp - smallest acceptable time stamp. targetTimeStamp -
+	 * target time stamp. maxTimeStamp - largest acceptable time stamp. flags - A
+	 * bitmask of the SEEK_FLAG_* flags, or 0 to turn all flags off. Returns: >=0 on
+	 * success, error code otherwise Since: 3.4
+	 * 
+	 */
+	@Override
+	protected boolean seekMS(double timeMS) {
+		// forward only? "closest"? AFTER or BEFORE?
+		long timestamp = timeSecToTimeStamp(timeMS * 1000);
+		if (container.seekKeyFrame(streamIndex, Long.MIN_VALUE, timestamp, Long.MAX_VALUE, IContainer.SEEK_FLAG_ANY) < 0)
+			return false;		
+		return true;
+	}
+
+	@Override
+	protected BufferedImage getImageForMSTimePoint(double timeMS) {
+		seekMS(timeMS);
+		if (!loadPictureFromNextPacket()) {
+			return null;
+		}
+		return (picture.isComplete() ? getBufferedImage() : null);
+	}
+
+	private long timeSecToTimeStamp(double timeSec) {
+		return (long) (timeSec / timebase);
+	}
+
 	private boolean seekToStart() {
 		// initial time stamps can be negative. See
 		// https://physlets.org/tracker/library/experiments/projectile_model.zip
-//		boolean isReset = (container.seekKeyFrame(streamIndex, keyTS0, keyTS0, keyTS0, IContainer.SEEK_FLAG_BACKWARDS) >= 0);
-		boolean isReset = (container.seekKeyFrame(-1, Long.MIN_VALUE, 0, Long.MAX_VALUE,
+		return (container.seekKeyFrame(-1, Long.MIN_VALUE, 0, Long.MAX_VALUE,
 				IContainer.SEEK_FLAG_BACKWARDS) >= 0);
-		return isReset;
 	}
 
 //	private void preLoadContainer() {
@@ -802,7 +899,7 @@ public class XuggleVideo extends MovieVideo implements SmoothPlayable, Increment
 	}
 
 	private int frameNumberToContainerIndex(int n) {
-		return Math.min(n + firstDisplayPacket, packetCount - 1);
+		return (n + firstDisplayPacket) % packetCount;
 	}
 
 //	/**
@@ -962,6 +1059,11 @@ public class XuggleVideo extends MovieVideo implements SmoothPlayable, Increment
 			setVideo(path, video, MovieFactory.ENGINE_XUGGLE);
 			return video;
 		}
+	}
+
+	@Override
+	protected String getPlatform() {
+		return PLATFORM_JAVA;
 	}
 
 
