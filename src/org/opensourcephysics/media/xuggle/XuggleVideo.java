@@ -693,7 +693,7 @@ public class XuggleVideo extends MovieVideo implements SmoothPlayable, Increment
 	@Override
 	protected boolean seekMS(double timeMS) {
 		// forward only? "closest"? AFTER or BEFORE?
-		long timestamp = timeSecToTimeStamp(timeMS * 1000);
+		long timestamp = timeSecToTimeStamp(timeMS / 1000);
 		if (container.seekKeyFrame(streamIndex, Long.MIN_VALUE, timestamp, Long.MAX_VALUE, IContainer.SEEK_FLAG_ANY) < 0)
 			return false;		
 		return true;
