@@ -131,9 +131,18 @@ public class XuggleMovieVideoType extends MovieVideoType {
 		XuggleVideo video;
 		try {
 			video = new XuggleVideo(XML.getResolvedPath(name, basePath), control);
+//JSV does this			if (video.getFrameNumber() == Integer.MIN_VALUE) {
+//				video = null;
+//			} else {
+//				video.setProperty("video_type", this); //$NON-NLS-1$
+//			}
+			
 			if (!video.isFullyLoaded()) {
+				// drop video from AsyncLoadser.loadVideo->VidewoIO.getVideo(String,VideoType)--> getVideo(String,null,null)
+
 				// step thru container quickly and find all video frames
 				while (video.loadMoreFrames(500)) {
+					System.out.println("loading");
 				}
 			}
 			video.setProperty("video_type", this); //$NON-NLS-1$

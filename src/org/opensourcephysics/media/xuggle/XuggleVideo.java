@@ -30,7 +30,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.net.URL;
 import java.util.ArrayList;
 
 import javax.imageio.ImageIO;
@@ -48,8 +47,6 @@ import org.opensourcephysics.media.core.VideoIO;
 import org.opensourcephysics.media.mov.MovieFactory;
 import org.opensourcephysics.media.mov.MovieVideo;
 import org.opensourcephysics.media.mov.SmoothPlayable;
-import org.opensourcephysics.tools.Resource;
-import org.opensourcephysics.tools.ResourceLoader;
 
 import com.xuggle.xuggler.ICodec;
 import com.xuggle.xuggler.IContainer;
@@ -111,7 +108,6 @@ public class XuggleVideo extends MovieVideo implements SmoothPlayable, Increment
 	private static final int CACHE_MAX = 0;
 
 	private RandomAccessFile raf;
-	private final String path;
 
 	// maps frame number to timestamp of displayed packet (last packet loaded)
 	private Long[] packetTimeStamps;
@@ -157,7 +153,6 @@ public class XuggleVideo extends MovieVideo implements SmoothPlayable, Increment
 	private long systemStartPlayTime;
 	private double frameStartPlayTime;
 	private boolean playSmoothly = false;
-	private boolean isLocal;
 	private int packetCount;
 
 	/**
@@ -167,61 +162,33 @@ public class XuggleVideo extends MovieVideo implements SmoothPlayable, Increment
 	 * @param control 
 	 * @throws IOException
 	 */
-	public XuggleVideo(String fileName, XMLControl control) throws IOException {
-		addFramePropertyListeners();
-		frameRefs = new int[] { -1, -1 };
-		Resource res = ResourceLoader.getResource(fileName);
-		if (res == null) {
-			throw new IOException("unable to create resource for " + fileName); //$NON-NLS-1$
-		}
+	XuggleVideo(String fileName, XMLControl control) throws IOException {
+		super(fileName, null, control);
 		// create and open a Xuggle container
-		URL url = res.getURL();
-		isLocal = (url.getProtocol().toLowerCase().indexOf("file") >= 0); //$NON-NLS-1$
-		path = isLocal ? res.getAbsolutePath() : url.toExternalForm();
 		// set properties
-		setProperty("name", XML.getName(fileName)); //$NON-NLS-1$
-		setProperty("absolutePath", res.getAbsolutePath()); //$NON-NLS-1$
-		if (fileName.indexOf(":") == -1) { //$NON-NLS-1$
-			// if name is relative, path is name
-			setProperty("path", XML.forwardSlash(fileName)); //$NON-NLS-1$
-		} else if (fileName.contains("!/")) {
-			// else path is relative to parent directory of TRZ/ZIP
-			String dir = fileName.substring(0, fileName.indexOf("!/"));
-			dir = XML.getDirectoryPath(dir);
-			setProperty("path", XML.getPathRelativeTo(fileName, dir)); //$NON-NLS-1$
-		} else {
-			// else path is absolute
-			setProperty("path", res.getAbsolutePath()); //$NON-NLS-1$
-		}
 		OSPLog.finest("Xuggle video loading " + path + " local?: " + isLocal); //$NON-NLS-1$ //$NON-NLS-2$
+		if (isExport) {
+			// no need to actually load anthing?
+			return;
+		}
 	    startFailDetection();
 		stopFailDetection();
+		frameRefs = new int[] { -1, -1 };
 		frameCount = -1;
+		this.control = control;
 		String err = openContainer();
 		if (err != null) {
 			dispose();
 			throw new IOException(err);
 		}
-//		OSPLog.finest("XuggleVideo found " + firstDisplayPacket + " incomplete out of " + frameCount + " total frames");
-//		if (frameCount == 0) {
-//			firePropertyChange(PROPERTY_VIDEO_PROGRESS, fileName, null);
-//			stopFailDetection();
-//			dispose();
-//			throw new IOException("packets loaded but no complete picture"); //$NON-NLS-1$
-//		}
-//		packetTimeStamps = new Long[frameCount];
-//		keyTimeStamps = new Long[frameCount];
 		packetTSList = new ArrayList<Long>();
 		keyTSList = new ArrayList<Long>();
-
 		frameTimes = new ArrayList<Double>();
 		firePropertyChange(PROPERTY_VIDEO_PROGRESS, fileName, 0);
-
-//		imageList = new ArrayList<BufferedImage>();
-
 		firstDisplayPacket = 0;
 		if (!VideoIO.loadIncrementally) {
-			// step thru container quikly and find all video frames
+			// NOT just dropping a video
+			// step thru container quickly and find all video frames
 			while (loadMoreFrames(500)) {
 			}
 		}
@@ -262,10 +229,22 @@ public class XuggleVideo extends MovieVideo implements SmoothPlayable, Increment
 		// create startTimes array
 		rawDuration = container.getDuration()/1e6;
 		setStartTimes();
+		rawStartTimes = startTimes;
+		rawFrameCount = frameCount;
+		if (control != null) {
+			// overwrite startTimes, rawDuration, and frameCount with control's 
+			control = setFromControl(control);			
+		}
+		if (control == null) {
+			rawStartTimes = null;
+		} else {
+			
+		}
 
 //		if (imageCache.length > firstDisplayPacket)
 //			setImage(imageCache[firstDisplayPacket]);
 
+		fullyLoaded = true;
 		seekToStart();	
 		loadPictureFromNextPacket();
 		BufferedImage img = getImage(0);
@@ -281,6 +260,7 @@ public class XuggleVideo extends MovieVideo implements SmoothPlayable, Increment
 	public boolean loadMoreFrames(int n) throws IOException {
 		if (isFullyLoaded())
 			return false;
+		System.out.println("Xuggle.loadMoreFrames");
 		int finalIndex = index + n;
 		long lastDTS = Long.MIN_VALUE;
 		boolean haveImages = false;
@@ -339,11 +319,11 @@ public class XuggleVideo extends MovieVideo implements SmoothPlayable, Increment
 				frameRefs[FRAME] = index++;
 			}
 		}
-		boolean success = index == finalIndex;
-		if (!success && !isFullyLoaded()) {
+		boolean continuing = (index == finalIndex);
+		if (!continuing && !isFullyLoaded()) {
 			finalizeLoading();
 		}
-		return success;
+		return continuing;
 	}
 
 	void debugCache() {
@@ -557,10 +537,12 @@ public class XuggleVideo extends MovieVideo implements SmoothPlayable, Increment
 			long elapsedTime = System.currentTimeMillis() - systemStartPlayTime;
 			double frameTime = frameStartPlayTime + getRate() * elapsedTime;
 			int frameToPlay = getFrameNumberBefore(frameTime);
+			System.out.println("xug.contin. "+ n + "/ " + frameToPlay + " /" + endNo);
 			while (frameToPlay > -1 && frameToPlay <= n) {
 				elapsedTime = System.currentTimeMillis() - systemStartPlayTime;
 				frameTime = frameStartPlayTime + getRate() * elapsedTime;
 				frameToPlay = getFrameNumberBefore(frameTime);
+				System.out.println("xug.contin. "+ n + "/ " + frameToPlay + " /" + endNo);
 			}
 			if (frameToPlay == -1) {
 				frameToPlay = endNo;
@@ -573,25 +555,6 @@ public class XuggleVideo extends MovieVideo implements SmoothPlayable, Increment
 		}
 	}
 
-	/**
-	 * Gets the number of the last frame before the specified time.
-	 *
-	 * @param time the time in milliseconds
-	 * @return the frame number, or -1 if not found
-	 */
-	private int getFrameNumberBefore(double time) {
-		for (int i = 0; i < startTimes.length; i++) {
-			if (time < startTimes[i])
-				return i - 1;
-		}
-		// if not found, see if specified time falls in last frame
-		int n = startTimes.length - 1;
-		// assume last and next-to-last frames have same duration
-		double endTime = 2 * startTimes[n] - startTimes[n - 1];
-		if (time < endTime)
-			return n;
-		return -1;
-	}
 
 	@SuppressWarnings("deprecation")
 	private String openContainer() {
@@ -839,7 +802,7 @@ public class XuggleVideo extends MovieVideo implements SmoothPlayable, Increment
 	}
 
 	private int frameNumberToContainerIndex(int n) {
-		return (n + firstDisplayPacket) % packetCount;
+		return Math.min(n + firstDisplayPacket, packetCount - 1);
 	}
 
 //	/**
@@ -871,6 +834,8 @@ public class XuggleVideo extends MovieVideo implements SmoothPlayable, Increment
 	}
 
 	IVideoPicture newPic;
+
+	private boolean fullyLoaded;
 
 	/**
 	 * Gets the BufferedImage for the current Xuggle picture.
@@ -964,7 +929,7 @@ public class XuggleVideo extends MovieVideo implements SmoothPlayable, Increment
 
 	@Override
 	public boolean isFullyLoaded() {
-		return packetTSList == null;
+		return fullyLoaded;
 	}
 
 	@Override
