@@ -95,8 +95,8 @@ public class CircleFitterStep extends Step {
 	 * DataPoints[col][row]
 	 *
 	 * @param p                       the data point (may be null)
-	 * @param column                  the array index
-	 * @param index                   the array index
+	 * @param column                  the column index
+	 * @param row                     the row index
 	 * @param refreshAndPostEdit      true to refresh circle, fire event and post
 	 *                                undo edit
 	 * @param reduceArrayLengthIfNull true to eliminate null elements
