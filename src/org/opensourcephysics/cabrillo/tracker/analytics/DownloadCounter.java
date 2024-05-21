@@ -7,6 +7,10 @@
 
 package org.opensourcephysics.cabrillo.tracker.analytics;
 
+import java.awt.AWTException;
+import java.awt.MouseInfo;
+import java.awt.Point;
+import java.awt.Robot;
 import java.awt.Toolkit;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -34,19 +38,30 @@ public class DownloadCounter {
 	static String dataFile = "download_counts.csv"; //$NON-NLS-1$
 	static String NEW_LINE = System.getProperty("line.separator", "\n"); //$NON-NLS-1$ //$NON-NLS-2$
 	
-	public static void main(String[] args) {
+	public static void main(String[] args) throws AWTException {
 
 		Toolkit.getDefaultToolkit().beep();
+
+    Robot robot = new Robot();
+    boolean increase = true;
 
 		// create StringBuffer and append date/time
 		StringBuffer buffer = new StringBuffer();
 		buffer.append(getDateAndTime());
+
+		dataFile = "C:\\Users\\dobro\\Documents\\Tracker\\Analytics\\"+dataFile; // pig
 
 		// get file names (first line of dataFile except data/time)
 		String[] filenames = getFileNames(dataFile);
 
 		// go through file names and append tabs and download counts
 		for (int j = 0; j < filenames.length; j++) {
+  		// move mouse to prevent computer from sleeping
+    	increase = !increase;
+      Point p = MouseInfo.getPointerInfo().getLocation();
+      int x = increase? p.x + 1: p.x - 1;
+      int y = increase? p.y + 1: p.y - 1;
+      robot.mouseMove(x, y);
 			String count = getDownloadCount(filenames[j]);
 			buffer.append("\t" + count); //$NON-NLS-1$
 		}
@@ -57,6 +72,7 @@ public class DownloadCounter {
 
 		// write the new contents to dataFile
 		write(contents, dataFile);
+		Toolkit.getDefaultToolkit().beep();
 	}
   
   /**
