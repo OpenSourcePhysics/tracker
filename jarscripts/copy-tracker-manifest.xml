@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<!DOCTYPE project>
+
+<project name="ReadManifest" default="extract-manifest" basedir=".">
+    
+    <!-- Define properties for directories -->
+    <property name="jardir" value="../distribution"/>
+    <property name="outdir" value="../site/swingjs/j2s"/>
+    <property name="jarfile" value="${jardir}/tracker.jar"/>
+    <property name="manifestfile" value="${outdir}/MANIFEST.MF"/>
+    
+    <!-- Create the output directory if it doesn't exist -->
+    <target name="init">
+        <mkdir dir="${outdir}"/>
+    </target>
+    
+    <!-- Extract the manifest file from the jar -->
+    <target name="extract-manifest" depends="init">
+        <!-- Unzip the manifest file from the jar -->
+        <unzip src="${jarfile}" dest="${outdir}">
+            <patternset>
+                <include name="META-INF/MANIFEST.MF"/>
+            </patternset>
+        </unzip>
+        
+        <!-- Move the manifest file to the desired location -->
+        <move file="${outdir}/META-INF/MANIFEST.MF" tofile="${manifestfile}" overwrite="true"/>
+        
+        <!-- Clean up the META-INF directory -->
+        <delete dir="${outdir}/META-INF"/>
+    </target>
+    
+</project>
+
+
+
+
