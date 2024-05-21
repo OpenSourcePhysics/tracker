@@ -5,29 +5,35 @@
     
     <!-- Define properties for directories -->
     <property name="jardir" value="../distribution"/>
-    <property name="outdir" value="../site/swingjs/j2s"/>
+    <property name="outdir1" value="../site/swingjs/j2s"/>
+	  <property name="outdir2" value="../site-resources"/>
     <property name="jarfile" value="${jardir}/tracker.jar"/>
-    <property name="manifestfile" value="${outdir}/MANIFEST.MF"/>
+    <property name="manifestfile1" value="${outdir1}/MANIFEST.MF"/>
+    <property name="manifestfile2" value="${outdir2}/MANIFEST.MF"/>
     
     <!-- Create the output directory if it doesn't exist -->
     <target name="init">
-        <mkdir dir="${outdir}"/>
+        <mkdir dir="${outdir1}"/>
+    	  <mkdir dir="${outdir2}"/>
     </target>
     
     <!-- Extract the manifest file from the jar -->
     <target name="extract-manifest" depends="init">
         <!-- Unzip the manifest file from the jar -->
-        <unzip src="${jarfile}" dest="${outdir}">
+        <unzip src="${jarfile}" dest="${outdir1}">
             <patternset>
                 <include name="META-INF/MANIFEST.MF"/>
             </patternset>
         </unzip>
         
-        <!-- Move the manifest file to the desired location -->
-        <move file="${outdir}/META-INF/MANIFEST.MF" tofile="${manifestfile}" overwrite="true"/>
+    	  <!-- Copy the manifest file to the first output directory -->
+    	  <copy file="${outdir1}/META-INF/MANIFEST.MF" tofile="${manifestfile1}" overwrite="true"/>
+
+    	   <!-- Copy the manifest file to the second output directory -->
+    	   <copy file="${outdir1}/META-INF/MANIFEST.MF" tofile="${manifestfile2}" overwrite="true"/>
         
-        <!-- Clean up the META-INF directory -->
-        <delete dir="${outdir}/META-INF"/>
+         <!-- Clean up the META-INF directory -->
+         <delete dir="${outdir}/META-INF"/>
     </target>
     
 </project>
