@@ -188,6 +188,7 @@ java/io/FileDescriptor.js
 java/io/FileFilter.js
 java/io/FileInputStream.js
 java/io/FileOutputStream.js
+java/io/FileReader.js
 java/io/FileSystem.js
 java/io/FileWriter.js
 java/io/FilenameFilter.js
