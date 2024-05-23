@@ -122,7 +122,7 @@ import swingjs.api.JSUtilI;
 /**
  * This is the default Tracker application.
  *
- * @author Douglas Brown
+ * @author Douglas Brown, Wolfgang Christian, Robert M. Hanson
  */
 public class Tracker {
 
