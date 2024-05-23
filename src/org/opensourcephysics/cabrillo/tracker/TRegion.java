@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2019  Douglas Brown
+ * Copyright (c) 2024 Douglas Brown, Wolfgang Christian, Robert M. Hanson
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,8 +24,9 @@
  */
 package org.opensourcephysics.cabrillo.tracker;
 
-import java.awt.*;
-import java.awt.image.*;
+import java.awt.Color;
+import java.awt.Polygon;
+import java.awt.image.BufferedImage;
 
 import org.opensourcephysics.media.core.TPoint;
 

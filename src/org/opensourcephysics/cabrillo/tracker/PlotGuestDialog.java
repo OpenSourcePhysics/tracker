@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2019  Douglas Brown
+ * Copyright (c) 2024 Douglas Brown, Wolfgang Christian, Robert M. Hanson
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -38,11 +38,13 @@ import org.opensourcephysics.tools.FontSizer;
  *
  * @author Douglas Brown
  */
+@SuppressWarnings("serial")
 public class PlotGuestDialog extends JDialog {
 
   // instance fields
   protected TrackPlottingPanel plot;
-  protected TrackerPanel trackerPanel;
+  protected TFrame frame;
+  protected Integer panelID;
   protected JButton okButton, selectAllButton;
   protected JPanel checkboxPanel;
   protected ActionListener listener;
@@ -57,9 +59,11 @@ public class PlotGuestDialog extends JDialog {
    */
   public PlotGuestDialog(TrackerPanel panel) {
     super(JOptionPane.getFrameForComponent(panel), true);
-    trackerPanel = panel;
+    frame = panel.getTFrame();
+    panelID = panel.getID();
     // listener for the checkboxes
     listener = new ActionListener() {
+      @Override
       public void actionPerformed(ActionEvent e) {
       	JCheckBoxMenuItem checkbox = (JCheckBoxMenuItem)e.getSource();
       	int id = Integer.parseInt(checkbox.getActionCommand());
@@ -67,6 +71,8 @@ public class PlotGuestDialog extends JDialog {
       	if (checkbox.isSelected()) plot.addGuest(track);
 				else plot.removeGuest(track);
       	plot.plotData();
+      	plot.repaint();
+      	updateDisplay();
       }
     };
     setResizable(false);
@@ -97,6 +103,7 @@ public class PlotGuestDialog extends JDialog {
     okButton = new JButton(TrackerRes.getString("Dialog.Button.OK")); //$NON-NLS-1$
     okButton.setForeground(new Color(0, 0, 102));
     okButton.addActionListener(new ActionListener() {
+      @Override
       public void actionPerformed(ActionEvent e) {
         setVisible(false);
       }
@@ -105,6 +112,7 @@ public class PlotGuestDialog extends JDialog {
     selectAllButton = new JButton(TrackerRes.getString("PlotGuestDialog.Button.SelectAll.Text")); //$NON-NLS-1$
     selectAllButton.setForeground(new Color(0, 0, 102));
     selectAllButton.addActionListener(new ActionListener() {
+      @Override
       public void actionPerformed(ActionEvent e) {
       	for (Integer id: allTracks) {
 		      TTrack track = TTrack.getTrack(id);
@@ -114,6 +122,7 @@ public class PlotGuestDialog extends JDialog {
 		      else plot.addGuest(track);
       	}
       	plot.plotData();
+      	plot.repaint();
       	updateDisplay();
       }
     });
@@ -137,10 +146,11 @@ public class PlotGuestDialog extends JDialog {
     setTitle(track.getName());
     instructions.setTitle(TrackerRes.getString("PlotGuestDialog.Instructions")); //$NON-NLS-1$
     // make checkboxes for all similar tracks in trackerPanel
-    Class<? extends TTrack> type = track instanceof PointMass? PointMass.class:
-    	track instanceof Vector? Vector.class: track.getClass();
-    ArrayList<? extends TTrack> tracks = trackerPanel.getDrawables(type);
-    tracks.removeAll(trackerPanel.calibrationTools);
+    Class<? extends TTrack> type = (track.ttype == TTrack.TYPE_POINTMASS ? PointMass.class
+    		: track.ttype == TTrack.TYPE_VECTOR ? Vector.class : track.getClass());    
+    ArrayList<? extends TTrack> tracks = frame.getTrackerPanelForID(panelID).getDrawablesTemp(type);
+    TrackerPanel panel = frame.getTrackerPanelForID(panelID);
+    tracks.removeAll(panel.calibrationTools);
     tracks.remove(track);
     int tracksPerColumn = 8;
     int cols = 1+(tracks.size()-1)/tracksPerColumn;
@@ -172,6 +182,7 @@ public class PlotGuestDialog extends JDialog {
         }
       }
     }
+    tracks.clear();
     
     if (checkboxPanel.getComponentCount()<cols) {
     	// add last box and pad its bottom if not the first
@@ -189,7 +200,7 @@ public class PlotGuestDialog extends JDialog {
     		TrackerRes.getString("PlotGuestDialog.Button.SelectAll.Text")); //$NON-NLS-1$
   	FontSizer.setFonts(checkboxPanel, FontSizer.getLevel());
     pack();
-    repaint();
+   TFrame.repaintT(this);
   }
 
 }

@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2019  Douglas Brown
+ * Copyright (c) 2024 Douglas Brown, Wolfgang Christian, Robert M. Hanson
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,45 +24,48 @@
  */
 package org.opensourcephysics.cabrillo.tracker;
 
-import java.awt.*;
+import java.awt.Component;
 
-import javax.swing.*;
+import javax.swing.BorderFactory;
+import javax.swing.Icon;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.ListCellRenderer;
 
 import org.opensourcephysics.tools.FontSizer;
 
 /**
- * A custom renderer to show track name and icon in dropdown list items
+ * A custom renderer to show track name and icon in dropdown list items, where the items 
+ * are Object[] { icon, text }
  *
  * @author Douglas Brown
  */
-public class TrackRenderer extends JLabel implements ListCellRenderer {
+@SuppressWarnings("serial")
+public class TrackRenderer extends JLabel implements ListCellRenderer<Object> {
 
 	TrackRenderer() {
-    setOpaque(true);
-    setHorizontalAlignment(LEFT);
-    setVerticalAlignment(CENTER);
-    setBorder(BorderFactory.createEmptyBorder(1, 4, 1, 0));
-  }
-	
-  public Component getListCellRendererComponent(JList list,
-                                                Object value,
-                                                int index,
-                                                boolean isSelected,
-                                                boolean cellHasFocus) {
-    if (isSelected) {
-      setBackground(list.getSelectionBackground());
-      setForeground(list.getSelectionForeground());
-    } else {
-      setBackground(list.getBackground());
-      setForeground(list.getForeground());
-    }
-    if (value != null) {
-      Object[] array = (Object[])value;
-      setText((String)array[1]);
-      setIcon((Icon)array[0]);
-      FontSizer.setFonts(this, FontSizer.getLevel());
-    }
-    return this;
-  }
-}
+		setOpaque(true);
+		setHorizontalAlignment(LEFT);
+		setVerticalAlignment(CENTER);
+		setBorder(BorderFactory.createEmptyBorder(1, 4, 1, 0));
+	}
 
+	@Override
+	public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected,
+			boolean cellHasFocus) {
+		if (isSelected) {
+			setBackground(list.getSelectionBackground());
+			setForeground(list.getSelectionForeground());
+		} else {
+			setBackground(list.getBackground());
+			setForeground(list.getForeground());
+		}
+		if (value != null) {
+			Object[] array = (Object[]) value;
+			setText((String) array[1]);
+			setIcon((Icon) array[0]);
+			FontSizer.setFonts(this);
+		}
+		return this;
+	}
+}

@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2019  Douglas Brown
+ * Copyright (c) 2024 Douglas Brown, Wolfgang Christian, Robert M. Hanson
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -66,74 +66,62 @@ public class MultiPositionStep extends PositionStep {
 //    }
 //  }
 //
-  /**
-   * Overrides Step getMark method.
-   *
-   * @param trackerPanel the tracker panel
-   * @return the mark
-   */
-  protected Mark getMark(TrackerPanel trackerPanel) {
-    Mark mark = marks.get(trackerPanel);
-    if (mark == null) {
-    	Mark aMark = null;
-    	if (dataTrack.modelFootprintVisible) {
-		    // get mark from modelFootprint
-		    ArrayList<ParticleDataTrack> tracks = dataTrack.allPoints();
-		    TPoint[] points = new TPoint[tracks.size()];
-		    for (int i=0; i<points.length; i++) {
-		    	ParticleDataTrack next = tracks.get(i);
-		    	Step step = next.getStep(this.getFrameNumber());
-		    	points[i] = step==null? null: step.getPoints()[0];
-		    }
-		    Point[] screenPoints = new Point[points.length];
-		    for (int i = 0; i < points.length; i++) {
-		    	if (points[i]==null || Double.isNaN(points[i].x) || Double.isNaN(points[i].y)) {
-		    		screenPoints[i] = null;
-		    	}
-		    	else 
-		    		screenPoints[i] = points[i].getScreenPosition(trackerPanel);
-		    }
-		    aMark = dataTrack.getModelFootprint().getMark(screenPoints);
-    	}
-      final Mark modelMark = aMark;
-      final Mark positionMark = super.getMark(trackerPanel);
-      
-      mark = new Mark() {
-        public void draw(Graphics2D g, boolean highlighted) {
-        	if (!valid) {
-        		return;
-        	}
-          if (modelMark!=null) modelMark.draw(g, highlighted);
-          positionMark.draw(g, highlighted);
-        }
-        public Rectangle getBounds(boolean highlighted) {
-        	Rectangle bounds = positionMark.getBounds(highlighted);
-        	if (modelMark!=null) bounds.union(modelMark.getBounds(highlighted));
-          return bounds;
-        }
-      };
-      marks.put(trackerPanel, mark);
-    }
-    return mark;
-  }
+	/**
+	 * Overrides Step getMark method.
+	 *
+	 * @param trackerPanel the tracker panel
+	 * @return the mark
+	 */
+	@Override
+	protected Mark getMark(TrackerPanel trackerPanel) {
+		Mark mark = panelMarks.get(trackerPanel.getID());
+		if (mark == null) {
+			Mark aMark = null;
+			if (dataTrack.modelFootprintVisible) {
+				// get mark from modelFootprint
+				ArrayList<ParticleDataTrack> tracks = dataTrack.morePoints;
+				int n = tracks.size() + 1;
+				Point[] screenPoints = new Point[n];
+				int fn = getFrameNumber();
+				screenPoints[0] = getScreenPoint(trackerPanel, fn, dataTrack);
+				for (int i = 1; i < n; i++) {
+					screenPoints[i] = getScreenPoint(trackerPanel, fn, tracks.get(i - 1));
+				}
+				aMark = dataTrack.getModelFootprint().getMark(screenPoints);
+			}
+			final Mark modelMark = aMark;
+			final Mark positionMark = super.getMark(trackerPanel);
 
-  /**
-   * Overrides Step getBounds method.
-   *
-   * @param trackerPanel the tracker panel drawing the step
-   * @return the bounding rectangle
-   */
-  public Rectangle getBounds(TrackerPanel trackerPanel) {
-    Rectangle bounds = getMark(trackerPanel).getBounds(false);
-    return bounds;
-  }
+			mark = new Mark() {
+				@Override
+				public void draw(Graphics2D g, boolean highlighted) {
+					if (!valid) {
+						return;
+					}
+					if (modelMark != null)
+						modelMark.draw(g, highlighted);
+					positionMark.draw(g, highlighted);
+				}
+			};
+			panelMarks.put(trackerPanel.getID(), mark);
+		}
+		return mark;
+	}
 
-  /**
+	private static Point getScreenPoint(TrackerPanel panel, int n, ParticleDataTrack next) {
+		Step step = next.getStep(n);
+		TPoint p = (step == null ? null : step.getPoints()[0]);
+		return (p == null || Double.isNaN(p.x) || Double.isNaN(p.y) 
+				? null : p.getScreenPosition(panel));
+	}
+
+/**
    * Clones this Step.
    *
    * @return a cloned step
    */
-  public Object clone() {
+  @Override
+public Object clone() {
     MultiPositionStep step = (MultiPositionStep)super.clone();
 //    if (step != null)
 //      step.points[0] = step.p = step.new Position(p.getX(), p.getY());
@@ -145,7 +133,8 @@ public class MultiPositionStep extends PositionStep {
    *
    * @return a descriptive string
    */
-  public String toString() {
+  @Override
+public String toString() {
     return "MultiPositionStep " + n + " [" + format.format(p.x) //$NON-NLS-1$ //$NON-NLS-2$
                                + ", " + format.format(p.y) + "]"; //$NON-NLS-1$ //$NON-NLS-2$
   }
@@ -170,7 +159,8 @@ public class MultiPositionStep extends PositionStep {
      * @param control the control to save to
      * @param obj the object to save
      */
-    public void saveObject(XMLControl control, Object obj) {
+    @Override
+	public void saveObject(XMLControl control, Object obj) {
       PositionStep step = (PositionStep) obj;
       control.setValue("x", step.p.x); //$NON-NLS-1$
       control.setValue("y", step.p.y); //$NON-NLS-1$
@@ -182,7 +172,8 @@ public class MultiPositionStep extends PositionStep {
      * @param control the control
      * @return the newly created object
      */
-    public Object createObject(XMLControl control) {
+    @Override
+	public Object createObject(XMLControl control) {
     	// this loader is not intended to be used to create new steps,
     	// but only for undo/redo step edits.
       return null;
@@ -195,7 +186,8 @@ public class MultiPositionStep extends PositionStep {
      * @param obj the object
      * @return the loaded object
      */
-    public Object loadObject(XMLControl control, Object obj) {
+    @Override
+	public Object loadObject(XMLControl control, Object obj) {
     	PositionStep step = (PositionStep)obj;
     	double x = control.getDouble("x"); //$NON-NLS-1$
       double y = control.getDouble("y"); //$NON-NLS-1$

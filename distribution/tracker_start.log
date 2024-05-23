@@ -1,0 +1,25 @@
+TrackerStarter version 6.1.1  11:45:55  Feb 06 2023
+
+ - relaunch required
+ - needs Java VM? true
+ - needs memory? false
+ - needs environment? true
+ - relaunch initiated by Tracker
+ - TrackerStarter running in jre: /Library/Java/JavaVirtualMachines/jdk-11.0.14.jdk/Contents/Home
+ - launching with main arguments: null
+ - using trackerhome: /Users/wochristian/J2SProjects/GitHubOSP/tracker/distribution
+ - osp.prefs XUGGLE_HOME: /Applications/Tracker.app/Contents/Xuggle
+ - using xugglehome: /Applications/Tracker.app/Contents/Xuggle
+ - xuggle 5.7 found: /Users/wochristian/J2SProjects/GitHubOSP/tracker/distribution/xuggle-xuggler-server-all.jar
+ - loading starter preferences from: /Users/wochristian/Library/Application Support/OSP/.tracker.prefs
+ - system property PREFERRED_TRACKER_JAR = /Users/wochristian/J2SProjects/GitHubOSP/tracker/distribution/tracker.jar
+ - preferred Tracker version: tracker.jar
+ - preferred xuggle version: 5.7 server
+ - preferred java VM: /Library/Java/JavaVirtualMachines/jdk1.8.0_271.jdk/Contents/Home/jre
+ - system property PREFERRED_MEMORY_SIZE = 1024
+ - preferred memory size: 1024 MB
+ - xuggle 5.7 files up to date 
+ - setting TRACKER_HOME = /Users/wochristian/J2SProjects/GitHubOSP/tracker/distribution
+ - setting XUGGLE_HOME = /Applications/Tracker.app/Contents/Xuggle
+ - executing command: /Library/Java/JavaVirtualMachines/jdk1.8.0_271.jdk/Contents/Home/jre/bin/java -Xms32m -Xmx1024m -Xdock:name=Tracker -jar /Users/wochristian/J2SProjects/GitHubOSP/tracker/distribution/tracker.jar 
+ - writing code base start log /Users/wochristian/J2SProjects/GitHubOSP/tracker/distribution/tracker_start.log

@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2019  Douglas Brown
+ * Copyright (c) 2024 Douglas Brown, Wolfgang Christian, Robert M. Hanson
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -41,13 +41,15 @@ import org.opensourcephysics.media.core.Trackable;
  *
  * @author Douglas Brown
  */
-public class PencilScene implements Trackable, Comparable, Interactive {
+public class PencilScene implements Interactive, Trackable, Comparable<PencilScene> {
 		
+    protected TFrame frame;
+    protected Integer panelID;
+    
 	private PencilCaption caption;
 	private ArrayList<PencilDrawing> drawings = new ArrayList<PencilDrawing>();
 	private boolean visible = true;
 	private boolean heavy;
-  private TrackerPanel trackerPanel;
 	private double margin;
 	boolean isCaptionPositioned;
 	int startframe=0, endframe=Integer.MAX_VALUE;
@@ -62,23 +64,26 @@ public class PencilScene implements Trackable, Comparable, Interactive {
 	
 	@Override
 	public void draw(DrawingPanel panel, Graphics g) {
-		if (!visible) return;
+		if (!visible)
+			return;
 		if (panel instanceof TrackerPanel) {
-	  	TrackerPanel trackerPanel = (TrackerPanel)panel;
-	  	// don't draw on World Views
-	  	if (!trackerPanel.isDrawingInImageSpace()) return;
-	  	if (this.trackerPanel==null) {
-	  		this.trackerPanel = trackerPanel;
-	  	}
-	  	if (!includesFrame(trackerPanel.getFrameNumber())) {
-	  		return;
-	  	}
+			TrackerPanel trackerPanel = (TrackerPanel) panel;
+			// don't draw on World Views
+			if (!trackerPanel.isDrawingInImageSpace())
+				return;
+			if (panelID== null) {
+				panelID = trackerPanel.getID();
+				frame = trackerPanel.getTFrame();
+			}
+			if (!includesFrame(trackerPanel.getFrameNumber())) {
+				return;
+			}
 		}
-		for (PencilDrawing drawing: drawings) {
+		for (PencilDrawing drawing : drawings) {
 			drawing.draw(panel, g);
 		}
 		caption.draw(panel, g);
-  }
+	}
 	
   /**
    * Gets the drawings.
@@ -273,8 +278,7 @@ public class PencilScene implements Trackable, Comparable, Interactive {
 	}
 
 	@Override
-	public int compareTo(Object o) {
-		PencilScene that = (PencilScene)o;
+	public int compareTo(PencilScene that) {
 		int diff = this.startframe - that.startframe;
 		return diff!=0? diff: (this.endframe - that.endframe);
 	}
@@ -282,13 +286,11 @@ public class PencilScene implements Trackable, Comparable, Interactive {
 	@Override
 	public Interactive findInteractive(DrawingPanel panel, int xpix, int ypix) {
 		Interactive ia = caption.findInteractive(panel, xpix, ypix);
-		if (ia!=null) {
-	    if (Tracker.showHints && trackerPanel!=null) {
-	  		trackerPanel.setMessage(TrackerRes.getString("PencilCaption.Hint")); //$NON-NLS-1$
-	    }
+		if (ia != null && Tracker.showHints && panelID != null) {
+			frame.getTrackerPanelForID(panelID).setMessage(TrackerRes.getString("PencilCaption.Hint")); //$NON-NLS-1$
 			return ia;
 		}
-		return null;
+		return ia;
 	}
 
 	@Override
@@ -374,7 +376,8 @@ public class PencilScene implements Trackable, Comparable, Interactive {
       return scene;
     }
 
-    @Override
+    @SuppressWarnings("unchecked")
+	@Override
     public Object loadObject(XMLControl control, Object obj) {
     	PencilScene scene = (PencilScene) obj;
     	int[] frames = (int[])control.getObject("frame_range"); //$NON-NLS-1$

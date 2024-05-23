@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2019  Douglas Brown
+ * Copyright (c) 2024 Douglas Brown, Wolfgang Christian, Robert M. Hanson
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -64,26 +64,31 @@ public class TCoordinateStringBuilder
   @Override
 	public String getCoordinateString(VideoPanel vidPanel, double x, double y) {
     xField.setFormatFor(x);
-    String xStr = xField.getFormat().format(x);
+    String xStr = xField.format(x);
     if(xField.getUnits()!=null) xStr += xField.getUnits();
     yField.setFormatFor(y);
-    String yStr = yField.getFormat().format(y);
+    String yStr = yField.format(y);
     if(yField.getUnits()!=null) yStr += yField.getUnits();
   	return xLabel+xStr+yLabel+yStr;
   }
   
   public void setUnitsAndPatterns(TTrack track, String xVar, String yVar) {
-  	if (track==null || track.trackerPanel==null) return;
-    xField.setUnits(track.trackerPanel.getUnits(track, xVar));    
-    yField.setUnits(track.trackerPanel.getUnits(track, yVar));
-    xField.setFixedPattern(NumberFormatDialog.getFormatPattern(track, xVar));
-    yField.setFixedPattern(NumberFormatDialog.getFormatPattern(track, yVar));
+  	if (track==null || track.tp==null) return;
+    xField.setUnits(track.tp.getUnits(track, xVar));    
+    yField.setUnits(track.tp.getUnits(track, yVar));
+    xField.setFixedPattern(track.getVarFormatPattern(xVar));
+    yField.setFixedPattern(track.getVarFormatPattern(yVar));
   }
 
   @Override
   public void setCoordinateLabels(String xLabel, String yLabel) {
     this.xLabel = xLabel;
     this.yLabel = yLabel;
+  }
+  
+  public void refreshDecimalSeparators() {
+  	xField.refreshDecimalSeparators(true);
+  	yField.refreshDecimalSeparators(true);
   }
 
 }

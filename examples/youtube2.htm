@@ -1,0 +1,205 @@
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+.content {
+	position: absolute;
+	width: 500px;
+	height: 281px; #
+	margin: 0 auto; #
+	padding: 20px;
+	background: orange;
+}
+
+.cover {
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	z-index: 1000; #
+	margin: 0 auto; #
+	padding: 20px;
+	background: rgba(0, 0, 0, 0);
+}
+
+.iframe {
+	z-index: 100;
+	display: block;
+	position:absolute;
+	top:0px;
+	left:0px;
+	margin:0px 0px 0px 0px;
+	
+}
+
+.imagesize {
+	width: 560px;
+	height: 315px;
+}
+
+.coversize {
+	width: 560px;
+	height: 295px;
+}
+</style>
+<script>
+getField = function(key) {
+	var q = document.location.search || "";
+	q && (q = "&" + q.substring(1));
+	q += "&" + key + "=";
+	return q.split(key + "=")[1].split("&")[0];
+}
+youtubeid = getField("id") ||"UuaJX9xWJYU";
+youtubetime = +(getField("start") || 0);
+</script>
+</head>
+<body onload="doAction(-3)">
+	<table border=1>
+		<tr>
+			<td width=600 valign="top">
+				<div class="content">
+					<div class="iframe" id="youtubediv"></div>
+					<canvas id="cover" width="560" height="295" class="cover coversize"
+						onmouseenter="covertest(1)" onclick="test(event)"
+						onmouseleave="covertest(0)">
+					</canvas>
+					<br> Click on the video to add a point.
+
+				</div>
+			</td>
+			<td valign="top"><textarea style="width: 600px; height: 200px"
+					id="output" style="overflow: auto"></textarea> <br>
+				<button id="btn_play" onclick=doAction( "play")>play</button>
+				<button id="btn_pause" onclick=doAction( "pause")>pause</button>
+				<button id="btn_prev" onclick=doAction( "prev")>previous
+					frame</button>
+				<button id="btn_next" onclick=doAction( "next")>next frame</button>
+				<br>
+				<button id="btn_startMarking" onclick=doAction( "startMarking")>start
+					marking</button>
+				<button id="btn_stopMarking" onclick=doAction( "stopMarking")>stop
+					marking</button> <br>
+				<button id="btn_capture" onclick=doAction( "capture")>capture
+					image</button>
+				<button id="btn_save" onclick=doAction( "save")>save image</button>
+				<button id="btn_clear" onclick=doAction( "clear")
+					style="float: right">clear output</button> <br>
+			<canvas id="capture" style="width: 500px; height: 281px"></canvas></td>
+		</tr>
+	</table>
+	<script>
+	
+if (youtubeid) {
+	document.getElementById("btn_play").style.display="none";
+	document.getElementById("btn_pause").style.display="none";
+	document.getElementById("btn_save").style.display="none";
+	document.getElementById("btn_capture").style.display="none";	
+}
+test = function(e) {
+  var canvas = document.getElementById("cover");
+  var ctx = canvas.getContext("2d");
+  var x = e.x - canvas.parentElement.offsetLeft
+  var y = e.y - canvas.parentElement.offsetTop
+  output("x=" + x + " y=" + y);
+  ctx.fillStyle="red" 
+  ctx.fillRect(x,y-5,1,10);
+  ctx.fillRect(x-5,y,10,1);
+  ctx.beginPath();
+  ctx.arc(x, y, 1, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+covertest = function(isenter) {
+  document.body.style.background=(isenter?"#aaa" : null)
+}
+
+var lastTime = 0;
+
+videoListener = function(event) {
+  var video = document.getElementById("player");
+  var t = event.target.currentTime;
+  var dt = t - lastTime;
+  lastTime = t;
+  output((new Date) + "\nt=" + t + " dt=" + dt + " w=" + video.videoWidth + " h=" + video.videoHeight + "\n");
+}
+
+output = function(msg) {
+	document.getElementById("output").value += msg + "\n";
+	document.getElementById("output").scrollTop = 1000000;
+}
+
+doAction = function(f) {
+  f || (f = 0);
+  var b = false;
+  switch (f) {
+  case "startMarking":
+	  b = true;
+	  // fall through
+  case "stopMarking":
+	  var canvas = document.getElementById("cover");
+	  canvas.style.display = (b ? "block" : "none");	  
+	break;  
+  case "play":
+	p.play();
+	break;
+  case "pause":
+	p.pause();
+	break;
+  case "clear":
+	document.getElementById("output").value = "";
+	break;
+  case "capture":
+    captureImage();
+    break;
+  case "save":
+	  alert('Please download the JavaScript version of Tracker for this functionality.' + String.fromCodePoint(0x1F609));
+	  break;
+  case "next":
+	  b = true;
+	  if (youtubeid) {
+		youtubetime += 0.003334*60;
+		resetYouTube();
+	  } else {
+	  	try {
+			p.seekToNextFrame();
+	    } catch (e){
+	    	p.currentTime += 0.033334;
+	    }
+		p.pause();
+	  }
+	break;
+  case "prev":
+    p.currentTime -= 0.033334;
+	p.pause(); 
+	break;
+  }
+}
+
+captureImage = function() {
+    var canvas = document.getElementById("capture");
+    var video = document.getElementById("player")
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+
+    canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+}
+
+resetYouTube = function(t) {
+	var code=
+		'<iframe id="iframe" class="iframe" border="0" width="600" height="350" srcdoc=\''
+			+'<iframe style="z-index: 100;display: block;position:absolute;top:0px;left:0px;margin:0px 0px 0px 0px;"'	
+				+' src="https://www.youtube.com/embed/' + youtubeid + '?start=' + youtubetime +'"'
+				+ ' width="560" height="315" frameborder="0" allow="accelerometer; encrypted-media; gyroscope; picture-in-picture"></iframe>\''
+		+'</iframe>';
+	alert(code);
+	document.getElementById("youtubediv").innerHTML = code;
+	doAction("stopMarking");
+}
+
+if (youtubeid) {
+	resetYouTube(0);
+} else {
+	document.getElementById("player").addEventListener("timeupdate", videoListener);
+}
+</script>
+</body>
+</html>

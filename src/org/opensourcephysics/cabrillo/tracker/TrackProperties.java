@@ -17,24 +17,24 @@ public class TrackProperties {
 	TrackProperties(TTrack track) {
 		name = track.getName();
 		if (track instanceof ParticleDataTrack) {
-			ParticleDataTrack dt = (ParticleDataTrack)track;
-			ArrayList<ParticleDataTrack> points = dt.allPoints();
-			colors = new Color[points.size()+1];
-			colors[colors.length-1] = dt.getModelFootprint().getColor();
-			for (int i=0; i<points.size(); i++) {
-				ParticleDataTrack next = points.get(i);
-				colors[i] = next.getColor();
+			ParticleDataTrack dt = (ParticleDataTrack) track;
+			ArrayList<ParticleDataTrack> mpoints = dt.morePoints;
+			int np = mpoints.size();
+			colors = new Color[np + 2];
+			colors[0] = dt.getColor();
+			colors[colors.length - 1] = dt.getModelFootprint().getColor();
+			for (int i = 0; i < np; i++) {
+				colors[i + 1] = mpoints.get(i).getColor();
 			}
-			footprints = new String[points.size()+1];
-			footprints[footprints.length-1] = dt.getModelFootprintName();
-			for (int i=0; i<points.size(); i++) {
-				ParticleDataTrack next = points.get(i);
-				footprints[i] = next.getFootprintName();
+			footprints = new String[np + 2];
+			footprints[0] = dt.getFootprintName();
+			footprints[footprints.length - 1] = dt.getModelFootprintName();
+			for (int i = 0; i < np; i++) {
+				footprints[i + 1] = mpoints.get(i).getFootprintName();
 			}
-		}
-		else {
-			footprints = new String[] {track.getFootprintName()};
-			colors = new Color[] {track.getColor()};
+		} else {
+			footprints = new String[] { track.getFootprintName() };
+			colors = new Color[] { track.getColor() };
 		}
 	}
 	

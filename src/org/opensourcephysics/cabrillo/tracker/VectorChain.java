@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2019  Douglas Brown
+ * Copyright (c) 2024 Douglas Brown, Wolfgang Christian, Robert M. Hanson
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -121,7 +121,8 @@ public class VectorChain extends ArrayList<VectorStep> {
   /**
    * Overrides ArrayList method.
    */
-  public void clear() {
+  @Override
+public void clear() {
     Iterator<VectorStep> it = iterator();
     while (it.hasNext()) {
       VectorStep link = it.next();
@@ -138,7 +139,8 @@ public class VectorChain extends ArrayList<VectorStep> {
    * @param vector the vector to add
    * @return true if the vector is successfully added
    */
-  public boolean add(VectorStep vector) {
+  @Override
+public boolean add(VectorStep vector) {
     // add a chain of vectors
     if (vector.getChain() != null) {
       return add(vector.getChain());
@@ -174,7 +176,8 @@ public class VectorChain extends ArrayList<VectorStep> {
    * @param c the collection to add
    * @return true if at least one item in the collection is successfully added
    */
-  public boolean addAll(Collection<? extends VectorStep> c) {
+  @Override
+public boolean addAll(Collection<? extends VectorStep> c) {
     boolean added = false;
     Iterator<? extends VectorStep> it = c.iterator();
     while (it.hasNext()) {
@@ -189,7 +192,8 @@ public class VectorChain extends ArrayList<VectorStep> {
    * @param index the index
    * @param v the vector to add
    */
-  public void add(int index, VectorStep v) {/** empty block */}
+  @Override
+public void add(int index, VectorStep v) {/** empty block */}
 
   /**
    * Overrides ArrayList method.
@@ -197,7 +201,8 @@ public class VectorChain extends ArrayList<VectorStep> {
    * @param index the index
    * @return the object removed
    */
-  public VectorStep remove(int index) {
+  @Override
+public VectorStep remove(int index) {
     return null;
   }
 
@@ -207,7 +212,8 @@ public class VectorChain extends ArrayList<VectorStep> {
    * @param obj the object to remove
    * @return false
    */
-  public boolean remove(Object obj) {
+  @Override
+public boolean remove(Object obj) {
     return false;
   }
 
@@ -217,7 +223,8 @@ public class VectorChain extends ArrayList<VectorStep> {
    * @param from index
    * @param to index
    */
-  public void removeRange(int from, int to) {/** empty block */}
+  @Override
+public void removeRange(int from, int to) {/** empty block */}
 
   /**
    * Overrides ArrayList method.
@@ -225,7 +232,8 @@ public class VectorChain extends ArrayList<VectorStep> {
    * @param c a collection
    * @return false
    */
-  public boolean retainAll(Collection<?> c) {
+  @Override
+public boolean retainAll(Collection<?> c) {
     return false;
   }
 
@@ -236,7 +244,8 @@ public class VectorChain extends ArrayList<VectorStep> {
    * @param c the collection to add
    * @return true if the collection is successfully added
    */
-  public boolean addAll(int index, Collection<? extends VectorStep> c) {
+  @Override
+public boolean addAll(int index, Collection<? extends VectorStep> c) {
     return false;
   }
 
@@ -247,7 +256,8 @@ public class VectorChain extends ArrayList<VectorStep> {
    * @param obj the object
    * @return the element previously at index
    */
-  public VectorStep set(int index, VectorStep obj) {
+  @Override
+public VectorStep set(int index, VectorStep obj) {
     return null;
   }
 

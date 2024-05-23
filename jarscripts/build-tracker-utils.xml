@@ -1,0 +1,227 @@
+<?xml version="1.0"?>
+<!DOCTYPE project>
+<project name="build-tracker-jar" default="countreader" basedir=".\">
+	<property name="workspace" value="../../" />
+	<property name="trackerdir" value="${workspace}/tracker" />
+	<property name="src_osp" value="${workspace}/osp/src" />
+	<property name="src_tracker" value="${trackerdir}/src" />
+	<property name="tracker-assets" value="${trackerdir}/resources/tracker-assets.zip" />
+	<property name="temp" value="temp-build" />
+	<property name="backup" value="${workspace}/backups/" />
+	<property name="output" value="${trackerdir}/distribution" />
+	<property name="build" value="${workspace}/build" />
+	<property name="props" value="${build}/properties" />
+	<property name="docs" value="${build}/javadoc"/>
+	<property name="author" value="Doug Brown" />
+
+	<tstamp>
+		<format property="buildtime.isoformat" pattern="MMM dd yyyy"/>
+		<format property="date" pattern="yyyy.MM.dd"/>
+	</tstamp>
+
+	<!--clean: clean the temp directory-->
+	<target name="clean">
+		<delete dir="${temp}/meta-inf"/>
+		<delete dir="${temp}"/>
+		<mkdir dir="${temp}"/>
+		<mkdir dir="${temp}/meta-inf"/>
+	</target>
+	
+	<!--countreader: copy bin and create tracker_count_reader.jar from temp directory-->
+    <target name="countreader" depends="copy_bin_for_analytics">
+		<manifest file="${temp}/meta-inf/COUNTREADER.mf">
+			<attribute name="Built-By" value="${author}"/>
+			<attribute name="Build-Date" value="${buildtime.isoformat}"/>
+			<attribute name="Main-Class" value="org.opensourcephysics.cabrillo.tracker.analytics.TrackerCountReader"/>
+			<attribute name="permissions" value="all-permissions"/>
+		</manifest >
+		<jar jarfile="${output}/tracker_count_reader.jar" basedir="${temp}" manifest="${temp}/meta-inf/COUNTREADER.mf" 
+			includes="
+            **/controls/,
+            **/display/,
+            **/tools/,
+			**/analytics/" 
+        	excludes="**/html/, **/*.zip, **/*.mp4, **/*.properties,  **/*.gif">
+		</jar>
+		<delete dir="${temp}"/>
+	</target>
+
+	<!--launchcounter: copy bin and create launch_counter.jar from temp directory-->
+    <target name="launchcounter" depends="copy_bin_for_analytics">
+		<manifest file="${temp}/meta-inf/LAUNCHCOUNT.mf">
+			<attribute name="Built-By" value="${author}"/>
+			<attribute name="Build-Date" value="${buildtime.isoformat}"/>
+			<attribute name="Main-Class" value="org.opensourcephysics.cabrillo.tracker.analytics.LaunchCounter"/>
+			<attribute name="permissions" value="all-permissions"/>
+		</manifest >
+		<jar jarfile="${output}/launch_counter.jar" basedir="${temp}" manifest="${temp}/meta-inf/LAUNCHCOUNT.mf" 
+			includes="
+            **/controls/,
+            **/display/,
+            **/tools/,
+			**/analytics/" 
+        	excludes="**/html/, **/*.zip, **/*.mp4, **/*.properties,  **/*.gif">
+		</jar>
+		<delete dir="${temp}"/>
+	</target>
+
+	<!--downloadcounter: copy bin and create download_counter.jar from temp directory-->
+    <target name="downloadcounter" depends="copy_bin_for_analytics">
+		<manifest file="${temp}/meta-inf/DOWNLOADCOUNT.mf">
+			<attribute name="Built-By" value="${author}"/>
+			<attribute name="Build-Date" value="${buildtime.isoformat}"/>
+			<attribute name="Main-Class" value="org.opensourcephysics.cabrillo.tracker.analytics.DownloadCounter"/>
+			<attribute name="permissions" value="all-permissions"/>
+		</manifest >
+		<jar jarfile="${output}/download_counter.jar" basedir="${temp}" manifest="${temp}/meta-inf/DOWNLOADCOUNT.mf" 
+			includes="
+            **/controls/,
+            **/display/,
+            **/tools/,
+			**/analytics/" 
+        	excludes="**/html/, **/*.zip, **/*.mp4, **/*.properties,  **/*.gif">
+		</jar>
+		<delete dir="${temp}"/>
+	</target>
+
+	<!--copy_bin: copy class files from bin to temp directory-->
+	<target name="copy_bin_for_analytics" depends="clean">
+		<copy todir="${temp}">
+            <fileset dir="${workspace}/osp/bin"
+          		excludes="
+            	test/, 
+            	testing/, 
+            	csm/, 
+            	davidson/, 
+            	demo/, 
+            	debugging/, 
+            	demoJS/, 
+            	**/*.zip, 
+            	**/*.mp4,
+            	**/tools_*, 
+            	**/launcher_*, 
+            	**/video_*, 
+            	**/display_res_*, 
+            	**/dialogs_res_*, 
+            	**/controls_res_*, 
+            	**/display_res_*, 
+            	**/dialogs_res_*, 
+            	**/controls_res_*, 
+            	*.xml, 
+            	*.txt" />
+            <fileset dir="${workspace}/tracker/bin"
+            	excludes="
+            	test/, 
+            	**/*.zip, 
+            	*.xml, 
+            	*.prefs, 
+            	*.txt" />
+		</copy>
+		<copy todir="${temp}/org/opensourcephysics/cabrillo/tracker/deploy">
+            <fileset dir="${workspace}/tracker/bin/org/opensourcephysics/cabrillo/tracker/deploy"/>
+		</copy>
+	</target>
+	
+	<!--javadocs: generate javadoc documentation-->
+	<target name="javadocs">
+		<copy todir="${temp}">
+			<fileset dir="${src_osp}" excludes=
+				"demo/, 
+				csm/, 
+				davidson/, 
+				demo/, 
+				demoJS/, 
+				debugging/, 
+				test/"/>
+			<fileset dir="${src_tracker}" excludes=
+				"test/"/>
+		</copy>
+		<delete dir="${docs}"/>
+		<mkdir dir="${docs}"/>
+		<javadoc packagenames="org.opensourcephysics.*" sourcepath="${temp}" destdir="${docs}">
+		    <classpath>
+		        <fileset dir="${trackerdir}/libraries">
+		            <include name="xuggle-xuggler-server-all.jar"/>
+		        </fileset>
+		    </classpath>
+		</javadoc>
+		<delete dir="${temp}"/>
+	</target>
+
+	<!--copy_src: copy source files to backup folder-->
+	<target name="backup_src" depends="clean">
+		<mkdir dir="${backup}src ${date}"/>
+		<copy todir="${backup}src ${date}">
+			<fileset dir="${src_osp}" excludes=
+				"demo/, 
+				csm/, 
+				davidson/, 
+				demo/, 
+				demoJS/, 
+				debugging/, 
+				test/"/>
+			<fileset dir="${src_tracker}" excludes=
+				"test/"/>
+		</copy>
+	</target>
+	
+	<!--encode_czech_polish_properties: convert czech, polish or hungarian properties files from ISO8859_2 to ascii with escapes-->
+	<target name="encode_czech_polish_properties" >
+	<native2ascii encoding="ISO8859_2" src="${props}" 
+	    dest="${props}"
+	    includes="*.properties" ext=".props" />
+	</target> 
+
+	<!--encode_turkish_properties: convert turkish properties files from ISO8859_3 to ascii with escapes-->
+	<target name="encode_turkish_properties" >
+	<native2ascii encoding="ISO8859_3" src="${props}" 
+	    dest="${props}"
+	    includes="*.properties" ext=".props" />
+	</target> 
+
+	<!--encode_russian_properties: convert russian/ukrainian properties files from ISO8859_5 to ascii with escapes-->
+	<target name="encode_russian_properties" >
+	<native2ascii encoding="ISO8859_5" src="${props}" 
+	    dest="${props}"
+	    includes="*.properties" ext=".props" />
+	</target> 
+
+	<!--encode_arabic_properties: convert arabic properties files from ISO8859_6 to ascii with escapes-->
+	<target name="encode_arabic_properties" >
+	<native2ascii encoding="ISO8859_6" src="${props}" 
+	    dest="${props}"
+	    includes="*.properties" ext=".props" />
+	</target> 
+
+	<!--encode_greek_properties: convert greek properties files from ISO8859_7 to ascii with escapes-->
+	<target name="encode_greek_properties" >
+	<native2ascii encoding="ISO8859_7" src="${props}" 
+	    dest="${props}"
+	    includes="*.properties" ext=".props" />
+	</target> 
+
+	<!--encode_hebrew_properties: convert hebrew properties files from ISO8859_8 to ascii with escapes-->
+	<target name="encode_hebrew_properties" >
+	<native2ascii encoding="ISO8859_8" src="${props}" 
+	    dest="${props}"
+	    includes="*.properties" ext=".props" />
+	</target> 
+
+	<!--encode_chinese_properties: convert chinese properties files from UTF8 to ascii with escapes-->
+	<target name="encode_chinese_properties" >
+	<native2ascii encoding="utf8" src="${props}" 
+	    dest="${props}"
+	    includes="*.properties" ext=".props" />
+	</target> 
+
+	<!--encode_thai_properties: convert thai properties files from TIS-620 to ascii with escapes-->
+	<!--first use thaiconv to convert UTF-8 thai files to TIS-620-->
+	<!--see ReadMe.txt in tracker/support/thai conversions-->
+	<target name="encode_thai_properties" >
+	<native2ascii encoding="TIS-620" src="${props}" 
+	    dest="${props}"
+	    includes="*.properties" ext=".props" />
+	</target> 
+
+
+</project>

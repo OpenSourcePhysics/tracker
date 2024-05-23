@@ -1,0 +1,20 @@
+<html>
+<body>
+<script>
+getField = function(key) {
+	var q = document.location.search || "";
+	q && (q = "&" + q.substring(1));
+	q += "&" + key + "=";
+	return q.split(key + "=")[1].split("&")[0];
+}
+youtubeid = getField("id") ||"UuaJX9xWJYU";
+youtubetime = +(getField("start") || 0);
+
+document.write(
+'<iframe id="iframe" src="https://www.youtube.com/embed/'
++ youtubeid + '"?start="'
++ youtubetime + '" width="560" height="315" frameborder="0" allow="accelerometer; encrypted-media; gyroscope; picture-in-picture"></iframe>'
+);
+</script>
+</body>
+</html>

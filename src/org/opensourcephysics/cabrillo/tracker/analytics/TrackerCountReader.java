@@ -17,6 +17,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.net.URL;
+import java.util.ArrayList;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -34,7 +35,6 @@ import org.opensourcephysics.tools.Resource;
  * Reads accumulated counts on the Tracker server.
  *
  * @author Doug Brown
- * @version 1.0
  */
 public class TrackerCountReader extends JFrame {
 	
@@ -47,7 +47,18 @@ public class TrackerCountReader extends JFrame {
 	private String downloadPHPPath = "https://physlets.org/tracker/installers/download.php?file="; //$NON-NLS-1$
 	private String[] actions = {"read launch counts", "read downloads", "version", "list launch log failures", "list download failures",  //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$
 			"clear launch log failures", "clear download failures", "test launch log", "test downloads"}; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
-	private String[] versions = {"all", "5.1.3",   //$NON-NLS-1$//$NON-NLS-2$
+	private String[] versions = {"all", "6.", "5.", "4.",  //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+			"6.1.6", "6.1.5", "6.1.4",    //$NON-NLS-1$//$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ 
+			"6.1.3", "6.1.2", "6.1.1",    //$NON-NLS-1$//$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ 
+			"6.1.0", "6.0.10", "6.0.9",    //$NON-NLS-1$//$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ 
+			"6.0.8", "6.0.7", "6.0.6",   //$NON-NLS-1$//$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ 
+			"6.0.5", "6.0.4", "6.0.3", "6.0.2",   //$NON-NLS-1$//$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ 
+			"6.0.1", "6.0.0", "5.3.4", "5.3.3",   //$NON-NLS-1$//$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$
+			"5.3.2", "5.3.1", "5.3.0",   //$NON-NLS-1$//$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$
+			"5.2.10", "5.2.9", "5.2.8",   //$NON-NLS-1$//$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$
+			"5.2.7", "5.2.6",   //$NON-NLS-1$//$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$
+			"5.2.5", "5.2.4", "5.2.3", "5.2.2",   //$NON-NLS-1$//$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$
+			"5.1.5", "5.1.4", "5.1.3",   //$NON-NLS-1$//$NON-NLS-2$ //$NON-NLS-3$ 
 			"5.1.2", "5.1.1", "5.1.0", "5.0.7", //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
 			"5.0.6", "5.0.5", "5.0.4", "5.0.3", "5.0.2", //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$ 
 			"5.0.1", "5.0.0", "4.11.0", "4.10.0", //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
@@ -55,7 +66,7 @@ public class TrackerCountReader extends JFrame {
 			"4.93", "4.92", "4.91", "4.90"}; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
 	private String[] OSs = {"all", "windows", "osx", "linux"}; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
 	private String[] engines = {"all", "Xuggle", "none"}; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ 
-	JComboBox actionDropdown, versionDropdown, osDropdown, engineDropdown;
+	JComboBox<String> actionDropdown, versionDropdown, osDropdown, engineDropdown;
 	JLabel actionLabel, versionLabel, osLabel, engineLabel;
 
 	JTextArea textArea;
@@ -72,10 +83,10 @@ public class TrackerCountReader extends JFrame {
 		osLabel = new JLabel("OS"); //$NON-NLS-1$
 		engineLabel = new JLabel("Engine"); //$NON-NLS-1$
 		
-		actionDropdown = new JComboBox(actions);
-		versionDropdown = new JComboBox(versions);
-		osDropdown = new JComboBox(OSs);
-		engineDropdown = new JComboBox(engines);
+		actionDropdown = new JComboBox<String>(actions);
+		versionDropdown = new JComboBox<String>(versions);
+		osDropdown = new JComboBox<String>(OSs);
+		engineDropdown = new JComboBox<String>(engines);
 		actionDropdown.setBorder(BorderFactory.createEmptyBorder(1, 4, 1, 4));
 		versionDropdown.setBorder(BorderFactory.createEmptyBorder(1, 4, 1, 4));
 		osDropdown.setBorder(BorderFactory.createEmptyBorder(1, 4, 1, 4));
@@ -103,87 +114,10 @@ public class TrackerCountReader extends JFrame {
 		
 		sendButton = new JButton("Send"); //$NON-NLS-1$
 		sendButton.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
-				if (textArea.getForeground().equals(Color.RED.darker())) {
-					String text = textArea.getText().trim();
-					String result = send(launchPHPPath+text);
-	      	textArea.setForeground(Color.BLACK);
-					textArea.setText(result);
-					return;
-				}
-				else {
-					String[] ver = null, os = null, eng = null;
-					String action = actionDropdown.getSelectedItem().toString();
-					if (action.contains("list")) { //$NON-NLS-1$
-						String result = null;
-						if (action.contains("launch")) { //$NON-NLS-1$
-							result = send(launchPHPPath+launchListPage);
-					  	if ("".equals(result)) result = "(no launch log failures)"; //$NON-NLS-1$ //$NON-NLS-2$
-						}
-						else {
-							result = send(downloadPHPPath+downloadListFile);
-							if ("".equals(result)) result = "(no download failures)"; //$NON-NLS-1$ //$NON-NLS-2$
-						}
-		      	textArea.setForeground(Color.BLACK);
-						textArea.setText(result);
-						return;
-					}
-					else if (action.equals("version")) { //$NON-NLS-1$
-		      	textArea.setForeground(Color.BLACK);
-						textArea.setText(send(launchPHPPath+"version")); //$NON-NLS-1$
-						return;
-					}
-					else if (action.contains("clear")) { //$NON-NLS-1$
-						String result = null;
-						if (action.contains("launch")) { //$NON-NLS-1$
-							result = send(launchPHPPath+launchClearPage);
-							if ("".equals(result)) result = "(cleared launch log failures)"; //$NON-NLS-1$ //$NON-NLS-2$
-						}
-						else {
-							result = send(downloadPHPPath+downloadClearFile);
-							if ("".equals(result)) result = "(cleared download failures)"; //$NON-NLS-1$ //$NON-NLS-2$
-						}
-		      	textArea.setForeground(Color.BLACK);
-						textArea.setText(result);
-						return;
-					}
-					else { // action is "read..." or "test..."
-						if (versionDropdown.getSelectedItem().equals("all")) { //$NON-NLS-1$
-							ver = new String[versions.length-1];
-							for (int i=0; i<ver.length; i++) {
-								ver[i] = versions[i+1];
-							}
-						}
-						else {
-							ver = new String[] {versionDropdown.getSelectedItem().toString()};
-						}
-						if (osDropdown.getSelectedItem().equals("all")) { //$NON-NLS-1$
-							os = new String[OSs.length-1];
-							for (int i=0; i<os.length; i++) {
-								os[i] = OSs[i+1];
-							}
-						}
-						else {
-							os = new String[] {osDropdown.getSelectedItem().toString()};
-						}
-						if (engineDropdown.getSelectedItem().equals("all")) { //$NON-NLS-1$
-							eng = new String[engines.length-1];
-							for (int i=0; i<eng.length; i++) {
-								eng[i] = engines[i+1];
-							}
-						}
-						else {
-							eng = new String[] {engineDropdown.getSelectedItem().toString()};
-						}
-					}
-					String result = send(actionDropdown.getSelectedItem().toString(), ver, os, eng);
-	      	textArea.setForeground(Color.BLACK);
-					String command = versionDropdown.getSelectedItem()+"_"+osDropdown.getSelectedItem(); //$NON-NLS-1$
-					if (!action.contains("download")) { //$NON-NLS-1$
-						command += "_"+engineDropdown.getSelectedItem(); //$NON-NLS-1$
-					}
-					textArea.setText(action+" "+command+": "+result); //$NON-NLS-1$ //$NON-NLS-2$
-				}
+				send();
+//				javax.swing.SwingUtilities.invokeLater(() -> {send();});
 			}
 		});
 		
@@ -198,7 +132,8 @@ public class TrackerCountReader extends JFrame {
 		
 		textArea = new JTextArea();
 		textArea.addKeyListener(new KeyAdapter() {
-      public void keyPressed(KeyEvent e) {
+      @Override
+			public void keyPressed(KeyEvent e) {
       	textArea.setForeground(Color.RED.darker());
       }
     });
@@ -209,9 +144,107 @@ public class TrackerCountReader extends JFrame {
 		pack();		
 	}
 	
-	private String send(String command) {
+	private void send() {
+		if (textArea.getForeground().equals(Color.RED.darker())) {
+			String text = textArea.getText().trim();
+			String result = send(launchPHPPath, text);
+    	textArea.setForeground(Color.BLACK);
+			textArea.setText(result);
+			return;
+		}
+		else {
+			String[] ver = null, os = null, eng = null;
+			String action = actionDropdown.getSelectedItem().toString();
+			if (action.contains("list")) { //$NON-NLS-1$
+				String result = null;
+				if (action.contains("launch")) { //$NON-NLS-1$
+					result = send(launchPHPPath, launchListPage);
+			  	if ("".equals(result)) result = "(no launch log failures)"; //$NON-NLS-1$ //$NON-NLS-2$
+				}
+				else {
+					result = send(downloadPHPPath, downloadListFile);
+					if ("".equals(result)) result = "(no download failures)"; //$NON-NLS-1$ //$NON-NLS-2$
+				}
+      	textArea.setForeground(Color.BLACK);
+				textArea.setText(result);
+				return;
+			}
+			else if (action.equals("version")) { //$NON-NLS-1$
+      	textArea.setForeground(Color.BLACK);
+				textArea.setText(send(launchPHPPath, "version")); //$NON-NLS-1$
+				return;
+			}
+			else if (action.contains("clear")) { //$NON-NLS-1$
+				String result = null;
+				if (action.contains("launch")) { //$NON-NLS-1$
+					result = send(launchPHPPath, launchClearPage);
+					if ("".equals(result)) result = "(cleared launch log failures)"; //$NON-NLS-1$ //$NON-NLS-2$
+				}
+				else {
+					result = send(downloadPHPPath, downloadClearFile);
+					if ("".equals(result)) result = "(cleared download failures)"; //$NON-NLS-1$ //$NON-NLS-2$
+				}
+      	textArea.setForeground(Color.BLACK);
+				textArea.setText(result);
+				return;
+			}
+			else { // action is "read..." or "test..."
+				if (versionDropdown.getSelectedItem().equals("all")) { //$NON-NLS-1$
+					ArrayList<String> vers = new ArrayList<String>();
+					for (int i=0; i<versions.length; i++) {
+						if (versions[i].length() >= 4) {
+							vers.add(versions[i]);
+						}
+					}
+					ver = vers.toArray(new String[vers.size()]);
+				}
+				else if (versionDropdown.getSelectedItem().equals("4.") //$NON-NLS-1$
+						|| versionDropdown.getSelectedItem().equals("5.")
+						|| versionDropdown.getSelectedItem().equals("6.")) { //$NON-NLS-1$
+					ArrayList<String> vers = new ArrayList<String>();
+					String s = versionDropdown.getSelectedItem().toString();
+					for (int i=0; i<versions.length; i++) {
+						if (versions[i].startsWith(s) && !versions[i].equals(s)) {
+							vers.add(versions[i]);
+						}
+					}
+					ver = vers.toArray(new String[vers.size()]);
+				}
+				else {
+					ver = new String[] {versionDropdown.getSelectedItem().toString()};
+				}
+				if (osDropdown.getSelectedItem().equals("all")) { //$NON-NLS-1$
+					os = new String[OSs.length-1];
+					for (int i=0; i<os.length; i++) {
+						os[i] = OSs[i+1];
+					}
+				}
+				else {
+					os = new String[] {osDropdown.getSelectedItem().toString()};
+				}
+				if (engineDropdown.getSelectedItem().equals("all")) { //$NON-NLS-1$
+					eng = new String[engines.length-1];
+					for (int i=0; i<eng.length; i++) {
+						eng[i] = engines[i+1];
+					}
+				}
+				else {
+					eng = new String[] {engineDropdown.getSelectedItem().toString()};
+				}
+			}
+			String result = send(actionDropdown.getSelectedItem().toString(), ver, os, eng);
+    	textArea.setForeground(Color.BLACK);
+			String command = versionDropdown.getSelectedItem()+"_"+osDropdown.getSelectedItem(); //$NON-NLS-1$
+			if (!action.contains("download")) { //$NON-NLS-1$
+				command += "_"+engineDropdown.getSelectedItem(); //$NON-NLS-1$
+			}
+			textArea.setText(action+" "+command+": "+result); //$NON-NLS-1$ //$NON-NLS-2$							
+		}
+  }
+	
+	private String send(String path, String command) {
     try {
-			URL url = new URL(command);
+			URL url = new URL(path+command);
 			Resource res = new Resource(url);
 	    return res.getString().trim();
 		} catch (Exception e) {
@@ -233,12 +266,36 @@ public class TrackerCountReader extends JFrame {
 					// typical Tracker-4.9.8-linux-32bit-installer.run
 					// typical Tracker-4.9.8-linux-64bit-installer.run
 					String osname = os[j];
-					String ext = osname.equals("windows")? ".exe": osname.equals("osx")? ".zip": ".run"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$
+					String ext = osname.equals("windows")? ".exe": osname.equals("osx")? ".dmg": ".run"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$
+					if (osname.equals("osx")) { // change ext to "zip" for versions earlier than 5.1.3 //$NON-NLS-1$
+						// if index of version 5.1.3 is smaller than index of  then i must be older version
+						for (int k=0; k<versions.length; k++) {
+							if (versions[k].equals(ver[i])) {
+								break;
+							}
+							if (versions[k].equals("5.1.3")) { //$NON-NLS-1$
+								ext = ".zip"; //$NON-NLS-1$
+								break;
+							}
+						}
+					}
 					if (osname.equals("linux")) { //$NON-NLS-1$
-						osname = "linux-32bit"; //$NON-NLS-1$
+						osname = ver[i].startsWith("6")? "linux-64bit": "linux-32bit"; //$NON-NLS-1$
 					}
 					String command = "Tracker-"+ver[i]+"-"+osname+"-installer"+ext; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-					String result = send(downloadPHPPath+command+suffix);
+					if (ver[i].equals("6.0.0") && osname.equals(OSs[1])) {
+						command = "Tracker-"+ver[i]+"-"+osname+"-64bit-installer"+ext; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+					}
+					else if (ver[i].startsWith("6") && osname.equals(OSs[1])) {
+						command = "Tracker-"+ver[i]+"-"+osname+"-x64-installer"+ext; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+					}
+					else if (ver[i].startsWith("5.2") && !osname.equals(OSs[2])) {
+						continue;
+					}
+					else if (ver[i].startsWith("5.3") && !osname.equals(OSs[2])) {
+						continue;
+					}
+					String result = send(downloadPHPPath, command+suffix);
 					commands += NEW_LINE+command+": "+result; //$NON-NLS-1$
 					if (action.contains("read")) { //$NON-NLS-1$
 						try {
@@ -249,9 +306,9 @@ public class TrackerCountReader extends JFrame {
 							return "failed to parse "+result; //$NON-NLS-1$
 						}
 					}
-					if (osname.contains("linux")) { //$NON-NLS-1$
+					if (osname.contains("linux") && !ver[i].startsWith("6")) { //$NON-NLS-1$
 						command = "Tracker-"+ver[i]+"-linux-64bit-installer"+ext; //$NON-NLS-1$ //$NON-NLS-2$
-						result = send(downloadPHPPath+command+suffix);
+						result = send(downloadPHPPath, command+suffix);
 						commands += NEW_LINE+command+": "+result; //$NON-NLS-1$
 						if (action.contains("read")) { //$NON-NLS-1$
 							try {
@@ -272,7 +329,7 @@ public class TrackerCountReader extends JFrame {
 						if (action.contains("test")) { //$NON-NLS-1$
 							command = "log_"+ver[i]+"_"+osname+"_"+eng[k]+"test"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
 						}
-						String result = send(launchPHPPath+command);
+						String result = send(launchPHPPath, command);
 						commands += NEW_LINE+ver[i]+"_"+osname+"_"+eng[k]+": "+result; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 						if (action.contains("read")) { //$NON-NLS-1$
 							try {
@@ -339,6 +396,6 @@ public class TrackerCountReader extends JFrame {
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston MA 02111-1307 USA
  * or view the license online at http://www.gnu.org/copyleft/gpl.html
  *
- * Copyright (c) 2019  The Open Source Physics project
+ * Copyright (c) 2024  The Open Source Physics project
  *                     https://www.compadre.org/osp
  */

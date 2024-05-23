@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2019  Douglas Brown
+ * Copyright (c) 2024 Douglas Brown, Wolfgang Christian, Robert M. Hanson
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,11 +25,14 @@
 package org.opensourcephysics.cabrillo.tracker;
 
 import java.awt.*;
+import java.awt.event.MouseEvent;
 
 import javax.swing.JOptionPane;
 
+import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
+import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.media.core.*;
 import org.opensourcephysics.tools.FontSizer;
 
@@ -96,9 +99,10 @@ public class CalibrationStep extends Step {
    *
    * @return the default TPoint
    */
-  public TPoint getDefaultPoint() {
+  @Override
+public TPoint getDefaultPoint() {
     if (points[1] == null) return points[0];
-    if (cal.trackerPanel.getSelectedPoint()==points[0]) return points[0];
+    if (cal.tp.getSelectedPoint()==points[0]) return points[0];
     return points[1];
   }
 
@@ -108,8 +112,9 @@ public class CalibrationStep extends Step {
    * @param trackerPanel the tracker panel
    * @return the mark
    */
-  protected Mark getMark(TrackerPanel trackerPanel) {
-    Mark mark = marks.get(trackerPanel);
+  @Override
+protected Mark getMark(TrackerPanel trackerPanel) {
+    Mark mark = panelMarks.get(trackerPanel.getID());
     TPoint selection = null;
     if (mark == null) {
       ImageCoordSystem coords = trackerPanel.getCoords();
@@ -126,7 +131,7 @@ public class CalibrationStep extends Step {
       }
       // get point shapes
       selection = trackerPanel.getSelectedPoint();
-      final Shape[] shapes = new Shape[points.length];
+      final MultiShape[] shapes = new MultiShape[points.length];
       for (int i = 0; i < points.length; i++) {
         if (points[i] == null) continue;
         Point p = points[i].getScreenPosition(trackerPanel);
@@ -136,38 +141,28 @@ public class CalibrationStep extends Step {
           if (scale>1) {
           	transform.scale(scale, scale);
           }
-          shapes[i] = transform.createTransformedShape(selectionShape);
+          shapes[i] = new MultiShape(transform.createTransformedShape(selectionShape)).andStroke(selectionStroke);
         }
         else { // point not selected
-          shapes[i] = footprint.getShape(new Point[] {p});
+          shapes[i] = footprint.getShape(new Point[] {p}, FontSizer.getIntegerFactor());
         }
       }
       // create mark
       final Color color = footprint.getColor();
       mark = new Mark() {
+        @Override
         public void draw(Graphics2D g, boolean highlighted) {
           Paint gpaint = g.getPaint();
           g.setPaint(color);
-          g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+          if (OSPRuntime.setRenderingHints) g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
               RenderingHints.VALUE_ANTIALIAS_ON);
           for (int i = 0; i < points.length; i++) {
-            if (shapes[i] != null) g.fill(shapes[i]);
+            if (shapes[i] != null) shapes[i].draw(g);
           }
           g.setPaint(gpaint);
         }
-
-        public Rectangle getBounds(boolean highlighted) {
-          Rectangle bounds = null;
-          for (int i = 0; i < points.length; i++) {
-            if (shapes[i] != null) {
-              if (bounds == null) bounds = shapes[i].getBounds();
-              else bounds.add(shapes[i].getBounds());
-            }
-          }
-          return bounds;
-        }
       };
-      marks.put(trackerPanel, mark);
+      panelMarks.put(trackerPanel.getID(), mark);
     }
     return mark;
   }
@@ -177,7 +172,8 @@ public class CalibrationStep extends Step {
    *
    * @return a clone of this step
    */
-  public Object clone() {
+  @Override
+public Object clone() {
     CalibrationStep step = (CalibrationStep)super.clone();
     step.points[0] = step.new Position(points[0].x, points[0].y);
     if (points[1] != null) {
@@ -207,7 +203,7 @@ public class CalibrationStep extends Step {
     if ((sameX && cal.axes == Calibration.X_AXIS) ||
     		(sameY && cal.axes == Calibration.Y_AXIS) ||
     		(sameX && sameY && cal.axes == Calibration.XY_AXES)) {
-      JOptionPane.showMessageDialog(track.trackerPanel, 
+      JOptionPane.showMessageDialog(track.tp, 
       				TrackerRes.getString("Calibration.Dialog.InvalidCoordinates.Message"),  //$NON-NLS-1$
       				TrackerRes.getString("Calibration.Dialog.InvalidCoordinates.Title"),  //$NON-NLS-1$
       				JOptionPane.WARNING_MESSAGE);
@@ -234,9 +230,9 @@ public class CalibrationStep extends Step {
     if (points[1]!=null) {
       updateCoords();
     }
-    else if (cal.trackerPanel!=null) {
-      ImageCoordSystem coords = cal.trackerPanel.getCoords();
-      int n = cal.trackerPanel.getFrameNumber();
+    else if (cal.tp!=null) {
+      ImageCoordSystem coords = cal.tp.getCoords();
+      int n = cal.tp.getFrameNumber();
       // get the current image position of the origin and points[0]
       double x0 = coords.getOriginX(n);
       double y0 = coords.getOriginY(n);
@@ -253,7 +249,8 @@ public class CalibrationStep extends Step {
    *
    * @return a descriptive string
    */
-  public String toString() {
+  @Override
+public String toString() {
     String s = "Calibration Points Step " + n //$NON-NLS-1$
            + " [" + format.format(worldX0) //$NON-NLS-1$
            + ", " + format.format(worldY0); //$NON-NLS-1$
@@ -274,7 +271,7 @@ public class CalibrationStep extends Step {
    * coordinates of both calibration points.
    */
   private void updateCoords() {
-    if (points[1] == null || cal.trackerPanel == null) return;
+    if (points[1] == null || cal.tp == null) return;
     if (cal.axes == Calibration.X_AXIS) {
     	updateCoordsXOnly();
     	return;
@@ -283,8 +280,8 @@ public class CalibrationStep extends Step {
     	updateCoordsYOnly();
     	return;
     }
-    ImageCoordSystem coords = cal.trackerPanel.getCoords();
-    int n = cal.trackerPanel.getFrameNumber();
+    ImageCoordSystem coords = cal.tp.getCoords();
+    int n = cal.tp.getFrameNumber();
     // get the world coordinates of both points
     double wx0 = worldX0;
     double wy0 = worldY0;
@@ -322,8 +319,8 @@ public class CalibrationStep extends Step {
    * x-coordinates of both calibration points.
    */
   private void updateCoordsXOnly() {
-    ImageCoordSystem coords = cal.trackerPanel.getCoords();
-    int n = cal.trackerPanel.getFrameNumber();
+    ImageCoordSystem coords = cal.tp.getCoords();
+    int n = cal.tp.getFrameNumber();
     // get the world coordinates of the points
     double wx0 = worldX0;
     double wy0 = worldY0;
@@ -371,8 +368,8 @@ public class CalibrationStep extends Step {
    * y-coordinates of both calibration points.
    */
   private void updateCoordsYOnly() {
-    ImageCoordSystem coords = cal.trackerPanel.getCoords();
-    int n = cal.trackerPanel.getFrameNumber();
+    ImageCoordSystem coords = cal.tp.getCoords();
+    int n = cal.tp.getFrameNumber();
     // get the world coordinates of the points
     double wx0 = worldX0;
     double wy0 = worldY0;
@@ -431,8 +428,6 @@ public class CalibrationStep extends Step {
    */
   public class Position extends TPoint {
 
-    private double lastX, lastY;
-    
     /**
      * Constructs a position with specified image coordinates,
      * and transforms those coordinates to set the world coordinates.
@@ -445,9 +440,9 @@ public class CalibrationStep extends Step {
       super.setXY(x, y);
       setCoordsEditTrigger(true);
       // set the world coordinates using x and y
-      if (cal.trackerPanel != null) {
-	      ImageCoordSystem coords = cal.trackerPanel.getCoords();
-	      int n = cal.trackerPanel.getFrameNumber();
+      if (cal.tp != null) {
+	      ImageCoordSystem coords = cal.tp.getCoords();
+	      int n = cal.tp.getFrameNumber();
 	      if (points[0]==null) { // this is first position created
 	        worldX0 = coords.imageToWorldX(n, x, y);
 	        worldY0 = coords.imageToWorldY(n, x, y);
@@ -466,7 +461,8 @@ public class CalibrationStep extends Step {
      * @param x the x position
      * @param y the y position
      */
-    public void setXY(double x, double y) {
+    @Override
+	public void setXY(double x, double y) {
       if (getTrack().isLocked()) return;
       // calibration points can't share the same image position
       int i = this == points[0]? 1: 0;
@@ -474,22 +470,23 @@ public class CalibrationStep extends Step {
           points[i].getX() == x &&
           points[i].getY() == y) {
         Toolkit.getDefaultToolkit().beep();
+				OSPLog.finer("calibration points cannot be identical");
         return;
       }
       if (isAdjusting()) {
-      	lastX = x;
-      	lastY = y;
+      	prevX = x;
+      	prevY = y;
       }
       double dx = x - getX();
       double dy = y - getY();
       super.setXY(x, y);
-      ImageCoordSystem coords = cal.trackerPanel.getCoords();
+      ImageCoordSystem coords = cal.tp.getCoords();
       coords.setAdjusting(isAdjusting());
       if (points[1] != null){
         updateCoords();
       }
-      else if (cal.trackerPanel != null) {
-        int n = cal.trackerPanel.getFrameNumber();
+      else if (cal.tp != null) {
+        int n = cal.tp.getFrameNumber();
         // get the current image position of the origin
         double x0 = coords.getOriginX(n);
         double y0 = coords.getOriginY(n);
@@ -515,7 +512,8 @@ public class CalibrationStep extends Step {
      *
      * @param vidPanel the video panel
      */
-    public void showCoordinates(VideoPanel vidPanel) {
+    @Override
+	public void showCoordinates(VideoPanel vidPanel) {
       // put values into calibration x and y fields
     	if (this==points[0]) {
 	      cal.xField.setValue(worldX0);
@@ -533,12 +531,13 @@ public class CalibrationStep extends Step {
      *
      * @param adjusting true if being dragged
      */
-    public void setAdjusting(boolean adjusting) {
+    @Override
+	public void setAdjusting(boolean adjusting, MouseEvent e) {
     	boolean wasAdjusting = isAdjusting();
-    	super.setAdjusting(adjusting);
-    	if (wasAdjusting && !adjusting) {
-    		setXY(lastX, lastY);
-    		getTrack().firePropertyChange("step", null, n); //$NON-NLS-1$
+    	super.setAdjusting(adjusting, e);
+    	if (wasAdjusting && !adjusting && !java.lang.Double.isNaN(prevX)) {
+    		setXY(prevX, prevY);
+    		getTrack().firePropertyChange(TTrack.PROPERTY_TTRACK_STEP, null, n); //$NON-NLS-1$
     	}
     }
 
@@ -565,7 +564,8 @@ public class CalibrationStep extends Step {
      * @param control the control to save to
      * @param obj the object to save
      */
-    public void saveObject(XMLControl control, Object obj) {
+    @Override
+	public void saveObject(XMLControl control, Object obj) {
     	CalibrationStep step = (CalibrationStep) obj;
     	double[] data = new double[] {step.worldX0, step.worldY0, step.worldX1, step.worldY1};
       control.setValue("world_coordinates", data); //$NON-NLS-1$
@@ -577,7 +577,8 @@ public class CalibrationStep extends Step {
      * @param control the control
      * @return the newly created object
      */
-    public Object createObject(XMLControl control) {
+    @Override
+	public Object createObject(XMLControl control) {
     	// this loader is not intended to be used to create new steps,
     	// but only for undo/redo step edits.
       return null;
@@ -590,7 +591,8 @@ public class CalibrationStep extends Step {
      * @param obj the object
      * @return the loaded object
      */
-    public Object loadObject(XMLControl control, Object obj) {
+    @Override
+	public Object loadObject(XMLControl control, Object obj) {
     	CalibrationStep step = (CalibrationStep)obj;
       double[] data = (double[])control.getObject("world_coordinates"); //$NON-NLS-1$
       if (data!=null) {

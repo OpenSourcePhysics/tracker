@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2019  Douglas Brown
+ * Copyright (c) 2024 Douglas Brown, Wolfgang Christian, Robert M. Hanson
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,7 +25,9 @@
 package org.opensourcephysics.cabrillo.tracker;
 
 import java.awt.*;
+import java.awt.event.MouseEvent;
 
+import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.media.core.*;
 import org.opensourcephysics.tools.FontSizer;
 
@@ -91,9 +93,9 @@ public class OffsetOriginStep extends Step {
     	offset.keyFrames.add(n);
   	}            
     
-    if (offset.trackerPanel == null) return;
-    ImageCoordSystem coords = offset.trackerPanel.getCoords();
-    int n = offset.trackerPanel.getFrameNumber();
+    if (offset.tp == null) return;
+    ImageCoordSystem coords = offset.tp.getCoords();
+    int n = offset.tp.getFrameNumber();
     // get the current image position of the origin
     double x0 = coords.getOriginX(n);
     double y0 = coords.getOriginY(n);
@@ -110,8 +112,9 @@ public class OffsetOriginStep extends Step {
    * @param trackerPanel the tracker panel
    * @return the mark
    */
-  protected Mark getMark(TrackerPanel trackerPanel) {
-    Mark mark = marks.get(trackerPanel);
+  @Override
+protected Mark getMark(TrackerPanel trackerPanel) {
+    Mark mark = panelMarks.get(trackerPanel.getID());
     TPoint selection = null;
     if (mark == null) {
       ImageCoordSystem coords = trackerPanel.getCoords();
@@ -121,7 +124,7 @@ public class OffsetOriginStep extends Step {
       double y = coords.worldToImageY(n, worldX, worldY);
       p.setLocation(x, y);
       // get point shape
-      Shape shape;
+      MultiShape shape;
       selection = trackerPanel.getSelectedPoint();
       Point pt = points[0].getScreenPosition(trackerPanel);
       if (selection == points[0]) { // point is selected
@@ -130,29 +133,25 @@ public class OffsetOriginStep extends Step {
         if (scale>1) {
         	transform.scale(scale, scale);
         }
-        shape = transform.createTransformedShape(selectionShape);
+        shape = new MultiShape(transform.createTransformedShape(selectionShape)).andStroke(selectionStroke);
       }
       else { // point is not selected
-        shape = footprint.getShape(new Point[] {pt});
+        shape = footprint.getShape(new Point[] {pt}, FontSizer.getIntegerFactor());
       }
       // create mark
-      final Color color = footprint.getColor();
-      final Shape fillShape = shape;
+      Color color = footprint.getColor();
       mark = new Mark() {
+        @Override
         public void draw(Graphics2D g, boolean highlighted) {
           Paint gpaint = g.getPaint();
-          g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+          if (OSPRuntime.setRenderingHints) g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
               RenderingHints.VALUE_ANTIALIAS_ON);
           g.setPaint(color);
-          g.fill(fillShape);
+          shape.draw(g);
           g.setPaint(gpaint);
         }
-
-        public Rectangle getBounds(boolean highlighted) {
-          return fillShape.getBounds();
-        }
       };
-      marks.put(trackerPanel, mark);
+      panelMarks.put(trackerPanel.getID(), mark);
     }
     return mark;
   }
@@ -162,7 +161,8 @@ public class OffsetOriginStep extends Step {
    *
    * @return a clone of this step
    */
-  public Object clone() {
+  @Override
+public Object clone() {
     OffsetOriginStep step = (OffsetOriginStep)super.clone();
     step.points[0] = step.p = step.new Position(p.x, p.y);
     return step;
@@ -173,7 +173,8 @@ public class OffsetOriginStep extends Step {
    *
    * @return a descriptive string
    */
-  public String toString() {
+  @Override
+public String toString() {
     String s = "Offset Origin Step " + n //$NON-NLS-1$
            + " [" + format.format(worldX) //$NON-NLS-1$
            + ", " + format.format(worldY) //$NON-NLS-1$
@@ -187,8 +188,6 @@ public class OffsetOriginStep extends Step {
    * A class to represent the position of the offset origin.
    */
   public class Position extends TPoint {
-
-    private double lastX, lastY;
     
     /**
      * Constructs a position with specified image coordinates,
@@ -200,10 +199,10 @@ public class OffsetOriginStep extends Step {
     public Position(double x, double y) {
       super.setXY(x, y);
       setCoordsEditTrigger(true);
-      if (offset.trackerPanel == null) return;
+      if (offset.tp == null) return;
       // set the world coordinates using x and y
-      ImageCoordSystem coords = offset.trackerPanel.getCoords();
-      int n = offset.trackerPanel.getFrameNumber();
+      ImageCoordSystem coords = offset.tp.getCoords();
+      int n = offset.tp.getFrameNumber();
       worldX = coords.imageToWorldX(n, x, y);
       worldY = coords.imageToWorldY(n, x, y);
     }
@@ -215,19 +214,20 @@ public class OffsetOriginStep extends Step {
      * @param x the x position
      * @param y the y position
      */
-    public void setXY(double x, double y) {
+    @Override
+	public void setXY(double x, double y) {
       if (getTrack().isLocked()) return;
       if (isAdjusting()) {
-      	lastX = x;
-      	lastY = y;
+      	prevX = x;
+      	prevY = y;
       }
       double dx = x - getX();
       double dy = y - getY();
       super.setXY(x, y);
-      if (offset.trackerPanel == null) return;      
-      ImageCoordSystem coords = offset.trackerPanel.getCoords();
+      if (offset.tp == null) return;      
+      ImageCoordSystem coords = offset.tp.getCoords();
       coords.setAdjusting(isAdjusting());
-      int n = offset.trackerPanel.getFrameNumber();
+      int n = offset.tp.getFrameNumber();
       // get the current image position of the origin
       double x0 = coords.getOriginX(n);
       double y0 = coords.getOriginY(n);
@@ -243,12 +243,13 @@ public class OffsetOriginStep extends Step {
      *
      * @param adjusting true if being dragged
      */
-    public void setAdjusting(boolean adjusting) {
+    @Override
+	public void setAdjusting(boolean adjusting, MouseEvent e) {
     	boolean wasAdjusting = isAdjusting();
-    	super.setAdjusting(adjusting);
-    	if (wasAdjusting && !adjusting) {
-    		setXY(lastX, lastY);
-    		getTrack().firePropertyChange("step", null, n); //$NON-NLS-1$
+    	super.setAdjusting(adjusting, e);
+    	if (wasAdjusting && !adjusting && !java.lang.Double.isNaN(prevX)) {
+    		setXY(prevX, prevY);
+    		getTrack().firePropertyChange(TTrack.PROPERTY_TTRACK_STEP, null, n); //$NON-NLS-1$
     	}
     }
 
@@ -258,7 +259,8 @@ public class OffsetOriginStep extends Step {
      *
      * @param vidPanel the video panel
      */
-    public void showCoordinates(VideoPanel vidPanel) {
+    @Override
+	public void showCoordinates(VideoPanel vidPanel) {
       // put values into offset x and y fields
       offset.xField.setValue(worldX);
       offset.yField.setValue(worldY);

@@ -298,6 +298,17 @@
         </property>
         <property name="item" type="object">
         <object class="org.opensourcephysics.tools.LaunchNode">
+            <property name="name" type="string">World View</property>
+            <property name="html" type="array" class="[[Ljava.lang.String;">
+                <property name="[0]" type="array" class="[Ljava.lang.String;">
+                    <property name="[1]" type="string">/org/opensourcephysics/cabrillo/tracker/resources/help/worldview.html</property>
+                </property>
+            </property>
+            <property name="keywords" type="string">worldview</property>
+        </object>
+        </property>
+        <property name="item" type="object">
+        <object class="org.opensourcephysics.tools.LaunchNode">
             <property name="name" type="string">Page View</property>
             <property name="html" type="array" class="[[Ljava.lang.String;">
                 <property name="[0]" type="array" class="[Ljava.lang.String;">

@@ -1,7 +1,7 @@
 /*
  * The tracker.deploy package defines classes for launching and installing Tracker.
  *
- * Copyright (c) 2019  Douglas Brown
+ * Copyright (c) 2024 Douglas Brown, Wolfgang Christian, Robert M. Hanson
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,7 +33,8 @@ import java.io.FilenameFilter;
  */
 public class TrackerJarFilter implements FilenameFilter {
 	
-  public boolean accept(File dir, String name) {
+  @Override
+public boolean accept(File dir, String name) {
     String fileName = getName(name).toLowerCase();
     if (!fileName.endsWith(".jar")) return false; //$NON-NLS-1$
     if (fileName.equals("tracker.jar")) return true; //$NON-NLS-1$

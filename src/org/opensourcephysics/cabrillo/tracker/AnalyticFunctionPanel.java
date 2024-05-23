@@ -14,6 +14,7 @@ import org.opensourcephysics.tools.*;
  *
  * @author Douglas Brown
  */
+@SuppressWarnings("serial")
 public class AnalyticFunctionPanel extends ModelFunctionPanel {
 
   /**
@@ -38,7 +39,8 @@ public class AnalyticFunctionPanel extends ModelFunctionPanel {
   /**
 	 * Refreshes the GUI.
 	 */
-  protected void refreshGUI() {
+  @Override
+protected void refreshGUI() {
   	super.refreshGUI();
   	functionEditor.setBorderTitle(TrackerRes.getString("AnalyticFunctionPanel.FunctionEditor.Border.Title")); //$NON-NLS-1$
   }
@@ -65,6 +67,6 @@ public class AnalyticFunctionPanel extends ModelFunctionPanel {
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston MA 02111-1307 USA
  * or view the license online at http://www.gnu.org/copyleft/gpl.html
  *
- * Copyright (c) 2019  The Open Source Physics project
+ * Copyright (c) 2024  The Open Source Physics project
  *                     https://www.compadre.org/osp
  */

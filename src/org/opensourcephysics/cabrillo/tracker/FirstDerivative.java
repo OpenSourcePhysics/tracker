@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2019  Douglas Brown
+ * Copyright (c) 2024 Douglas Brown, Wolfgang Christian, Robert M. Hanson
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,7 +33,7 @@ public class FirstDerivative implements Derivative {
 
   // instance fields
   private int spill, start, step, count;
-  private double[] xDeriv, yDeriv = new double[0];
+  private double[] xDeriv = new double[0], yDeriv;
   private Object[] result = new Object[4];
 
   /**
@@ -42,19 +42,20 @@ public class FirstDerivative implements Derivative {
    * Input data:
    *    data[0] = parameters (int[] {spill, start, stepsize, count})
    *    data[1] = xData (double[])
-   *    data[2] = yData (double[])
+   *    data[2] = yData (double[]) (may be null for 1d data)
    *    data[3] = validData (boolean[])
    *    
    * Returned result:
    *    result[0] = xDeriv (double[]) (invalid values are NaN)
-   *    result[1] = yDeriv (double[]) (invalid values are NaN)
+   *    result[1] = yDeriv (double[]) (invalid values are NaN) (null if input data[2] is null)
    *    result[2] = null
    *    result[3] = null
    *
    * @param data the input data
    * @return Object[] the result
    */
-  public Object[] evaluate(Object[] data) {
+  @Override
+public Object[] evaluate(Object[] data) {
     int[] params = (int[])data[0];
     spill = params[0];
     start = params[1];
@@ -63,7 +64,7 @@ public class FirstDerivative implements Derivative {
     double[] x = (double[])data[1];
     double[] y = (double[])data[2];
     boolean[] valid = (boolean[])data[3];
-    if (yDeriv.length != x.length) {
+    if (xDeriv.length != x.length) {
       result[0] = xDeriv = new double[x.length];
       result[1] = yDeriv = new double[x.length];
     }
@@ -82,7 +83,8 @@ public class FirstDerivative implements Derivative {
         if (j < 0 || j >= valid.length || !valid[j]) {
         	if (i<valid.length) {
         		xDeriv[i] = Double.NaN;
-        		yDeriv[i] = Double.NaN;
+        		if (y != null)
+        			yDeriv[i] = Double.NaN;
         	}
           continue outer;
         }
@@ -92,17 +94,19 @@ public class FirstDerivative implements Derivative {
       if (spill == 1) {
         xDeriv[i] = (- x[i - step]
                      + x[i + step]) / 2;
-        yDeriv[i] = (- y[i - step]
-                     + y[i + step]) / 2;
+    		if (y != null)
+	        yDeriv[i] = (- y[i - step]
+	                     + y[i + step]) / 2;
       } else { // spill is 2
         xDeriv[i] = (- 2 * x[i - 2*step]
                      - x[i - step]
                      + x[i + step]
                      + 2 * x[i + 2*step]) / 10;
-        yDeriv[i] = (- 2 * y[i - 2*step]
-                     - y[i - step]
-                     + y[i + step]
-                     + 2 * y[i + 2*step]) / 10;
+    		if (y != null)
+	        yDeriv[i] = (- 2 * y[i - 2*step]
+	                     - y[i - step]
+	                     + y[i + step]
+	                     + 2 * y[i + 2*step]) / 10;
       }
     }
     return result;

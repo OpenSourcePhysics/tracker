@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2019  Douglas Brown
+ * Copyright (c) 2024 Douglas Brown, Wolfgang Christian, Robert M. Hanson
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,6 +28,8 @@ import java.awt.*;
 import java.awt.geom.*;
 import javax.swing.*;
 
+import org.opensourcephysics.display.OSPRuntime;
+
 /**
  * This Icon centers and fills the shape specified in its constructor.
  *
@@ -38,12 +40,13 @@ public class ShapeIcon implements Icon {
   // instance fields
   private int w;
   private int h;
-  private Shape shape;
-  private Shape decoration;
+  private MultiShape shape;
+  private MultiShape decoration;
   private Color color = Color.black;
   private Color decoColor = Color.black;
   private double offsetX;	// centers the shape horizontally
   private double offsetY;	// centers the shape vertically
+  private BasicStroke stroke;
 
   /**
    * Constructs a ShapeIcon.
@@ -53,7 +56,7 @@ public class ShapeIcon implements Icon {
    * @param width width of the icon
    * @param height height of the icon
    */
-  public ShapeIcon(Shape shape, Shape decoration, int width, int height) {
+  public ShapeIcon(MultiShape shape, MultiShape decoration, int width, int height) {
     w = width;
     h = height;
     this.shape = shape;
@@ -72,7 +75,7 @@ public class ShapeIcon implements Icon {
    * @param width width of the icon
    * @param height height of the icon
    */
-  public ShapeIcon(Shape shape, int width, int height) {
+  public ShapeIcon(MultiShape shape, int width, int height) {
   	this(shape, null, width, height);
   }
 
@@ -97,11 +100,21 @@ public class ShapeIcon implements Icon {
   }
 
   /**
+   * Sets the stroke.
+   *
+   * @param stroke
+   */
+  public void setStroke(BasicStroke stroke) {
+    this.stroke = stroke;
+  }
+
+  /**
    * Gets the icon width.
    *
    * @return the icon width
    */
-  public int getIconWidth() {
+  @Override
+public int getIconWidth() {
     return w;
   }
 
@@ -110,7 +123,8 @@ public class ShapeIcon implements Icon {
    *
    * @return the icon height
    */
-  public int getIconHeight() {
+  @Override
+public int getIconHeight() {
     return h;
   }
 
@@ -122,33 +136,34 @@ public class ShapeIcon implements Icon {
    * @param x the x coordinate of the icon
    * @param y the y coordinate of the icon
    */
-  public void paintIcon(Component c, Graphics _g, int x, int y) {
-    Graphics2D g = (Graphics2D)_g;
+  @Override
+public void paintIcon(Component c, Graphics _g, int x, int y) {
+  	if (shape == null && decoration == null)
+  		return;
+    Graphics2D g = (Graphics2D)_g.create();
     AffineTransform at = AffineTransform.getTranslateInstance(
                          x + offsetX, y + offsetY);
 
-    // save current graphics paint and clip
-    Paint gPaint = g.getPaint();
-    Shape gClip = g.getClip();
-
     // render shape(s)
     g.setPaint(color);
-    g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+    if (OSPRuntime.setRenderingHints) g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
                        RenderingHints.VALUE_ANTIALIAS_ON);
     g.clipRect(x, y, w, h);
 
     // paint shape, if any
     if (shape!=null) {
-    	g.fill(at.createTransformedShape(shape));
+    	if (stroke != null ) {
+  			g.setStroke(stroke);
+  		}
+			shape.transform(at).draw(g);
     }
     
     // paint decoration, if any
     if (decoration != null) {
       g.setPaint(decoColor);
-      g.fill(at.createTransformedShape(decoration));
+      decoration.transform(at).draw(g);
     }
     // restore graphics paint and clip
-    g.setPaint(gPaint);
-    g.setClip(gClip);
+    g.dispose();
   }
 }

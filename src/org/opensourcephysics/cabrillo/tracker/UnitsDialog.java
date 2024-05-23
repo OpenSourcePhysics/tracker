@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2019  Douglas Brown
+ * Copyright (c) 2024 Douglas Brown, Wolfgang Christian, Robert M. Hanson
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,17 +33,19 @@ import javax.swing.border.TitledBorder;
 import org.opensourcephysics.tools.FontSizer;
 
 /**
- * A dialog to set length, mass and angle units.
+ * A dialog to set time. length, mass and angle units.
  *
  * @author Douglas Brown
  */
+@SuppressWarnings("serial")
 public class UnitsDialog extends JDialog {
 	
   final static Color _RED = new Color(255, 160, 180);
-  static TFrame frame;
 
   // instance fields
-  private TrackerPanel trackerPanel;
+  private TFrame frame;
+  private Integer panelID;
+  
   private JLabel lengthLabel, massLabel, timeLabel;
   private ArrayList<JLabel> labels;
   private JButton closeButton;
@@ -59,8 +61,8 @@ public class UnitsDialog extends JDialog {
    */
   public UnitsDialog(TrackerPanel trackerPanel) {
     super(JOptionPane.getFrameForComponent(trackerPanel), true);
-  	this.trackerPanel = trackerPanel;
-  	if (frame==null) frame = trackerPanel.getTFrame();
+  	panelID = trackerPanel.getID();
+  	frame = trackerPanel.getTFrame();
     createGUI();
     refreshGUI();
   }
@@ -92,8 +94,8 @@ public class UnitsDialog extends JDialog {
     // fields
     lengthUnitField = new UnitField(5);
     massUnitField = new UnitField(5);
-    timeUnitField = new JTextField(5);
-    timeUnitField.setEditable(false);
+    timeUnitField = new UnitField(5);
+//    timeUnitField.setEditable(false);
     
     // angle unit buttons
     degreesButton = new JRadioButton();
@@ -101,7 +103,7 @@ public class UnitsDialog extends JDialog {
     Action angleUnitAction = new AbstractAction() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				if (frame.anglesInRadians==radiansButton.isSelected()) return;
+				if (frame.isAnglesInRadians()==radiansButton.isSelected()) return;
       	frame.setAnglesInRadians(radiansButton.isSelected());
 			}
     };
@@ -110,16 +112,17 @@ public class UnitsDialog extends JDialog {
     ButtonGroup group = new ButtonGroup();
     group.add(degreesButton);
     group.add(radiansButton);
-    degreesButton.setSelected(!frame.anglesInRadians);
-    radiansButton.setSelected(frame.anglesInRadians);
+    degreesButton.setSelected(!frame.isAnglesInRadians());
+    radiansButton.setSelected(frame.isAnglesInRadians());
     
     // visible checkbox
     visibleCheckbox = new JCheckBox();
-    visibleCheckbox.setSelected(trackerPanel.isUnitsVisible());
+ 
+    visibleCheckbox.setSelected(frame.getTrackerPanelForID(panelID).isUnitsVisible());
     visibleCheckbox.setAction(new AbstractAction() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				trackerPanel.setUnitsVisible(visibleCheckbox.isSelected());
+				frame.getTrackerPanelForID(panelID).setUnitsVisible(visibleCheckbox.isSelected());
     		refreshGUI();
 			}   	
     });
@@ -127,6 +130,7 @@ public class UnitsDialog extends JDialog {
     // close button
     closeButton = new JButton();
     closeButton.addActionListener(new ActionListener() {
+      @Override
       public void actionPerformed(ActionEvent e) {
         setVisible(false);
       }
@@ -172,25 +176,26 @@ public class UnitsDialog extends JDialog {
    * Updates the GUI.
    */
   protected void refreshGUI() {
+  	TrackerPanel panel = frame.getTrackerPanelForID(panelID);  
     setTitle(TrackerRes.getString("UnitsDialog.Title")); //$NON-NLS-1$
     closeButton.setText(TrackerRes.getString("Dialog.Button.OK")); //$NON-NLS-1$
   	lengthLabel.setText(TrackerRes.getString("NumberFormatSetter.Help.Dimensions.2")); //$NON-NLS-1$
   	massLabel.setText(TrackerRes.getString("NumberFormatSetter.Help.Dimensions.4")); //$NON-NLS-1$
-  	lengthUnitField.setText(trackerPanel.lengthUnit);
-  	massUnitField.setText(trackerPanel.massUnit);
-  	timeUnitField.setText(trackerPanel.timeUnit);
+  	lengthUnitField.setText(panel.lengthUnit);
+  	massUnitField.setText(panel.massUnit);
+  	timeUnitField.setText(panel.getTimeUnit());
   	timeLabel.setText(TrackerRes.getString("NumberFormatSetter.Help.Dimensions.3")); //$NON-NLS-1$
     degreesButton.setText(TrackerRes.getString("TMenuBar.MenuItem.Degrees")); //$NON-NLS-1$
     radiansButton.setText(TrackerRes.getString("TMenuBar.MenuItem.Radians")); //$NON-NLS-1$
-    degreesButton.setSelected(!frame.anglesInRadians);
-    radiansButton.setSelected(frame.anglesInRadians);
+    degreesButton.setSelected(!frame.isAnglesInRadians());
+    radiansButton.setSelected(frame.isAnglesInRadians());
     unitsBorder.setTitle(TrackerRes.getString("UnitsDialog.Border.LMT.Text")); //$NON-NLS-1$
     angleBorder.setTitle(TrackerRes.getString("NumberFormatSetter.TitledBorder.Units.Text")); //$NON-NLS-1$
     
-    boolean hasLengthUnit = trackerPanel.lengthUnit!=null; 
-    boolean hasMassUnit = trackerPanel.massUnit!=null; 
+    boolean hasLengthUnit = panel.lengthUnit!=null; 
+    boolean hasMassUnit = panel.massUnit!=null; 
   	visibleCheckbox.setText(TrackerRes.getString("UnitsDialog.Checkbox.Visible.Text")); //$NON-NLS-1$
-    visibleCheckbox.setSelected(trackerPanel.isUnitsVisible());
+    visibleCheckbox.setSelected(panel.isUnitsVisible());
     visibleCheckbox.setEnabled(hasLengthUnit && hasMassUnit);
   	visibleCheckbox.setToolTipText(hasLengthUnit && hasMassUnit?
   			TrackerRes.getString("UnitsDialog.Checkbox.Visible.Tooltip"): //$NON-NLS-1$
@@ -202,6 +207,7 @@ public class UnitsDialog extends JDialog {
    	massUnitField.setBackground(hasMassUnit? Color.WHITE: _RED);
    	massUnitField.setToolTipText(hasMassUnit? null: 
   			TrackerRes.getString("UnitsDialog.Field.Undefined.Tooltip")); //$NON-NLS-1$
+   	timeUnitField.setBackground(Color.WHITE);
    	
    	// set label sizes
     labels.add(lengthLabel);
@@ -220,7 +226,7 @@ public class UnitsDialog extends JDialog {
     }
    
   	pack();
-    repaint();
+   TFrame.repaintT(this);
   }
   
   /**
@@ -234,21 +240,24 @@ public class UnitsDialog extends JDialog {
 		pack();
   }
   
-  /**
-   * Sets the length or mass unit based on the current text in a UnitField
-   * 
-   * @param field the length or mass field
-   */
-  private void setUnit(UnitField field) {
-  	if (field==lengthUnitField) {
-  		trackerPanel.setLengthUnit(field.getText());
-    	refreshGUI();
-  	}
-  	else if (field==massUnitField) {
-  		trackerPanel.setMassUnit(field.getText());
-    	refreshGUI();
-  	}
-  }
+	/**
+	 * Sets the length or mass unit based on the current text in a UnitField
+	 * 
+	 * @param field the length or mass field
+	 */
+	private void setUnit(UnitField field) {
+		TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
+		if (field == lengthUnitField) {
+			trackerPanel.setLengthUnit(field.getText());
+			refreshGUI();
+		} else if (field == massUnitField) {
+			trackerPanel.setMassUnit(field.getText());
+			refreshGUI();
+		} else if (field == timeUnitField) {
+			trackerPanel.setTimeUnit(field.getText());
+			refreshGUI();
+		}
+	}
   
   /**
    * A JTextField for setting units
@@ -263,6 +272,7 @@ public class UnitsDialog extends JDialog {
   	UnitField(int len) {
   		super(len);
       addKeyListener(new KeyAdapter() {
+        @Override
         public void keyPressed(KeyEvent e) {      
           if(e.getKeyCode()==KeyEvent.VK_ENTER) {
             setUnit(UnitField.this);
@@ -271,9 +281,10 @@ public class UnitsDialog extends JDialog {
             setBackground(Color.yellow);
           }
         }
-
       });
+      
       addFocusListener(new FocusAdapter() {
+        @Override
         public void focusLost(FocusEvent e) {
     			if (getBackground()==Color.yellow) {
             setUnit(UnitField.this);

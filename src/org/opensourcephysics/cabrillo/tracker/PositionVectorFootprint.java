@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2019  Douglas Brown
+ * Copyright (c) 2024 Douglas Brown, Wolfgang Christian, Robert M. Hanson
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,7 +27,7 @@ package org.opensourcephysics.cabrillo.tracker;
 import java.awt.*;
 import java.awt.geom.*;
 
-import javax.swing.Icon;
+import org.opensourcephysics.display.ResizableIcon;
 
 /**
  * A PositionVectorFootprint returns a vector shape for a Point[] of length 2,
@@ -58,9 +58,10 @@ public class PositionVectorFootprint extends PointShapeFootprint {
    * @param points an array of points
    * @return the fill shape
    */
-  public Shape getShape(Point[] points) {
-  	super.getShape(points); // this sets up hitShapes[] at vector tip
-    return arrow.getShape(points);
+  @Override
+public MultiShape getShape(Point[] points, int scale) {
+  	super.getShape(points, scale); // this sets up hitShapes[] at vector tip
+    return arrow.getShape(points, scale);
   }
 
   /**
@@ -70,7 +71,8 @@ public class PositionVectorFootprint extends PointShapeFootprint {
    * @param h height of the icon
    * @return the icon
    */
-  public Icon getIcon(int w, int h) {
+  @Override
+public ResizableIcon getIcon(int w, int h) {
   	arrow.setColor(color);
     return arrow.getIcon(w, h);
   }
@@ -80,7 +82,8 @@ public class PositionVectorFootprint extends PointShapeFootprint {
    *
    * @param stroke the desired stroke
    */
-  public void setStroke(BasicStroke stroke) {
+  @Override
+public void setStroke(BasicStroke stroke) {
     arrow.setStroke(stroke);
   }
 
@@ -89,17 +92,19 @@ public class PositionVectorFootprint extends PointShapeFootprint {
    *
    * @return the stroke
    */
-  public BasicStroke getStroke() {
+  @Override
+public BasicStroke getStroke() {
     return arrow.getStroke();
   }
 
-  /**
-   * Sets the line width.
-   *
-   * @param w the desired line width
-   */
-  public void setLineWidth(double w) {
-    arrow.setLineWidth(w);
-  }
-
+//  /**
+//   * Sets the line width.
+//   *
+//   * @param w the desired line width
+//   */
+//  @Override
+//public void setLineWidth(double w) {
+//    arrow.setLineWidth(w);
+//  }
+//
 }

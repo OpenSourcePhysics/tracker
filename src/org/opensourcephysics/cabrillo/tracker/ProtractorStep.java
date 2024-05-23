@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2019  Douglas Brown
+ * Copyright (c) 2024 Douglas Brown, Wolfgang Christian, Robert M. Hanson
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,21 +24,36 @@
  */
 package org.opensourcephysics.cabrillo.tracker;
 
-import java.util.*;
-import java.awt.*;
-import java.awt.font.*;
-import java.awt.geom.*;
+import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Paint;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.Shape;
+import java.awt.Stroke;
+import java.awt.event.MouseEvent;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Rectangle2D;
+import java.util.HashMap;
+import java.util.Map;
 
-import org.opensourcephysics.display.*;
-import org.opensourcephysics.media.core.*;
+import org.opensourcephysics.controls.XMLControl;
+import org.opensourcephysics.controls.XMLControlElement;
+import org.opensourcephysics.display.DrawingPanel;
+import org.opensourcephysics.display.Interactive;
+import org.opensourcephysics.display.OSPRuntime.TextLayout;
+import org.opensourcephysics.media.core.NumberField;
+import org.opensourcephysics.media.core.TPoint;
+import org.opensourcephysics.media.core.VideoPanel;
 import org.opensourcephysics.tools.FontSizer;
-import org.opensourcephysics.controls.*;
 
 /**
  * This is a Step for a Protractor. It is used for measuring angles.
  *
  * @author Douglas Brown
  */
+@SuppressWarnings("serial")
 public class ProtractorStep extends Step {
 	
   protected static AffineTransform transform = new AffineTransform();
@@ -53,21 +68,21 @@ public class ProtractorStep extends Step {
   protected Handle handle;
   protected Rotator rotator;
   protected double line1Angle, line2Angle; // in radians
-  protected boolean endsEnabled = true;
-  protected boolean drawLayoutBounds, drawLayout1, drawLayout2;
-  protected Shape vertexCircle, arcHighlight;
-  protected Map<TrackerPanel, Shape> vertexShapes = new HashMap<TrackerPanel, Shape>();
-  protected Map<TrackerPanel, Shape> end1Shapes = new HashMap<TrackerPanel, Shape>();
-  protected Map<TrackerPanel, Shape> end2Shapes = new HashMap<TrackerPanel, Shape>();
-  protected Map<TrackerPanel, Shape> line1Shapes = new HashMap<TrackerPanel, Shape>();
-  protected Map<TrackerPanel, Shape> line2Shapes = new HashMap<TrackerPanel, Shape>();
-  protected Map<TrackerPanel, Shape> rotatorShapes = new HashMap<TrackerPanel, Shape>();
-  protected Map<TrackerPanel, TextLayout> textLayouts = new HashMap<TrackerPanel, TextLayout>();
-  protected Map<TrackerPanel, Rectangle> layoutBounds = new HashMap<TrackerPanel, Rectangle>();
-  protected Map<TrackerPanel, TextLayout> textLayouts1 = new HashMap<TrackerPanel, TextLayout>();
-  protected Map<TrackerPanel, Rectangle> layout1Bounds = new HashMap<TrackerPanel, Rectangle>();
-  protected Map<TrackerPanel, TextLayout> textLayouts2 = new HashMap<TrackerPanel, TextLayout>();
-  protected Map<TrackerPanel, Rectangle> layout2Bounds = new HashMap<TrackerPanel, Rectangle>();
+  protected boolean endsEnabled = true, drawArcCircle;
+  protected boolean drawLayoutBounds, drawLayout1, drawLayout2, drawLayoutAngle;
+  protected MultiShape vertexCircle;
+  protected Map<Integer, Shape> panelVertexShapes = new HashMap<Integer, Shape>();
+  protected Map<Integer, Shape> panelEnd1Shapes = new HashMap<Integer, Shape>();
+  protected Map<Integer, Shape> panelEnd2Shapes = new HashMap<Integer, Shape>();
+  protected Map<Integer, Shape> panelLine1Shapes = new HashMap<Integer, Shape>();
+  protected Map<Integer, Shape> panelLine2Shapes = new HashMap<Integer, Shape>();
+  protected Map<Integer, Shape> panelRotatorShapes = new HashMap<Integer, Shape>();
+  protected Map<Integer, TextLayout> panelTextLayouts = new HashMap<Integer, TextLayout>();
+  protected Map<Integer, Rectangle> panelLayoutBounds = new HashMap<Integer, Rectangle>();
+  protected Map<Integer, TextLayout> panelTextLayouts1 = new HashMap<Integer, TextLayout>();
+  protected Map<Integer, Rectangle> panelLayout1Bounds = new HashMap<Integer, Rectangle>();
+  protected Map<Integer, TextLayout> panelTextLayouts2 = new HashMap<Integer, TextLayout>();
+  protected Map<Integer, Rectangle> panelLayout2Bounds = new HashMap<Integer, Rectangle>();
   protected Shape selectedShape;
   
   /**
@@ -118,7 +133,8 @@ public class ProtractorStep extends Step {
    *
    * @param footprint the footprint
    */
-  public void setFootprint(Footprint footprint) {
+  @Override
+public void setFootprint(Footprint footprint) {
     if (footprint.getLength() >= 2)
       super.setFootprint(footprint);
   }
@@ -131,99 +147,89 @@ public class ProtractorStep extends Step {
    * @param ypix the y pixel position
    * @return the Interactive that is hit, or null
    */
-  public Interactive findInteractive(
+  @Override
+public Interactive findInteractive(
          DrawingPanel panel, int xpix, int ypix) {
     TrackerPanel trackerPanel = (TrackerPanel)panel;
+    boolean isWorldView = panel instanceof WorldTView.WorldPanel;
     setHitRectCenter(xpix, ypix);
     Shape hitShape;
     Interactive hit = null;
     ProtractorFootprint footprint = null;
-    boolean drawLayout = false, draw1 = false, draw2 = false;
+    drawLayoutAngle = drawLayoutBounds = drawLayout1 = drawLayout2 = false;
     if (protractor.getFootprint()!=null 
     		&& protractor.getFootprint() instanceof ProtractorFootprint) {
     	footprint = (ProtractorFootprint)protractor.getFootprint();
     }
     if (endsEnabled) {
-      hitShape = vertexShapes.get(trackerPanel);
+      hitShape = panelVertexShapes.get(trackerPanel.getID());
       if (!vertex.isAttached() && hitShape != null && hitShape.intersects(hitRect)) {
       	hit = vertex;
+      	drawLayoutAngle = true;
       	if (vertexCircle==null && footprint!=null) {
       		vertexCircle = footprint.getCircleShape(vertex.getScreenPosition(trackerPanel));
-  	      repaint(trackerPanel);
       	}
       }
       // clear vertex highlight shape when no longer needed
       if (hit==null && vertexCircle!=null) {
       	vertexCircle = null;
-        repaint(trackerPanel);
       }
-      hitShape = end1Shapes.get(trackerPanel);
+      hitShape = panelEnd1Shapes.get(trackerPanel.getID());
       if (hit == null && hitShape != null && hitShape.intersects(hitRect)) {
         hit = end1;
-        draw1 = true;
+        drawLayout1 = true;
+        drawLayoutAngle = true;
       }
-      hitShape = end2Shapes.get(trackerPanel);
+      hitShape = panelEnd2Shapes.get(trackerPanel.getID());
       if (hit == null && hitShape != null && hitShape.intersects(hitRect)) {
       	hit = end2;
-      	draw2 = true;
+      	drawLayout2 = true;
+      	drawLayoutAngle = true;
       }
     }
-    hitShape = rotatorShapes.get(trackerPanel);
+    hitShape = panelRotatorShapes.get(trackerPanel.getID());
     if (!end1.isAttached() && !end2.isAttached() && hit==null && hitShape!=null && hitShape.intersects(hitRect)) {
       hit = rotator;
     }
     if (hit == null && trackerPanel.getSelectedPoint()==rotator 
-    		&& selectedShape.intersects(hitRect)) {
+    		&& selectedShape != null && selectedShape.intersects(hitRect)) {
       hit = rotator;
     }
-    if (hit==rotator && trackerPanel.getSelectedPoint()!=rotator && footprint!=null) {
+    if (hit==rotator && trackerPanel.getSelectedPoint()!=rotator && !isWorldView) {
       rotator.setScreenCoords(xpix, ypix);
-      Point p1 = vertex.getScreenPosition(trackerPanel);
-  		arcHighlight = footprint.getArcAdjustShape(p1, null);
-      repaint(trackerPanel);
     }
-    // clear arc highlight shape when no longer needed
-    if (hit==null && arcHighlight!=null && trackerPanel.getSelectedPoint()!=rotator) {
-    	arcHighlight = null;
-      repaint(trackerPanel);
-    }
-    hitShape = line1Shapes.get(trackerPanel);
+    drawArcCircle = hit==rotator || trackerPanel.getSelectedPoint()==rotator;
+    hitShape = panelLine1Shapes.get(trackerPanel.getID());
     if (hit == null && hitShape != null && hitShape.intersects(hitRect)) {
       hit = handle;
       handle.setHandleEnd(end1);
-      draw1 = true;
+      drawLayout1 = true;
+      drawLayoutAngle = true;
     }
-    hitShape = line2Shapes.get(trackerPanel);
+    hitShape = panelLine2Shapes.get(trackerPanel.getID());
     if (hit == null && hitShape != null && hitShape.intersects(hitRect)) {
       hit = handle;
       handle.setHandleEnd(end2);
-      draw2 = true;
+      drawLayout2 = true;
+      drawLayoutAngle = true;
     }
-    Rectangle layoutRect = layoutBounds.get(trackerPanel);
+		if (hit == null && protractor.ruler != null && protractor.ruler.isVisible()) {
+			hit = protractor.ruler.findInteractive(trackerPanel, hitRect);
+		}
+    Rectangle layoutRect = panelLayoutBounds.get(trackerPanel.getID());
     if (hit == null && layoutRect != null 
     		&& layoutRect.intersects(hitRect)) {
-      drawLayout = true;
+    	drawLayoutBounds = true;
+      drawLayoutAngle = true;
       hit = protractor;
     }
-    boolean needsRepaint = false;
-    if (drawLayout != drawLayoutBounds) {
-    	drawLayoutBounds = drawLayout;
-    	needsRepaint = true;
-    }
-    if (draw1 != drawLayout1) {
-    	drawLayout1 = draw1;
-    	needsRepaint = true;
-    }
-    if (draw2 != drawLayout2) {
-    	drawLayout2 = draw2;
-    	needsRepaint = true;
-    }
-    if (needsRepaint) repaint(trackerPanel);
-
-  	if (end1.isAttached() && (hit==end1 || hit==handle || hit==rotator)) return null;
-  	if (end2.isAttached() && (hit==end2 || hit==handle || hit==rotator)) return null;
-  	if (vertex.isAttached() && (hit==vertex || hit==handle)) return null;
-  	
+ 
+//  	if (end1.isAttached() && (hit==end1 || hit==handle || hit==rotator)) return null;
+//  	if (end2.isAttached() && (hit==end2 || hit==handle || hit==rotator)) return null;
+//  	if (vertex.isAttached() && (hit==vertex || hit==handle)) return null;
+  	if (end1.isAttached() && (hit==end1 || hit==rotator)) return null;
+  	if (end2.isAttached() && (hit==end2 || hit==rotator)) return null;
+  	if (vertex.isAttached() && (hit==vertex)) return null;
     return hit;
   }
 
@@ -233,43 +239,45 @@ public class ProtractorStep extends Step {
    * @param panel the drawing panel requesting the drawing
    * @param _g the graphics context on which to draw
    */
-  public void draw(DrawingPanel panel, Graphics _g) {
+  @Override
+public void draw(DrawingPanel panel, Graphics _g) {
     // draw the mark
     TrackerPanel trackerPanel = (TrackerPanel)panel;
+    boolean isWorldView = trackerPanel.isWorldPanel();
     Graphics2D g = (Graphics2D)_g;
     getMark(trackerPanel).draw(g, false);
     Paint gpaint = g.getPaint();
     g.setPaint(footprint.getColor());
     Font gfont = g.getFont();
-    g.setFont(textLayoutFont);
-    // draw the text layout if not editing
-    if (!protractor.editing) {
-	    TextLayout layout = textLayouts.get(trackerPanel);
-	    Point p = getLayoutPosition(trackerPanel, layout, vertex);
-	    layout.draw(g, p.x, p.y);
-      if (drawLayoutBounds) {
-		  	Rectangle rect = layoutBounds.get(trackerPanel);
-		  	g.drawRect(rect.x-2, rect.y-3, rect.width+5, rect.height+5);
-      }
+    g.setFont(TFrame.textLayoutFont);
+    // draw the text layout if not editing and not world view
+    if (!protractor.editing && !isWorldView) {
+    	if (drawLayoutAngle || trackerPanel.getSelectedTrack() == protractor) {
+    		TextLayout layout = panelTextLayouts.get(trackerPanel.getID());
+				Rectangle bounds = panelLayoutBounds.get(trackerPanel.getID());
+				g.setFont(TFrame.textLayoutFont);
+				layout.draw(g, bounds.x, bounds.y + bounds.height);
+				g.setFont(gfont);
+				if (drawLayoutBounds) {
+					g.drawRect(bounds.x - 2, bounds.y - 3, bounds.width + 6, bounds.height + 5);
+				}
+    	}
     }
     // draw the vertex circle only if vertex not selected
   	if (trackerPanel.getSelectedPoint()==vertex)
   		vertexCircle = null;
-    if (vertexCircle!=null) {
-    	g.fill(vertexCircle);
-    }
-    if (arcHighlight!=null) {
-    	g.fill(arcHighlight);
+    if (vertexCircle!=null && !isWorldView) {
+    	vertexCircle.draw(g);
     }
     
     // draw arm length layouts if visible
-    if (drawLayout1) {
-	    TextLayout layout = textLayouts1.get(trackerPanel);
+    if (drawLayout1 && !isWorldView) {
+	    TextLayout layout = panelTextLayouts1.get(trackerPanel.getID());
 	    Point p = getLayoutPosition(trackerPanel, layout, end1);
 	    layout.draw(g, p.x, p.y);
     }
-    if (drawLayout2) {
-	    TextLayout layout = textLayouts2.get(trackerPanel);
+    if (drawLayout2 && !isWorldView) {
+	    TextLayout layout = panelTextLayouts2.get(trackerPanel.getID());
 	    Point p = getLayoutPosition(trackerPanel, layout, end2);
 	    layout.draw(g, p.x, p.y);
     }
@@ -284,76 +292,90 @@ public class ProtractorStep extends Step {
    * @param trackerPanel the tracker panel
    * @return the mark
    */
-  protected Mark getMark(TrackerPanel trackerPanel) {
-    Mark mark = marks.get(trackerPanel);
-    TPoint selection = null;
+  @Override
+protected Mark getMark(TrackerPanel trackerPanel) {
+    Mark mark = panelMarks.get(trackerPanel.getID());
     if (mark == null) {
-      getProtractorAngle(); // updates angle display
-      selection = trackerPanel.getSelectedPoint();
+      getProtractorAngle(true); // updates angle display
+      ProtractorFootprint pFootprint = (ProtractorFootprint)footprint;
+      TPoint selection = trackerPanel.getSelectedPoint();
+      boolean isWorldView = trackerPanel.isWorldPanel();
+      
       // get screen points
       Point p = null;
       for (int i = 0; i < points.length; i++) {
         screenPoints[i] = points[i].getScreenPosition(trackerPanel);
         if (selection==points[i]) p = screenPoints[i];
       }
-      // refresh arc highlight
-      if (selection==rotator) {
-	      	arcHighlight = ((ProtractorFootprint)footprint).getArcAdjustShape(
-	      			screenPoints[0], screenPoints[4]);
+			
+			// create mark to draw ruler
+			Mark rulerMark = protractor.ruler != null && protractor.ruler.isVisible()? 
+					protractor.ruler.getMark(trackerPanel, n): null;
+      
+      // create footprint mark
+			pFootprint.setArcVisible(!isWorldView);
+      Mark stepMark = pFootprint.getMark(screenPoints);
+      
+      // create arcCircle
+      MultiShape arcCircle = isWorldView? null:
+      	selection==rotator? pFootprint.getArcAdjustShape(screenPoints[0], screenPoints[4]):
+      	pFootprint.getArcAdjustShape(screenPoints[0], null);
+      
+      // create selectedShape if point is selected
+      if (!isWorldView) {
+	      if (p != null) {
+	        transform.setToTranslation(p.x, p.y);
+	        int scale = FontSizer.getIntegerFactor();
+	        if (scale>1) {
+	        	transform.scale(scale, scale);
+	        }
+	        selectedShape = transform.createTransformedShape(selectionShape);
+	      }
+	      else
+	      	selectedShape = null;
       }
-      // create mark
-      mark = footprint.getMark(screenPoints);
-      if (p != null) {
-        final Color color = footprint.getColor();
-        final Mark stepMark = mark;
-        transform.setToTranslation(p.x, p.y);
-        int scale = FontSizer.getIntegerFactor();
-        if (scale>1) {
-        	transform.scale(scale, scale);
+      
+      mark = new Mark() {
+        @Override
+        public void draw(Graphics2D g, boolean highlighted) {
+          stepMark.draw(g, false);
+					Paint gpaint = g.getPaint();
+					Stroke gstroke = g.getStroke();
+					g.setPaint(footprint.getColor());
+					if (rulerMark != null) {
+						rulerMark.draw(g, false);
+					}
+					if (arcCircle != null && drawArcCircle) {
+						arcCircle.draw(g);
+					}
+          if (selectedShape != null && !isWorldView) {
+						g.setStroke(selectionStroke);
+						g.draw(selectedShape);
+          }
+					g.setPaint(gpaint);
+					g.setStroke(gstroke);
         }
-        selectedShape = transform.createTransformedShape(selectionShape);
-        mark = new Mark() {
-          public void draw(Graphics2D g, boolean highlighted) {
-            stepMark.draw(g, false);
-            Paint gpaint = g.getPaint();
-            g.setPaint(color);
-            if (selectedShape != null) 
-            	g.fill(selectedShape);
-            g.setPaint(gpaint);
-          }
-
-          public Rectangle getBounds(boolean highlighted) {
-            Rectangle bounds = stepMark.getBounds(false);
-            if (selectedShape != null)
-            	bounds.add(selectedShape.getBounds());
-            if (vertexCircle != null)
-            	bounds.add(vertexCircle.getBounds());
-            if (arcHighlight != null)
-            	bounds.add(arcHighlight.getBounds());
-            return bounds;
-          }
-        };
-      }
-      marks.put(trackerPanel, mark);
+      };
+      panelMarks.put(trackerPanel.getID(), mark);
       
       // get new hit shapes
       Shape[] shapes = footprint.getHitShapes();
-      vertexShapes.put(trackerPanel, shapes[0]);
-      end1Shapes.put(trackerPanel, shapes[1]);
-      end2Shapes.put(trackerPanel, shapes[2]);
-      line1Shapes.put(trackerPanel, shapes[3]);
-      line2Shapes.put(trackerPanel, shapes[4]);
-      rotatorShapes.put(trackerPanel, shapes[5]);
+      panelVertexShapes.put(trackerPanel.getID(), shapes[0]);
+      panelEnd1Shapes.put(trackerPanel.getID(), shapes[1]);
+      panelEnd2Shapes.put(trackerPanel.getID(), shapes[2]);
+      panelLine1Shapes.put(trackerPanel.getID(), shapes[3]);
+      panelLine2Shapes.put(trackerPanel.getID(), shapes[4]);
+      panelRotatorShapes.put(trackerPanel.getID(), shapes[5]);
       // get new text layouts
       String s = protractor.angleField.getText();
-      TextLayout layout = new TextLayout(s, textLayoutFont, frc);
-      textLayouts.put(trackerPanel, layout);
+      TextLayout layout = new TextLayout(s, TFrame.textLayoutFont);
+      panelTextLayouts.put(trackerPanel.getID(), layout);
       // get layout position (bottom left corner of text)
       p = getLayoutPosition(trackerPanel, layout, vertex);
-      Rectangle bounds = layoutBounds.get(trackerPanel);
+      Rectangle bounds = panelLayoutBounds.get(trackerPanel.getID());
       if (bounds == null) {
         bounds = new Rectangle();
-        layoutBounds.put(trackerPanel, bounds);
+        panelLayoutBounds.put(trackerPanel.getID(), bounds);
       }
       Rectangle2D rect = layout.getBounds();
       // set bounds (top left corner and size)
@@ -362,17 +384,17 @@ public class ProtractorStep extends Step {
       
       for (int k=0; k<2; k++) {
       	TPoint end = k==0? end1: end2;
-      	Map<TrackerPanel, TextLayout> layouts = k==0? textLayouts1: textLayouts2;
-        Map<TrackerPanel, Rectangle> lBounds = k==0? layout1Bounds: layout2Bounds;
+      	Map<Integer, TextLayout> layouts = k==0? panelTextLayouts1: panelTextLayouts2;
+        Map<Integer, Rectangle> lBounds = k==0? panelLayout1Bounds: panelLayout2Bounds;
 	      s = getFormattedLength(end);
 	      s += trackerPanel.getUnits(protractor, Protractor.dataVariables[2+k]);    
-	      layout = new TextLayout(s, textLayoutFont, frc);
-	      layouts.put(trackerPanel, layout);
+	      layout = new TextLayout(s, TFrame.textLayoutFont);
+	      layouts.put(trackerPanel.getID(), layout);
 	      p = getLayoutPosition(trackerPanel, layout, end);
-	      bounds = lBounds.get(trackerPanel);
+	      bounds = lBounds.get(trackerPanel.getID());
 	      if (bounds == null) {
 	        bounds = new Rectangle();
-	        lBounds.put(trackerPanel, bounds);
+	        lBounds.put(trackerPanel.getID(), bounds);
 	      }
 	      rect = layout.getBounds();
 	      // set bounds (top left corner and size)
@@ -391,41 +413,29 @@ public class ProtractorStep extends Step {
    */
   public String getFormattedLength(TPoint end) {
   	double length = getArmLength(end);
-    if (protractor.trackerPanel.getFrameNumber()==n) {
+    if (protractor.tp.getFrameNumber()==n) {
 	  	NumberField field = end==end1? getTrack().xField: getTrack().yField;
 	    field.setValue(length);
-	    return field.getFormat().format(length);
+	    return field.format(length);
     }
     formatField.setFixedPattern(getTrack().xField.getFixedPattern());
     formatField.setFormatFor(length);
-    return formatField.getFormat().format(length);
-  }
-
-  /**
-   * Overrides Step getBounds method.
-   *
-   * @param trackerPanel the tracker panel drawing the step
-   * @return the bounding rectangle
-   */
-  public Rectangle getBounds(TrackerPanel trackerPanel) {
-    Rectangle bounds = getMark(trackerPanel).getBounds(false);
-    bounds.add(layoutBounds.get(trackerPanel));
-    bounds.add(layout1Bounds.get(trackerPanel));
-    return bounds;
+    return formatField.format(length);
   }
 
   /**
    * Gets the protractor angle. 
    *
+   * @param refreshField true to refresh the protractor angleField
    * @return the angle in radians
    */
-  public double getProtractorAngle() {
+  public double getProtractorAngle(boolean refreshField) {
     line1Angle = -vertex.angle(end1);
     line2Angle = -vertex.angle(end2);
     double theta = line2Angle-line1Angle;
     if (theta > Math.PI) theta -= 2*Math.PI;
     if (theta < -Math.PI) theta += 2*Math.PI;
-    if (protractor.trackerPanel.getFrameNumber()==n) {
+    if (refreshField && protractor.tp.getFrameNumber()==n) {    	
     	protractor.angleField.setValue(theta);
     }
     return theta;
@@ -437,7 +447,7 @@ public class ProtractorStep extends Step {
    * @param theta the angle in radians
    */
   public void setProtractorAngle(double theta) {
-    if (protractor.isLocked() || protractor.trackerPanel == null) return;
+    if (protractor.isLocked() || protractor.tp == null) return;
     XMLControl state = new XMLControlElement(protractor);
     theta += line1Angle;
     // move line2 to new angle at same distance from vertex
@@ -445,23 +455,56 @@ public class ProtractorStep extends Step {
     double dx = d*Math.cos(theta);
     double dy = -d*Math.sin(theta);
     end2.setLocation(vertex.x+dx, vertex.y+dy);
-    repaint();
+   repaint();
 		Undo.postTrackEdit(protractor, state);
   }
 
   /**
-   * Gets the world length of arm 1. 
+   * Gets the world length of the base or arm. 
    * 
    * @param end TPoint end1 or end2
    * @return the length in world units
    */
   public double getArmLength(TPoint end) {
-    if (protractor.trackerPanel== null) return 1.0;
-    double scaleX = protractor.trackerPanel.getCoords().getScaleX(n);
-    double scaleY = protractor.trackerPanel.getCoords().getScaleY(n);
+    if (protractor.tp== null) return 1.0;
+    double scaleX = protractor.tp.getCoords().getScaleX(n);
+    double scaleY = protractor.tp.getCoords().getScaleY(n);
     double dx = (vertex.getX() - end.getX()) / scaleX;
     double dy = (end.getY() - vertex.getY()) / scaleY;
   	return Math.sqrt(dx*dx + dy*dy);
+  }
+
+  /**
+   * Sets the arm length of this tape.
+   *
+   * @param end the arm end
+   * @param length the desired length in world units
+   */
+  public void setArmLength(TPoint end, double length) {
+    if (protractor.isLocked() || protractor.tp == null) return;
+    XMLControl state = new XMLControlElement(protractor);
+    // move end to new distance from vertex
+    double scaleX = protractor.tp.getCoords().getScaleX(n);
+    double scaleY = protractor.tp.getCoords().getScaleY(n);
+    double dx = length*vertex.cos(end) * scaleX;
+    double dy = -length*vertex.sin(end) * scaleY;
+    end.setXY(vertex.x+dx, vertex.y+dy);
+    repaint();
+		Undo.postTrackEdit(protractor, state);
+  }
+
+  /**
+   * Moves the protractor so the vertex is at the specified position.
+   *
+   * @param x
+   * @param y
+   */
+  protected void moveVertexTo(double x, double y) {
+    if (protractor.isLocked() || protractor.tp == null) return;
+    // determine how far to move
+    double dx = x - vertex.x;
+    double dy = y - vertex.y;
+    handle.setXY(handle.x + dx, handle.y + dy);
   }
 
   /**
@@ -469,7 +512,8 @@ public class ProtractorStep extends Step {
    *
    * @return a clone of this step
    */
-  public Object clone() {
+  @Override
+public Object clone() {
     ProtractorStep step = (ProtractorStep)super.clone();
     if (step != null) {
       step.points[0] = step.vertex = step.new Tip(vertex.getX(), vertex.getY());
@@ -481,14 +525,14 @@ public class ProtractorStep extends Step {
       step.end1.setTrackEditTrigger(true);
       step.end2.setTrackEditTrigger(true);
       step.handle.setTrackEditTrigger(true);
-      step.vertexShapes = new HashMap<TrackerPanel, Shape>();
-      step.end1Shapes = new HashMap<TrackerPanel, Shape>();
-      step.end2Shapes = new HashMap<TrackerPanel, Shape>();
-      step.line1Shapes = new HashMap<TrackerPanel, Shape>();
-      step.line2Shapes = new HashMap<TrackerPanel, Shape>();
-      step.rotatorShapes = new HashMap<TrackerPanel, Shape>();
-      step.textLayouts = new HashMap<TrackerPanel, TextLayout>();
-      step.layoutBounds = new HashMap<TrackerPanel, Rectangle>();
+      step.panelVertexShapes = new HashMap<Integer, Shape>();
+      step.panelEnd1Shapes = new HashMap<Integer, Shape>();
+      step.panelEnd2Shapes = new HashMap<Integer, Shape>();
+      step.panelLine1Shapes = new HashMap<Integer, Shape>();
+      step.panelLine2Shapes = new HashMap<Integer, Shape>();
+      step.panelRotatorShapes = new HashMap<Integer, Shape>();
+      step.panelTextLayouts = new HashMap<Integer, TextLayout>();
+      step.panelLayoutBounds = new HashMap<Integer, Rectangle>();
     }
     return step;
   }
@@ -498,7 +542,8 @@ public class ProtractorStep extends Step {
    *
    * @return a descriptive string
    */
-  public String toString() {
+  @Override
+public String toString() {
     return "ProtractorStep"; //$NON-NLS-1$
   }
 
@@ -508,8 +553,8 @@ public class ProtractorStep extends Step {
    * @return the frame number
    */
   public int n() {
-    if (protractor.isFixed() && protractor.trackerPanel != null)
-      return protractor.trackerPanel.getFrameNumber();
+    if (protractor.isFixedPosition() && protractor.tp != null)
+      return protractor.tp.getFrameNumber();
     return n;
   }
 
@@ -535,36 +580,29 @@ public class ProtractorStep extends Step {
    */
   private Point getLayoutPosition(TrackerPanel trackerPanel,
                                   TextLayout layout, TPoint end) {
-    int scale = FontSizer.getIntegerFactor();
+    double scale = FontSizer.getFactor();
+    Rectangle2D bounds = layout.getBounds();
+    double w = bounds.getWidth();
+    double h = bounds.getHeight();
   	if (end==vertex) {
 	    Point p = vertex.getScreenPosition(trackerPanel);
-	    Rectangle2D bounds = layout.getBounds();
-	    double w = bounds.getWidth();
-	    double h = bounds.getHeight();
-	    double angle = (line1Angle+line2Angle)/2;
-	    if (Math.abs(line1Angle-line2Angle)>Math.PI)
-	    	angle += Math.PI;
-	    double sin = -Math.sin(angle);
-	    double cos = -Math.cos(angle);
-	    double d = scale*24;
-		  p.setLocation((int)(p.x + d*cos - w/2), (int)(p.y - d*sin + h/2));
+	    double angle = line1Angle - Math.PI / 2;
+	    double sin = Math.sin(angle);
+	    double cos = Math.cos(angle);
+			double halfhsin = h * sin / 2;
+			double halfwcos = w * cos / 2;
+			double d = Math.sqrt((halfhsin*halfhsin) + (halfwcos*halfwcos)) + 8; 
+//			if (protractor.ruler != null && protractor.ruler.isVisible() && getProtractorAngle(false) < 0) 
+			if (getProtractorAngle(false) < 0) 
+				p.setLocation((int)(p.x - d*cos - w/2), (int)(p.y + d*sin + h/2));
+			else
+				p.setLocation((int)(p.x + d*cos - w/2), (int)(p.y - d*sin + h/2));
 	    return p;
   	}
     middle.center(end, vertex);
     Point p = middle.getScreenPosition(trackerPanel);
-    Rectangle2D bounds = layout.getBounds();
-    double w = bounds.getWidth();
-    double h = bounds.getHeight();
     endPoint1.setLocation(end);
     endPoint2.setLocation(vertex);
-    // the following code is to determine the position on a world view
-    if (!trackerPanel.isDrawingInImageSpace()) {
-    	AffineTransform at = trackerPanel.getCoords().getToWorldTransform(n);
-    	at.transform(endPoint1, endPoint1);
-    	endPoint1.y = -endPoint1.y;
-    	at.transform(endPoint2, endPoint2);
-    	endPoint2.y = -endPoint2.y;
-    }
     double cos = endPoint2.cos(endPoint1);
     double sin = endPoint2.sin(endPoint1);
     double d = scale*6 + Math.abs(w*sin/2) + Math.abs(h*cos/2);
@@ -600,13 +638,16 @@ public class ProtractorStep extends Step {
      * @param x the x coordinate
      * @param y the y coordinate
      */
-    public void setXY(double x, double y) {
+    @Override
+	public void setXY(double x, double y) {
       if (getTrack().locked) return;
+    	if (end1.isAttached() || end2.isAttached() || vertex.isAttached())
+	      return;
       double dx = x - getX();
       double dy = y - getY();
       setLocation(x, y);
       
-      if (protractor.isFixed()) { // set properties of step 0
+      if (protractor.isFixedPosition()) { // set properties of step 0
       	ProtractorStep step = (ProtractorStep)protractor.steps.getStep(0);
         step.vertex.setLocation(vertex.getX() + dx, vertex.getY() + dy);
         step.end2.setLocation(end2.getX() + dx, end2.getY() + dy);
@@ -620,7 +661,7 @@ public class ProtractorStep extends Step {
         end1.setLocation(end1.getX() + dx, end1.getY() + dy);
       	protractor.keyFrames.add(n);
     	}      
-      repaint();
+     repaint();
     }
 
     /**
@@ -629,7 +670,8 @@ public class ProtractorStep extends Step {
      * @param vidPanel the video panel drawing the step
      * @return the containing ProtractorStep frame number
      */
-    public int getFrameNumber(VideoPanel vidPanel) {
+    @Override
+	public int getFrameNumber(VideoPanel vidPanel) {
       return n();
     }
 
@@ -641,7 +683,8 @@ public class ProtractorStep extends Step {
      * @param yScreen the y screen position
      * @param trackerPanel the trackerPanel drawing this step
      */
-    public void setPositionOnLine(int xScreen, int yScreen, TrackerPanel trackerPanel) {
+    @Override
+	public void setPositionOnLine(int xScreen, int yScreen, TrackerPanel trackerPanel) {
       // determine which line is closest
     	setPositionOnLine(xScreen, yScreen, trackerPanel, vertex, end);
     	repaint();
@@ -674,7 +717,8 @@ public class ProtractorStep extends Step {
      * @param x the x coordinate
      * @param y the y coordinate
      */
-    public void setXY(double x, double y) {
+    @Override
+	public void setXY(double x, double y) {
       if (getTrack().locked) return;
       // keep distance from vertex >= 2*R
       if (this!=vertex) {
@@ -687,7 +731,7 @@ public class ProtractorStep extends Step {
 		      }
 	      }
       }
-      if (protractor.isFixed()) {
+      if (protractor.isFixedPosition()) {
       	ProtractorStep step = (ProtractorStep)protractor.steps.getStep(0);
       	TPoint target = this==end1? step.end1: this==end2? step.end2: step.vertex;
       	target.setLocation(x, y); // set property of step 0
@@ -699,8 +743,7 @@ public class ProtractorStep extends Step {
       	protractor.keyFrames.add(n);
     	}      
       repaint();
-	  	protractor.dataValid = false;
-	  	protractor.firePropertyChange("data", null, protractor); //$NON-NLS-1$
+      protractor.invalidateData(protractor);
     }
 
     /**
@@ -709,14 +752,32 @@ public class ProtractorStep extends Step {
      * @param vidPanel the video panel drawing the step
      * @return the containing ProtractorStep frame number
      */
+    @Override
     public int getFrameNumber(VideoPanel vidPanel) {
       return n();
     }
     
+		/**
+		 * Sets the adjusting flag.
+		 *
+		 * @param adjusting true if being dragged
+		 */
+		@Override
+		public void setAdjusting(boolean adjusting, MouseEvent e) {
+			if (!adjusting && !isAdjusting())
+				return;
+			super.setAdjusting(adjusting, e);
+			if (!adjusting) {
+				protractor.firePropertyChange(TTrack.PROPERTY_TTRACK_STEP, null, new Integer(n())); // $NON-NLS-1$
+			}
+		}
+
+
+    
 //    public void setLocation(double x, double y) {
 //    	super.setLocation(x, y);
 //    	protractor.dataValid = false;
-//    	protractor.firePropertyChange("data", null, protractor);
+//    	protractor.firePropertyChange(TTrack.PROPERTY_TTRACK_DATA, null, protractor);
 //    }
   }
   
@@ -739,7 +800,8 @@ public class ProtractorStep extends Step {
      * @param x the x coordinate
      * @param y the y coordinate
      */
-    public void setXY(double x, double y) {
+    @Override
+	public void setXY(double x, double y) {
       if (getTrack().locked) return;
       super.setXY(x, y);
       // rotate the protractor so midline passes thru rotator
@@ -750,7 +812,7 @@ public class ProtractorStep extends Step {
       double midline = line1Angle+arc/2;
       transform.setToRotation(midline-theta, vertex.x, vertex.y);
       
-      if (protractor.isFixed()) {
+      if (protractor.isFixedPosition()) {
       	ProtractorStep step = (ProtractorStep)protractor.steps.getStep(0);
         transform.transform(step.end1, step.end1);
         transform.transform(step.end2, step.end2);
@@ -763,17 +825,17 @@ public class ProtractorStep extends Step {
       	protractor.keyFrames.add(n);
     	}      
       
-      // show arc highlight shape
-      ProtractorFootprint footprint = null;
-      if (protractor.getFootprint()!=null 
-      		&& protractor.getFootprint() instanceof ProtractorFootprint) {
-      	footprint = (ProtractorFootprint)protractor.getFootprint();
-      	TTrack track = getTrack();
-	  		Point p1 = vertex.getScreenPosition(track.trackerPanel);
-	  		Point p2 = this.getScreenPosition(track.trackerPanel);
-	  		arcHighlight = footprint.getArcAdjustShape(p1, p2);
-	  		repaint();
-      }
+//      // show arc highlight shape
+//      ProtractorFootprint footprint = null;
+//      if (protractor.getFootprint()!=null 
+//      		&& protractor.getFootprint() instanceof ProtractorFootprint) {
+//      	footprint = (ProtractorFootprint)protractor.getFootprint();
+//      	TTrack track = getTrack();
+//	  		Point p1 = vertex.getScreenPosition(track.trackerPanel);
+//	  		Point p2 = this.getScreenPosition(track.trackerPanel);
+//	  		arcHighlight = footprint.getArcAdjustShape(p1, p2);
+//      }
+      getTrack().getStep(n).repaint();
     }
 
     /**
@@ -782,12 +844,13 @@ public class ProtractorStep extends Step {
      * @param vidPanel the video panel drawing the step
      * @return the containing ProtractorStep frame number
      */
-    public int getFrameNumber(VideoPanel vidPanel) {
+    @Override
+	public int getFrameNumber(VideoPanel vidPanel) {
       return n();
     }
     
     protected void setScreenCoords(int x, int y) {
-    	pt.setScreenPosition(x, y, protractor.trackerPanel);
+    	pt.setScreenPosition(x, y, protractor.tp);
     	this.setLocation(pt);
     }
     

@@ -1,0 +1,69 @@
+Steps in deploying a Tracker 6 release version with upgrade
+
+workspace_trackerJS: 
+-- update version number in OSPRuntime
+-- check out master and merge SwingJS?
+-- add version tag to master and push all code to GitHub
+-- build tracker.jar, tracker_starter.jar using build-tracker-jar.xml file in tracker/jarscripts
+-- temporarily change version to 5.3.x from 6.1.x. 
+-- build tracker-5.3.x.jar using tracker_jar_xuggle3.4 target in build-tracker-jar.xml
+-- change version back to 6.1.x
+
+workspace_trackerJS/launch4j:
+-- update version number
+-- package Tracker.exe
+
+workspace_trackerJS/installbuilder:
+-- update docs/Tracker_README.txt
+-- update version number in tracker_installer_6.xml
+-- update version number in tracker_upgrade_installer.xml
+-- build Windows and Linux installers & upgrade installers in workspace_trackerJS/installbuilder
+
+-- For both vers 6.1.x (Xuggle 5.7+) & vers 5.3.x (Xuggle 3.4):
+-- on Mac: replace tracker.jar, tracker_starter.jar, tracker-x.x.x.jar in Desktop Tracker.app/Contents/Java 
+-- on Mac: replace xuggle-xuggler-server-all.jar and supporting jars in Desktop Tracker.app/Contents/Java & Xuggle
+-- on Mac: replace Tracker_README.txt in Desktop Tracker.app/Contents/Resources 
+-- on Mac: update version number in Info.plist in Desktop Tracker.app/Contents 
+-- on Mac: update version number in Tracker.cfg in Desktop Tracker.app/Contents/Java
+-- on Mac: sudo chmod 644 tracker.jar, tracker-x.x.x.jar, tracker_starter.jar, Info.plist and Tracker.cfg
+-- on Mac: test Desktop Tracker.app, clean up Java folder (old jars, start log and xuggle jars)
+-- on Mac: compress Desktop Tracker.app to Tracker.app.zip
+
+-- on Win: duplicate folder BitRockTrackerWorkspace\TrackerBuildYYY (previous OSX release), rename to XXX
+-- on Win: replace Tracker.app.zip in D:\BitRockWorkspace\TrackerBuildXXX\bin with new one
+-- on Win: replace tracker-x.x.x.jar, tracker_starter.jar in bin
+-- on Win: update Tracker.cfg, Info.plist in bin
+-- on Win: update version number and rename tracker_installer_XXX_DAVIDSON.xml and tracker_upgrade_installer_XXX_DAVIDSON.xml
+-- on Win: if needed, update README, etc
+-- on Win: build osx installer in BitRockTrackerWorkspace\TrackerBuildXXX for testing on my mac
+
+-- test installers & upgrade installers
+
+-- delete output files in TrackerBuildXXX folder, both 6.1.x & 5.3.x
+-- zip the entire TrackerBuildXXX folder and send to Wolfgang via dropbox for building/notarizing
+-- use the tracker-X.X.X-osx-installer.dmg files returned by Wolfgang
+
+dreamweaver:
+-- upload installers to installers folder
+-- upload windows/osx/linux upgrade installers, tracker-x.x.x.jar and Tracker.exe to upgrade/ver6 folder 
+-- upload tracker-X.X.X.jar to archives on Davidson server
+-- update changeLog
+-- upload text files for recording downloads and launches
+-- update tracker home page (index.html)
+-- update counter.php on Davidson server
+
+desktop:
+--add filenames to download_counts.csv and launch_counts.csv in analytics folder
+--add new version to TrackerCountReader, build in workspace_deploy
+
+ComPADRE:
+-- post installers and edit download page on ComPADRE
+-- when posted on ComPADRE, send announcement to discussion group
+
+workspace_maven:
+-- ant copy source (any up-to-date branch is OK) to maven
+-- update version in pom
+-- test maven build (mvn clean package in git/tracker-mvn directory)
+-- commit and tag new version, then push to GitHub 
+
+

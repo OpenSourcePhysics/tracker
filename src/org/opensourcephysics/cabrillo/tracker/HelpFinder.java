@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2019  Douglas Brown
+ * Copyright (c) 2024 Douglas Brown, Wolfgang Christian, Robert M. Hanson
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -62,6 +62,7 @@ import org.opensourcephysics.tools.Launcher.HTMLPane;
  *
  * @author Douglas Brown
  */
+@SuppressWarnings("serial")
 public class HelpFinder {
 	
 	// map of pagekey to map of anchor to text lines
@@ -334,83 +335,89 @@ public class HelpFinder {
 		return results;
 	}
 	
+	@SuppressWarnings("unchecked")
 	private static void initialize() {
 		// initialize the maps
-  	URL url = Tracker.class.getResource("resources/help/tracker_topics.xml"); //$NON-NLS-1$
-  	String xml = ResourceLoader.getString(url.toExternalForm());
-  	XMLControl control = new XMLControlElement(xml);
-  	ArrayList<LaunchNode> children = (ArrayList<LaunchNode>)control.getObject("child_nodes"); //$NON-NLS-1$
-  	for (LaunchNode next: children) {
-  		String pagekey = next.getKeywords();
-  		String name = next.getName();
-  		pageNames.put(pagekey, name);
-  		String path  = next.getDisplayTab(0).getURL().toString();
-  		pagePaths.put(pagekey, path);
-  		if (css==null) {
-  			css = XML.getDirectoryPath(path)+"/help.css"; //$NON-NLS-1$
-  		}
-    	String html = ResourceLoader.getString(path);
-    	Map<String, ArrayList<String>> map = getAnchors(html);
-    	pages.put(pagekey, map);
-  	}
-  	
-  	// create the search field, label and button
-  	searchField = new JTextField(20) {
-  		@Override
-  		public Dimension getMaximumSize() {
-  			return new Dimension((int)(100*FontSizer.getFactor()), clearSearchButton.getPreferredSize().height);
-  		}
-  	};
-    searchField.addKeyListener(new KeyAdapter() {
-      public void keyReleased(KeyEvent e) {
-      	
-        if(e.getKeyCode()==KeyEvent.VK_ENTER) {
-          String searchPhrase = stripExtraSpace(searchField.getText(), " "); //$NON-NLS-1$
-          if (searchPhrase.length()>=minimumSearchPhraseLength) {
-          	
-          	ArrayList<String> found = new ArrayList<String>();
-          	ArrayList<String[]> results = search(searchPhrase, found);
-          	if (results.size()==0) {
-  	          searchField.setBackground(_RED);
-          		return;
-          	}
-	          searchField.setBackground(Color.white);
-	          
-	          // write results in HTML file
-          	File file = writeResultsFile(searchPhrase, results, found);
-          	if (file==null) return;
-          	
-          	// create and display results node
-      			LaunchNode node = new LaunchNode("\""+searchPhrase+"\""); //$NON-NLS-1$ //$NON-NLS-2$
-        		node.addDisplayTab(null, file.getAbsolutePath(), null);
-        		node.getDisplayTab(0).getURL();  // so display tab url is not null
-           	displayResultsNode(node);
-          }
-        } 
-        else {
-          searchField.setBackground(Color.yellow);
-        }
-      }
+		URL url = Tracker.getClassResource("resources/help/tracker_topics.xml"); //$NON-NLS-1$
+		String xml = ResourceLoader.getString(url.toExternalForm());
+		XMLControl control = new XMLControlElement(xml);
+		ArrayList<LaunchNode> children = (ArrayList<LaunchNode>) control.getObject("child_nodes"); //$NON-NLS-1$
+		for (LaunchNode next : children) {
+			String pagekey = next.getKeywords();
+			String name = next.getName();
+			pageNames.put(pagekey, name);
+			String path = next.getDisplayTab(0).getURL().toString();
+			pagePaths.put(pagekey, path);
+			if (css == null) {
+				css = XML.getDirectoryPath(path) + "/help.css"; //$NON-NLS-1$
+			}
+			String html = ResourceLoader.getString(path);
+			Map<String, ArrayList<String>> map = getAnchors(html);
+			pages.put(pagekey, map);
+		}
 
-    });
-    searchLabel = new JLabel();
-    searchLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 4));
-    
-    clearSearchButton = new JButton();
-    clearSearchButton.setAction(new AbstractAction() {
+		// create the search field, label and button
+		searchField = new JTextField(20) {
+			@Override
+			public Dimension getMaximumSize() {
+				return new Dimension((int) (100 * FontSizer.getFactor()), clearSearchButton.getPreferredSize().height);
+			}
+		};
+		searchField.addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyReleased(KeyEvent e) {
+
+				if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+					doSearch();
+				} else {
+					searchField.setBackground(Color.yellow);
+				}
+			}
+
+		});
+		searchLabel = new JLabel();
+		searchLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 4));
+
+		clearSearchButton = new JButton();
+		clearSearchButton.setAction(new AbstractAction() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				helpLauncher.setSelectedTab(searchResultsTab);
 				helpLauncher.removeSelectedTab();
 				searchField.setText(null);
-		    clearSearchButton.setEnabled(false);
-		    searchResultsTab = null;
-		    rootNode = null;
-			}    	
-    });
-    clearSearchButton.setEnabled(false);
+				clearSearchButton.setEnabled(false);
+				searchResultsTab = null;
+				rootNode = null;
+			}
+		});
+		clearSearchButton.setEnabled(false);
 	}
 	
+	protected static void doSearch() {
+		String searchPhrase = stripExtraSpace(searchField.getText(), " "); //$NON-NLS-1$
+		if (searchPhrase.length() >= minimumSearchPhraseLength) {
+
+			ArrayList<String> found = new ArrayList<String>();
+			ArrayList<String[]> results = search(searchPhrase, found);
+			if (results.size() == 0) {
+				searchField.setBackground(_RED);
+				return;
+			}
+			searchField.setBackground(Color.white);
+
+			// write results in HTML file
+			File file = writeResultsFile(searchPhrase, results, found);
+			if (file == null)
+				return;
+
+			// create and display results node
+			LaunchNode node = new LaunchNode("\"" + searchPhrase + "\""); //$NON-NLS-1$ //$NON-NLS-2$
+			node.addDisplayTab(null, file.getAbsolutePath(), null);
+			node.getDisplayTab(0).getURL(); // so display tab url is not null
+			displayResultsNode(node);
+		}
+	}
+
 	private static void displayResultsNode(LaunchNode node) {
 		if (rootNode==null) {
 			rootNode = new LaunchNode(TrackerRes.getString("HelpFinder.SearchResults")); //$NON-NLS-1$
@@ -444,7 +451,7 @@ public class HelpFinder {
 	    }
     }
     
-  	searchResultsTab.setSelectedNode(node);
+  	searchResultsTab.setTreeSelectionPath(node);
     clearSearchButton.setEnabled(true);
 	}
 	
@@ -452,60 +459,51 @@ public class HelpFinder {
 		// clean the html
 		html = clean(html);
 		Map<String, ArrayList<String>> anchorMap = new TreeMap<String, ArrayList<String>>();
-		
-  	String[] sections = html.split("<h1|<h3"); //$NON-NLS-1$
-  	for (int i=1; i< sections.length; i++) {  		
-  		// find section-identifying ID anchor
-    	String[] anchorSplit = sections[i].split("<a name=\""); //$NON-NLS-1$
-    	if (anchorSplit.length<2) continue;    	
-    	String anchor = anchorSplit[1].substring(0, anchorSplit[1].indexOf("\"")); //$NON-NLS-1$
-    	
-    	// find anchor name
-    	// strip end anchor tag, if any
-    	anchorSplit[1] = stripTag(anchorSplit[1], "</a");  //$NON-NLS-1$
-    	String name = null;
-  		int m = anchorSplit[1].indexOf(">"); //$NON-NLS-1$
-  		int n = anchorSplit[1].indexOf("</h3>"); //$NON-NLS-1$
-  		int p = anchorSplit[1].indexOf("</h1>"); //$NON-NLS-1$
-    	if (m>0 && n>0 && p<0) {
-    		name = anchorSplit[1].substring(m+1, n);
-    	}
-    	else if (m>0 && n<0 && p>0) {
-    		name = anchorSplit[1].substring(m+1, p);
-    	}
-    	
-    	// strip section numbering
-    	try {
-				Integer.parseInt(name.substring(0, 1));
-				name = name.substring(name.indexOf(" ")+1, name.length()); //$NON-NLS-1$
-			} catch (Exception e) {
+
+		String[] sections = html.split("<h1|<h3"); //$NON-NLS-1$
+		for (int i = 1; i < sections.length; i++) {
+			// find section-identifying ID anchor
+			String s = sections[i];
+			String[] anchorSplit = s.split("<a name=\"|<a id=\""); //$NON-NLS-1$
+			if (anchorSplit.length < 2)
+				continue;
+			String name = anchorSplit[1];
+			String anchor = name.substring(0, name.indexOf("\"")); //$NON-NLS-1$
+
+			// find anchor name
+			// strip end anchor tag, if any
+			name = stripTag(name, "</a"); //$NON-NLS-1$
+			int m = name.indexOf(">"); //$NON-NLS-1$
+			int n = (m <= 0 ? -1 : Math.max(name.indexOf("</h3>"), name.indexOf("</h1>")));
+			if (n > m)
+				name = name.substring(m + 1, n);
+			// 1. The name we will use</a>
+			if (Character.isDigit(name.charAt(0)))
+				name = name.substring(name.indexOf(" ") + 1, name.length()); //$NON-NLS-1$
+			anchorNames.put(anchor, name);
+			// after finding the ID anchor, strip any other anchor tags
+			s = stripTag(s, "<a href"); //$NON-NLS-1$
+			s = stripTag(s, "</a"); //$NON-NLS-1$
+			String[] split = s.split("<p>"); //$NON-NLS-1$
+			ArrayList<String> lines = new ArrayList<String>();
+			for (int j = 1; j < split.length; j++) {
+				String p = split[j];
+				n = p.indexOf("</p>"); //$NON-NLS-1$
+				if (n >= 0) {
+					p = p.substring(0, n).trim();
+					if (p.length() == 0)
+						continue;
+				} else {
+					// flag HTML code with nested lists that cause missing </p> after substitutions
+					System.out.println("no ending </p> in " + p); //$NON-NLS-1$
+					System.out.println("found in section: " + s); //$NON-NLS-1$
+				}
+				// eliminate any extra spaces
+				lines.add(stripExtraSpace(p, " "));
 			}
-    	
-    	anchorNames.put(anchor, name);
-    	
-    	// after finding the ID anchor, strip any other anchor tags
-    	sections[i] = stripTag(sections[i], "<a href"); //$NON-NLS-1$
-    	sections[i] = stripTag(sections[i], "</a"); //$NON-NLS-1$
-    	ArrayList<String> lines = new ArrayList<String>();
-    	String[] split = sections[i].split("<p>"); //$NON-NLS-1$
-    	for (int j=1; j< split.length; j++) {
-    		n = split[j].indexOf("</p>"); //$NON-NLS-1$
-    		if (n>-1) {
-    			split[j] = split[j].substring(0, n).trim();
-    			if ("".equals(split[j])) continue; //$NON-NLS-1$
-    		}
-    		else {
-    			// flag HTML code with nested lists that cause missing </p> after substitutions
-    			System.out.println("no ending </p> in "+split[j]); //$NON-NLS-1$
-    			System.out.println("found in section: "+sections[i]); //$NON-NLS-1$
-    		}
-    		// eliminate any extra spaces
-    		split[j] = stripExtraSpace(split[j], " "); //$NON-NLS-1$
-    		lines.add(split[j]);
-    	}
-    	anchorMap.put(anchor, lines);
-  	}
-  	return anchorMap;
+			anchorMap.put(anchor, lines);
+		}
+		return anchorMap;
 	}
 	
 	private static String clean(String text) {
@@ -565,26 +563,23 @@ public class HelpFinder {
 	}
 	
 	private static String stripTag(String text, String tag) {
-		int i = text.indexOf(tag);
-		while (i>0) {
+		int i;
+		while ((i = text.indexOf(tag)) > 0) {
 			String later = text.substring(i);
 			text = text.substring(0, i);
 			int j = later.indexOf(">"); //$NON-NLS-1$
-			if (j<0) break;
-			later = later.substring(j+1);
-			text += later;
-			i = text.indexOf(tag);
+			if (j < 0)
+				break;
+			text += later.substring(j + 1);
 		}
 		return text;
 	}
 	
 	private static String stripExtraSpace(String text, String space) {
 		text = text.trim();
-		String extraSpace = " "+space; //$NON-NLS-1$
-		int n = text.indexOf(extraSpace);
-		while (n>-1) {
+		String extraSpace = " " + space; //$NON-NLS-1$
+		while (text.indexOf(extraSpace) >= 0) {
 			text = text.replaceAll(extraSpace, space);
-			n = text.indexOf(extraSpace);
 		}
 		return text;
 	}

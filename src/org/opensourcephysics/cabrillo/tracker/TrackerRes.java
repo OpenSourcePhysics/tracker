@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools built on the
  * Open Source Physics framework by Wolfgang Christian.
  * 
- * Copyright (c) 2019  Douglas Brown
+ * Copyright (c) 2024 Douglas Brown, Wolfgang Christian, Robert M. Hanson
  * 
  * Tracker is free software; you can redistribute it and/or modify it under the
  * terms of the GNU General Public License as published by the Free Software
@@ -24,10 +24,13 @@
 package org.opensourcephysics.cabrillo.tracker;
 
 import java.beans.PropertyChangeListener;
-import java.beans.PropertyChangeSupport;
-import java.util.*;
+import java.util.Locale;
+import java.util.MissingResourceException;
 
-import javax.swing.event.SwingPropertyChangeSupport;
+import org.opensourcephysics.display.OSPRuntime;
+import org.opensourcephysics.tools.ResourceLoader;
+import org.opensourcephysics.tools.ResourceLoader.Bundle;
+import org.opensourcephysics.tools.ToolsRes;
 
 /**
  * String resources for tracker classes.
@@ -36,20 +39,25 @@ import javax.swing.event.SwingPropertyChangeSupport;
  * @version 1.0
  */
 
-public class TrackerRes {
+public class TrackerRes extends OSPRuntime.Supported {
 
 	// static fields
 	static Locale locale = Locale.getDefault();
-	static ResourceBundle res = ResourceBundle.getBundle(
+	// BH 2020.04.13 using explicit FORMAT_PROPERTIES here to avoid three attempts
+	// to load .js files
+	static Bundle res = ResourceLoader.getBundle(
 					"org.opensourcephysics.cabrillo.tracker.resources.tracker",  //$NON-NLS-1$
 					locale);
-	static Object resObj = new TrackerRes();
-  static PropertyChangeSupport support = new SwingPropertyChangeSupport(resObj);
+
+	static TrackerRes tresObj = new TrackerRes();
 
 	/**
 	 * Private constructor to prevent instantiation.
 	 */
-	private TrackerRes() {/** empty block */}
+	private TrackerRes() {
+		// super creates support object
+		/** empty block */
+	}
 
 	/**
 	 * Gets the localized value of a string. If no localized value is found, the
@@ -77,13 +85,17 @@ public class TrackerRes {
 		Locale prev = locale;
 		locale = loc;
 		// get the new resource bundle
-		res = ResourceBundle.getBundle(
+		res = ResourceLoader.getBundle(
 						"org.opensourcephysics.cabrillo.tracker.resources.tracker",  //$NON-NLS-1$
 						locale);
+		try {
 		org.opensourcephysics.media.core.MediaRes.setLocale(loc);
 		org.opensourcephysics.controls.ControlsRes.setLocale(loc);
 		org.opensourcephysics.tools.ToolsRes.setLocale(loc);
-		support.firePropertyChange("locale", prev, locale); //$NON-NLS-1$
+		tresObj.firePropertyChange(ToolsRes.OSP_PROPERTY_LOCALE, prev, locale); //$NON-NLS-1$
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 	
   /**
@@ -92,18 +104,8 @@ public class TrackerRes {
    * @param property the name of the property (only "locale" accepted) 
    * @param listener the object requesting property change notification
    */
-	public static void addPropertyChangeListener(String property, PropertyChangeListener listener) {
-    if (property.equals("locale")) //$NON-NLS-1$
-    	support.addPropertyChangeListener(property, listener);
+	public static void addListener(PropertyChangeListener listener) {
+		tresObj.addPropertyChangeListener(listener);
   }
 
-  /**
-   * Removes a PropertyChangeListener.
-   *
-   * @param property the name of the property (only "locale" accepted) 
-   * @param listener the listener requesting removal
-   */
-	public static void removePropertyChangeListener(String property, PropertyChangeListener listener) {
-    support.removePropertyChangeListener(property, listener);
-  }
 }

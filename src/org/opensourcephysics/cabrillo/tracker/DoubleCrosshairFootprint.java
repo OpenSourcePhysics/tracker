@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2019  Douglas Brown
+ * Copyright (c) 2024 Douglas Brown, Wolfgang Christian, Robert M. Hanson
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,12 +25,7 @@
 package org.opensourcephysics.cabrillo.tracker;
 
 import java.awt.*;
-import java.awt.geom.Area;
-import java.awt.geom.Line2D;
-
-import javax.swing.Icon;
-
-import org.opensourcephysics.tools.FontSizer;
+import org.opensourcephysics.display.ResizableIcon;
 
 /**
  * A double crosshair footprint for a Point array of length 2.
@@ -85,26 +80,14 @@ public class DoubleCrosshairFootprint extends LineFootprint {
    * @param h height of the icon
    * @return the icon
    */
-  public Icon getIcon(int w, int h) {
-    int scale = FontSizer.getIntegerFactor();
-    w *= scale;
-    h *= scale;
-  	if (stroke==null || stroke.getLineWidth()!=scale*baseStroke.getLineWidth()) {
-  		stroke = new BasicStroke(scale*baseStroke.getLineWidth());
-  	}
-  	transform.setToScale(scale, scale);
-    Shape target = stroke.createStrokedShape(transform.createTransformedShape(targetShape));
-    Area area = new Area(target);
-    double x0 = scale*(size+2)-w;
-    double y0 = h-scale*(size+2);
-    double d = Math.sqrt(x0*x0+y0*y0);
-    double x1 = x0*scale*size/d;
-    double y1 = y0*scale*size/d;
-    Line2D line = new Line2D.Double(x0, y0, x1, y1);
-    area.add(new Area(stroke.createStrokedShape(line)));
-    ShapeIcon icon = new ShapeIcon(area, w, h);
-    icon.setColor(color);
-    return icon;
+  @Override
+public ResizableIcon getIcon(int w, int h) {
+		Point[] points = new Point[] { new Point(), new Point(w - 2, 2 - h) };
+		MultiShape shape = getShape(points, false, 1);
+		ShapeIcon icon = new ShapeIcon(shape, w, h);
+		icon.setColor(color);
+		icon.setStroke(stroke);
+    return new ResizableIcon(icon);
   }
 
   /**
@@ -112,7 +95,8 @@ public class DoubleCrosshairFootprint extends LineFootprint {
    *
    * @param stroke the desired stroke
    */
-  public void setStroke(BasicStroke stroke) {
+  @Override
+public void setStroke(BasicStroke stroke) {
     if (stroke == null) return;
     this.baseStroke = stroke;
   }
@@ -123,17 +107,33 @@ public class DoubleCrosshairFootprint extends LineFootprint {
    * @param points an array of Points
    * @return the shape
    */
-  public Shape getShape(Point[] points) {
+  @Override
+public MultiShape getShape(Point[] points, int scale) {
+    return getShape(points, true, scale);
+  }
+  
+  /**
+   * Gets the shape of this footprint.
+   *
+   * @param points an array of Points
+   * @param bothEnds true to draw both ends (single end used for icon)
+   * @return the shape
+   */
+  private MultiShape getShape(Point[] points, boolean bothEnds, int scale) {
     Point p1 = points[0];
     Point p2 = points[1];
+       
+    // for line shapes
+    float d = (float)p1.distance(p2); // distance between ends
+    float center = d/2; // center point
+    float l = Math.max(d - scale*2*(size+3), size); // line length
     
-    // set up end shapes
+    // set up crosshair end shapes
     transform.setToTranslation(p1.x, p1.y);
-    int scale = FontSizer.getIntegerFactor();
     if (scale>1) {
     	transform.scale(scale, scale);
     }
-    Shape target1 = transform.createTransformedShape(targetShape);
+    Shape target1 = transform.createTransformedShape(targetShape);    
     hitShapes[0] = transform.createTransformedShape(hitShape); // end1
     transform.setToTranslation(p2.x, p2.y);
     if (scale>1) {
@@ -142,33 +142,39 @@ public class DoubleCrosshairFootprint extends LineFootprint {
     Shape target2 = transform.createTransformedShape(targetShape);
     hitShapes[1] = transform.createTransformedShape(hitShape); // end2
     
-    // set up line shapes
-    float d = (float)p1.distance(p2); // distance between ends
-    float center = d/2; // center point
-    float l = Math.max(d - scale*2*(size+3), size); // line length
-    float f = 0.45f; // hit shape is 90% of line length
-    path.reset();
-    path.moveTo(center - f*l, 0);
-    path.lineTo(center + f*l, 0);
     double theta = Math.atan2(p1.y - p2.y, p1.x - p2.x);
     if (Double.isNaN(theta)) {
     	theta = 0;
     }
     transform.setToRotation(theta, p2.x, p2.y);
     transform.translate(p2.x, p2.y);
-    hitShapes[2] = transform.createTransformedShape(path); // line    
+    
+  	// set up line and hit shapes
+		hitLine.setLine(center - 0.3 * l, 0, center + 0.3 * l, 0);
+		hitShapes[2] = transform.createTransformedShape(hitLine); // for line		
+		hitLine.setLine(center + 0.35 * l, 0, center + 0.45 * l, 0);
+		hitShapes[3] = transform.createTransformedShape(hitLine); // for rotator0
+		hitLine.setLine(center - 0.45 * l, 0, center - 0.35 * l, 0);
+		hitShapes[4] = transform.createTransformedShape(hitLine); // for rotator1
+
     path.reset();
     path.moveTo(center - l/2, 0);
     path.lineTo(center + l/2, 0);
     Shape line = transform.createTransformedShape(path);
-    
-    // set up drawing area
+        
+    // set up stroke
   	if (stroke==null || stroke.getLineWidth()!=scale*baseStroke.getLineWidth()) {
   		stroke = new BasicStroke(scale*baseStroke.getLineWidth());
+			rotatorStroke = new BasicStroke(stroke.getLineWidth(),
+          BasicStroke.CAP_BUTT,
+          BasicStroke.JOIN_MITER,
+          8,
+          WIDE_DOTTED_LINE,
+          stroke.getDashPhase());  
   	}
-    Area area = new Area(stroke.createStrokedShape(target1));
-    area.add(new Area(stroke.createStrokedShape(target2)));
-    area.add(new Area(stroke.createStrokedShape(line)));
-    return area;
+  	
+    // return draw shape
+  	return bothEnds? new MultiShape(line, target1, target2): new MultiShape(line, target2);
   }
+
 }

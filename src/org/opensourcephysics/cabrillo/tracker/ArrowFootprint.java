@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2019  Douglas Brown
+ * Copyright (c) 2024 Douglas Brown, Wolfgang Christian, Robert M. Hanson
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,12 +24,11 @@
  */
 package org.opensourcephysics.cabrillo.tracker;
 
-import java.awt.*;
-import java.awt.geom.Area;
-
-import javax.swing.*;
-
-import org.opensourcephysics.tools.FontSizer;
+import java.awt.BasicStroke;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.Shape;
+import org.opensourcephysics.display.ResizableIcon;
 
 /**
  * An ArrowFootprint returns an arrow shape for a Point array of length 2.
@@ -117,15 +116,14 @@ public class ArrowFootprint extends LineFootprint {
    * @param h height of the icon
    * @return the icon
    */
-  public Icon getIcon(int w, int h) {
-    int scale = FontSizer.getIntegerFactor();
-    w *= scale;
-    h *= scale;
+  @Override
+public ResizableIcon getIcon(int w, int h) {
     Point[] points = new Point[] {new Point(), new Point(w - 2, 2 - h)};
-    Shape shape = getShape(points);
+    MultiShape shape = getShape(points, 1);
     ShapeIcon icon = new ShapeIcon(shape, w, h);
     icon.setColor(color);
-    return icon;
+		icon.setStroke(stroke);
+    return new ResizableIcon(icon);
   }
 
   /**
@@ -134,7 +132,9 @@ public class ArrowFootprint extends LineFootprint {
    * @param points an array of Points
    * @return the shape
    */
-  public synchronized Shape getShape(Point[] points) {
+  @Override
+public synchronized MultiShape getShape(Point[] points, int scale) {
+  	highlight = null;  // will create new  one below
     Point p1 = points[0];
     Point p2 = points[1];
     if (points.length>3) {
@@ -144,11 +144,9 @@ public class ArrowFootprint extends LineFootprint {
     
     transform.setToRotation(theta, p1.x, p1.y);
     transform.translate(p1.x, p1.y);
-    int scale = FontSizer.getIntegerFactor();
     if (scale>1) {
     	transform.scale(scale, scale);
     }
-    highlight = transform.createTransformedShape(HIGHLIGHT);
     
     transform.setToRotation(theta, p2.x, p2.y);
     transform.translate(p2.x, p2.y);
@@ -187,9 +185,11 @@ public class ArrowFootprint extends LineFootprint {
 			// see Java 2D API Graphics, by VJ Hardy (Sun, 2000) page 147
 			d = d - (float)(stroke.getLineWidth()*1.58) + 1;
 			// set up shaft hitShape
+
 			path.reset();
 			path.moveTo(0, 0);
 			path.lineTo(d-tipL, 0);
+			
 			hitShapes[2] = transform.createTransformedShape(path); // for shaft
 			hitShapes[1] = new Rectangle(p2.x-1, p2.y-1, 2, 2);    // for tail
 			// set up draw shape
@@ -197,8 +197,6 @@ public class ArrowFootprint extends LineFootprint {
 			path.moveTo(0, 0);
 			path.lineTo(d-tipL+tipW, 0);
 			Shape shaft = transform.createTransformedShape(path);
-			shaft = stroke.createStrokedShape(shaft);
-			Area area = new Area(shaft);
 			path.reset();
 			path.moveTo(d-tipL+tipW, 0);
 			path.lineTo(d-tipL, -tipW);
@@ -206,18 +204,15 @@ public class ArrowFootprint extends LineFootprint {
 			path.lineTo(d-tipL, tipW);
 			path.closePath();
 			Shape head = transform.createTransformedShape(path);
-			if (openHead) {
-				head = headStroke.createStrokedShape(head);
-			}
-			area.add(new Area(head));
-			if (!openHead) {
-				area.add(new Area(headStroke.createStrokedShape(head)));
-			}
-			return area;
+			
+			highlight = new MultiShape(head).andFill(true);
+
+			return new MultiShape(shaft, head).andFill(false, !openHead);
+			
 		} catch (Exception e) { // occasionally throws path exception for reasons unknown!
 	    d = (float)(p1.distance(p2));
 			java.awt.geom.Line2D line = new java.awt.geom.Line2D.Double(0, 0, d, 0); 
-			return stroke.createStrokedShape(transform.createTransformedShape(line));
+			return new MultiShape(transform.createTransformedShape(line));
 		}
   }
 }

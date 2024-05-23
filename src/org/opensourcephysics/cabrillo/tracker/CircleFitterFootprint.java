@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2019  Douglas Brown
+ * Copyright (c) 2024 Douglas Brown, Wolfgang Christian, Robert M. Hanson
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,7 +27,6 @@ package org.opensourcephysics.cabrillo.tracker;
 import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Arc2D;
-import java.awt.geom.Area;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.GeneralPath;
 import java.awt.geom.Line2D;
@@ -35,8 +34,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 
-import javax.swing.Icon;
-
+import org.opensourcephysics.display.OSPRuntime;
+import org.opensourcephysics.display.ResizableIcon;
 import org.opensourcephysics.tools.FontSizer;
 
 /**
@@ -49,7 +48,6 @@ public class CircleFitterFootprint implements Footprint, Cloneable {
 
 	// static constants
   @SuppressWarnings("javadoc")
-  private static BasicStroke hitStroke = new BasicStroke(4);
   private static final CircleFitterFootprint CIRCLE_4, CIRCLE_7, 
   		CIRCLE_4_BOLD, CIRCLE_7_BOLD, CIRCLE_4_POINTS_ONLY;
   protected static final int MAX_RADIUS = 100000;
@@ -103,7 +101,8 @@ public class CircleFitterFootprint implements Footprint, Cloneable {
    *
    * @return the name
    */
-  public String getName() {
+  @Override
+public String getName() {
     return name;
   }
 
@@ -112,7 +111,8 @@ public class CircleFitterFootprint implements Footprint, Cloneable {
    *
    * @return the localized display name
    */
-  public String getDisplayName() {
+  @Override
+public String getDisplayName() {
   	return TrackerRes.getString(name);
   }
 
@@ -121,7 +121,8 @@ public class CircleFitterFootprint implements Footprint, Cloneable {
    *
    * @return the length
    */
-  public int getLength() {
+  @Override
+public int getLength() {
     return 3;
   }
 
@@ -132,26 +133,24 @@ public class CircleFitterFootprint implements Footprint, Cloneable {
    * @param h height of the icon
    * @return the icon
    */
-  public Icon getIcon(int w, int h) {  	
-    int scale = FontSizer.getIntegerFactor();
-    w *= scale;
-    h *= scale;
-    Shape shape = emptyHitShape;
-  	if (stroke==null || stroke.getLineWidth()!=scale*baseStroke.getLineWidth()) {
-  		stroke = new BasicStroke(scale*baseStroke.getLineWidth());
+  @Override
+public ResizableIcon getIcon(int w, int h) {  	
+  	if (stroke==null || stroke.getLineWidth()!=baseStroke.getLineWidth()) {
+  		stroke = new BasicStroke(baseStroke.getLineWidth());
   	}
+    MultiShape drawShape = new MultiShape();
     if (drawCircle) {
-	    iconArc.setArc(0, 0, scale*20, scale*20, 200, 140, Arc2D.OPEN);
-	  	shape = stroke.createStrokedShape(iconArc);
+	    iconArc.setArc(0, 0, 20, 20, 200, 140, Arc2D.OPEN);
+	  	drawShape.addDrawShape((Arc2D)iconArc.clone(), stroke);
     }
-    Area area = new Area(shape);
     int r = markerSize/2;
-    circle.setFrameFromCenter(scale*10, scale*20, scale*(10+r), scale*(20+r));
-  	shape = stroke.createStrokedShape(circle);
-  	area.add(new Area(shape));
-    ShapeIcon icon = new ShapeIcon(area, w, h);
+    circle.setFrameFromCenter(10, 20, 10+r, 20+r);
+  	drawShape.addDrawShape((Ellipse2D)circle.clone(), stroke);
+  	transform.setToTranslation(0, 10);
+  	drawShape = drawShape.transform(transform);
+    ShapeIcon icon = new ShapeIcon(drawShape, w, h);
     icon.setColor(color);
-    return icon;
+    return new ResizableIcon(icon);
   }
 
   /**
@@ -160,21 +159,22 @@ public class CircleFitterFootprint implements Footprint, Cloneable {
    * @param points a Point array
    * @return the mark
    */
-  public Mark getMark(Point[] points) {
-    final Shape shape = getShape(points);
+  @Override
+public Mark getMark(Point[] points) {
+    final MultiShape shape = getShape(points, FontSizer.getIntegerFactor());
     final Color color = this.color;
     return new Mark() {
+      @Override
       public void draw(Graphics2D g, boolean highlighted) {
         Color gcolor = g.getColor();
+        Stroke gstroke = g.getStroke();
         g.setColor(color);
-        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+        g.setStroke(stroke);
+        if (OSPRuntime.setRenderingHints) g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
                            RenderingHints.VALUE_ANTIALIAS_ON);
-        g.fill(shape);
+        shape.draw(g);
         g.setColor(gcolor);
-      }
-
-      public Rectangle getBounds(boolean highlighted) {
-        return shape.getBounds();
+        g.setStroke(gstroke);
       }
     };
   }
@@ -194,7 +194,8 @@ public class CircleFitterFootprint implements Footprint, Cloneable {
    *
    * @param stroke the desired stroke
    */
-  public void setStroke(BasicStroke stroke) {
+  @Override
+public void setStroke(BasicStroke stroke) {
     if (stroke == null) return;
     baseStroke = new BasicStroke(stroke.getLineWidth(),
                                   BasicStroke.CAP_BUTT,
@@ -209,7 +210,8 @@ public class CircleFitterFootprint implements Footprint, Cloneable {
    *
    * @return the stroke
    */
-  public BasicStroke getStroke() {
+  @Override
+public BasicStroke getStroke() {
     return baseStroke;
   }
 
@@ -218,7 +220,8 @@ public class CircleFitterFootprint implements Footprint, Cloneable {
    *
    * @param color the desired color
    */
-  public void setColor(Color color) {
+  @Override
+public void setColor(Color color) {
     this.color = color;
   }
 
@@ -227,7 +230,8 @@ public class CircleFitterFootprint implements Footprint, Cloneable {
    *
    * @return the color
    */
-  public Color getColor() {
+  @Override
+public Color getColor() {
     return color;
   }
   
@@ -275,18 +279,19 @@ public class CircleFitterFootprint implements Footprint, Cloneable {
    * @param points an array of Points
    * @return the shape
    */
-  public Shape getShape(Point[] points) {
+  @Override
+public MultiShape getShape(Point[] points, int scale) {
     Point center = points[0];
     Point edge = points[1];
     hitShapes.clear();
-    Area drawMe = new Area();
-    int scale = FontSizer.getIntegerFactor();
   	if (stroke==null || stroke.getLineWidth()!=scale*baseStroke.getLineWidth()) {
   		stroke = new BasicStroke(scale*baseStroke.getLineWidth());
   	}
-        
+     
+  	MultiShape drawMe = new MultiShape();
     // draw shapes only if there are 3 or more data points (plus center & edge)
     if (drawCircle && points.length>=5) {
+    	
     	// special case: infinite or very large radius, so draw straight line thru edge
     	if (Double.isInfinite(radius) || radius>MAX_RADIUS) {
     		double x = edge.getX();
@@ -308,29 +313,30 @@ public class CircleFitterFootprint implements Footprint, Cloneable {
 	      		line.setLine(x-len/slope, y-len, x+len/slope, y+len);	      		
 	      	}
       	}
-		    drawMe.add(new Area(stroke.createStrokedShape(line)));
-		    hitShapes.add(hitStroke.createStrokedShape(line));
+    		transform.setToIdentity();
+		    drawMe.addDrawShape(transform.createTransformedShape(line), null);
     	}
     	else { // standard case
 	    	// circle
+    		transform.setToIdentity();
 	      circle.setFrameFromCenter(center.x, center.y, center.x+radius, center.y+radius);
-		    drawMe.add(new Area(stroke.createStrokedShape(circle)));
-		    hitShapes.add(stroke.createStrokedShape(circle));
+		    drawMe.addDrawShape(transform.createTransformedShape(circle), null);
 	    
 	    	// center
 	      transform.setToTranslation(points[0].x, points[0].y);
 	      if (scale>1) {
 	      	transform.scale(scale, scale);
 	      }
-	      Shape s = transform.createTransformedShape(marker);
-	      drawMe.add(new Area(stroke.createStrokedShape(s)));
-		    hitShapes.add(stroke.createStrokedShape(s)); // center hit shape
-	      s = transform.createTransformedShape(crosshatch);
-	      drawMe.add(new Area(stroke.createStrokedShape(s)));	    
+	      Shape mark = transform.createTransformedShape(marker);
+		    drawMe.addDrawShape(mark, null);
+		    hitShapes.add(mark); // center hit shape
+		    
+	      Shape crosshair = transform.createTransformedShape(crosshatch);
+		    drawMe.addDrawShape(crosshair, null);
     	}
     }
-    while (hitShapes.size()<2) {
-	    hitShapes.add(emptyHitShape);  // add empty hit shapes to pad
+    if (hitShapes.size() == 0) {
+	    hitShapes.add(emptyHitShape);  // add empty hit shape
     }
         
     // always draw data points
@@ -340,11 +346,11 @@ public class CircleFitterFootprint implements Footprint, Cloneable {
       	transform.scale(scale, scale);
       }
       if (points[i]!=selectedPoint) {
-	      Shape s = transform.createTransformedShape(marker);
-      	drawMe.add(new Area(stroke.createStrokedShape(s)));
+	      Shape mark = transform.createTransformedShape(marker);
+		    drawMe.addDrawShape(mark, null);
 	      if (i>=2+markedPointCount) {
-	      	drawMe.add(new Area(s));
-	      }
+		    	drawMe.addFillShape(mark);
+		    }
       }
       hitShapes.add(transform.createTransformedShape(hitShape));
     }

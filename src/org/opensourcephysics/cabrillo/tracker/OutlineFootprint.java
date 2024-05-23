@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2019  Douglas Brown
+ * Copyright (c) 2024 Douglas Brown, Wolfgang Christian, Robert M. Hanson
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,9 +26,7 @@ package org.opensourcephysics.cabrillo.tracker;
 
 import java.awt.*;
 
-import javax.swing.*;
-
-import org.opensourcephysics.tools.FontSizer;
+import org.opensourcephysics.display.ResizableIcon;
 
 /**
  * An OutlineFootprint returns an outline shape for a Point array of length 2.
@@ -75,18 +73,16 @@ public class OutlineFootprint extends LineFootprint {
    * @param h height of the icon
    * @return the icon
    */
-  public Icon getIcon(int w, int h) {
-    int scale = FontSizer.getIntegerFactor();
-    w *= scale;
-    h *= scale;
-    Point[] points = new Point[] {new Point(), new Point(w - scale*2, scale*2 - h)};
+  @Override
+public ResizableIcon getIcon(int w, int h) {
+    Point[] points = new Point[] {new Point(), new Point(w - 2, 2 - h)};
     int prevSpread = spread;
-    spread = scale;
-    Shape shape = getShape(points);
+    spread = 1;
+    MultiShape shape = getShape(points, 1);
     ShapeIcon icon = new ShapeIcon(shape, w, h);
     icon.setColor(color);
     spread = prevSpread;
-    return icon;
+    return new ResizableIcon(icon);
   }
 
   /**
@@ -94,23 +90,26 @@ public class OutlineFootprint extends LineFootprint {
    *
    * @param stroke the desired stroke
    */
-  public void setStroke(BasicStroke stroke) {
+  @Override
+public void setStroke(BasicStroke stroke) {
     super.setStroke(stroke);
   }
 
   /**
-   * Gets the shape of this footprint.
+   * Gets the draw shape of this footprint.
    *
    * @param points an array of Points
-   * @return the shape
+   * @return the draw shape
    */
-  public Shape getShape(Point[] points) {
+  @Override
+public MultiShape getShape(Point[] points, int scale) {
     Point p1 = points[0];
     Point p2 = points[1];
     double theta = Math.atan2(p1.y - p2.y, p1.x - p2.x);
     transform.setToRotation(theta, p2.x, p2.y);
     transform.translate(p2.x, p2.y);
     float d = (float)p1.distance(p2); // length of the line
+    
     // create outline
     path.reset();
     path.moveTo(0, -1 - spread);
@@ -118,11 +117,12 @@ public class OutlineFootprint extends LineFootprint {
     path.lineTo(d, 1 + spread);
     path.lineTo(d, -1 - spread);
     path.closePath();
+    
     // handle marker
     int w = Math.min(spread + 1, 4);
     path.moveTo(d/2, w);
     path.lineTo(d/2, -w);
-    int scale = FontSizer.getIntegerFactor();
+
     // centerline
     if (getSpread() > 4 +2*scale) {
       path.moveTo(0, 0);
@@ -134,7 +134,7 @@ public class OutlineFootprint extends LineFootprint {
   	if (stroke==null || stroke.getLineWidth()!=lineWidth) {
   		stroke = new BasicStroke(lineWidth);
   	}
-    outline = stroke.createStrokedShape(outline);
+  	    
     // ceate hitshapes
     path.reset();
     path.moveTo(d, -1 - spread);
@@ -150,7 +150,8 @@ public class OutlineFootprint extends LineFootprint {
     path.moveTo(d * (0.5f + f), 0);
     path.lineTo(d * (0.5f - f), 0);
     hitShapes[2] = transform.createTransformedShape(path); // sides
-    return outline;
+    
+    return new MultiShape(outline).andStroke(stroke);
   }
 }
 

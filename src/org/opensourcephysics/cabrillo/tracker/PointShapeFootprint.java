@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2019  Douglas Brown
+ * Copyright (c) 2024 Douglas Brown, Wolfgang Christian, Robert M. Hanson
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,8 +28,8 @@ import java.util.*;
 import java.awt.*;
 import java.awt.geom.*;
 
-import javax.swing.*;
-
+import org.opensourcephysics.display.OSPRuntime;
+import org.opensourcephysics.display.ResizableIcon;
 import org.opensourcephysics.tools.FontSizer;
 
 /**
@@ -44,9 +44,9 @@ public class PointShapeFootprint implements Footprint, Cloneable {
   protected AffineTransform transform = new AffineTransform();
   protected BasicStroke baseStroke = new BasicStroke();
   protected BasicStroke stroke;
+  protected BasicStroke highlightStroke = new BasicStroke(2);
   protected Color color = Color.black;
   protected Shape[] hitShapes = new Shape[1];
-  protected double defaultWidth = 1;
 
   /**
    * Constructs a PointShapeFootprint with a point shape.
@@ -81,6 +81,7 @@ public class PointShapeFootprint implements Footprint, Cloneable {
    *
    * @return the name
    */
+  @Override
   public String getName() {
     return name;
   }
@@ -90,6 +91,7 @@ public class PointShapeFootprint implements Footprint, Cloneable {
    *
    * @return the localized display name
    */
+  @Override
   public String getDisplayName() {
   	return TrackerRes.getString(name);
   }
@@ -99,6 +101,7 @@ public class PointShapeFootprint implements Footprint, Cloneable {
    *
    * @return the length
    */
+  @Override
   public int getLength() {
     return 1;
   }
@@ -110,14 +113,13 @@ public class PointShapeFootprint implements Footprint, Cloneable {
    * @param h height of the icon
    * @return the icon
    */
-  public Icon getIcon(int w, int h) {
-    int scale = FontSizer.getIntegerFactor();
-    w *= scale;
-    h *= scale;
-	  Shape shape = getShape(new Point[] {new Point()});
+  @Override
+  public ResizableIcon getIcon(int w, int h) {
+	  MultiShape shape = getShape(new Point[] {new Point()}, 1);
 	  ShapeIcon icon = new ShapeIcon(shape, w, h);
 	  icon.setColor(color);
-	  return icon;
+	  icon.setStroke(stroke);
+	  return new ResizableIcon(icon);
   }
 
   /**
@@ -126,24 +128,27 @@ public class PointShapeFootprint implements Footprint, Cloneable {
    * @param points a Point array
    * @return the mark
    */
+  @Override
   public Mark getMark(Point[] points) {
-    final Shape shape = getShape(points);
+    final MultiShape shape = getShape(points, FontSizer.getIntegerFactor());
     final Shape highlight = this.highlight;
     return new Mark() {
+      @Override
       public void draw(Graphics2D g, boolean highlighted) {
         Paint gpaint = g.getPaint();
+        Stroke gstroke = g.getStroke();
+        if (stroke != null)
+        	g.setStroke(stroke);
         g.setPaint(color);
-        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+        if (OSPRuntime.setRenderingHints) g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
                            RenderingHints.VALUE_ANTIALIAS_ON);
-        g.fill(shape);
-        if (highlighted) g.fill(highlight);
+        shape.draw(g);
+        if (highlighted) {
+        	g.setStroke(highlightStroke);
+        	g.draw(highlight);
+        }
         g.setPaint(gpaint);
-      }
-
-      public Rectangle getBounds(boolean highlighted) {
-        Rectangle bounds = shape.getBounds();
-        if (highlighted) bounds.add(highlight.getBounds());
-        return bounds;
+        g.setStroke(gstroke);
       }
     };
   }
@@ -153,8 +158,19 @@ public class PointShapeFootprint implements Footprint, Cloneable {
    *
    * @return the hit shapes
    */
+  @Override
   public Shape[] getHitShapes() {
     return hitShapes;
+  }
+
+  /**
+   * Sets the shape.
+   *
+   * @param shape the desired shape
+   */
+  protected void setShape(Shape shape) {
+  	if (shape != null)
+  		this.shape = shape;
   }
 
   /**
@@ -162,11 +178,9 @@ public class PointShapeFootprint implements Footprint, Cloneable {
    *
    * @param stroke the desired stroke
    */
+  @Override
   public void setStroke(BasicStroke stroke) {
     baseStroke = stroke;
-    if (stroke != null) {
-      defaultWidth = stroke.getLineWidth();
-    }
   }
 
   /**
@@ -174,23 +188,9 @@ public class PointShapeFootprint implements Footprint, Cloneable {
    *
    * @return the stroke
    */
+  @Override
   public BasicStroke getStroke() {
     return baseStroke;
-  }
-
-  /**
-   * Sets the line width.
-   *
-   * @param w the desired line width
-   */
-  public void setLineWidth(double w) {
-    if (baseStroke == null) return;
-    baseStroke = new BasicStroke((float)w,
-                              BasicStroke.CAP_BUTT,
-                              BasicStroke.JOIN_MITER,
-                              8,
-                              baseStroke.getDashArray(),
-                              baseStroke.getDashPhase());
   }
 
   /**
@@ -198,6 +198,7 @@ public class PointShapeFootprint implements Footprint, Cloneable {
    *
    * @param color the desired color
    */
+  @Override
   public void setColor(Color color) {
     this.color = color;
   }
@@ -207,6 +208,7 @@ public class PointShapeFootprint implements Footprint, Cloneable {
    *
    * @return the color
    */
+  @Override
   public Color getColor() {
     return color;
   }
@@ -217,10 +219,10 @@ public class PointShapeFootprint implements Footprint, Cloneable {
    * @param points an array of points
    * @return the fill shape
    */
-  public Shape getShape(Point[] points) {
+  @Override
+  public MultiShape getShape(Point[] points, int scale) {
     Point p = points[0];
     transform.setToTranslation(p.x, p.y);
-    int scale = FontSizer.getIntegerFactor();
     if (scale>1) {
     	transform.scale(scale, scale);
     }
@@ -230,10 +232,10 @@ public class PointShapeFootprint implements Footprint, Cloneable {
     	if (stroke==null || stroke.getLineWidth()!=scale*baseStroke.getLineWidth()) {
     		stroke = new BasicStroke(scale*baseStroke.getLineWidth());
     	}
-      transformedShape = stroke.createStrokedShape(transformedShape);
     }
     hitShapes[0] = transformedShape;
-    return transformedShape;
+    return stroke != null ? new MultiShape(transformedShape).andStroke(stroke)
+    		: new MultiShape(transformedShape).andFill(true);
   }
 
   // static fields
@@ -241,7 +243,7 @@ public class PointShapeFootprint implements Footprint, Cloneable {
   		= new HashSet<PointShapeFootprint>();
 
   // static constants
-  private static final Shape HIGHLIGHT;
+  private static final Ellipse2D HIGHLIGHT;
   private static final PointShapeFootprint DIAMOND;
   private static final PointShapeFootprint BOLD_DIAMOND;
   private static final PointShapeFootprint SOLID_DIAMOND;
@@ -264,16 +266,16 @@ public class PointShapeFootprint implements Footprint, Cloneable {
   private static final PointShapeFootprint SOLID_SQUARE;
   private static final PointShapeFootprint VECTOR;
   private static final PointShapeFootprint BOLD_VECTOR;
+  private static final PointShapeFootprint SHAPE;
+  private static final PointShapeFootprint BOLD_SHAPE;
 
   // static initializers
   static {
     float w = 3000; // pixel length of axes and line shapes
 
     // HIGHLIGHT
-    Ellipse2D circle = new Ellipse2D.Double();
-    circle.setFrame(-6, -6, 12, 12);
-    Stroke stroke = new BasicStroke(2);
-    HIGHLIGHT = stroke.createStrokedShape(circle);
+    HIGHLIGHT = new Ellipse2D.Double();
+    HIGHLIGHT.setFrame(-6, -6, 12, 12);
 
     // DIAMOND
     GeneralPath diamond = new GeneralPath();
@@ -307,6 +309,7 @@ public class PointShapeFootprint implements Footprint, Cloneable {
     footprints.add(SOLID_TRIANGLE);
 
     // CIRCLE
+    Ellipse2D circle = new Ellipse2D.Double();
     circle.setFrame(-5, -5, 10, 10);
     CIRCLE = new PointShapeFootprint("Footprint.Circle", circle); //$NON-NLS-1$
     footprints.add(CIRCLE);
@@ -316,6 +319,7 @@ public class PointShapeFootprint implements Footprint, Cloneable {
     SOLID_CIRCLE = new PointShapeFootprint("Footprint.SolidCircle", circle); //$NON-NLS-1$
     SOLID_CIRCLE.setStroke(null);
     footprints.add(SOLID_CIRCLE);
+    circle = new Ellipse2D.Double();
     circle.setFrame(-3, -3, 6, 6);
     SMALL_CIRCLE = new PointShapeFootprint("Footprint.SmallCircle", circle); //$NON-NLS-1$
     footprints.add(SMALL_CIRCLE);
@@ -389,6 +393,14 @@ public class PointShapeFootprint implements Footprint, Cloneable {
     BOLD_VECTOR = new PositionVectorFootprint("Footprint.BoldPositionVector", 2); //$NON-NLS-1$
     footprints.add(BOLD_VECTOR);
 
+    // SHAPE
+    circle = new Ellipse2D.Double();
+    circle.setFrame(-5, -5, 10, 10);
+    SHAPE = new PointShapeFootprint("Footprint.Shape", circle); //$NON-NLS-1$
+    footprints.add(SHAPE);
+    BOLD_SHAPE = new PointShapeFootprint("Footprint.BoldShape", circle); //$NON-NLS-1$
+    BOLD_SHAPE.setStroke(new BasicStroke(2));
+    footprints.add(BOLD_SHAPE);
   }
 }
 

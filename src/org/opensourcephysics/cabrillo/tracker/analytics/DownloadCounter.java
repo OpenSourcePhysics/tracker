@@ -7,6 +7,11 @@
 
 package org.opensourcephysics.cabrillo.tracker.analytics;
 
+import java.awt.AWTException;
+import java.awt.MouseInfo;
+import java.awt.Point;
+import java.awt.Robot;
+import java.awt.Toolkit;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -30,31 +35,45 @@ import org.opensourcephysics.tools.Resource;
  */
 public class DownloadCounter {
 	
-	static String dataFile = "C:/Users/Doug/Eclipse/workspace_deploy/analytics/download_counts.csv"; //$NON-NLS-1$
+	static String dataFile = "download_counts.csv"; //$NON-NLS-1$
 	static String NEW_LINE = System.getProperty("line.separator", "\n"); //$NON-NLS-1$ //$NON-NLS-2$
 	
-  public static void main(String[] args) {
-    
-    // create StringBuffer and append date/time
-    StringBuffer buffer = new StringBuffer();
-  	buffer.append(getDateAndTime());
-  	
-    // get file names (first line of dataFile except data/time)
-  	String[] filenames = getFileNames(dataFile);
-  	
-  	// go through file names and append tabs and download counts
-		for (int j = 0; j<filenames.length; j++) {
-	  	String count = getDownloadCount(filenames[j]);
-	  	buffer.append("\t"+count); //$NON-NLS-1$
-  	}
-		
+	public static void main(String[] args) throws AWTException {
+
+		Toolkit.getDefaultToolkit().beep();
+
+    Robot robot = new Robot();
+    boolean increase = true;
+
+		// create StringBuffer and append date/time
+		StringBuffer buffer = new StringBuffer();
+		buffer.append(getDateAndTime());
+
+		dataFile = "C:\\Users\\dobro\\Documents\\Tracker\\Analytics\\"+dataFile; // pig
+
+		// get file names (first line of dataFile except data/time)
+		String[] filenames = getFileNames(dataFile);
+
+		// go through file names and append tabs and download counts
+		for (int j = 0; j < filenames.length; j++) {
+  		// move mouse to prevent computer from sleeping
+    	increase = !increase;
+      Point p = MouseInfo.getPointerInfo().getLocation();
+      int x = increase? p.x + 1: p.x - 1;
+      int y = increase? p.y + 1: p.y - 1;
+      robot.mouseMove(x, y);
+			String count = getDownloadCount(filenames[j]);
+			buffer.append("\t" + count); //$NON-NLS-1$
+		}
+
 		// get current contents and add StringBuffer at end
 		String contents = read(dataFile);
 		contents += buffer.toString();
-		
+
 		// write the new contents to dataFile
 		write(contents, dataFile);
-  }
+		Toolkit.getDefaultToolkit().beep();
+	}
   
   /**
    * Reads the first line of the data file and returns an array of file names.
@@ -80,28 +99,29 @@ public class DownloadCounter {
     return new String[0];
   }
 
-  /**
-   * Reads a file.
-   *
-   * @param fileName the name of the file
-   * @return the contents as a String
-   */
-  static String read(String fileName) {
-    File file = new File(fileName);
-    StringBuffer buffer = null;
-    try {
-      BufferedReader in = new BufferedReader(new FileReader(file));
-      buffer = new StringBuffer();
-      String line = in.readLine();
-      while(line!=null) {
-        buffer.append(line+NEW_LINE);
-        line = in.readLine();
-      }
-      in.close();
-    } catch(IOException ex) {
-     }
-    return buffer.toString();
-  }
+	/**
+	 * Reads a file.
+	 *
+	 * @param fileName the name of the file
+	 * @return the contents as a String
+	 */
+	static String read(String fileName) {
+		File file = new File(fileName);
+		StringBuffer buffer = null;
+		try {
+			BufferedReader in = new BufferedReader(new FileReader(file));
+			buffer = new StringBuffer();
+			String line = in.readLine();
+			while (line != null) {
+				buffer.append(line + NEW_LINE);
+				line = in.readLine();
+			}
+			in.close();
+			return buffer.toString();
+		} catch (IOException ex) {
+			return null;
+		}
+	}
   
   /**
    * Writes a file.
@@ -163,6 +183,6 @@ public class DownloadCounter {
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston MA 02111-1307 USA
  * or view the license online at http://www.gnu.org/copyleft/gpl.html
  *
- * Copyright (c) 2019  The Open Source Physics project
+ * Copyright (c) 2024  The Open Source Physics project
  *                     https://www.compadre.org/osp
  */

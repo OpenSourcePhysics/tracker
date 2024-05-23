@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2019  Douglas Brown
+ * Copyright (c) 2024 Douglas Brown, Wolfgang Christian, Robert M. Hanson
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,16 +24,29 @@
  */
 package org.opensourcephysics.cabrillo.tracker;
 
-import java.beans.*;
-import java.util.*;
-import java.awt.*;
+import java.awt.Dimension;
+import java.awt.GridLayout;
+import java.awt.Point;
+import java.awt.event.ComponentListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
-import javax.swing.*;
+import javax.swing.ImageIcon;
+import javax.swing.JDialog;
+import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
+import javax.swing.JToolBar;
 
 import org.opensourcephysics.controls.OSPLog;
+import org.opensourcephysics.display.OSPRuntime;
+import org.opensourcephysics.display.ResizableIcon;
 import org.opensourcephysics.tools.FontSizer;
 
 /**
@@ -41,235 +54,273 @@ import org.opensourcephysics.tools.FontSizer;
  *
  * @author Douglas Brown
  */
-public class TrackControl extends JDialog
-    implements PropertyChangeListener {
+public class TrackControl extends JDialog implements OSPRuntime.Disposable, PropertyChangeListener {
 
-  // static fields
-  protected static Map<TrackerPanel, TrackControl> controls = new HashMap<TrackerPanel, TrackControl>();
+	private static final String[] panelProps = { TrackerPanel.PROPERTY_TRACKERPANEL_TRACK,
+			TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR, TTrack.PROPERTY_TTRACK_MASS, TTrack.PROPERTY_TTRACK_FOOTPRINT,
+			TTrack.PROPERTY_TTRACK_DATA, };
 
-  // instance fields
-  protected JPopupMenu popup;
-  protected TrackerPanel trackerPanel;
-  protected JPanel trackBarPanel;
-  protected JToolBar[] trackBars = new JToolBar[0];
-  protected boolean positioned = false;
-  protected int trackCount;
-  protected boolean isVisible;
-  protected KeyListener shiftKeyListener;
-  
-  /**
-   * Gets the track control for the specified tracker panel.
-   *
-   * @param panel the tracker panel to control
-   * @return the track control
-   */
-  public static synchronized TrackControl getControl(TrackerPanel panel) {
-    TrackControl control = controls.get(panel);
-    if (control == null) {
-      control = new TrackControl(panel);
-      controls.put(panel, control);
-      panel.trackControl = control;
-    }
-    return control;
-  }
+// static fields
+	protected static Map<Integer, TrackControl> panelTrackcontrols = new HashMap<>();
 
-  /**
-   * Private constructor.
-   *
-   * @param panel the tracker panel to control
-   */
-  private TrackControl(TrackerPanel panel) {
-    super(panel.getTFrame(), false);
-    // create GUI
-    trackBarPanel = new JPanel();
-    setContentPane(trackBarPanel);
-    shiftKeyListener = new KeyAdapter() {
-    	// transfers focus to trackerPanel for marking
-      public void keyPressed(KeyEvent e) {
-        if (e.getKeyCode() == KeyEvent.VK_SHIFT) {
-        	trackerPanel.requestFocus();
-        	trackerPanel.requestFocusInWindow();
-        }
-        else if (e.getKeyCode() == KeyEvent.VK_A) {
-        	MainTView mainView = trackerPanel.getTFrame().getMainView(trackerPanel);
-        	mainView.keyAdapter.keyPressed(e);
-        	trackerPanel.requestFocus();
-        	trackerPanel.requestFocusInWindow();
-        }
-      }
-    };
-    setResizable(false);
-    pack();
-    popup = new JPopupMenu();
-    trackerPanel = panel;
-    trackerPanel.addPropertyChangeListener("track", this); //$NON-NLS-1$
-    trackerPanel.addPropertyChangeListener("clear", this); //$NON-NLS-1$
-    trackerPanel.addPropertyChangeListener("mass", this); //$NON-NLS-1$
-    trackerPanel.addPropertyChangeListener("footprint", this); //$NON-NLS-1$
-    trackerPanel.addPropertyChangeListener("data", this); //$NON-NLS-1$
-//    trackerPanel.addPropertyChangeListener("color", this); //$NON-NLS-1$
-  }
+	// instance fields
 
+	protected TFrame frame;
+	protected Integer panelID;
+
+	protected JPopupMenu popup;
+	protected JPanel trackBarPanel;
+	protected JToolBar[] trackBars = new JToolBar[0];
+	protected boolean positioned = false;
+	protected int trackCount;
+	protected boolean wasVisible;
+	protected KeyListener shiftKeyListener;
+	protected TButton newTrackButton;
+
+	private ComponentListener myFollower;
+
+	/**
+	 * Gets the track control for the specified tracker panel.
+	 *
+	 * @param panel the tracker panel to control
+	 * @return the track control
+	 */
+	public static synchronized TrackControl getControl(TrackerPanel panel) {
+		TrackControl control = panelTrackcontrols.get(panel.getID());
+		if (control == null) {
+			control = new TrackControl(panel);
+			panelTrackcontrols.put(panel.getID(), control);
+			panel.trackControl = control;
+
+		}
+		return control;
+	}
+
+	/**
+	 * Private constructor.
+	 *
+	 * @param panel the tracker panel to control
+	 */
+	private TrackControl(TrackerPanel panel) {
+		super(panel.getTFrame(), false);
+		panelID = panel.getID();
+		frame = panel.getTFrame();
+			
+		// create GUI
+		trackBarPanel = new JPanel();
+		setContentPane(trackBarPanel);
+		shiftKeyListener = new KeyAdapter() {
+			// transfers focus to trackerPanel for marking
+			@Override
+			public void keyPressed(KeyEvent e) {
+				TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
+				if (e.getKeyCode() == KeyEvent.VK_SHIFT) {
+					trackerPanel.requestFocus();
+					trackerPanel.requestFocusInWindow();
+				} else if (e.getKeyCode() == KeyEvent.VK_A) {
+					MainTView mainView = trackerPanel.getTFrame().getMainView(trackerPanel);
+					mainView.keyAdapter.keyPressed(e);
+					trackerPanel.requestFocus();
+					trackerPanel.requestFocusInWindow();
+				}
+			}
+		};
+		newTrackButton = new TButton() {
+
+			@Override
+			protected JPopupMenu getPopup() {
+				TMenuBar.refreshPopup(panel, TMenuBar.POPUPMENU_TRACKCONTROL_TRACKS, popup);
+				return popup;
+			}
+		};
+		setResizable(false);
+		pack();
+		popup = new JPopupMenu();
+		panel.addListeners(panelProps, this);
+		myFollower = frame.addFollower(this, null);
+	}
+
+	@Override
 	public Dimension getPreferredSize() {
 		Dimension dim = super.getPreferredSize();
-    dim.width = Math.max(150, dim.width);
-    return dim;
+		dim.width = Math.max(150, dim.width);
+		return dim;
 	}
-	
+
+	@Override
 	public void setVisible(boolean vis) {
-		if (trackerPanel==null) return;
-		TFrame frame = trackerPanel.getTFrame();
+		if (panelID == null)
+			return;
 		if (!positioned && vis) {
-			if (frame.isVisible()) {
-				MainTView view = frame.getMainView(trackerPanel);
-				Point p = view.getLocationOnScreen();
-		    setLocation(p.x, p.y);
-		    positioned = true;
-			}
-			else return;
+			positionForFrame();
 		}
-  	if (vis && trackCount==0 && !isEmpty())
-  		refresh();
-    super.setVisible(vis);
-    isVisible = vis;
-  	TToolBar toolbar = TToolBar.getToolbar(trackerPanel);
-    toolbar.trackControlButton.setSelected(vis);
+		if (vis && trackCount == 0 && !isEmpty())
+			refresh();
+		super.setVisible(vis);
+		wasVisible = vis;
+		TToolBar toolbar = frame.getToolBar(panelID, false);
+		if (toolbar != null)
+			toolbar.trackControlButton.setSelected(vis);
 	}
-	
-  /**
-   * Responds to property change events from TrackerPanel.
-   *
-   * @param e the property change event
-   */
-  public void propertyChange(PropertyChangeEvent e) {
-    if (e.getPropertyName().equals("tab")) { //$NON-NLS-1$
-      if (e.getNewValue() == trackerPanel) {
-        setVisible(isVisible);
-      }
-      else {
-        boolean vis = isVisible;
-        setVisible(false);
-        isVisible = vis;
-      }
-    }
-    else if (e.getPropertyName().equals("track") && e.getOldValue()!=null) { //$NON-NLS-1$
-      // track has been deleted, so remove all listeners from it
-    	TTrack track = (TTrack)e.getOldValue();
-      track.removePropertyChangeListener("name", this); //$NON-NLS-1$
-      track.removePropertyChangeListener("color", this); //$NON-NLS-1$
-      track.removePropertyChangeListener("footprint", this); //$NON-NLS-1$
-    }
-    else if (e.getPropertyName().equals("clear")) {     // tracks have been cleared //$NON-NLS-1$
-      for (Integer n: TTrack.activeTracks.keySet()) {
-      	TTrack track = TTrack.activeTracks.get(n);
-        track.removePropertyChangeListener("name", this); //$NON-NLS-1$
-        track.removePropertyChangeListener("color", this); //$NON-NLS-1$
-        track.removePropertyChangeListener("footprint", this); //$NON-NLS-1$
-      }
-    }
-    refresh();
-  }
 
-  @Override
-  public void finalize() {
-  	OSPLog.finer(getClass().getSimpleName()+" recycled by garbage collector"); //$NON-NLS-1$
-  }
+	private void positionForFrame() {
+		if (positioned)
+			return;
+		if (!frame.isVisible())
+			return;
+		Point p = frame.getLocationOnScreen();
+		setLocation(p.x + frame.getWidth() / 2 - getWidth() / 2, p.y + 90);
+		positioned = true;
+	}
 
-  /**
-   * Disposes of this track control.
-   */
-  public void dispose() {
-    if (trackerPanel != null) {
-      trackerPanel.removePropertyChangeListener("track", this); //$NON-NLS-1$
-      trackerPanel.removePropertyChangeListener("clear", this); //$NON-NLS-1$
-      trackerPanel.removePropertyChangeListener("mass", this); //$NON-NLS-1$
-      trackerPanel.removePropertyChangeListener("footprint", this); //$NON-NLS-1$
-      trackerPanel.removePropertyChangeListener("data", this); //$NON-NLS-1$
-      TFrame frame = trackerPanel.getTFrame();
-      if (frame != null) {
-        frame.removePropertyChangeListener("tab", this); //$NON-NLS-1$
-      }
-      controls.remove(trackerPanel);
-      trackerPanel.trackControl = null;
-      trackerPanel = null;
-      for (Integer n: TTrack.activeTracks.keySet()) {
-      	TTrack track = TTrack.activeTracks.get(n);
-	      track.removePropertyChangeListener("name", this); //$NON-NLS-1$
-	      track.removePropertyChangeListener("color", this); //$NON-NLS-1$
-	      track.removePropertyChangeListener("footprint", this); //$NON-NLS-1$
-      }
-    }
-    super.dispose();
-  }
+	/**
+	 * Responds to property change events from TrackerPanel.
+	 *
+	 * @param e the property change event
+	 */
+	@Override
+	public void propertyChange(PropertyChangeEvent e) {
+		switch (e.getPropertyName()) {
+		case TFrame.PROPERTY_TFRAME_TAB:
+			TrackerPanel p = (TrackerPanel) e.getNewValue();
+			if (p == null)
+				return;
+			if (p.getID() == panelID && !frame.isRemovingAll()) {
+				setVisible(wasVisible);
+			} else {
+				boolean vis = wasVisible;
+				setVisible(false);
+				wasVisible = vis;
+			}
+			break;
+		case TrackerPanel.PROPERTY_TRACKERPANEL_TRACK:
+			if (e.getOldValue() != null) {
+				// track has been deleted, so remove all listeners from it
+				((TTrack) e.getOldValue()).removeListenerNCF(this);
+			}
+			break;
+		case TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR: // //$NON-NLS-1$
+			for (TTrack t : TTrack.getValues()) {
+				t.removeListenerNCF(this);
+			}
+			return;
+		}
+		refresh();
+	}
 
-  /**
-   * Return true if this has no track buttons.
-   *
-   * @return true if empty
-   */
-  public boolean isEmpty() {
-    if (trackCount>0) return false;
-    ArrayList<TTrack> tracks = trackerPanel.getUserTracks();
-    return tracks.isEmpty();
-  }
+	/**
+	 * Return true if this has no track buttons.
+	 *
+	 * @return true if empty
+	 */
+	public boolean isEmpty() {
+		return false;
+//    if (trackCount>0) return false;
+//    ArrayList<TTrack> tracks = trackerPanel.getUserTracks();
+//    return tracks.isEmpty();
+	}
 
-  /**
-   * Refreshes buttons and vectors.
-   */
-  protected void refresh() {
-  	if (trackerPanel==null) return;
-    setTitle(TrackerRes.getString("TrackControl.Name")); //$NON-NLS-1$
-    int perbar = 4;
-    ArrayList<TTrack> tracks = trackerPanel.getUserTracks();
-    for (int i = 0; i < trackBars.length; i++) {
-      trackBars[i].removeAll();
-    }
-    int barCount = (tracks.size()+perbar-1)/perbar;
-    trackBarPanel.removeAll();
+	/**
+	 * Refreshes buttons and vectors.
+	 */
+	protected void refresh() {
+		if (panelID == null)
+			return;
+		setTitle(TrackerRes.getString("TrackControl.Name")); //$NON-NLS-1$
+		if (TToolBar.pointmassOffIcon instanceof ResizableIcon) {
+			ResizableIcon icon = (ResizableIcon) TToolBar.pointmassOffIcon;
+			if (icon.getBaseIcon() instanceof ImageIcon) {
+				ImageIcon imgIcon = (ImageIcon) icon.getBaseIcon();
+				setIconImage(imgIcon.getImage());
+			}
+			;
+		}
+
+		int perbar = 4;
+		ArrayList<TTrack> tracks = frame.getTrackerPanelForID(panelID).getUserTracks();
+		for (int i = 0; i < trackBars.length; i++) {
+			trackBars[i].removeAll();
+		}
+		int barCount = 1 + tracks.size() / perbar;
+		trackBarPanel.removeAll();
 		trackBarPanel.setLayout(new GridLayout(barCount, 1));
-    if (barCount > trackBars.length) {
-      JToolBar[] newBars = new JToolBar[barCount];
-      System.arraycopy(trackBars, 0, newBars, 0, trackBars.length);
-      for (int i = trackBars.length; i < barCount; i++) {
-        newBars[i] = new JToolBar();
-        newBars[i].setFloatable(false);
-      }
-      trackBars = newBars;
-    }
-    for (int i = 0; i < barCount; i++) {
-    	trackBarPanel.add(trackBars[i]);
-    }
-    // add listeners to all tracks and count the mass tracks
-    trackCount = 0;
-    TTrack track = null;
-    Iterator<TTrack> it = tracks.iterator();
-    while (it.hasNext()) {
-    	int barIndex = trackCount/perbar;
-      track = it.next();
-      // listen to tracks for property changes that affect icon or name
-      track.removePropertyChangeListener("name", this); //$NON-NLS-1$
-      track.removePropertyChangeListener("color", this); //$NON-NLS-1$
-      track.removePropertyChangeListener("footprint", this); //$NON-NLS-1$
-      track.addPropertyChangeListener("name", this); //$NON-NLS-1$
-      track.addPropertyChangeListener("color", this); //$NON-NLS-1$
-      track.addPropertyChangeListener("footprint", this); //$NON-NLS-1$
-      // make the track buttons
-      TButton button = new TButton(track);
-      button.addKeyListener(shiftKeyListener);
-      trackBars[barIndex].add(button);
-      trackCount++;
-    }
-  	FontSizer.setFonts(this, FontSizer.getLevel());
-    pack();
-    repaint();
-    if (trackCount==0)
-    	setVisible(false);
-    TFrame frame = trackerPanel.getTFrame();
-    if (frame != null) {
-      frame.removePropertyChangeListener("tab", this); //$NON-NLS-1$
-      frame.addPropertyChangeListener("tab", this); //$NON-NLS-1$
-    }
-  }
+		if (barCount > trackBars.length) {
+			JToolBar[] newBars = new JToolBar[barCount];
+			System.arraycopy(trackBars, 0, newBars, 0, trackBars.length);
+			for (int i = trackBars.length; i < barCount; i++) {
+				newBars[i] = new JToolBar();
+				newBars[i].setFloatable(false);
+			}
+			trackBars = newBars;
+		}
+		for (int i = 0; i < barCount; i++) {
+			trackBarPanel.add(trackBars[i]);
+		}
+
+		// add new track button first
+		newTrackButton.setText(TrackerRes.getString("TMenuBar.MenuItem.NewTrack")); //$NON-NLS-1$
+		newTrackButton.setToolTipText(TrackerRes.getString("TrackControl.Button.NewTrack.ToolTip")); //$NON-NLS-1$
+		FontSizer.setFont(newTrackButton);
+		trackBars[0].add(newTrackButton);
+
+		// add listeners to all tracks and count the mass tracks
+		trackCount = 0;
+		TTrack track = null;
+		Iterator<TTrack> it = tracks.iterator();
+		while (it.hasNext()) {
+			int barIndex = (trackCount + 1) / perbar;
+			track = it.next();
+			// listen to tracks for property changes that affect icon or name
+			track.removeListenerNCF(this);
+			track.addListenerNCF(this);
+			// make the track buttons
+			TButton button = new TButton(track);
+			button.addKeyListener(shiftKeyListener);
+			trackBars[barIndex].add(button);
+			trackCount++;
+		}
+		FontSizer.setFonts(this);
+		pack();
+		TFrame.repaintT(this);
+//   setVisible(isVisible && trackCount > 0);
+//   if (trackCount == 0)
+//	   isVisible = true;
+//   if (trackCount==0)
+//    	setVisible(false);
+		if (frame != null) {
+			frame.removePropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, this); // $NON-NLS-1$
+			frame.addPropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, this); // $NON-NLS-1$
+		}
+	}
+
+	/**
+	 * Disposes of this track control.
+	 */
+	@Override
+	public void dispose() {
+		//System.out.println("TrackControl.dispose " + panelID);
+		if (panelID != null) {
+			TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
+			trackerPanel.removeListeners(panelProps, this);
+			if (frame != null) {
+				frame.removePropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, this);
+				frame.removeComponentListener(myFollower);
+				myFollower = null;
+			}
+			panelTrackcontrols.remove(panelID);
+			trackerPanel.trackControl = null;
+			ArrayList<TTrack> tracks = trackerPanel.getTracks();
+			for (int i = tracks.size(); --i >= 0;) { // : TTrack.activeTracks.keySet()) {
+				tracks.get(i).removeListenerNCF(this);
+			}
+			trackerPanel = null;
+		}
+		super.dispose();
+	}
+
+	@Override
+	public void finalize() {
+		OSPLog.finalized(this);
+	}
 
 }
-

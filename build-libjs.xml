@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<!--
+ * just a crude zip up of non-Jalview classes for development purposes -BH 2018
+ *
+ * external JAR class treatment for JavaScript: see src2/README_SWINGJS.txt
+ * 
+ -->
+
+<project name="jalviewX" default="zipall" basedir="."
+ xmlns:if="ant:if"
+    xmlns:unless="ant:unless">
+
+  	<!-- inputs directories -->
+    <property name="resource.dir" value="resources" />  	
+    <property name="swingjs.dir" value="swingjs"/>
+	<!-- output directories -->
+  	<property name="site.dir" value="site"/>
+  	<property name="j2s.dir" value="${site.dir}/swingjs/j2s"/>
+  	<property name="libjs.dir" value="libjs"/>
+
+	<target name="zipall" depends="zipxuggle">
+		
+		
+  </target>
+
+	<target name="zipxuggle">
+		    <property name="xuggle.zip" value="${libjs.dir}/xuggle.zip" />	  	  	
+		  	<echo> Zipping up ${xuggle.zip} </echo>
+		  	<zip destfile="${xuggle.zip}" basedir="${j2s.dir}" includes="com/xuggle/**" />
+	</target>
+
+</project>

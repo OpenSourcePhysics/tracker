@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2019  Douglas Brown
+ * Copyright (c) 2024 Douglas Brown, Wolfgang Christian, Robert M. Hanson
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,8 +27,8 @@ package org.opensourcephysics.cabrillo.tracker;
 import java.beans.*;
 import java.awt.*;
 import java.awt.geom.*;
-import java.awt.image.BufferedImage;
 
+import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.display.*;
 import org.opensourcephysics.media.core.*;
 
@@ -40,251 +40,297 @@ import org.opensourcephysics.media.core.*;
  */
 public class TMat implements Measurable, Trackable, PropertyChangeListener {
 
-  // instance fields
-  protected Rectangle mat;
-  private Rectangle2D bounds;
-  private Paint paint = Color.white;
-  private boolean visible = true;
-  protected boolean isValidMeasure = false;
-  private TrackerPanel trackerPanel;
-  private ImageCoordSystem coords;
-  protected Rectangle drawingBounds;
+	// instance fields
+	private TFrame frame;
+	private Integer panelID;
+	/**
+	 * the cleared rectangle behind the video
+	 */
+	private Rectangle mat;
+	/**
+	 * The bounds of the video after world transformation
+	 */
+	private Rectangle2D worldBounds;
+	private Paint paint = Color.white;
+	private boolean visible = true;
+	private boolean isValidMeasure = false;
+	private ImageCoordSystem coords;
+	protected Rectangle2D drawnBounds;
 
-  /**
-   * Creates a mat for the specified tracker panel
-   *
-   * @param panel the tracker panel
-   */
-  public TMat(TrackerPanel panel) {
-    mat = new Rectangle();
-    setTrackerPanel(panel);
-    refresh();
-  }
+	private AffineTransform trTM = new AffineTransform();
+	private boolean haveVideo;
 
-  /**
-   * Draws the image mat on the panel.
-   *
-   * @param panel the drawing panel requesting the drawing
-   * @param g the graphics context on which to draw
-   */
-  public void draw(DrawingPanel panel, Graphics g) {
-    if (!(panel instanceof VideoPanel) || !isVisible()) return;
-    VideoPanel vidPanel = (VideoPanel) panel;
-    Graphics2D g2 = (Graphics2D)g;
-    // save graphics transform and paint
-    AffineTransform gat = g2.getTransform();
-    Paint gpaint = g2.getPaint();
-    // transform world to screen
-    g2.transform(vidPanel.getPixelTransform());
-    // transform image to world if not drawing in image space
-    if (!vidPanel.isDrawingInImageSpace()) {
-      ImageCoordSystem coords = vidPanel.getCoords();
-      int n = vidPanel.getFrameNumber();
-      g2.transform(coords.getToWorldTransform(n));
-    }
-    // draw the mat
-    g2.setPaint(paint);
-    g2.fill(mat);
-    // restore graphics transform and paint
-    g2.setTransform(gat);
-    g2.setPaint(gpaint);
-    // save drawing bounds for use when exporting videos
-    Shape asDrawn = vidPanel.getPixelTransform().createTransformedShape(mat);
-    Rectangle2D rect2D = asDrawn.getBounds2D();
-    drawingBounds = new Rectangle((int)Math.round(rect2D.getMinX()), 
-    		(int)Math.round(rect2D.getMinY()),(int)rect2D.getWidth(),(int)rect2D.getHeight());
-  }
-  
-  public void setTrackerPanel(TrackerPanel panel) {
-  	if (panel==null || trackerPanel==panel) return;
-    trackerPanel = panel;
-    trackerPanel.addPropertyChangeListener("coords", this); //$NON-NLS-1$
-    coords = trackerPanel.getCoords();
-    coords.addPropertyChangeListener("transform", this); //$NON-NLS-1$
-  }
+	/**
+	 * Creates a mat for the specified tracker panel
+	 *
+	 * @param panel the tracker panel
+	 */
+	public TMat(TrackerPanel panel) {
+		mat = new Rectangle();
+		setTrackerPanel(panel);
+		refresh();
+	}
 
-  /**
-   * Gets the paint.
-   *
-   * @return the paint used to draw the mat
-   */
-  public Paint getPaint() {
-    return paint;
-  }
+	public void setTrackerPanel(TrackerPanel panel) {
+		if (panel == null || panelID == panel.getID())
+			return;
+		frame = panel.getTFrame();
+		panelID = panel.getID();
+		panel = frame.getTrackerPanelForID(panelID);
+		panel.addPropertyChangeListener(Video.PROPERTY_VIDEO_COORDS, this); // $NON-NLS-1$
+		refreshCoords(panel);
+	}
 
-  /**
-   * Sets the paint.
-   *
-   * @param paint the desired paint
-   */
-  public void setPaint(Paint paint) {
-    this.paint = paint;
-  }
+	/**
+	 * Draws the image mat on the panel.
+	 *
+	 * @param panel the drawing panel requesting the drawing
+	 * @param g     the graphics context on which to draw
+	 */
+	@Override
+	public void draw(DrawingPanel panel, Graphics g) {
+		if (!(panel instanceof VideoPanel) || !isVisible())
+			return;
+		VideoPanel vidPanel = (VideoPanel) panel;
+		Graphics2D g2 = (Graphics2D) g.create();
+		// transform world to screen
+		g2.transform(vidPanel.getPixelTransform(trTM));
+		// transform image to world if not drawing in image space
+		if (!vidPanel.isDrawingInImageSpace()) {
+			ImageCoordSystem coords = vidPanel.getCoords();
+			int n = vidPanel.getFrameNumber();
+			g2.transform(coords.getToWorldTransform(n));
+		}
+		// draw the mat
+		g2.setPaint(paint);
+		g2.fill(mat);
+		// restore graphics transform and paint
+		// save drawing bounds for rendering
+		drawnBounds = vidPanel.transformShape(mat).getBounds2D();
+		g2.dispose();
+	}
 
-  /**
-   * Shows or hides this mat.
-   *
-   * @param visible <code>true</code> to show this mat.
-   */
-  public void setVisible(boolean visible) {
-    this.visible = visible;
-  }
+	protected Rectangle2D getDrawingBounds() {
+		return drawnBounds;
+	}
 
-  /**
-   * Gets the visibility of this mat.
-   *
-   * @return <code>true</code> if this mat is visible
-   */
-  public boolean isVisible() {
+
+	/**
+	 * Gets the paint.
+	 *
+	 * @return the paint used to draw the mat
+	 */
+	public Paint getPaint() {
+		return paint;
+	}
+
+	/**
+	 * Sets the paint.
+	 *
+	 * @param paint the desired paint
+	 */
+	public void setPaint(Paint paint) {
+		this.paint = paint;
+	}
+
+	/**
+	 * Shows or hides this mat.
+	 *
+	 * @param visible <code>true</code> to show this mat.
+	 */
+	public void setVisible(boolean visible) {
+		this.visible = visible;
+	}
+
+	/**
+	 * Gets the visibility of this mat.
+	 *
+	 * @return <code>true</code> if this mat is visible
+	 */
+	public boolean isVisible() {
 //    boolean noVid = (trackerPanel.getVideo() == null || !trackerPanel.getVideo().isVisible());
 //    return noVid && visible;
-    return visible;
-  }
+		return visible;
+	}
 
-  /**
-   * Gets the minimum x needed to draw this object.
-   *
-   * @return minimum x
-   */
-  public double getXMin() {
-    if (!isValidMeasure) getWorldBounds();
-    return bounds.getMinX();
-  }
+	/**
+	 * Gets the minimum x needed to draw this object.
+	 *
+	 * @return minimum x
+	 */
+	@Override
+	public double getXMin() {
+		if (!isValidMeasure)
+			getWorldBounds();
+		return worldBounds.getMinX();
+	}
 
-  /**
-   * Gets the maximum x needed to draw this object.
-   *
-   * @return maximum x
-   */
-  public double getXMax() {
-    if (!isValidMeasure) getWorldBounds();
-    return bounds.getMaxX();
-  }
+	/**
+	 * Gets the maximum x needed to draw this object.
+	 *
+	 * @return maximum x
+	 */
+	@Override
+	public double getXMax() {
+		if (!isValidMeasure)
+			getWorldBounds();
+		return worldBounds.getMaxX();
+	}
 
-  /**
-   * Gets the minimum y needed to draw this object.
-   *
-   * @return minimum y
-   */
-  public double getYMin() {
-    if (!isValidMeasure) getWorldBounds();
-    return bounds.getMinY();
-  }
+	/**
+	 * Gets the minimum y needed to draw this object.
+	 *
+	 * @return minimum y
+	 */
+	@Override
+	public double getYMin() {
+		if (!isValidMeasure)
+			getWorldBounds();
+		return worldBounds.getMinY();
+	}
 
-  /**
-   * Gets the maximum y needed to draw this object.
-   *
-   * @return maximum y
-   */
-  public double getYMax() {
-    if (!isValidMeasure) getWorldBounds();
-    return bounds.getMaxY();
-  }
+	/**
+	 * Gets the maximum y needed to draw this object.
+	 *
+	 * @return maximum y
+	 */
+	@Override
+	public double getYMax() {
+		if (!isValidMeasure)
+			getWorldBounds();
+		return worldBounds.getMaxY();
+	}
 
-  /**
-   * Reports whether information is available to set min/max values.
-   *
-   * @return <code>true</code> if min/max values are valid
-   */
-  public boolean isMeasured() {
-    return isVisible();
-  }
+	/**
+	 * Reports whether information is available to set min/max values.
+	 *
+	 * @return <code>true</code> if min/max values are valid
+	 */
+	@Override
+	public boolean isMeasured() {
+		return isVisible();
+	}
 
-  /**
-   * Refreshes this mat.
-   */
-  public void refresh() {
-    // remove and add coords "transform" listener
-    coords.removePropertyChangeListener("transform", this); //$NON-NLS-1$
-    coords = trackerPanel.getCoords();
-    coords.addPropertyChangeListener("transform", this); //$NON-NLS-1$
-    mat.width = (int) trackerPanel.getImageWidth();
-    mat.height = (int) trackerPanel.getImageHeight();
-  	int w = (int)TrackerPanel.getDefaultImageWidth();
-  	int h = (int)TrackerPanel.getDefaultImageHeight();
-    Video video = trackerPanel.getVideo();
-    if (video != null) {
-    	if (video instanceof ImageVideo
-    			&& video.getFilterStack().isEmpty()) {
-    		Dimension dim = ((ImageVideo)video).getSize();
-    		w = dim.width;
-    		h = dim.height;
-    	}
-    	else {
-        BufferedImage vidImage = video.getImage();
-        if (vidImage != null) {
-        	w = vidImage.getWidth();
-        	h = vidImage.getHeight();
-        }
-    	}
-    }
-    mat.x = Math.min((w - mat.width)/2, 0);
-    mat.y = Math.min((h - mat.height)/2, 0);
-    isValidMeasure = false;
-    trackerPanel.scale();
-  }
+	/**
+	 * Refreshes this mat.
+	 */
+	public void refresh() {
+		TrackerPanel panel = frame.getTrackerPanelForID(panelID);
+		refreshCoords(panel);
+		refreshMat(panel);
+	}
 
-  /**
-   * Gets the x offset of this mat relative to the image origin 
-   *
-   * @return x offset
-   */
-  public double getXOffset() {
-    return mat.x;
-  }
+	/**
+	 * Remove and re-add coords ImageCoordSystem.PROPERTY_COORDS_TRANSFORM listener.
+	 * 
+	 * @param panel
+	 */
+	private void refreshCoords(TrackerPanel panel) {
+		if (coords != null)
+			coords.removePropertyChangeListener(ImageCoordSystem.PROPERTY_COORDS_TRANSFORM, this); // $NON-NLS-1$
+		coords = panel.getCoords();
+		coords.addPropertyChangeListener(ImageCoordSystem.PROPERTY_COORDS_TRANSFORM, this); // $NON-NLS-1$
+	}
 
-  /**
-   * Gets the y offset of this mat relative to the image origin 
-   *
-   * @return y offset
-   */
-  public double getYOffset() {
-    return mat.y;
-  }
+	/**
+	 * Ensure that the mat rectangle is valid.
+	 * 
+	 * @param trackerPanel
+	 */
+	private void refreshMat(TrackerPanel trackerPanel) {
+		Rectangle mat0 = new Rectangle(mat);
+		mat.width = (int) trackerPanel.getImageWidth();
+		mat.height = (int) trackerPanel.getImageHeight();
+		int w = (int) TrackerPanel.getDefaultImageWidth();
+		int h = (int) TrackerPanel.getDefaultImageHeight();
+		Video video = trackerPanel.getVideo();
+		if (video != null) {
+			// BH It is possible that this is executing prior to JSMovieVideo obtaining its
+			// first image, but still having known width and height. So do not call getImage() here.
+			boolean useRaw = video instanceof ImageVideo 
+					&& video.getFilterStack().isEmpty();			
+			Dimension d = video.getImageSize(!useRaw);
+			if (d.width > 0) {
+				haveVideo = true;
+				w = d.width;
+				h = d.height;
+			}
+		}
+		mat.x = Math.min((w - mat.width) / 2, 0);
+		mat.y = Math.min((h - mat.height) / 2, 0);
+		if (!mat0.equals(mat)) {
+			invalidate();
+			trackerPanel.scale();
+		}
+	}
 
-  /**
-   * Responds to property change events. TMat listens for the following
-   * events: "transform" from the tracker panel's image coordinate system
-   * and "coords" from the tracker panel
-   *
-   * @param e the property change event
-   */
-  public void propertyChange(PropertyChangeEvent e) {
-    if (e.getPropertyName().equals("transform")) { //$NON-NLS-1$
-      isValidMeasure = false;
-    }
-    else if (e.getPropertyName().equals("coords")) { //$NON-NLS-1$
-      refresh();
-    }
-  }
+	protected void checkVideo(TrackerPanel panel) {
+		if (!haveVideo && panel.getVideo() != null)
+			refreshMat(panel);		
+	}
 
-  /**
-   * Cleans up this mat
-   */
-  public void cleanup() {
-    trackerPanel.removePropertyChangeListener("coords", this); //$NON-NLS-1$
-    coords.removePropertyChangeListener("transform", this); //$NON-NLS-1$
-    trackerPanel = null;
-  }
-  
+	/**
+	 * Responds to property change events.
+	 *
+	 * @param e the property change event
+	 */
+	@Override
+	public void propertyChange(PropertyChangeEvent e) {
+		switch (e.getPropertyName()) {
+		case ImageCoordSystem.PROPERTY_COORDS_TRANSFORM:
+			invalidate();
+			break;
+		case Video.PROPERTY_VIDEO_COORDS:
+			refresh();
+			break;
+		}
+	}
+
+	/**
+	 * Cleans up this mat
+	 */
+	public void cleanup() {
+		if (frame != null) {
+			frame.getTrackerPanelForID(panelID).removePropertyChangeListener("coords", this); //$NON-NLS-1$
+			coords.removePropertyChangeListener(ImageCoordSystem.PROPERTY_COORDS_TRANSFORM, this); // $NON-NLS-1$
+			panelID = null;
+			frame = null;
+		}
+
+	}
+
 //_______________________________ private methods _________________________
 
-  /**
-   * Gets the world bounds of the mat.
-   */
-  private void getWorldBounds() {
-    ImageCoordSystem coords = trackerPanel.getCoords();
-    VideoClip clip = trackerPanel.getPlayer().getVideoClip();
-    int stepCount = clip.getStepCount();
-    // initialize bounds
-    AffineTransform at = coords.getToWorldTransform(clip.stepToFrame(0));
-    bounds = at.createTransformedShape(mat).getBounds2D();
-    // combine bounds from every step
-    for (int n = 0; n < stepCount; n++) {
-      at = coords.getToWorldTransform(clip.stepToFrame(n));
-      bounds.add(at.createTransformedShape(mat).getBounds2D());
-    }
-    isValidMeasure = true;
-  }
+	/**
+	 * Gets the world bounds of the mat.
+	 */
+	private void getWorldBounds() {
+		TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
+		ImageCoordSystem coords = trackerPanel.getCoords();
+		VideoClip clip = trackerPanel.getPlayer().getVideoClip();
+		int stepCount = clip.getStepCount();
+		// initialize bounds
+		AffineTransform at = coords.getToWorldTransform(clip.stepToFrame(0));
+		worldBounds = at.createTransformedShape(mat).getBounds2D();
+		// combine bounds from every step
+		for (int n = 0; n < stepCount; n++) {
+			at = coords.getToWorldTransform(clip.stepToFrame(n));
+			worldBounds.add(at.createTransformedShape(mat).getBounds2D());
+		}
+		isValidMeasure = true;
+	}
+
+	@Override
+	public void finalize() {
+		OSPLog.finalized(this);
+	}
+
+	protected Rectangle getBounds() {
+		return mat;
+	}
+
+	public void invalidate() {
+		isValidMeasure = false;
+	}
 
 }

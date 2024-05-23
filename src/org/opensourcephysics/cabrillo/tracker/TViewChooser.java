@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2019  Douglas Brown
+ * Copyright (c) 2024 Douglas Brown, Wolfgang Christian, Robert M. Hanson
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,17 +24,35 @@
  */
 package org.opensourcephysics.cabrillo.tracker;
 
-import java.beans.*;
-import java.util.*;
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.BorderLayout;
+import java.awt.CardLayout;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.util.ArrayList;
+import java.util.Arrays;
 
-import javax.swing.*;
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.Icon;
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JMenuItem;
+import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
+import javax.swing.JToolBar;
 import javax.swing.border.Border;
 
-import org.opensourcephysics.controls.*;
+import org.opensourcephysics.controls.XML;
+import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.display.OSPRuntime;
-import org.opensourcephysics.display.ResizableIcon;
 import org.opensourcephysics.tools.FontSizer;
 
 /**
@@ -42,528 +60,639 @@ import org.opensourcephysics.tools.FontSizer;
  *
  * @author Douglas Brown
  */
-public class TViewChooser extends JPanel implements PropertyChangeListener {
-	
+public class TViewChooser extends JPanel implements PropertyChangeListener, OSPRuntime.Disposable {
+
 	// static fields
-	protected static Icon maxIcon, restoreIcon;
+
+	protected final static Icon MAXIMIZE_ICON = Tracker.getResourceIcon("maximize.gif", true); //$NON-NLS-1$
+	protected final static Icon	RESTORE_ICON = Tracker.getResourceIcon("restore.gif", true); //$NON-NLS-1$
+	protected final static Icon DOWN_ARROW_ICON = Tracker.getResourceIcon("triangle_down.gif", true); //$NON-NLS-1$
+
+	// instance fields
+
+	protected TFrame frame;
+  protected Integer panelID;
+
+	// data model
 	
-	static {
-    maxIcon = new ResizableIcon(
-        Tracker.class.getResource("resources/images/maximize.gif")); //$NON-NLS-1$
-    restoreIcon = new ResizableIcon(
-        Tracker.class.getResource("resources/images/restore.gif")); //$NON-NLS-1$
+	protected TView[] tViews = new TView[4]; // views are null until needed
+	protected TView selectedView;
+
+	protected int selectedType = TView.VIEW_UNSET;
+	
+	// GUI
+
+	private JToolBar toolbar;
+	private Component toolbarFiller = Box.createHorizontalGlue();
+	private JButton maximizeButton;
+	private JPanel viewPanel;
+	private JButton chooserButton;
+	
+	public boolean isMaximized() {
+		return frame != null && (frame.getMaximizedView() != TView.VIEW_UNSET);
+	}
+	
+	// popup menu
+	
+	protected JPopupMenu popup = new JPopupMenu();
+	protected boolean ignoreSelectedTrack;
 		
+	/**
+	 * Constructs a TViewChooser.
+	 *
+	 * @param panel the tracker panel being viewed
+	 * @param type the view type 
+	 */
+	public TViewChooser(TrackerPanel panel, int type) {
+		super(new BorderLayout());
+		setName("TViewChooser " + type);
+		// don't set selectedType here--it is set in setSelectedViewType()
+		//OSPLog.debug(Performance.timeCheckStr("TViewChooser " + type, Performance.TIME_MARK));
+
+		frame = panel.getTFrame();
+		panelID = panel.getID();
+		panel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this); // $NON-NLS-1$
+		panel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR, this); // $NON-NLS-1$
+		// viewPanel
+		viewPanel = new JPanel(new CardLayout());
+//		viewPanel.setBorder(BorderFactory.createEtchedBorder());
+		viewPanel.setBorder(BorderFactory.createEmptyBorder());
+		add(viewPanel, BorderLayout.CENTER);
+		// toolbar along the bottom when maximized, along the top when restored
+		toolbar = new JToolBar();
+		toolbar.setFloatable(false);
+		toolbar.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mousePressed(MouseEvent e) {
+				toolbar.requestFocusInWindow();
+				if (e.getClickCount() == 2) {
+					maximizeButton.doClick(0);
+				}
+				if (OSPRuntime.isPopupTrigger(e)) {
+					showToolbarPopup(e.getX(), e.getY());
+				}
+			}
+		});
+		toolbar.setBorder(BorderFactory.createEtchedBorder());
+		add(toolbar, BorderLayout.NORTH);
+		// chooser button
+		chooserButton = new TButton() {
+			@Override
+			protected JPopupMenu getPopup() {
+				return getChooserPopup();
+			}
+		};
+		// maximize button
+		Border empty = BorderFactory.createEmptyBorder(7, 3, 7, 3);
+		Border etched = BorderFactory.createEtchedBorder();
+		maximizeButton = new TButton(MAXIMIZE_ICON, RESTORE_ICON);
+		maximizeButton.setBorder(BorderFactory.createCompoundBorder(etched, empty));
+		maximizeButton.setToolTipText(TrackerRes.getString("TViewChooser.Maximize.Tooltip")); //$NON-NLS-1$
+		maximizeButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if (!isMaximized()) {
+					maximize();
+				} else
+					restore();
+			}
+		});
+		setSelectedViewType(type);
+	}
+	
+	private void refreshMaximizeButton() {
+		boolean maximized = isMaximized();
+		maximizeButton.setSelected(maximized);
+		if (OSPRuntime.isJS) {
+			maximizeButton.setIcon(maximized? RESTORE_ICON: MAXIMIZE_ICON);
+		}
+		maximizeButton.setToolTipText(maximized ? 
+				TrackerRes.getString("TViewChooser.Restore.Tooltip") : //$NON-NLS-1$
+				TrackerRes.getString("TViewChooser.Maximize.Tooltip")); //$NON-NLS-1$
 	}
 
-  // instance fields
-  protected TrackerPanel trackerPanel;
-  protected ArrayList<TView> views = new ArrayList<TView>();
-  protected TView selectedView;
-  protected JPanel viewPanel;
-  protected JToolBar toolbar;
-  protected JButton chooserButton;
-  protected Component toolbarFiller = Box.createHorizontalGlue();
-  protected JButton maximizeButton;
-  protected JPopupMenu popup = new JPopupMenu();
-  protected int[] dividerLocs = new int[4];
-  protected int dividerSize;
-  protected boolean maximized;
+	protected void showToolbarPopup(int x, int y) {
+		final TView view = getSelectedView();
+		if (view == null)
+			return;
+		JPopupMenu popup = new JPopupMenu();
+		view.refreshPopup(popup);
 
-  /**
-   * Constructs a TViewChooser.
-   *
-   * @param panel the tracker panel being viewed
-   */
-  public TViewChooser(TrackerPanel panel) {
-    super(new BorderLayout());
-    trackerPanel = panel;
-    trackerPanel.addPropertyChangeListener("track", this); //$NON-NLS-1$
-    trackerPanel.addPropertyChangeListener("clear", this); //$NON-NLS-1$
-    // viewPanel
-    viewPanel = new JPanel(new CardLayout());
-    viewPanel.setBorder(BorderFactory.createEtchedBorder());
-    add(viewPanel, BorderLayout.CENTER);
-    // toolbar
-    toolbar = new JToolBar();
-    toolbar.setFloatable(false);
-    toolbar.addMouseListener(new MouseAdapter() {
-      public void mousePressed(MouseEvent e) {
-      	toolbar.requestFocusInWindow();
-      	if (e.getClickCount()==2) {
-      		maximizeButton.doClick(0);
-      	}
-      	if (OSPRuntime.isPopupTrigger(e)) {
-      		final TView view = getSelectedView();
-      		if (view==null) return;
-        	JPopupMenu popup = new JPopupMenu();
-          JMenuItem helpItem = new JMenuItem(TrackerRes.getString("Dialog.Button.Help")+"..."); //$NON-NLS-1$ //$NON-NLS-2$
-          helpItem.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-            	if (view instanceof PageTView) {
-            		trackerPanel.getTFrame().showHelp("textview", 0); //$NON-NLS-1$
-            	}
-            	else if (view instanceof TableTView) {
-            		trackerPanel.getTFrame().showHelp("datatable", 0); //$NON-NLS-1$
-            	}
-            	else if (view instanceof PlotTView) {
-            		trackerPanel.getTFrame().showHelp("plot", 0); //$NON-NLS-1$
-            	}
-            	else if (view instanceof WorldTView) {
-            		trackerPanel.getTFrame().showHelp("GUI", 0); //$NON-NLS-1$
-            	}
-            }
-          });
-          popup.add(helpItem);
-        	FontSizer.setFonts(popup, FontSizer.getLevel());
-          popup.show(toolbar, e.getX(), e.getY());
-      	}
-      }
-    });
-    toolbar.setBorder(BorderFactory.createEtchedBorder());
-    add(toolbar, BorderLayout.NORTH);
-    // chooser button
-    chooserButton = new TButton() {
-    	protected JPopupMenu getPopup() {
-        // inner popup menu listener class
-        ActionListener listener = new ActionListener() {
-          public void actionPerformed(ActionEvent e) {
-            // select the named view
-            String name = e.getActionCommand();
-            setSelectedView(getView(name));
-         }
-        };
-        // add view items to popup
-        popup.removeAll();
-        JMenuItem item;
-        Iterator<TView> it = getViews().iterator();
-        while (it.hasNext()) {
-          TView view = it.next();
-          String name = view.getViewName();
-          item = new JMenuItem(name, new ResizableIcon(view.getViewIcon()));
-          item.setActionCommand(name);
-          item.addActionListener(listener);
-          popup.add(item);
-        }
-        FontSizer.setFonts(popup, FontSizer.getLevel());
-    		return popup;
-    	}
-    };
-    // maximize buttons
-    Border empty = BorderFactory.createEmptyBorder(7, 3, 7, 3);
-    Border etched = BorderFactory.createEtchedBorder();
-    maximizeButton = new TButton(maxIcon, restoreIcon);
-    maximizeButton.setBorder(BorderFactory.createCompoundBorder(etched, empty));
-  	maximizeButton.setToolTipText(TrackerRes.getString("TViewChooser.Maximize.Tooltip")); //$NON-NLS-1$
-    maximizeButton.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
-    		if (!maximized) {
-    			maximize();
-  			}
-    		else restore();
-      	maximizeButton.setSelected(maximized);
-      	maximizeButton.setToolTipText(maximized?
-      			TrackerRes.getString("TViewChooser.Restore.Tooltip"): //$NON-NLS-1$
-        		TrackerRes.getString("TViewChooser.Maximize.Tooltip")); //$NON-NLS-1$
-      }
-    });
-    createDefaultViews();
-    refresh();
-  }
+		JMenuItem helpItem = new JMenuItem(TrackerRes.getString("Dialog.Button.Help") + "..."); //$NON-NLS-1$ //$NON-NLS-2$
+		helpItem.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				switch(view.getViewType()) {
+				case TView.VIEW_PAGE:
+					frame.showHelp("textview", 0); //$NON-NLS-1$
+					break;
+				case TView.VIEW_TABLE:
+					frame.showHelp("datatable", 0); //$NON-NLS-1$
+					break;
+				case TView.VIEW_PLOT:
+					frame.showHelp("plot", 0); //$NON-NLS-1$
+					break;
+				case TView.VIEW_WORLD:
+					frame.showHelp("GUI", 0); //$NON-NLS-1$
+					break;
+				}
+			}
+		});
+		popup.add(helpItem);
+		FontSizer.setFonts(popup, FontSizer.getLevel());
+		popup.show(toolbar, x, y);
+	}
 
-  /**
-   * gets the TrackerPanel containing the tracks
-   *
-   * @return the tracker panel
-   */
-  public Dimension getMinimumSize() {
-    return new Dimension(0, 0);
-  }
+	protected JPopupMenu getChooserPopup() {				// inner popup menu listener class
+		ActionListener listener = new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				// select the view type
+				int i = Integer.parseInt(e.getActionCommand());
+				setSelectedViewType(i);
+			}
+		};
+		// add view items to popup
+		popup.removeAll();
+		JMenuItem item;
+		for (int i = 0; i<TView.VIEW_NAMES.length; i++) {
+			String name = TrackerRes.getString(TView.VIEW_NAMES[i]);
+			item = new JMenuItem(name, TView.VIEW_ICONS[i]);
+			item.setActionCommand("" + i);
+			item.addActionListener(listener);
+			popup.add(item);
+		}
+		FontSizer.setFonts(popup, FontSizer.getLevel());
+		return popup;
+	}
 
-  /**
-   * gets the TrackerPanel containing the tracks
-   *
-   * @return the tracker panel
-   */
-  public TrackerPanel getTrackerPanel() {
-    return trackerPanel;
-  }
+	/**
+	 * gets the TrackerPanel containing the tracks
+	 *
+	 * @return the tracker panel
+	 */
+	@Override
+	public Dimension getMinimumSize() {
+		return new Dimension(0, 0);
+	}
 
-  /**
-   * Adds a view of the tracker panel
-   *
-   * @param view the view being added
-   */
-  public void addView(TView view) {
-    if (view == null || view.getTrackerPanel() != trackerPanel) return;
-    if (getView(view.getClass()) != null) return;
-    views.add(view);
-    view.cleanup();
-    refreshViewPanel();
-  }
+	/**
+	 * gets the TrackerPanel containing the tracks
+	 *
+	 * @return the tracker panel
+	 */
+	public TrackerPanel getTrackerPanel() {
+		return frame.getTrackerPanelForID(panelID);
+	}
 
-  /**
-   * Adds a view of the tracker panel at a specified index
-   *
-   * @param index the list index desired
-   * @param view the view being added
-   */
-  public void addView(int index, TView view) {
-    if (view.getTrackerPanel() != trackerPanel) return;
-    if (getView(view.getClass()) != null) return;
-    views.add(index, view);
-    view.cleanup();
-    refreshViewPanel();
-  }
+	/**
+	 * Gets the array of TViews.
+	 *
+	 * @return TView[]
+	 */
+	public TView[] getTViews() {
+		return tViews;
+	}
 
-  /**
-   * Removes a view from this chooser
-   *
-   * @param view the view requesting to be removed
-   */
-  public void removeView(TView view) {
-    views.remove(view);
-    if (view == selectedView) selectedView = null;
-    refreshViewPanel();
-  }
+	/**
+	 * Gets the view of the specified class. Will create view if none exists.
+	 *
+	 * @param c class PlotTView, TableTView, WorldTView, PageTView
+	 * @return the view
+	 */
+	public TView getTView(Class<? extends TView> c) {
+		// look for existing view
+		for (TView view : tViews) {
+			if (view != null && view.getClass() == c)
+				return view;
+		}
+		TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
+		// create new view
+		if (c == PlotTView.class) {
+			return tViews[TView.VIEW_PLOT] = new PlotTView(trackerPanel);
+		}
+		if (c == TableTView.class) {
+			return tViews[TView.VIEW_TABLE] = new TableTView(trackerPanel);
+		}
+		if (c == WorldTView.class) {
+			return tViews[TView.VIEW_WORLD] = new WorldTView(trackerPanel);
+		}
+		if (c == PageTView.class) {
+			return tViews[TView.VIEW_PAGE] = new PageTView(trackerPanel);
+		}
+		return null;
+	}
 
-  /**
-   * Gets a list of the available views.
-   *
-   * @return the list of views
-   */
-  public Collection<TView> getViews() {
-    return views;
-  }
+	/**
+	 * Gets the selected view
+	 *
+	 * @return the selected view
+	 */
+	public TView getSelectedView() {
+		return selectedView;
+	}
 
-  /**
-   * Gets the view with the specified name. May return null.
-   *
-   * @param viewName the name of the view
-   * @return the view
-   */
-  public TView getView(String viewName) {
-    Iterator<TView> it = getViews().iterator();
-    while (it.hasNext()) {
-      TView view = it.next();
-      if (view.getViewName().equals(viewName)) return view;
-    }
-    return null;
-  }
+	/**
+	 * Gets the selected view type
+	 *
+	 * @return the selected view
+	 */
+	public int getSelectedViewType() {
+		return selectedType;
+	}
 
-  /**
-   * Gets a collection of views castable to the specified class or interface.
-   *
-   * @param type the class
-   * @return a collection of views
-   */
-  public Collection<TView> getViews(Class<?extends TView> type) {
-    Collection<TView> list = new ArrayList<TView>();
-    for (TView view: list) {
-      if (type.isInstance(view)) list.add(view);
-    }
-    return list;
-  }
+	/**
+	 * Selects a view
+	 *
+	 * @param view the view to select
+	 */
+	public void setSelectedView(TView view, boolean newView) {
+		if (view == null || selectedView == view)
+			return;
 
-  /**
-   * Gets the view of the specified class. May return null.
-   *
-   * @param c the view class
-   * @return the view
-   */
-  public TView getView(Class<?>  c) {
-    for (TView view: getViews()) {
-      if (view.getClass() == c) return view;
-    }
-    return null;
-  }
+		if (newView) {
+			// determine type of view
+			selectedType = view instanceof PlotTView? TView.VIEW_PLOT:
+					view instanceof TableTView? TView.VIEW_TABLE:
+					view instanceof WorldTView? TView.VIEW_WORLD:
+					TView.VIEW_PAGE;
+			tViews[selectedType] = view;
+			refreshViewPanel();
+		}
 
-  /**
-   * Gets the selected view
-   *
-   * @return the selected view
-   */
-  public TView getSelectedView() {
-    return selectedView;
-  }
+		TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
+		trackerPanel.changed = true;
+		TTrack selectedTrack = null;
+		// clean up previously selected view
+		if (selectedView != null) {
+			selectedView.cleanup();
+			((Component) selectedView).removePropertyChangeListener(TView.PROPERTY_TVIEW_TRACKVIEW, this);
+			// if switching selection, keep track same
+			boolean isTrackChooser = (selectedView instanceof TrackChooserTView);
+			if (isTrackChooser && !ignoreSelectedTrack) {
+				selectedTrack = ((TrackChooserTView) selectedView).getSelectedTrack();
+			}
+			ignoreSelectedTrack = false;
+		}
+		selectedView = view; // cannot be null
+		
 
-  /**
-   * Selects the specified view
-   *
-   * @param view the view to select
-   */
-  public void setSelectedView(TView view) {
-  	if (view == null || selectedView==view) return;
-    if (!getViews().contains(view)) {
-      addView(view);
-    }
-    trackerPanel.changed = true;
-    TTrack selectedTrack = null;
-    // clean up previously selected view
-    if (selectedView != null) {
-      selectedView.cleanup();
-      ((JComponent)selectedView).removePropertyChangeListener("trackview", this); //$NON-NLS-1$
-      if (selectedView instanceof TrackChooserTView) {
-        selectedTrack = ((TrackChooserTView)selectedView).getSelectedTrack();
-      }
-    }
-    selectedView = view;
-    // initialize and refresh newly selected view
-    selectedView.init();
-    ((JComponent)selectedView).addPropertyChangeListener("trackview", this); //$NON-NLS-1$
-    if (selectedView instanceof TrackChooserTView) {
-      ((TrackChooserTView)selectedView).setSelectedTrack(selectedTrack);
-    }
-    selectedView.refresh();
-    // put icon in button
-    chooserButton.setIcon(new ResizableIcon(selectedView.getViewIcon()));
-    // show the view on the viewPanel
-    CardLayout cl = (CardLayout) (viewPanel.getLayout());
-    cl.show(viewPanel, selectedView.getViewName());
-    repaint();
-    // refresh the toolbar
-    refreshToolbar();
-  }
+		// initialize and refresh newly selected view
+		view.init();
+		((Component) view).addPropertyChangeListener(TView.PROPERTY_TVIEW_TRACKVIEW, this);
+		if (selectedTrack != null && selectedView instanceof TrackChooserTView) {
+			((TrackChooserTView) selectedView).setSelectedTrack(selectedTrack);
+		}
+		view.refresh();
+		// put icon in button
+		chooserButton.setIcon(view.getViewIcon());
+		// show the view on the viewPanel
+		CardLayout cl = (CardLayout) (viewPanel.getLayout());
+		cl.show(viewPanel, TView.VIEW_NAMES[selectedType]);
+		repaint();
+		// refresh the toolbar
+		refreshToolbar();
+	}
 
-  /**
-   * Responds to property change events.
-   *
-   * @param e the property change event
-   */
-  public void propertyChange(PropertyChangeEvent e) {
-    String name = e.getPropertyName();
-    if (name.equals("track")) {  // track added/removed //$NON-NLS-1$
-      for (TView view: getViews()) {
-      	view.propertyChange(e);
-      }
-      refreshToolbar();
-    }
-    else if (name.equals("clear")) {  // tracks cleared //$NON-NLS-1$
-      for (TView view: getViews()) {
-      	view.propertyChange(e);
-      }
-      refreshToolbar();
-    }
-    else if (name.equals("trackview")) {    // trackview has changed //$NON-NLS-1$
-      refreshToolbar();
-    }
-  }
+	/**
+	 * Selects the specified view type
+	 * Null TViews are created in this method when requested
+	 *
+	 * @param type int
+	 */
+	public void setSelectedViewType(int type) {
+		if (type<0 || type>3)  {
+			ignoreSelectedTrack = false;
+			return;
+		}
+		TView view = tViews[type];
+		if (type==selectedType)  {
+			ignoreSelectedTrack = false;
+			if (view != null) {
+				view.refresh();
+				return;
+			}
+		}
+		selectedType = type;
+		
+		TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
+		if (view == null) {
+			// create new TView
+			switch (type) {
+			default:
+			case TView.VIEW_PLOT: 
+				view = new PlotTView(trackerPanel);
+				break;
+			case TView.VIEW_TABLE:
+				view = new TableTView(trackerPanel);
+				break;
+			case TView.VIEW_WORLD: 
+				view = new WorldTView(trackerPanel);
+				break;
+			case TView.VIEW_PAGE:
+				view = new PageTView(trackerPanel);
+			}
+			tViews[type] = view;
+			refreshViewPanel();
+		}
+		if (((Component)view).getParent() == null)
+			refreshViewPanel();
+		view.refresh();
+		setSelectedView(view, false);
+	}
 
-  /**
-   * Disposes of this chooser
-   */
-  public void dispose() {
-    CardLayout cl = (CardLayout) (viewPanel.getLayout());
-    for (TView view: getViews()) {
-      ((JComponent)view).removePropertyChangeListener("trackview", this); //$NON-NLS-1$
-      cl.removeLayoutComponent((JComponent)view);
-    	view.dispose();
-    }
-    views.clear();
-    selectedView = null;
-    trackerPanel.removePropertyChangeListener("track", this); //$NON-NLS-1$
-    trackerPanel.removePropertyChangeListener("clear", this); //$NON-NLS-1$
-    viewPanel.removeAll();
-    toolbar.removeAll();
-    trackerPanel = null;
-  }
+	/**
+	 * Removes a view of a specified type
+	 *
+	 * @param type one of the TView viewType constants
+	 * @return the removed view, if any
+	 */
+	public TView removeViewType(int viewType) {
+		TView view = null;
+		if (viewType > -1 && viewType < 4) {
+			view = tViews[viewType];
+			tViews[viewType] = null;
+			if (viewType == selectedType) {
+				selectedView = null;
+				TViewChooser[] viewChoosers = frame.getViewChoosers(panelID);
+				for (int i = 0; i < viewChoosers.length; i++) {
+					if (viewChoosers[i] == this) {
+						setSelectedViewType(i);
+						break;
+					}
+				}				
+				
+			}
+			refreshViewPanel();
+		}
+		return view;
+	}
 
-  /**
-   * Refreshes this chooser and its views.
-   */
-  public void refresh() {
-    chooserButton.setToolTipText(TrackerRes.getString("TViewChooser.Button.Choose.Tooltip")); //$NON-NLS-1$
-    for (TView view: getViews()) 
-    	view.refresh();         
-  }
-  
-  /**
-   * Refreshes the popup menus of the views.
-   */
-  public void refreshMenus() {
-    for (TView view: getViews())
-    	if (view instanceof TrackChooserTView) {
-    		TrackChooserTView chooser = (TrackChooserTView)view;
-    		chooser.refreshMenus(); 
-    	}
-  }
-  
-  /**
-   * Maximizes this chooser and its views.
-   */
-  public void maximize() {
-  	if (maximized) return;
-  	TFrame frame = trackerPanel.getTFrame();
-  	MainTView mainView = frame.getMainView(trackerPanel);
-  	boolean mainViewHasPlayer = false;
-  	for (Component next: mainView.getComponents()) {
-  		mainViewHasPlayer = mainViewHasPlayer || next==mainView.getPlayerBar();
-  	}
-  	if (mainViewHasPlayer) {
-  		JToolBar toolbar = mainView.getPlayerBar();
-  		add(toolbar, BorderLayout.SOUTH);
-      toolbar.setFloatable(false);
-  	}  	
+	/**
+	 * Responds to property change events.
+	 *
+	 * @param e the property change event
+	 */
+	@Override
+	public void propertyChange(PropertyChangeEvent e) {
+		switch (e.getPropertyName()) {
+		case TrackerPanel.PROPERTY_TRACKERPANEL_TRACK:
+		case TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR:
+			for (TView view : tViews) {
+				if (view != null)
+					view.propertyChange(e);
+			}
+			refreshToolbar();
+			break;
+		case TView.PROPERTY_TVIEW_TRACKVIEW:
+			refreshToolbar();
+			break;
+		}
+	}
+
+	/**
+	 * Refreshes this chooser and its current view.
+	 */
+	public void refresh() {
+		chooserButton.setToolTipText(TrackerRes.getString("TViewChooser.Button.Choose.Tooltip")); //$NON-NLS-1$
+		if (selectedView !=null)
+			selectedView.refresh();
+	}
+
+	/**
+	 * Refreshes the popup menus of the views.
+	 */
+	public void refreshMenus() {
+		for (int i = 0; i < 2; i++) {
+			if (tViews[i] != null) {
+				TrackChooserTView chooser = (TrackChooserTView) tViews[i];
+					chooser.refreshMenus();
+			}
+		}
+	}
+
+	/**
+	 * Maximizes this chooser and its views.
+	 */
+	public void maximize() {
+		if (isMaximized())
+			return;
 		// save divider locations and size
-		for (int j=0; j<dividerLocs.length; j++) {
-      JSplitPane pane = frame.getSplitPane(trackerPanel, j);
-      dividerLocs[j] = pane.getDividerLocation();
-      if (pane.getDividerSize()>0)
-      	dividerSize=pane.getDividerSize();
-			pane.setDividerSize(0);
+		TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
+		frame.saveCurrentDividerLocations(trackerPanel);
+		JToolBar player = frame.getMainView(trackerPanel).getPlayerBar();
+		if (player.getTopLevelAncestor()==frame) {
+			add(player, BorderLayout.SOUTH);
 		}
-		maximized = true;
-  	Container[] views = frame.getViews(trackerPanel);
-  	for (int i = 0; i<views.length; i++) {
-    	if (TViewChooser.this==views[i]) {
-    		switch(i) {
-    			case 0:
-    				frame.setDividerLocation(trackerPanel, 0, 0.0);
-    				frame.setDividerLocation(trackerPanel, 1, 1.0);
-    				break;
-    			case 1:
-    				frame.setDividerLocation(trackerPanel, 0, 0.0);
-    				frame.setDividerLocation(trackerPanel, 1, 0.0);
-    				break;
-    			case 2:
-    				frame.setDividerLocation(trackerPanel, 0, 1.0);
-    				frame.setDividerLocation(trackerPanel, 2, 0.0);
-    				frame.setDividerLocation(trackerPanel, 3, 0.0);
-    				break;
-    			case 3:
-    				frame.setDividerLocation(trackerPanel, 0, 1.0);
-    				frame.setDividerLocation(trackerPanel, 2, 0.0);
-    				frame.setDividerLocation(trackerPanel, 3, 1.0);
-    		}
-    	}
-  	}
-  }  
-
-  /**
-   * Restores this chooser and its views.
-   */
-  public void restore() {
-  	TFrame frame = trackerPanel.getTFrame();
-  	MainTView mainView = frame.getMainView(trackerPanel);
-  	boolean thisHasPlayer = false;
-  	for (Component next: getComponents()) {
-  		thisHasPlayer = thisHasPlayer || next==mainView.getPlayerBar();
-  	}
-  	if (thisHasPlayer) {
-    	JToolBar player = mainView.getPlayerBar();
-      mainView.add(player, BorderLayout.SOUTH);
-      player.setFloatable(true);
-  	}  	
-		for (int j=0; j<dividerLocs.length; j++) {
-      JSplitPane pane = frame.getSplitPane(trackerPanel, j);
-      pane.setDividerSize(dividerSize);
-			frame.setDividerLocation(trackerPanel, j, dividerLocs[j]);
+		TViewChooser[] choosers = frame.getViewChoosers(trackerPanel);
+		for (int i = 0; i < choosers.length; i++) {
+			if (choosers[i] == this) {
+				frame.maximizeView(trackerPanel, i);
+				break;
+			}
 		}
-		maximized = false;
-  }  
+		refreshMaximizeButton();
+	}
 
-  /**
-   * Creates default views
-   */
-  protected void createDefaultViews() {
-    addView(new PlotTView(trackerPanel));
-    addView(new TableTView(trackerPanel));
-    WorldTView worldView = new WorldTView(trackerPanel);
-    addView(worldView);
-    addView(new PageTView(trackerPanel));
-  }
+	/**
+	 * Restores this chooser and its views.
+	 */
+	public void restore() {
+		TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
+		MainTView mainView = frame.getMainView(trackerPanel);
+		JToolBar player = mainView.getPlayerBar();
+		if (player.getParent() == this) {
+			mainView.add(player, BorderLayout.SOUTH);
+		}
+		frame.restoreViews(trackerPanel);
+		refreshMaximizeButton();
+	}
+	
+	/**
+	 * Refreshes the toolbar
+	 */
+	protected void refreshToolbar() {
+		// BH THIS IS A PROBLEM
+		// DB 7/11/20 I added checks to call this only when required
+		toolbar.removeAll();
+		toolbar.add(chooserButton);
+		if (selectedView != null) {
+			ArrayList<Component> list = selectedView.getToolBarComponents();
+			if (list != null) {
+				for (Component c : list) {
+					toolbar.add(c);
+					FontSizer.setFont(c);
+				}
+			}
+		}
+		toolbar.add(toolbarFiller);
+		toolbar.add(maximizeButton);
+//		FontSizer.setFonts(toolbar);
+		toolbar.repaint();
+	}
 
-  /**
-   * Refreshes the toolbar
-   */
-  protected void refreshToolbar() {
-    toolbar.removeAll();
-    toolbar.add(chooserButton);
-    ArrayList<Component> list = selectedView.getToolBarComponents();
-    if (list != null) {
-      for (Component c: list) {
-      	toolbar.add(c);
-      }
-    }
-    toolbar.add(toolbarFiller);
-    toolbar.add(maximizeButton);
-    FontSizer.setFonts(toolbar, FontSizer.getLevel());
-    toolbar.repaint();
-  }
+	/**
+	 * Refreshes the viewPanel.
+	 */
+	private void refreshViewPanel() {
+		viewPanel.removeAll();
+		for (int i = 0; i< 4; i++) {
+			TView view = tViews[i];
+			if (view != null) {
+				viewPanel.add((JPanel) view, TView.VIEW_NAMES[i]);
+			}
+		}
+		// repaint selected view, if any
+		if (selectedView != null) {
+			repaint();
+//			// refresh the toolbar
+//			refreshToolbar();
+		}
+		// otherwise select the current type
+		else 
+			setSelectedViewType(selectedType);
+		}
 
-  /**
-   * Refreshes the viewPanel.
-   */
-  private void refreshViewPanel() {
-    viewPanel.removeAll();
-    Iterator<TView> it = getViews().iterator();
-    while (it.hasNext()) {
-      TView view = it.next();
-      String name = view.getViewName();
-      viewPanel.add((JComponent)view, name);
-    }
-    // reselect selected view, if any
-    if (selectedView != null && getViews().contains(selectedView))
-      setSelectedView(selectedView);
-    // otherwise select the first view in the list
-    else {
-      it = getViews().iterator();
-      if (it.hasNext()) {
-        setSelectedView(it.next());
-      }
-    }
-  }
+	/**
+	 * Returns an XML.ObjectLoader to save and load object data.
+	 *
+	 * @return the XML.ObjectLoader
+	 */
+	public static XML.ObjectLoader getLoader() {
+		return new Loader();
+	}
 
-  /**
-   * Returns an XML.ObjectLoader to save and load object data.
-   *
-   * @return the XML.ObjectLoader
-   */
-  public static XML.ObjectLoader getLoader() {
-    return new Loader();
-  }
+	/**
+	 * A class to save and load object data.
+	 */
+	static class Loader implements XML.ObjectLoader {
 
-  /**
-   * A class to save and load object data.
-   */
-  static class Loader implements XML.ObjectLoader {
+		/**
+		 * Saves object data.
+		 *
+		 * @param control the control to save to
+		 * @param obj     the TrackerPanel object to save
+		 */
+		@Override
+		public void saveObject(XMLControl control, Object obj) {
+			TViewChooser chooser = (TViewChooser) obj;
+			// save the selected view
+			control.setValue("selected_view", chooser.selectedView); //$NON-NLS-1$
+		}
 
-    /**
-     * Saves object data.
-     *
-     * @param control the control to save to
-     * @param obj the TrackerPanel object to save
-     */
-    public void saveObject(XMLControl control, Object obj) {
-      TViewChooser chooser = (TViewChooser)obj;
-      // save the selected view
-      control.setValue("selected_view", chooser.selectedView); //$NON-NLS-1$
-    }
+		/**
+		 * Creates an object.
+		 *
+		 * @param control the control
+		 * @return the newly created object
+		 */
+		@Override
+		public Object createObject(XMLControl control) {
+			return null;
+		}
 
-    /**
-     * Creates an object.
-     *
-     * @param control the control
-     * @return the newly created object
-     */
-    public Object createObject(XMLControl control){
-      return null;
-    }
+		/**
+		 * Loads an object with data from an XMLControl.
+		 *
+		 * @param control the control
+		 * @param obj     the object
+		 * @return the loaded object
+		 */
+		@Override
+		public Object loadObject(XMLControl control, Object obj) {
+			TViewChooser chooser = (TViewChooser) obj;
+			TView view = (TView) control.getObject("selected_view"); //$NON-NLS-1$
+			if (view != null) {
+				chooser.setSelectedView(view, true);
+			}
+			return obj;
+		}
+	}
+	
+	/**
+	 * Get the view of the specified type. May return null..
+	 *
+	 * @param type one of the define TView types
+	 * @return the TView. May be null.
+	 */
+	TView getView(int type) {
+		if (type >= 0 && type < tViews.length) {
+			return tViews[type];
+		}
+		return null;
+	}
 
-    /**
-     * Loads an object with data from an XMLControl.
-     *
-     * @param control the control
-     * @param obj the object
-     * @return the loaded object
-     */
-    public Object loadObject(XMLControl control, Object obj) {
-      TViewChooser chooser = (TViewChooser)obj;
-      TView view = (TView)control.getObject("selected_view"); //$NON-NLS-1$
-      if (view != null) {
-      	chooser.setSelectedView(view);
-      }
-      return obj;
-    }
-  }
+	@Override
+	public void paint(Graphics g) {
+		if (panelID == null || !frame.getTrackerPanelForID(panelID).isPaintable()) {
+		  return;
+		}
+		super.paint(g);
+	}
+	
+		public static TViewChooser getChooserParent(Container c) {
+		while ((c = c.getParent()) != null && !(c instanceof TViewChooser)) {}
+		return (TViewChooser) c;
+	}
+
+	/**
+	 * Adjust maximum size height and width for standard view.
+	 * 
+	 * @param c the parent of the button being checked for maximum size
+	 * @param max default size
+	 * @param minHeight button's minimum height
+	 * @return new Dimension with height based on chooserButton height
+	 */
+	static Dimension getButtonMaxSize(Container c, Dimension max, int minHeight) {
+		c = getChooserParent(c);
+		return (c == null ? max 
+				: new Dimension(max.width, Math.max(minHeight, ((TViewChooser) c).chooserButton.getHeight())));
+	}
+
+	/**
+	 * Returns true if this view is selected in it's parent TViewChooser.
+	 * 
+	 * @return true if selected
+	 */
+	public static boolean isSelectedView(TView view) {
+			TViewChooser c = getChooserParent((Container) view);
+			return (c != null && view == c.getSelectedView());
+	}
+
+	@Override
+	public void finalize() {
+		//		OSPLog.finer
+		//System.out.println(getClass().getSimpleName() + " " + getName() + " finalized"); //$NON-NLS-1$
+	}
+
+	/**
+	 * Disposes of this chooser
+	 */
+	@Override
+	public void dispose() {
+		CardLayout cl = (CardLayout) viewPanel.getLayout();
+		for (TView view : tViews) {
+			if (view != null) {
+				((Component) view).removePropertyChangeListener("trackview", this); //$NON-NLS-1$
+				cl.removeLayoutComponent((JComponent) view);
+				OSPRuntime.Disposable.deallocate(view);
+			}
+		}
+		tViews = null;
+		selectedView = null;
+
+		TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
+		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this); // $NON-NLS-1$
+		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR, this); // $NON-NLS-1$
+		viewPanel.removeAll();
+		toolbar.removeAll();
+		panelID = null;
+		frame = null;
+	}
+
+	@Override
+	public String toString() {
+		return getName() + " " + Arrays.toString(tViews);
+	}
 
 }

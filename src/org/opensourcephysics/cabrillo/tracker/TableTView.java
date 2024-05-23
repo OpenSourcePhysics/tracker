@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2019  Douglas Brown
+ * Copyright (c) 2024 Douglas Brown, Wolfgang Christian, Robert M. Hanson
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,492 +24,539 @@
  */
 package org.opensourcephysics.cabrillo.tracker;
 
-import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Map;
 
-import javax.swing.*;
-import javax.swing.table.TableColumnModel;
+import javax.swing.Icon;
+import javax.swing.JPopupMenu;
+import javax.swing.SwingUtilities;
 
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
+import org.opensourcephysics.display.DataTable;
 import org.opensourcephysics.tools.FontSizer;
+import org.opensourcephysics.tools.FunctionTool;
 
 /**
- * This displays table track views selected from a dropdown list.
+ * This JPanel is the only child of TViewChooser viewPanel. It presents a JTable
+ * selected from a dropdown list and maintains the JDialog for column choosing
+ * for that table. It does not maintain the JTable -- that is TableTrackView (a
+ * JScrollPane).
  *
  * @author Douglas Brown
  */
 public class TableTView extends TrackChooserTView {
 
-  // instance fields
-  protected Icon icon;
-  protected JDialog columnsDialog;
-  protected JLabel trackLabel;
-  protected JButton defineButton, closeButton, textColumnButton;
-  protected JPanel buttonPanel;
-  protected boolean dialogVisible;
+	protected static final Icon TABLEVIEW_ICON = Tracker.getResourceIcon("datatable.gif", true); //$NON-NLS-1$ ;
 
-  /**
-   * Constructs a TableTView for the specified tracker panel.
-   *
-   * @param panel the tracker panel
-   */
-  public TableTView(TrackerPanel panel) {
-    super(panel);
-    icon = new ImageIcon(
-        Tracker.class.getResource("resources/images/datatable.gif")); //$NON-NLS-1$
-    getColumnsDialog();
-  }
+	// instance fields
 
-  /**
-   * Gets the name of the view
-   *
-   * @return the name of the view
-   */
-  public String getViewName() {
-    return TrackerRes.getString("TFrame.View.Table"); //$NON-NLS-1$
-  }
+	/**
+	 * Constructs a TableTView for the specified tracker panel.
+	 *
+	 * @param panel the tracker panel
+	 */
+	public TableTView(TrackerPanel panel) {
+		super(panel);
+	}
 
-  /**
-   * Gets the icon for this view
-   *
-   * @return the icon for this view
-   */
-  public Icon getViewIcon() {
-    return icon;
-  }
+	/**
+	 * We want to do this once, specifically as soon as we are attached through to
+	 * the JFrame top ancestor.
+	 */
+	@Override
+	public void addNotify() {
+		super.addNotify();
+		frame.removePropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, this);
+		frame.addPropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, this);
+	}
 
-  /**
-   * Creates a view for the specified track
-   *
-   * @param track the track to be viewed
-   * @return the view of the track
-   */
-  protected TrackView createTrackView(TTrack track) {
-  	TableTrackView trackView = new TableTrackView(track, trackerPanel, this);
-    FontSizer.setFonts(trackView, FontSizer.getLevel());
-    return trackView;
-  }
+	/**
+	 * ...and remove listener when we are detached.
+	 */
+	@Override
+	public void removeNotify() {
+		if (panelID != null && frame != null) {
+			frame.removePropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, this);
+		}
+		super.removeNotify();
+	}
 
-  /**
-   * Overrides TrackChooserTView method.
-   *
-   * @param track the track to be selected
-   */
-  public void setSelectedTrack(TTrack track) {
-  	if (track == null) {
-    	noDataLabel.setText(TrackerRes.getString("TableTView.Label.NoData")); //$NON-NLS-1$
-  	}
-  	super.setSelectedTrack(track);
-		// refresh or close the columns dialog
-  	if (columnsDialog == null) {
-  		return;
-  	}
-  	else if (getSelectedTrack() == null) {
-    	columnsDialog.getContentPane().removeAll();    	
-  		columnsDialog.setVisible(false);
-  	}
-  	else if (!columnsDialog.isVisible()) {
-  		return;
-  	}
-  	else showColumnsDialog(getSelectedTrack());
-  }
-  
-  /**
-   * Refreshes the dropdown list and track views.
-   */
-  public void refresh() {
-  	super.refresh();
-  	if (columnsDialog == null) return;
-    FontSizer.setFonts(columnsDialog, FontSizer.getLevel());      
-		closeButton.setText(TrackerRes.getString("Dialog.Button.Close")); //$NON-NLS-1$
-		defineButton.setText(TrackerRes.getString("TView.Menuitem.Define")); //$NON-NLS-1$
-		defineButton.setToolTipText(TrackerRes.getString("Button.Define.Tooltip")); //$NON-NLS-1$
-    columnsDialog.setTitle(TrackerRes.getString("TableTView.Dialog.TableColumns.Title")); //$NON-NLS-1$
-    textColumnButton.setText(TrackerRes.getString("TableTrackView.Menu.TextColumn.Text")); //$NON-NLS-1$
-    textColumnButton.setToolTipText(TrackerRes.getString("TableTrackView.Menu.TextColumn.Tooltip")); //$NON-NLS-1$
-  }
-  
-  /**
-   * Displays the dialog box for selecting data columns.
-   *
-   * @param track the track
-   */
-  protected void showColumnsDialog(TTrack track) {
-  	if (getColumnsDialog() == null) return;
-  	// refresh dialog
-  	refreshColumnsDialog(track);
-    Point p0 = new Frame().getLocation();
-    if (columnsDialog.getLocation().x == p0.x) {
-      // center dialog on the screen
-      Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
-      int x = (dim.width - columnsDialog.getBounds().width) / 2;
-      int y = (dim.height - columnsDialog.getBounds().height) / 2;
-      columnsDialog.setLocation(x, y);
-    }
-    if (!columnsDialog.isVisible()) columnsDialog.setVisible(true);
-  }
+	/**
+	 * Gets the name of the view
+	 *
+	 * @return the name of the view
+	 */
+	@Override
+	public String getViewName() {
+		return TrackerRes.getString("TFrame.View.Table"); //$NON-NLS-1$
+	}
 
-  /**
-   * Displays the dialog box for selecting data columns.
-   *
-   * @param track the track
-   */
-  protected void refreshColumnsDialog(TTrack track) {
-  	if (getColumnsDialog()==null) return;
-    Container contentPane = columnsDialog.getContentPane();
-    contentPane.removeAll();
-    trackLabel.setIcon(track.getFootprint().getIcon(21, 16));
-    trackLabel.setText(track.getName());
-    contentPane.add(trackLabel);
-    TableTrackView trackView = (TableTrackView)getTrackView(track);
-    trackView.refreshColumnCheckboxes();
-    contentPane.add(trackView.columnsScroller);
-	  contentPane.add(buttonPanel);
-    FontSizer.setFonts(contentPane, FontSizer.getLevel());      
-    contentPane.setPreferredSize(null);
-    Dimension dim = contentPane.getPreferredSize();
-    dim.height = Math.min(dim.height, 300);
-    contentPane.setPreferredSize(dim);
-    columnsDialog.pack();
-    textColumnButton.setEnabled(!track.isLocked());
-    columnsDialog.repaint();
-  }
+	/**
+	 * Gets the icon for this view
+	 *
+	 * @return the icon for this view
+	 */
+	@Override
+	public Icon getViewIcon() {
+		return TABLEVIEW_ICON;
+	}
 
-  /**
-   * Responds to property change events. This listens for
-   * events "tab" from TFrame and "function" from FunctionTool.
-   *
-   * @param e the property change event
-   */
-  public void propertyChange(PropertyChangeEvent e) {
-    if (e.getPropertyName().equals("tab")) { //$NON-NLS-1$
-      if (e.getNewValue() == trackerPanel && this.isVisible()) {
-        if (columnsDialog != null) columnsDialog.setVisible(dialogVisible);
-      }
-      else {
-        boolean vis = dialogVisible;
-        if (columnsDialog != null) columnsDialog.setVisible(false);
-        dialogVisible = vis;
-      }
-    }
-    else if (e.getPropertyName().equals("function")) { //$NON-NLS-1$
-      super.propertyChange(e);
-      TTrack track = getSelectedTrack();
-      if (track!=null && columnsDialog!=null) {
-        refreshColumnsDialog(track);      	
-  	    JViewport port = ((TableTrackView)getTrackView(track)).
-  	    		columnsScroller.getViewport();
-  	    Dimension dim = port.getViewSize();
-  	    int offset = port.getExtentSize().height;
-  	    port.setViewPosition(new Point(0, dim.height-offset));
-      }
-    }
-    else super.propertyChange(e);
-  }
-  
-  /**
-   * Cleans up this view
-   */
-  public void cleanup() {
-  	super.cleanup();
-  	if (trackerPanel!=null && trackerPanel.getTFrame()!=null) {
-  		trackerPanel.getTFrame().removePropertyChangeListener("tab", this); //$NON-NLS-1$
-  	}
-  }
+	/**
+	 * Gets the type of view
+	 *
+	 * @return one of the defined types
+	 */
+	@Override
+	public int getViewType() {
+		return TView.VIEW_TABLE;
+	}
 
-  private JDialog getColumnsDialog() {
-  	TFrame frame = trackerPanel.getTFrame();
-    if (columnsDialog == null && frame != null) {
-      columnsDialog = new JDialog(frame, false) {
-        public void setVisible(boolean vis) {
-          super.setVisible(vis);
-          dialogVisible = vis;
-        }    	    	
-      };
-      columnsDialog.setTitle(TrackerRes.getString("TableTView.Dialog.TableColumns.Title")); //$NON-NLS-1$
-      columnsDialog.setResizable(false);
-      frame.addPropertyChangeListener("tab", this); //$NON-NLS-1$
-      JPanel contentPane = new JPanel();
-      contentPane.setLayout(new BoxLayout(contentPane, BoxLayout.PAGE_AXIS));
-      columnsDialog.setContentPane(contentPane);
-      // create close button
-      closeButton = new JButton(TrackerRes.getString("Dialog.Button.Close")); //$NON-NLS-1$
-      closeButton.addActionListener(new ActionListener() {
-        public void actionPerformed(ActionEvent e) {
-        	columnsDialog.setVisible(false);
-        }
-      });
-      // create data function tool action
-      ActionListener dataFunctionListener = new ActionListener() {
-        public void actionPerformed(ActionEvent e) {
-          TTrack track = getSelectedTrack();
-          if (track != null) {
-          	trackerPanel.getDataBuilder().setSelectedPanel(track.getName());
-          	trackerPanel.getDataBuilder().setVisible(true);
-          }
-        }
-      };
-      // create define button
-      defineButton = new JButton(TrackerRes.getString("TView.Menuitem.Define")); //$NON-NLS-1$
-      defineButton.addActionListener(dataFunctionListener);
-      defineButton.setToolTipText(TrackerRes.getString("Button.Define.Tooltip")); //$NON-NLS-1$
-      // create text column button
-      textColumnButton = new JButton(TrackerRes.getString("TableTrackView.Menu.TextColumn.Text")); //$NON-NLS-1$
-      textColumnButton.setToolTipText(TrackerRes.getString("TableTrackView.Menu.TextColumn.Tooltip")); //$NON-NLS-1$
-      textColumnButton.addActionListener(new ActionListener() {
-        public void actionPerformed(ActionEvent e) {
-        	// show popup menu
-  		    JPopupMenu popup = new JPopupMenu();
-          TableTrackView trackView = (TableTrackView)getTrackView(getSelectedTrack());
-          trackView.getPopup(); // refreshes menu items
-  		    popup.add(trackView.createTextColumnItem);
-  		    if (trackView.deleteTextColumnMenu.getMenuComponentCount()>0) {
-	  		    popup.add(trackView.deleteTextColumnMenu);
-	  		    popup.add(trackView.renameTextColumnMenu);
-  		    }
-        	FontSizer.setFonts(popup, FontSizer.getLevel());
-  		    popup.show(textColumnButton, 0, textColumnButton.getHeight());
-        }
-      });
+	@Override
+	public void refreshPopup(JPopupMenu popup) {
+		// pass to selected TableTrackView
+		TableTrackView trackview = (TableTrackView) getTrackView(selectedTrack);
+		if (trackview != null) {
+			trackview.refreshToolbarPopup(popup);
+		}
+	}
 
-      buttonPanel = new JPanel();
-	    if (trackerPanel.isEnabled("data.builder"))  //$NON-NLS-1$
-	    	buttonPanel.add(defineButton);
-	    if (trackerPanel.isEnabled("text.columns"))  //$NON-NLS-1$
-	    	buttonPanel.add(textColumnButton);
-	    buttonPanel.add(closeButton);
-	    // create track label
-	    trackLabel = new JLabel();
-	    trackLabel.setBorder(BorderFactory.createEmptyBorder(7, 0, 6, 0));
-	    trackLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-    }
-    
-    // refresh button panel
-    if (columnsDialog!=null) {    
-	    buttonPanel.removeAll();
-	    if (trackerPanel.isEnabled("data.builder"))  //$NON-NLS-1$
-	    	buttonPanel.add(defineButton);
-	    if (trackerPanel.isEnabled("text.columns"))  //$NON-NLS-1$
-	    	buttonPanel.add(textColumnButton);
-	    buttonPanel.add(closeButton);
-    }
-  	return columnsDialog;
-  }
+	/**
+	 * Creates a view for the specified track
+	 *
+	 * @param track the track to be viewed
+	 * @return the view of the track
+	 */
+	@Override
+	protected TrackView createTrackView(TTrack track) {
+		TableTrackView trackView = new TableTrackView(track, getPanel(), this);
+		FontSizer.setFonts(trackView); // for resizable icon only
+//		
+//		addComponentListener(new ComponentListener() {
+//
+//			@Override
+//			public void componentResized(ComponentEvent e) {
+//				OSPLog.debug("TrackChooserTView " + getBounds());
+//				if (getSelectedTrack() != null && getHeight() > 0) {
+//					DataTable t = ((TableTrackView) getTrackView(selectedTrack))
+//					.getDataTable();
+//					OSPLog.debug("TrackChooserTView " + t);
+//					
+//					//.repaint();
+//				}
+//				//	.refreshTable();
+////				refresh();
+//			}
+//
+//			@Override
+//			public void componentMoved(ComponentEvent e) {
+//			}
+//
+//			@Override
+//			public void componentShown(ComponentEvent e) {
+//			}
+//
+//			@Override
+//			public void componentHidden(ComponentEvent e) {
+//			}
+//			
+//		});
 
-  /**
-   * Returns an XML.ObjectLoader to save and load object data.
-   *
-   * @return the XML.ObjectLoader
-   */
-  public static XML.ObjectLoader getLoader() {
-    return new Loader();
-  }
+		return trackView;
+	}
 
-  /**
-   * A class to save and load object data.
-   */
-  static class Loader implements XML.ObjectLoader {
+//	/**
+//	 * Overrides TrackChooserTView method.
+//	 *
+//	 * @param track the track to be selected
+//	 */
+//	@Override
+//	public void setSelectedTrack(TTrack track) {
+//		super.setSelectedTrack(track);
+////		refreshColumnsDialog(track, true);
+//	}
 
-    /**
-     * Saves object data.
-     *
-     * @param control the control to save to
-     * @param obj the TrackerPanel object to save
-     */
-    public void saveObject(XMLControl control, Object obj) {
-      TableTView view = (TableTView)obj;
-      TTrack track = view.getSelectedTrack();
-      if (track != null) { // contains at least one track
-        control.setValue("selected_track", track.getName()); //$NON-NLS-1$
-        // save customized tables
-        ArrayList<TTrack> customized = new ArrayList<TTrack>();
-        Map<TTrack, TrackView> views = view.trackViews;
-        for (TTrack next: views.keySet()) {
-        	if (views.get(next).isCustomState())
-        		customized.add(next);
-        }
-        if (!customized.isEmpty()) {
-        	ArrayList<String[][]> formattedColumns = new ArrayList<String[][]>();
-	        String[][] data = new String[customized.size()][];
-	        Iterator<TTrack> it = customized.iterator();
-	        int i = -1;
-	        while (it.hasNext()) {
-	        	i++;
-	        	track = it.next();
-	          TableTrackView trackView = (TableTrackView)view.getTrackView(track);
-	          String[] columns = trackView.getOrderedVisibleColumns();
-	          data[i] = new String[columns.length+1];
-	          System.arraycopy(columns, 0, data[i], 1, columns.length);
-	          data[i][0] = track.getName();
-	          String[][] formats = trackView.getColumnFormats();
-	          if (formats.length>0) {
-	          	String[][] withName = new String[formats.length][3];
-	          	for (int j=0; j<formats.length; j++) {
-	          		withName[j][0] = track.getName();
-	          		withName[j][1] = formats[j][0];
-	          		withName[j][2] = formats[j][1];
-	          	}
-	          	formattedColumns.add(withName);
-	          }
-	        }
-	        control.setValue("track_columns", data); //$NON-NLS-1$
-	        if (!formattedColumns.isEmpty()) {
-	        	String[][][] patterns = formattedColumns.toArray(new String[0][0][0]);
-		        control.setValue("column_formats", patterns); //$NON-NLS-1$
-	        }
-        }
-      }
-    }
+	/**
+	 * Displays the dialog box for selecting data columns.
+	 *
+	 * @param track the track
+	 */
+	protected void refreshColumnsDialog(TTrack track, boolean onlyIfVisible) {
+		TableTrackView tableView = (TableTrackView) getTrackView(track);
+		if (tableView != null)
+			tableView.refreshColumnDialog(track, onlyIfVisible);
+	}
 
-    /**
-     * Creates an object.
-     *
-     * @param control the control
-     * @return the newly created object
-     */
-    public Object createObject(XMLControl control){
-      return null;
-    }
+	/**
+	 * Responds to property change events. This listens for events
+	 * TFrame.PROPERTY_TFRAME_TAB and "function" from FunctionTool.
+	 *
+	 * @param e the property change event
+	 */
+	@Override
+	public void propertyChange(PropertyChangeEvent e) {
+		TrackerPanel panel = getPanel();
+		switch (e.getPropertyName()) {
+		case TTrack.PROPERTY_TTRACK_FORMAT:
+			// format has changed
+			TrackView view = null;
+			TTrack track = getSelectedTrack();
+			if (track != null && (view = getTrackView(track)) != null) {
+				int frameNo = panel.getFrameNumber();
+				view.refresh(frameNo, DataTable.MODE_TRACK_REFRESH);
+			}
+			break;
+		case TFrame.PROPERTY_TFRAME_TAB:
+			if (e.getNewValue() != null && !frame.isRemovingAll()) {
+				TableTrackView trackview = (TableTrackView) getTrackView(selectedTrack);
+				if (trackview != null) {
+					trackview.setDialogAsLastVisible(e.getNewValue() == panel && isVisible());
+				}
+			}
+			break;
+		case FunctionTool.PROPERTY_FUNCTIONTOOL_FUNCTION: // $NON-NLS-1$
+			super.propertyChange(e);
+//			if (getSelectedTrack() != null) {
+//				TableTrackView trackView = (TableTrackView) getTrackView(selectedTrack);
+//				trackView.refreshNameMaps();
+//				trackView.buildForNewFunction();
+//			}
+			// refresh all trackviews, not just selected track
+			if (trackViews != null) {
+				for (TrackView next : trackViews.values()) {
+					TableTrackView trackView = (TableTrackView) next;
+					trackView.refreshNameMaps();
+					trackView.buildForNewFunction();
+				}
+			}
+			break;
+		default:
+			super.propertyChange(e);
+		}
+	}
 
-    /**
-     * Loads an object with data from an XMLControl.
-     *
-     * @param control the control
-     * @param obj the object
-     * @return the loaded object
-     */
-    public Object loadObject(XMLControl control, Object obj) {
-      TableTView view = (TableTView)obj;
-      String[][] data = (String[][])control.getObject("track_columns"); //$NON-NLS-1$
-      if (data != null) {
-        Map<TTrack, TrackView> views = view.trackViews;
-        for (TTrack track: views.keySet()) {
-          TableTrackView trackView = (TableTrackView)view.getTrackView(track);
-          if (trackView == null) continue;
-          for (int i = 0; i < data.length; i++) {
-            String[] columns = data[i];
-            if (!columns[0].equals(track.getName())) continue;
-            trackView.refresh = false; // prevents refreshes
-            // start by unchecking all checkboxes
-          	for (int j = 0; j < trackView.checkBoxes.length; j++) {
-          		trackView.checkBoxes[j].setSelected(false);
-          		// check for text columns--not managed by the track DatasetManager
-          		int n = trackView.data.getDatasets().size();
-              if (j>=n) {
-              	String name = track.getTextColumnNames().get(j-n);
-              	trackView.textColumnsVisible.remove(name);
-              }
-          	}
-          	// then select checkboxes specified in track_columns
-          	for (int j = 1; j < columns.length; j++) {          		
-            	if (columns[j].equals("theta") && track instanceof PointMass)  //$NON-NLS-1$
-            		columns[j] = "\u03b8"+"r"; //$NON-NLS-1$ //$NON-NLS-2$
-            	else if (columns[j].equals("theta"))  //$NON-NLS-1$
-            		columns[j] = "\u03b8"; //$NON-NLS-1$
-            	else if (columns[j].equals("theta_v"))  //$NON-NLS-1$
-            		columns[j] = "\u03b8"+"v"; //$NON-NLS-1$ //$NON-NLS-2$
-            	else if (columns[j].equals("theta_a"))  //$NON-NLS-1$
-            		columns[j] = "\u03b8"+"a"; //$NON-NLS-1$ //$NON-NLS-2$
-            	else if (columns[j].equals("theta_p"))  //$NON-NLS-1$
-            		columns[j] = "\u03b8"+"p"; //$NON-NLS-1$ //$NON-NLS-2$
-            	else if (columns[j].equals("n") && track instanceof PointMass)  //$NON-NLS-1$
-            		columns[j] = "step"; //$NON-NLS-1$
-            	else if (columns[j].equals("KE"))  //$NON-NLS-1$
-            		columns[j] = "K"; //$NON-NLS-1$
-            	else if (columns[j].equals("x-comp"))  //$NON-NLS-1$
-            		columns[j] = "x"; //$NON-NLS-1$
-            	else if (columns[j].equals("y-comp"))  //$NON-NLS-1$
-            		columns[j] = "y"; //$NON-NLS-1$
-            	else if (columns[j].equals("x_tail"))  //$NON-NLS-1$
-            		columns[j] = "xtail"; //$NON-NLS-1$
-            	else if (columns[j].equals("y_tail"))  //$NON-NLS-1$
-            		columns[j] = "ytail"; //$NON-NLS-1$
-          		trackView.setVisible(columns[j], true);
-          	}
-          	// move columns so the table column order matches the saved track_columns order
-          	// get list of checked boxes--doesn't include independent variable
-          	String[] checkedBoxes = trackView.getVisibleColumns();
-          	// expand to include independent variable 
-          	String[] visibleColumns = new String[checkedBoxes.length+1];
-          	visibleColumns[0] = track.getDataName(0);
-          	System.arraycopy(checkedBoxes, 0, visibleColumns, 1, checkedBoxes.length);
-          	// create desiredOrder from track_columns array by omitting track name
-          	String[] desiredOrder = new String[columns.length-1];
-          	System.arraycopy(columns, 1, desiredOrder, 0, desiredOrder.length);
-          	// convert desiredOrder names to desiredIndexes
-          	final int[] desiredIndexes = new int[desiredOrder.length];
-          	for (int k=0; k<desiredOrder.length; k++) {
-          		String name = desiredOrder[k];
-          		for (int g=0; g<visibleColumns.length; g++) {
-          			if (visibleColumns[g].equals(name)) {
-          				desiredIndexes[k] = g;
-          			}
-          		}
-          	}
-           	// move table columns after table is fully constructed
-        		final TableColumnModel model = trackView.dataTable.getColumnModel();
-        		Runnable runner = new Runnable() {
-        			public void run() {
-                outer: for (int targetIndex=0; targetIndex<desiredIndexes.length; targetIndex++) {
-                	// find column with modelIndex and move to targetIndex
-                	for (int k=0; k<desiredIndexes.length; k++) {
-                		if (model.getColumn(k).getModelIndex()==desiredIndexes[targetIndex]) {
-                    	try {
-												model.moveColumn(k, targetIndex);
-											} catch (Exception e) {
-											}
-                			continue outer;
-                		}
-                	}
-                }
-        				
-        			}
-        		};
-        		SwingUtilities.invokeLater(runner);
-            trackView.refresh = true;
-          }
-        }
-      }
-      String[][][] formats = (String[][][])control.getObject("column_formats"); //$NON-NLS-1$
-      if (formats != null) {
-        Map<TTrack, TrackView> views = view.trackViews;
-        for (TTrack track: views.keySet()) {
-          TableTrackView trackView = (TableTrackView)view.getTrackView(track);
-          if (trackView == null) continue;
-          for (int i = 0; i < formats.length; i++) {
-            String[][] patterns = formats[i];
-            if (!patterns[0][0].equals(track.getName())) continue;
-            trackView.refresh = false; // prevents refreshes
-          	for (int j = 0; j < patterns.length; j++) {
-          		trackView.dataTable.setFormatPattern(patterns[j][1], patterns[j][2]);
-          	}
-            trackView.refresh = true;
-          }
-        }
-      }
-      TTrack track = view.getTrack(control.getString("selected_track")); //$NON-NLS-1$
-      if (track != null) {
-      	view.setSelectedTrack(track);
-      	// code below for legacy files??
-        TableTrackView trackView = (TableTrackView)view.getTrackView(track);
-        String[] columns = (String[])control.getObject("visible_columns"); //$NON-NLS-1$
-        if (columns != null) {
-          trackView.refresh = false; // prevents refreshes
-        	for (int i = 0; i < trackView.checkBoxes.length; i++) {
-        		trackView.checkBoxes[i].setSelected(false);
-        	}
-        	for (int i = 0; i < columns.length; i++) {
-        		trackView.setVisible(columns[i], true);
-        	}
-          trackView.refresh = true;
-          trackView.refresh(view.trackerPanel.getFrameNumber());
-        }
-      }
-      return obj;
-    }
-  }
+	/**
+	 * Cleans up this view
+	 */
+	@Override
+	public void cleanup() {
+		super.cleanup();
+		if (panelID != null && frame != null) {
+			frame.removePropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, this); // $NON-NLS-1$
+		}
+	}
+
+	/**
+	 * Returns an XML.ObjectLoader to save and load object data.
+	 *
+	 * @return the XML.ObjectLoader
+	 */
+	public static XML.ObjectLoader getLoader() {
+		return new Loader();
+	}
+
+	/**
+	 * A class to save and load object data.
+	 */
+	static class Loader implements XML.ObjectLoader {
+
+		private TableTrackView tableTrackView;
+		private TTrack track;
+		private TableTView view;
+		private Map<TTrack, TrackView> trackViews;
+
+		/**
+		 * Saves object data.
+		 *
+		 * @param control the control to save to
+		 * @param obj     the TrackerPanel object to save
+		 */
+		@Override
+		public void saveObject(XMLControl control, Object obj) {
+			TableTView view = (TableTView) obj;
+			TTrack selectedTrack = view.getSelectedTrack();
+			if (selectedTrack != null) { // contains at least one track
+				control.setValue("selected_track", selectedTrack.getName()); //$NON-NLS-1$
+				// save customized tables
+				ArrayList<TTrack> customized = new ArrayList<TTrack>();
+				Map<TTrack, TrackView> views = view.trackViews;
+				for (TTrack next : views.keySet()) {
+					if (views.get(next).isCustomState()) {
+						customized.add(next);
+					}
+				}
+				if (!customized.isEmpty()) {
+					ArrayList<String[][]> formattedColumns = new ArrayList<String[][]>();
+					String[][] data = new String[customized.size()][];
+					ArrayList<String[]> datasetIndices = new ArrayList<String[]>();
+					for (int i = 0, n = customized.size(); i < n; i++) {
+						TTrack track = customized.get(i);
+						String name= track.getName();
+						TableTrackView trackView = (TableTrackView) view.getTrackView(track);
+						String[] columns = trackView.getOrderedVisibleColumns();
+						data[i] = new String[columns.length + 1];
+						data[i][0] = name;
+						System.arraycopy(columns, 0, data[i], 1, columns.length);
+						String[][] formats = trackView.getColumnFormats();
+						if (formats.length > 0) {
+							String[][] withName = new String[formats.length][3];
+							for (int j = 0; j < formats.length; j++) {
+								withName[j][0] = name;
+								withName[j][1] = formats[j][0];
+								withName[j][2] = formats[j][1];
+							}
+							formattedColumns.add(withName);
+						}
+						if (trackView.myDatasetIndex > -1) {
+							datasetIndices.add(new String[] { name, Integer.toString(trackView.myDatasetIndex) });
+						}
+					}
+					control.setValue("track_columns", data); //$NON-NLS-1$
+					if (!formattedColumns.isEmpty()) {
+						String[][][] patterns = formattedColumns.toArray(new String[formattedColumns.size()][][]);
+						control.setValue("column_formats", patterns); //$NON-NLS-1$
+					}
+					if (!datasetIndices.isEmpty()) {
+						String[][] indices = datasetIndices.toArray(new String[datasetIndices.size()][]);
+						control.setValue("dataset_indices", indices); //$NON-NLS-1$
+					}
+				}
+			}
+		}
+
+		/**
+		 * Creates an object.
+		 *
+		 * @param control the control
+		 * @return the newly created object
+		 */
+		@Override
+		public Object createObject(XMLControl control) {
+			return null;
+		}
+
+		/**
+		 * Loads an object with data from an XMLControl.
+		 *
+		 * @param control the control
+		 * @param obj     the object
+		 * @return the loaded object
+		 */
+		@Override
+		public Object loadObject(XMLControl control, Object obj) {
+			view = (TableTView) obj;
+			trackViews = view.trackViews;
+			String[][] data = (String[][]) control.getObject("track_columns"); //$NON-NLS-1$
+			if (data != null && trackViews == null) {
+				// new view has never been refreshed
+				view.refresh();
+				trackViews = view.trackViews;
+			}
+			if (trackViews != null && data != null) {
+				for (int i = 0; i < data.length; i++) {
+					String[] columns = data[i];
+					if (columns != null && setTrackAndTableView(columns[0])) {
+						tableTrackView.setRefreshing(false); // prevents refreshes
+						// start by unchecking all checkboxes
+						tableTrackView.bsCheckBoxes.clear();
+						tableTrackView.bsTextColumnsVisible.clear();
+						// now select checkboxes specified in track_columns
+//    							Map<String, Integer> htOrder = new HashMap<String, Integer>(); // BH! never used
+						columns = fixColumnList(columns, track);
+						for (int j = 1; j < columns.length; j++) {
+							// htOrder.put(name, j);
+							tableTrackView.setVisible(columns[j] = fixColumnName(columns[j], track), true);
+						}
+						setColumnOrder(tableTrackView, track, columns);
+						tableTrackView.setRefreshing(true);
+					}
+				}
+				String[][][] formats = (String[][][]) control.getObject("column_formats"); //$NON-NLS-1$
+				if (formats != null) {
+					for (int i = 0; i < formats.length; i++) {
+						String[][] patterns = formats[i];
+						if (setTrackAndTableView(patterns[0][0])) {
+							tableTrackView.setRefreshing(false); // prevents refreshes
+							for (int j = 0; j < patterns.length; j++) {
+								tableTrackView.dataTable.setFormatPattern(patterns[j][1], patterns[j][2]);
+							}
+							tableTrackView.setRefreshing(true);
+						}
+					}
+				}
+				String[][] datasetIndices = (String[][]) control.getObject("dataset_indices"); //$NON-NLS-1$
+				if (datasetIndices != null) {
+					for (int i = 0; i < datasetIndices.length; i++) {
+						String[] indices = datasetIndices[i];
+						if (setTrackAndTableView(indices[0])) {
+							tableTrackView.setRefreshing(false); // prevents refreshes
+							tableTrackView.setDatasetIndex(Integer.parseInt(indices[1]));
+							tableTrackView.setRefreshing(true);
+						}
+					}
+				}
+			}
+			TTrack selectedTrack = view.getTrack(control.getString("selected_track")); //$NON-NLS-1$
+			if (selectedTrack != null) {
+				view.setSelectedTrack(selectedTrack);
+				// code below for legacy files??
+				String[] visibleColumns = (String[]) control.getObject("visible_columns"); //$NON-NLS-1$
+				if (visibleColumns != null) {
+					tableTrackView = (TableTrackView) view.getTrackView(selectedTrack);
+					tableTrackView.setRefreshing(false); // prevents refreshes
+					tableTrackView.bsCheckBoxes.clear();
+					for (int i = 0; i < visibleColumns.length; i++) {
+						tableTrackView.setVisible(fixColumnName(visibleColumns[i], selectedTrack), true);
+					}
+					tableTrackView.setRefreshing(true);
+					tableTrackView.refresh(view.getPanel().getFrameNumber(), DataTable.MODE_TRACK_LOADER);
+				}
+			}
+			tableTrackView = null;
+			view = null;
+			trackViews = null;
+			return obj;
+		}
+
+		private boolean setTrackAndTableView(String name) {
+			for (TTrack track : trackViews.keySet()) {
+				if ((tableTrackView = (TableTrackView) view.getTrackView(track)) != null
+						&& name.equals(track.getName())) {
+					this.track = track;
+					return true;
+				}
+			}
+			tableTrackView = null;
+			return false;
+		}
+
+		private static String fixColumnName(String name, TTrack track) {
+			switch (name) {
+			case "theta":
+				return (track.ttype == TTrack.TYPE_POINTMASS ? "\u03b8r"//$NON-NLS-1$
+						: "\u03b8"); //$NON-NLS-1$
+			case "theta_v": //$NON-NLS-1$
+				return "\u03b8v"; //$NON-NLS-1$ //$NON-NLS-2$
+			case "theta_a": //$NON-NLS-1$
+				return "\u03b8a"; //$NON-NLS-1$ //$NON-NLS-2$
+			case "theta_p": //$NON-NLS-1$
+				return "\u03b8p"; //$NON-NLS-1$ //$NON-NLS-2$
+			case "n":
+				return (track.ttype == TTrack.TYPE_POINTMASS ? "step" : name);
+			case "KE": //$NON-NLS-1$
+				return "K"; //$NON-NLS-1$
+			case "x-comp": //$NON-NLS-1$
+				return "x"; //$NON-NLS-1$
+			case "y-comp": //$NON-NLS-1$
+				return "y"; //$NON-NLS-1$
+			case "x_tail": //$NON-NLS-1$
+				return "xtail"; //$NON-NLS-1$
+			case "y_tail": //$NON-NLS-1$
+				return "ytail"; //$NON-NLS-1$
+			case "vx":
+			case "vy":
+			case "ax":
+			case "ay":
+			case "px":
+			case "py":
+			case "pixelx":
+			case "pixely":
+				return name.substring(0, name.length() - 1) + "_{" + name.charAt(name.length() - 1) + "}";
+			}
+			return name;
+		}
+
+		/**
+		 * Older versions might not include t column.
+		 * 
+		 * @param columns
+		 * @return
+		 */
+		private static String[] fixColumnList(String[] columns, TTrack track) {
+			String indepVar = track.getDataName(0);
+			if (columns.length < 2 || indepVar.equals(columns[1]))
+				return columns;
+			String[] newCols = new String[columns.length + 1];
+			newCols[0] = columns[0];
+			newCols[1] = indepVar;
+			for (int i = 1; i < columns.length; i++) {
+				newCols[i + 1] = columns[i];
+			}
+			return newCols;
+		}
+
+		/**
+		 * Move columns so the table column order matches the saved track_columns order
+		 * 
+		 * @param tableView
+		 * @param track
+		 * @param columns
+		 */
+		private void setColumnOrder(TableTrackView tableView, TTrack track, String[] columns) {
+
+			// BH? There has to be a much easier way of doing this.
+			// Why not just use DataTable.setModelColumnOrder(int[])?
+
+			// get list of checked boxes--doesn't include independent variable
+
+			String[] checkedBoxes = tableView.getVisibleColumns();
+			if (checkedBoxes.length == 0)
+				return;
+
+			// expand to include independent variable
+			String[] visibleColumns = new String[checkedBoxes.length + 1];
+			visibleColumns[0] = track.getDataName(0);
+			System.arraycopy(checkedBoxes, 0, visibleColumns, 1, checkedBoxes.length);
+			// create desiredOrder from track_columns array by omitting track name
+			String[] desiredOrder = new String[columns.length - 1];
+			System.arraycopy(columns, 1, desiredOrder, 0, desiredOrder.length);
+			// convert desiredOrder names to desiredIndexes
+			final int[] desiredIndexes = new int[desiredOrder.length];
+			for (int k = 0; k < desiredOrder.length; k++) {
+				String name = desiredOrder[k];
+				for (int g = 0; g < visibleColumns.length; g++) {
+					if (visibleColumns[g].equals(name)) {
+						desiredIndexes[k] = g;
+					}
+				}
+			}
+			// move table columns after table is fully constructed
+			SwingUtilities.invokeLater(() -> {
+				try {
+					tableView.dataTable.setModelColumnOrder(desiredIndexes);
+				} catch (ArrayIndexOutOfBoundsException e) {
+					System.err.println("TableTView.Loader invokelater exception " + Arrays.toString(desiredIndexes));
+				}
+// BH not necessary to use general JTable calls here?
+//				outer: for (int targetIndex = 0; targetIndex < d.length; targetIndex++) {
+//					// find column with modelIndex and move to targetIndex
+//					for (int k = 0; k < d.length; k++) {
+//						if (k != targetIndex // BH added this check 2022.01.03
+//								&& model.getColumn(k).getModelIndex() == d[targetIndex]) {
+//							try {
+//								model.moveColumn(k, targetIndex);
+//							} catch (Exception e) {
+//								System.err.println("TableTView.Loader failed to move column " + k + " to " + targetIndex);
+//							}
+//							continue outer;
+//						}
+//					}
+//				}
+			});
+		}
+
+	}
+
+	@Override
+	protected void refreshMenus() {
+	}
+
+	@Override
+	public void dispose() {
+		frame.removePropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, this);
+		super.dispose();
+	}
+
 }

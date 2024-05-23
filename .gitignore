@@ -1,0 +1,12 @@
+/bin/
+/site/
+/dev/
+/distribution/
+/site0/
+/site1/
+/site2/
+/src/testing/ 
+src/org/opensourcephysics/controls/OSPLog_template.txt
+/tmp/
+tracker.prefs
+//.classpath

@@ -1,0 +1,260 @@
+<?xml version="1.0"?>
+<!DOCTYPE project>
+<project name="build-tracker-jar" default="tracker_jar" basedir=".\">
+	<property name="workspace" value="../../" />
+	<property name="trackerdir" value="${workspace}/tracker" />
+	<property name="src_osp" value="${workspace}/osp/src" />
+	<property name="src_tracker" value="${trackerdir}/src" />
+	<property name="tracker-assets" value="${trackerdir}/resources/tracker-assets.zip" />
+	<property name="temp" value="temp-build" />
+	<property name="output" value="${trackerdir}/distribution" />
+	<property name="docs" value="${output}/docs" />
+	<property name="author" value="D Brown, W Christian, R M Hanson" />
+	<path id="xuggle.jar" location="${trackerdir}/libraries/xuggle-xuggler.jar"/>
+
+	<tstamp>
+		<format property="buildtime.isoformat" pattern="MMM dd yyyy"/>
+		<format property="date" pattern="yyyyMMdd"/>
+	</tstamp>
+
+	<!--clean: clean the temp directory-->
+	<target name="clean">
+		<delete dir="${temp}/meta-inf"/>
+		<delete dir="${temp}"/>
+		<mkdir dir="${temp}"/>
+		<mkdir dir="${temp}/meta-inf"/>
+	</target>
+	
+	<!--compile: clean and compile the source files to temp directory-->
+	<target name="compile" depends="clean">
+		<javac srcdir="${src_osp}" destdir="${temp}" source="1.8" debug="true" debuglevel="lines,vars,source" includeantruntime="false">
+			<compilerarg value="-Xlint:-serial"/>
+		</javac>
+		<copy todir="${temp}/org/opensourcephysics/resources">
+			<fileset dir="${src_osp}/org/opensourcephysics/resources"/>
+		</copy>
+		<javac srcdir="${src_tracker}" destdir="${temp}" source="1.8" debug="true" debuglevel="lines,vars,source" includeantruntime="false">
+			<compilerarg value="-Xlint:-serial"/>
+		</javac>
+		<copy todir="${temp}/org/opensourcephysics/cabrillo/tracker/resources">
+			<fileset dir="${src_tracker}/org/opensourcephysics/cabrillo/tracker/resources"/>
+		</copy>
+	</target>
+
+	<!--tracker_jar_compile_separately: compile and create tracker jar from temp directory-->
+	<target name="tracker_jar_compile_separately" depends="compile">
+		<copy file="${tracker-assets}" todir="${output}"/>
+		<manifest file="${temp}/meta-inf/TRACKER.mf">
+			<attribute name="Built-By" value="${author}"/>
+			<attribute name="Build-Date" value="${buildtime.isoformat}"/>
+			<attribute name="Main-Class" value="org.opensourcephysics.cabrillo.tracker.Tracker"/>
+			<attribute name="Class-Path" value=". ffmpeg/ffmpeg-4.0.jar ffmpeg/bridj-0.7-SNAPSHOT.jar xuggle-xuggler.jar logback-classic.jar logback-core.jar slf4j-api.jar"/>
+			<attribute name="permissions" value="all-permissions"/>
+		</manifest >
+		<jar jarfile="${output}/tracker-5.9.${date}.jar" basedir="${temp}" manifest="${temp}/meta-inf/TRACKER.mf" 
+			includes="
+			**/epsgraphics/,
+            **/controls/,
+            **/javajs/,
+            **/js/,
+            **/analysis/,
+            **/display/,
+            **/desktop/,
+            **/ejs/EjsRes.class,
+            **/numerics/,
+            **/tools/,
+			**/media/,
+			**/tracker/,
+            **/opensourcephysics/resources/" 
+        	excludes="**/html/, **/*.zip, **/*.mp4">
+		</jar>
+		<delete dir="${temp}"/>
+	</target>
+
+	<!--copy_bin: copy class files from bin to temp directory-->
+	<target name="copy_bin_for_tracker" depends="clean">
+		<copy todir="${temp}">
+            <fileset dir="${workspace}/osp/bin"
+          		excludes="
+            	test/, 
+            	testing/, 
+            	csm/, 
+            	davidson/, 
+            	demo/, 
+            	debugging/, 
+            	demoJS/, 
+            	**/*.zip, 
+            	**/*.mp4,
+            	*.xml, 
+            	*.txt" />
+            <fileset dir="${workspace}/tracker/bin"
+            	excludes="
+            	test/, 
+            	**/*.zip, 
+            	*.xml, 
+            	*.prefs, 
+            	*.txt" />
+		</copy>
+	</target>
+	
+	<!--tracker_jar_xuggle3.4: copy bin and create tracker jar from temp directory-->
+    <target name="tracker_jar_xuggle3.4" depends="copy_bin_for_tracker">
+		<manifest file="${temp}/meta-inf/TRACKER.mf">
+			<attribute name="Built-By" value="${author}"/>
+			<attribute name="Build-Date" value="${buildtime.isoformat}"/>
+			<attribute name="Main-Class" value="org.opensourcephysics.cabrillo.tracker.Tracker"/>
+			<attribute name="Class-Path" value=". xuggle-xuggler.jar logback-classic.jar logback-core.jar slf4j-api.jar"/>
+			<attribute name="permissions" value="all-permissions"/>
+		</manifest >
+		<jar jarfile="${output}/tracker-5.3.${date}.jar" basedir="${temp}" manifest="${temp}/meta-inf/TRACKER.mf" 
+			includes="
+			**/epsgraphics/,
+            **/controls/,
+            **/javajs/,
+            **/js/,
+            **/analysis/,
+            **/display/,
+            **/desktop/,
+            **/ejs/EjsRes.class,
+            **/frames/ImageFrame*,
+            **/numerics/,
+            **/tools/,
+			**/media/,
+			**/tracker/,
+            **/opensourcephysics/resources/" 
+        	excludes="**/html/, **/*.zip, **/*.mp4">
+		</jar>
+		<delete dir="${temp}"/>
+	</target>
+
+	<!--tracker_jar: copy bin and create tracker jar from temp directory-->
+    <target name="tracker_jar" depends="copy_bin_for_tracker">
+		<manifest file="${temp}/meta-inf/TRACKER.mf">
+			<attribute name="Built-By" value="${author}"/>
+			<attribute name="Build-Date" value="${buildtime.isoformat}"/>
+			<attribute name="Main-Class" value="org.opensourcephysics.cabrillo.tracker.Tracker"/>
+			<attribute name="Class-Path" value=". xuggle-xuggler-server-all.jar"/>
+			<attribute name="permissions" value="all-permissions"/>
+		</manifest >
+		<jar jarfile="${output}/tracker.jar" basedir="${temp}" manifest="${temp}/meta-inf/TRACKER.mf" 
+			includes="
+			**/epsgraphics/,
+            **/controls/,
+            **/javajs/,
+            **/js/,
+            **/analysis/,
+            **/display/,
+            **/desktop/,
+            **/ejs/EjsRes.class,
+            **/frames/ImageFrame*,
+            **/numerics/,
+            **/tools/,
+			**/media/,
+			**/tracker/,
+            **/opensourcephysics/resources/" 
+        	excludes="**/html/, **/*.zip, **/*.mp4">
+		</jar>
+		<delete dir="${temp}"/>
+	</target>
+
+	<!--tracker_jar: copy bin and create tracker jar from temp directory-->
+    <target name="tracker_test_jar" depends="copy_bin_for_tracker">
+		<manifest file="${temp}/meta-inf/TRACKER.mf">
+			<attribute name="Built-By" value="${author}"/>
+			<attribute name="Build-Date" value="${buildtime.isoformat}"/>
+			<attribute name="Main-Class" value="org.opensourcephysics.cabrillo.tracker.Tracker"/>
+			<attribute name="Class-Path" value=". xuggle-xuggler-server-all.jar"/>
+			<attribute name="permissions" value="all-permissions"/>
+		</manifest >
+		<jar jarfile="${output}/tracker-6.1.2.${date}.jar" basedir="${temp}" manifest="${temp}/meta-inf/TRACKER.mf" 
+			includes="
+			**/epsgraphics/,
+            **/controls/,
+            **/javajs/,
+            **/js/,
+            **/analysis/,
+            **/display/,
+            **/desktop/,
+            **/ejs/EjsRes.class,
+            **/frames/ImageFrame*,
+            **/numerics/,
+            **/tools/,
+			**/media/,
+			**/tracker/,
+            **/opensourcephysics/resources/" 
+        	excludes="**/html/, **/*.zip, **/*.mp4">
+		</jar>
+		<delete dir="${temp}"/>
+	</target>
+
+	<!--copy_bin: copy class files from bin to temp directory-->
+	<target name="copy_bin_for_trackerstarter" depends="clean">
+		<copy todir="${temp}">
+            <fileset dir="${workspace}/osp/bin"
+          		excludes="
+            	test/, 
+            	testing/, 
+            	csm/, 
+            	davidson/, 
+            	demo/, 
+            	debugging/, 
+            	demoJS/, 
+            	**/*.zip, 
+            	**/*.mp4,
+            	**/tools_*, 
+            	**/launcher_*, 
+            	**/video_*, 
+            	**/display_res_*, 
+            	**/dialogs_res_*, 
+            	**/controls_res_*, 
+            	*.xml, 
+            	*.txt" />
+		</copy>
+		<copy todir="${temp}/org/opensourcephysics/cabrillo/tracker/deploy">
+            <fileset dir="${workspace}/tracker/bin/org/opensourcephysics/cabrillo/tracker/deploy"/>
+		</copy>
+	</target>
+	
+	<!--trackerstarter: copy bin and create tracker_starter.jar from temp directory-->
+    <target name="trackerstarter_jar" depends="copy_bin_for_trackerstarter">
+		<manifest file="${temp}/meta-inf/TRACKERSTARTER.mf">
+			<attribute name="Built-By" value="${author}"/>
+			<attribute name="Build-Date" value="${buildtime.isoformat}"/>
+			<attribute name="Main-Class" value="org.opensourcephysics.cabrillo.tracker.deploy.TrackerStarter"/>
+			<attribute name="Class-Path" value="."/>
+			<attribute name="permissions" value="all-permissions"/>
+		</manifest >
+		<jar jarfile="${output}/tracker_starter.jar" basedir="${temp}" manifest="${temp}/meta-inf/TRACKERSTARTER.mf" 
+			includes="
+				**/epsgraphics/,
+	            **/controls/,
+	            **/analysis/,
+	            **/display/,
+	            **/desktop/,
+	            **/numerics/,
+	            **/tools/,
+				**/media/,
+            	**/javajs/,
+				**/tracker/" 
+        	excludes="
+				**/html/, 
+				**/help/, 
+				**/help_images/, 
+				**/*.zip, 
+				**/*.mp4">
+		</jar>
+		<delete dir="${temp}"/>
+	</target>
+
+	<!--copy_src: copy source files to temp folder-->
+	<target name="copy_src" depends="clean">
+		<copy todir="${temp}">
+			<fileset dir="${src_osp}" excludes="demo/*TestApp.java"/>
+			<fileset dir="${src_tracker}"/>
+		</copy>
+	</target>
+
+</project>
+
+
+

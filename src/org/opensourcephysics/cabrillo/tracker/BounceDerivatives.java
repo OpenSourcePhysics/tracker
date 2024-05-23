@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2019  Douglas Brown
+ * Copyright (c) 2024 Douglas Brown, Wolfgang Christian, Robert M. Hanson
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -81,7 +81,8 @@ public class BounceDerivatives implements Derivative
    * @param data the input data
    * @return Object array containing the result
    */
-  public Object[] evaluate(Object[] data)
+  @Override
+public Object[] evaluate(Object[] data)
   {
     int[] params = (int[])data[0];
     window_size = 1+params[0]*2;
@@ -295,7 +296,8 @@ public class BounceDerivatives implements Derivative
     }
     Arrays.sort(best_step_locs, 
 	new Comparator<Integer>() 
-		{   public int compare(final Integer o1, final Integer o2) 
+		{   @Override
+		public int compare(final Integer o1, final Integer o2) 
 		    {	return Double.compare(step_value[o2],step_value[o1]);
 		    }
 		});

@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2019  Douglas Brown
+ * Copyright (c) 2024 Douglas Brown, Wolfgang Christian, Robert M. Hanson
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,100 +30,233 @@ import java.util.*;
 
 import javax.swing.*;
 
+import org.opensourcephysics.controls.OSPLog;
+import org.opensourcephysics.display.DataTable;
+import org.opensourcephysics.display.TeXParser;
+
 /**
  * This displays a view of a single track on a TrackerPanel.
  *
  * @author Douglas Brown
  */
-public abstract class TrackView extends JScrollPane
-                                implements PropertyChangeListener {
+@SuppressWarnings("serial")
+public abstract class TrackView extends JScrollPane implements PropertyChangeListener {
 
-  // instance fields
-  private int trackID;
-  protected TrackerPanel trackerPanel;
-  protected ArrayList<Component> toolbarComponents = new ArrayList<Component>();
-  protected TrackChooserTView parent;
+	static final String DEFINED_AS = ": "; //$NON-NLS-1$
 
-  // constructor
-  protected TrackView(TTrack track, TrackerPanel panel, TrackChooserTView view) {
-    trackID = track.getID();
-    trackerPanel = panel;
-    trackerPanel.addPropertyChangeListener("selectedpoint", this); //$NON-NLS-1$
-    trackerPanel.addPropertyChangeListener("units", this); //$NON-NLS-1$
-    parent = view;
-  }
+	static int TVID = 0;
+	
+	// instance fields
+	protected TrackChooserTView viewParent;
+	protected TFrame frame;
+	protected Integer panelID;
 
-  protected void dispose() {
-    for (Integer n: TTrack.activeTracks.keySet()) {
-      TTrack track = TTrack.activeTracks.get(n);
-	    track.removePropertyChangeListener("step", this); //$NON-NLS-1$
-	    track.removePropertyChangeListener("steps", this); //$NON-NLS-1$
-    }
-    trackerPanel.removePropertyChangeListener("selectedpoint", this); //$NON-NLS-1$
-    trackerPanel.removePropertyChangeListener("units", this); //$NON-NLS-1$
-    trackerPanel = null;
-  }
+	private int trackID;
+	protected int myType;
 
-  abstract void refresh(int stepNumber);
+	protected boolean forceRefresh = false;
+	
+	protected boolean highlightVisible = true;
+	final protected BitSet highlightFrames = new BitSet();
+	final protected BitSet highlightRows = new BitSet(); 
 
-  abstract void refreshGUI();
+	// toolbarComponents and GUI
+	
+	protected ArrayList<Component> toolbarComponents = new ArrayList<Component>();
+	protected Icon trackIcon;
 
-  abstract boolean isCustomState();
+	protected int myID;
+	protected int myDatasetIndex = -1, prevDatasetIndex;
 
-  abstract JButton getViewButton();
-  
-  public String getName() {
-  	TTrack track = getTrack();
-    return track.getName();
-  }
+	protected boolean clipAdjusting;
 
-  Icon getIcon() {
-  	TTrack track = getTrack();
-    return track.getIcon(21, 16, "point"); //$NON-NLS-1$
-  }
+  private static final String[] panelProps = {
+			TrackerPanel.PROPERTY_TRACKERPANEL_LOADED,
+			TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDPOINT,
+			TrackerPanel.PROPERTY_TRACKERPANEL_UNITS,
+		  };
 
-  TTrack getTrack() {
-  	return TTrack.getTrack(trackID);
-  }
+	
+	// constructor
+	protected TrackView(TTrack track, TrackerPanel panel, TrackChooserTView view, int myType) {
+		trackID = track.getID();
+		myID = ++TVID;
+		this.myType = myType;
+		frame = panel.getTFrame();
+		panelID = panel.getID();
 
-  /**
-   * Gets toolbar components for toolbar of parent view
-   *
-   * @return an ArrayList of components to be added to a toolbar
-   */
-  public ArrayList<Component> getToolBarComponents() {
-    return toolbarComponents;
-  }
+		panel.addListeners(panelProps, this);
+		viewParent = view;
+	}
 
-  /**
-   * Responds to property change events. TrackView receives the following
-   * events: "step" or "steps" from the track.
-   *
-   * @param e the property change event
-   */
-  public void propertyChange(PropertyChangeEvent e) {
-    String name = e.getPropertyName();
-    if (name.equals("step")) { // from track //$NON-NLS-1$
-    	Integer i = (Integer)e.getNewValue();
-      refresh(i);
-    }
-    else if (name.equals("steps")) { // from particle model tracks //$NON-NLS-1$
-      refresh(trackerPanel.getFrameNumber());
-    }
-    else if (name.equals("selectedpoint")) { // from tracker panel //$NON-NLS-1$
-      Step step = trackerPanel.getSelectedStep();
-    	TTrack track = getTrack();
-      if (step != null && trackerPanel.getSelectedTrack() == track) {
-        refresh(step.getFrameNumber());
-      }
-      else {
-        refresh(trackerPanel.getFrameNumber());
-      }
-    }
-  }
-  
-  protected boolean isRefreshEnabled() {
-  	return trackerPanel.isAutoRefresh && parent.isTrackViewDisplayed(getTrack());
-  }
+	protected void dispose() {
+		for (TTrack t : TTrack.getValues()) {
+			t.removeStepListener(this);
+		}
+		frame.getTrackerPanelForID(panelID).removeListeners(panelProps, this);
+		frame = null;
+		panelID = null;
+		viewParent = null;
+	}
+
+	abstract void refresh(int frameNumber, int mode);
+
+	abstract void refreshGUI();
+
+	abstract boolean isCustomState();
+
+	abstract JButton getViewButton();
+
+	@Override
+	public String getName() {
+		return getTrack().getName();
+	}
+
+	public Icon getIcon() {
+		if (trackIcon == null)
+			trackIcon = getTrack().getIcon(21, 16, "point");
+		return trackIcon;
+	}
+
+	TTrack getTrack() {
+		return TTrack.getTrack(trackID);
+	}
+
+	public void setDatasetIndex(int index) {
+		myDatasetIndex = index;
+	}
+
+	/**
+	 * Gets the TViewChooser that owns (displays) this track view.
+	 * 
+	 * @return the TViewChooser. May return null if this is not displayed
+	 */
+	protected TViewChooser getOwner() {
+		TViewChooser[] choosers = frame.getViewChoosers(panelID);
+		for (int i = 0; i < choosers.length; i++) {
+			TView tview = (choosers[i] == null ? null : choosers[i].getSelectedView());
+			if (tview == viewParent && viewParent.getTrackView(viewParent.getSelectedTrack()) == this) {
+				return choosers[i];
+			}
+		}
+		return null;
+	}
+
+
+	/**
+	 * Gets toolbar components for toolbar of parent view
+	 *
+	 * @return an ArrayList of components to be added to a toolbar
+	 */
+	public ArrayList<Component> getToolBarComponents() {
+		return toolbarComponents;
+	}
+
+	/**
+	 * Responds to property change events. TrackView receives the following events:
+	 * "step" or "steps" from the track.
+	 *
+	 * @param e the property change event
+	 */
+	@Override
+	public void propertyChange(PropertyChangeEvent e) {
+		int stepNumber = Integer.MIN_VALUE;
+		int mode = 0;
+		TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
+		switch (e.getPropertyName()) {
+		case TTrack.PROPERTY_TTRACK_STEP:
+			stepNumber = (Integer) e.getNewValue();
+			mode = (e.getOldValue() == TTrack.HINT_STEP_ADDED_OR_REMOVED 
+					? DataTable.MODE_APPEND_ROW : DataTable.MODE_TRACK_STEP);
+			break;
+		case TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDPOINT:
+			Step step = trackerPanel.getSelectedStep();
+			TTrack track = getTrack();
+			if (step != null && trackerPanel.getSelectedTrack() == track) {
+				stepNumber = step.getFrameNumber();
+			}
+			mode = DataTable.MODE_TRACK_SELECTEDPOINT;
+			break;
+		case TTrack.PROPERTY_TTRACK_STEPS:
+			mode = DataTable.MODE_TRACK_STEPS;
+			break;
+		case TrackerPanel.PROPERTY_TRACKERPANEL_LOADED:
+			mode = DataTable.MODE_TRACK_LOADED;
+			break;
+		case TrackerPanel.PROPERTY_TRACKERPANEL_TRACK:
+			mode = DataTable.MODE_TRACK_NEW;
+			break;
+		}
+		refresh(stepNumber == Integer.MIN_VALUE ? trackerPanel.getFrameNumber() : stepNumber, mode);
+	}
+
+	protected boolean isRefreshEnabled() {
+		return frame.isPaintable()
+				&& frame.getTrackerPanelForID(panelID).isAutoRefresh() 
+				&& viewParent.isTrackViewDisplayed(getTrack());
+	}
+
+	public static String trimDefined(String name) {
+		int pt;
+		return TeXParser.removeSubscript(
+				name == null || (pt = name.indexOf(DEFINED_AS)) < 0 ? name 
+						: name.substring(0, pt));
+	}
+
+	/**
+	 * The user is adjusting the clip using the carets under the VideoPlayer slider.
+	 * Minimize the amount of updates.
+	 * 
+	 * @param frameNo
+	 * @param adjusting
+	 */
+	public void setClipAdjusting(int frameNo, boolean adjusting) {
+		clipAdjusting = adjusting;
+		if (!adjusting) {
+			// Columns will not have changed, but we need a full rewrite of the rows.
+			// Give the sytem a chance to propagate all the property changes
+			// before updating.
+			SwingUtilities.invokeLater(() -> {
+				refresh(frameNo, DataTable.MODE_UPDATE_ROWS);
+			});
+		}
+	}
+	
+	boolean isClipAdjusting() {
+		return clipAdjusting;
+	}
+
+	/**
+	 * While this is sufficient for PlotTrackView, TableTrackView will
+	 * still have to convert this to row numbers;
+	 * 
+	 * @param frameNumber
+	 */
+	public void highlightFrames(int frameNumber) {
+		highlightFrames.clear();
+		StepSet steps = frame.getTrackerPanelForID(panelID).selectedSteps;
+		if (steps.size() > 0) {
+			for (Step step : steps) {
+				if (step.getTrack() != this.getTrack())
+					continue;
+				highlightFrames.set(step.getFrameNumber());
+			}
+		} else {
+			highlightFrames.set(frameNumber);
+		}
+	}
+
+	@Override
+	public String toString() {
+		return "[" + getClass().getSimpleName() + " " + getTrack().getName() + " " + viewParent + " ]";
+	}
+
+
+
+	@Override
+	public void finalize() {
+		OSPLog.finalized(this);
+	}
+
 
 }

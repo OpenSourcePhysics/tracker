@@ -6,7 +6,6 @@ import java.io.File;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.List;
-
 import org.opensourcephysics.cabrillo.tracker.TFrame;
 import org.opensourcephysics.cabrillo.tracker.Tracker;
 
@@ -172,7 +171,8 @@ public class OSXServices {
 			tracker = app;
 		}
 		
-    @Override
+    @SuppressWarnings("unchecked")
+	@Override
 		public Object invoke(Object proxy, Method m, Object[] args) throws Throwable {
       try {
         if (m.getName().equals("handleAbout")) { //$NON-NLS-1$
@@ -197,17 +197,29 @@ public class OSXServices {
 	    		if (tracker!=null) {
 		  		  TFrame frame = tracker.getFrame();
 		  		  if (frame != null) {
-		  		    for (int i = 0; i < frame.getTabCount(); i++) {
-		  		    	// save tabs in try/catch block so always closes
-		  		      try {
-		  						if (!frame.getTrackerPanel(i).save()) {
-					        	// args[1] is QuitResponse
-	  		        		cancelQuitMethod.invoke(args[1], (Object[])null);
-		  							return null;
-		  						}
-		  					} catch (Exception ex) {
-		  					}
-		  		    }
+		  		    frame.saveAllTabs(false, 
+		  		    null, new Runnable() {
+  	    				// whenAllApproved
+  	    				@Override
+  	    				public void run() {
+  	            	// args[1] is QuitResponse
+  	    	    		try {
+										performQuitMethod.invoke(args[1], (Object[])null);
+									} catch (Exception e) {
+									}
+  	    				}
+  	    				
+  	    			}, new Runnable() {
+  	    				// when canceled
+  	    				@Override
+  	    				public void run() {
+  		        		try {
+										cancelQuitMethod.invoke(args[1], (Object[])null);
+									} catch (Exception e) {
+									}
+  	    				}
+  	    				
+  	    			}); 
 		  		  }
 		  		}
         	// args[1] is QuitResponse

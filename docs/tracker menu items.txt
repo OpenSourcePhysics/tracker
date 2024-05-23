@@ -1,0 +1,136 @@
+	All top menus can change when configuration preferences change (rare)
+	Each tab has different menu
+	
+	protected JMenu fileMenu;
+	protected JMenuItem newTabItem; //never changes
+	protected JMenuItem openItem;  //never changes
+	protected JMenuItem openBrowserItem; //never changes
+	protected JMenu openRecentMenu; //recent items change when new files are opened; disabled if none
+	// all the rest of the file items except exit are not included if no tab  is open
+	protected JMenuItem closeItem; //not included if no open tabs
+	protected JMenuItem closeAllItem;  //not included if no open tabs
+	protected JMenuItem saveItem  //changes with name of tab; disabled if tab not associated with file
+	protected JMenuItem saveAsItem //("Save Tab as") never changes
+	protected JMenuItem saveZipAsItem; //(Save project as) never changes
+	protected JMenuItem saveVideoAsItem; // no longer used, should be eliminated
+	protected JMenuItem saveTabsetAsItem; // disabled unless 2 or more tabs open
+	protected JMenu importMenu; // never changes
+	protected JMenuItem importVideoItem; // never changes
+	protected JMenuItem importTRKItem; // never changes
+	protected JMenuItem importDataItem; // never changes
+	protected JMenu exportMenu; // never changes
+	protected JMenuItem exportZipItem; // no longer used
+	protected JMenuItem exportVideoItem; // never changes
+	protected JMenuItem exportTRKItem; // never changes
+	protected JMenuItem exportThumbnailItem; // never changes
+	protected JMenuItem exportDataItem; // disabled unless a datatable with data is displayed
+	protected JMenuItem captureVideoItem; // no longer used
+	protected JMenuItem propertiesItem; // never changes
+	protected JMenuItem printFrameItem; // never changes
+	protected JMenuItem exitItem; // never changes
+	// edit menu
+	protected JMenu editMenu;
+	protected JMenuItem undoItem; // disabled if no undo available
+	protected JMenuItem redoItem; // disabled if no redo available
+	protected JMenu copyDataMenu; // changes (and may have submenus) when data tables are shown/hidden
+	protected JMenu copyImageMenu; // changes when views are shown/hidden/changes
+	protected JMenuItem copyMainViewImageItem; // never changes
+	protected JMenuItem copyFrameImageItem; // never changes
+	protected JMenuItem[] copyViewImageItems; // changes when views shown/hidden/changed
+	protected JMenu copyObjectMenu; // changes when tracks are created/removed
+	protected JMenuItem pasteItem; // enabled when clipboard has xml data for a track, coords, etc
+	protected JCheckBoxMenuItem autopasteCheckbox; // never changes
+	protected JMenu deleteTracksMenu; // disabled if no tracks; items added/removed when tracks are created/removed
+	protected JMenuItem deleteSelectedPointItem; // enabled when step is selected
+	protected JMenuItem clearTracksItem; // never changes
+	protected JMenu numberMenu; // never changes
+	protected JMenuItem formatsItem, unitsItem; // never changes
+	protected JMenuItem configItem; (Preferences) // never changes
+	protected JMenu matSizeMenu; // submenus depend on video size, but once created never change (unless Resize filter applied??)
+	protected ButtonGroup matSizeGroup;  // above
+	protected JMenu fontSizeMenu; // never changes
+	protected ButtonGroup fontSizeGroup; // never changes
+	protected JRadioButtonMenuItem videoSizeItem; // never changes (unless Resize filter applied??)
+	protected JMenu languageMenu; // never changes
+	protected JMenuItem[] languageItems; // never changes
+	protected JMenuItem otherLanguageItem; // never changes
+	protected JMenuItem propsItem; // no longer used
+	
+	// video menu
+	protected JMenu videoMenu;
+	protected JCheckBoxMenuItem videoVisibleItem; // only when tab has video
+	protected JMenuItem goToItem; // never changes
+	protected JMenu filtersMenu; // only when has video; changes when filters added/removed
+	protected JMenu newFilterMenu; // never changes
+	protected JMenuItem pasteFilterItem; // only when clipboard has xml data for video filter
+	protected JMenuItem clearFiltersItem; // never changes
+	protected JMenuItem openVideoItem; // changes text when video added or removed
+	protected JMenuItem closeVideoItem; // only when has video
+	protected JMenu pasteImageMenu; // when clipboard has image and tab has image video--has submenus replace, before, after
+	protected JMenuItem pasteImageItem;  // when clipboard has image and tab has no video
+	protected JMenuItem pasteReplaceItem; // never changes
+	protected JMenuItem pasteImageAfterItem; // never changes
+	protected JMenuItem pasteImageBeforeItem; // never changes
+	protected JMenu importImageMenu; // when tab has image video--has submenus before, after
+	protected JMenuItem addImageAfterItem; // never changes
+	protected JMenuItem addImageBeforeItem; // never changes
+	protected JMenuItem removeImageItem; // when tab has image video with 2 or more images
+	protected JMenuItem editVideoItem; // when checked/unchecked, changes paste and import image menus, adds/removes them from edit menu
+	protected JMenuItem playAllStepsItem; // only when tab has video
+	protected JMenuItem playXuggleSmoothlyItem; // only with xuggle video
+	protected JMenuItem aboutVideoItem; // never changes
+	protected JMenuItem checkDurationsItem; // inlcuded only when tab has movie video
+	protected JMenuItem emptyVideoItem; // only used when video menu has no other items--always disabled
+	
+	// tracks menu
+	protected JMenu trackMenu;  // items added/removed when tracks created/removed
+	protected JMenu createMenu; // Tracks/New  // never changes
+	protected JMenu cloneMenu; // Tracks/Clone // never changes
+	protected JMenu measuringToolsMenu; // never changes
+	protected Component[] newTrackItems; // never changes
+	protected JMenuItem newPointMassItem; // never changes
+	protected JMenuItem newCMItem; // never changes
+	protected JMenuItem newVectorItem; // never changes
+	protected JMenuItem newVectorSumItem; // never changes
+	protected JMenuItem newLineProfileItem; // never changes
+	protected JMenuItem newRGBRegionItem; // never changes
+	protected JMenuItem newProtractorItem; // never changes
+	protected JMenuItem newTapeItem; // never changes
+	protected JMenuItem newCircleFitterItem; // never changes
+	protected JCheckBoxMenuItem axesVisibleItem; // never changes
+	protected JMenuItem newAnalyticParticleItem; // never changes
+	protected JMenu newDynamicParticleMenu; // never changes
+	protected JMenuItem newDynamicParticleCartesianItem; // never changes
+	protected JMenuItem newDynamicParticlePolarItem; // never changes
+	protected JMenuItem newDynamicSystemItem; // never changes
+	protected JMenu newDataTrackMenu; // never changes
+	protected JMenuItem newDataTrackPasteItem; // enabled only when clipboard has delimited text data
+	protected JMenuItem newDataTrackFromFileItem; // never changes
+	protected JMenuItem newDataTrackFromEJSItem; // never changes
+	protected JMenuItem dataTrackHelpItem; // never changes
+	protected JMenuItem emptyTracksItem; // only used when tracks menu has no other items--always disabled
+	
+	// coords menu
+	protected JMenu coordsMenu;
+	protected JCheckBoxMenuItem lockedCoordsItem; // never changes
+	protected JCheckBoxMenuItem fixedOriginItem; // enabled unless locked coords
+	protected JCheckBoxMenuItem fixedAngleItem; // enabled unless locked coords
+	protected JCheckBoxMenuItem fixedScaleItem; // enabled unless locked coords
+	protected JMenu refFrameMenu; // items added/removed when tracks added/removed
+	protected ButtonGroup refFrameGroup;
+	protected JRadioButtonMenuItem defaultRefFrameItem;  // never changes
+	protected JMenuItem showUnitDialogItem;  // never changes
+	protected JMenuItem emptyCoordsItem; // only used when coords menu has no other items--always disabled
+	
+	// window menu
+	protected JMenu windowMenu; // items added/removed when tabs added/removed, or views maximized/restored
+	protected JMenuItem restoreItem; // included only when view is maximized
+	protected JCheckBoxMenuItem rightPaneItem; // included only when view NOT maximized
+	protected JCheckBoxMenuItem bottomPaneItem; // only when view NOT maximized
+	protected JMenuItem trackControlItem;  // never changes
+	protected JMenuItem notesItem;  // never changes
+	protected JMenuItem dataBuilderItem;  // never changes
+	protected JMenuItem dataToolItem;  // never changes
+	
+	// help menu
+	protected JMenu helpMenu; // never changes

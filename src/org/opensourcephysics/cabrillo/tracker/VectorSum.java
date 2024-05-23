@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2019  Douglas Brown
+ * Copyright (c) 2024 Douglas Brown, Wolfgang Christian, Robert M. Hanson
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -81,7 +81,7 @@ public class VectorSum extends Vector {
     this.vectors = vectors;
     setColor(defaultColors[0]);
     for (int i = 0; i < vectors.length; i++) {
-      vectors[i].addPropertyChangeListener("step", this); //$NON-NLS-1$
+      vectors[i].addPropertyChangeListener(PROPERTY_TTRACK_STEP, this); //$NON-NLS-1$
     }
     locked = true;
     // set initial hint
@@ -90,29 +90,32 @@ public class VectorSum extends Vector {
     update();
   }
 
-  /**
-   * Overrides Vector draw method.
-   *
-   * @param panel the drawing panel requesting the drawing
-   * @param _g the graphics context on which to draw
-   */
-  public void draw(DrawingPanel panel, Graphics _g) {
-    // add vectors listed in vectorNames (this occurs on initial loading)
-    if (!vectorNames.isEmpty() && panel.getClass().equals(TrackerPanel.class)) {
-      TrackerPanel trackerPanel = (TrackerPanel) panel;
-      Iterator<String> it = vectorNames.iterator();
-      while (it.hasNext()) {
-        String name = it.next();
-        for (Vector v: trackerPanel.getDrawables(Vector.class)) {
-          if (v.getName().equals(name))
-            addVector(v);
-        }
-      }
-      vectorNames.clear();
-    }
-    super.draw(panel, _g);
-  }
+	/**
+	 * Overrides Vector draw method.
+	 *
+	 * @param panel the drawing panel requesting the drawing
+	 * @param _g    the graphics context on which to draw
+	 */
+	@Override
+	public void draw(DrawingPanel panel, Graphics _g) {
+		if (!initialized)
+			initialize((TrackerPanel) panel);
+		super.draw(panel, _g);
+	}
 
+	@Override
+	public void initialize(TrackerPanel panel) {
+		if (initialized)
+			return;
+		for (int i = 0, ni = vectorNames.size(); i < ni; i++) {
+			String name = vectorNames.get(i);
+			Vector v = tp.getTrackByName(Vector.class, name);
+			if (v != null)
+				addVector(v);
+		}
+		vectorNames.clear();
+		initialized = true;
+	}
   /**
    * Finds the interactive drawable object located at the specified
    * pixel position.
@@ -122,7 +125,8 @@ public class VectorSum extends Vector {
    * @param ypix the y pixel position on the panel
    * @return the first step TPoint that is hit
    */
-  public Interactive findInteractive(
+  @Override
+public Interactive findInteractive(
          DrawingPanel panel, int xpix, int ypix) {
   	Interactive ia = super.findInteractive(panel, xpix, ypix);
   	if (ia instanceof VectorStep.Handle) {
@@ -150,7 +154,7 @@ public class VectorSum extends Vector {
       System.arraycopy(vectors, 0, newVectors, 0, vectors.length);
       newVectors[vectors.length] = vec;
       vectors = newVectors;
-      vec.addPropertyChangeListener("step", this); //$NON-NLS-1$
+      vec.addPropertyChangeListener(PROPERTY_TTRACK_STEP, this); //$NON-NLS-1$
     }
     update();
   }
@@ -164,7 +168,7 @@ public class VectorSum extends Vector {
     synchronized(vectors) {
       for (int i = 0; i < vectors.length; i++)
         if (vectors[i] == vec) {
-          vec.removePropertyChangeListener("step", this); //$NON-NLS-1$
+          vec.removePropertyChangeListener(PROPERTY_TTRACK_STEP, this); //$NON-NLS-1$
           Vector[] newVectors = new Vector[vectors.length - 1];
           System.arraycopy(vectors, 0, newVectors, 0, i);
           System.arraycopy(vectors, i+1, newVectors, i, newVectors.length-i);
@@ -212,7 +216,8 @@ public class VectorSum extends Vector {
    * @param yc ignored
    * @return the new step
    */
-  public Step createStep(int n, double x, double y, double xc, double yc) {
+  @Override
+public Step createStep(int n, double x, double y, double xc, double yc) {
     if (isLocked()) {
       tails.put(new Integer(n), new TPoint(x, y));
       update(n);
@@ -235,7 +240,8 @@ public class VectorSum extends Vector {
    *
    * @param locked ignored
    */
-  public void setLocked(boolean locked) {/** empty block */}
+  @Override
+public void setLocked(boolean locked) {/** empty block */}
 
   /**
    * Overrides TTrack isStepComplete method. Always returns true.
@@ -243,7 +249,8 @@ public class VectorSum extends Vector {
    * @param n the frame number
    * @return <code>true</code> always since sum gets data from vectors
    */
-  public boolean isStepComplete(int n) {
+  @Override
+public boolean isStepComplete(int n) {
     return true;
   }
 
@@ -252,41 +259,62 @@ public class VectorSum extends Vector {
    *
    * @return <code>true</code> since sum is dependent on its vectors
    */
-  public boolean isDependent() {
+  @Override
+public boolean isDependent() {
     return true;
   }
 
-  /**
-   * Responds to property change events. VectorSum listens for the
-   * following events: "track" from tracker panel, "color", "footprint"
-   * and "step" from Vector.
-   *
-   * @param e the property change event
-   */
-  public void propertyChange(PropertyChangeEvent e) {
-    String name = e.getPropertyName();
-    if (name.equals("track") && e.getOldValue()!=null) { // track deleted //$NON-NLS-1$
-      TTrack track = (TTrack)e.getOldValue();
-      if (track instanceof Vector)
-        removeVector((Vector)track);
-    }
-    if (e.getSource() instanceof Vector) {
-      if (name.equals("step")){ //$NON-NLS-1$
-        int n = ((Integer)e.getNewValue()).intValue();
-        update(n);
-      }
-    }
-    else super.propertyChange(e);
-  }
+	/**
+	 * Adds events for TrackerPanel.
+	 * 
+	 * @param panel the new TrackerPanel
+	 */
+	@Override
+	public void setTrackerPanel(TrackerPanel panel) {
+		if (tp != null) {			
+			tp.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this);
+		}
+		super.setTrackerPanel(panel);
+		if (tp != null) {
+			tp.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this);
+		}
+	}
+
+	/**
+	 * Responds to property change events.
+	 *
+	 * @param e the property change event
+	 */
+	@Override
+	public void propertyChange(PropertyChangeEvent e) {
+		switch (e.getPropertyName()) {
+		case TrackerPanel.PROPERTY_TRACKERPANEL_TRACK:
+			if (e.getOldValue() != null) { // track deleted //$NON-NLS-1$
+				TTrack track = (TTrack) e.getOldValue();
+				if (track.ttype == TTrack.TYPE_VECTOR)
+					removeVector((Vector) track);
+			}
+			break;
+		case PROPERTY_TTRACK_STEP:
+			if (e.getSource() instanceof Vector) {
+				int n = ((Integer) e.getNewValue()).intValue();
+				update(n);
+				return;
+			}
+			break;
+		}
+		super.propertyChange(e);
+	}
 
   /**
    * Cleans up associated resources when this track is deleted or cleared.
    */
-  protected void dispose() {
+  @Override	
+  public void dispose() {
   	super.dispose();
     for (Vector v: vectors) {
       if (v!=null) {
-      	v.removePropertyChangeListener("step", this); //$NON-NLS-1$
+      	v.removePropertyChangeListener(PROPERTY_TTRACK_STEP, this); //$NON-NLS-1$
       }
     }
     vectors = new Vector[0];
@@ -313,7 +341,7 @@ public class VectorSum extends Vector {
       VectorStep deletedStep = (VectorStep)deleteStep(n);
       if (deletedStep != null) {
         deletedStep.attach(null);
-        repaint(deletedStep);
+        repaintStep(deletedStep);
       }
       locked = true;
       return;
@@ -328,7 +356,7 @@ public class VectorSum extends Vector {
           VectorStep deletedStep = (VectorStep)deleteStep(n);
           tails.put(new Integer(n), deletedStep.getTail());
           deletedStep.attach(null);
-          repaint(deletedStep);
+          repaintStep(deletedStep);
           locked = true;
         }
         return;
@@ -351,15 +379,11 @@ public class VectorSum extends Vector {
       }
       else {
         newStep = (VectorStep) createStep(n, 0, 0, x, y);
-        Iterator<TrackerPanel> it = panels.iterator();
-        while (it.hasNext()) {
-          TrackerPanel panel = it.next();
-          newStep.attach(panel.getSnapPoint());
-        }
+        newStep.attach(tp.getSnapPoint());
       }
       newStep.setTipEnabled(false);
       newStep.setDefaultPointIndex(2); // handle
-      repaint(newStep);
+      repaintStep(newStep);
       locked = true;
     }
     // or set components of existing step
@@ -376,49 +400,31 @@ public class VectorSum extends Vector {
    * @param trackerPanel the tracker panel
    * @return a menu
    */
-  public JMenu getMenu(TrackerPanel trackerPanel) {
+  @Override
+public JMenu getMenu(TrackerPanel trackerPanel, JMenu menu0) {
     // create a vector sum inspector item
     inspectorItem = new JMenuItem(
         TrackerRes.getString("VectorSum.MenuItem.Inspector")); //$NON-NLS-1$
     inspectorItem.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
         VectorSumInspector inspector = getInspector();
         inspector.updateDisplay();
         inspector.setVisible(true);
       }
     });
-    // assemble the menu
-    JMenu menu = super.getMenu(trackerPanel);
-    // remove unwanted menu items and separators
-    menu.remove(lockedItem);
-    menu.remove(autoAdvanceItem);
-    menu.remove(markByDefaultItem);
-    menu.insert(inspectorItem, 0);
-    if (menu.getItemCount() > 1)
-      menu.insertSeparator(1);
-    // eliminate any double separators
-    Object prevItem = inspectorItem;
-    int n = menu.getItemCount();
-    for (int j = 1; j < n; j++) {
-    	Object item = menu.getItem(j);
-      if (item == null && prevItem == null) { // found extra separator
-      	menu.remove(j-1);
-      	j = j-1;
-      	n = n-1;
-      }
-      prevItem = item;
-    }
-    return menu;
+    return assembleMenu(super.getMenu(trackerPanel, menu0), inspectorItem);
   }
 
-  /**
+/**
    * Overrides TTrack getToolbarPointComponents method.
    *
    * @param trackerPanel the tracker panel
    * @param point the TPoint
    * @return a list of components
    */
-  public ArrayList<Component> getToolbarPointComponents(TrackerPanel trackerPanel,
+  @Override
+public ArrayList<Component> getToolbarPointComponents(TrackerPanel trackerPanel,
                                              TPoint point) {
     ArrayList<Component> list = super.getToolbarPointComponents(trackerPanel, point);
     xField.setEnabled(false);
@@ -431,7 +437,8 @@ public class VectorSum extends Vector {
    *
    * @return a description of this object
    */
-  public String toString() {
+  @Override
+public String toString() {
     return TrackerRes.getString("VectorSum.Name") + " \"" + name + "\""; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
   }
 
@@ -455,7 +462,8 @@ public class VectorSum extends Vector {
      * @param control the control to save to
      * @param obj the object to save
      */
-    public void saveObject(XMLControl control, Object obj) {
+    @Override
+	public void saveObject(XMLControl control, Object obj) {
       VectorSum sum = (VectorSum) obj;
       // save names of vectors in this sum
       ArrayList<String> list = new ArrayList<String>();
@@ -474,7 +482,8 @@ public class VectorSum extends Vector {
      * @param control the XMLControl with the object data
      * @return the newly created object
      */
-    public Object createObject(XMLControl control) {
+    @Override
+	public Object createObject(XMLControl control) {
       return new VectorSum();
     }
 
@@ -485,7 +494,8 @@ public class VectorSum extends Vector {
      * @param obj the object
      * @return the loaded object
      */
-    public Object loadObject(XMLControl control, Object obj) {
+    @Override
+	public Object loadObject(XMLControl control, Object obj) {
       VectorSum sum = (VectorSum) obj;
       // load this vector data
       XML.getLoader(Vector.class).loadObject(control, obj);

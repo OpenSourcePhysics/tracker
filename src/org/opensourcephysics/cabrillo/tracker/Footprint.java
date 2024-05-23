@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2019  Douglas Brown
+ * Copyright (c) 2024 Douglas Brown, Wolfgang Christian, Robert M. Hanson
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,8 +24,12 @@
  */
 package org.opensourcephysics.cabrillo.tracker;
 
-import java.awt.*;
-import javax.swing.*;
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Point;
+import java.awt.Shape;
+
+import org.opensourcephysics.display.ResizableIcon;
 
 /**
  * A Footprint creates a mark for a track step.
@@ -62,7 +66,7 @@ public interface Footprint {
    * @param h height of the icon
    * @return the icon
    */
-  public Icon getIcon(int w, int h);
+  public ResizableIcon getIcon(int w, int h);
 
   /**
    * Gets the hit shapes associated with the footprint.
@@ -83,9 +87,10 @@ public interface Footprint {
    * Gets the footprint shape.
    *
    * @param points a Point array
+   * @param scale an integer magnification
    * @return the shape
    */
-  public Shape getShape(Point[] points);
+  public MultiShape getShape(Point[] points, int scale);
 
   /**
    * Sets the stroke. Accepts only basic strokes.

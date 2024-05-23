@@ -24,8 +24,6 @@ import javax.swing.JPanel;
 import javax.swing.JSpinner;
 import javax.swing.SpinnerModel;
 import javax.swing.SpinnerNumberModel;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 
 import org.opensourcephysics.display.DataClip;
 import org.opensourcephysics.display.DrawingPanel;
@@ -33,7 +31,11 @@ import org.opensourcephysics.display.Interactive;
 import org.opensourcephysics.media.core.DataTrack;
 import org.opensourcephysics.media.core.VideoClip;
 import org.opensourcephysics.media.core.VideoPanel;
+import org.opensourcephysics.media.core.VideoPlayer;
+import org.opensourcephysics.numerics.Util;
+import org.opensourcephysics.tools.FontSizer;
 
+@SuppressWarnings("serial")
 public class DataTrackClipControl extends JPanel implements PropertyChangeListener {
 	
 	static Color videoColor=Color.WHITE;
@@ -50,6 +52,7 @@ public class DataTrackClipControl extends JPanel implements PropertyChangeListen
 	protected JLabel videoInLabel, dataInLabel, dataClipLengthLabel, dataStrideLabel;
 	protected JSpinner videoInSpinner, dataInSpinner, dataClipLengthSpinner, dataStrideSpinner;
 	protected boolean refreshing, drawVideoClip=false;
+	protected ParticleDataTrack particleDT;
 
 	/**
 	 * Constructor.
@@ -59,7 +62,13 @@ public class DataTrackClipControl extends JPanel implements PropertyChangeListen
 	public DataTrackClipControl(DataTrack model) {
 		super(new BorderLayout());
 		dataTrack = model;
-		dataTrack.addPropertyChangeListener(this);
+		if (dataTrack instanceof ParticleDataTrack) {
+			particleDT = (ParticleDataTrack)dataTrack;
+			particleDT.addPropertyChangeListener(
+					ParticleDataTrack.PROPERTY_PARTICLEDATATRACK_DATACLIP, this);
+			particleDT.addPropertyChangeListener(
+					VideoPlayer.PROPERTY_VIDEOPLAYER_VIDEOCLIP, this);
+		}
 		createGUI();
 		refreshSpinners();
 		refreshGUI();
@@ -69,129 +78,125 @@ public class DataTrackClipControl extends JPanel implements PropertyChangeListen
 	 * Creates the GUI.
 	 */
 	protected void createGUI() {
-  	// create labels
-  	videoInLabel = new JLabel();
-  	videoInLabel.setBorder(BorderFactory.createEmptyBorder());
-  	dataInLabel = new JLabel();
-  	dataInLabel.setBorder(BorderFactory.createEmptyBorder());
-  	dataClipLengthLabel = new JLabel();
-  	dataClipLengthLabel.setBorder(BorderFactory.createEmptyBorder());
-  	dataStrideLabel = new JLabel();
-  	dataStrideLabel.setBorder(BorderFactory.createEmptyBorder());
-  	
-  	// create spinners
-    SpinnerModel spinModel = new SpinnerNumberModel(0, 0, 20, 1);
-    videoInSpinner = new MySpinner(spinModel);
-    ChangeListener listener = new ChangeListener() {
-      public void stateChanged(ChangeEvent e) {
-      	if (refreshing) return;
-        int in = (Integer)videoInSpinner.getValue();
-        if (in==dataTrack.getStartFrame()) {
-        	return;
-        }
-        dataTrack.setStartFrame(in);
-        videoInSpinner.setValue(dataTrack.getStartFrame());
-        repaint();
-        videoInSpinner.requestFocusInWindow();
-      }
-  	};
-  	videoInSpinner.addChangeListener(listener);
-  	
-    spinModel = new SpinnerNumberModel(0, 0, 20, 1);
-    dataInSpinner = new MySpinner(spinModel);
-    listener = new ChangeListener() {
-      public void stateChanged(ChangeEvent e) {
-      	if (refreshing) return;
-        int in = (Integer)dataInSpinner.getValue();
-        if (in==dataTrack.getDataClip().getStartIndex()) {
-        	return;
-        }
-        dataTrack.getDataClip().setStartIndex(in);
-        dataInSpinner.setValue(dataTrack.getDataClip().getStartIndex());
-        repaint();
-        dataInSpinner.requestFocusInWindow();
-      }
-  	};
-  	dataInSpinner.addChangeListener(listener);
+		// create labels
+		videoInLabel = new JLabel();
+		videoInLabel.setBorder(BorderFactory.createEmptyBorder());
+		dataInLabel = new JLabel();
+		dataInLabel.setBorder(BorderFactory.createEmptyBorder());
+		dataClipLengthLabel = new JLabel();
+		dataClipLengthLabel.setBorder(BorderFactory.createEmptyBorder());
+		dataStrideLabel = new JLabel();
+		dataStrideLabel.setBorder(BorderFactory.createEmptyBorder());
 
-  	
-    spinModel = new SpinnerNumberModel(1, 1, 20, 1);
-    dataClipLengthSpinner = new MySpinner(spinModel);
-    listener = new ChangeListener() {
-      public void stateChanged(ChangeEvent e) {
-      	if (refreshing) return;
-        int length = (Integer)dataClipLengthSpinner.getValue();
-        if (length==dataTrack.getDataClip().getClipLength()) {
-        	return;
-        }
-        dataTrack.getDataClip().setClipLength(length);
-        dataClipLengthSpinner.setValue(dataTrack.getDataClip().getClipLength());
-        repaint();
-        dataClipLengthSpinner.requestFocusInWindow();
-      }
-  	};
-  	dataClipLengthSpinner.addChangeListener(listener);
+		// create spinners
+		videoInSpinner = new MySpinner(new SpinnerNumberModel(0, 0, 20, 1));
+		videoInSpinner.addChangeListener((e) -> {
+			if (refreshing)
+				return;
+	  	VideoPanel vidPanel = dataTrack.getVideoPanel();
+	  	if (vidPanel == null)
+	  		return;
+  		VideoClip clip = vidPanel.getPlayer().getVideoClip();
+  		int cur = clip.frameToStep(dataTrack.getStartFrame());
+			int in = (Integer) videoInSpinner.getValue();
+			if (in == cur) {
+				return;
+			}
+//			dataTrack.setStartFrame(in);
+			dataTrack.setStartStep(in);
+			
+			TFrame.repaintT(DataTrackClipControl.this);
+			videoInSpinner.requestFocusInWindow();
+		});
+		dataInSpinner = new MySpinner(new SpinnerNumberModel(0, 0, 20, 1));
+		dataInSpinner.addChangeListener((e) -> {
+			if (refreshing)
+				return;
+			int in = (Integer) dataInSpinner.getValue();
+			if (in == dataTrack.getDataClip().getStartIndex()) {
+				return;
+			}
+			dataTrack.getDataClip().setStartIndex(in);
+			dataInSpinner.setValue(dataTrack.getDataClip().getStartIndex());
+			dataInSpinner.requestFocusInWindow();
+			TFrame.repaintT(DataTrackClipControl.this);
+		});
 
-    spinModel = new SpinnerNumberModel(1, 1, 10, 1);
-    dataStrideSpinner = new MySpinner(spinModel);
-    listener = new ChangeListener() {
-      public void stateChanged(ChangeEvent e) {
-      	if (refreshing) return;
-        int n = (Integer)dataStrideSpinner.getValue();
-        if (n==dataTrack.getDataClip().getStride()) {
-        	return;
-        }
-        dataTrack.getDataClip().setStride(n);
-        dataStrideSpinner.setValue(dataTrack.getDataClip().getStride());
-        repaint();
-        dataStrideSpinner.requestFocusInWindow();
-      }
-  	};
-  	dataStrideSpinner.addChangeListener(listener);
+		dataClipLengthSpinner = new MySpinner(new SpinnerNumberModel(1, 1, 20, 1));
 
-  	// assemble
-  	drawingPanel = new GraphicPanel();
-  	drawingPanel.setBorder(BorderFactory.createEtchedBorder());
-  	drawingPanel.addDrawable(new MappingGraphic());
-  	add(drawingPanel, BorderLayout.CENTER);
-  	spinnerPanel = new JPanel(new GridLayout(1, 4));
-  	add(spinnerPanel, BorderLayout.SOUTH);  	
-  	
-  	JPanel singleSpinnerPanel = new JPanel(new BorderLayout());
-  	JPanel panel = new JPanel();
-  	panel.add(videoInSpinner);
-  	singleSpinnerPanel.add(panel, BorderLayout.NORTH);
-  	panel = new JPanel();
-   	panel.add(videoInLabel);
-  	singleSpinnerPanel.add(panel, BorderLayout.SOUTH);
-  	spinnerPanel.add(singleSpinnerPanel);
-  	
-  	singleSpinnerPanel = new JPanel(new BorderLayout());
-  	panel = new JPanel();
-  	panel.add(dataClipLengthSpinner);
-  	singleSpinnerPanel.add(panel, BorderLayout.NORTH);
-  	panel = new JPanel();
-   	panel.add(dataClipLengthLabel);
-  	singleSpinnerPanel.add(panel, BorderLayout.SOUTH);
-  	spinnerPanel.add(singleSpinnerPanel);
-  	
-  	singleSpinnerPanel = new JPanel(new BorderLayout());
-  	panel = new JPanel();
-  	panel.add(dataInSpinner);
-  	singleSpinnerPanel.add(panel, BorderLayout.NORTH);
-  	panel = new JPanel();
-   	panel.add(dataInLabel);
-  	singleSpinnerPanel.add(panel, BorderLayout.SOUTH);
-  	spinnerPanel.add(singleSpinnerPanel);
-  	
-  	singleSpinnerPanel = new JPanel(new BorderLayout());
-  	panel = new JPanel();
-  	panel.add(dataStrideSpinner);
-  	singleSpinnerPanel.add(panel, BorderLayout.NORTH);
-  	panel = new JPanel();
-   	panel.add(dataStrideLabel);
-  	singleSpinnerPanel.add(panel, BorderLayout.SOUTH);
-  	spinnerPanel.add(singleSpinnerPanel);
+		dataClipLengthSpinner.addChangeListener((e) -> {
+			if (refreshing)
+				return;
+			int length = (Integer) dataClipLengthSpinner.getValue();
+			if (length == dataTrack.getDataClip().getClipLength()) {
+				return;
+			}
+			dataTrack.getDataClip().setClipLength(length);
+			dataClipLengthSpinner.setValue(dataTrack.getDataClip().getClipLength());
+			TFrame.repaintT(DataTrackClipControl.this);
+			dataClipLengthSpinner.requestFocusInWindow();
+			if (particleDT != null && particleDT.tp != null)
+				particleDT.tp.getModelBuilder().refreshSpinners();
+				
+		});
+
+		dataStrideSpinner = new MySpinner(new SpinnerNumberModel(1, 1, 10, 1));
+		dataStrideSpinner.addChangeListener((e) -> {
+			if (refreshing)
+				return;
+			int n = (Integer) dataStrideSpinner.getValue();
+			if (n == dataTrack.getDataClip().getStride()) {
+				return;
+			}
+			dataTrack.getDataClip().setStride(n);
+			dataStrideSpinner.setValue(dataTrack.getDataClip().getStride());
+			TFrame.repaintT(DataTrackClipControl.this);
+			dataStrideSpinner.requestFocusInWindow();
+		});
+
+		// assemble
+		drawingPanel = new GraphicPanel();
+		drawingPanel.setBorder(BorderFactory.createEtchedBorder());
+		drawingPanel.addDrawable(new MappingGraphic());
+		add(drawingPanel, BorderLayout.CENTER);
+		spinnerPanel = new JPanel(new GridLayout(1, 4));
+		add(spinnerPanel, BorderLayout.SOUTH);
+
+		JPanel singleSpinnerPanel = new JPanel(new BorderLayout());
+		JPanel panel = new JPanel();
+		panel.add(videoInSpinner);
+		singleSpinnerPanel.add(panel, BorderLayout.NORTH);
+		panel = new JPanel();
+		panel.add(videoInLabel);
+		singleSpinnerPanel.add(panel, BorderLayout.SOUTH);
+		spinnerPanel.add(singleSpinnerPanel);
+
+		singleSpinnerPanel = new JPanel(new BorderLayout());
+		panel = new JPanel();
+		panel.add(dataClipLengthSpinner);
+		singleSpinnerPanel.add(panel, BorderLayout.NORTH);
+		panel = new JPanel();
+		panel.add(dataClipLengthLabel);
+		singleSpinnerPanel.add(panel, BorderLayout.SOUTH);
+		spinnerPanel.add(singleSpinnerPanel);
+
+		singleSpinnerPanel = new JPanel(new BorderLayout());
+		panel = new JPanel();
+		panel.add(dataInSpinner);
+		singleSpinnerPanel.add(panel, BorderLayout.NORTH);
+		panel = new JPanel();
+		panel.add(dataInLabel);
+		singleSpinnerPanel.add(panel, BorderLayout.SOUTH);
+		spinnerPanel.add(singleSpinnerPanel);
+
+		singleSpinnerPanel = new JPanel(new BorderLayout());
+		panel = new JPanel();
+		panel.add(dataStrideSpinner);
+		singleSpinnerPanel.add(panel, BorderLayout.NORTH);
+		panel = new JPanel();
+		panel.add(dataStrideLabel);
+		singleSpinnerPanel.add(panel, BorderLayout.SOUTH);
+		spinnerPanel.add(singleSpinnerPanel);
 
 	}
 	
@@ -199,43 +204,42 @@ public class DataTrackClipControl extends JPanel implements PropertyChangeListen
 	 * Refreshes the spinners.
 	 */
 	protected void refreshSpinners() {
-    VideoPanel vidPanel = dataTrack.getVideoPanel();
-    if (vidPanel==null) return;
-    
+		VideoPanel vidPanel = dataTrack.getVideoPanel();
+		if (vidPanel == null)
+			return;
+
 		DataClip dataClip = dataTrack.getDataClip();
 		VideoClip videoClip = vidPanel.getPlayer().getVideoClip();
-    
+
 		// data start index
 		int clipLength = dataClip.getClipLength();
 		int dataLength = dataClip.getDataLength();
-		int max = Math.max(0, dataLength-1);
-    SpinnerModel spinModel = new SpinnerNumberModel(dataClip.getStartIndex(), 0, max, 1);
-    dataInSpinner.setModel(spinModel);
-    // data stride
-    max = Math.max(1, dataLength-1);
-    max = Math.max(max, dataClip.getStride());
-    spinModel = new SpinnerNumberModel(dataClip.getStride(), 1, max, 1);
-    dataStrideSpinner.setModel(spinModel);
-    if (videoClip!=null) {
-    	// video start frame
-  		int first = videoClip.getFirstFrameNumber();
-  		int last = videoClip.getLastFrameNumber();
-  		int startFrame = dataTrack.getStartFrame();
-  		
-  		startFrame = Math.max(startFrame, first);
-  		startFrame = Math.min(startFrame, last);
-      spinModel = new SpinnerNumberModel(startFrame, first, last, 1);
-      videoInSpinner.setModel(spinModel);
-    }
-    // frame count (clip length)
-    max = Math.max(1, dataLength);
-    spinModel = new SpinnerNumberModel(clipLength, 1, max, 1);
-    dataClipLengthSpinner.setModel(spinModel);
-    Container c = this.getTopLevelAncestor();
-    if (c instanceof ModelBuilder) {
-    	ModelBuilder builder = (ModelBuilder)c;
-    	builder.refreshSpinners();
-    }
+		int max = Math.max(0, dataLength - 1);
+		Util.newSpinnerNumberModel(dataInSpinner, dataClip.getStartIndex(), 0, max, 1);
+		// data stride
+		max = Math.max(1, dataLength - 1);
+		max = Math.max(max, dataClip.getStride());
+		Util.newSpinnerNumberModel(dataStrideSpinner, dataClip.getStride(), 1, max, 1);
+		if (videoClip != null) {
+			// video start frame
+//			int first = videoClip.getFirstFrameNumber();
+			int first = 0;
+//			int last = videoClip.getLastFrameNumber();
+			int last = videoClip.getStepCount() - 1;
+//			int startStep = videoClip.frameToStep(dataTrack.getStartFrame());
+			int startStep = dataTrack.getStartStep();
+
+			startStep = Math.max(startStep, first);
+			startStep = Math.min(startStep, last);
+			Util.newSpinnerNumberModel(videoInSpinner, startStep, first, last, 1);
+		}
+		// step count (clip length)
+		max = Math.max(1, dataLength);
+		Util.newSpinnerNumberModel(dataClipLengthSpinner, clipLength, 1, max, 1);
+		Container c = this.getTopLevelAncestor();
+		if (c instanceof ModelBuilder) {
+			((ModelBuilder) c).refreshSpinners();
+		}
 	}
 
 	/**
@@ -264,16 +268,11 @@ public class DataTrackClipControl extends JPanel implements PropertyChangeListen
   	dim.height = getPreferredSize().height;
     return dim;
   }
-  
+
 	@Override
 	public void propertyChange(PropertyChangeEvent e) {
 		refreshSpinners();
-//		if (e.getPropertyName().equals("dataclip")) { //$NON-NLS-1$
-//			refreshSpinners();
-//		}
-//		else if (e.getPropertyName().equals("videoclip")) { //$NON-NLS-1$
-//			refreshSpinners();
-//		}
+		TFrame.repaintT(DataTrackClipControl.this);
 	}
   
   /**
@@ -291,7 +290,7 @@ public class DataTrackClipControl extends JPanel implements PropertyChangeListen
     int last = clip.getLastFrameNumber();
     for (int i = stepCount-1; i>0; i--) {
     	// determine corresponding frame number and index
-    	int frame = dataTrack.getStartFrame()+i;
+    	int frame = dataTrack.getStartFrame()+(i * clip.getStepSize());
     	int index = dataTrack.getDataClip().stepToIndex(i);
     	// look for first step with frame<=last frame and index<data length
       if (frame<=last && index<dataTrack.getDataClip().getDataLength()) {
@@ -330,16 +329,19 @@ public class DataTrackClipControl extends JPanel implements PropertyChangeListen
 	    
       Graphics2D g2 = (Graphics2D)g;
             
-      int strokeWidth = 8;
+      double mag = FontSizer.getFactor();
+      int strokeWidth = (int)(8 * mag);
       g2.setStroke(new BasicStroke(strokeWidth, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND));
       
       // fill background
       Rectangle rect = new Rectangle(drawingPanel.getSize());
       g2.setColor(new Color(200, 200, 200));
       g2.fill(rect);
+      
 			
-			int yVideoLine = 30;
-      int yDataLine = 70;
+			int yClipLine = (int)(30 * mag);
+      int yDataLine = (int)(70 * mag);
+      int yVideoFrame = yClipLine + (int)(3*g2.getFontMetrics().getHeight()/4);
       
       // draw video and data labels
       g2.setColor(Color.DARK_GRAY);
@@ -352,11 +354,16 @@ public class DataTrackClipControl extends JPanel implements PropertyChangeListen
       int fontDrop = g2.getFontMetrics().getHeight()/4;
       String s = TrackerRes.getString("DataTrackClipControl.Label.Video"); //$NON-NLS-1$
       int labelSpace = g2.getFontMetrics().stringWidth(s);
-      g2.drawString(s, largeGap, yVideoLine+fontDrop);
+      g2.drawString(s, largeGap, yClipLine+fontDrop);
 
       s = TrackerRes.getString("DataTrackClipControl.Label.Data"); //$NON-NLS-1$
       labelSpace = Math.max(labelSpace, g2.getFontMetrics().stringWidth(s));
       g2.drawString(s, largeGap, yDataLine+fontDrop);
+      
+      s = TrackerRes.getString("DataTrackClipControl.Label.Frame"); //$NON-NLS-1$
+      labelSpace = Math.max(labelSpace, g2.getFontMetrics().stringWidth(s));
+      g2.setFont(g2.getFont().deriveFont(Font.PLAIN));
+      g2.drawString(s, largeGap, yVideoFrame+fontDrop);
       
       labelSpace += 6;
       
@@ -365,17 +372,13 @@ public class DataTrackClipControl extends JPanel implements PropertyChangeListen
       
       s = "0"; //$NON-NLS-1$
       int frontSpace = g2.getFontMetrics().stringWidth(s);
-      frontSpace = Math.max(frontSpace, g2.getFontMetrics().stringWidth(s));
 
-      s = String.valueOf(videoClip.getLastFrameNumber());
+      s = String.valueOf(videoClip.getStepCount()-1);
       int endSpace = g2.getFontMetrics().stringWidth(s);
       s = String.valueOf(dataClip.getDataLength()-1);
       endSpace = Math.max(endSpace, g2.getFontMetrics().stringWidth(s));
 
-      int videoClipFrames = videoClip.getLastFrameNumber()-videoClip.getFirstFrameNumber()+1;
-      if (drawVideoClip) {
-      	videoClipFrames = videoClip.getFrameCount();
-      }
+      int videoClipFrames = videoClip.getStepCount();
       int dataClipFrames = dataClip.getDataLength();
 			int maxFrames = Math.max(videoClipFrames, dataClipFrames);
 			
@@ -387,26 +390,27 @@ public class DataTrackClipControl extends JPanel implements PropertyChangeListen
 			double leftEnd= labelSpace+2*largeGap+frontSpace;
 			double rightVideoEnd = leftEnd+lineLength;
       path.reset();
-      path.moveTo(leftEnd, yVideoLine);
-      path.lineTo(rightVideoEnd, yVideoLine);
+      path.moveTo(leftEnd, yClipLine);
+      path.lineTo(rightVideoEnd, yClipLine);
       g2.setColor(videoColor);
       g2.draw(path);
       
-			// draw dataclip on video line--full clip first as "unavailable"
+			// first draw video line with max "available" data clip 
       double fullClipLength = lengthPerFrame*(dataClip.getClipLength());
-      int frame0 = drawVideoClip? videoClip.getStartFrameNumber(): videoClip.getFirstFrameNumber();
-      double videoStartClip = leftEnd+lengthPerFrame*(dataTrack.getStartFrame()-frame0);
+
+      int startStep = dataTrack.getStartStep();      
+      double videoStartClip = leftEnd+lengthPerFrame*(startStep);
+
       double videoEndClip = videoStartClip + fullClipLength;
       videoStartClip = Math.max(videoStartClip, leftEnd);
       videoEndClip = Math.min(videoEndClip, leftEnd+lineLength);
       path.reset();
-      path.moveTo(videoStartClip, yVideoLine);
-      path.lineTo(videoEndClip, yVideoLine);
+      path.moveTo(videoStartClip, yClipLine);
+      path.lineTo(videoEndClip, yClipLine);
       g2.setColor(unavailableDataColor);
       g2.draw(path);
       
-			// draw dataclip on video line--available clip
-      videoStartClip = leftEnd+lengthPerFrame*(dataTrack.getStartFrame()-frame0);
+			// then draw dataclip actually used on video line
       double clipLength = lengthPerFrame*(dataClip.getAvailableClipLength());
       videoEndClip = videoStartClip + clipLength;
       videoStartClip = Math.max(videoStartClip, leftEnd);
@@ -414,8 +418,8 @@ public class DataTrackClipControl extends JPanel implements PropertyChangeListen
       // adjust clip length in case video truncated it
       clipLength = videoEndClip - videoStartClip;
       path.reset();
-      path.moveTo(videoStartClip, yVideoLine);
-      path.lineTo(videoEndClip, yVideoLine);
+      path.moveTo(videoStartClip, yClipLine);
+      path.lineTo(videoEndClip, yClipLine);
       g2.setColor(dataClipColor);
       g2.draw(path);
       
@@ -455,41 +459,68 @@ public class DataTrackClipControl extends JPanel implements PropertyChangeListen
       g2.setStroke(new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND));
       path.reset();
       path.moveTo(dataStartClip, yDataLine-strokeWidth/2);
-      path.lineTo(videoStartClip, yVideoLine+strokeWidth/2);
+      path.lineTo(videoStartClip, yClipLine+strokeWidth/2);
       g2.draw(path);
       path.reset();
       path.moveTo(dataEndClip, yDataLine-strokeWidth/2);
-      path.lineTo(videoEndClip, yVideoLine+strokeWidth/2);
+      path.lineTo(videoEndClip, yClipLine+strokeWidth/2);
       g2.draw(path);
       
-      // draw frame and index numbers
-      g2.setFont(g2.getFont().deriveFont(Font.PLAIN));
+      // draw step and index numbers
+      g2.setFont(g2.getFont().deriveFont(Font.BOLD));
       int verticalOffset = fontDrop;
-      // start index
+      // zero start index for data and video clip
       s = "0"; //$NON-NLS-1$
       g2.drawString(s, (int)(leftEnd-frontSpace-smallGap), yDataLine+verticalOffset);
-      // end index
+      g2.drawString(s, (int)(leftEnd-frontSpace-smallGap), yClipLine+verticalOffset);
+
+      // data end index 
       s = String.valueOf(dataClipFrames-1);
       g2.drawString(s, (int)(rightDataEnd+smallGap), yDataLine+verticalOffset);
-      // first video frame
-      s = String.valueOf(videoClip.getFirstFrameNumber());
-      g2.drawString(s, (int)(leftEnd-frontSpace-smallGap), yVideoLine+verticalOffset);
-      // last video frame
-      s = String.valueOf(videoClip.getLastFrameNumber());
-      g2.drawString(s, (int)(rightVideoEnd+smallGap), yVideoLine+verticalOffset);
+      
+      // clip end step
+      s = String.valueOf(videoClip.getStepCount() - 1);
+      g2.drawString(s, (int)(rightVideoEnd+smallGap), yClipLine+verticalOffset);
+      
+      g2.setFont(g2.getFont().deriveFont(Font.PLAIN));
+      // clip start frame
+      s = String.valueOf(videoClip.getStartFrameNumber());
+      frontSpace = g2.getFontMetrics().stringWidth(s);
+      g2.drawString(s, (int)(leftEnd-frontSpace-smallGap), yVideoFrame+verticalOffset);
+
+      // clip end frame
+      s = String.valueOf(videoClip.getEndFrameNumber());
+      g2.drawString(s, (int)(rightVideoEnd+smallGap), yVideoFrame+verticalOffset);
+      
+      // start frame
+      s = String.valueOf(dataTrack.getStartFrame());
+      g2.drawString(s, (int)(videoStartClip), yVideoFrame+verticalOffset);
       
       verticalOffset = -2-strokeWidth/2;
-      s = String.valueOf(dataTrack.getStartFrame());
-      g2.drawString(s, (int)(videoStartClip), yVideoLine+verticalOffset);
-    	int n = dataTrack.getStartFrame()+dataClip.getAvailableClipLength()-1;
-    	n = Math.min(n, videoClip.getLastFrameNumber());
-      if (dataTrack.getStartFrame()!=n) {
+      g2.setFont(g2.getFont().deriveFont(Font.BOLD));
+      
+      // start step
+      s = String.valueOf(startStep);
+      g2.drawString(s, (int)(videoStartClip), yClipLine+verticalOffset);
+      
+      // end step & frame
+    	int n = startStep+dataClip.getAvailableClipLength()-1;
+    	n = Math.min(n, videoClip.getStepCount()-1);
+      if (startStep!=n) {
+      	// end clip
 	      s = String.valueOf(n);
 	      int space = g2.getFontMetrics().stringWidth(s);
-	      g2.drawString(s, (int)(videoEndClip-space), yVideoLine+verticalOffset);      	
+	      g2.drawString(s, (int)(videoEndClip-space), yClipLine+verticalOffset);
+	      // end frame
+	      s = String.valueOf(videoClip.stepToFrame(n));
+	      g2.setFont(g2.getFont().deriveFont(Font.PLAIN));
+	      space = g2.getFontMetrics().stringWidth(s);
+	      verticalOffset = fontDrop;
+	      g2.drawString(s, (int)(videoEndClip-space), yVideoFrame+verticalOffset);      	
       }
       
       verticalOffset = fontDrop+strokeWidth+3;
+      g2.setFont(g2.getFont().deriveFont(Font.BOLD));
       s = String.valueOf(dataTrack.getDataClip().getStartIndex());
       g2.drawString(s, (int)(dataStartClip), yDataLine+verticalOffset);
     	n = getLastDisplayedClipIndex();
@@ -521,11 +552,6 @@ public class DataTrackClipControl extends JPanel implements PropertyChangeListen
 
 				@Override
 				public void draw(Graphics2D g, boolean highlighted) {
-				}
-
-				@Override
-				public Rectangle getBounds(boolean highlighted) {
-					return null;
 				}
 	  		
 	  	};
@@ -596,11 +622,12 @@ public class DataTrackClipControl extends JPanel implements PropertyChangeListen
   	public MySpinner (SpinnerModel model) {
   		super(model);
   	}
-  	public Dimension getPreferredSize() {
+  	@Override
+	public Dimension getPreferredSize() {
   		Dimension dim = super.getPreferredSize();
   		if (dataTrack instanceof ParticleDataTrack) {
   			ParticleDataTrack pdt = (ParticleDataTrack)dataTrack;
-  			dim.height = pdt.trackerPanel.getModelBuilder().getSpinnerHeight();
+  			dim.height = pdt.tp.getModelBuilder().getSpinnerHeight();
   		}
   		else {
     		dim.height += 6;  			
@@ -620,7 +647,8 @@ public class DataTrackClipControl extends JPanel implements PropertyChangeListen
 		@Override
 		public Dimension getPreferredSize() {
 			Dimension dim = super.getPreferredSize();
-			dim.height = graphicHeight;
+      double mag = FontSizer.getFactor();
+			dim.height = (int)(mag * graphicHeight);
 			return dim;
 		}
 

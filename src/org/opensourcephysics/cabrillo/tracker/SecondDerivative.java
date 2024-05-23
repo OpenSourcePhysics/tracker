@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2019  Douglas Brown
+ * Copyright (c) 2024 Douglas Brown, Wolfgang Christian, Robert M. Hanson
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,7 +35,7 @@ package org.opensourcephysics.cabrillo.tracker;
  * 		5. Use derivative expressions y' = b + 2cx and y'' = 2c, and scale y'' by dt^2. 
  * 		6. Final result is accel[i] = (2*x[i+2] - x[i+1] - 2*x[i] - x[i-1] + 2*x[i-2])/(7*dt^2).
  * 
- * Other possible 5-point expressions (finite difference equations)--not used since more sensitive to noisy data(?):
+ * Other possible 5-point expressions (finite difference equations)--not used since more sensitive to noisy data:
  * 		1. accel[i] = (x[i+2] - 2*x[i] + x[i-2]) / (4*dt^2) 
  * 		2. accel[i] = (-x[i+2] +16*x[i+1] - 30*x[i] +16*x[i-1] - x[i-2]) / (12*dt^2)
  *
@@ -45,7 +45,7 @@ public class SecondDerivative implements Derivative {
 
   // instance fields
   private int spill, start, step, count;
-  private double[] xDeriv, yDeriv = new double[0];
+  private double[] xDeriv = new double[0], yDeriv;
   private Object[] result = new Object[4];
 
   /**
@@ -54,19 +54,20 @@ public class SecondDerivative implements Derivative {
    * Input data:
    *    data[0] = parameters (int[] {spill, start, stepsize, count})
    *    data[1] = xData (double[])
-   *    data[2] = yData (double[])
+   *    data[2] = yData (double[]) (may be null)
    *    data[3] = validData (boolean[])
    *    
    * Returned result:
    *    result[0] = null
    *    result[1] = null
    *    result[2] = xDeriv (double[]) (invalid values are NaN)
-   *    result[3] = yDeriv (double[]) (invalid values are NaN)
+   *    result[3] = yDeriv (double[]) (invalid values are NaN) (null if input data[2] is null)
    *
    * @param data the input data
    * @return Object[] the result
    */
-  public Object[] evaluate(Object[] data) {
+  @Override
+public Object[] evaluate(Object[] data) {
     int[] params = (int[])data[0];
     spill = params[0];
     start = params[1];
@@ -75,7 +76,7 @@ public class SecondDerivative implements Derivative {
     double[] x = (double[])data[1];
     double[] y = (double[])data[2];
     boolean[] valid = (boolean[])data[3];
-    if (yDeriv.length != x.length) {
+    if (xDeriv.length != x.length) {
       result[2] = xDeriv = new double[x.length];
       result[3] = yDeriv = new double[x.length];
     }
@@ -95,7 +96,8 @@ public class SecondDerivative implements Derivative {
         if (j < 0 || j >= valid.length || !valid[j]) {
         	if (i<valid.length) {
         		xDeriv[i] = Double.NaN;
-        		yDeriv[i] = Double.NaN;
+        		if (y != null)
+        			yDeriv[i] = Double.NaN;
         	}
           continue outer;
         }
@@ -106,20 +108,22 @@ public class SecondDerivative implements Derivative {
         xDeriv[i] = (+ x[i - step]
                      - 2 * x[i]
                      + x[i + step]);
-        yDeriv[i] = (+ y[i - step]
-                     - 2 * y[i]
-                     + y[i + step]);
+    		if (y != null)
+	        yDeriv[i] = (+ y[i - step]
+	                     - 2 * y[i]
+	                     + y[i + step]);
       } else {
         xDeriv[i] = (+ 2 * x[i - 2*step]
                      - x[i - step]
                      - 2 * x[i]
                      - x[i + step]
                      + 2 * x[i + 2*step]) / 7;
-        yDeriv[i] = (+ 2 * y[i - 2*step]
-                     - y[i - step]
-                     - 2 * y[i]
-                     - y[i + step]
-                     + 2 * y[i + 2*step]) / 7;
+    		if (y != null)
+	        yDeriv[i] = (+ 2 * y[i - 2*step]
+	                     - y[i - step]
+	                     - 2 * y[i]
+	                     - y[i + step]
+	                     + 2 * y[i + 2*step]) / 7;
       }
 
     }

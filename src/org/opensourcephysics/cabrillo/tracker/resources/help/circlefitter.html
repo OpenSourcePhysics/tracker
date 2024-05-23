@@ -3,7 +3,7 @@
 <html>
 
 	<head>
-		<link rel="icon" type="image/vnd.microsoft.icon" href="http://www.cabrillo.edu/%7edbrown/tracker/tracker_16.ico">
+		<link rel="icon" type="image/vnd.microsoft.icon" href="https://physlets.org/tracker/images/tracker_16.ico">
 		<title>Tracker Help: Circle Fitter</title>
 		<link href="help.css" rel="stylesheet" type="text/css">
 	</head>
@@ -12,8 +12,9 @@
 		<h1><a name="circle0" id="circle0"></a>Circle Fitter</strong></h1>
 		<p align="center"><img src="../help_images/circle_fitter.gif" alt="Circle Fitter"></p>
 
-		<p>A <strong>circle fitter</strong> track is a tool for fitting circles and finding their radii and centers.  It requires at least three data points, but can  fit a circle to any number of points. Points can be marked manually or attached automatically to point masses. Once a circle is fit you can instantly move the coordinate system origin to the circle center(s) with a menu item.</p>
-		<p>To create a circle fitter, click the <strong>Create</strong> button <img src="../help_images/create_button.gif" align="absmiddle"> and choose <strong>Measuring Tools|Circle Fitter</strong> from the popup menu. Multiple circle fitters can be created as needed.</p>
+		<p>A <strong>circle fitter</strong> track is a tool for fitting circles and finding their radii and centers.  It requires at least three data points, but can  fit a circle to any number of points. Points can be marked manually or attached automatically for point masses. Once a circle is fit you can instantly move the coordinate system origin to the circle center(s) with a menu item or calibrate the scale by entering a known radius.</p>
+		<p>To create a circle fitter, click the arrow on the <strong>Measuring Tools</strong> button <img src="../help_images/measure_button.gif" alt="" align="absmiddle" border="0">, then choose <strong>New|Circle Fitter</strong> from the popup menu. Multiple circle fitters can be created as needed.</p>
+	<p align="center"><img src="../help_images/measuring_tools_menu.gif"></p>
         
 		<h3><a name="circle1" id="circle1"></a>1. Fitting a circle</h3>
 		<p>At least three data points are required to fit a circle.  When a circle is fit, its radius and center position are displayed on the toolbar as shown below. When a data point is selected, its position is also displayed.</p>
@@ -55,9 +56,11 @@
 <h3><a name="circle5" id="circle5"></a>5. Viewing and selecting data points</h3>
         <p>The circle fitter toolbar includes a button that displays the number of data points in the current step and enables you to identify and select the points and to copy point positions to the clipboard. To see a popup menu listing all points, click the data points button. Moving the mouse over a menu item temporarily selects the corresponding point on the video so you can easily find it; selecting the menu item leaves the point selected. Choose <strong>Copy to Clipboard</strong> to copy all point positions to the clipboard for pasting into spreadsheets or other documents.</p>
     <p align="center"><img src="../help_images/circle_fitter_select_points.gif" alt="selecting circle fitter points"></p>
-<h3><a name="circle6" id="circle6"></a>6. Moving the coordinate system origin to the circle center</h3>
-<p>To move the origin of the coordinate system to the center of the circle in every frame, choose the <strong>Move Origin to Center </strong> item in the circle fitter's track menu<a href="tracks.html#trackmenu"></a>. This is particularly useful when the center of the circle is outside the video frame (e.g., a video of a pendulum bob that does not include the support).</p>
-<h3><a name="circle7" id="circle7"></a>7. Locking the circle fitter</h3>
+<h3><a name="circle6" id="circle6"></a>6. Moving the coordinate system origin to the center of the circle</h3>
+<p>To move the origin of the coordinate system to the center of the circle, choose the <strong>Move Origin to Center</strong> item in the circle fitter's track menu. This is particularly useful when the center of the circle is outside the video frame (e.g., a video of a pendulum bob that does not include the support). If the coordinate system's origin is not fixed you will be given the choice to move the origin to the center in <strong>This Frame</strong> or in <strong>All Frames</strong>.</p>
+<h3><a name="circle7" id="circle7"></a>7. Calibrating the coordinate system scale by setting the radius of the circle</h3>
+<p>You can calibrate the scale of the coordinate system by setting the radius of the circle to a known value. To do so, choose the <strong>Set Radius...</strong> item in the circle fitter's track menu. If the coordinate system's scale is not fixed you will be given the choice to set the radius in <strong>This Frame</strong> or in <strong>All Frames</strong>.</p>
+<h3><a name="circle8" id="circle8"></a>8. Locking the circle fitter</h3>
 		<p>Locking the circle fitter prevents any changes to the marked data points. Attached points can still affect the circle, however. Lock the circle fitter by turning on the <strong>Locked</strong> property in its <a href="tracks.html#trackmenu">track menu</a>.</p>
 	</body>
 

@@ -1,0 +1,155 @@
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+.content {
+	position: relative;
+	top: 50px;
+	left: 50px;
+	width: 500px;
+	height: 281px;
+}
+
+.cover {
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	width: 500px;
+	height: 281px;
+	z-index: 1000; #
+	margin: 0 auto; #
+	padding: 20px;
+	background: rgba(0, 0, 0, 0);
+}
+
+.content video {
+	width: 100%;
+	z-index: 100;
+	display: block;
+}
+</style>
+<script src="../site/swingjs/swingjs2.js"></script>
+</head>
+<body onload="doAction('stopMarking')">
+Test of reading a page-local MP4 file as a blob - WORKING.
+	<table border=1>
+		<tr>
+			<td width=600 valign="top">
+				<div class="content">
+					<video id="player" autoplay loop></video>
+					<canvas style="height: 281px" id="cover" width="500" height="281"
+						class="cover" onmouseenter="covertest(1)"
+						onclick="test(event)" onmouseleave="covertest(0)">
+					</canvas>
+					<br>
+						Click on the video to add a point.
+					
+				</div>
+			</td>
+			<td valign="top"><textarea id="output"
+					style="width: 650px; height: 200px; overflow: auto"></textarea> <br>
+				<button onclick=doAction("play")>play</button>
+				<button onclick=doAction("pause")>pause</button>
+				<button onclick=doAction("prev")>previous frame</button>
+				<button onclick=doAction("next")>next frame</button>
+				<button onclick=doAction("capture")>capture image</button>
+				<button onclick=doAction("save")>save image</button>	
+				<button onclick=doAction("clear") style="float: right">clear output</button>
+				<br><canvas id="capture" style="width: 500px; height: 281px"></canvas></td>
+		</tr>
+	</table>
+	<script>
+test = function(e) {
+  var canvas = document.getElementById("cover");
+  var video = document.getElementById("player");
+  var ctx = canvas.getContext("2d");
+  var x = e.x - canvas.parentElement.offsetLeft
+  var y = e.y - canvas.parentElement.offsetTop
+  output("x=" + x + " y=" + y + " time=" + video.currentTime);
+  ctx.fillStyle="red" 
+  ctx.fillRect(x,y-5,1,10);
+  ctx.fillRect(x-5,y,10,1);
+  ctx.beginPath();
+  ctx.arc(x, y, 1, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+covertest = function(isenter) {
+  document.body.style.background=(isenter?"#aaa" : null)
+}
+
+var lastTime = 0;
+
+videoListener = function(event) {
+  var video = document.getElementById("player");
+  var t = event.target.currentTime;
+  var dt = t - lastTime;
+  lastTime = t;
+  output((new Date) + "\nt=" + t + " dt=" + dt + " w=" + video.videoWidth + " h=" + video.videoHeight + "\n");
+}
+
+output = function(msg) {
+	document.getElementById("output").value += msg + "\n";
+	document.getElementById("output").scrollTop = 1000000;
+}
+doAction = function(f) {
+  var p = document.getElementById("player")
+  f || (f = 0);
+  switch (f) {
+  case "play":
+	p.play();
+	break;
+  case "pause":
+	p.pause();
+	break;
+  case "clear":
+	document.getElementById("output").value = "";
+	break;
+  case "capture":
+    captureImage();
+    break;
+  case "save":
+	  alert('Please download the JavaScript version of Tracker for this functionality.' + String.fromCodePoint(0x1F609));
+	  break;
+  case "next":
+  	try {
+		p.seekToNextFrame();
+    } catch (e){
+    	p.currentTime += 0.033334;
+    }
+	p.pause(); 
+	break;
+  case "prev":
+    p.currentTime -= 0.033334;
+	p.pause(); 
+	break;
+  }
+}
+
+captureImage = function() {
+    var canvas = document.getElementById("capture");
+    var video = document.getElementById("player")
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+
+    canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+}
+
+loadVideo = function(f) {
+	// load the video element using a byte array
+	// thank you https://stackoverflow.com/questions/44147912/arraybuffer-to-blob-conversion/44148694
+	// thank you https://gist.github.com/edin-m/889fa79a0fa124b1a8c3
+	var video = document.getElementById("player")
+	video.src = URL.createObjectURL(new Blob([J2S.getFileData(f, null, true, true)]));
+	video.load();
+}
+
+document.getElementById("player").addEventListener("timeupdate", videoListener);
+J2S.setGlobal("j2s.lib", {_j2sPath: "../site/swingjs/j2s"});		
+J2S.LoadClazz && J2S.LoadClazz(Clazz);
+loadVideo("file_example_MOV_480_700kB.mov")
+
+
+</script>
+</body>
+</html>
