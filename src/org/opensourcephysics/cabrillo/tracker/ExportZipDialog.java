@@ -2286,11 +2286,11 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 			}
 		}
 
+		setVisible(false);
 		// define the target filename and create empty zip list
 		ArrayList<File> zipList = defineTarget();
 		if (zipList == null)
 			return;
-		setVisible(false);
 
 		// use separate thread to add files to the ziplist and create the TRZ file
 		new Thread(new Runnable() {
