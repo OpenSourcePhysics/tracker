@@ -108,6 +108,7 @@ import org.opensourcephysics.media.core.VideoIO;
 import org.opensourcephysics.media.core.VideoType;
 import org.opensourcephysics.tools.FontSizer;
 import org.opensourcephysics.tools.LibraryBrowser;
+import org.opensourcephysics.tools.LibraryCollection;
 import org.opensourcephysics.tools.LibraryResource;
 import org.opensourcephysics.tools.LibraryTreePanel;
 import org.opensourcephysics.tools.Resource;
@@ -1856,6 +1857,7 @@ public class TrackerIO extends VideoIO {
 		private static final int TYPE_VIDEO = 4;
 		private static final int TYPE_UNSUPPORTED_VIDEO = 5;
 		private static final int TYPE_TEXT = 6;
+		private static final int TYPE_LIBRARY_COLLECTION = 7;
 
 		private boolean panelChanged;
 		private Video video;
@@ -2027,6 +2029,10 @@ public class TrackerIO extends VideoIO {
 				type = TYPE_FRAME;
 				return true;
 			}
+			if (LibraryCollection.class.isAssignableFrom(ctype)) {
+				type = TYPE_LIBRARY_COLLECTION;
+				return true;
+			}
 			// FAILURE
 			if (frame == null)
 				return !control.failedToRead();
@@ -2083,6 +2089,9 @@ public class TrackerIO extends VideoIO {
 				return PROGRESS_COMPLETE;
 			case TYPE_TEXT:
 				progress = loadData(progress);
+				break;
+			case TYPE_LIBRARY_COLLECTION:
+				progress = loadCollection(progress);
 				break;
 			default:
 				return PROGRESS_COMPLETE;
@@ -2437,6 +2446,15 @@ public class TrackerIO extends VideoIO {
 			return PROGRESS_COMPLETE;
 		}
 
+		private int loadCollection(int progress) {
+			if (frame != null) {
+				LibraryBrowser browser = frame.getLibraryBrowser();
+				browser.setVisible(true);
+				browser.open(path);
+			}
+			return PROGRESS_COMPLETE;
+		}
+		
 		void checkDone(boolean b) {
 //			if (b == (panel().getVideo() instanceof AsyncVideoI)) {
 			if (panelList.size() == 0 && paths.size() == 0)
