@@ -1808,6 +1808,8 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 				Dataset nextGuestIn = guestData.getDataset(0);
 				double[] guestTArray = nextGuestIn.getXPointsRaw();
 				for (int t = 0, n = nextOut.getIndex(); t < n; t++) {
+					if (t >= guestTArray.length)
+						break;
 					tSet.add(guestTArray[t]);
 				}
 			}
