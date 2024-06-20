@@ -304,9 +304,8 @@ public class XuggleVideo extends MovieVideo implements SmoothPlayable, Increment
 	}
 
 	private void setForControl() {
+		rawStartTimes = null;
 		// not implemented yet.
-		// TODO Auto-generated method stub
-		
 	}
 
 
