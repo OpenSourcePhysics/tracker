@@ -5,55 +5,52 @@
         <property name="[0]" type="object">
         <object class="org.opensourcephysics.tools.LibraryCollection">
             <property name="name" type="string">Local Links</property>
+            <property name="resources" type="array" class="[Lorg.opensourcephysics.tools.LibraryResource;">
+                <property name="[0]" type="object">
+                <object class="org.opensourcephysics.tools.LibraryResource">
+                    <property name="name" type="string">EJS ZIP</property>
+                    <property name="target" type="string">webejs_model_MultislitDiffraction.zip</property>
+                    <property name="type" type="string">EJS</property>
+                </object>
+                </property>
+                <property name="[1]" type="object">
+                <object class="org.opensourcephysics.tools.LibraryResource">
+                    <property name="name" type="string">Video MP4</property>
+                    <property name="target" type="string">BallOnRamp.mp4</property>
+                    <property name="type" type="string">Video</property>
+                </object>
+                </property>
+                <property name="[2]" type="object">
+                <object class="org.opensourcephysics.tools.LibraryResource">
+                    <property name="name" type="string">Image stack JPG</property>
+                    <property name="target" type="string">image_stack/bouncing_cart000.jpg</property>
+                    <property name="type" type="string">Image</property>
+                </object>
+                </property>
+                <property name="[3]" type="object">
+                <object class="org.opensourcephysics.tools.LibraryResource">
+                    <property name="name" type="string">Image stack ZIP</property>
+                    <property name="target" type="string">image_stack.zip</property>
+                    <property name="type" type="string">Tracker</property>
+                </object>
+                </property>
+                <property name="[4]" type="object">
+                <object class="org.opensourcephysics.tools.LibraryResource">
+                    <property name="name" type="string">Animated GIF</property>
+                    <property name="target" type="string">noise.gif</property>
+                    <property name="type" type="string">Image</property>
+                </object>
+                </property>
+                <property name="[5]" type="object">
+                <object class="org.opensourcephysics.tools.LibraryResource">
+                    <property name="name" type="string">Undefined- Word file</property>
+                    <property name="target" type="string">Take Notes.docx</property>
+                </object>
+                </property>
+            </property>
         </object>
         </property>
         <property name="[1]" type="object">
-        <object class="org.opensourcephysics.tools.LibraryResource">
-            <property name="name" type="string">EJS ZIP</property>
-            <property name="html_path" type="string">Illustration2_1.html</property>
-            <property name="base_path" type="string">https://physlets.org/pp/EJS/Ch02</property>
-            <property name="target" type="string">js_ejs_model_Illustration2_1.zip</property>
-            <property name="type" type="string">EJS</property>
-        </object>
-        </property>
-        <property name="[2]" type="object">
-        <object class="org.opensourcephysics.tools.LibraryResource">
-            <property name="name" type="string">Video MP4</property>
-            <property name="base_path" type="string">https://physlets.org/tracker/CINCY</property>
-            <property name="target" type="string">Lab67/IV_Mass_on_Spring/Video_2_91.5g.mp4</property>
-            <property name="type" type="string">Video</property>
-        </object>
-        </property>
-        <property name="[3]" type="object">
-        <object class="org.opensourcephysics.tools.LibraryResource">
-            <property name="name" type="string">Image stack JPG</property>
-            <property name="base_path" type="string">https://physlets.org/tracker/image_stack</property>
-            <property name="target" type="string">bouncing_cart000.jpg</property>
-            <property name="type" type="string">Image</property>
-        </object>
-        </property>
-        <property name="[4]" type="object">
-        <object class="org.opensourcephysics.tools.LibraryResource">
-            <property name="name" type="string">Image stack ZIP</property>
-            <property name="base_path" type="string">https://physlets.org/tracker/image_stack</property>
-            <property name="target" type="string">image_stack.zip</property>
-            <property name="type" type="string">Image</property>
-        </object>
-        </property>
-        <property name="[5]" type="object">
-        <object class="org.opensourcephysics.tools.LibraryResource">
-            <property name="name" type="string">Animated GIF</property>
-            <property name="target" type="string">noise.gif</property>
-            <property name="type" type="string">Image</property>
-        </object>
-        </property>
-        <property name="[6]" type="object">
-        <object class="org.opensourcephysics.tools.LibraryResource">
-            <property name="name" type="string">Undefined</property>
-            <property name="target" type="string">change_log.html</property>
-        </object>
-        </property>
-        <property name="[7]" type="object">
         <object class="org.opensourcephysics.tools.LibraryCollection">
             <property name="name" type="string">Internet Links</property>
             <property name="resources" type="array" class="[Lorg.opensourcephysics.tools.LibraryResource;">
@@ -246,6 +243,27 @@
                     <property name="name" type="string">EJS ZIP</property>
                     <property name="target" type="string">https://physlets.org/pp/EJS/Ch02/js_ejs_model_Illustration2_1.zip</property>
                     <property name="type" type="string">EJS</property>
+                </object>
+                </property>
+                <property name="[8]" type="object">
+                <object class="org.opensourcephysics.tools.LibraryResource">
+                    <property name="name" type="string">Image stack JPG</property>
+                    <property name="target" type="string">https://physlets.org/tracker/image_stack/bouncing_cart000.jpg</property>
+                    <property name="type" type="string">Image</property>
+                </object>
+                </property>
+                <property name="[9]" type="object">
+                <object class="org.opensourcephysics.tools.LibraryResource">
+                    <property name="name" type="string">Image stack ZIP</property>
+                    <property name="target" type="string">https://physlets.org/tracker/image_stack/image_stack.zip</property>
+                    <property name="type" type="string">Tracker</property>
+                </object>
+                </property>
+                <property name="[10]" type="object">
+                <object class="org.opensourcephysics.tools.LibraryResource">
+                    <property name="name" type="string">Video MP4</property>
+                    <property name="target" type="string">https://physlets.org/tracker/CINCY/Lab67/IV_Mass_on_Spring/Video_2_91.5g.mp4</property>
+                    <property name="type" type="string">Video</property>
                 </object>
                 </property>
             </property>
