@@ -118,6 +118,7 @@ import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.display.OSPRuntime.Disposable;
 import org.opensourcephysics.media.core.ClipInspector;
 import org.opensourcephysics.media.core.DataTrack;
+import org.opensourcephysics.media.core.ImageVideo;
 import org.opensourcephysics.media.core.MediaRes;
 import org.opensourcephysics.media.core.Video;
 import org.opensourcephysics.media.core.VideoClip;
@@ -3072,6 +3073,12 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 		if (!VideoIO.checkMP4(path, libraryBrowser, getSelectedPanel()))
 			return;
 		// load a video file or a directory containing images
+		ArrayList<String> stackPaths = ImageVideo.getStackPaths(path);
+		for (int i = 0; i < stackPaths.size(); i++) {
+			if (ResourceLoader.download(stackPaths.get(i), null, false) == null) {
+				break;
+			}
+		}
 		File localFile = ResourceLoader.download(path, null, false);
 		Runnable importer = new Runnable() {
 			@Override

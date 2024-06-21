@@ -1959,10 +1959,12 @@ public class TrackerIO extends VideoIO {
 
 			setCanceled(false);
 
-			if (zipFileFilter.accept(new File(path)) && getZippedImagePaths(path) != null) {
+			String[] paths = getZippedImagePaths(path);
+
+			if (zipFileFilter.accept(new File(path)) && paths != null) {
 				type = TYPE_VIDEO;
 				if (!ResourceLoader.isHTTP(path))
-					path = getZippedImagePaths(path)[0];
+					path = paths[0];
 				newPanel();
 				return true;
 			}
@@ -1977,7 +1979,7 @@ public class TrackerIO extends VideoIO {
 				return true;
 			}
 			
-			// load data from zip or trz file
+			// load data from Tracker zip or trz file
 			// note that when the ZIP/TRZ file is saved locally, 
 			// it reads _TrackerSet_ not &TrackerSet= 
 			boolean isTRZ = ResourceLoader.isJarZipTrz(path, false);
@@ -1988,8 +1990,6 @@ public class TrackerIO extends VideoIO {
 					frame.holdPainting(true);
 				return true;
 			}
-
-
 
 			// check for unsupported video type
 			for (String ext : KNOWN_VIDEO_EXTENSIONS) {
