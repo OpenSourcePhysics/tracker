@@ -2,7 +2,7 @@ Steps in deploying a Tracker 6 release version with upgrade
 
 workspace_trackerJS: 
 -- update version number in OSPRuntime
--- check out master and merge SwingJS?
+-- check out master and merge SwingJS
 -- add version tag to master and push all code to GitHub
 -- build tracker.jar, tracker_starter.jar using build-tracker-jar.xml file in tracker/jarscripts
 -- temporarily change version to 5.3.x from 6.1.x. 
