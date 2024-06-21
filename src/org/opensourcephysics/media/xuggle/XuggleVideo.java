@@ -276,7 +276,7 @@ public class XuggleVideo extends MovieVideo implements SmoothPlayable, Increment
 		// create startTimes array
 		rawDuration = container.getDuration()/1e6;
 		setStartTimes();
-		rawStartTimes = startTimes;
+		rawStartTimes = startTimesMS;
 		rawFrameCount = frameCount;
 		if (control != null) {
 			// overwrite startTimes, rawDuration, and frameCount with control's 
@@ -304,8 +304,8 @@ public class XuggleVideo extends MovieVideo implements SmoothPlayable, Increment
 	}
 
 	private void setForControl() {
-		// TODO Auto-generated method stub
-		
+		rawStartTimes = null;
+		// not implemented yet.
 	}
 
 
@@ -313,7 +313,7 @@ public class XuggleVideo extends MovieVideo implements SmoothPlayable, Increment
 	public boolean loadMoreFrames(int n) throws IOException {
 		if (isFullyLoaded())
 			return false;
-		System.out.println("Xuggle.loadMoreFrames");
+		//System.out.println("Xuggle.loadMoreFrames");
 		int finalIndex = index + n;
 		long lastDTS = Long.MIN_VALUE;
 		boolean haveImages = false;
@@ -582,12 +582,12 @@ public class XuggleVideo extends MovieVideo implements SmoothPlayable, Increment
 			long elapsedTime = System.currentTimeMillis() - systemStartPlayTime;
 			double frameTime = frameStartPlayTime + getRate() * elapsedTime;
 			int frameToPlay = getFrameNumberBefore(frameTime);
-			System.out.println("xug.contin. "+ n + "/ " + frameToPlay + " /" + endNo);
+			//System.out.println("xug.contin. "+ n + "/ " + frameToPlay + " /" + endNo);
 			while (frameToPlay > -1 && frameToPlay <= n) {
 				elapsedTime = System.currentTimeMillis() - systemStartPlayTime;
 				frameTime = frameStartPlayTime + getRate() * elapsedTime;
 				frameToPlay = getFrameNumberBefore(frameTime);
-				System.out.println("xug.contin. "+ n + "/ " + frameToPlay + " /" + endNo);
+				//System.out.println("xug.contin. "+ n + "/ " + frameToPlay + " /" + endNo);
 			}
 			if (frameToPlay == -1) {
 				frameToPlay = endNo;
@@ -893,8 +893,8 @@ public class XuggleVideo extends MovieVideo implements SmoothPlayable, Increment
 				}
 			}
 		}
-		System.out.println("XuggleVideo.loadPicture " + picture.isComplete() + " index=" + index + " cts=" + currentTS
-				+ " firstDisplay=" + firstDisplayPacket + " codec=" + videoDecoder.getCodecID());
+//		System.out.println("XuggleVideo.loadPicture " + picture.isComplete() + " index=" + index + " cts=" + currentTS
+//				+ " firstDisplay=" + firstDisplayPacket + " codec=" + videoDecoder.getCodecID());
 		return (picture.isComplete() ? getBufferedImage() : null);
 	}
 
