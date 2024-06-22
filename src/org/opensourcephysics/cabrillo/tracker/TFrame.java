@@ -111,6 +111,7 @@ import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.controls.XMLProperty;
+import org.opensourcephysics.display.Data;
 import org.opensourcephysics.display.DataTable;
 import org.opensourcephysics.display.GUIUtils;
 import org.opensourcephysics.display.OSPFrame;
@@ -127,6 +128,8 @@ import org.opensourcephysics.media.core.VideoIO;
 import org.opensourcephysics.media.core.VideoPanel;
 import org.opensourcephysics.media.core.VideoPlayer;
 import org.opensourcephysics.media.mov.MovieVideo;
+import org.opensourcephysics.tools.DataTool;
+import org.opensourcephysics.tools.DataToolTab;
 import org.opensourcephysics.tools.FileDropHandler;
 import org.opensourcephysics.tools.FileDropHandler.FileImporter;
 import org.opensourcephysics.tools.FontSizer;
@@ -2945,6 +2948,29 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 				return;
 			}
 			String lcTarget = target.toLowerCase();
+			// check for data resources
+			if (LibraryResource.DATA_TYPE.equals(record.getType())) {
+				Resource res = ResourceLoader.getResource(target);
+				if (res != null) {
+					String s = res.getString();
+					if (s != null) {
+						// attempt to import data and add tab
+						Data[] data = DataTool.parseData(s, target);
+						if (data != null && data.length > 0) {
+							DataTool tool = DataTool.getTool(true);
+							for (int i = 0; i < data.length; i++) {
+								ArrayList<DataToolTab> tabs = tool.createTabs(data[i]);
+								for (int j = 0; j < tabs.size(); j++) {
+									tool.addTab(tabs.get(j));
+									tool.setVisible(true);
+									loadFailed = true; // so Tracker will not take focus, datatool stays on top
+								}
+							}	
+						}
+					}
+				}
+			}
+
 			if (lcTarget.endsWith(".trk") || ResourceLoader.isJarZipTrz(lcTarget, false)) {
 				if (ResourceLoader.getResourceZipURLsOK(target) == null) {
 					boolean notfound = true;
