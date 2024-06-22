@@ -1,2 +1,272 @@
+<!DOCTYPE html>
+
 <html>
+	<head>
+		<script>
+          (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+          (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+          })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+        
+          ga('create', 'UA-177639816-1', 'auto');
+          ga('send', 'pageview');       
+        </script>	
+        
+		<link rel="icon" type="image/vnd.microsoft.icon" href="http://physlets.org/tracker/images/tracker_16.ico">
+    	<link href="./css/tracker_home.css" rel="stylesheet" type="text/css">
+		<meta name="description" content="A free video analysis and modeling tool from Open Source Physics">
+		<meta name="keywords" content="free video analysis modeling spectrum profile tracking physics java open source education">
+		<meta name="google-site-verification" content="LocoGuWZiNpLyaZjybgkSiGNEWXFwX3gVtpuhWIvy1s" />
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Tracker Video Analysis and Modeling Tool for Physics Education</title>
+        
+		<SCRIPT LANGUAGE="JavaScript">
+			<!--
+			function print_mailto_link() {
+				emailE='cabrillo.edu'
+				emailE=('dobrown' + '@' + emailE)
+				document.write('<a href="mailto:' + emailE + '">' + 'Email Doug' + '</a>')
+			}
+			// -->
+		</SCRIPT>
+		<SCRIPT LANGUAGE="JavaScript">
+			<!--
+			function print_mailto_link2() {
+				emailE='cabrillo.edu'
+				emailE=('dobrown' + '@' + emailE)
+				document.write('<a href="mailto:' + emailE + '">' + 'Doug Brown' + '</a>')
+			}
+			// -->
+		</SCRIPT>
+		<SCRIPT language="JavaScript">
+			<!--
+			function select(dropdown) {
+				with(dropdown) {
+					top.window.location=options[selectedIndex].value;
+					options[0].selected = 1;
+				}
+			}
+			//-->
+		</SCRIPT>		
+	</head>
+    
+    <body>
+		<div id="header" align="center">
+			<table>
+				<tr>
+					<td valign="top"><a href="./" target="_top">Tracker Home</a> | <a href="help/frameset.html" target="_blank">Help</a> | <a href="library/_share/sharing.html"  target="_blank">Share</a> | <a href="http://www.opensourcephysics.org/" target="_blank">OSP Home</a> | <a href="https://www.compadre.org/osp/bulletinboard/ForumDetails.cfm?FID=57" target="_blank">Discussion Group</a> | <SCRIPT language="JavaScript">print_mailto_link();</SCRIPT> 
+					</td>
+<!--					<td>
+						<form>
+							<select onChange="select(this)" size="1">
+								<option value="http://physlets.org/tracker/">english											
+								<option value="http://old.dgeo.udec.cl/~andres/Tracker/">espa&ntilde;ol					
+							</select>
+						</form>
+					</td> -->
+				</tr>
+			</table>
+
+		<img src="images/tracker_logo.png" alt="Tracker logo">
+		<h1><font color="#425368"><a href="https://physlets.org/tracker/trackerJS/" target="_blank">Try Tracker Online</a></font></h1>
+		<h3><font color="#992222">Over 2 million users in 31 languages. Completely free and open source.</font></h3>
+
+		<h3><font color="#425368">Latest Tracker 6 installers:</font> 
+       	  <a href="installers/download.php?file=Tracker-6.1.7-windows-x64-installer.exe">Windows</a> | 
+          <a href="installers/download.php?file=Tracker-6.1.7-osx-installer.dmg">Recent MacOS</a> | 
+          <a href="installers/download.php?file=Tracker-5.3.7-osx-installer.dmg">Older MacOS</a> | 
+          <a href="installers/download.php?file=Tracker-6.1.7-linux-64bit-installer.run">Linux</a></h3>
+
+		<h4><font color="#425368">Upgrade installers (requires earlier Tracker 6):</font> 
+       	  <a href="upgrade/ver6/TrackerUpgrade-6.1.7-windows-x64-installer.exe">Windows</a> | 
+          <a href="upgrade/ver6/TrackerUpgrade-6.1.7-osx-installer.dmg">Recent MacOS</a> | 
+          <a href="upgrade/ver6/TrackerUpgrade-6.1.7-linux-64bit-installer.run">Linux</a></h4>
+
+		<p><font size="2" color="#992222">Windows 11 users, having Microsoft Defender issues? See </font><font size="2"><a href="installers/installer_help.html" target="_blank">Installer Help</a><img src="images/spacer_14.gif"><a href="change_log.html" target="_blank">Change Log</a><img src="images/spacer_14.gif"><a href="https://www.compadre.org/osp/bulletinboard/ForumDetails.cfm?FID=57" target="_blank">Discussion Forum</a>
+</font></p>          
+<p><font color="#007c00">Tip: save your work as a <a href="help/zip_resource.html" target="_blank">Tracker Project</a>. Easy to build and share. Easy to browse in the <a href="help/library_browser.html" target="_blank">Library Browser</a>.</font></p>
+</div>
+
+<div class="colmask doublepage">
+	<div class="colleft">
+		<div class="col1">
+			<!-- Column 1 start -->
+			<h3>What is Tracker?</h3>
+			<p>Tracker is a free video analysis and modeling tool built on the <a href="http://www.opensourcephysics.org/" target="_blank">Open Source Physics</a> (OSP) Java framework. It is designed to be used in physics education.</p>
+			<p>Tracker <font color="#007c00"><strong>video modeling</strong></font> is a powerful way to combine videos with computer modeling. For more information see <a href="help/particles.html" target="_blank">Particle Model Help</a> or  AAPT Summer Meeting posters <a href="download/video_modeling.pdf" target="_blank">Video Modeling</a> (2008) and <a href="download/AAPT_video_modeling_2009.pdf" target="_blank">Video Modeling with Tracker</a> (2009).</p>
+			<p align="center"><img src="images/bouncing_cart.png"></p>
+			<h3>Installing and using Tracker</h3>
+		  	<p>To install Tracker, download and run the appropriate installer using the links at the top of the page. Tracker comes with its own Java VM and Xuggle video engine. For help see <a href="installers/installer_help.html" target="_blank">Installer Help</a>.</p>
+			<p><font size="2"><strong>Supported languages</strong>: english, arabic, catalan, czech, danish, german, greek, spanish, finnish, french, hungarian, indonesian, italian, hebrew, korean, latvian, malaysian, dutch, polish, portuguese, russian, slovak, slovenian, swedish, thai, turkish, ukrainian, vietnamese, simplified chinese, traditional chinese. Interested in translating to another language? Please contact <SCRIPT language="JavaScript">print_mailto_link2();</SCRIPT>.</font></p>
+      <p>If you're new to Tracker, see <a href="help/frameset.html" target="_blank">Help Getting Started</a> for a step-by step beginner's guide or <a href="https://www.youtube.com/watch?v=La3H7JywgX0" target="_blank">Getting Started with Tracker</a> for a video tutorial. For general help, use and search the built-in help files in Tracker, the online help in <a href="help/frameset.html" target="_blank">English</a> or <a href="help_sl/frameset.html" target="_blank">Sloven&scaron;&#269;ina</a>, or the downloadable pdf help files in <a href="tracker_help.pdf" target="_blank">English</a>, <a href="tracker_help_es.pdf" target="_blank">Espa&ntilde;ol</a>, <a href="tracker_help_el_GR.pdf" target="_blank">&Epsilon;&lambda;&lambda;&eta;&nu;&iota;&kappa;&#940;</a>, <a href="tracker_help_it.pdf" target="_blank">Italiano</a> or <a href="tracker_help_pt_BR.pdf" target="_blank">Portuguese</a>.</p>
+			<p>You can run Tracker from a USB drive without installing it on the host computer. See <a href="portable_tracker.html" target="_blank">Installing Tracker on a USB or other portable drive</a> for more information.</p>
+		    <p> Tracker has been independently tested by <a href="http://www.softpedia.com/get/Science-CAD/Douglas-Tracker.shtml" target="_blank">Softpedia</a> and found to be 100% clean. </p>
+			<p align="center"><a href="http://www.softpedia.com/get/Science-CAD/Douglas-Tracker.shtml#status" target="_blank"><img src="sp100free.png" align="middle"></a><br></p>
+            
+	    <h3>Supported Video Formats</h3>
+			<p>Tracker can open the following types of videos:</p>
+            <ul>
+              <li>Videos with extension mp4, avi, wmv, flv, or mov</li>
+              <li>Animated gif images</li>
+              <li>Numbered sequences of jpg, png or gif images (e.g., ball00.jpg, ball01.jpg, ball02.jpg, ...). An image sequence may be packaged in a zip file.</li>
+              <li>iPhone users should choose "Most Compatible" in Settings -> Camera -> Formats. </li>
+              <li>Android users should turn off "High efficiency video" in Camera settings -> Advanced recording options. </li>
+            </ul>
+            <p>For unsupported videos we recommend converting them to mp4 using the open source application HandBrake, available for Windows, Linux and MacOS platforms at <a href="https://handbrake.fr/" target="_blank">https://handbrake.fr/</a>. Choose the default "Fast 1080p30" preset, then in the Video tab choose "Constant Framerate". If you cannot or do not want to install software on your computer, you can use a web-based converter such as <a href="https://cloudconvert.com/mp4-converter" target="_blank">Cloud Convert.</a> To create image stacks we recommend the <a href="https://www.onlineconverter.com/" target="_blank">Online Converter</a> website. </p>
+<h3>Recent Tracker Installers and Jars</h3>
+			<ol>
+				<li>6.1.7 (Jun 2024): <a href="installers/download.php?file=Tracker-6.1.7-windows-x64-installer.exe">Win64</a> | 
+                <a href="installers/download.php?file=Tracker-6.1.7-osx-installer.dmg">Recent MacOS</a> | 
+                <a href="installers/download.php?file=Tracker-5.3.7-osx-installer.dmg">Older MacOS</a> | 
+                <a href="installers/download.php?file=Tracker-6.1.7-linux-64bit-installer.run">Linux</a></li>
+				<li>6.1.6 (Jan 2024): <a href="installers/download.php?file=Tracker-6.1.6-windows-x64-installer.exe">Win64</a> | 
+                <a href="installers/download.php?file=Tracker-6.1.6-osx-installer.dmg">Recent MacOS</a> | 
+                <a href="installers/download.php?file=Tracker-5.3.6-osx-installer.dmg">Older MacOS</a> | 
+                <a href="installers/download.php?file=Tracker-6.1.6-linux-64bit-installer.run">Linux</a></li>
+			  	<li>5.1.5 (May 2020): <a href="installers/download.php?file=Tracker-5.1.5-windows-installer.exe">Win32</a> | 
+                <a href="installers/download.php?file=Tracker-5.1.5-osx-installer.dmg">MacOS</a> | 
+                <a href="installers/download.php?file=Tracker-5.1.5-linux-32bit-installer.run">Linux32</a> | 
+                <a href="installers/download.php?file=Tracker-5.1.5-linux-64bit-installer.run">Linux64</a></li>
+				<li>jars: <a href="archives/tracker-5.1.5.jar">5.1.5</a> | 
+                <a href="archives/tracker-6.0.0.jar">6.0.0</a> |
+                <a href="archives/tracker-6.0.1.jar">6.0.1</a> | 
+                <a href="archives/tracker-6.0.2.jar">6.0.2</a> | 
+                <a href="archives/tracker-6.0.3.jar">6.0.3</a> | 
+                <a href="archives/tracker-6.0.4.jar">6.0.4</a> | 
+                <a href="archives/tracker-6.0.5.jar">6.0.5</a> | 
+                <a href="archives/tracker-6.0.6.jar">6.0.6</a> | 
+                <a href="archives/tracker-6.0.7.jar">6.0.7</a> | 
+                <a href="archives/tracker-6.0.8.jar">6.0.8</a> | 
+                <a href="archives/tracker-6.0.9.jar">6.0.9</a> | 
+                <a href="archives/tracker-6.0.10.jar">6.0.10</a> | 
+                <a href="archives/tracker-6.1.0.jar">6.1.0</a> | 
+                <a href="archives/tracker-6.1.1.jar">6.1.1</a> | 
+                <a href="archives/tracker-6.1.2.jar">6.1.2</a> | 
+                <a href="archives/tracker-6.1.3.jar">6.1.3</a> | 
+                <a href="archives/tracker-6.1.4.jar">6.1.4</a> | 
+                <a href="archives/tracker-6.1.5.jar">6.1.5</a> | 
+                <a href="archives/tracker-6.1.6.jar">6.1.6</a> |
+                <a href="archives/tracker-6.1.7.jar">6.1.7</a></li>
+	    	</ol>
+	  <h3>For Developers and Testers</h3>
+			<ol>
+			  <li><a href="https://github.com/OpenSourcePhysics" target="_blank">Tracker Source Code on GitHub</a></li>
+			  <li><a href="javadoc/index.html" target="_blank">Tracker 6 Javadocs online</a> or <a href="tracker-javadoc.zip">download</a></li>
+        	  <li><a href="https://www.compadre.org/osp/pwa/datatool/?F=1" target="_blank">JavaScript DataTool</a></li>
+		  </ol>
+          
+            <div align="center">
+			<i><strong><p>Tracker is a project of<br>
+			<a href="http://www.compadre.org/OSP/" target="_blank"><img src="images/header_osp.gif" align="middle"></a></p></strong></i>
+			<i><strong><p>and proud to be hosted by<br>
+			  </br>
+			  <a href="http://www.compadre.org/" target="_blank"><img src="images/header_compadre.gif" align="middle"></a></p>
+			</strong></i>
+            <p><a href="http://www.compadre.org/osp/user/Community.cfm" target="_blank">Learn more about the Tracker Discussion Group on comPADRE</a></p>
+            </div>
+			<p><br></p>
+          	<div align="center">
+			<i><strong><p>Tracker is supported by<br>
+				<p><a href="https://www.davidson.edu/" target="_blank"><img src="images/davidson.gif" align="middle" border="0"></a>				
+                <a href="https://www.cabrillo.edu/" target="_blank"><img src="images/cabrillo.gif" align="middle" border="0"></a>         
+				<a href="https://wp.stolaf.edu/" target="_blank"><img src="images/st_olaf.gif" align="middle"></a></p> </strong></i>           
+			</div>
+			<!-- Column 1 end -->
+		</div>
+		<div class="col2">
+			<!-- Column 2 start -->
+		<h3>Tracker Features</h3>
+        	<p><font color="#007c00"><strong>Tracking:</strong></font></p>
+            <ul>
+				<li>Manual and automated object tracking with position, velocity and acceleration overlays and data.
+				<li>Center of mass tracks.
+				<li>Interactive graphical vectors and vector sums.
+				<li>RGB line profiles at any angle, time-dependent RGB regions.
+			</ul>
+        	<p><font color="#007c00"><strong>Modeling:</strong></font></p>
+            <ul>
+				<li>Model Builder creates kinematic and dynamic models of point mass particles and two-body systems.
+				<li>External models animate and overlay multi-point data from separate modeling programs such as spreadsheets and <a href="http://fem.um.es/Ejs/" target="_blank">Easy Java Simulations</a>.                 
+				<li>Model overlays are automatically synchronized and scaled to the video for direct visual comparison with the real world.
+		    </ul>
+    <p><font color="#007c00"><strong>Video:</strong></font></p>
+            <ul>
+				<li>Free Xuggle video engine plays and records most formats (mov/avi/flv/mp4/wmv etc) on Windows/MacOS/Linux.
+				<li>Video filters, including brightness/contrast, strobe, ghost trails, and deinterlace filters.
+				<li>Perspective filter corrects distortion when objects are photographed at an angle rather than straight-on.
+				<li>Radial distortion filter corrects distortion associated with fisheye lenses.
+				<li>Export Video wizard enables editing and transcoding videos, with or without overlay graphics, using Tracker itself.
+				<li>Video Properties dialog shows video dimensions, path, frame rate, frame count, more.
+			</ul>
+        	<p><font color="#007c00"><strong>Data generation and analysis:</strong></font></p>
+            <ul>
+				<li>Fixed or time-varying coordinate system scale, origin and tilt.
+				<li>Multiple calibration options: calibration stick, calibration points and/or offset origin.
+				<li>Switch easily to center of mass and other reference frames.
+				<li>Data include units (SI metric units by default, settable length and mass units).
+			  <li>Protractors and tape measures provide easy distance and angle measurements.
+				<li>Circle fitter tool fits circles to 3 or more points, steps or tracks.
+				<li>Define custom variables for plotting and analysis.
+				<li>Add editable text columns for comments or manually entered data.
+				<li>Data analysis tool includes powerful automatic and manual curve fitting.
+				<li>Export formatted or raw data to a delimited text file or the clipboard.
+				<li>Display measured values using custom number formats if desired.
+			</ul>
+       	  <p><font color="#007c00"><strong>Library Browser:</strong></font></p>
+            <ul>
+				<li>Tracker saves Tracker projects as TRZ files ideal for the Library Browser.
+				<li>Browser shows recently opened Tracker projects in a "recent local file" collection.
+				<li>Browser opens both local and online collections of videos and Tracker projects.
+				<li>Browser opens any Tracker file path entered directly into the URL field.
+				<li>Search for projects and other resources by name, author, keywords or other metadata.
+				<li>Build and share your own collection of Tracker projects and support docs.
+      </ul>
+        	<p><font color="#007c00"><strong>Other:</strong></font></p>
+            <ul>
+				<li>Integrated searchable help and diagnostics.
+			  <li>Full undo/redo with multiple steps.
+				<li>Page view displays html instructions or student notes.
+				<li>Annotate videos with colored line drawings and labels.
+              <li>User preferences: GUI configuration, video engine, default language, font size, more.
+            </ul>
+            <h3>Tracker Video Tutorials</h3>
+		<p>These video tutorials can help extend your knowledge of Tracker. There are many more Tracker tutorials on YouTube--some are quite good.</p>
+			<ol>
+				<li><a href="https://www.youtube.com/watch?v=n4Eqy60yYUY" target="_blank">Tracker Quick Start</a> A quick demonstration of how to use Tracker to measure the acceleration of a falling ball. If using Tracker for the first time, watch both this and <a href="https://www.youtube.com/watch?v=La3H7JywgX0" target="_blank">Getting Started with Tracker</a>.</li>
+				<li><a href="https://www.youtube.com/watch?v=La3H7JywgX0" target="_blank">Getting Started with Tracker</a> A more extended explanation of how to use Tracker to track and analyze a moving object in a video.</li>
+			  <li><a href="https://www.youtube.com/watch?v=Dn0Zz7rtkZw" target="_blank">Tracker Autotracker Tutorial</a> How to use the autotracker. This starts out with the basics but also explains in detail how the autotracker works and how to control it for best results.</li>
+		  </ol>
+          <h3>Sample videos</h3>
+		<p>The Tracker installer includes some videos. Use the following links to download these additional collections:</p>
+			<ol>
+				<li><a href="download/mechanics_videos.zip">mechanics_videos.zip</a> (7.3 MB) A collection of mechanics videos suitable for analysis and modeling.
+				<li><a href="download/spectroscopy_videos.zip">spectroscopy_videos.zip</a> (0.6 MB) A collection of spectroscopy videos suitable for line profile analysis.
+			</ol>
+		  <h3>Conference Presentations</h3>
+			<ol>
+				<li><a href="download/AAPT_share_tracker_zip.pdf" target="_blank">Sharing Video Experiments with Tracker Digital Libraries</a>  (AAPT, Winter 2013 at New Orleans)</li>
+				<li><a href="http://www.opensourcephysics.org/items/detail.cfm?ID=11475" target="_blank">Simulating What You See: Combining computer modeling with video analysis</a> (MPTL16 - HSCI 2011, Fall 2011 at Ljubljana)</li>
+			  	<li><a href="download/AAPT_video_modeling_2009.pdf" target="_blank">Video Modeling with Tracker (pdf)</a> (AAPT, Summer 2009 at Ann Arbor) Note: the examples discussed are available in the Tracker Sampler collection in Tracker's Digital Library Browser.</li>
+			  	<li><a href="download/video_modeling.pdf" target="_blank">Video Modeling: Combining Dynamic Model Simulations with Traditional Video Analysis</a> (or original <a href="download/video_modeling_poster.pdf" target="_blank">poster version</a>) (AAPT, Summer 2008 at Edmonton)</li>
+			  	<li><a href="download/air_resistance.pdf" target="_blank">Modeling Air Resistance</a> (AAPT, Summer 2007 at Greensboro)</li>
+			  	<li><a href="download/AAPT_spectroscopy_poster.pdf" target="_blank">Video Spectroscopy Experiments</a> (AAPT, Summer 2005 at Salt Lake)</li>
+		  	</ol>
+		  <!-- Column 2 end -->
+		</div>
+	</div>
+</div>
+<div id="footer">
+		<p>Copyright (c) 2024 Douglas Brown, Wolfgang Christian, Robert M Hanson
+        <br>Tracker is free software; you can redistribute it and/or modify it under the terms of the <a href="http://opensource.org/licenses/GPL-3.0" target="_blank">GNU General Public License, Version 3</a>.
+		<br>
+		Tracker is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the <a href="http://opensource.org/licenses/GPL-3.0" target="_blank">GNU General Public License</a> for more details.</p>
+
+</div>
+	</body>
+
 </html>
+
+
+
+
+
