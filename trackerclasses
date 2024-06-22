@@ -1341,3 +1341,11 @@ swingjs/xml/JSXMLElement.js
 swingjs/xml/JSXMLNode.js
 swingjs/xml/JSXMLNodeList.js
 swingjs/xml/JSXMLText.js
+java/net/URLEncoder.js
+java/nio/charset/StandardCharsets.js
+sun/nio/cs/ISO_8859_1.js
+sun/nio/cs/US_ASCII.js
+sun/nio/cs/UTF_16.js
+sun/nio/cs/UTF_16BE.js
+sun/nio/cs/UTF_16LE.js
+swingjs/json/JSON.js
