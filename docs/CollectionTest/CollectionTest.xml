@@ -36,15 +36,22 @@
                 </property>
                 <property name="[4]" type="object">
                 <object class="org.opensourcephysics.tools.LibraryResource">
+                    <property name="name" type="string">Tracker TRZ</property>
+                    <property name="target" type="string">bouncing_cart.trz</property>
+                    <property name="type" type="string">Tracker</property>
+                </object>
+                </property>
+                <property name="[5]" type="object">
+                <object class="org.opensourcephysics.tools.LibraryResource">
                     <property name="name" type="string">Animated GIF</property>
                     <property name="target" type="string">noise.gif</property>
                     <property name="type" type="string">Image</property>
                 </object>
                 </property>
-                <property name="[5]" type="object">
+                <property name="[6]" type="object">
                 <object class="org.opensourcephysics.tools.LibraryResource">
-                    <property name="name" type="string">Undefined- Word file</property>
-                    <property name="target" type="string">Take Notes.docx</property>
+                    <property name="name" type="string">Other- txt file</property>
+                    <property name="target" type="string">VideoTypesInTracker.txt</property>
                 </object>
                 </property>
             </property>
