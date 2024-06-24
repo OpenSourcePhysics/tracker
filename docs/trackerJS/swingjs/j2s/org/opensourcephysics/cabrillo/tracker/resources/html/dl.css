@@ -1,0 +1,45 @@
+body {
+  font-family: Verdana, Arial, Helvetica, sans-serif;
+  color: black;
+  background-color: #FFFFFF;
+}
+
+
+h1 {
+  font-size: 22pt;
+  margin-top: 12;
+  margin-bottom: 4pt;
+  padding-left: 0px;
+  line-height: 22px;
+  color: #777;
+  text-align: center
+}
+
+h2 {
+  margin-top: 16pt;
+  margin-bottom: 2pt;
+  padding-left: 0px;
+  font-size: 16pt;
+  color: #777;
+}
+
+h3, h4, p, ul, ol, blockquote {
+	margin-top: 12pt;
+	margin-bottom: 0pt;
+	padding-left: 10px;
+}
+
+p, #content li, td, li, blockquote, h4, h5, th, #subnav {
+	font-size: 12pt;
+	line-height: 16pt;
+	padding-left: 10px;
+	margin-right: 20px;
+}
+
+a:link { color: blue }
+a:visited { color: purple }
+address {
+  margin-top: 1em;
+  padding-top: 1em;
+  border-top: thin dotted 
+}

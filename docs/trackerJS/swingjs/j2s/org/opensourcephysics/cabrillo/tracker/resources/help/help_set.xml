@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<object class="org.opensourcephysics.tools.Launcher$LaunchSet">
+    <property name="width" type="int">960</property>
+    <property name="height" type="int">600</property>
+    <property name="launch_nodes" type="collection" class="java.util.ArrayList">
+        <property name="item0" type="string">tracker_topics.xml</property>
+    </property>
+</object>
