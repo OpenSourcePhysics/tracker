@@ -1,0 +1,309 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <meta http-equiv="content-type" content="text/html;charset=iso-8859-1">
+  <meta name="generator" content="Adobe GoLive 6">
+  <title>Tracker Help: Autotracker</title>
+</head>
+<body bgcolor="#ffffff">
+<div align="center">
+<p><font color="#990000"
+ face="Arial,Helvetica,Geneva,Swiss,SunSans-Regular" size="6"><b>Avtomatsko
+sledenje</b></font></p>
+<p><img src="../help_images/autotracked.gif" alt="Point mass track"></p>
+</div>
+<div align="left">
+<p><font face="Arial,Helvetica,Geneva,Swiss,SunSans-Regular">&#268;e ima
+opazovani predmet v vseh video sli&#269;icah dovolj konsistentno obliko,
+velikost, barvo in usmeritev, ji lahko avtomatsko sledimo s pomo&#269;jo
+avtomatskega sledilca<strong></strong>. Tako ni potrebno ro&#269;no
+ozna&#269;evanje z mi&#353;ko&nbsp; v vseh sli&#269;icah. Proces sledenja je zato
+hitrej&#353;i in tvori bolj konsistentne podatke. Opomba: avtomatski
+sledilec je na voljo le za sledi <a href="pointmass.html">to&#269;kovnih mas</a>.</font></p>
+<p><font face="Arial,Helvetica,Geneva,Swiss,SunSans-Regular"><strong>Namig:</strong>
+Odli&#269;en na&#269;in zato, da dobimo video posnetke, primerne za avtomatsko
+sledenje, je, da opazovane predmete ozna&#269;imo z barvnimi okroglimi
+etiketami (bel obro&#269; zs pobarvano sredino je &#353;e bolj&#353;i). &#268;e uporabimo
+razli&#269;ne barve, lahko avtomatsko sledimo ve&#269; predmetom.</font></p>
+<p><b><font color="#333366"
+ face="Arial,Helvetica,Geneva,Swiss,SunSans-Regular">1. Kako deluje
+avtomatski sledilec</font></b></p>
+<p><font face="Arial,Helvetica,Geneva,Swiss,SunSans-Regular">Avtomatski
+sledilec deluje tako, da zajamemo <strong>vzor&#269;no</strong> sliko
+opazovanega predmeta in v vseh sli&#269;icah i&#353;&#269;emo&nbsp; najbolj&#353;e </font><font
+ face="Arial,Helvetica,Geneva,Swiss,SunSans-Regular"><strong>ujemanje</strong>
+s to sli&#269;ico. Najbolj&#353;e ujemanje je tisto, ki ima najvi&#353;jo <strong>oceno
+ujemanja</strong>, to je &#353;tevilo, ki je obratno sorazmerno vsoti
+kvadratov
+RGB razlik med vzor&#269;no sliko in piksli, ki naj bi se ujemali. </font></p>
+<div align="left">
+<p><font face="Arial,Helvetica,Geneva,Swiss,SunSans-Regular">Vzorec se
+s&#269;asoma lahko <strong>razvija</strong>--torej prilagaja spremembam
+oblike in barve. Hitrej&#353;i <strong>razvoj</strong> lahko sledi
+hitrej&#353;im spremembam, vendar je lahko v dalj&#353;e, &#269;asovnem obdobju manj
+natan&#269;en. </font></p>
+</div>
+<p><font face="Arial,Helvetica,Geneva,Swiss,SunSans-Regular">Ko najdemo
+najbolj&#353;e ujemanje, ga avtomatski sledilec uporablja&nbsp; skupaj s
+sosednjimi ocenami ujemanja pri odlo&#269;anju polo&#382;aja
+interpoliranega&nbsp; <strong>najbolj&#353;ega ujemanja na nivoju
+pod-pikslov</strong>in temu ustreznega polo&#382;aja <strong>tar&#269;e,</strong>
+pri katerem ozna&#269;uje korak. &#268;e &#382;elimo, je lahko tar&#269;a odmaknjena od
+najbolj&#353;ega ujemanja</font><font
+ face="Arial,Helvetica,Geneva,Swiss,SunSans-Regular">.</font></p>
+<p><font face="Arial,Helvetica,Geneva,Swiss,SunSans-Regular">&#268;e imamo
+dobro ujemanje z visoko oceno ujemanja, avtomatski sledilec avtomatsko
+ozna&#269;i korak na polo&#382;aju tar&#269;e. &#268;e pa je ujemanje slabo (nizka ocena
+ujemanja), jo uporabnik pozvan, da ujemanje preveri in ga sprejme ali
+prekrije. <strong>Prag sprejemljivosti</strong> za avtomatsko
+ozna&#269;evanje
+lahko nastavimo.</font></p>
+<p><font face="Arial,Helvetica,Geneva,Swiss,SunSans-Regular">Avtomatski
+sledilec omejuje svoje iskanje&nbsp; ujemanja v vsaki sli&#269;ici na
+pravokotno <span style="font-weight: bold;">podro&#269;je iskanja,</span>
+ki ga mi definiramo<strong>. </strong>Ko sta ozna&#269;ena vsaj dva koraka,
+uporablja program&nbsp; hitrost in pospe&#353;ek to&#269;kovne mase za
+napovedovanje lokacije naslednjih ujemanj in ustrezno premika iskalno
+podro&#269;je. Kadarkoli pa lahko iskalno podro&#269;je premaknemo ali pove&#269;amo.</font></p>
+<p><font face="Arial,Helvetica,Geneva,Swiss,SunSans-Regular">Za <span
+ style="font-weight: bold;">1D</span> avtomatsko sledenje lahko iskanje
+omejimo na<span style="font-weight: bold;"> os x</span>. Za iskanje
+vzdol&#382; poljubne &#269;rte lahko nastavimo izhodi&#353;&#269;e in naklon osi x<strong></strong><strong></strong>.</font></p>
+<p><font face="Arial,Helvetica,Geneva,Swiss,SunSans-Regular">Ko
+avtomatski sledilec zaklju&#269;i proces ozna&#269;evanja, lahko korake poljubno
+spreminjamo. Z&nbsp; drugimi besedami nam avtomatski sledilec pomaga
+ozna&#269;evati korake, vendar ne omejuje na&#353;ega nadzora nad njimi.</font></p>
+</div>
+<p><b><font color="#333366"
+ face="Arial,Helvetica,Geneva,Swiss,SunSans-Regular">2. Priprava na
+uporabo avtomatskega sledilca</font></b></p>
+<p><font face="Arial,Helvetica,Geneva,Swiss,SunSans-Regular">Pred
+uporabo avtomatskega sledilca pregledamo video&nbsp; in preverimo, &#269;e
+so opazovane zanimivosti vidne in primerno konsistentne</font><font
+ face="Arial,Helvetica,Geneva,Swiss,SunSans-Regular"> (oblika,
+velikost, barva in usmeritev) v vseh sli&#269;icah.&#268;e to ni res, nastavljamo
+za&#269;etno in kon&#269;no sli&#269;ico <a href="videos.html#videoclip">video izrezka</a>
+oziroma velikost koraka tako, da je ta pogoj izpolnjen. Nato rsetiramo
+video na za&#269;etno sli&#269;ico.</font></p>
+<p><b><font color="#333366"
+ face="Arial,Helvetica,Geneva,Swiss,SunSans-Regular">3. Uporaba
+avtomatskega sledilca<br>
+</font></b></p>
+<p><font face="Arial,Helvetica,Geneva,Swiss,SunSans-Regular">Tvorimo
+sled s to&#269;kovno maso in v menuju te sledi izberemo <strong>Avtomatsko
+sledenje...</strong> . Mi&#353;ji kurzor se spremeni v krog in prike&#382;e se <strong>&#269;arovnik
+avtomatskega sledilca</strong>, kot ga vidimo na sliki 1. &#268;arovnik nudi
+navodila korak za korakom, kako uporabiti avtomaski sledilec. Spodaj
+opisujemo te korake.</font></p>
+<p align="center"><img src="../help_images/pointmass_menu_autotracker.gif"
+ alt="" border="0"><img src="../help_images/spacer.gif" alt="" border="0"
+ height="16" width="16"><img src="../help_images/autotracker_new.gif" alt=""
+ align="top" border="0"></p>
+<div align="center">
+<div align="center">
+<div align="center">
+<div align="center">
+<p><font face="Arial,Helvetica,Geneva,Swiss,SunSans-Regular" size="-1"><b>Slika.
+1 Zagon avtomatskega sledilca<br>
+</b></font></p>
+</div>
+</div>
+</div>
+</div>
+<p><font face="Arial,Helvetica,Geneva,Swiss,SunSans-Regular"><strong>Korak
+1: Vzorec. </strong><span style="font-weight: bold;"></span>Z mi&#353;ko
+kliknemo na video zna&#269;ilnost, ki ji &#382;elimo avtomatsko slediti. Tako
+tvorimo vzorec, ki definira sliko, ki naj bi se ujemala v vsaki video
+sli&#269;ici. Vzorec lahko premikamo ali spreminjamo njegovo velikost z
+vle&#269;enjem njegovega centra oziroma ro&#269;ice (majhen poln kvadrat).
+Vzor&#269;no sliko vidimo v zavihku <strong>Vzorec</strong>, kot prikazuje
+slika 2.<br>
+</font></p>
+<p><font face="Arial,Helvetica,Geneva,Swiss,SunSans-Regular">Nastavimo <strong>hitrost
+razvoja</strong> za definiranje, kako hitro se bo vzorec s &#269;asom
+prilagajal spremembam oblike in barve. Hitrost razvoja of 0% pomeni, da
+razvoja ne bo
+(konstantna vzor&#269;na slika),&nbsp; hitrost razvoja 100% pa pomeni
+popolno zamenjavo vzorca s sliko ujemanja po vsakem koraku.
+Vmesne hitrosti razvoja prekrijejo s sliko ujemanja teko&#269;o vzor&#269;no
+sliko s podano neprosojnostjo. <strong>Opomba</strong>: visoke stopnje
+razvoja sledijo bolj hitrim spremembam, vendar so po dalj&#353;em &#269;asu manj
+natan&#269;ne. </font></p>
+<p><font face="Arial, Helvetica, Geneva, Swiss, SunSans-Regular"><strong>Namig:</strong>
+vzorec ni nujno velik niti ne nujno vklju&#269;uje celoten objekt. Najboj
+deluje zna&#269;ilnost, ki je unikatna in vsebuje robove z visokim
+kontrastom. </font></p>
+<p align="center"><img src="../help_images/autotracker_1.gif" alt="" border="0"></p>
+<div align="center">
+<div align="center">
+<div align="center">
+<div align="center">
+<p><font face="Arial,Helvetica,Geneva,Swiss,SunSans-Regular" size="-1"><b>Slika
+2 Definicija vzorca<br>
+</b></font></p>
+</div>
+</div>
+</div>
+</div>
+<p><font face="Arial,Helvetica,Geneva,Swiss,SunSans-Regular"><strong>Korak
+2: Tar&#269;a. </strong>Po kliku na gumb <strong>Naprej</strong> se
+prika&#382;e zavihek <strong>Tar&#269;a</strong> kot to ka&#382;e Slika 3. Tar&#269;a.
+narisana na video sliki kot kri&#382;ec, je to&#269;ka, na kateri bomo ozna&#269;ili
+korake, relativno na vzorec. Tar&#269;o lahko z vle&#269;enjem premikamo. V
+zavihku "Tar&#269;a" je prikazan odmik tar&#269;e.</font></p>
+<p><font face="Arial, Helvetica, Geneva, Swiss, SunSans-Regular"><strong>Namig:</strong>
+Popo&#382;aj tar&#269;e lahko popravimo tudi potem, ko so bili koraki &#382;e
+ozna&#269;eni.
+Obstoje&#269;i koraki se bodo avtomati&#269;no premikali skupaj s tar&#269;o.</font></p>
+<p align="center"><img src="../help_images/autotracker_2.gif" alt="" border="0"></p>
+<div align="center">
+<div align="center">
+<div align="center">
+<div align="center">
+<p><font face="Arial,Helvetica,Geneva,Swiss,SunSans-Regular" size="-1"><b>Slika.
+3 Definicija tar&#269;e<br>
+</b></font></p>
+</div>
+</div>
+</div>
+</div>
+<p><font face="Arial,Helvetica,Geneva,Swiss,SunSans-Regular"><strong>Korak
+3: Sprejemljivost. </strong>Kliknemo na gumb <strong>Naprej</strong>
+in
+prika&#382;e se zavihek&nbsp; <strong>Sprejemljivost</strong> tako kot na
+sliki 4.
+V tem zavihku lahko nastavimo prag sprejemljivosti ocene ujemanja za
+avtomatsko ozna&#269;evanje. Kot dobro izhodi&#353;&#269;e je priporo&#269;ena privzeta
+vrednost 4. </font></p>
+<p><font face="Arial,Helvetica,Geneva,Swiss,SunSans-Regular"><strong>Namig:&nbsp;</strong>
+zmanj&#353;anje nivoja sprejemljivosti tipi&#269;no zmanja&#353;a poseganje uporabnika
+in s tem pospe&#353;i proces ozna&#269;evanja. Vendar tudi pove&#269;a mo&#382;nost napak.
+&#268;e dobimo slaba ujemanja, <em>najprej poskusimo s pove&#269;anjem hitrosti
+razvoja</em>, kar v splo&#353;nem vodi v vi&#353;je ocene ujemanja. &#268;e se nam &#353;e
+vedno zdijo nizke ocene ujemanja, lahko zmanj&#353;amo prag sprejemljivosti.
+&#268;e pa po drugi strani avtomasski sledilec ozna&#269;uje napravilna ujemanja,
+&#382;elimo pove&#269;ati nivo sprejemljivosti ali zmanj&#353;amo velikost iskalnega
+podro&#269;ja.</font></p>
+<p align="center"><img src="../help_images/autotracker_3.gif" alt="" border="0"></p>
+<div align="center">
+<div align="center">
+<div align="center">
+<div align="center">
+<p><font face="Arial,Helvetica,Geneva,Swiss,SunSans-Regular" size="-1"><b>Slika.
+4 Definiranje praga sprejemljivosti ocene ujemanja</b></font></p>
+</div>
+</div>
+</div>
+</div>
+<p><font face="Arial,Helvetica,Geneva,Swiss,SunSans-Regular"><strong>Korak
+4: Iskanje.&nbsp;</strong> <strong></strong>Po kliku na gumb <span
+ style="font-weight: bold;">Naprej</span> se prika&#382;e zavihek&nbsp; <strong>Iskanje</strong><span
+ style="font-weight: bold;">,&nbsp;</span> kot to ka&#382;e slika 5. Iskalno
+podro&#269;je je na sliki ozna&#269;eno kot pravokotnik in dolo&#269;a podro&#269;je, ki ga
+preiskujemo za najbolj&#353;e ujemanje. Iskalno podro&#269;je lahko premikamo
+oziroma pove&#269;ujamo z vle&#269;enjem njegovega centra oziroma ro&#269;ice&nbsp;
+(poln majhen kvadratek).</font></p>
+<p><font face="Arial,Helvetica,Geneva,Swiss,SunSans-Regular">&#268;e
+odkljukamo <strong>Le os X</strong>, bo iskaje omejeno na <strong>eno
+dimenzijo</strong> vzdol&#382; osi x. kjer ta pre&#269;ka iskalno podro&#269;je.
+Iskanje vzdol&#382; poljubne &#269;rte dose&#382;emo z nastavitvijo izhodi&#353;&#269;a osi in
+naklona. <strong>Opomba</strong>: &#269;e os x ne pre&#269;ka iskalnega
+podro&#269;ja, ne bomo na&#353;li nobenega ujemanja.</font></p>
+<p><font face="Arial, Helvetica, Geneva, Swiss, SunSans-Regular">&#268;e je
+odkljukana opicja <strong>Glej naprej</strong>, lahko avtomatski
+sledilec avtomati&#269;no premika iskalno podro&#269;je na napovedan polo&#382;aj
+ujemanja s pomo&#269;jo algoritma "Glej naprej", ki predpostavlja konstanten
+pospe&#353;ek. &#268;e imamo nekonstantno pospe&#353;eno gibanje, te opcije raje ne
+izberemo. </font></p>
+<p><font face="Arial, Helvetica, Geneva, Swiss, SunSans-Regular"><strong>Namig:
+</strong>Iskalno podro&#269;je ni nujno veliko. Pri veliko gibanjih zmo&#382;nost
+gledanja naprej daje dobre napovedi polo&#382;ajev ujemanja in opogo&#269;a
+avtomati&#269;no postavljanje iskalnega podro&#269;ja na prava mesta. </font></p>
+<p align="center"><img src="../help_images/autotracker_4.gif" alt="" border="0"></p>
+<div align="center">
+<div align="center">
+<div align="center">
+<div align="center">
+<p><font face="Arial,Helvetica,Geneva,Swiss,SunSans-Regular" size="-1"><b>Slika.
+5 Definiranje iskalnega podro&#269;ja<br>
+</b></font></p>
+</div>
+</div>
+</div>
+</div>
+<p><font face="Arial,Helvetica,Geneva,Swiss,SunSans-Regular"><strong>Korak
+5. </strong>Avtomatsko sledenje za&#269;ne&#353; s klikom na gumb <strong>Iskanje</strong>.
+Avtomatski sledilec bo korakal skozi video sli&#269;ice in iskal najbolj&#353;a
+ujemanja z vzor&#269;no sliko &#268;e najde dobro ujemanje v vsaki sli&#269;ici,
+avtomatsko ozna&#269;i vse sli&#269;ice in se ustavi na zadnji sli&#269;ici video
+izrezka. Video lahko pregledamo in preverimo ocene ujemanja in si
+ogledamo najbolj&#353;e ujemanje, tar&#269;o in iskalno podro&#269;je, uporabljene v
+vsaki sli&#269;ici, kot to prikazuje slika 6.</font></p>
+<p align="center"><img src="../help_images/autotracker_success.gif" alt=""
+ border="0"></p>
+<div align="center">
+<div align="center">
+<div align="center">
+<div align="center">
+<p><font face="Arial,Helvetica,Geneva,Swiss,SunSans-Regular" size="-1"><b>Slika.
+6 Pregled podatkov ujemanja</b></font></p>
+</div>
+</div>
+</div>
+</div>
+<p><font face="Arial,Helvetica,Geneva,Swiss,SunSans-Regular"><strong>Slaba
+ujemanja. </strong>&#268;e automatski sledilec najde slaba ujemanja (torej
+pod nivojem sprejemljivosti, nastavljenim v zgoraj opisanem koraku 3),
+se ustavi in nam ponudi ve&#269; mo&#382;nosti, kot to prikazuje slika 7.&nbsp;
+Lahko&nbsp; (a) sprejmemo ujemanje s klikom na gumb <strong>Sprejmi</strong>,
+(b) premaknemo ali pove&#269;amo iskalno podro&#269;je in na isti sli&#269;ici
+ponovimo iskanje s klikom na gumb <strong>Iskanje</strong>, (c)
+presko&#269;imo sli&#269;ico in nadaljujemo z avtomatskim sledenjem na naslednji
+sli&#269;ici tako, da kliknemo na gumb <strong>Presko&#269;i</strong>, (d) z
+mi&#353;ko shift-kliknemo in ro&#269;no ozna&#269;imo korak, lahko pa (e)
+resetiramo oziroma zbri&#353;emo vse korake in za&#269;nemo s spremenjenim
+vzorcem tako, da kliknemo na gumb <strong>Reset</strong> . Lahko pa se
+povrnemo nazaj na zavihek Sprejemljivost in pred nadaljevanjem
+naravnamo prag sprejemljivosti.</font></p>
+<p align="center"><img src="../help_images/autotracker_possible.gif" alt=""
+ border="0"></p>
+<div align="center">
+<div align="center">
+<div align="center">
+<div align="center">
+<p><font face="Arial,Helvetica,Geneva,Swiss,SunSans-Regular" size="-1"><b>Slika.
+7 Opcije za obravnavo slabega ujemanja. V danem primeru bi bilo
+najbolje vse resetirati in spremeniti vzorec tako, da vsebuje le desno
+polovico krogle, ker je najmanj podobna merilnemu traku.</b></font></p>
+</div>
+</div>
+</div>
+</div>
+<p><font face="Arial,Helvetica,Geneva,Swiss,SunSans-Regular"><strong>Drugi
+pogoji. </strong>V&#269;asih se avtomatski sledilec ustavi in sporo&#269;a druge
+pogoje, ki terjajo na&#353;o akcijo. V takih primerih vidimo seznam mo&#382;nosti
+v zavihku Iskanje, kot to vidimo na sliki&nbsp; 7. Med mo&#382;nimi pogoji
+so ti:</font></p>
+<ol>
+  <li><font face="Arial, Helvetica, Geneva, Swiss, SunSans-Regular">Iskalno
+podro&#269;je je izven slike. </font> </li>
+  <li><font face="Arial, Helvetica, Geneva, Swiss, SunSans-Regular">Ne
+najdemo ujemanja v iskalnem podro&#269;ju. (&#268;e sledimo le vzdol&#382; osi x, je
+temu morda vzrok, da le&#382;i os x izven iskalnega podro&#269;ja. )</font> </li>
+</ol>
+<p><font face="Arial,Helvetica,Geneva,Swiss,SunSans-Regular"><strong>Popravljanje
+napa&#269;nih ujemanj. </strong>I&#268;e avtomatski sledilev v nekem koraku
+ozna&#269;i napa&#269;en polo&#382;aj, imamo na voljo dve mo&#382;nosti za popravo napake:</font></p>
+<ol>
+  <li><font face="Arial, Helvetica, Geneva, Swiss, SunSans-Regular">Ro&#269;no
+popravimo korak na pravi polo&#382;aj z vle&#269;enjem z mi&#353;ke.</font> </li>
+  <li><font face="Arial, Helvetica, Geneva, Swiss, SunSans-Regular">Korak
+zbri&#353;emo tako, da ga izberemo in kliknemo na gumb Delete, nato
+premaknemo ali pove&#269;amo iskalno podro&#269;je za to sli&#269;ico in terjamo
+ponovno iskanje. Lahko tudi pove&#269;amo nivo avtomatske sprejemljivosti in
+tako forsiramo pregled novega ujemanja. &#268;e je problem &#353;e vedno tu, bo
+morda potrebno vse za&#269;eti znova s spremenjeno vzor&#269;no sliko oziroma
+hitrostjo razvoja.</font> </li>
+</ol>
+</body>
+</html>

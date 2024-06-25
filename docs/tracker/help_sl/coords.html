@@ -1,0 +1,99 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <meta http-equiv="content-type" content="text/html;charset=iso-8859-1">
+  <meta name="generator" content="Adobe GoLive 6">
+  <title>Tracker Help: Coordinate System</title>
+</head>
+<body bgcolor="#ffffff">
+<div align="center">
+<p><font color="#990000"
+ face="Arial,Helvetica,Geneva,Swiss,SunSans-Regular" size="6"><b>Koordinatni
+sistem<br>
+</b></font></p>
+</div>
+<p><font face="Arial,Helvetica,Geneva,Swiss,SunSans-Regular">Ko
+ozna&#269;imo to&#269;ko v glavnem pogledu na video v programu Tracker, dolo&#269;imo
+njen <b>polo&#382;aj na sliki</b>. Polo&#382;aje na sliki merimo v pikslih
+relativno na zgornji levi kot video slike. V primeru slike velikosti
+320 x 240 je poksel v levem zgornjem kotu na poziciji slike (0.0, 0.0)
+na spodnjem desnem kotu pa na&nbsp; polo&#382;aju (320.0, 240.0).</font></p>
+<p><font face="Arial,Helvetica,Geneva,Swiss,SunSans-Regular">Ker je
+video slika pogled kamere na realni svet, ima fizi&#269;ni objekt s te slike
+tudi <b>koordinate sveta</b>. Koordinate sveta merimo v merskih enotah
+sveta (n.pr. metrih) relativno na podani referen&#269;ni okvir. Izhodi&#353;&#269;e
+referen&#269;nega okvirja je lahko kjerkoli na sliki.<br>
+<b>Koordinatni sistem</b> je mno&#382;ica transformacij, potrebnih za
+pretvorbo polo&#382;ajev na sliki v koordinate sveta. Koordinatni sistem
+dolo&#269;a za vsako sli&#269;ico videa:</font></p>
+<ul>
+  <li><font face="Arial,Helvetica,Geneva,Swiss,SunSans-Regular"><b>merilo</b>
+(enote slike na enoto sveta)</font> </li>
+  <li><font face="Arial,Helvetica,Geneva,Swiss,SunSans-Regular"><b>izhodi&#353;&#269;e</b>
+(polo&#382;aj izhodi&#353;&#269;a referen&#269;nega okviraja na sliki) </font> </li>
+  <li><font face="Arial,Helvetica,Geneva,Swiss,SunSans-Regular"><b>naklon</b>
+(kot med osjo x na sliki in osjo x v svetu, merjeno v obratni smeri od
+urinega kazalca.</font> </li>
+</ul>
+<p><font color="#333366"
+ face="Arial,Helvetica,Geneva,Swiss,SunSans-Regular"><b>1. Nastavljanje
+lastnosti koordinatnega sistema</b></font></p>
+<div align="center">
+<p align="left"><font
+ face="Arial,Helvetica,Geneva,Swiss,SunSans-Regular">Privzeto so
+merilo, izhodi&#353;&#269;e in naklon koordinatnega sistema <b>fiksni</b>--torej
+se od sli&#269;ice do sli&#269;ice ne spreminjajo. Vendar lahko&nbsp; katerokoli
+od teh omogo&#269;imo spreminjanje z izklopom lastnosti fiksirano&nbsp; v
+menuju <b>koordinatnega sistema</b> v&nbsp; vrstici z menuji.</font></p>
+<p><img src="../help_images/coords_menu.gif" alt="Coords menu"></p>
+</div>
+<p><font face="Arial,Helvetica,Geneva,Swiss,SunSans-Regular">Nastavljeni
+polo&#382;aji in lastnosti izhodi&#353;&#269;a so tisti, ki veljajo za <b>privzeti
+referen&#269;ni okvir</b>. Menu&nbsp; <span style="font-weight: bold;">Koordinatni
+sistem</span><strong></strong><b>|Referen&#269;ni okvir</b> omogo&#269;a izbiro
+drugih referen&#269;nih okvirjev, pri katerih se giblje izhodi&#353;&#269;e skupaj z
+masno to&#269;ko, te&#382;i&#353;&#269;em ali s sledjo modela z delci. Referen&#269;ni okvirji s
+te&#382;i&#353;&#269;em so posebno pripravni pri prou&#269;evanju trkov.</font></p>
+<div align="center">
+<p><img src="../help_images/ref_frame_menu.gif" alt="Reference frame menu"></p>
+</div>
+<p><font color="#333366"
+ face="Arial,Helvetica,Geneva,Swiss,SunSans-Regular"><b>2. Postavljanje
+merila (kalibracija)</b></font></p>
+<p><font face="Arial,Helvetica,Geneva,Swiss,SunSans-Regular">Merilo
+postavljamo s pomo&#269;jo <b><a href="stick.html">merilne palice</a></b>
+ali z <b><a href="calibration.html">merilnimi to&#269;kami</a></b>. </font></p>
+<p><font color="#333366"
+ face="Arial,Helvetica,Geneva,Swiss,SunSans-Regular"><b>3.Postavljanje
+izhodi&#353;&#269;a<br>
+</b></font></p>
+<p><font face="Arial,Helvetica,Geneva,Swiss,SunSans-Regular">Polo&#382;aj
+izhodi&#353;&#269;a postavljamo s pomo&#269;jo <b><a href="axes.html">osi</a></b>,&nbsp;
+<b><a href="offset_origin.html">odmika izhodi&#353;&#269;a</a></b> ali z&nbsp; <b><a
+ href="calibration.html">merilnimi to&#269;kami</a></b>. </font></p>
+<p><font color="#333366"
+ face="Arial,Helvetica,Geneva,Swiss,SunSans-Regular"><b>4. Postavljanje
+naklona</b></font></p>
+<p><font face="Arial,Helvetica,Geneva,Swiss,SunSans-Regular">Naklon osi
+x nastavljamo s pomo&#269;jo <b><a href="axes.html">osi</a></b>, <b><a
+ href="stick.html">merilne palice</a></b> ali <b><a
+ href="calibration.html">merilnih to&#269;k</a></b>. </font></p>
+<p><a id="units" name="units"></a><b><font color="#333366"
+ face="Arial,Helvetica,Geneva,Swiss,SunSans-Regular">5. Nastavljanje
+enot kotov<br>
+</font></b></p>
+<p><font face="Arial,Helvetica,Geneva,Swiss,SunSans-Regular">Kote lahko
+prikazujemo bodisi v stopinjah, bodisi v radianih. &#381;elene enote
+izberemo v menuju <strong>Enote za kot</strong>.</font></p>
+<p align="center"><font
+ face="Arial,Helvetica,Geneva,Swiss,SunSans-Regular"><img
+ src="../help_images/angle_units.gif" alt="" border="0" height="164" width="213"></font></p>
+<p><font color="#333366"
+ face="Arial,Helvetica,Geneva,Swiss,SunSans-Regular"><b>6. Zaklepanje
+koordinatnega sistema</b></font></p>
+<p><font face="Arial,Helvetica,Geneva,Swiss,SunSans-Regular">Zaklepanje
+koordinatnega sistema prepre&#269;uje spreminjanje merila, izhodi&#353;&#269;a in
+naklona. Zaklepamo z vklopom lastnosti <b>Zaklenjeno</b> v menuju <strong>Koordinatni
+sistem</strong>. </font></p>
+</body>
+</html>
