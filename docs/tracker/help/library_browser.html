@@ -40,10 +40,23 @@
 <p>Each  resource is represented by a node in a collection tree. Nodes may also be subcollections. Every resource has the following properties:</p>
 <ol>
   <li><strong>Name</strong>: identifies the resource. Displayed as the node name in the tree.</li>
-  <li><strong>Type</strong>:  may be <em>Collection, Tracker project, EJS model, Video, Image, HTML page, PDF document, </em>or<em> Other</em>. Displayed as the node icon in the tree.</li>
+  <li><strong>Target</strong>: the resource file itself. Displayed  in the URL field on the toolbar when the node is selected. Opened as described above when the node is double-clicked or the toolbar <strong>Open</strong> button is clicked. Some nodes (e.g. collection nodes) may have no target.</li>
+  <li><strong>Type</strong>: one of the following: 
+    <ul>
+      <li><em>Collection: </em>a collection of resources with no target or a target url to another collection. Target collections open in new tabs in Library Browser.</li>
+      <li><em>Tracker project: </em >TRZ, TRK and some ZIP files. Target files open in Tracker or Tracker Online.</li>
+      <li><em>EJS model: </em>ZIP files created by EJS. Target files open in WebEJS.</li>
+      <li><em>Video: </em>MP4 and other video file types. Target files open in Tracker or Tracker Online.</li>
+      <li><em>Image: </em>MPG, GIF, PNG images, image stacks (numbered sequentially), and ZIP image stacks. Target files open in Tracker or Tracker Online.</li>
+      <li><em>HTML page: </em>HTML files. Target files open in the default web browser.</li>
+      <li><em>PDF document: </em>PDF files. Target files open in the default PDF reader.</li>
+      <li><em>Data: </em>TXT, XML and other text data files. Target files open in Data Tool or Data Tool Online.</li>
+      <li><em>URL: </em>a general URL path. Target URLs open in the default web browser.</li>
+      <li><em>Other: </em>targets are handled based on their extension.</li>
+    </ul>
+  </li>
   <li><strong>HTML page</strong>: describes the resource and provides links to additional information. Displayed in the right pane when the node is selected. If no HTML page is defined, the right pane displays the node name, type and (for videos) thumbnail image.</li>
   <li><strong>Metadata</strong>: searchable author names, contact information and keywords. Displayed in the tooltip when the mouse hovers over the node.</li>
-  <li><strong>Target</strong>: the resource file itself. Displayed  in the URL field on the toolbar when the node is selected. Opened in Tracker (and/or  HTML browser or PDF viewer) when the node is double-clicked or the toolbar <strong>Open</strong> button is clicked. Some nodes (e.g. collection nodes) have no target.</li>
 </ol>
 
 <p>A <strong>Tracker project file</strong> is a resource that consists of a  zip file containing an entire Tracker project, including one or more Tracker tabs with associated videos, HTML/PDF documentation and metadata. For more information see <a href="zip_resource,html">Tracker Projects</a>.</p>
@@ -91,14 +104,19 @@
 <h3><a name="lib6" id="lib6"></a>6. Creating and sharing resources and collections</h3>
 <p><strong>Resources</strong>: resources may be one of the following:</p>
 <ol>
-  <li><strong>Tracker tab or project</strong>: TRK or TRZ file. Opened in Tracker.</li>
-  <li><strong>Video or image</strong>: video or image file. Opened in Tracker.</li>
-  <li><strong>HTML pages</strong>: HTML file. Opened in the default HTML browser.</li>
-  <li><strong>PDF documents</strong>: PDF file. Opened in the default PDF viewer.</li>
+  <li><strong>Tracker project</strong>: TRK or TRZ file. Some older projects are in ZIP files. Opened in Tracker or Tracker Online.</li>
+  <li><strong>EJS model/simulation</strong>: ZIP file. Opened in WebEJS.</li>
+  <li><strong>Video or image</strong>: video or image file. If the image is the first in an image stack the entire stack opens. The file may also be a zipped image stack. Opened in Tracker.</li>
+  <li><strong>HTML pages</strong>: HTML file. Opened in the default web browser.</li>
+  <li><strong>PDF documents</strong>: PDF file. Opened in the default PDF reader.</li>
+  <li><strong>Data text files</strong>: TXT or XML file. Opened in Data Tool.</li>
+  <li><strong>URLs</strong>: URL path to a web resource. Opened in the default web browser.</li>
 </ol>
-<p><strong>Collections</strong>: there are two types of collections, <strong>live</strong> and <strong>XML</strong>. Live collections are views of resource files in a single directory (with subdirectories if desired). XML collections are XML documents with references to resource files which can be anywhere, including other servers.</p>
+<p><strong>Collections</strong>: may be a true collection of resources or a URL to another collection. URLs open their target collection in new tabs in Library Browser.</p>
+<p>True collections may be <strong>live</strong> or <strong>XML</strong>. 
+  Live collections are simply views of all resource files and subdirectories in a single directory. XML collections are XML documents with references to resource files which can be anywhere, including other servers.</p>
 <ol>
-  <li><strong>Live collections</strong>: This is the easiest option.</li>
+<li><strong>Live collections</strong>: This is the easiest option.</li>
     <ol type="a">
   <li><strong>Local</strong>: put the resources into a  local directory and open the directory in the library browser. <strong>Optional but recommended</strong>: add HTML information files to the same directory (see below).</li>
   <li><strong>Web</strong>: put the resources along with the OSP <strong> Digital Library PHP script</strong> into a directory on a server (see <a href="https://physlets.org/tracker/library/_share/sharing.html">Sharing Your Tracker Collection</a>) and open the URL path to the script in the library browser.   <strong>Optional but recommended</strong>: add an HTML information file to the server directory (see below). <strong>Note</strong>: the server must  run the PHP script. You may have to change the script  extension. Check with your web administrator if unsure. </li>
@@ -140,7 +158,7 @@
 <p><strong>Data fields:</strong> the data fields display the following resource properties:</p>
 <ul>
   <li><strong>Name</strong>: the node name displayed in the tree.</li>
-  <li><strong>Type</strong>: the type of resource. May be <em>Collection, Tracker Project</em>, <em>EJS Model</em>, <em>Video</em>, <em>Image, HTML Page</em>, <em>PDF Document</em>, or <em>Other</em>.</li>
+  <li><strong>Type</strong>: the type of resource. May be <em>Collection, Tracker Project</em>, <em>EJS Model</em>, <em>Video</em>, <em>Image, HTML Page</em>, <em>PDF Document</em>, <em>Data</em>, <em>URL</em>, or <em>Other</em>.</li>
   <li><strong>HTML File</strong> (optional): the path to the file displayed in the HTML pane when the node is selected. The path may be absolute or relative to the base URL (<a href="library_browser.html#paths">see discussion below</a>).</li>
   <li><strong>Base URL</strong> (optional): the base URL used to resolve relative paths for the HTML and resource files.</li>
   <li><strong>Resource</strong> (disabled for collection nodes): the path to the resource target file. The path may be absolute or relative to the base URL (<a href="library_browser.html#paths">see discussion below</a>).</li>
