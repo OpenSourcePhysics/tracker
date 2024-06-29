@@ -9,8 +9,8 @@
                 <property name="[0]" type="object">
                 <object class="org.opensourcephysics.tools.LibraryResource">
                     <property name="name" type="string">EJS ZIP</property>
-                    <property name="target" type="string">webejs_model_MultislitDiffraction.zip</property>
-                    <property name="type" type="string">EJS</property>
+                    <property name="target" type="string">webejs_model_MultislitDiffraction.zip%26%3Dname%3Dtest</property>
+                    <property name="type" type="string">Tracker</property>
                 </object>
                 </property>
                 <property name="[1]" type="object">
@@ -249,7 +249,7 @@
                 <object class="org.opensourcephysics.tools.LibraryResource">
                     <property name="name" type="string">EJS ZIP</property>
                     <property name="target" type="string">https://physlets.org/pp/EJS/Ch02/js_ejs_model_Illustration2_1.zip</property>
-                    <property name="type" type="string">EJS</property>
+                    <property name="type" type="string">Tracker</property>
                 </object>
                 </property>
                 <property name="[8]" type="object">
