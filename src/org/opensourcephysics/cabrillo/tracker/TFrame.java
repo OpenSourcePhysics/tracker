@@ -344,8 +344,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 		setTitle("Tracker" + (OSPRuntime.isJS ? " Online" : ""));
 		if (options == null)
 			options = new HashMap<>();
-		isLayoutAdaptive = (options.get("-adaptive") != null);
-//		isLayoutAdaptive = true; // for testing
+//		isLayoutAdaptive = (options.get("-adaptive") != null);
+		isLayoutAdaptive = OSPRuntime.isJS;
 		Dimension dim = (Dimension) options.get("-dim");
 		Rectangle bounds = (Rectangle) options.get("-bounds");
 		Video video = (Video) options.get("-video");

@@ -485,8 +485,7 @@ public class Tracker {
 		// last updated Dec 2021
 		incompleteLocales = new Object[][] {
 				{ new Locale("fi"), "2013" }, // finnish //$NON-NLS-1$ //$NON-NLS-2$
-				{ new Locale("sk"), "2011" }, // slovak //$NON-NLS-1$ //$NON-NLS-2$
-				{ new Locale("in"), "2013" } };// indonesian //$NON-NLS-1$ //$NON-NLS-2$
+				{ new Locale("sk"), "2011" } }; // slovak //$NON-NLS-1$ //$NON-NLS-2$
 
 		return locales;
 	}
