@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>SwingJS test LibraryBrowser</title><meta charset="utf-8" />
+<script src="swingjs/swingjs2.js"></script>
+<script>
+if (!self.SwingJS)alert('swingjs2.js was not found. It needs to be in swingjs folder in the same directory as ' + document.location.href)
+Info = {
+  code: null,
+  main: "org.opensourcephysics.tools.LibraryBrowser",
+  core: "_tracker",
+	assets: { name: "tracker", zipPath: "tracker-assets.zip", classPaths: ["org/opensourcephysics"] },
+	resourceZip: "misc-assets.zip",
+  width: 850,
+  height: 550,
+  readyFunction: null,
+	j2sPath: 'swingjs/j2s',
+  console: 'none'
+}
+</script>
+</head>
+<body>
+<script>
+SwingJS.getApplet('testApplet', Info);
+</script>
+</div>
+</body>
+</html>
