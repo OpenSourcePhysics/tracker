@@ -537,7 +537,9 @@ public class PointMass extends TTrack {
 		} else if (x != step.getPosition().x || y != step.getPosition().y) {
 			XMLControl state = new XMLControlElement(step);
 			step.getPosition().setLocation(x, y);
-			Undo.postStepEdit(step, state);
+			if (this.undoEnabled) {
+				Undo.postStepEdit(step, state);
+			}
 			step.erase();
 		}
 		step.valid = true;

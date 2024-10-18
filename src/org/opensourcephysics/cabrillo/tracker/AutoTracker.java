@@ -107,6 +107,8 @@ import javax.swing.table.TableCellRenderer;
 
 import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.controls.XML;
+import org.opensourcephysics.controls.XMLControl;
+import org.opensourcephysics.controls.XMLControlElement;
 import org.opensourcephysics.display.DataTable;
 import org.opensourcephysics.display.DrawingPanel;
 import org.opensourcephysics.display.GUIUtils;
@@ -342,6 +344,9 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 		getWizard().setVisible(true);
 //    getWizard().refreshGUI();
 //    search(false, false); // don't skip this frame and don't keep stepping
+		if (wizard.oneDCheckbox.isSelected()) {
+			moveOriginToFirstKeyFrame();
+		}
 		TFrame.repaintT(trackerPanel);
 	}
 
@@ -1073,15 +1078,15 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 		// get location, width and height of match
 		TPoint p = null;
 		BufferedImage image = getImage(video);
-		if (lineSpread >= 0) {
-			ImageCoordSystem coords = frame.getTrackerPanelForID(panelID).getCoords();
-			double theta = coords.getAngle(n);
-			double x0 = coords.getOriginX(n);
-			double y0 = coords.getOriginY(n);
+		ImageCoordSystem coords = frame.getTrackerPanelForID(panelID).getCoords();
+		double theta = coords.getAngle(n);
+		double x0 = coords.getOriginX(n);
+		double y0 = coords.getOriginY(n);
+		if (lineSpread >= 0) { // fit to line
 			int[][] searchPts = matcher.getSearchPoints(searchRect, x0, y0, theta, lineSpread);
-			p = matcher.getMatchLocation(image, searchRect, searchPts);
+			p = matcher.getMatchLocation(image, searchRect, searchPts, x0, y0, theta);
 		} else {
-			p = matcher.getMatchLocation(image, searchRect, null);
+			p = matcher.getMatchLocation(image, searchRect, null, 0, 0, 0);
 		}
 		double[] matchWidthAndHeight = matcher.getMatchWidthAndHeight();
 		if (matchWidthAndHeight[1] < goodMatch && frameData.isAutoMarked()) {
@@ -1105,6 +1110,20 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 		// we know that for key frames the fit is perfect so match center = mask center
 		TPoint center = frameData.isKeyFrameData()? new TPoint(maskCenter):
 				new TPoint(p.x + maskCenter.x - rect.getX(), p.y + maskCenter.y - rect.getY());
+		
+		// if fitting to line, move center onto the line itself
+		if (lineSpread >= 0) {
+			// find second point 1 unit along the line
+			double x1 = x0 + Math.cos(theta);
+			double y1 = y0 - Math.sin(theta);
+			// find distance to the line
+			double d = ((y1-y0)*center.x - (x1-x0)*center.y + x1*y0 - x0*y1) / 
+					Math.sqrt((y1-y0)*(y1-y0) + (x1-x0)*(x1-x0));
+			// move center
+			center.x += d*Math.sin(theta);
+			center.y += d*Math.cos(theta);
+		}
+		
 		TPoint corner = new TPoint(center.x + cornerFactor * (maskCorner.x - maskCenter.x),
 				center.y + cornerFactor * (maskCorner.y - maskCenter.y));
 		frameData.setMatchPoints(new TPoint[] { center, corner, p });
@@ -1281,6 +1300,34 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 			map.put(frameNumber, frameData);
 		}
 		return frameData;
+	}
+
+	protected void moveOriginToFirstKeyFrame() {
+		TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
+		// find first key frame
+		Map<Integer, FrameData> map = getTrackTargetIndexToFrameDataMap();
+		int n = -1;
+		for (Integer key : map.keySet()) {
+			if (map.get(key).isKeyFrameData()) {
+				n = key;
+				break;
+			}
+		}
+		if (n < 0) return;
+		CoordAxes axes = trackerPanel.getAxes();
+		KeyFrameData keyFrameData = getOrCreateFrameData(n).getKeyFrameData();
+		if (keyFrameData != null) {
+			double x0 = trackerPanel.getCoords().getOriginX(n);
+			double y0 = trackerPanel.getCoords().getOriginY(n);
+			TPoint[] maskPts = keyFrameData.getMaskPoints();
+			if (Math.abs(x0-maskPts[0].x) > 0.1 || Math.abs(y0-maskPts[0].y) > 0.1) {
+				XMLControl control = new XMLControlElement(trackerPanel.getCoords());
+				axes.getOrigin().setXY(maskPts[0].x, maskPts[0].y);
+				// post undoable edit
+				Undo.postCoordsEdit(trackerPanel, control);
+				axes.setVisible(true);
+			}
+		}
 	}
 
 	protected FrameData getOrCreatePreviousFrameData(int frameNumber) {
@@ -2004,12 +2051,15 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 			keyFrameData.setTargetOffset(x - maskCenter.x, y - maskCenter.y);
 			TTrack track = getTrack();
 			track.autoTrackerMarking = track.isAutoAdvance();
+			track.undoEnabled = false; // don't save undo edits when moving
 			TPoint p = track.autoMarkAt(n, getX(), getY());
+			track.undoEnabled = true;
 			frameData.setAutoMarkPoint(p);
 			track.autoTrackerMarking = false;
 			repaint();
 			track.repaint();
 		}
+		
 	}
 
 	/**
@@ -2865,15 +2915,8 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 				lineSpread = oneDCheckbox.isSelected() ? 0 : -1;
 				setChanged();
 				if (oneDCheckbox.isSelected()) {
-					CoordAxes axes = trackerPanel.getAxes();
-					int n = trackerPanel.getFrameNumber();
-					KeyFrameData keyFrameData = getOrCreateFrameData(n).getKeyFrameData();
-					if (keyFrameData != null) {
-						n = keyFrameData.getFrameNumber();
-						TPoint[] maskPts = keyFrameData.getMaskPoints();
-						axes.getOrigin().setXY(maskPts[0].x, maskPts[0].y);
-					}
-					axes.setVisible(true);
+					moveOriginToFirstKeyFrame();
+					trackerPanel.getAxes().setVisible(true);
 				}
 				TFrame.repaintT(trackerPanel);
 			});
@@ -3058,7 +3101,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 			erase();
 			TFrame.repaintT(trackerPanel());
 		}
-
+		
 		protected void acceptAction() {
 			int n = trackerPanel().getFrameNumber();
 			FrameData frameData = getOrCreateFrameData(n);

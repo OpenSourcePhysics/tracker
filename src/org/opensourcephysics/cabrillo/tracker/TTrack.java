@@ -389,6 +389,7 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 	protected boolean autoAdvance;
 	protected boolean markByDefault = false, isMarking = false;
 	protected TextLineLabel xLabel, yLabel, magLabel, angleLabel;
+	protected boolean undoEnabled = true;
 
 	protected ActionListener footprintListener, circleFootprintListener;
 
