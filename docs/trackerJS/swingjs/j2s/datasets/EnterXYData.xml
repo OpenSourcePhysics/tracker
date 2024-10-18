@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<object class="org.opensourcephysics.tools.DataToolTab">
+    <property name="name" type="string">EnterXYData</property>
+    <property name="editable" type="boolean">true</property>
+    <property name="data" type="object">
+    <object class="org.opensourcephysics.display.DatasetManager">
+        <property name="connected" type="boolean">false</property>
+        <property name="sorted" type="boolean">false</property>
+        <property name="maker_shape" type="int">2</property>
+        <property name="stride" type="int">1</property>
+        <property name="linked" type="boolean">false</property>
+        <property name="x_column_name" type="string">x</property>
+        <property name="y_column_name" type="string">y</property>
+        <property name="data_name" type="string"></property>
+        <property name="datasets" type="collection" class="java.util.ArrayList">
+            <property name="item" type="object">
+            <object class="org.opensourcephysics.tools.DataColumn">
+                <property name="points" type="array" class="[[D">
+                    <property name="array" type="string">{{0.0,NaN}}</property>
+                </property>
+                <property name="index" type="int">1</property>
+                <property name="marker_shape" type="int">2</property>
+                <property name="marker_size" type="int">2</property>
+                <property name="sorted" type="boolean">false</property>
+                <property name="connected" type="boolean">false</property>
+                <property name="x_name" type="string">row</property>
+                <property name="y_name" type="string">x</property>
+                <property name="line_color" type="object">
+                <object class="java.awt.Color">
+                    <property name="red" type="int">0</property>
+                    <property name="green" type="int">0</property>
+                    <property name="blue" type="int">0</property>
+                    <property name="alpha" type="int">255</property>
+                </object>
+                </property>
+                <property name="fill_color" type="object">
+                <object class="java.awt.Color">
+                    <property name="red" type="int">0</property>
+                    <property name="green" type="int">0</property>
+                    <property name="blue" type="int">0</property>
+                    <property name="alpha" type="int">100</property>
+                </object>
+                </property>
+                <property name="edge_color" type="object">
+                <object class="java.awt.Color">
+                    <property name="red" type="int">0</property>
+                    <property name="green" type="int">0</property>
+                    <property name="blue" type="int">0</property>
+                    <property name="alpha" type="int">255</property>
+                </object>
+                </property>
+                <property name="errorbar_color" type="object">
+                <object class="java.awt.Color">
+                    <property name="red" type="int">0</property>
+                    <property name="green" type="int">0</property>
+                    <property name="blue" type="int">0</property>
+                    <property name="alpha" type="int">255</property>
+                </object>
+                </property>
+                <property name="datasetID" type="int">1829797623</property>
+                <property name="visible" type="array" class="[Z">
+                    <property name="array" type="string">{false,true}</property>
+                </property>
+                <property name="deletable" type="boolean">true</property>
+            </object>
+            </property>
+            <property name="item" type="object">
+            <object class="org.opensourcephysics.tools.DataColumn">
+                <property name="points" type="array" class="[[D">
+                    <property name="array" type="string">{{0.0,NaN}}</property>
+                </property>
+                <property name="index" type="int">1</property>
+                <property name="marker_shape" type="int">2</property>
+                <property name="marker_size" type="int">2</property>
+                <property name="sorted" type="boolean">false</property>
+                <property name="connected" type="boolean">true</property>
+                <property name="x_name" type="string">row</property>
+                <property name="y_name" type="string">y</property>
+                <property name="line_color" type="object">
+                <object class="java.awt.Color">
+                    <property name="red" type="int">255</property>
+                    <property name="green" type="int">0</property>
+                    <property name="blue" type="int">0</property>
+                    <property name="alpha" type="int">255</property>
+                </object>
+                </property>
+                <property name="fill_color" type="object">
+                <object class="java.awt.Color">
+                    <property name="red" type="int">255</property>
+                    <property name="green" type="int">0</property>
+                    <property name="blue" type="int">0</property>
+                    <property name="alpha" type="int">100</property>
+                </object>
+                </property>
+                <property name="edge_color" type="object">
+                <object class="java.awt.Color">
+                    <property name="red" type="int">255</property>
+                    <property name="green" type="int">0</property>
+                    <property name="blue" type="int">0</property>
+                    <property name="alpha" type="int">255</property>
+                </object>
+                </property>
+                <property name="errorbar_color" type="object">
+                <object class="java.awt.Color">
+                    <property name="red" type="int">255</property>
+                    <property name="green" type="int">0</property>
+                    <property name="blue" type="int">0</property>
+                    <property name="alpha" type="int">255</property>
+                </object>
+                </property>
+                <property name="datasetID" type="int">1176407077</property>
+                <property name="visible" type="array" class="[Z">
+                    <property name="array" type="string">{false,true}</property>
+                </property>
+                <property name="deletable" type="boolean">true</property>
+            </object>
+            </property>
+        </property>
+        <property name="id" type="int">1776020917</property>
+    </object>
+    </property>
+    <property name="fits" type="collection" class="java.util.ArrayList">
+        <property name="item" type="object">
+        <object class="org.opensourcephysics.tools.FitFunctionPanel">
+            <property name="name" type="string">Poly1</property>
+            <property name="description" type="string">y =  A * x + B </property>
+            <property name="user_parameters" type="array" class="[Lorg.opensourcephysics.tools.Parameter;">
+                <property name="[0]" type="object">
+                <object class="org.opensourcephysics.tools.Parameter">
+                    <property name="name" type="string">A</property>
+                    <property name="function" type="string">0.0</property>
+                    <property name="editable" type="boolean">true</property>
+                    <property name="name_editable" type="boolean">true</property>
+                    <property name="description" type="string">Slope</property>
+                </object>
+                </property>
+                <property name="[1]" type="object">
+                <object class="org.opensourcephysics.tools.Parameter">
+                    <property name="name" type="string">B</property>
+                    <property name="function" type="string">0.0</property>
+                    <property name="editable" type="boolean">true</property>
+                    <property name="name_editable" type="boolean">true</property>
+                    <property name="description" type="string">Vertical intercept</property>
+                </object>
+                </property>
+            </property>
+            <property name="function_editor" type="object">
+            <object class="org.opensourcephysics.tools.UserFunctionEditor">
+                <property name="main_functions" type="array" class="[Lorg.opensourcephysics.tools.UserFunction;">
+                    <property name="[0]" type="object">
+                    <object class="org.opensourcephysics.tools.UserFunction">
+                        <property name="name" type="string">Poly1</property>
+                        <property name="description" type="string">Polynomial, degree 1</property>
+                        <property name="name_editable" type="boolean">true</property>
+                        <property name="parameter_names" type="array" class="[Ljava.lang.String;">
+                            <property name="[0]" type="string">A</property>
+                            <property name="[1]" type="string">B</property>
+                        </property>
+                        <property name="parameter_values" type="array" class="[D">
+                            <property name="array" type="string">{0.0,0.0}</property>
+                        </property>
+                        <property name="parameter_descriptions" type="array" class="[Ljava.lang.String;">
+                            <property name="[0]" type="string">Slope</property>
+                            <property name="[1]" type="string">Vertical intercept</property>
+                        </property>
+                        <property name="variables" type="array" class="[Ljava.lang.String;">
+                            <property name="[0]" type="string">x</property>
+                        </property>
+                        <property name="expression" type="string"> A * x + B </property>
+                        <property name="polynomial" type="array" class="[D">
+                            <property name="array" type="string">{0.0,0.0}</property>
+                        </property>
+                    </object>
+                    </property>
+                </property>
+            </object>
+            </property>
+            <property name="original_name" type="string">Poly1</property>
+        </object>
+        </property>
+    </property>
+    <property name="selected_fit" type="string">Poly1</property>
+    <property name="autofit" type="boolean">false</property>
+    <property name="fit_parameters" type="array" class="[D">
+        <property name="array" type="string">{0.0,0.0}</property>
+    </property>
+    <property name="fit_color" type="object">
+    <object class="java.awt.Color">
+        <property name="red" type="int">255</property>
+        <property name="green" type="int">0</property>
+        <property name="blue" type="int">255</property>
+        <property name="alpha" type="int">255</property>
+    </object>
+    </property>
+    <property name="fit_visible" type="boolean">false</property>
+    <property name="props_visible" type="boolean">true</property>
+    <property name="stats_visible" type="boolean">false</property>
+    <property name="split_pane" type="int">583</property>
+    <property name="fit_split_pane" type="int">268</property>
+    <property name="column_order" type="array" class="[I">
+        <property name="array" type="string">{0,1,2}</property>
+    </property>
+    <property name="hidden_markers" type="array" class="[Ljava.lang.String;"/>
+</object>

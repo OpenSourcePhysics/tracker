@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<title>JavaScript Data Tool</title>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" type="text/css" href="osp.css" />
+	<script src="compadre.js"></script>
+	<script src="swingjs/swingjs2.js"></script>
+	<script>
+		if (!self.SwingJS) alert('swingjs2.js was not found. It needs to be in swingjs folder in the same directory as ' +
+			document.location.href);
+
+		function initApp() {
+			if (!DataTool.app) alert('App not found.');
+			//DataTool.app.getMainFrame().setResizeAction('changeSize');
+			//changeSize();
+		}
+
+		DataToolInfo = {
+			code: null,
+			main: "org.opensourcephysics.tools.DataTool",
+			core: "_tracker",
+			assets: { name: "tracker", zipPath: "tracker-assets.zip", classPaths: ["org/opensourcephysics"] },
+			resourceZip: "misc-assets.zip",
+			width: 850,
+			height: 550,
+			readyFunction: initApp,
+			//args: ['EnterXYData.xml'],
+			console: 'NONE',
+			j2sPath: 'swingjs/j2s',
+		}
+
+		changeSize = function () {
+			let dim = DataTool.app.getMainFrameSize();
+			document.getElementById("dataToolApp-DataTool-div").style.width = dim[0] + "px";
+			document.getElementById("dataToolApp-DataTool-div").style.height = dim[1] + "px";
+		}
+
+		function loadExperiment(expURL) {
+			DataTool.app.loadDatasetURL(expURL);
+		}
+
+
+	</script>
+</head>
+
+
+<body>
+	<h1>Data Tool </h1>
+	<div id="DataTool-DataTool-div"
+		style="top:0px;left:0px; margin: 0px auto;  width:800px;height:562px; position:relative;border:1px blue;border-style:solid;">
+	</div>
+	<script>
+		SwingJS.getApplet('DataTool', DataToolInfo)
+	</script>
+
+	<h2>Description</h2>
+	<p> Data Tool is a simple data analysis program that is often integrated into Open Source Physics (OSP)
+		programs, such
+		as the Tracker video analysis and modeling program. It can also be used as a standalone program and this
+		web page demonstrates that capability.</p>
+
+	<p> Note that users can reposition the main Tracker window by dragging the title bar and that the window can be
+		resized by dragging the lower right hand corner.</p>
+
+	<h2>Dataset File Formats</h2>
+
+	<p>
+		JavaScript Data Tool supports the following dataset formats:
+	<ul>
+		<li>OSP Program generate xml dataset files. </li>
+		<li>Comma Separate Values (CVS) plain text files. Each line in the text file contains a row of numeric values
+			separated by commas. If the first row contains alphanumeric text separated by commas,
+			it is assumed to be a column header list.
+		</li>
+	</ul>
+	</p>
+
+	<p>Click on the links below to test the analysis and display capabilities of Data Tool.
+	<ul>
+		<li> <a href="javascript:loadExperiment('datasets/EnterXYData.xml')">A simple template for data entry. Click in
+				the Edit Table button to quickly add (x,y) data in CVS format.</a></li>
+		<li> <a href="javascript:loadExperiment('datasets/SinePlotData.xml')">Data exported from an OSP simulation</a>
+		</li>
+		<li> <a href="javascript:loadExperiment('datasets/TempVariation.xml')">Mean temperature variation on Earth from
+				1880 to 2016.</a></li>
+	</ul>
+	</p>
+
+
+	<p>Users can download xml files or CVS datasets to the desktop and then use the File options in the main menu to
+		open or import them into Data Tool.
+
+	<ol>
+		<li><a href="FirstPlotData.txt"> FirstPlotData.txt</a> </li>
+		<li><a href="FirstPlotData.xml"> FirstPlotData.xml</a> </li>
+	</ol>
+	Another way to load files into Data Tool is to drag and drop them from the desktop onto the Data Tool window.
+	</p>
+
+	<p>
+		The Java implementation of the Data Tool program was written by Doug Brown at Cabrillo College using portions of
+		the Open
+		Source Physics code library developed by Wolfgang Christian at Davidson College. Data Tool was
+		later converted from
+		Java to JavaScript by Doug Brown, Wolfgang Christian and Robert Hanson using the <a
+			href="https://chemapps.stolaf.edu/swingjs/site/swingjs/examples/about.html">SwingJS </a> system
+		developed by Hanson and his students at St. Olaf College. This web page runs the JavaScript conversion.
+	</p>
+
+</body>
+
+</html>
