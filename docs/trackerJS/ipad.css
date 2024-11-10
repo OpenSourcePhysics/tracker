@@ -1,0 +1,43 @@
+﻿
+.custom-cursor {
+  width: 25px;
+  height: 25px;
+  background-color: transparent;
+  /* Make the background transparent */
+  position: absolute;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  display: none;
+}
+
+.custom-cursor::before,
+.custom-cursor::after {
+  content: '';
+  position: absolute;
+  background-color: black;
+  /* Color of the crosshair */
+}
+
+.custom-cursor::before {
+  width: 25px;
+  /* Horizontal line length */
+  height: 3px;
+  /* Horizontal line thickness */
+  border: 1px solid white;  /* White border */
+  box-sizing: border-box;   /* Ensures border is included in width/height */
+  top: 50%;
+  left: 0;
+  transform: translateY(-50%);
+}
+
+.custom-cursor::after {
+  width: 3px;
+  /* Vertical line thickness */
+  height: 25px;
+  /* Vertical line length */
+  border: 1px solid white;  /* White border */
+  box-sizing: border-box;   /* Ensures border is included in width/height */
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+}
