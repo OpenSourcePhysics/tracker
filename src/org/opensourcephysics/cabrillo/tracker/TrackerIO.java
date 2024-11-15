@@ -20,7 +20,7 @@
 * or view the license online at <http://www.gnu.org/copyleft/gpl.html>
 *
 * For additional Tracker information and documentation, please see
-* <http://physlets.org/tracker/>.
+* <https://opensourcephysics.github.io/tracker/tracker/>.
 */
 package org.opensourcephysics.cabrillo.tracker;
 

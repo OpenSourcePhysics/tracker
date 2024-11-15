@@ -20,7 +20,7 @@
  * or view the license online at <http://www.gnu.org/copyleft/gpl.html>
  *
  * For additional Tracker information and documentation, please see
- * <http://physlets.org/tracker/>.
+ * <https://opensourcephysics.github.io/tracker/tracker/>.
  */
 package org.opensourcephysics.cabrillo.tracker;
 
@@ -35,6 +35,8 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
 
 import javax.swing.BorderFactory;
@@ -136,6 +138,24 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 								@Override
 								public void actionPerformed(ActionEvent e) {
 									// test action goes here	
+									
+									Upgrader upgrader = new Upgrader(frame);
+									String upgradeURL = upgrader.getUpgradeURL();
+									System.out.println("pig upgradeURL "+upgradeURL);
+									String trackerJarName = "tracker-" + Tracker.latestVersion + ".jar"; //$NON-NLS-1$ //$NON-NLS-2$
+									
+									// look for upgrade tracker.jar
+									if (upgradeURL != null && Tracker.trackerHome != null) {
+										String upgradeFile = upgradeURL + trackerJarName;
+										try {
+											URL url = new URL(upgradeFile);
+											HttpURLConnection huc = (HttpURLConnection) url.openConnection();
+											int responseCode = huc.getResponseCode();
+											System.out.println("pig response code "+responseCode+" from "+upgradeFile);
+										} catch (Exception ex) {
+										}
+									}
+
 																				
 //									TrackerPanel trackerPanel = frame.getSelectedPanel();
 //									VideoClip clip = trackerPanel.getPlayer().getVideoClip();

@@ -714,7 +714,7 @@ public class XuggleVideo extends MovieVideo implements SmoothPlayable, Increment
 
 	private boolean seekToStart() {
 		// initial time stamps can be negative. See
-		// https://physlets.org/tracker/library/experiments/projectile_model.zip
+		// https://opensourcephysics.github.io/resources/CAB/experiments/projectile_model.zip
 		return (container.seekKeyFrame(-1, Long.MIN_VALUE, 0, Long.MAX_VALUE,
 				IContainer.SEEK_FLAG_BACKWARDS) >= 0);
 	}

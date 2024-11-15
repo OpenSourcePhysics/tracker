@@ -20,7 +20,7 @@
  * or view the license online at <http://www.gnu.org/copyleft/gpl.html>
  *
  * For additional Tracker information and documentation, please see
- * <http://physlets.org/tracker/>.
+ * <https://opensourcephysics.github.io/tracker/tracker/>.
  */
 package org.opensourcephysics.cabrillo.tracker;
 
@@ -2667,7 +2667,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 						language);
 				if (response == 1) { // language translation
 					String helpURL = "https://translate.google.com/translate?hl=en&sl=en&tl=" + lang //$NON-NLS-1$
-							+ "&u=https://physlets.org/tracker/help/frameset.html"; //$NON-NLS-1$
+							+ "&u=https://opensourcephysics.github.io/tracker/tracker/help/frameset.html"; //$NON-NLS-1$
 					OSPDesktop.displayURL(helpURL);
 				} else if (response == 0) { // english
 					OSPDesktop.displayURL("https://" + Tracker.trackerWebsite + "/help/frameset.html"); //$NON-NLS-1$ //$NON-NLS-2$
@@ -2721,7 +2721,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 			
 			JMenuItem trackerOnlineItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.TrackerOnline")); //$NON-NLS-1$
 			trackerOnlineItem.addActionListener((e) -> {
-				String uRL = "https://physlets.org/tracker/trackerJS/"; //$NON-NLS-1$
+				String uRL = "https://opensourcephysics.github.io/tracker/trackerJS/"; //$NON-NLS-1$
 				OSPDesktop.displayURL(uRL);
 			});
 			helpMenu.addSeparator();
@@ -2730,7 +2730,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		else {
 			JMenuItem trackerHomeItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.TrackerHome")); //$NON-NLS-1$
 			trackerHomeItem.addActionListener((e) -> {
-				String uRL = "https://physlets.org/tracker/"; //$NON-NLS-1$
+				String uRL = "https://opensourcephysics.github.io/tracker/tracker/"; //$NON-NLS-1$
 				OSPDesktop.displayURL(uRL);
 			});
 			helpMenu.addSeparator();

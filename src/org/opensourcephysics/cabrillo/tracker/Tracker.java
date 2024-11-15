@@ -20,7 +20,7 @@
  * or view the license online at <http://www.gnu.org/copyleft/gpl.html>
  *
  * For additional Tracker information and documentation, please see
- * <http://physlets.org/tracker/>.
+ * <https://opensourcephysics.github.io/tracker/tracker/>.
  */
 package org.opensourcephysics.cabrillo.tracker;
 
@@ -220,7 +220,7 @@ public class Tracker {
 	static final int MEMORY_INCREASE       = 4;
 
 	// for testing
-	static boolean testOn = false;
+	static boolean testOn = true;
 	
 	private static String testString;
 
@@ -280,7 +280,7 @@ public class Tracker {
 
 	static boolean checkedForNewerVersion; // true if checked for new version
 	
-	static String trackerWebsite = "physlets.org/tracker"; //$NON-NLS-1$
+	static String trackerWebsite = "opensourcephysics.github.io/tracker/tracker"; //$NON-NLS-1$
 	static Cursor grabCursor;
 	static boolean showHints = true;
 	static boolean startupHintShown;
