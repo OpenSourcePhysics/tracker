@@ -1229,6 +1229,7 @@ swingjs/JSImagekit.js
 swingjs/JSKeyEvent.js
 swingjs/JSMenuManager.js
 swingjs/JSMouse.js
+swingjs/JSMouse2.js
 swingjs/JSScreenDevice.js
 swingjs/JSThreadGroup.js
 swingjs/JSToolkit.js
@@ -1252,9 +1253,6 @@ swingjs/image/JpgImageWriter.js
 swingjs/image/PngImageWriteParam.js
 swingjs/image/PngImageWriter.js
 swingjs/jquery/JQueryUI.js
-swingjs/jquery/j2sComboBox.js
-swingjs/jquery/j2sMenu.js
-swingjs/jquery/j2sSlider.js
 swingjs/jzlib/Adler32.js
 swingjs/jzlib/CRC32.js
 swingjs/jzlib/Checksum.js
