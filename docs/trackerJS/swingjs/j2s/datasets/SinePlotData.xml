@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <object class="org.opensourcephysics.tools.DataToolTab">
-    <property name="name" type="string">unnamed</property>
+    <property name="name" type="string">sinusoid</property>
     <property name="editable" type="boolean">false</property>
     <property name="data" type="object">
     <object class="org.opensourcephysics.display.DatasetManager">
