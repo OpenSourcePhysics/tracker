@@ -220,7 +220,7 @@ public class Tracker {
 	static final int MEMORY_INCREASE       = 4;
 
 	// for testing
-	static boolean testOn = true;
+	static boolean testOn = false;
 	
 	private static String testString;
 
