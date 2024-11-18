@@ -625,7 +625,7 @@ public class TrackerStarter {
 									+ "." + newline + newline //$NON-NLS-1$
 									+ startLogLine
 									+ "For trouble-shooting or to download the latest installer," + newline //$NON-NLS-1$
-									+ "please see http://physlets.org/tracker/." + newline + newline //$NON-NLS-1$
+									+ "please see https://opensourcephysics.github.io/tracker/tracker/." + newline + newline //$NON-NLS-1$
 									+ "Problems:" + newline + exceptions, //$NON-NLS-1$
 							"TrackerStarter Vers " + OSPRuntime.VERSION + ": Error Starting Tracker", //$NON-NLS-1$ //$NON-NLS-2$
 							JOptionPane.ERROR_MESSAGE);
@@ -643,7 +643,7 @@ public class TrackerStarter {
 											+ newline
 											+ startLogLine
 											+ "For trouble-shooting or to download the latest installer," + newline //$NON-NLS-1$
-											+ "please see http://physlets.org/tracker/." + newline + newline //$NON-NLS-1$
+											+ "please see https://opensourcephysics.github.io/tracker/tracker/." + newline + newline //$NON-NLS-1$
 											+ "Problems:" + newline + exceptions, //$NON-NLS-1$
 									"TrackerStarter Vers " + OSPRuntime.VERSION + ": Error Starting Tracker", //$NON-NLS-1$ //$NON-NLS-2$
 									JOptionPane.ERROR_MESSAGE);
@@ -656,7 +656,7 @@ public class TrackerStarter {
 											+ "no tracker.jar or tracker-x.xx.jar file exists in the current directory." + newline + newline //$NON-NLS-1$
 											+ startLogLine
 											+ "For trouble-shooting or to download the latest installer," + newline //$NON-NLS-1$
-											+ "please see http://physlets.org/tracker/." + newline + newline //$NON-NLS-1$
+											+ "please see https://opensourcephysics.github.io/tracker/tracker/." + newline + newline //$NON-NLS-1$
 											+ "Problems:" + newline + exceptions, //$NON-NLS-1$
 									"TrackerStarter Vers " + OSPRuntime.VERSION + ": Error Starting Tracker", //$NON-NLS-1$ //$NON-NLS-2$
 									JOptionPane.ERROR_MESSAGE);
@@ -673,7 +673,7 @@ public class TrackerStarter {
 										+ newline
 										+ startLogLine
 										+ "For trouble-shooting or to download the latest installer," + newline //$NON-NLS-1$
-										+ "please see http://physlets.org/tracker/." + newline + newline //$NON-NLS-1$
+										+ "please see https://opensourcephysics.github.io/tracker/tracker/." + newline + newline //$NON-NLS-1$
 										+ "Problems:" + newline + exceptions, //$NON-NLS-1$
 								"TrackerStarter Vers " + OSPRuntime.VERSION + ": Error Starting Tracker", //$NON-NLS-1$ //$NON-NLS-2$
 								JOptionPane.ERROR_MESSAGE);
