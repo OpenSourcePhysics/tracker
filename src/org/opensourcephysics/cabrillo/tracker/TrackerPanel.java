@@ -2400,9 +2400,11 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				MarkingRequired tool = (MarkingRequired)selectedTrack;
 				invert = invert && !tool.requiresMarking();
 			}
-			markable = !(selectedTrack.isStepComplete(n) || selectedTrack.isLocked()
-					|| popup != null && popup.isVisible());
-			marking = markable && (selectedTrack.isMarkByDefault() != invert);
+			markable = !(
+					(selectedTrack.isStepComplete(n) && !invert)
+					|| selectedTrack.isLocked()
+					|| (popup != null && popup.isVisible()));
+			marking = markable && (selectedTrack.isMarkByDefault() || invert);
 		}
 		Interactive iad = getTracksTemp().isEmpty() || mouseEvent == null ? null : getInteractive();
 		clearTemp();

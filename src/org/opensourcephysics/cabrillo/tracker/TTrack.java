@@ -882,7 +882,7 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 	 * @return <code>true</code> if this marks by default
 	 */
 	public boolean isMarkByDefault() {
-		return markByDefault;
+		return markByDefault || OSPRuntime.cssCursor;
 	}
 
 	/**
@@ -1403,7 +1403,11 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 	 * @return <code>true</code> if the step is complete, otherwise false
 	 */
 	public boolean isStepComplete(int n) {
-		return false; // enables remarking
+		if (isMarkByDefault()) {
+			Step step = getStep(n);
+			return step != null;
+		}
+		return false;
 	}
 
 	/**
