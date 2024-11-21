@@ -20,7 +20,7 @@
  * or view the license online at <http://www.gnu.org/copyleft/gpl.html>
  *
  * For additional Tracker information and documentation, please see
- * <https://opensourcephysics.github.io/tracker/tracker/>.
+ * <https://opensourcephysics.github.io/tracker-website/>.
  */
 package org.opensourcephysics.cabrillo.tracker;
 
@@ -241,7 +241,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 	public static final String PROPERTY_TFRAME_WINDOWFOCUS = "windowfocus";
 
 	protected final static String HELP_PATH = "/org/opensourcephysics/cabrillo/tracker/resources/help/"; //$NON-NLS-1$
-	protected final static String WEB_HELP_PATH = "https://opensourcephysics.github.io/tracker/tracker/help/frameset.html"; //$NON-NLS-1$
+	protected final static String WEB_HELP_PATH = "https://opensourcephysics.github.io/tracker-website/help/frameset.html"; //$NON-NLS-1$
 	protected final static Color YELLOW = new Color(255, 255, 105);
 	private final static int DEFAULT_DIVIDER_SIZE = 10;
 	private final static double MIN_DIVIDER_OFFSET = 0.07;
