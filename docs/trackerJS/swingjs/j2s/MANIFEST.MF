@@ -1,9 +1,0 @@
-Manifest-Version: 1.0
-Ant-Version: Apache Ant 1.10.14
-Created-By: 17.0.9+9 (Eclipse Adoptium)
-Built-By: D Brown, W Christian, R M Hanson
-Build-Date: Jun 27 2024
-Main-Class: org.opensourcephysics.cabrillo.tracker.Tracker
-permissions: all-permissions
-Class-Path: . xuggle-xuggler-server-all.jar
-
