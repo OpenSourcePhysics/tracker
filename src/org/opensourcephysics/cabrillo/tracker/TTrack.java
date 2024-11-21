@@ -1405,7 +1405,14 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 	public boolean isStepComplete(int n) {
 		if (isMarkByDefault()) {
 			Step step = getStep(n);
-			return step != null;
+			if (step != null) {
+				TPoint[] points = step.getPoints();
+				for (int i = 0; i < points.length; i++) {
+					if (points[i] == null)
+						return false;
+				}
+				return true;
+			}
 		}
 		return false;
 	}
