@@ -855,7 +855,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		if (doAddDrawable) {
 			if (isUserTrack) {
 				boolean automark = track.isMarkByDefault();
-				track.setMarkByDefault(automark || OSPRuntime.cssCursor);
+				track.setMarkByDefault(automark || !OSPRuntime.hasKeyboard);
 			}
 			super.addDrawable(track);
 		}

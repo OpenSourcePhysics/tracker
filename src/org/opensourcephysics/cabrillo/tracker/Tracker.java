@@ -36,6 +36,7 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
@@ -115,6 +116,7 @@ import org.opensourcephysics.tools.LaunchNode;
 import org.opensourcephysics.tools.Resource;
 import org.opensourcephysics.tools.ResourceLoader;
 
+import javajs.async.AsyncDialog;
 import javajs.async.AsyncSwingWorker;
 import javajs.async.SwingJSUtils.Performance;
 import swingjs.api.JSUtilI;
@@ -2349,8 +2351,24 @@ public class Tracker {
 
 		showJavaMessages(frame);
 
-		if (OSPRuntime.isJS)
+		if (OSPRuntime.isJS) {
 			frame.setVisible(true);
+			if (OSPRuntime.cssCursor) { // running on iPad
+				new AsyncDialog().showConfirmDialog(frame,
+						TrackerRes.getString("Tracker.Dialog.MobileKeyboard.Message"),
+						TrackerRes.getString("Tracker.Dialog.MobileKeyboard.Title"),
+						JOptionPane.YES_NO_OPTION,
+						new ActionListener() {
+							@Override
+							public void actionPerformed(ActionEvent e) {
+								switch (e.getID()) {
+								case JOptionPane.YES_OPTION:
+									OSPRuntime.hasKeyboard = true;
+								}
+							}
+						});
+			}
+		}
 	}
 
 	private static void showJavaMessages(TFrame frame) {
@@ -3069,7 +3087,7 @@ public class Tracker {
 	static void checkSplash() {
 		if (splash == null || !splash.isVisible())
 			return;
-		OSPRuntime.trigger(1000, (e) -> {splash.dispose(); splash = null;});
+		OSPRuntime.trigger(1000, (e) -> {if (splash!=null)splash.dispose(); splash = null;});
 	}
 
 	static boolean isDefaultConfiguration(Set<String> panelConfig) {
