@@ -280,7 +280,7 @@ public class Tracker {
 
 	static boolean checkedForNewerVersion; // true if checked for new version
 	
-	static String trackerWebsite = "opensourcephysics.github.io/tracker/tracker"; //$NON-NLS-1$
+	static String trackerWebsite = "opensourcephysics.github.io/tracker-website"; //$NON-NLS-1$
 	static Cursor grabCursor;
 	static boolean showHints = true;
 	static boolean startupHintShown;

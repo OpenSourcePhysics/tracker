@@ -882,7 +882,7 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 	 * @return <code>true</code> if this marks by default
 	 */
 	public boolean isMarkByDefault() {
-		return markByDefault || OSPRuntime.cssCursor;
+		return markByDefault;
 	}
 
 	/**

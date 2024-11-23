@@ -852,8 +852,13 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				break;
 			}
 		}
-		if (doAddDrawable)
+		if (doAddDrawable) {
+			if (isUserTrack) {
+				boolean automark = track.isMarkByDefault();
+				track.setMarkByDefault(automark || OSPRuntime.cssCursor);
+			}
 			super.addDrawable(track);
+		}
 		
 		// update track control and dataBuilder
 		if (trackControl != null && trackControl.isVisible())
@@ -2414,9 +2419,11 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				String msg = null;
 				switch (selectedTrack.ttype) {
 				case TTrack.TYPE_POINTMASS:
-					msg = (selectedTrack.getStep(n) == null ?
-						"PointMass.Hint.Marking" //$NON-NLS-1$
-						: "PointMass.Remarking.Hint"); //$NON-NLS-1$
+					msg = (selectedTrack.getStep(n) != null ?
+						  "PointMass.Remarking.Hint"
+						:	selectedTrack.isMarkByDefault() ?
+							"PointMass.Hint.Automarking" //$NON-NLS-1$
+						:	"PointMass.Hint.Marking"); //$NON-NLS-1$
 					break;
 				case TTrack.TYPE_VECTOR:
 					msg = (selectedTrack.getStep(n) == null ?
