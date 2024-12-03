@@ -219,7 +219,7 @@ public class PropertiesDialog extends JDialog {
 				if (n > -1) {
 					if (video instanceof MovieVideo) {
 						type = type.substring(0, n);
-						type += "(Xuggle)"; //$NON-NLS-1$
+						type += OSPRuntime.isJS? "(JS)": "(Xuggle)"; //$NON-NLS-1$
 					}
 					else if (video instanceof ImageVideo && video.getProperty("ext") != null) {
 						String ext = (String)video.getProperty("ext");
