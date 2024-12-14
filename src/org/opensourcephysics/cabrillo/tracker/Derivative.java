@@ -34,13 +34,13 @@ public interface Derivative {
   /**
    * Evaluates the derivative(s).
    * 
-   * Input data:
+   * Typical input data:
    *    data[0] = parameters (int[] {spill, start, stepsize, count})
    *    data[1] = xData (double[])
    *    data[2] = yData (double[])
    *    data[3] = validData (boolean[])
    *    
-   * Returned result:
+   * Typical returned result:
    *    result[0] = firstDerivX (double[]) may be null
    *    result[1] = firstDerivY (double[]) may be null
    *    result[2] = secondDerivX (double[]) may be null
