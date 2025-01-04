@@ -342,9 +342,10 @@ public class XuggleVideo extends MovieVideo implements SmoothPlayable, Increment
 						break;
 					offset += bytesDecoded;
 					if (!picture.isComplete()) {
-						System.out.println("!! XuggleVideo picture was incomplete! dts=" + dts + " index=" + index);
 						if (!haveImages)
 							firstDisplayPacket++;
+						else
+							System.out.println("!! XuggleVideo picture was incomplete! dts=" + dts + " index=" + index);
 						continue;
 					}
 				}
@@ -841,7 +842,7 @@ public class XuggleVideo extends MovieVideo implements SmoothPlayable, Increment
 			resetContainer();
 		while (container.readNextPacket(packet) >= 0) {
 			dts = packet.getTimeStamp();
-			if (dts == keyTS) {
+			if (dts == keyTS && (packet.getStreamIndex() == streamIndex)) {
 				loadPictureFromPacket();
 				return true;
 			}
