@@ -585,20 +585,20 @@ public class TrackerStarter {
 		} catch (Exception e) {}
 		
 		if (OSPRuntime.isWindows()) {
-			File jre = JREFinder.getFinder().getDefaultJRE(64, trackerHome, false);
+			File jre = JREFinder.getFinder().getDefaultJRE(64, trackerHome, false, "OpenJDK");
 			String jrepath = jre == null? null: jre.getPath();
-			File jre32 = JREFinder.getFinder().getDefaultJRE(32, trackerHome, false);
+			File jre32 = JREFinder.getFinder().getDefaultJRE(32, trackerHome, false, "OpenJDK");
 			String jre32path = jre32 == null? null: jre32.getPath();
 			return new String[] {jrepath, jre32path};
 		}
 		else if (OSPRuntime.isMac()) {
 			File home = new File(trackerHome);
 			String path = home.getParent()+"/PlugIns/Java.runtime"; //$NON-NLS-1$
-			File jre = JREFinder.getFinder().getDefaultJRE(64, path, false);
+			File jre = JREFinder.getFinder().getDefaultJRE(64, path, false, "OpenJDK");
 			return new String[] {jre == null? null: jre.getPath()};
 		}
 		else {
-			File jre = JREFinder.getFinder().getDefaultJRE(64, trackerHome, false);
+			File jre = JREFinder.getFinder().getDefaultJRE(64, trackerHome, false, "OpenJDK");
 			return new String[] {jre == null? null: jre.getPath()};
 		}
 	}
@@ -803,7 +803,7 @@ public class TrackerStarter {
 				if (requestXuggleServer && xuggleServerJar != null) {
 					if (bundledVMs[0] == null) {
 						// if no bundled 64-bit use default 64-bit
-						File vm = JREFinder.getFinder().getDefaultJRE(64, trackerHome, true);
+						File vm = JREFinder.getFinder().getDefaultJRE(64, trackerHome, true, null);
 						if (vm != null) {						
 							File javaFile = OSPRuntime.getJavaFile(vm.getPath());
 							if (javaFile!=null) {
@@ -825,7 +825,7 @@ public class TrackerStarter {
 					int index = OSPRuntime.isWindows()? 1: 0;
 					int bitness = OSPRuntime.isWindows()? 32: 64;
 					if (bundledVMs.length <= index || bundledVMs[index] == null) {
-						File vm = JREFinder.getFinder().getDefaultJRE(bitness, trackerHome, true);
+						File vm = JREFinder.getFinder().getDefaultJRE(bitness, trackerHome, true, null);
 						if (vm != null) {						
 							File javaFile = OSPRuntime.getJavaFile(vm.getPath());
 							if (javaFile!=null) {
