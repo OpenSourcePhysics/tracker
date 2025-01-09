@@ -369,7 +369,7 @@ public class XuggleVideo extends MovieVideo implements SmoothPlayable, Increment
 				if (keyTS0 == Long.MIN_VALUE)
 					keyTS0 = dts;
 				frameTimes.add((dts - keyTS0) * timebase);
-				firePropertyChange(PROPERTY_VIDEO_PROGRESS, path, index);
+				firePropertyChange(PROPERTY_VIDEO_PROGRESS, path, index++);
 				//frameRefs[FRAME] = index++;
 			}
 		}
