@@ -1722,14 +1722,15 @@ public class PrefsDialog extends JDialog {
 						String[] bundledVMs = TrackerStarter.findBundledVMs();
 						String bundledVM = vmBitness == 32 && OSPRuntime.isWindows() ? bundledVMs[1] : bundledVMs[0];
 
-						File defaultVM = jreFinder.getDefaultJRE(vmBitness, path, true);
+						File defaultVM = jreFinder.getDefaultJRE(vmBitness, path, true, null);
 						for (File next : availableJREs) {
 							String jrePath = next.getPath();
 							if (bundledVM != null && jrePath.equals(bundledVM)) {
 								availableJREPaths.add(jrePath);
 								jreDropdown.insertItemAt(
 										TrackerRes.getString("PrefsDialog.JREDropdown.BundledJRE") + " " + jrePath, 0); //$NON-NLS-1$
-							} else if (defaultVM != null && jrePath.equals(defaultVM.getPath())) {
+							} else if (defaultVM != null && jrePath.equals(defaultVM.getPath())
+									&& bundledVM ==  null) {
 								availableJREPaths.add(jrePath);
 								jreDropdown.insertItemAt(TrackerRes.getString("PrefsDialog.JREDropdown.LatestJRE"), 0); //$NON-NLS-1$
 								jreDropdown.addItem(jrePath); // duplicate latest
