@@ -309,6 +309,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 	private boolean alwaysListenToClipboard;
 
 	private Notes notes;
+	private TrackerPanel blockedPanel;
 
 	/**
 	 * Constructs an empty TFrame.
@@ -3315,7 +3316,29 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 	public void setFrameBlocker(boolean blocking, TrackerPanel panel) {
 		getJMenuBar().setEnabled(!blocking);
 		tabbedPane.setEnabled(!blocking);
-		getContentPane().setVisible(!blocking);
+//		getContentPane().setVisible(!blocking);
+		
+		if (blocking)
+			blockedPanel = getSelectedPanel();
+		if (blockedPanel != null) {
+			TToolBar toolbar = blockedPanel.getToolBar(false);
+			if (toolbar != null) toolbar.setEnabled(!blocking);
+			TTrackBar trackbar = blockedPanel.getTrackBar(false);
+			if (trackbar != null) trackbar.setEnabled(!blocking);
+			VideoPlayer player = blockedPanel.getPlayer();
+			if (player != null) {
+				player.stop();
+				player.setEnabled(!blocking);
+			}
+			TViewChooser[] choosers = getViewChoosers(blockedPanel);
+			if (choosers != null) {
+				for (int i = 0; i < choosers.length; i++) {
+					if (choosers[i] != null)
+						choosers[i].setEnabled(!blocking);
+				}
+			}			
+		}
+		
 		state = (blocking ? STATE_BLOCKED : STATE_ACTIVE);
 		if (blocking) {
 			frameBlocker = new Object();
@@ -3328,6 +3351,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 				panel.onBlocked();
 		} else if (frameBlocker != null) {
 			frameBlocker = null;
+			blockedPanel = null;
 			if (panel != null) // null for file not found
 				panel.onLoaded();
 			if (notesVisible()) {
@@ -3896,6 +3920,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 				JOptionPane.WARNING_MESSAGE);
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public boolean importData(Object data, Component component) {
 		if (data instanceof List) {
