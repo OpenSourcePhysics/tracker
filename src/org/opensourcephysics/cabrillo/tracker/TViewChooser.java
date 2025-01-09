@@ -470,6 +470,18 @@ public class TViewChooser extends JPanel implements PropertyChangeListener, OSPR
 			}
 		}
 	}
+	
+	@Override
+	public void setEnabled(boolean enable) {
+		super.setEnabled(enable);
+		chooserButton.setEnabled(enable);
+		maximizeButton.setEnabled(enable);
+		TView view = getSelectedView();
+		ArrayList<Component> comps = view.getToolBarComponents();
+		for (int j = 0; j < comps.size(); j++) {
+			comps.get(j).setEnabled(enable);
+		}
+	}
 
 	/**
 	 * Maximizes this chooser and its views.

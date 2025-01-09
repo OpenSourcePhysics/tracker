@@ -85,8 +85,6 @@ import org.opensourcephysics.media.core.VideoClip;
 import org.opensourcephysics.tools.FontSizer;
 import org.opensourcephysics.tools.ResourceLoader;
 
-import javajs.async.AsyncFileChooser;
-
 /**
  * This is the main toolbar for Tracker.
  *
@@ -1963,6 +1961,15 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 	@Override
 	public void finalize() {
 		OSPLog.finalized(this);
+	}
+	
+	@Override
+	public void setEnabled(boolean enable) {
+		super.setEnabled(enable);
+		Component[] comps = getComponents();
+		for (int i = 0; i < comps.length; i++) {
+			comps[i].setEnabled(enable);
+		}
 	}
 
 	/**

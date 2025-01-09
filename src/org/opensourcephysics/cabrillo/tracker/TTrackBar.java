@@ -136,8 +136,13 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 								@Override
 								public void actionPerformed(ActionEvent e) {
 									// test action goes here	
-									
-//									TrackerPanel trackerPanel = frame.getSelectedPanel();
+									TrackerPanel trackerPanel = frame.getSelectedPanel();			
+									testIndex++;
+									boolean b = testIndex%2 == 0;
+									frame.setFrameBlocker(b, trackerPanel);
+									testButton.setEnabled(true);
+
+
 //									VideoClip clip = trackerPanel.getPlayer().getVideoClip();
 //									String path = clip.getVideoPath();
 //									path = XML.forwardSlash(path);
@@ -288,6 +293,15 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 		Object[] objectsToSize = new Object[] { newVersionButton, trackButton, sizingField, testButton };
 		FontSizer.setFonts(objectsToSize, level);
 		numberFieldWidth = sizingField.getPreferredSize().width;
+	}
+
+	@Override
+	public void setEnabled(boolean enable) {
+		super.setEnabled(enable);
+		Component[] comps = getComponents();
+		for (int i = 0; i < comps.length; i++) {
+			comps[i].setEnabled(enable);
+		}
 	}
 
 	private static final String[] panelProps = new String[] { 
