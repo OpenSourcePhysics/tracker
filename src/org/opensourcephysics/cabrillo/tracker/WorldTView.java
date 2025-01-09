@@ -203,6 +203,7 @@ public class WorldTView extends ZoomTView {
 		Runnable runner = new Runnable() {
 			@Override
 			public synchronized void run() {
+				if (worldPanel() == null) return;
 				scrollPane.getViewport().setView(worldPanel()); // is this needed?
 				Dimension full = worldPanel().getFullSize();
 				Dimension dim = worldPanel().getSize();
