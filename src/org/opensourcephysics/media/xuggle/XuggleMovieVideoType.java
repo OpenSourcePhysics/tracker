@@ -137,14 +137,16 @@ public class XuggleMovieVideoType extends MovieVideoType {
 //				video.setProperty("video_type", this); //$NON-NLS-1$
 //			}
 			
-			if (!video.isFullyLoaded()) {
-				// drop video from AsyncLoadser.loadVideo->VidewoIO.getVideo(String,VideoType)--> getVideo(String,null,null)
-
-				// step thru container quickly and find all video frames
-				while (video.loadMoreFrames(500)) {
-					System.out.println("loading");
-				}
-			}
+			// DB 1/9/25 loadMoreFrames() breaks progress monitoring!!
+//			if (!video.isFullyLoaded()) {
+//				// drop video from AsyncLoadser.loadVideo->VidewoIO.getVideo(String,VideoType)--> getVideo(String,null,null)
+//
+//				// step thru container quickly and find all video frames
+//				while (video.loadMoreFrames(500)) {
+//					System.out.println("loading");
+//				}
+//			}
+			
 			video.setProperty("video_type", this); //$NON-NLS-1$
 		} catch (IOException ex) {
 			OSPLog.fine(getDescription() + ": " + ex.getMessage()); //$NON-NLS-1$
