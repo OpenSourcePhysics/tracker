@@ -4051,7 +4051,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				// OSPLog.debug("!!! " + Performance.now(t0) + " TrackerPanel.finalizeLoading");
 				// OSPLog.debug("TrackerPanel.finalizeLoading done");
 			}
-			System.out.println("TrackerPanel.loader progress " + trackerPanel.progress + " " + OSPRuntime.getMemoryStr());
+//			System.out.println("TrackerPanel.loader progress " + trackerPanel.progress + " " + OSPRuntime.getMemoryStr());
 			if (trackerPanel.progress == VideoIO.PROGRESS_COMPLETE) {
 				if (asyncloader != null)
 					asyncloader.finalized(trackerPanel);
@@ -5223,22 +5223,24 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	
 	
 	public static void main(String[] args) {
+		
+		Tracker.main(args);
 
-		TrackerPanel p = new TrackerPanel(null, (Video)null);
-
-		try {
-
-			Thread.sleep(100);
-			p.dispose();
-
-			p = null;
-			
-			Thread.sleep(1000);
-			
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+//		TrackerPanel p = new TrackerPanel(null, (Video)null);
+//
+//		try {
+//
+//			Thread.sleep(100);
+//			p.dispose();
+//
+//			p = null;
+//			
+//			Thread.sleep(1000);
+//			
+//		} catch (InterruptedException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
 
 	}
 	
