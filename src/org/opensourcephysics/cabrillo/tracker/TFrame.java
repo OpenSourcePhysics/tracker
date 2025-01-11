@@ -53,6 +53,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
@@ -309,7 +310,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 	private boolean alwaysListenToClipboard;
 
 	private Notes notes;
-	private TrackerPanel blockedPanel;
+	private JPanel frameContentPane;
 
 	/**
 	 * Constructs an empty TFrame.
@@ -494,6 +495,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 	 * @param whenDone
 	 */
 	public void addTab(final TrackerPanel trackerPanel, int addMode, Runnable whenDone) {
+		setFrameBlocker(false, trackerPanel);
 		boolean doSelect = ((addMode & ADD_SELECT) != 0);
 		boolean doRefresh = ((addMode & ADD_REFRESH) != 0);
 		Integer panelID = trackerPanel.getID();
@@ -2436,7 +2438,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 
 		// create the tabbed pane
 		tabbedPane = new JTabbedPane(SwingConstants.BOTTOM);
-		setContentPane(new JPanel(new BorderLayout()));
+		frameContentPane = new JPanel(new BorderLayout());
+		setContentPane(frameContentPane);
 		getContentPane().add(tabbedPane, BorderLayout.CENTER);
 		// create the default menubar
 //		TrackerRes.locale = Locale.forLanguageTag("es");
@@ -3308,40 +3311,20 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 	}
 
 	/**
-	 * An empty JDialog that serves as a modal blocker when the progress monitor is
-	 * visible.
+	 * A frame blocker screenshot shown when the progress monitor is visible.
 	 */
-	private Object frameBlocker;
+	private FrameBlocker frameBlocker;
 
 	public void setFrameBlocker(boolean blocking, TrackerPanel panel) {
 		getJMenuBar().setEnabled(!blocking);
-		tabbedPane.setEnabled(!blocking);
+//		tabbedPane.setEnabled(!blocking);
 //		getContentPane().setVisible(!blocking);
-		
-		if (blocking)
-			blockedPanel = getSelectedPanel();
-		if (blockedPanel != null) {
-			TToolBar toolbar = blockedPanel.getToolBar(false);
-			if (toolbar != null) toolbar.setEnabled(!blocking);
-			TTrackBar trackbar = blockedPanel.getTrackBar(false);
-			if (trackbar != null) trackbar.setEnabled(!blocking);
-			VideoPlayer player = blockedPanel.getPlayer();
-			if (player != null) {
-				player.stop();
-				player.setEnabled(!blocking);
-			}
-			TViewChooser[] choosers = getViewChoosers(blockedPanel);
-			if (choosers != null) {
-				for (int i = 0; i < choosers.length; i++) {
-					if (choosers[i] != null)
-						choosers[i].setEnabled(!blocking);
-				}
-			}			
-		}
-		
+						
 		state = (blocking ? STATE_BLOCKED : STATE_ACTIVE);
 		if (blocking) {
-			frameBlocker = new Object();
+			frameBlocker = new FrameBlocker();
+			setContentPane(frameBlocker);
+			revalidate();
 			if (notesVisible()) {
 				setNotesVisible(false);
 				notes.wasVisible = true;
@@ -3351,7 +3334,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 				panel.onBlocked();
 		} else if (frameBlocker != null) {
 			frameBlocker = null;
-			blockedPanel = null;
+			setContentPane(frameContentPane);
 			if (panel != null) // null for file not found
 				panel.onLoaded();
 			if (notesVisible()) {
@@ -3359,6 +3342,29 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 				notes.wasVisible = false;
 			}
 		}
+	}
+	
+	/**
+	 * A class to draw an image of the content pane during frame blocking
+	 */
+	private class FrameBlocker extends JPanel {
+		
+    private BufferedImage image;
+
+    public FrameBlocker() {
+			image = new BufferedImage(frameContentPane.getWidth(), frameContentPane.getHeight(), 
+					BufferedImage.TYPE_3BYTE_BGR);
+			java.awt.Graphics g = image.getGraphics();
+			frameContentPane.paint(g);
+			g.dispose();
+    }
+
+    @Override
+    protected void paintComponent(Graphics g) {
+      super.paintComponent(g);
+      g.drawImage(image, 0, 0, this);
+    }
+
 	}
 
 	public void setNotesVisible(boolean b) {
@@ -3903,14 +3909,16 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 	}
 
 	public static void main(String[] args) {
+		
+		Tracker.main(args);
 
 		// The TFrame is necessary for providing access to the panel via a panelID.
 
-		TFrame f = new TFrame();
-		TrackerPanel tp = new TrackerPanel(f);
-		System.out.println(tp);
-		System.out.println(f.getTrackerPanelForID(tp.getID()));
-		System.exit(0);
+//		TFrame f = new TFrame();
+//		TrackerPanel tp = new TrackerPanel(f);
+//		System.out.println(tp);
+//		System.out.println(f.getTrackerPanelForID(tp.getID()));
+//		System.exit(0);
 	}
 
 	public void sayFileNotFound(String path) {
