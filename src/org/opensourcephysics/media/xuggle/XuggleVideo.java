@@ -2,7 +2,7 @@
  * The org.opensourcephysics.media.xuggle package provides Xuggle
  * services including implementations of the Video and VideoRecorder interfaces.
  *
- * Copyright (c) 2024  Douglas Brown and Wolfgang Christian.
+ * Copyright (c) 2025  Douglas Brown and Wolfgang Christian.
  *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

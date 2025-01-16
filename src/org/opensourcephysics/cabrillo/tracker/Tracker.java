@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2024 Douglas Brown, Wolfgang Christian, Robert M. Hanson
+ * Copyright (c) 2025 Douglas Brown, Wolfgang Christian, Robert M. Hanson
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -184,7 +184,7 @@ public class Tracker {
 	// 3/09/21: abandon Tracker.VERSION for OSPRuntime.VERSION for smaller
 	// tracker_starter.jar
 //	public static final String VERSION = "5.9.20210307"; //$NON-NLS-1$
-	public static final String COPYRIGHT = "Copyright (c) 2024 D Brown, W Christian, R M Hanson"; //$NON-NLS-1$
+	public static final String COPYRIGHT = "Copyright (c) 2025 D Brown, W Christian, R M Hanson"; //$NON-NLS-1$
 
 	/**
 	 * Gets an icon from a class resource image.
