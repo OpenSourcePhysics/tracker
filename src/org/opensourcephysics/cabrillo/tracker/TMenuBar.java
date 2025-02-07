@@ -2721,7 +2721,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 			
 			JMenuItem trackerOnlineItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.TrackerOnline")); //$NON-NLS-1$
 			trackerOnlineItem.addActionListener((e) -> {
-				String uRL = "https://opensourcephysics.github.io/tracker-websiteJS/"; //$NON-NLS-1$
+				String uRL = "https://opensourcephysics.github.io/tracker-online/"; //$NON-NLS-1$
 				OSPDesktop.displayURL(uRL);
 			});
 			helpMenu.addSeparator();

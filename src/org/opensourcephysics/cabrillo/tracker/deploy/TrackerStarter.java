@@ -40,6 +40,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 import java.util.jar.JarFile;
 import java.nio.charset.Charset;
 
@@ -156,6 +157,7 @@ public class TrackerStarter {
 		try {
 			userHome = OSPRuntime.getUserHome();
 			javaHome = System.getProperty("java.home"); //$NON-NLS-1$
+			
 			if (OSPRuntime.isWindows()) {
 				userDocuments = new JFileChooser().getFileSystemView().getDefaultDirectory().toString();
 			} 
@@ -1320,6 +1322,11 @@ public class TrackerStarter {
 	
 	private static void addLogHeader() {
 		if (!logText.startsWith("TrackerStarter")) { //$NON-NLS-1$
+			
+//			// use code below for testing
+//			Properties props = System.getProperties();
+//			props.forEach((k, v) -> logMessage(k+": "+v));			
+			
 			SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss  MMM dd yyyy"); //$NON-NLS-1$
 			Calendar cal = Calendar.getInstance();
 			logText = "TrackerStarter version " + OSPRuntime.VERSION + "  " //$NON-NLS-1$ //$NON-NLS-2$
