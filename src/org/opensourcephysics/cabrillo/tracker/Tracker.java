@@ -270,17 +270,18 @@ public class Tracker {
 	private static String counterPath = "https://physlets.org/tracker/counter/counter.php?"; //$NON-NLS-1$
 	private static Tracker sharedTracker;
 
-    private static String rootXMLPath = ""; // path to root directory of trk files //$NON-NLS-1$
+  private static String rootXMLPath = ""; // path to root directory of trk files //$NON-NLS-1$
 	private static Cursor zoomInCursor, zoomOutCursor;
 	private static Locale[] locales;
 	private static Locale defaultLocale;
 
 	// preferences
-	
+	static final String DEFAULT_TRACKER_PREFS = "tracker.prefs.default";
 	static String latestVersion; // last version for which user has been informed
 	static String newerVersion; // new version available if non-null
 
 	static boolean checkedForNewerVersion; // true if checked for new version
+	static boolean isNewInstall;
 	
 	static String trackerWebsite = "opensourcephysics.github.io/tracker-website"; //$NON-NLS-1$
 	static Cursor grabCursor;
@@ -1928,7 +1929,6 @@ public class Tracker {
 	 * Loads preferences from a preferences file, if any.
 	 */
 	protected static void loadPreferences() {
-
 		XMLControl prefsControl = TrackerStarter.findPreferences();
 		if (prefsControl != null) {
 			prefsPath = prefsControl.getString("prefsPath"); //$NON-NLS-1$
@@ -1937,7 +1937,21 @@ public class Tracker {
 				OSPLog.info("preferences loaded from " + XML.getAbsolutePath(new File(prefsPath))); //$NON-NLS-1$
 			}
 			prefsControl.loadObject(null); // the loader itself reads the values
+
+			isNewInstall = System.getenv(TrackerStarter.NEW_INSTALL) != null;
+			if (isNewInstall) {
+				// reset preferred JRE and Tracker jar to defaults
+				// so new version will be opened in bundled JRE
+				preferredJRE = null;
+				preferredTrackerJar = null;		
+				savePreferences();
+			}	
+			
 			return;
+		}
+		else { // no prefsControl, so must be new install
+			loadDefaultPreferences();
+			// new prefs will be saved below			
 		}
 
 		/**
@@ -1979,6 +1993,26 @@ public class Tracker {
 	}
 
 	/**
+	 * Loads preferences from the preferences file, if any.
+	 */
+	protected static void loadDefaultPreferences() {
+		if (trackerHome == null)
+			return;
+		File f = new File(trackerHome);
+		if (OSPRuntime.isMac()) {
+			f = new File(f.getParent(), "Resources/"+DEFAULT_TRACKER_PREFS);
+		}
+		else {
+			f = new File(f.getPath(), DEFAULT_TRACKER_PREFS);
+		}
+		XMLControl prefsControl = f.exists()? new XMLControlElement(f): null;
+
+		if (prefsControl != null) {
+			prefsControl.loadObject(null); // the loader itself reads the values
+		}
+	}
+	
+	/**
 	 * Saves the current preferences.
 	 * 
 	 * @return the path to the saved file
@@ -1990,6 +2024,8 @@ public class Tracker {
 			// save prefs file in current preferences path
 			if (prefsPath != null) {
 				control.write(prefsPath);
+				if (isNewInstall)
+					OSPLog.info("new preferences saved at " + prefsPath);
 			}
 
 			// save other existing prefs files
@@ -2086,7 +2122,6 @@ public class Tracker {
 	 * @param args array of tracker or video file names
 	 */
 	public static void main(String[] args) {
-
 		OSPLog.debug(Performance.timeCheckStr("Tracker.main start", Performance.TIME_RESET));
 
 		boolean isHeadless = (args != null && args.length > 0 && ("-headless".equals(args[0])) || "true".equals(System.getProperty("java.awt.headless")));
@@ -2169,7 +2204,8 @@ public class Tracker {
 			java.lang.management.MemoryMXBean memory = java.lang.management.ManagementFactory.getMemoryMXBean();
 			long currentMemory = memory.getHeapMemoryUsage().getMax() / (1024 * 1024);
 
-			if (!checkIsRelaunch(args)) {
+			isNewInstall = System.getenv(TrackerStarter.NEW_INSTALL) != null;
+			if (!isNewInstall && !isRelaunch(args)) {
 				boolean isJar = checkIsJAR(); // check jar to set usesXuggleServer BEFORE checking java VM
 				boolean needsJavaVM = checkNeedsJVM(currentMemory);
 				// update video engine resources
@@ -2261,7 +2297,7 @@ public class Tracker {
 
 	}
 
-	private static boolean checkIsRelaunch(String[] args) {
+	private static boolean isRelaunch(String[] args) {
 		// determine if this is a relaunch or if relaunch is needed
 		boolean isRelaunch = (args != null && args.length > 0 && "relaunch".equals(args[args.length - 1])); //$NON-NLS-1$
 		if (args != null && isRelaunch) {
