@@ -130,7 +130,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 	private JMenuItem copyImageItem, dataBuilderItem; 
 	private JMenuItem showXZeroItem, showYZeroItem;
 	private JMenuItem selectPointsItem, deselectPointsItem;
-	private JMenuItem algorithmItem, filterItem, printItem, helpItem, mergeYScalesItem;
+	private JMenuItem algorithmItem, printItem, helpItem, mergeYScalesItem;
 	private JMenuItem guestsItem;
 	
 	protected String xLabel, yLabel, title;
@@ -401,7 +401,6 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 		dataBuilderItem.setText(TrackerRes.getString("TView.Menuitem.Define")); //$NON-NLS-1$
 		dataToolItem.setText(TrackerRes.getString("TableTrackView.Popup.MenuItem.Analyze")); //$NON-NLS-1$
 		algorithmItem.setText(TrackerRes.getString("Popup.MenuItem.Algorithm")); //$NON-NLS-1$
-		filterItem.setText(TrackerRes.getString("Popup.MenuItem.Filter")); //$NON-NLS-1$
 		helpItem.setText(TrackerRes.getString("Tracker.Popup.MenuItem.Help")); //$NON-NLS-1$
 		guestsItem.setText(TrackerRes.getString("TrackPlottingPanel.Popup.Menu.CompareWith") + "..."); //$NON-NLS-1$ //$NON-NLS-2$
 		if (plotTrackView.getPlotCount() > 1) {
@@ -438,7 +437,6 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 
 		// disable algorithmItem and filterItem if not point mass track
 		algorithmItem.setEnabled(track.ttype == TTrack.TYPE_POINTMASS);
-		filterItem.setEnabled(track.ttype == TTrack.TYPE_POINTMASS);
 		return popupmenu;
 	}
 
@@ -586,21 +584,6 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 					dialog.setVisible(true);
 				}
 			});
-			// filter item
-			filterItem = new JMenuItem();
-			filterItem.addActionListener(new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					MotionFilterDialog dialog = frame.getTrackerPanelForID(panelID).getFilterDialog();
-					TTrack track = TTrack.getTrack(trackID);
-					if (track.ttype == TTrack.TYPE_POINTMASS) {
-						dialog.setTargetMass((PointMass) track);
-					}
-					FontSizer.setFonts(dialog, FontSizer.getLevel());
-					dialog.pack();
-					dialog.setVisible(true);
-				}
-			});
 			// copy image item
 			Action copyImageAction = new AbstractAction() {
 				@Override
@@ -710,7 +693,6 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 			if (trackerPanel.isEnabled("data.algorithm")) { //$NON-NLS-1$
 				popupmenu.addSeparator();
 				popupmenu.add(algorithmItem);
-				popupmenu.add(filterItem);
 			}
 			if (trackerPanel.isEnabled("file.print")) { //$NON-NLS-1$
 				popupmenu.addSeparator();

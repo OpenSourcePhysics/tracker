@@ -174,8 +174,8 @@ public abstract class Step implements Cloneable {
 	 * @param trackerPanel the tracker panel
 	 */
 	public void erase(Integer panelID) {
-		if (panelMarks.get(panelID) == null)
-			return; // already dirty
+		if (panelMarks.get(panelID) == null || panel(panelID) == null)
+			return; // already dirty or unavailable
 		panel(panelID).addDirtyRegion(null);//getBounds(trackerPanel)); // old bounds
 		panelMarks.put(panelID, null); // triggers new mark
 	}
@@ -188,6 +188,8 @@ public abstract class Step implements Cloneable {
 	 * @param trackerPanel the tracker panel
 	 */
 	public void remark(Integer panelID) {
+		if (panel(panelID) == null)
+			return; // unavailable
 		erase(panelID);
 		panel(panelID).addDirtyRegion(null);//getBounds(trackerPanel)); // new bounds
 	}
@@ -199,6 +201,8 @@ public abstract class Step implements Cloneable {
 	 * @param trackerPanel the tracker panel
 	 */
 	public void repaint(Integer panelID) {
+		if (panel(panelID) == null)
+			return; // unavailable
 		remark(panelID);
 		panel(panelID).repaintDirtyRegion();
 	}
@@ -235,8 +239,10 @@ public abstract class Step implements Cloneable {
 	}
 
 	private TrackerPanel panel(Integer panelID) {
-		if (getTrack() == null)
+		if (getTrack() == null) {
 			System.out.println("OHOH");
+			return null;
+		}
 		return getTrack().panel(panelID);
 	}
 

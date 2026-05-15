@@ -1803,7 +1803,8 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 			edit_copyObjectMenu.add(item);
 			// copy track items
 			for (TTrack next : panel().getTracksTemp()) {
-				if (next == panel().getAxes() || next instanceof PerspectiveTrack)
+				if (next == panel().getAxes() || next instanceof PerspectiveTrack
+						|| next instanceof FilteredPointMass)
 					continue;
 				item = new JMenuItem(next.getName());
 				item.setActionCommand(next.getName());
@@ -2248,6 +2249,8 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		// long t0 = Performance.now(0);
 
 		ArrayList<TTrack> userTracks = panel().getUserTracks();
+		userTracks.removeAll(panel().getDrawablesTemp(FilteredPointMass.class));
+
 		boolean hasTracks = !userTracks.isEmpty();
 
 		if (isTainted(MENU_TRACK)) {
@@ -2268,6 +2271,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 			// for each track
 			for (int i = 0, n = userTracks.size(); i < n; i++) {
 				track = userTracks.get(i);
+				
 				String trackName = track.getName("track"); //$NON-NLS-1$
 				// add item to clone menu for each track
 				JMenuItem item = new JMenuItem(trackName);

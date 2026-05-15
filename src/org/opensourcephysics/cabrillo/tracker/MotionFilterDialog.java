@@ -25,9 +25,7 @@
 package org.opensourcephysics.cabrillo.tracker;
 
 import java.awt.BorderLayout;
-import java.awt.CardLayout;
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.Toolkit;
@@ -59,31 +57,29 @@ import org.opensourcephysics.tools.FontSizer;
 
 /**
  * Dialog that selects and configures the {@link MotionFilter} applied to point mass
- * positions before velocity and acceleration are computed. The same dialog can be
- * applied to a single point mass or to all point masses in the TrackerPanel.
+ * positions. The same dialog can be applied to a single point mass 
+ * or to all point masses in the TrackerPanel.
  *
- * @author Tracker Filter contribution
+ * @author D Brown, using Tracker Filter contribution
  */
 @SuppressWarnings("serial")
 public class MotionFilterDialog extends JDialog {
 
-	private static final String CARD_NONE = "none"; //$NON-NLS-1$
-	private static final String CARD_MA = "ma"; //$NON-NLS-1$
-	private static final String CARD_BUTTER = "butter"; //$NON-NLS-1$
-	private static final String CARD_SG = "sg"; //$NON-NLS-1$
+	private static final String FILTER_NONE = "none"; //$NON-NLS-1$
+	private static final String FILTER_MOVING_AVG = "ma"; //$NON-NLS-1$
+	private static final String FILTER_BUTTERWORTH = "butter"; //$NON-NLS-1$
+	private static final String FILTER_SAV_GOLAY = "sg"; //$NON-NLS-1$
 
 	protected TFrame frame;
 	protected Integer panelID;
 
-	protected ArrayList<PointMass> targetMasses = new ArrayList<PointMass>();
+	protected ArrayList<FilteredPointMass> targetMasses = new ArrayList<FilteredPointMass>();
 
 	private JRadioButton noneButton, maButton, butterButton, sgButton;
-	private TitledBorder choiceBorder;
+	private TitledBorder choiceBorder, paramsBorder;
 	private JTextPane infoPane;
 
-	private JPanel cards;
-	private CardLayout cardLayout;
-
+	private JPanel choices, params, upper;
 	private JSpinner maWindowSpinner;
 	private JSpinner butterOrderSpinner, butterCutoffSpinner;
 	private JLabel butterRateLabel;
@@ -103,13 +99,13 @@ public class MotionFilterDialog extends JDialog {
 		okButton.requestFocusInWindow();
 	}
 
-	protected void setTargetMass(PointMass mass) {
+	protected void setTargetMass(FilteredPointMass mass) {
 		targetMasses.clear();
 		targetMasses.add(mass);
 		refreshGUI();
 	}
 
-	protected void setTargetMasses(ArrayList<PointMass> masses) {
+	protected void setTargetMasses(ArrayList<FilteredPointMass> masses) {
 		targetMasses.clear();
 		targetMasses.addAll(masses);
 		refreshGUI();
@@ -118,47 +114,60 @@ public class MotionFilterDialog extends JDialog {
 	private void createGUI() {
 		JPanel contentPane = new JPanel(new BorderLayout());
 		setContentPane(contentPane);
+		
+		choices = new JPanel(new GridLayout(4, 1, 0, 0));
+		params = new JPanel(new GridLayout(4, 1, 0, 0));
+		upper = new JPanel(new GridLayout(1, 2, 0, 0));
+		upper.add(choices);
+		upper.add(params);
+		contentPane.add(upper, BorderLayout.NORTH);
 
-		Box choicebar = Box.createHorizontalBox();
 		choiceBorder = BorderFactory.createTitledBorder(""); //$NON-NLS-1$
 		Border empty = BorderFactory.createEmptyBorder(3, 2, 3, 2);
-		choicebar.setBorder(BorderFactory.createCompoundBorder(empty, choiceBorder));
+		choices.setBorder(BorderFactory.createCompoundBorder(empty, choiceBorder));
+		paramsBorder = BorderFactory.createTitledBorder(""); //$NON-NLS-1$
+		params.setBorder(BorderFactory.createCompoundBorder(empty, paramsBorder));
+		
 		ButtonGroup group = new ButtonGroup();
-
 		Action chooser = new AbstractAction() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				if (updating) return;
-				String card = e.getActionCommand();
-				cardLayout.show(cards, card);
+				refreshParams(e.getActionCommand());
+				upper.revalidate();
 				applyCurrent();
 				refreshInfo();
 			}
 		};
 
-		noneButton = makeRadio(group, choicebar, chooser, CARD_NONE);
-		maButton = makeRadio(group, choicebar, chooser, CARD_MA);
-		butterButton = makeRadio(group, choicebar, chooser, CARD_BUTTER);
-		sgButton = makeRadio(group, choicebar, chooser, CARD_SG);
+		noneButton = makeRadio(group, chooser, FILTER_NONE);
+		maButton = makeRadio(group, chooser, FILTER_MOVING_AVG);
+		butterButton = makeRadio(group, chooser, FILTER_BUTTERWORTH);
+		sgButton = makeRadio(group, chooser, FILTER_SAV_GOLAY);
 
-		contentPane.add(choicebar, BorderLayout.NORTH);
-
-		cardLayout = new CardLayout();
-		cards = new JPanel(cardLayout);
-		cards.add(buildNoneCard(), CARD_NONE);
-		cards.add(buildMovingAverageCard(), CARD_MA);
-		cards.add(buildButterworthCard(), CARD_BUTTER);
-		cards.add(buildSavitzkyGolayCard(), CARD_SG);
+		choices.add(noneButton);
+		choices.add(maButton);
+		choices.add(sgButton);
+		choices.add(butterButton);
+		
+		maWindowSpinner = new MySpinner(new SpinnerNumberModel(5, 3, 99, 2));
+		maWindowSpinner.addChangeListener(applyOnChange());
+		sgWindowSpinner = new MySpinner(new SpinnerNumberModel(7, 5, 99, 2));
+		sgWindowSpinner.addChangeListener(applyOnChange());
+		sgPolySpinner = new MySpinner(new SpinnerNumberModel(2, 1, 6, 1));
+		sgPolySpinner.addChangeListener(applyOnChange());
+		butterOrderSpinner = new MySpinner(new SpinnerNumberModel(4, 1, 8, 1));
+		butterOrderSpinner.addChangeListener(applyOnChange());
+		butterCutoffSpinner = new MySpinner(new SpinnerNumberModel(6.0, 0.1, 1000.0, 0.5));
+		butterCutoffSpinner.addChangeListener(applyOnChange());
+		butterRateLabel = new JLabel("--"); //$NON-NLS-1$
 
 		infoPane = new JTextPane();
 		infoPane.setEditable(false);
 		infoPane.setBorder(BorderFactory.createEmptyBorder(6, 8, 6, 8));
 		JScrollPane infoScroll = new JScrollPane(infoPane);
-
-		JPanel center = new JPanel(new BorderLayout());
-		center.add(cards, BorderLayout.NORTH);
-		center.add(infoScroll, BorderLayout.CENTER);
-		contentPane.add(center, BorderLayout.CENTER);
+		infoPane.setText(TrackerRes.getString("FilterDialog.SavitzkyGolay.Description")); //$NON-NLS-1$
+		contentPane.add(infoScroll, BorderLayout.CENTER);
 
 		okButton = new JButton();
 		okButton.setForeground(new Color(0, 0, 102));
@@ -186,61 +195,82 @@ public class MotionFilterDialog extends JDialog {
 		refreshGUI();
 	}
 
-	private JRadioButton makeRadio(ButtonGroup g, Box bar, Action a, String cmd) {
+	private JRadioButton makeRadio(ButtonGroup g, Action a, String cmd) {
 		JRadioButton b = new JRadioButton();
 		b.setActionCommand(cmd);
 		b.addActionListener(a);
 		g.add(b);
-		bar.add(b);
 		return b;
 	}
 
-	private JPanel buildNoneCard() {
-		JPanel p = new JPanel();
-		p.setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
+	private JPanel getMovingAveragePanel() {
+		Box box = Box.createHorizontalBox();
+		box.add(Box.createHorizontalGlue());
+		JLabel label = new JLabel(TrackerRes.getString("FilterDialog.Param.Window")); //$NON-NLS-1$
+		label.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 8));		
+		box.add(label);
+		box.add(maWindowSpinner);
+		JPanel p = new JPanel(new BorderLayout());
+		p.add(box, BorderLayout.CENTER);
+		FontSizer.setFont(p);
 		return p;
 	}
 
-	private JPanel buildMovingAverageCard() {
-		JPanel p = new JPanel(new GridLayout(0, 2, 6, 6));
-		p.setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
-		maWindowSpinner = new JSpinner(new SpinnerNumberModel(5, 3, 99, 2));
-		maWindowSpinner.addChangeListener(applyOnChange());
-		p.add(new JLabel(TrackerRes.getString("FilterDialog.Param.Window"))); //$NON-NLS-1$
-		p.add(maWindowSpinner);
-		return p;
+	private JPanel[] getButterworthPanels() {
+		JPanel p1 = new JPanel(new BorderLayout());
+		Box box = Box.createHorizontalBox();
+		box.add(Box.createHorizontalGlue());
+		JLabel label = new JLabel(TrackerRes.getString("FilterDialog.Param.Order")); //$NON-NLS-1$
+		label.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 8));		
+		box.add(label);
+		box.add(butterOrderSpinner);
+		p1.add(box, BorderLayout.CENTER);
+		
+		JPanel p2 = new JPanel(new BorderLayout());
+		box = Box.createHorizontalBox();
+		box.add(Box.createHorizontalGlue());
+		label = new JLabel(TrackerRes.getString("FilterDialog.Param.Cutoff")); //$NON-NLS-1$
+		label.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 8));		
+		box.add(label);
+		box.add(butterCutoffSpinner);
+		p2.add(box, BorderLayout.CENTER);
+	
+		JPanel p3 = new JPanel(new BorderLayout());
+		box = Box.createHorizontalBox();
+		box.add(Box.createHorizontalGlue());
+		label = new JLabel(TrackerRes.getString("FilterDialog.Param.SampleRate")); //$NON-NLS-1$
+		label.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 8));		
+		box.add(label);
+		box.add(butterRateLabel);
+		p3.add(box, BorderLayout.CENTER);
+		
+		return new JPanel[] {p1, p2, p3};
+	}
+	
+	private JPanel[] getSavitzkyGolayPanels() {
+		JPanel p1 = new JPanel(new BorderLayout());
+		Box box = Box.createHorizontalBox();
+		box.add(Box.createHorizontalGlue());
+		JLabel label = new JLabel(TrackerRes.getString("FilterDialog.Param.Window")); //$NON-NLS-1$
+		label.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 8));		
+		box.add(label);
+		box.add(sgWindowSpinner);
+		p1.add(box, BorderLayout.CENTER);
+		FontSizer.setFont(p1);
+		
+		JPanel p2 = new JPanel(new BorderLayout());
+		box = Box.createHorizontalBox();
+		box.add(Box.createHorizontalGlue());
+		label = new JLabel(TrackerRes.getString("FilterDialog.Param.PolyOrder")); //$NON-NLS-1$
+		label.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 8));		
+		box.add(label);
+		box.add(sgPolySpinner);
+		p2.add(box, BorderLayout.CENTER);
+		FontSizer.setFont(p2);
+		
+		return new JPanel[] {p1, p2};
 	}
 
-	private JPanel buildButterworthCard() {
-		JPanel p = new JPanel(new GridLayout(0, 2, 6, 6));
-		p.setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
-		butterOrderSpinner = new JSpinner(new SpinnerNumberModel(4, 1, 8, 1));
-		butterOrderSpinner.addChangeListener(applyOnChange());
-		butterCutoffSpinner = new JSpinner(new SpinnerNumberModel(6.0, 0.1, 1000.0, 0.5));
-		butterCutoffSpinner.addChangeListener(applyOnChange());
-		butterRateLabel = new JLabel("--"); //$NON-NLS-1$
-		p.add(new JLabel(TrackerRes.getString("FilterDialog.Param.Order"))); //$NON-NLS-1$
-		p.add(butterOrderSpinner);
-		p.add(new JLabel(TrackerRes.getString("FilterDialog.Param.Cutoff"))); //$NON-NLS-1$
-		p.add(butterCutoffSpinner);
-		p.add(new JLabel(TrackerRes.getString("FilterDialog.Param.SampleRate"))); //$NON-NLS-1$
-		p.add(butterRateLabel);
-		return p;
-	}
-
-	private JPanel buildSavitzkyGolayCard() {
-		JPanel p = new JPanel(new GridLayout(0, 2, 6, 6));
-		p.setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
-		sgWindowSpinner = new JSpinner(new SpinnerNumberModel(7, 5, 99, 2));
-		sgWindowSpinner.addChangeListener(applyOnChange());
-		sgPolySpinner = new JSpinner(new SpinnerNumberModel(2, 1, 6, 1));
-		sgPolySpinner.addChangeListener(applyOnChange());
-		p.add(new JLabel(TrackerRes.getString("FilterDialog.Param.Window"))); //$NON-NLS-1$
-		p.add(sgWindowSpinner);
-		p.add(new JLabel(TrackerRes.getString("FilterDialog.Param.PolyOrder"))); //$NON-NLS-1$
-		p.add(sgPolySpinner);
-		return p;
-	}
 
 	private ChangeListener applyOnChange() {
 		return new ChangeListener() {
@@ -266,7 +296,7 @@ public class MotionFilterDialog extends JDialog {
 	private void applyCurrent() {
 		if (targetMasses.isEmpty()) return;
 		MotionFilter f = buildFilterFromUI();
-		for (PointMass m : targetMasses) {
+		for (FilteredPointMass m : targetMasses) {
 			m.setMotionFilter(f == null ? null : f.copy());
 		}
 	}
@@ -287,12 +317,51 @@ public class MotionFilterDialog extends JDialog {
 		}
 		return null;
 	}
+	
+	private void refreshParams(String filterName) {
+		if (filterName == null)
+			filterName = FILTER_NONE;
+		params.removeAll();
+		switch(filterName) {
+		case FILTER_NONE:
+			params.add(new JPanel());
+			params.add(new JPanel());
+			params.add(new JPanel());
+			params.add(new JPanel());
+			break;
+		case FILTER_MOVING_AVG:
+			params.add(getMovingAveragePanel());
+			params.add(new JPanel());
+			params.add(new JPanel());
+			params.add(new JPanel());
+			break;
+		case FILTER_BUTTERWORTH:
+			JPanel[] panels = getButterworthPanels();
+			params.add(panels[0]);
+			params.add(panels[1]);
+			params.add(panels[2]);
+			params.add(new JPanel());
+			break;
+		case FILTER_SAV_GOLAY:
+			panels = getSavitzkyGolayPanels();
+			params.add(panels[0]);
+			params.add(panels[1]);
+			params.add(new JPanel());
+			params.add(new JPanel());	
+		}
+		FontSizer.setFonts(params, FontSizer.getLevel());
+
+	}
 
 	private void refreshGUI() {
-		String target = targetMasses.size() == 1 ? targetMasses.get(0).getName()
-				: TrackerRes.getString("AlgorithmDialog.TargetMasses.All"); //$NON-NLS-1$
-		setTitle(TrackerRes.getString("FilterDialog.Title") + ": " + target); //$NON-NLS-1$ //$NON-NLS-2$
-		choiceBorder.setTitle(TrackerRes.getString("FilterDialog.TitledBorder.Choose")); //$NON-NLS-1$
+		if (targetMasses.size() == 0)
+			return;
+		// FilterDialog.Title.Text
+		String title = TrackerRes.getString("FilterDialog.Title.Text");
+		FilteredPointMass fpm = targetMasses.get(0);
+		setTitle(title+" \""+fpm.getName()+"\""); //$NON-NLS-1$ //$NON-NLS-2$
+		choiceBorder.setTitle(TrackerRes.getString("FilterDialog.TitledBorder.Choose")+":"); //$NON-NLS-1$
+		paramsBorder.setTitle(TrackerRes.getString("FilterDialog.TitledBorder.Params")+":"); //$NON-NLS-1$
 		okButton.setText(TrackerRes.getString("Dialog.Button.OK")); //$NON-NLS-1$
 		cancelButton.setText(TrackerRes.getString("Dialog.Button.Cancel")); //$NON-NLS-1$
 		noneButton.setText(TrackerRes.getString("FilterDialog.None.Name")); //$NON-NLS-1$
@@ -324,25 +393,25 @@ public class MotionFilterDialog extends JDialog {
 		updating = true;
 		try {
 			MotionFilter current = targetMasses.isEmpty() ? null : targetMasses.get(0).getMotionFilter();
-			prevFilter = current == null ? null : current.copy();
-			selectCardForFilter(current);
+			prevFilter = current == null ? null : current.copy();			
+			loadParamsForFilter(current);
 		} finally {
 			updating = false;
 		}
 		refreshInfo();
 	}
 
-	private void selectCardForFilter(MotionFilter f) {
+	private void loadParamsForFilter(MotionFilter f) {
+
 		if (f == null) {
 			noneButton.setSelected(true);
-			cardLayout.show(cards, CARD_NONE);
-			return;
+			refreshParams(FILTER_NONE);
 		}
-		if (f instanceof MovingAverageFilter) {
+		else if (f instanceof MovingAverageFilter) {
 			MovingAverageFilter ma = (MovingAverageFilter) f;
 			maWindowSpinner.setValue(ma.getWindow());
 			maButton.setSelected(true);
-			cardLayout.show(cards, CARD_MA);
+			refreshParams(FILTER_MOVING_AVG);
 		} else if (f instanceof ButterworthFilter) {
 			ButterworthFilter bw = (ButterworthFilter) f;
 			butterOrderSpinner.setValue(bw.getOrder());
@@ -350,18 +419,18 @@ public class MotionFilterDialog extends JDialog {
 			if (butterRateLabel != null)
 				butterRateLabel.setText(String.format("%.2f Hz", bw.getSampleRateHz())); //$NON-NLS-1$
 			butterButton.setSelected(true);
-			cardLayout.show(cards, CARD_BUTTER);
+			refreshParams(FILTER_BUTTERWORTH);
 		} else if (f instanceof SavitzkyGolayFilter) {
 			SavitzkyGolayFilter sg = (SavitzkyGolayFilter) f;
 			sgWindowSpinner.setValue(sg.getWindow());
 			sgPolySpinner.setValue(sg.getPolyOrder());
 			sgButton.setSelected(true);
-			cardLayout.show(cards, CARD_SG);
+			refreshParams(FILTER_SAV_GOLAY);
 		}
 	}
 
 	private void revert() {
-		for (PointMass m : targetMasses) {
+		for (FilteredPointMass m : targetMasses) {
 			m.setMotionFilter(prevFilter == null ? null : prevFilter.copy());
 		}
 	}
@@ -369,20 +438,32 @@ public class MotionFilterDialog extends JDialog {
 	@Override
 	public void setVisible(boolean vis) {
 		initialize();
+		if (getLocation().x == 0) {
+			Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
+			int x = (dim.width - getBounds().width) / 2;
+			int y = (dim.height - getBounds().height) / 2;
+			setLocation(x, y);
+		}
 		super.setVisible(vis);
 	}
 
 	protected void setFontLevel(int level) {
 		FontSizer.setFonts(this, level);
+		FontSizer.setFonts(maWindowSpinner, level);
+		FontSizer.setFonts(butterOrderSpinner, level);
+		FontSizer.setFonts(butterCutoffSpinner, level);
+		FontSizer.setFonts(butterRateLabel, level);
+		FontSizer.setFonts(sgWindowSpinner, level);
+		FontSizer.setFonts(sgPolySpinner, level);
+
 		FontSizer.setFonts(choiceBorder, level);
-		int w = (int) (480 * (1 + level * .35));
-		int h = (int) (160 * (1 + level * .35));
+		FontSizer.setFonts(paramsBorder, level);
+		
+		// set preferred size
+		int w = (int) (320 * (1 + level * .35));
+		int h = (int) (140 * (1 + level * .35));
 		infoPane.setPreferredSize(new Dimension(w, h));
 		pack();
-		Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
-		int x = (dim.width - getBounds().width) / 2;
-		int y = (dim.height - getBounds().height) / 2;
-		setLocation(x, y);
 	}
 
 	@Override
@@ -391,10 +472,25 @@ public class MotionFilterDialog extends JDialog {
 		frame = null;
 		super.dispose();
 	}
+	
+	class MySpinner extends JSpinner {
+		
+		public MySpinner(SpinnerNumberModel model) {
+			super(model);
+		}
+		
+		@Override
+		public Dimension getMaximumSize() {
+			return getPreferredSize();
+		}
+		
+		@Override
+		public Dimension getPreferredSize() {
+			if (this == maWindowSpinner)
+				return getMinimumSize();
+			return maWindowSpinner.getMinimumSize();
+		}
 
-	@SuppressWarnings("unused")
-	private static Component placeholder() {
-		return new JPanel();
-	}
+	};
 
 }

@@ -685,6 +685,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		tracks.removeAll(calibrationTools);
 		tracks.removeAll(measuringTools);
 		tracks.removeAll(getDrawablesTemp(PerspectiveTrack.class));
+//		tracks.removeAll(getDrawablesTemp(FilteredPointMass.class));
 
 		// remove child ParticleDataTracks
 		ArrayList<ParticleDataTrack> list = getDrawablesTemp(ParticleDataTrack.class);
@@ -739,6 +740,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			}
 		}
 		list.clear();
+		tracks.removeAll(getDrawablesTemp(FilteredPointMass.class));
 		return tracks;
 	}
 
@@ -899,6 +901,13 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		// notify views and TrackControl AFTER displaying views
 		firePropertyChange(PROPERTY_TRACKERPANEL_TRACK, null, track); // to views //$NON-NLS-1$
 
+		// check point masses for FilteredPointMass
+		if (track instanceof PointMass) {
+			PointMass mass = (PointMass)track;
+			if (mass.filteredFootprintName != null) {
+				mass.showFilteredPointMass(false);
+			}
+		}
 	}
 
 	private void addDataTrackPoints(ParticleDataTrack dt) {
@@ -2332,8 +2341,8 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	protected MotionFilterDialog getFilterDialog() {
 		if (filterDialog == null) {
 			filterDialog = new MotionFilterDialog(this);
-			filterDialog.setFontLevel(FontSizer.getLevel());
 		}
+		filterDialog.setFontLevel(FontSizer.getLevel());
 		return filterDialog;
 	}
 
@@ -3139,6 +3148,9 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		if (attachmentDialog != null) {
 			attachmentDialog.setFontLevel(level);
 		}
+		if (filterDialog != null) {
+			filterDialog.setFontLevel(level);
+		}
 		PencilDrawer drawer = PencilDrawer.getDrawer(this);
 		if (drawer.drawingControl != null && drawer.drawingControl.isVisible()) {
 			drawer.drawingControl.setFontLevel(level);
@@ -3256,6 +3268,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		ArrayList<Object[]> changes = new ArrayList<Object[]>();
 		int nMin = Integer.MAX_VALUE, nMax = -1;
 		ArrayList<TTrack> list = getTracks();
+		list.removeAll(getDrawablesTemp(FilteredPointMass.class));
 		for (int it = 0, ni = list.size(); it < ni; it++) {
 			TTrack track = list.get(it);
 			boolean isChanged = false;

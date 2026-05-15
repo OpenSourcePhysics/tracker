@@ -386,8 +386,6 @@ public class PointMass extends TTrack {
 	protected int aDerivSpill = 2;
 	protected int bounceDerivsSpill = 3;
 	protected int[] params = new int[4];
-	// pre-derivative position filter; null disables filtering
-	protected MotionFilter motionFilter = null;
 	protected double[] xData = new double[5];
 	protected double[] yData = new double[5];
 	protected boolean[] validData = new boolean[5];
@@ -416,6 +414,7 @@ public class PointMass extends TTrack {
 	protected JMenuItem autotrackItem;
 	protected JCheckBoxMenuItem vVisibleItem;
 	protected JCheckBoxMenuItem aVisibleItem;
+	protected JCheckBoxMenuItem showFilteredItem;
 
 	protected boolean vAtOrigin, aAtOrigin;
 	protected boolean traceVisible = false;
@@ -423,6 +422,12 @@ public class PointMass extends TTrack {
 	protected Stroke traceStroke = new BasicStroke(1);
 	protected boolean drawsTrace; // ParticleModel
 	protected boolean loading;
+	
+	// FilteredPointMass
+	protected FilteredPointMass filteredPM = null;
+	protected MotionFilter filter;
+	protected int filteredColor;
+	protected String filteredFootprintName;
 
 	/**
 	 * Constructs a PointMass with mass 1.0.
@@ -589,7 +594,15 @@ public class PointMass extends TTrack {
 		if (autoTracker != null && autoTracker.getTrack() == this)
 			autoTracker.delete(n);
 	}
-
+	
+	@Override
+	public void delete() {
+		if (filteredPM != null) {
+			filteredPM.delete();
+		}
+		super.delete(true);
+	}
+	
 	/**
 	 * Overrides TTrack getStep method.
 	 *
@@ -1033,26 +1046,6 @@ public class PointMass extends TTrack {
 			updateDerivatives();
 			fireStepsChanged();
 		}
-	}
-
-	/**
-	 * Sets the pre-derivative position filter applied before velocity and acceleration
-	 * are computed. A null filter disables filtering and restores raw-position behavior.
-	 *
-	 * @param newFilter the filter, or null
-	 */
-	public void setMotionFilter(MotionFilter newFilter) {
-		this.motionFilter = newFilter;
-		refreshDataLater = false;
-		updateDerivatives();
-		fireStepsChanged();
-	}
-
-	/**
-	 * @return the active motion filter, or null if filtering is disabled
-	 */
-	public MotionFilter getMotionFilter() {
-		return motionFilter;
 	}
 
 	/**
@@ -2210,16 +2203,6 @@ public class PointMass extends TTrack {
 		locked = false;
 		boolean labelsVisible = isLabelsVisible(panel);
 
-		// optionally smooth positions before differentiation
-		double[] xDataForDeriv = xData;
-		double[] yDataForDeriv = yData;
-		if (motionFilter != null) {
-			xDataForDeriv = motionFilter.apply(xData, validData);
-			yDataForDeriv = motionFilter.apply(yData, validData);
-			derivData[1] = xDataForDeriv;
-			derivData[2] = yDataForDeriv;
-		}
-
 		// evaluate derivatives in worldspace coordinates
 		double[] xDeriv1; // first deriv
 		double[] yDeriv1; // first deriv
@@ -2245,12 +2228,6 @@ public class PointMass extends TTrack {
 			xDeriv2 = (double[]) result[2];
 			yDeriv2 = (double[]) result[3];
 		}
-		// restore raw position references after derivative evaluation
-		if (motionFilter != null) {
-			derivData[1] = xData;
-			derivData[2] = yData;
-		}
-
 		// create, delete and/or set components of velocity vectors
 		StepArray array = panelVMap.get(panel.getID());
 		int endFrame = startFrame + (stepCount - 1) * clip.getStepSize();
@@ -2375,11 +2352,6 @@ public class PointMass extends TTrack {
 		boolean isLocked = locked; // save for later restoration
 		locked = false;
 
-		// optionally smooth angular position before differentiation
-		if (motionFilter != null) {
-			derivData[1] = motionFilter.apply(xData, validData);
-		}
-
 		// evaluate first derivative
 		params[0] = vDerivSpill; // spill
 		Object[] result = vDeriv.evaluate(derivData);
@@ -2389,11 +2361,6 @@ public class PointMass extends TTrack {
 		params[0] = aDerivSpill; // spill
 		result = aDeriv.evaluate(derivData);
 		double[] alpha = (double[]) result[2];
-
-		// restore raw reference for downstream callers
-		if (motionFilter != null) {
-			derivData[1] = xData;
-		}
 
 		// restore locked state
 		locked = isLocked;
@@ -2687,21 +2654,28 @@ public class PointMass extends TTrack {
 			aFootprintMenu.add(item);
 			fp[i].setStroke(stroke);
 		}
-		// if video is not null, add autotrack item just above dataColumnsItem item
-		if (panel.isEnabled("track.autotrack")) { //$NON-NLS-1$
+		// add showFiltered item
+		TMenuBar.checkAddMenuSep(menu);
+		showFilteredItem.setText(TrackerRes.getString("PointMass.MenuItem.Filter.Text")); //$NON-NLS-1$
+		showFilteredItem.setSelected(filteredPM != null && filteredPM.isVisible());
+		menu.add(showFilteredItem);		
+
+		// if video is not null, add autotrack item just below filterItem 
+		if (panel.isEnabled("track.autotrack") && !isDependent()) { //$NON-NLS-1$
 			autotrackItem.setText(TrackerRes.getString("PointMass.MenuItem.Autotrack")); //$NON-NLS-1$
 			autotrackItem.setEnabled(panel.getVideo() != null);
 			boolean added = false;
 			for (int i = 0; i < menu.getItemCount(); i++) {
 				JMenuItem next = menu.getItem(i);
-				if (next == dataBuilderItem) {
-					menu.insert(autotrackItem, i);
+				if (next == showFilteredItem) {
+					menu.insert(autotrackItem, i+1);
 					added = true;
 				}
 			}
 			if (!added)
 				menu.add(autotrackItem); // just in case
 		}
+
 		// add autoAdvance and markByDefault items
 		if (panel.isEnabled("track.autoAdvance") || //$NON-NLS-1$
 				panel.isEnabled("track.markByDefault")) { //$NON-NLS-1$
@@ -2911,9 +2885,12 @@ public class PointMass extends TTrack {
 				i++;
 			}
 			control.setValue("keyFrames", keys); //$NON-NLS-1$
-			// save filter if non-null
-			if (p.motionFilter != null) {
-				control.setValue("motion_filter", p.motionFilter); //$NON-NLS-1$
+			// save filteredPM if non-null AND open
+			if (p.filteredPM != null && 
+					(p.filteredPM.isVisible() || p.filteredPM.isDeleted)) {
+				control.setValue("filtered_filter", p.filteredPM.filter); //$NON-NLS-1$
+				control.setValue("filtered_colorRGB", p.filteredPM.getColor().getRGB()); //$NON-NLS-1$
+				control.setValue("filtered_footprint", p.filteredPM.getFootprintName()); //$NON-NLS-1$
 			}
 		}
 
@@ -3005,10 +2982,12 @@ public class PointMass extends TTrack {
 				}
 			}
 
-			// load filter if present (older files have no filter; default null)
-			Object loadedFilter = control.getObject("motion_filter"); //$NON-NLS-1$
-			if (loadedFilter instanceof MotionFilter) {
-				p.motionFilter = (MotionFilter) loadedFilter;
+			//load filteredPointMass data if present (older files have no filter; default null)
+			s = control.getString("filtered_footprint");
+			if (s != null) {
+				p.filter = (MotionFilter) control.getObject("filtered_filter");
+				p.filteredColor = control.getInt("filtered_colorRGB");
+				p.filteredFootprintName = s;
 			}
 
 			p.setLocked(locked);
@@ -3238,6 +3217,45 @@ public class PointMass extends TTrack {
 			}
 		});
 
+		showFilteredItem = new JCheckBoxMenuItem();
+		showFilteredItem.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if (tp == null)
+					return;
+				if (showFilteredItem.isSelected()) {
+					showFilteredPointMass(filteredPM == null);
+				}
+				else {
+					if (filteredPM == null)
+						return;
+					tp.removeTrack(filteredPM);
+					tp.getFilterDialog().setVisible(false);
+				}
+			}
+		});
+	}
+	
+	protected void showFilteredPointMass(boolean showDialog) {
+		if (filteredPM == null) {			
+			filteredPM = new FilteredPointMass(PointMass.this, filter);
+		}
+		if (filteredFootprintName != null) {
+			filteredPM.setFootprint(filteredFootprintName);
+			filteredPM.setColor(new Color(filteredColor));
+			filteredFootprintName = null;
+		}
+		filteredPM.setTrailLength(getTrailLength());
+		filteredPM.setVisible(true);
+		tp.addTrack(filteredPM);
+		tp.setSelectedTrack(filteredPM);
+		filteredPM.refreshPositions();
+		filteredPM.updateDerivatives();
+		filteredPM.fireStepsChanged();
+		MotionFilterDialog dialog = tp.getFilterDialog();
+		dialog.setTargetMass(filteredPM);
+		if (showDialog)
+			dialog.setVisible(true);
 	}
 
 	/**

@@ -140,7 +140,6 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 									testIndex++;
 									testButton.setEnabled(true);
 
-
 //									VideoClip clip = trackerPanel.getPlayer().getVideoClip();
 //									String path = clip.getVideoPath();
 //									path = XML.forwardSlash(path);

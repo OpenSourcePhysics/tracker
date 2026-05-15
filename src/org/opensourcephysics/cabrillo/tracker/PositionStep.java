@@ -354,7 +354,7 @@ public class PositionStep extends Step {
 		@Override
 		public void setXY(double x, double y) {
 			PointMass track = (PointMass) getTrack();
-			if (track.isLocked())
+			if (track.isLocked() || track.isDependent())
 				return;
 			super.setXY(x, y);
 			repaint();
