@@ -13,6 +13,8 @@ import javax.swing.JMenuItem;
 
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
+import org.opensourcephysics.display.DatasetManager;
+import org.opensourcephysics.media.core.ImageCoordSystem;
 import org.opensourcephysics.media.core.TPoint;
 import org.opensourcephysics.tools.FontSizer;
 
@@ -23,6 +25,7 @@ public class FilteredPointMass extends PointMass implements PropertyChangeListen
 	JMenuItem motionFilterItem, closeItem;
 	String sourceName = "";
 	boolean isDeleted;
+	double rmsDevX, rmsDevY;
 	
 	public FilteredPointMass(PointMass pointMass, MotionFilter motionFilter) {
 		super(pointMass.getMass());
@@ -66,7 +69,7 @@ public class FilteredPointMass extends PointMass implements PropertyChangeListen
 	
 	public void setMotionFilter(MotionFilter motionFilter) {
 		filter = motionFilter;
-		refreshPositions();
+		refreshPositions(true);
 		repaint();
 		refreshDataLater = false;
 		updateDerivatives();
@@ -102,7 +105,8 @@ public class FilteredPointMass extends PointMass implements PropertyChangeListen
 		TTrack source = TTrack.getTrack(sourceID);
 		if (source != null)
 			sourceName = source.getName();
-		return sourceName + " " + TrackerRes.getString("FilteredPointMass.Name.Suffix");
+		name = sourceName + " " + TrackerRes.getString("FilteredPointMass.Name.Suffix");
+		return name;
 	}
 	
 	@Override
@@ -175,10 +179,17 @@ public class FilteredPointMass extends PointMass implements PropertyChangeListen
 	@Override
 	public void propertyChange(PropertyChangeEvent e) {
 		String prop = e.getPropertyName();
-		if (prop.startsWith("step")) {
+		if (prop.equals("step") || prop.equals("steps")) {
 			// source has changed
-			refreshPositions();
+			refreshPositions(true);
 			repaint();
+			refreshDataLater = false;
+			updateDerivatives();
+			fireStepsChanged();
+		}
+		super.propertyChange(e);
+		if (prop.equals(ImageCoordSystem.PROPERTY_COORDS_TRANSFORM)) {
+			refreshPositions(false);
 			refreshDataLater = false;
 			updateDerivatives();
 			fireStepsChanged();
@@ -200,7 +211,7 @@ public class FilteredPointMass extends PointMass implements PropertyChangeListen
 		return null;
 	}
 	
-	protected void refreshPositions() {
+	protected void refreshPositions(boolean full) {
 		PointMass source = (PointMass)TTrack.getTrack(sourceID);
 		if (source == null || source.tp == null || steps == null)
 			return;
@@ -227,35 +238,55 @@ public class FilteredPointMass extends PointMass implements PropertyChangeListen
 			}
 		}
 		
-		// then obtain the filtered positions
+		// then obtain the filtered positions and determine rmsDev
 		double[] filteredX = filter == null? dataX: filter.apply(dataX, valid);
 		double[] filteredY = filter == null? dataY: filter.apply(dataY, valid);
 		
-		// then set positions of this filteredPointMass
-		loading = true; // suppresses firing step property changes
-		steps.setLength(len);
-		Step[] mySteps = getSteps();
-		TPoint p = new TPoint();
-		for (int i = 0; i < len; i++) {
-			PositionStep myStep = (PositionStep)mySteps[i];
-			if (valid[i]) {
-				// determine image position
-				p.setWorldPosition(filteredX[i], filteredY[i], source.tp);
-				if (myStep == null) {
-					myStep = (PositionStep) createStep(i, p.x, p.y);
+		double sumOfSquaresX = 0, sumOfSquaresY = 0, dev = 0;
+		int count = 0;
+		for (int i = 0; i < filteredX.length; i++) {
+			if (!valid[i])
+				continue;
+			count++;
+			dev = filteredX[i] - dataX[i];
+			sumOfSquaresX += dev * dev;
+			dev = filteredY[i] - dataY[i];
+			sumOfSquaresY += dev * dev;
+		}
+		rmsDevX = count==0? 0: Math.sqrt(sumOfSquaresX / count);
+		rmsDevY = count==0? 0: Math.sqrt(sumOfSquaresY / count);
+		
+		if (full) {		
+			// then set positions of this filteredPointMass
+			loading = true; // suppresses firing step property changes
+			steps.setLength(len);
+			Step[] mySteps = getSteps();
+			TPoint p = new TPoint();
+			for (int i = 0; i < len; i++) {
+				PositionStep myStep = (PositionStep)mySteps[i];
+				if (valid[i]) {
+					// determine image position
+					p.setWorldPosition(filteredX[i], filteredY[i], source.tp);
+					if (myStep == null) {
+						myStep = (PositionStep) createStep(i, p.x, p.y);
+					}
+					else {
+						myStep.getPosition().setPosition(p);
+					}
 				}
-				else {
-					myStep.getPosition().setPosition(p);
+				else { // invalid--Step should be null
+					mySteps[i] = null;
 				}
-			}
-			else { // invalid--Step should be null
-				mySteps[i] = null;
 			}
 		}
 		loading = false;
 		refreshDataLater = false;
 		dataValid = false;
-		getData(tp);
+		DatasetManager data = getData(tp); // refreshes datasets
+	}
+	
+	public double getRMSDev() {
+		return Math.sqrt(rmsDevX*rmsDevX + rmsDevY*rmsDevY);
 	}
 	
 	/**

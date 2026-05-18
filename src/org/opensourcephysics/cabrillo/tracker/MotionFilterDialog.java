@@ -51,14 +51,17 @@ import javax.swing.border.Border;
 import javax.swing.border.TitledBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import javax.swing.event.HyperlinkEvent;
+import javax.swing.event.HyperlinkListener;
 
+import org.opensourcephysics.desktop.OSPDesktop;
+import org.opensourcephysics.media.core.NumberField;
 import org.opensourcephysics.media.core.VideoPlayer;
 import org.opensourcephysics.tools.FontSizer;
 
 /**
  * Dialog that selects and configures the {@link MotionFilter} applied to point mass
- * positions. The same dialog can be applied to a single point mass 
- * or to all point masses in the TrackerPanel.
+ * positions.
  *
  * @author D Brown, using Tracker Filter contribution
  */
@@ -69,20 +72,27 @@ public class MotionFilterDialog extends JDialog {
 	private static final String FILTER_MOVING_AVG = "ma"; //$NON-NLS-1$
 	private static final String FILTER_BUTTERWORTH = "butter"; //$NON-NLS-1$
 	private static final String FILTER_SAV_GOLAY = "sg"; //$NON-NLS-1$
+	
+	private String urlButterworth = "https://en.wikipedia.org/wiki/Butterworth_filter";
+	private String urlSG = "https://en.wikipedia.org/wiki/Savitzky%E2%80%93Golay_filter";
+	private String urlZeroPhase = "https://community.sw.siemens.com/s/article/butterworth-filter-regular-and-zero-phase";
 
 	protected TFrame frame;
 	protected Integer panelID;
+	private int htmlFontSize = 14;
 
 	protected ArrayList<FilteredPointMass> targetMasses = new ArrayList<FilteredPointMass>();
 
 	private JRadioButton noneButton, maButton, butterButton, sgButton;
 	private TitledBorder choiceBorder, paramsBorder;
 	private JTextPane infoPane;
+	private NumberField rmsField;
 
-	private JPanel choices, params, upper;
+
+	private JPanel choices, params, upper, rmsReadout;
 	private JSpinner maWindowSpinner;
 	private JSpinner butterOrderSpinner, butterCutoffSpinner;
-	private JLabel butterRateLabel;
+	private JLabel butterRateLabel, rmsLabel;
 	private JSpinner sgWindowSpinner, sgPolySpinner;
 
 	private JButton okButton, cancelButton;
@@ -162,9 +172,27 @@ public class MotionFilterDialog extends JDialog {
 		butterCutoffSpinner.addChangeListener(applyOnChange());
 		butterRateLabel = new JLabel("--"); //$NON-NLS-1$
 
+		rmsField = new NumberField(0, 3);
+
 		infoPane = new JTextPane();
 		infoPane.setEditable(false);
 		infoPane.setBorder(BorderFactory.createEmptyBorder(6, 8, 6, 8));
+		infoPane.addHyperlinkListener(new HyperlinkListener() {
+	    @Override
+	    public void hyperlinkUpdate(HyperlinkEvent e) {
+	        if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
+	          OSPDesktop.browse(e.getURL().toString());
+	        }
+	        else if (e.getEventType() == HyperlinkEvent.EventType.ENTERED) {	        	
+	        		infoPane.setToolTipText(butterButton.isSelected()? 
+	        			e.getURL().toString():
+	        			sgButton.isSelected()? urlSG: null);
+	        }
+	        else if (e.getEventType() == HyperlinkEvent.EventType.EXITED) {
+	        	infoPane.setToolTipText(null);
+	        }
+	    }
+		});
 		JScrollPane infoScroll = new JScrollPane(infoPane);
 		infoPane.setText(TrackerRes.getString("FilterDialog.SavitzkyGolay.Description")); //$NON-NLS-1$
 		contentPane.add(infoScroll, BorderLayout.CENTER);
@@ -201,6 +229,21 @@ public class MotionFilterDialog extends JDialog {
 		b.addActionListener(a);
 		g.add(b);
 		return b;
+	}
+	
+	private JPanel getRMSReadout() {
+		if (rmsReadout == null) {
+			rmsReadout = new JPanel(new BorderLayout());
+			Box box = Box.createHorizontalBox();
+			box.add(Box.createHorizontalGlue());
+			JLabel label = new JLabel(TrackerRes.getString("FilterDialog.Readout.RMS")); //$NON-NLS-1$
+			label.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 8));		
+			box.add(label);
+			rmsLabel = new JLabel();
+			box.add(rmsLabel);
+			rmsReadout.add(box, BorderLayout.CENTER);
+		}
+		return rmsReadout;
 	}
 
 	private JPanel getMovingAveragePanel() {
@@ -297,7 +340,10 @@ public class MotionFilterDialog extends JDialog {
 		if (targetMasses.isEmpty()) return;
 		MotionFilter f = buildFilterFromUI();
 		for (FilteredPointMass m : targetMasses) {
+			m.getFormatMap();
 			m.setMotionFilter(f == null ? null : f.copy());
+			rmsField.setValue(m.getRMSDev());
+			rmsLabel.setText(rmsField.getText()); //$NON-NLS-1$
 		}
 	}
 
@@ -327,27 +373,27 @@ public class MotionFilterDialog extends JDialog {
 			params.add(new JPanel());
 			params.add(new JPanel());
 			params.add(new JPanel());
-			params.add(new JPanel());
+			params.add(getRMSReadout());
 			break;
 		case FILTER_MOVING_AVG:
 			params.add(getMovingAveragePanel());
 			params.add(new JPanel());
 			params.add(new JPanel());
-			params.add(new JPanel());
+			params.add(getRMSReadout());
 			break;
 		case FILTER_BUTTERWORTH:
 			JPanel[] panels = getButterworthPanels();
 			params.add(panels[0]);
 			params.add(panels[1]);
 			params.add(panels[2]);
-			params.add(new JPanel());
+			params.add(getRMSReadout());
 			break;
 		case FILTER_SAV_GOLAY:
 			panels = getSavitzkyGolayPanels();
 			params.add(panels[0]);
 			params.add(panels[1]);
 			params.add(new JPanel());
-			params.add(new JPanel());	
+			params.add(getRMSReadout());	
 		}
 		FontSizer.setFonts(params, FontSizer.getLevel());
 
@@ -374,27 +420,36 @@ public class MotionFilterDialog extends JDialog {
 	}
 
 	private void refreshInfo() {
-		String s;
+		infoPane.setContentType("text/html");
+		int fontSize = Math.round(Math.round(FontSizer.getFactor() * htmlFontSize));
+		String s = "<html><body style='font-family: Arial; font-size: "+fontSize+"pt;'>";
 		if (noneButton.isSelected()) {
-			s = TrackerRes.getString("FilterDialog.None.Description"); //$NON-NLS-1$
+			s += TrackerRes.getString("FilterDialog.None.Description"); //$NON-NLS-1$
 		} else if (maButton.isSelected()) {
-			s = TrackerRes.getString("FilterDialog.MovingAverage.Description"); //$NON-NLS-1$
+			s += TrackerRes.getString("FilterDialog.MovingAverage.Description"); //$NON-NLS-1$
 		} else if (butterButton.isSelected()) {
-			s = TrackerRes.getString("FilterDialog.Butterworth.Description"); //$NON-NLS-1$
+			s += TrackerRes.getString("FilterDialog.Butterworth.Description"); //$NON-NLS-1$
+			s += " For more, see <a href='"+urlButterworth+"'>Wikipedia</a>"; //$NON-NLS-1$
+			s += " or <a href='"+urlZeroPhase+"'>Zero-phase</a>"; //$NON-NLS-1$
 		} else if (sgButton.isSelected()) {
-			s = TrackerRes.getString("FilterDialog.SavitzkyGolay.Description"); //$NON-NLS-1$
-		} else {
-			s = ""; //$NON-NLS-1$
+			s += TrackerRes.getString("FilterDialog.SavitzkyGolay.Description"); //$NON-NLS-1$
+			s += " For more, see <a href='"+urlSG+"'>Wikipedia</a>";
 		}
+		s += "</body></html>";
 		infoPane.setText(s);
 	}
 
 	private void initialize() {
 		updating = true;
 		try {
-			MotionFilter current = targetMasses.isEmpty() ? null : targetMasses.get(0).getMotionFilter();
+			FilteredPointMass fpm = targetMasses.isEmpty() ? null : targetMasses.get(0);
+			MotionFilter current = fpm == null? null : fpm.getMotionFilter();
 			prevFilter = current == null ? null : current.copy();			
 			loadParamsForFilter(current);
+			if (fpm != null) {
+				rmsField.setValue(fpm.getRMSDev());
+				rmsLabel.setText(rmsField.getText()); //$NON-NLS-1$
+			}
 		} finally {
 			updating = false;
 		}
@@ -437,7 +492,8 @@ public class MotionFilterDialog extends JDialog {
 
 	@Override
 	public void setVisible(boolean vis) {
-		initialize();
+		if (vis)
+			initialize();
 		if (getLocation().x == 0) {
 			Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
 			int x = (dim.width - getBounds().width) / 2;
