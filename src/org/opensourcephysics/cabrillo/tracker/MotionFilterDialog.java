@@ -404,8 +404,8 @@ public class MotionFilterDialog extends JDialog {
 			return;
 		// FilterDialog.Title.Text
 		String title = TrackerRes.getString("FilterDialog.Title.Text");
-		FilteredPointMass fpm = targetMasses.get(0);
-		setTitle(title+" \""+fpm.getName()+"\""); //$NON-NLS-1$ //$NON-NLS-2$
+		TTrack source = TTrack.getTrack(targetMasses.get(0).sourceID);
+		setTitle(title+" \""+source.getName()+"\""); //$NON-NLS-1$ //$NON-NLS-2$
 		choiceBorder.setTitle(TrackerRes.getString("FilterDialog.TitledBorder.Choose")+":"); //$NON-NLS-1$
 		paramsBorder.setTitle(TrackerRes.getString("FilterDialog.TitledBorder.Params")+":"); //$NON-NLS-1$
 		okButton.setText(TrackerRes.getString("Dialog.Button.OK")); //$NON-NLS-1$
