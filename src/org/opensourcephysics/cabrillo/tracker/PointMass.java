@@ -3249,7 +3249,7 @@ public class PointMass extends TTrack {
 		filteredPM.setVisible(true);
 		tp.addTrack(filteredPM);
 		tp.setSelectedTrack(filteredPM);
-		filteredPM.refreshPositions();
+		filteredPM.refreshPositions(true);
 		filteredPM.updateDerivatives();
 		filteredPM.fireStepsChanged();
 		MotionFilterDialog dialog = tp.getFilterDialog();
