@@ -1819,7 +1819,9 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 
 	protected void refreshEditMenu(boolean opening) {
 		if (isTainted(MENU_EDIT)) {
-			boolean hasTracks = !panel().getUserTracks().isEmpty();
+			ArrayList<TTrack> tracks = panel().getUserTracks();
+			tracks.removeAll(panel().getDrawablesTemp(FilteredPointMass.class));
+			boolean hasTracks = !tracks.isEmpty();
 			boolean undoEnabled = panel().isEnabled("edit.undoRedo");
 			boolean copyDataEnabled = panel().isEnabled("edit.copyData"); //$NON-NLS-1$
 			boolean copyImageEnabled = panel().isEnabled("edit.copyImage"); //$NON-NLS-1$
@@ -2211,7 +2213,8 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 			switch (menu) {
 			case MENU_COORDS:
 				if (track.ttype == TTrack.TYPE_POINTMASS
-						&& !track.getClass().getSimpleName().endsWith("DataTrack")) {
+						&& !track.getClass().getSimpleName().endsWith("DataTrack")
+						&& !track.getClass().getSimpleName().startsWith("Filtered")) {
 					JRadioButtonMenuItem item = new JRadioButtonMenuItem(trackName);
 					item.addActionListener(actions.get("refFrame")); //$NON-NLS-1$
 					coords_refFrameGroup.add(item);

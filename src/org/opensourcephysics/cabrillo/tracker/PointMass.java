@@ -428,6 +428,7 @@ public class PointMass extends TTrack {
 	protected MotionFilter filter;
 	protected int filteredColor;
 	protected String filteredFootprintName;
+	protected boolean filteredOpen;
 
 	/**
 	 * Constructs a PointMass with mass 1.0.
@@ -602,6 +603,15 @@ public class PointMass extends TTrack {
 		}
 		super.delete(true);
 	}
+	
+	@Override
+	protected void delete(boolean postEdit) {
+		if (filteredPM != null) {
+			filteredPM.delete();
+		}
+		super.delete(postEdit);
+	}
+	
 	
 	/**
 	 * Overrides TTrack getStep method.
@@ -2654,11 +2664,13 @@ public class PointMass extends TTrack {
 			aFootprintMenu.add(item);
 			fp[i].setStroke(stroke);
 		}
-		// add showFiltered item
-		TMenuBar.checkAddMenuSep(menu);
-		showFilteredItem.setText(TrackerRes.getString("PointMass.MenuItem.Filter.Text")); //$NON-NLS-1$
-		showFilteredItem.setSelected(filteredPM != null && filteredPM.isVisible());
-		menu.add(showFilteredItem);		
+		// add showFiltered item for PointMass only
+		if (this.getClass()==PointMass.class) { 
+			TMenuBar.checkAddMenuSep(menu);
+			showFilteredItem.setText(TrackerRes.getString("PointMass.MenuItem.Filter.Text")); //$NON-NLS-1$
+			showFilteredItem.setSelected(filteredPM != null && filteredPM.isOpen());
+			menu.add(showFilteredItem);
+		}
 
 		// if video is not null, add autotrack item just below filterItem 
 		if (panel.isEnabled("track.autotrack") && !isDependent()) { //$NON-NLS-1$
@@ -2885,12 +2897,12 @@ public class PointMass extends TTrack {
 				i++;
 			}
 			control.setValue("keyFrames", keys); //$NON-NLS-1$
-			// save filteredPM if non-null AND open
-			if (p.filteredPM != null && 
-					(p.filteredPM.isVisible() || p.filteredPM.isDeleted)) {
+			// save filteredPM if non-null with non-null filter
+			if (p.filteredPM != null && p.filteredPM.filter != null) { 
 				control.setValue("filtered_filter", p.filteredPM.filter); //$NON-NLS-1$
 				control.setValue("filtered_colorRGB", p.filteredPM.getColor().getRGB()); //$NON-NLS-1$
 				control.setValue("filtered_footprint", p.filteredPM.getFootprintName()); //$NON-NLS-1$
+				control.setValue("filtered_open", p.filteredPM.isOpen()); //$NON-NLS-1$
 			}
 		}
 
@@ -2988,6 +3000,7 @@ public class PointMass extends TTrack {
 				p.filter = (MotionFilter) control.getObject("filtered_filter");
 				p.filteredColor = control.getInt("filtered_colorRGB");
 				p.filteredFootprintName = s;
+				p.filteredOpen = control.getBoolean("filtered_open");
 			}
 
 			p.setLocked(locked);
@@ -3224,7 +3237,7 @@ public class PointMass extends TTrack {
 				if (tp == null)
 					return;
 				if (showFilteredItem.isSelected()) {
-					showFilteredPointMass(filteredPM == null);
+					showFilteredPointMass(filter == null);
 				}
 				else {
 					if (filteredPM == null)

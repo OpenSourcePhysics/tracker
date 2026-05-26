@@ -164,7 +164,6 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 //										try {
 //											Process process = builder.start();
 //											int n = process.waitFor();
-//											System.out.println("pig done "+n);
 //										} catch (Exception e1) {
 //											e1.printStackTrace();
 //										}

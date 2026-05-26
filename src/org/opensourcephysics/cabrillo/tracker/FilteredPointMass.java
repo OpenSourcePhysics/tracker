@@ -13,9 +13,9 @@ import javax.swing.JMenuItem;
 
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
-import org.opensourcephysics.display.DatasetManager;
 import org.opensourcephysics.media.core.ImageCoordSystem;
 import org.opensourcephysics.media.core.TPoint;
+import org.opensourcephysics.media.core.VideoClip;
 import org.opensourcephysics.tools.FontSizer;
 
 public class FilteredPointMass extends PointMass implements PropertyChangeListener {
@@ -24,8 +24,13 @@ public class FilteredPointMass extends PointMass implements PropertyChangeListen
 	MotionFilter filter;
 	JMenuItem motionFilterItem, closeItem;
 	String sourceName = "";
-	boolean isDeleted;
+	boolean isOpen = false;
 	double rmsDevX, rmsDevY;
+	private final static String[] panelEventsParticleModel = new String[] { 
+			VideoClip.PROPERTY_VIDEOCLIP_STARTFRAME,  // ParticleModel
+			VideoClip.PROPERTY_VIDEOCLIP_STEPCOUNT, // ParticleModel
+	};
+	
 	
 	public FilteredPointMass(PointMass pointMass, MotionFilter motionFilter) {
 		super(pointMass.getMass());
@@ -45,9 +50,10 @@ public class FilteredPointMass extends PointMass implements PropertyChangeListen
 				TTrack source = TTrack.getTrack(sourceID);
 				if (source == null)
 					return;
+				refreshPositions(false);
 				MotionFilterDialog dialog = source.tp.getFilterDialog();
 				dialog.setTargetMass(FilteredPointMass.this);
-				FontSizer.setFonts(dialog, FontSizer.getLevel());
+				FontSizer.setFonts(dialog, FontSizer.getLevel());				
 				dialog.pack();
 				dialog.setVisible(true);
 			}
@@ -69,6 +75,13 @@ public class FilteredPointMass extends PointMass implements PropertyChangeListen
 	
 	public void setMotionFilter(MotionFilter motionFilter) {
 		filter = motionFilter;
+		PointMass source = (PointMass)TTrack.getTrack(sourceID);
+		if (source != null) {
+			source.filter = filter;
+			if (source.tp != null) {
+				source.tp.changed = true;
+			}
+		}
 		refreshPositions(true);
 		repaint();
 		refreshDataLater = false;
@@ -91,13 +104,24 @@ public class FilteredPointMass extends PointMass implements PropertyChangeListen
 	}
 
 	@Override
+	public void setTrackerPanel(TrackerPanel panel) {
+		if (tp != null) {
+			removePanelEvents(panelEventsParticleModel);
+		}
+		super.setTrackerPanel(panel);
+		if (tp != null) {
+			addPanelEvents(panelEventsParticleModel);
+		}
+	}
+	@Override
 	public void delete() {
+		isOpen = isOpen();
 		TTrack source = TTrack.getTrack(sourceID);
 		if (source == null)
 			return;
 		source.removePropertyChangeListener(this);
+		removePanelEvents(panelEventsParticleModel);
 		delete(false);
-		isDeleted = true;
 	}
 	
 	@Override
@@ -105,7 +129,7 @@ public class FilteredPointMass extends PointMass implements PropertyChangeListen
 		TTrack source = TTrack.getTrack(sourceID);
 		if (source != null)
 			sourceName = source.getName();
-		name = sourceName + " " + TrackerRes.getString("FilteredPointMass.Name.Suffix");
+		name = TrackerRes.getString("FilteredPointMass.Name.Prefix") + " " + sourceName;
 		return name;
 	}
 	
@@ -178,6 +202,8 @@ public class FilteredPointMass extends PointMass implements PropertyChangeListen
 	
 	@Override
 	public void propertyChange(PropertyChangeEvent e) {
+		if (!isOpen())
+			return;
 		String prop = e.getPropertyName();
 		if (prop.equals("step") || prop.equals("steps")) {
 			// source has changed
@@ -188,22 +214,29 @@ public class FilteredPointMass extends PointMass implements PropertyChangeListen
 			fireStepsChanged();
 		}
 		super.propertyChange(e);
-		if (prop.equals(ImageCoordSystem.PROPERTY_COORDS_TRANSFORM)) {
-			refreshPositions(false);
-			refreshDataLater = false;
-			updateDerivatives();
-			fireStepsChanged();
+		
+		boolean refresh = true;
+		switch (prop) {
+		case ImageCoordSystem.PROPERTY_COORDS_TRANSFORM:
+			refresh = e.getNewValue() != null;
+		case VideoClip.PROPERTY_VIDEOCLIP_STARTFRAME:
+		case VideoClip.PROPERTY_VIDEOCLIP_STEPCOUNT:
+		case VideoClip.PROPERTY_VIDEOCLIP_STEPSIZE:
+			if (refresh) {
+				refreshPositions(true);
+				refreshDataLater = false;
+				updateDerivatives();
+				fireStepsChanged();	
+			}
 		}
 	}
 	
-	@Override
-	public boolean isVisible() {
+	protected boolean isOpen() {
 		PointMass source = (PointMass)TTrack.getTrack(sourceID);
 		if (source == null || source.tp == null)
 			return false;
-		boolean vis = super.isVisible();
-		// must be visible and included in trackerpanel tracks
-		return vis && source.tp.getTrack(getName()) != null;
+		// true if trackerPanel contains this track
+		return isOpen || source.tp.getTrack(getName()) != null;		
 	}
 	
 	@Override
@@ -212,28 +245,37 @@ public class FilteredPointMass extends PointMass implements PropertyChangeListen
 	}
 	
 	protected void refreshPositions(boolean full) {
+		if (!isOpen())
+			return;
+
 		PointMass source = (PointMass)TTrack.getTrack(sourceID);
 		if (source == null || source.tp == null || steps == null)
 			return;
 		
+		VideoClip clip = source.tp.getPlayer().getVideoClip();
 		Step[] stepArray = source.getSteps();
 		int len = stepArray.length;
-		double[] dataX = new double[len];
-		double[] dataY = new double[len];
-		boolean[] valid = new boolean[len];
+		int stepCount = clip.getStepCount();
+		double[] dataX = new double[stepCount];
+		double[] dataY = new double[stepCount];
+		boolean[] valid = new boolean[stepCount];
 		// first assemble world positions of source
+		
 		for (int i = 0; i < len; i++) {
+			if (!clip.includesFrame(i))
+				continue;
+			if (i >= stepArray.length)
+				break;
+			int n = clip.frameToStep(i);
 			PositionStep curStep = (PositionStep)stepArray[i];
-			valid[i] = curStep!=null? true: false;
+			valid[n] = curStep!=null? true: false;
 			if (curStep != null) {
-				// only keep those in video clip
-
 				TPoint p = curStep.getPosition();
 				Point2D wp = p.getWorldPosition(source.tp);
-				dataX[i] = wp.getX();
-				dataY[i] = wp.getY();
-				if (Double.isNaN(dataX[i]) || Double.isNaN(dataY[i])) {
-					valid[i] = false;
+				dataX[n] = wp.getX();
+				dataY[n] = wp.getY();
+				if (Double.isNaN(dataX[n]) || Double.isNaN(dataY[n])) {
+					valid[n] = false;
 				}
 			}
 		}
@@ -244,13 +286,13 @@ public class FilteredPointMass extends PointMass implements PropertyChangeListen
 		
 		double sumOfSquaresX = 0, sumOfSquaresY = 0, dev = 0;
 		int count = 0;
-		for (int i = 0; i < filteredX.length; i++) {
-			if (!valid[i])
+		for (int n = 0; n < filteredX.length; n++) {
+			if (!valid[n])
 				continue;
 			count++;
-			dev = filteredX[i] - dataX[i];
+			dev = filteredX[n] - dataX[n];
 			sumOfSquaresX += dev * dev;
-			dev = filteredY[i] - dataY[i];
+			dev = filteredY[n] - dataY[n];
 			sumOfSquaresY += dev * dev;
 		}
 		rmsDevX = count==0? 0: Math.sqrt(sumOfSquaresX / count);
@@ -262,27 +304,30 @@ public class FilteredPointMass extends PointMass implements PropertyChangeListen
 			steps.setLength(len);
 			Step[] mySteps = getSteps();
 			TPoint p = new TPoint();
-			for (int i = 0; i < len; i++) {
-				PositionStep myStep = (PositionStep)mySteps[i];
+			for (int i = 0; i < stepCount; i++) {
+				int frame = clip.stepToFrame(i);
+				if (frame >= mySteps.length)
+					break;
+				PositionStep myStep = (PositionStep)mySteps[frame];
 				if (valid[i]) {
 					// determine image position
-					p.setWorldPosition(filteredX[i], filteredY[i], source.tp);
+					p.setWorldPosition(filteredX[i], filteredY[i], source.tp, frame);
 					if (myStep == null) {
-						myStep = (PositionStep) createStep(i, p.x, p.y);
+						myStep = (PositionStep) createStep(frame, p.x, p.y);
 					}
 					else {
 						myStep.getPosition().setPosition(p);
 					}
 				}
 				else { // invalid--Step should be null
-					mySteps[i] = null;
+					mySteps[frame] = null;
 				}
 			}
 		}
 		loading = false;
 		refreshDataLater = false;
 		dataValid = false;
-		DatasetManager data = getData(tp); // refreshes datasets
+		getData(tp); // refreshes datasets
 	}
 	
 	public double getRMSDev() {

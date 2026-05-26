@@ -904,7 +904,8 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		// check point masses for FilteredPointMass
 		if (track instanceof PointMass) {
 			PointMass mass = (PointMass)track;
-			if (mass.filteredFootprintName != null) {
+			if (mass.filteredFootprintName != null
+					&& mass.filteredOpen) {
 				mass.showFilteredPointMass(false);
 			}
 		}
@@ -2832,7 +2833,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			coords = (ImageCoordSystem) e.getNewValue();
 			coords.addPropertyChangeListener(this);
 			firePropertyChange(Video.PROPERTY_VIDEO_COORDS, null, coords); // to tracks //$NON-NLS-1$
-			firePropertyChange(ImageCoordSystem.PROPERTY_COORDS_TRANSFORM, null, null); // to tracks/views //$NON-NLS-1$
+			firePropertyChange(ImageCoordSystem.PROPERTY_COORDS_TRANSFORM, null, coords); // to tracks/views //$NON-NLS-1$
 			doSnap = true;
 			break;
 		case Video.PROPERTY_VIDEO_IMAGE: // from video //$NON-NLS-1$
