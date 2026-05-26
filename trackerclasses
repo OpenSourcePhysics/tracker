@@ -772,6 +772,7 @@ org/opensourcephysics/cabrillo/tracker/DynamicSystemInspector.js
 org/opensourcephysics/cabrillo/tracker/ExportDataDialog.js
 org/opensourcephysics/cabrillo/tracker/ExportVideoDialog.js
 org/opensourcephysics/cabrillo/tracker/ExportZipDialog.js
+org/opensourcephysics/cabrillo/tracker/FilteredPointMass.js
 org/opensourcephysics/cabrillo/tracker/FirstDerivative.js
 org/opensourcephysics/cabrillo/tracker/Footprint.js
 org/opensourcephysics/cabrillo/tracker/HelpFinder.js
@@ -784,6 +785,7 @@ org/opensourcephysics/cabrillo/tracker/MarkingRequired.js
 org/opensourcephysics/cabrillo/tracker/Mark.js
 org/opensourcephysics/cabrillo/tracker/ModelBuilder.js
 org/opensourcephysics/cabrillo/tracker/ModelFunctionPanel.js
+org/opensourcephysics/cabrillo/tracker/MotionFilterDialog.js
 org/opensourcephysics/cabrillo/tracker/MultiLineFootprint.js
 org/opensourcephysics/cabrillo/tracker/MultiPositionStep.js
 org/opensourcephysics/cabrillo/tracker/MultiShape.js
