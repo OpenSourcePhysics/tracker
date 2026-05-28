@@ -746,6 +746,7 @@ org/opensourcephysics/cabrillo/tracker/BounceDerivatives.js
 org/opensourcephysics/cabrillo/tracker/BounceMatrix.js
 org/opensourcephysics/cabrillo/tracker/BounceModel.js
 org/opensourcephysics/cabrillo/tracker/BounceParameters.js
+org/opensourcephysics/cabrillo/tracker/ButterworthFilter.js
 org/opensourcephysics/cabrillo/tracker/Calibration.js
 org/opensourcephysics/cabrillo/tracker/CalibrationStep.js
 org/opensourcephysics/cabrillo/tracker/CenterOfMass.js
@@ -785,7 +786,10 @@ org/opensourcephysics/cabrillo/tracker/MarkingRequired.js
 org/opensourcephysics/cabrillo/tracker/Mark.js
 org/opensourcephysics/cabrillo/tracker/ModelBuilder.js
 org/opensourcephysics/cabrillo/tracker/ModelFunctionPanel.js
+org/opensourcephysics/cabrillo/tracker/MotionFilter.js
 org/opensourcephysics/cabrillo/tracker/MotionFilterDialog.js
+org/opensourcephysics/cabrillo/tracker/MotionFilterSupport.js
+org/opensourcephysics/cabrillo/tracker/MovingAverageFilter.js
 org/opensourcephysics/cabrillo/tracker/MultiLineFootprint.js
 org/opensourcephysics/cabrillo/tracker/MultiPositionStep.js
 org/opensourcephysics/cabrillo/tracker/MultiShape.js
@@ -820,6 +824,7 @@ org/opensourcephysics/cabrillo/tracker/RGBRegion.js
 org/opensourcephysics/cabrillo/tracker/RGBStep.js
 org/opensourcephysics/cabrillo/tracker/ReferenceFrame.js
 org/opensourcephysics/cabrillo/tracker/Ruler.js
+org/opensourcephysics/cabrillo/tracker/SavitzkyGolayFilter.js
 org/opensourcephysics/cabrillo/tracker/SecondDerivative.js
 org/opensourcephysics/cabrillo/tracker/ShapeIcon.js
 org/opensourcephysics/cabrillo/tracker/Step.js
