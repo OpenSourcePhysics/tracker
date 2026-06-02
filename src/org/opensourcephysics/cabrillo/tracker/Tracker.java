@@ -1374,6 +1374,14 @@ public class Tracker {
 					}
 				};
 			}
+			if (MovieFactory.avpIsPresent) {
+				aboutXuggleAction = new AbstractAction("pig about AVP") { //$NON-NLS-1$
+					@Override
+					public void actionPerformed(ActionEvent e) {
+						MovieFactory.showAbout(MovieFactory.ENGINE_AVP, "Tracker"); //$NON-NLS-1$
+					}
+				};
+			}
 
 			// about threads
 			aboutThreadsAction = new AbstractAction(TrackerRes.getString("Tracker.Action.AboutThreads")) { //$NON-NLS-1$
