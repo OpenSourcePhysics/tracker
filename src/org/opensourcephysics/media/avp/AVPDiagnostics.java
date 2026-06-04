@@ -20,7 +20,6 @@ import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.tools.Diagnostics;
 import org.opensourcephysics.tools.JREFinder;
-import org.opensourcephysics.media.xuggle.*;
 
 import com.avpkit.core.IContainer;
 import com.avpkit.core.Version;
@@ -103,7 +102,7 @@ public class AVPDiagnostics extends Diagnostics {
 		// display appropriate dialog
 		if (status == 0) { // AVP working correctly
 			String fileInfo = newline;
-			String path = " " + XuggleRes.getString("Xuggle.Dialog.Unknown"); //$NON-NLS-1$ //$NON-NLS-2$
+			String path = " " + AVPRes.getString("Xuggle.Dialog.Unknown"); //$NON-NLS-1$ //$NON-NLS-2$
 
 			String className = "com.avpkit.core.IContainer"; //$NON-NLS-1$
 			try {
@@ -120,11 +119,11 @@ public class AVPDiagnostics extends Diagnostics {
 			}
 
 			String version = getXuggleVersion();
-			String message = XuggleRes.getString("Xuggle.Dialog.AboutXuggle.Message.Version") //$NON-NLS-1$
+			String message = AVPRes.getString("Xuggle.Dialog.AboutXuggle.Message.Version") //$NON-NLS-1$
 					+ " " + version + fileInfo + newline //$NON-NLS-1$
-					+ XuggleRes.getString("Xuggle.Dialog.AboutXuggle.Message.Home") //$NON-NLS-1$
+					+ AVPRes.getString("Xuggle.Dialog.AboutXuggle.Message.Home") //$NON-NLS-1$
 					+ " " + xuggleHome + newline //$NON-NLS-1$
-					+ XuggleRes.getString("Xuggle.Dialog.AboutXuggle.Message.Path") //$NON-NLS-1$
+					+ AVPRes.getString("Xuggle.Dialog.AboutXuggle.Message.Path") //$NON-NLS-1$
 					+ path;
 			message = "AVP version" //$NON-NLS-1$
 					+ " " + version + fileInfo + newline //$NON-NLS-1$
@@ -321,40 +320,40 @@ public class AVPDiagnostics extends Diagnostics {
 		switch (status) {
 
 		case 1: // not installed (XUGGLE_HOME==null, missing xuggle jars in code base)
-			message.add(XuggleRes.getString("Xuggle.Dialog.NoXuggle.Message1")); //$NON-NLS-1$
+			message.add(AVPRes.getString("Xuggle.Dialog.NoXuggle.Message1")); //$NON-NLS-1$
 			message.add(" "); //$NON-NLS-1$
 			if (REQUEST_TRACKER.equals(requester)) {
-				message.add(XuggleRes.getString("Xuggle.Dialog.ReplaceXuggle.Message3")); //$NON-NLS-1$
+				message.add(AVPRes.getString("Xuggle.Dialog.ReplaceXuggle.Message3")); //$NON-NLS-1$
 				message.add(" "); //$NON-NLS-1$
-				message.add(XuggleRes.getString("Xuggle.Dialog.AboutXuggle.TrackerInstallerPath.Message")); //$NON-NLS-1$
+				message.add(AVPRes.getString("Xuggle.Dialog.AboutXuggle.TrackerInstallerPath.Message")); //$NON-NLS-1$
 				message.add(Diagnostics.TRACKER_INSTALLER_URL);
 			}
 			break;
 
 		case 2: // can't find xuggle home (XUGGLE_HOME==null, but xuggle jars found in code base)
-			message.add(XuggleRes.getString("Xuggle.Dialog.BadXuggle.Message")); //$NON-NLS-1$
-			message.add(XuggleRes.getString("Xuggle.Dialog.NoXuggleHome.Message1")); //$NON-NLS-1$
+			message.add(AVPRes.getString("Xuggle.Dialog.BadXuggle.Message")); //$NON-NLS-1$
+			message.add(AVPRes.getString("Xuggle.Dialog.NoXuggleHome.Message1")); //$NON-NLS-1$
 			if (REQUEST_TRACKER.equals(requester)) {
-				message.add(XuggleRes.getString("Xuggle.Dialog.ReplaceXuggle.Message3")); //$NON-NLS-1$
+				message.add(AVPRes.getString("Xuggle.Dialog.ReplaceXuggle.Message3")); //$NON-NLS-1$
 				message.add(" "); //$NON-NLS-1$
-				message.add(XuggleRes.getString("Xuggle.Dialog.AboutXuggle.TrackerInstallerPath.Message")); //$NON-NLS-1$
+				message.add(AVPRes.getString("Xuggle.Dialog.AboutXuggle.TrackerInstallerPath.Message")); //$NON-NLS-1$
 				message.add(Diagnostics.TRACKER_INSTALLER_URL);
 			}
 			break;
 
 		case 3: // XUGGLE_HOME incomplete: missing xuggle jars in XUGGLE_HOME
-			message.add(XuggleRes.getString("Xuggle.Dialog.BadXuggle.Message")); //$NON-NLS-1$
-			message.add(XuggleRes.getString("Xuggle.Dialog.IncompleteXuggle.Message1")); //$NON-NLS-1$
+			message.add(AVPRes.getString("Xuggle.Dialog.BadXuggle.Message")); //$NON-NLS-1$
+			message.add(AVPRes.getString("Xuggle.Dialog.IncompleteXuggle.Message1")); //$NON-NLS-1$
 			if (REQUEST_TRACKER.equals(requester)) {
-				message.add(XuggleRes.getString("Xuggle.Dialog.ReplaceXuggle.Message3")); //$NON-NLS-1$
+				message.add(AVPRes.getString("Xuggle.Dialog.ReplaceXuggle.Message3")); //$NON-NLS-1$
 			}
 			break;
 
 		case 4: // XUGGLE_HOME OK, but incorrect "PATH", "DYLD_LIBRARY_PATH", or
 				// "LD_LIBRARY_PATH"
-			message.add(XuggleRes.getString("Xuggle.Dialog.MissingEnvironmentVariable.Message1")); //$NON-NLS-1$
+			message.add(AVPRes.getString("Xuggle.Dialog.MissingEnvironmentVariable.Message1")); //$NON-NLS-1$
 			message.add("\"" + pathEnvironment + "\" " //$NON-NLS-1$ //$NON-NLS-2$
-					+ XuggleRes.getString("Xuggle.Dialog.MissingEnvironmentVariable.Message2")); //$NON-NLS-1$
+					+ AVPRes.getString("Xuggle.Dialog.MissingEnvironmentVariable.Message2")); //$NON-NLS-1$
 			break;
 
 		case 5: // XUGGLE_HOME OK, but xuggle jars missing from code base
@@ -369,16 +368,16 @@ public class AVPDiagnostics extends Diagnostics {
 			String source = XML.forwardSlash(xuggleHome); //$NON-NLS-1$
 			if (!xuggleNames[0].contains("-server-"))
 				source += "/share/java/jars";
-			message.add(XuggleRes.getString("Xuggle.Dialog.NeedJars.NotWorking.Message")); //$NON-NLS-1$
-			message.add(XuggleRes.getString("Xuggle.Dialog.NeedJars.Missing.Message")); //$NON-NLS-1$
+			message.add(AVPRes.getString("Xuggle.Dialog.NeedJars.NotWorking.Message")); //$NON-NLS-1$
+			message.add(AVPRes.getString("Xuggle.Dialog.NeedJars.Missing.Message")); //$NON-NLS-1$
 			message.add(" "); //$NON-NLS-1$
 			message.add(missingJars);
 			message.add(" "); //$NON-NLS-1$
-			message.add(XuggleRes.getString("Xuggle.Dialog.NeedJars.CopyToCodeBase.Message1")); //$NON-NLS-1$
-			message.add(XuggleRes.getString("Xuggle.Dialog.NeedJars.CopyToCodeBase.Message2")); //$NON-NLS-1$
+			message.add(AVPRes.getString("Xuggle.Dialog.NeedJars.CopyToCodeBase.Message1")); //$NON-NLS-1$
+			message.add(AVPRes.getString("Xuggle.Dialog.NeedJars.CopyToCodeBase.Message2")); //$NON-NLS-1$
 			message.add(" "); //$NON-NLS-1$
-			message.add(XuggleRes.getString("Xuggle.Dialog.SourceDirectory.Message") + " " + source); //$NON-NLS-1$ //$NON-NLS-2$
-			message.add(XuggleRes.getString("Xuggle.Dialog.TargetDirectory.Message") + " " + codeBase); //$NON-NLS-1$ //$NON-NLS-2$
+			message.add(AVPRes.getString("Xuggle.Dialog.SourceDirectory.Message") + " " + source); //$NON-NLS-1$ //$NON-NLS-2$
+			message.add(AVPRes.getString("Xuggle.Dialog.TargetDirectory.Message") + " " + codeBase); //$NON-NLS-1$ //$NON-NLS-2$
 			break;
 
 		case 6: // XUGGLE_HOME OK, but mismatched xuggle versions in code base
@@ -391,36 +390,36 @@ public class AVPDiagnostics extends Diagnostics {
 				}
 			}
 			source = XML.forwardSlash(xuggleHome); //$NON-NLS-1$
-			message.add(XuggleRes.getString("Xuggle.Dialog.NeedJars.NotWorking.Message")); //$NON-NLS-1$
-			message.add(XuggleRes.getString("Xuggle.Dialog.NeedJars.Mismatched.Message")); //$NON-NLS-1$
+			message.add(AVPRes.getString("Xuggle.Dialog.NeedJars.NotWorking.Message")); //$NON-NLS-1$
+			message.add(AVPRes.getString("Xuggle.Dialog.NeedJars.Mismatched.Message")); //$NON-NLS-1$
 			message.add(" "); //$NON-NLS-1$
 			message.add(missingJars);
 			message.add(" "); //$NON-NLS-1$
-			message.add(XuggleRes.getString("Xuggle.Dialog.NeedJars.CopyToCodeBase.Message1")); //$NON-NLS-1$
-			message.add(XuggleRes.getString("Xuggle.Dialog.NeedJars.CopyToCodeBase.Message2")); //$NON-NLS-1$
+			message.add(AVPRes.getString("Xuggle.Dialog.NeedJars.CopyToCodeBase.Message1")); //$NON-NLS-1$
+			message.add(AVPRes.getString("Xuggle.Dialog.NeedJars.CopyToCodeBase.Message2")); //$NON-NLS-1$
 			message.add(" "); //$NON-NLS-1$
-			message.add(XuggleRes.getString("Xuggle.Dialog.SourceDirectory.Message") + " " + source); //$NON-NLS-1$ //$NON-NLS-2$
-			message.add(XuggleRes.getString("Xuggle.Dialog.TargetDirectory.Message") + " " + codeBase); //$NON-NLS-1$ //$NON-NLS-2$
+			message.add(AVPRes.getString("Xuggle.Dialog.SourceDirectory.Message") + " " + source); //$NON-NLS-1$ //$NON-NLS-2$
+			message.add(AVPRes.getString("Xuggle.Dialog.TargetDirectory.Message") + " " + codeBase); //$NON-NLS-1$ //$NON-NLS-2$
 			break;
 
 		case 7: // XUGGLE_HOME OK, but wrong Java VM bitness--should be 64-bit for ver 5.7, 32 for ver 3.4
-			message.add(XuggleRes.getString("Xuggle.Dialog.WrongVMMac.Message1")); //$NON-NLS-1$
-			message.add(XuggleRes.getString("Xuggle.Dialog.WrongVMMac.Message2")); //$NON-NLS-1$
+			message.add(AVPRes.getString("Xuggle.Dialog.WrongVMMac.Message1")); //$NON-NLS-1$
+			message.add(AVPRes.getString("Xuggle.Dialog.WrongVMMac.Message2")); //$NON-NLS-1$
 			if (REQUEST_TRACKER.equals(requester)) {
 				message.add(" "); //$NON-NLS-1$
-				message.add(XuggleRes.getString("Xuggle.Dialog.WrongVMMac.Message3")); //$NON-NLS-1$
-				message.add(XuggleRes.getString("Xuggle.Dialog.WrongVMMac.Message4")); //$NON-NLS-1$
+				message.add(AVPRes.getString("Xuggle.Dialog.WrongVMMac.Message3")); //$NON-NLS-1$
+				message.add(AVPRes.getString("Xuggle.Dialog.WrongVMMac.Message4")); //$NON-NLS-1$
 			}
 			break;
 
 		case 8:
-			message.add(XuggleRes.getString("Xuggle.Dialog.UnsupportedVersion.Message1")); //$NON-NLS-1$
-			message.add(XuggleRes.getString("Xuggle.Dialog.UnsupportedVersion.Message2")); //$NON-NLS-1$
+			message.add(AVPRes.getString("Xuggle.Dialog.UnsupportedVersion.Message1")); //$NON-NLS-1$
+			message.add(AVPRes.getString("Xuggle.Dialog.UnsupportedVersion.Message2")); //$NON-NLS-1$
 			break;
 
 		default: // none of the above
-			message.add(XuggleRes.getString("Xuggle.Dialog.BadXuggle.Message")); //$NON-NLS-1$
-			message.add(XuggleRes.getString("Xuggle.Dialog.UnknownProblem.Message")); //$NON-NLS-1$
+			message.add(AVPRes.getString("Xuggle.Dialog.BadXuggle.Message")); //$NON-NLS-1$
+			message.add(AVPRes.getString("Xuggle.Dialog.UnknownProblem.Message")); //$NON-NLS-1$
 //			if (REQUEST_TRACKER.equals(requester)) {
 //				message.add(XuggleRes.getString("Xuggle.Dialog.ReplaceXuggle.Message3")); //$NON-NLS-1$
 //				message.add(" "); //$NON-NLS-1$
@@ -445,7 +444,7 @@ public class AVPDiagnostics extends Diagnostics {
 	 * @return Xuggle version
 	 */
 	public static String getXuggleVersion() {
-		String xuggleVersion = XuggleRes.getString("Xuggle.Dialog.Unknown"); //$NON-NLS-1$
+		String xuggleVersion = AVPRes.getString("Xuggle.Dialog.Unknown"); //$NON-NLS-1$
 		int status = getStatusCode();
 		if (status == 0) { // xuggle working correctly
 			try {
