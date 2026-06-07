@@ -91,7 +91,7 @@
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.8.1</version>
         <configuration>
-          <release>21</release>
+          <release>11</release>
         </configuration>
       </plugin>
 	   <plugin>
@@ -108,7 +108,7 @@
                     	<minimizeJar>true</minimizeJar>
 		              <artifactSet>
 		                <excludes>
-		                  <exclude>com.avpkit:avpkit-core</exclude>
+		                  <!--<exclude>com.avpkit:avpkit-core</exclude>-->
 		                  <exclude>xuggle:xuggle-xuggler-server-all</exclude>
 		                  <exclude>commons-cli:commons-cli</exclude>
 		                  <exclude>ch.qos.logback:*</exclude>

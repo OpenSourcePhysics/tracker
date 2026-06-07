@@ -295,7 +295,7 @@ public class Tracker {
 	// static String author = "Douglas Brown"; //$NON-NLS-1$
 	// static String osp = "Open Source Physics"; //$NON-NLS-1$
 	
-	static AbstractAction aboutXuggleAction, aboutThreadsAction;
+	static AbstractAction aboutXuggleAction, aboutThreadsAction, aboutAVPAction;
 	static Action aboutTrackerAction, readmeAction;
 	static Action aboutJavaAction, startLogAction, trackerPrefsAction;
 	static String readmeFileName = "Tracker_README.txt"; //$NON-NLS-1$
@@ -1366,7 +1366,7 @@ public class Tracker {
 			};
 
 			// about Xuggle--only if xuggle resources present?
-			if (MovieFactory.xuggleIsPresent || true) {
+			if (MovieFactory.xuggleIsPresent) {
 				aboutXuggleAction = new AbstractAction(TrackerRes.getString("Tracker.Action.AboutXuggle")) { //$NON-NLS-1$
 					@Override
 					public void actionPerformed(ActionEvent e) {
@@ -1375,7 +1375,7 @@ public class Tracker {
 				};
 			}
 			if (MovieFactory.avpIsPresent) {
-				aboutXuggleAction = new AbstractAction("pig about AVP") { //$NON-NLS-1$
+				aboutAVPAction = new AbstractAction(TrackerRes.getString("Tracker.Action.AboutAVP")) { //$NON-NLS-1$
 					@Override
 					public void actionPerformed(ActionEvent e) {
 						MovieFactory.showAbout(MovieFactory.ENGINE_AVP, "Tracker"); //$NON-NLS-1$

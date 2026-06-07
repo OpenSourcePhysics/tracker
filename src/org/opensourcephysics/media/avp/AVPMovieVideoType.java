@@ -107,7 +107,7 @@ public class AVPMovieVideoType extends MovieVideoType {
 	public String getDescription() {
 		if (singleTypeFilter != null)
 			return singleTypeFilter.getDescription();
-		return "pig "+MediaRes.getString("XuggleVideoType.Description"); //$NON-NLS-1$
+		return MediaRes.getString("AVPVideoType.Description"); //$NON-NLS-1$
 	}
 
 	/**

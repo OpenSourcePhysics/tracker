@@ -2768,6 +2768,8 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 			diagMenu.addSeparator();
 			if (Tracker.aboutJavaAction != null)
 				diagMenu.add(Tracker.aboutJavaAction);
+			if (Tracker.aboutAVPAction != null)
+				diagMenu.add(Tracker.aboutAVPAction);
 			if (Tracker.aboutXuggleAction != null)
 				diagMenu.add(Tracker.aboutXuggleAction);
 			if (Tracker.aboutThreadsAction != null)

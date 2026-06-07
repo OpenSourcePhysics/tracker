@@ -125,11 +125,13 @@ public class AVPDiagnostics extends Diagnostics {
 					+ " " + xuggleHome + newline //$NON-NLS-1$
 					+ AVPRes.getString("Xuggle.Dialog.AboutXuggle.Message.Path") //$NON-NLS-1$
 					+ path;
-			message = "AVP version" //$NON-NLS-1$
+			message = AVPRes.getString("AVP.Dialog.AboutAVP.Message.Version") //$NON-NLS-1$
 					+ " " + version + fileInfo + newline //$NON-NLS-1$
-					+ "Jar path" //$NON-NLS-1$
+					+ AVPRes.getString("AVP.Dialog.AboutAVP.Message.Path") //$NON-NLS-1$
 					+ path;
-			JOptionPane.showMessageDialog(dialogOwner, message, "pig", //$NON-NLS-1$
+			
+			JOptionPane.showMessageDialog(dialogOwner, message, 
+					AVPRes.getString("AVP.Dialog.AboutAVP.Title"), //$NON-NLS-1$
 					JOptionPane.INFORMATION_MESSAGE);
 		}
 
