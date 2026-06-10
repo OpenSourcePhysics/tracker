@@ -11,3 +11,7 @@ src/org/opensourcephysics/controls/OSPLog_template.txt
 tracker.prefs
 //.classpath
 /target/
+<<<<<<< HEAD
+=======
+.DS_Store
+>>>>>>> branch 'AVP' of https://github.com/OpenSourcePhysics/tracker
