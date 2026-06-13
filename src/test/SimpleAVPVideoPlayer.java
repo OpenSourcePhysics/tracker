@@ -221,9 +221,9 @@ public class SimpleAVPVideoPlayer extends JFrame {
                             isPlaying = false;
                             IError err = (IError)result;
                             if (err.getType() == com.avpkit.core.IError.Type.ERROR_EOF) {
-                            	System.out.println("end of file "+currentFrameCount);
 		                            if (frameSlider.getMaximum()==initialSliderMax)
 		                            	frameSlider.setMaximum(currentFrameCount-1);
+		                            else isStepRequested = false;
                             }
                         }
                     } else if (reader != null && isStepRequested) {
@@ -234,7 +234,6 @@ public class SimpleAVPVideoPlayer extends JFrame {
                               isPlaying = false;
                               IError err = (IError)result;
                               if (err.getType() == com.avpkit.core.IError.Type.ERROR_EOF) {
-                              	System.out.println("end of file "+currentFrameCount);
 		                            if (frameSlider.getMaximum()==initialSliderMax)
 		                            	frameSlider.setMaximum(currentFrameCount-1);
                               }
@@ -257,7 +256,6 @@ public class SimpleAVPVideoPlayer extends JFrame {
 
     private synchronized void resetVideo() {
         isPlaying = false;
-        isStepRequested = false;
         resetSync = true;
         currentFrameCount = 0;
         
