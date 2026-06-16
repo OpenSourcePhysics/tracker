@@ -65,8 +65,10 @@ public class TrackDataBuilder extends FunctionTool {
 		addPropertyChangeListener(PROPERTY_FUNCTIONTOOL_FUNCTION, trackerPanel); // $NON-NLS-1$
 		addPropertyChangeListener(PROPERTY_FUNCTIONTOOL_VISIBLE, trackerPanel); // $NON-NLS-1$
 		ArrayList<Drawable> nogos = trackerPanel.getSystemDrawables();
+		ArrayList<FilteredPointMass> nogos2 = trackerPanel.getDrawables(FilteredPointMass.class);
+		
 		for (TTrack track : trackerPanel.getTracksTemp()) {
-			if (nogos.contains(track))
+			if (nogos.contains(track) || nogos2.contains(track))
 				continue;
 			FunctionPanel panel = trackerPanel.createFunctionPanel(track);
 			addPanel(track.getName(), panel);

@@ -242,6 +242,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	protected String author, contact;
 	protected AutoTracker autoTracker;
 	protected DerivativeAlgorithmDialog algorithmDialog;
+	protected MotionFilterDialog filterDialog;
 	protected AttachmentDialog attachmentDialog;
 	protected PlotGuestDialog guestsDialog;
 	protected UnitsDialog unitsDialog;
@@ -684,6 +685,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		tracks.removeAll(calibrationTools);
 		tracks.removeAll(measuringTools);
 		tracks.removeAll(getDrawablesTemp(PerspectiveTrack.class));
+//		tracks.removeAll(getDrawablesTemp(FilteredPointMass.class));
 
 		// remove child ParticleDataTracks
 		ArrayList<ParticleDataTrack> list = getDrawablesTemp(ParticleDataTrack.class);
@@ -738,6 +740,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			}
 		}
 		list.clear();
+		tracks.removeAll(getDrawablesTemp(FilteredPointMass.class));
 		return tracks;
 	}
 
@@ -898,6 +901,14 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		// notify views and TrackControl AFTER displaying views
 		firePropertyChange(PROPERTY_TRACKERPANEL_TRACK, null, track); // to views //$NON-NLS-1$
 
+		// check point masses for FilteredPointMass
+		if (track instanceof PointMass) {
+			PointMass mass = (PointMass)track;
+			if (mass.filteredFootprintName != null
+					&& mass.filteredOpen) {
+				mass.showFilteredPointMass(false);
+			}
+		}
 	}
 
 	private void addDataTrackPoints(ParticleDataTrack dt) {
@@ -2323,6 +2334,20 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	}
 
 	/**
+	 * Gets the motion filter dialog used to configure smoothing applied before
+	 * velocity and acceleration are computed.
+	 *
+	 * @return the filter dialog
+	 */
+	protected MotionFilterDialog getFilterDialog() {
+		if (filterDialog == null) {
+			filterDialog = new MotionFilterDialog(this);
+		}
+		filterDialog.setFontLevel(FontSizer.getLevel());
+		return filterDialog;
+	}
+
+	/**
 	 * Gets the next available name (and color, based on the attached suffix) for a track.
 	 * 
 	 * @param name      the default name with no letter suffix
@@ -2808,7 +2833,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			coords = (ImageCoordSystem) e.getNewValue();
 			coords.addPropertyChangeListener(this);
 			firePropertyChange(Video.PROPERTY_VIDEO_COORDS, null, coords); // to tracks //$NON-NLS-1$
-			firePropertyChange(ImageCoordSystem.PROPERTY_COORDS_TRANSFORM, null, null); // to tracks/views //$NON-NLS-1$
+			firePropertyChange(ImageCoordSystem.PROPERTY_COORDS_TRANSFORM, null, coords); // to tracks/views //$NON-NLS-1$
 			doSnap = true;
 			break;
 		case Video.PROPERTY_VIDEO_IMAGE: // from video //$NON-NLS-1$
@@ -3124,6 +3149,9 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		if (attachmentDialog != null) {
 			attachmentDialog.setFontLevel(level);
 		}
+		if (filterDialog != null) {
+			filterDialog.setFontLevel(level);
+		}
 		PencilDrawer drawer = PencilDrawer.getDrawer(this);
 		if (drawer.drawingControl != null && drawer.drawingControl.isVisible()) {
 			drawer.drawingControl.setFontLevel(level);
@@ -3241,6 +3269,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		ArrayList<Object[]> changes = new ArrayList<Object[]>();
 		int nMin = Integer.MAX_VALUE, nMax = -1;
 		ArrayList<TTrack> list = getTracks();
+		list.removeAll(getDrawablesTemp(FilteredPointMass.class));
 		for (int it = 0, ni = list.size(); it < ni; it++) {
 			TTrack track = list.get(it);
 			boolean isChanged = false;

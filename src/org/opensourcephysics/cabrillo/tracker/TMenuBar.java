@@ -1803,7 +1803,8 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 			edit_copyObjectMenu.add(item);
 			// copy track items
 			for (TTrack next : panel().getTracksTemp()) {
-				if (next == panel().getAxes() || next instanceof PerspectiveTrack)
+				if (next == panel().getAxes() || next instanceof PerspectiveTrack
+						|| next instanceof FilteredPointMass)
 					continue;
 				item = new JMenuItem(next.getName());
 				item.setActionCommand(next.getName());
@@ -1818,7 +1819,9 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 
 	protected void refreshEditMenu(boolean opening) {
 		if (isTainted(MENU_EDIT)) {
-			boolean hasTracks = !panel().getUserTracks().isEmpty();
+			ArrayList<TTrack> tracks = panel().getUserTracks();
+			tracks.removeAll(panel().getDrawablesTemp(FilteredPointMass.class));
+			boolean hasTracks = !tracks.isEmpty();
 			boolean undoEnabled = panel().isEnabled("edit.undoRedo");
 			boolean copyDataEnabled = panel().isEnabled("edit.copyData"); //$NON-NLS-1$
 			boolean copyImageEnabled = panel().isEnabled("edit.copyImage"); //$NON-NLS-1$
@@ -2210,7 +2213,8 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 			switch (menu) {
 			case MENU_COORDS:
 				if (track.ttype == TTrack.TYPE_POINTMASS
-						&& !track.getClass().getSimpleName().endsWith("DataTrack")) {
+						&& !track.getClass().getSimpleName().endsWith("DataTrack")
+						&& !track.getClass().getSimpleName().startsWith("Filtered")) {
 					JRadioButtonMenuItem item = new JRadioButtonMenuItem(trackName);
 					item.addActionListener(actions.get("refFrame")); //$NON-NLS-1$
 					coords_refFrameGroup.add(item);
@@ -2248,6 +2252,8 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		// long t0 = Performance.now(0);
 
 		ArrayList<TTrack> userTracks = panel().getUserTracks();
+		userTracks.removeAll(panel().getDrawablesTemp(FilteredPointMass.class));
+
 		boolean hasTracks = !userTracks.isEmpty();
 
 		if (isTainted(MENU_TRACK)) {
@@ -2268,6 +2274,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 			// for each track
 			for (int i = 0, n = userTracks.size(); i < n; i++) {
 				track = userTracks.get(i);
+				
 				String trackName = track.getName("track"); //$NON-NLS-1$
 				// add item to clone menu for each track
 				JMenuItem item = new JMenuItem(trackName);

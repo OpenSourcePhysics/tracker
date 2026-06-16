@@ -774,7 +774,7 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 		dispose();
 	}
 
-    TrackerPanel panel(Integer panelID) {
+  TrackerPanel panel(Integer panelID) {
 		return tframe.getTrackerPanelForID(panelID);
 	}
 
@@ -1391,7 +1391,7 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 	 * @return the step array
 	 */
 	public Step[] getSteps() {
-		return steps.array;
+		return steps != null? steps.array: new Step[0];
 	}
 
 	/**

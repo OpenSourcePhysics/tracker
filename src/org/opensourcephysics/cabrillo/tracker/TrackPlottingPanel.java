@@ -435,7 +435,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 		tracks.clear();
 		FontSizer.setFonts(popup, FontSizer.getLevel());
 
-		// disable algorithmItem if not point mass track
+		// disable algorithmItem and filterItem if not point mass track
 		algorithmItem.setEnabled(track.ttype == TTrack.TYPE_POINTMASS);
 		return popupmenu;
 	}

@@ -35,12 +35,50 @@ import org.opensourcephysics.tools.Resource;
 public class LaunchCounter {
 	
 	static String dataFile = "launch_counts.csv"; //$NON-NLS-1$
+	static String dataFile6 = "launch_counts_6.csv"; //$NON-NLS-1$
 	static String NEW_LINE = System.getProperty("line.separator", "\n"); //$NON-NLS-1$ //$NON-NLS-2$
 
   public static void main(String[] args) throws AWTException {
   	
   	Toolkit.getDefaultToolkit().beep();
+//  	recordCounts(dataFile);
+  	recordCounts6();
 	
+//    Robot robot = new Robot();
+//    boolean increase = true;
+//
+//    // create StringBuffer and append date/time
+//    StringBuffer buffer = new StringBuffer();
+//  	buffer.append(getDateAndTime());
+//  	
+//		dataFile = "C:\\Users\\dobro\\Documents\\Tracker\\Analytics\\"+dataFile;
+//
+//		// get file names (first line of dataFile except data/time)
+//  	String[] filenames = getFileNames(dataFile);
+//  	
+//  	// go through file names and append tabs and download counts
+//  	for (int j = 0; j<filenames.length; j++) {
+//  		// move mouse to prevent computer from sleeping
+//    	increase = !increase;
+//      Point p = MouseInfo.getPointerInfo().getLocation();
+//      int x = increase? p.x + 1: p.x - 1;
+//      int y = increase? p.y + 1: p.y - 1;
+//      robot.mouseMove(x, y);
+//	  	String count = getCount(filenames[j]);
+//	  	buffer.append("\t"+count); //$NON-NLS-1$
+//  	}
+//		
+//		// get current contents and add StringBuffer at end
+//		String contents = read(dataFile);
+//		contents += buffer.toString();
+//		
+//		// write the new contents to dataFile
+//		write(contents, dataFile);
+//
+  	Toolkit.getDefaultToolkit().beep();
+  }
+  
+  static void recordCounts(String fileName) throws AWTException {
     Robot robot = new Robot();
     boolean increase = true;
 
@@ -48,10 +86,10 @@ public class LaunchCounter {
     StringBuffer buffer = new StringBuffer();
   	buffer.append(getDateAndTime());
   	
-		dataFile = "C:\\Users\\dobro\\Documents\\Tracker\\Analytics\\"+dataFile; // pig
+		fileName = "C:\\Users\\dobro\\Documents\\Tracker\\Analytics\\"+fileName;
 
 		// get file names (first line of dataFile except data/time)
-  	String[] filenames = getFileNames(dataFile);
+  	String[] filenames = getFileNames(fileName);
   	
   	// go through file names and append tabs and download counts
   	for (int j = 0; j<filenames.length; j++) {
@@ -66,13 +104,52 @@ public class LaunchCounter {
   	}
 		
 		// get current contents and add StringBuffer at end
-		String contents = read(dataFile);
+		String contents = read(fileName);
 		contents += buffer.toString();
 		
-		// write the new contents to dataFile
-		write(contents, dataFile);
+		// write the new contents to file
+		write(contents, fileName); 	
+  }
+  
+  static void recordCounts6() throws AWTException {
+    Robot robot = new Robot();
+    boolean increase = true;
 
-  	Toolkit.getDefaultToolkit().beep();
+    // create StringBuffer and append date/time
+    StringBuffer buffer = new StringBuffer();
+  	buffer.append(getDateAndTime());
+  	
+		String fileName = "C:\\Users\\dobro\\Documents\\Tracker\\Analytics\\"+dataFile6;
+
+		// get file names (first line of dataFile except data/time)
+  	String[] filenames = getFileNames(fileName);
+  	
+  	// go through file names and append tabs and download counts
+  	for (int j = 0; j<filenames.length; j++) {
+  		// move mouse to prevent computer from sleeping
+    	increase = !increase;
+      Point p = MouseInfo.getPointerInfo().getLocation();
+      int x = increase? p.x + 1: p.x - 1;
+      int y = increase? p.y + 1: p.y - 1;
+      robot.mouseMove(x, y);
+	  	int count = -1;
+			try {
+				String countXuggle = getCount(filenames[j]+"_Xuggle");
+				countXuggle = countXuggle.replaceAll(",", "");
+				String countNone = getCount(filenames[j]+"_none");
+				countNone = countNone.replaceAll(",", "");
+				count = Integer.parseInt(countXuggle) + Integer.parseInt(countNone);
+			} catch (NumberFormatException e) {
+			}
+	  	buffer.append("\t"+count); //$NON-NLS-1$
+  	}
+		
+		// get current contents and add StringBuffer at end
+		String contents = read(fileName);
+		contents += buffer.toString();
+		
+		// write the new contents to file
+		write(contents, fileName); 	
   }
   
   /**
@@ -183,6 +260,6 @@ public class LaunchCounter {
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston MA 02111-1307 USA
  * or view the license online at http://www.gnu.org/copyleft/gpl.html
  *
- * Copyright (c) 2025  The Open Source Physics project
+ * Copyright (c) 2026  The Open Source Physics project
  *                     https://www.compadre.org/osp
  */

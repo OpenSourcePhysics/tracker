@@ -47,7 +47,6 @@ import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.display.DrawingPanel;
 import org.opensourcephysics.display.Interactive;
-import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.media.core.ImageCoordSystem;
 import org.opensourcephysics.media.core.NumberField;
 import org.opensourcephysics.media.core.TPoint;
@@ -845,7 +844,7 @@ public class VectorStep extends Step implements PropertyChangeListener {
 		@Override
 		public void setXY(double x, double y) {
 			TTrack track = getTrack();
-			if (track.isLocked())
+			if (track == null || track.isLocked())
 				return;
 			super.setXY(x, y);
 			if (firePropertyChangeEvents)

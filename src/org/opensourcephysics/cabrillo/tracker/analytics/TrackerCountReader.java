@@ -49,7 +49,7 @@ public class TrackerCountReader extends JFrame {
 			"clear launch log failures", "clear download failures", "test launch log", "test downloads"}; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
 	private String[] versions = {"all", "6.", "5.", "4.",  //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 			"6.3", "6.2", "6.1", "6.0",   //$NON-NLS-1$//$NON-NLS-2$
-			"6.3.3", "6.3.2", "6.3.1",    //$NON-NLS-1$//$NON-NLS-2$
+			"6.3.4", "6.3.3", "6.3.2", "6.3.1",    //$NON-NLS-1$//$NON-NLS-2$
 			"6.3.0", "6.2.0", "6.1.7",    //$NON-NLS-1$//$NON-NLS-2$ //$NON-NLS-3$
 			"6.1.6", "6.1.5", "6.1.4",    //$NON-NLS-1$//$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ 
 			"6.1.3", "6.1.2", "6.1.1",    //$NON-NLS-1$//$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ 

@@ -611,7 +611,7 @@ public class TapeStep extends Step {
 		double cos = end1.cos(end2);
 		double d = end1.distance(end2);
 		double factor = worldLength / getTapeLength(true);
-
+		
 		// special case: d==0 must be corrected
 		if (d == 0) {
 			sin = 0;
@@ -665,6 +665,12 @@ public class TapeStep extends Step {
 			double y2 = middle.getY() - sin * d * factor / 2;
 			end1.setLocation(x1, y1);
 			end2.setLocation(x2, y2);
+		}
+		if (tape.isFixedPosition()) {
+			// set ends of frame 0 as well
+			TapeStep ts = (TapeStep)tape.getSteps()[0];
+			ts.end1.setLocation(end1);
+			ts.end2.setLocation(end2);
 		}
 		adjustingTips = false;
 	}
@@ -926,6 +932,8 @@ public class TapeStep extends Step {
 				if (wasAdjusting && !adjusting && !java.lang.Double.isNaN(prevX)) {
 					setXY(prevX, prevY);
 				}
+				ImageCoordSystem coords = tape.tp.getCoords();
+				coords.setAdjusting(isAdjusting());
 			} else
 				super.setAdjusting(adjusting, e);
 			
