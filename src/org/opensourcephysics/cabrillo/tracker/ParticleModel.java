@@ -277,10 +277,8 @@ abstract public class ParticleModel extends PointMass {
 				setStartFrame(n);
 				startFrameUndefined = false;
 			}
-			if (tframe != null) {
-				boolean radians = tframe.isAnglesInRadians();
-				functionPanel.initEditor.setAnglesInDegrees(!radians);
-			}
+			boolean radians = tp.isAnglesInRadians();
+			functionPanel.initEditor.setAnglesInDegrees(!radians);
 		}
 	}
 
@@ -333,7 +331,7 @@ abstract public class ParticleModel extends PointMass {
 			}
 			return;
 		case TrackerPanel.PROPERTY_TRACKERPANEL_UNITS:
-			setAnglesInRadians(tp.getTFrame().isAnglesInRadians());
+			setAnglesInRadians(tp.isAnglesInRadians());
 			return;
 		case FunctionTool.PROPERTY_FUNCTIONTOOL_FUNCTION:
 			if (!loading)

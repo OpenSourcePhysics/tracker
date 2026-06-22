@@ -401,7 +401,8 @@ public class TableTrackView extends TrackView {
 		// track=" + track);
 		int highlightCol = -1;
 		try {
-			trackDataManager = track.getData(frame.getTrackerPanelForID(panelID), myDatasetIndex);
+			TrackerPanel tp = frame.getTrackerPanelForID(panelID);
+			trackDataManager = track.getData(tp, myDatasetIndex);
 			if (datasetCount != trackDataManager.getDatasetsRaw().size())
 				refreshNameMaps();
 			
@@ -410,7 +411,7 @@ public class TableTrackView extends TrackView {
 			int count = datasets.size();
 			if (count > 0)
 				dataTable.setUnits(datasets.get(0).getXColumnName(), "", track.getDataDescription(0)); //$NON-NLS-1$
-			boolean degrees = frame != null && !frame.isAnglesInRadians();
+			boolean degrees = !tp.isAnglesInRadians();
 
 			dataTableManager.clear();
 			int colCount = 0;

@@ -248,7 +248,7 @@ public abstract class ModelFunctionPanel extends FunctionPanel {
 			break;
 		case FunctionEditor.PROPERTY_FUNCTIONEDITOR_ANGLESINRADIANS:
 			if (model.tp != null) {
-				model.tframe.setAnglesInRadians((Boolean) e.getNewValue());
+				model.tp.anglesInRadians = (Boolean) e.getNewValue();
 				break;
 			}
 		}

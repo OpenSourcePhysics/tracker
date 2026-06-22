@@ -220,6 +220,10 @@ public class Tracker {
   static final int MEMORY_LOW_DONTIGNORE = 2;
 	static final int MEMORY_OUT            = 3;
 	static final int MEMORY_INCREASE       = 4;
+	
+	static final String SI_TIME_UNIT = "s";
+	static final String SI_LENGTH_UNIT = "m";
+	static final String SI_MASS_UNIT = "kg";
 
 	// for testing
 	static boolean testOn = false;
@@ -337,6 +341,9 @@ public class Tracker {
 	static boolean scrubMouseWheel, centerCalibrationStick = true, hideLabels;
 	static boolean enableAutofill = true, showGaps = true;
 	static int preferredTrailLengthIndex = DEFAULT_TRAIL_LENGTH_INDEX;
+	static String preferredTimeUnit = SI_TIME_UNIT;
+	static String preferredLengthUnit = SI_LENGTH_UNIT;
+	static String preferredMassUnit = SI_MASS_UNIT;
 
 	private static boolean declareLocales = true;// !OSPRuntime.isJS;
 
@@ -2665,6 +2672,12 @@ public class Tracker {
 					control.setValue("locale", preferredLocale); //$NON-NLS-1$
 				if (preferredDecimalSeparator != null)
 					control.setValue("decimal_separator", preferredDecimalSeparator); //$NON-NLS-1$
+				if (!SI_TIME_UNIT.equals(preferredTimeUnit))
+					control.setValue("time_unit", preferredTimeUnit); //$NON-NLS-1$
+				if (!SI_LENGTH_UNIT.equals(preferredLengthUnit))
+					control.setValue("length_unit", preferredLengthUnit); //$NON-NLS-1$
+				if (!SI_MASS_UNIT.equals(preferredMassUnit))
+					control.setValue("mass_unit", preferredMassUnit); //$NON-NLS-1$
 				if (preferredFontLevel > 0) {
 					control.setValue("font_size", preferredFontLevel); //$NON-NLS-1$
 				}
@@ -2803,6 +2816,12 @@ public class Tracker {
 					preferredDecimalSeparator = control.getString("decimal_separator"); //$NON-NLS-1$
 					OSPRuntime.setPreferredDecimalSeparator(preferredDecimalSeparator);
 				}
+				if (control.getPropertyNamesRaw().contains("time_unit")) //$NON-NLS-1$
+					preferredTimeUnit = control.getString("time_unit"); //$NON-NLS-1$
+				if (control.getPropertyNamesRaw().contains("length_unit")) //$NON-NLS-1$
+					preferredLengthUnit = control.getString("length_unit"); //$NON-NLS-1$
+				if (control.getPropertyNamesRaw().contains("mass_unit")) //$NON-NLS-1$
+					preferredMassUnit = control.getString("mass_unit"); //$NON-NLS-1$
 				if (control.getPropertyNamesRaw().contains("run")) //$NON-NLS-1$
 					prelaunchExecutables = (String[]) control.getObject("run"); //$NON-NLS-1$
 				if (control.getPropertyNamesRaw().contains("locale")) //$NON-NLS-1$

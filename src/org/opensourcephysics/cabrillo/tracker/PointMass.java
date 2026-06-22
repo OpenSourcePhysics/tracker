@@ -3375,7 +3375,7 @@ public class PointMass extends TTrack {
 								TrackerRes.getString("PointMass.Dialog.ChangeMassUnit.Title"), //$NON-NLS-1$
 								JOptionPane.YES_NO_OPTION);
 						if (response == JOptionPane.YES_OPTION) {
-							tp.setMassUnit(split[i]);
+							tp.setMassUnit(split[i], true);
 							tp.setUnitsVisible(true);
 						}
 					}

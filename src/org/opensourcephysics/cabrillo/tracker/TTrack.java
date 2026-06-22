@@ -173,7 +173,7 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 //	};
 
 	private final static String[] panelEventsTTrack = new String[] { 
-			TFrame.PROPERTY_TFRAME_RADIANANGLES, 
+			TrackerPanel.PROPERTY_TRACKERPANEL_RADIANANGLES, 
 			TrackerPanel.PROPERTY_TRACKERPANEL_MAGNIFICATION, 
 			TrackerPanel.PROPERTY_TRACKERPANEL_STEPNUMBER, // (Calibration,
 															// CircleFitter,CoordAxes,LineProfile,OffsetOrigin,Protractor,RGBRegion,TapeMeasure)
@@ -193,7 +193,7 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 		if (e.getSource() instanceof TrackerPanel) {
 			TrackerPanel trackerPanel = (TrackerPanel) e.getSource();
 			switch (e.getPropertyName()) {
-			case TFrame.PROPERTY_TFRAME_RADIANANGLES:
+			case TrackerPanel.PROPERTY_TRACKERPANEL_RADIANANGLES:
 				setAnglesInRadians((Boolean) e.getNewValue());
 				break;
 			case TrackerPanel.PROPERTY_TRACKERPANEL_MAGNIFICATION:
@@ -627,7 +627,7 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 		item.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				tframe.setAnglesInRadians(!radians);
+				tp.anglesInRadians = !radians;
 			}
 		});
 		item.setText(radians ? TrackerRes.getString("TTrack.AngleField.Popup.Degrees") : //$NON-NLS-1$

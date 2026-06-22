@@ -73,7 +73,7 @@ public abstract class TrackChooserTView extends TView {
 		TrackerPanel.PROPERTY_TRACKERPANEL_IMAGE,
 		TTrack.PROPERTY_TTRACK_DATA,
 		TTrack.PROPERTY_TTRACK_FORMAT,
-		TFrame.PROPERTY_TFRAME_RADIANANGLES,
+		TrackerPanel.PROPERTY_TRACKERPANEL_RADIANANGLES,
 		FunctionTool.PROPERTY_FUNCTIONTOOL_FUNCTION,
 	};
 	public static boolean ignoreRefresh = false;
@@ -569,7 +569,7 @@ public abstract class TrackChooserTView extends TView {
 			}
 			break;
 		case FunctionTool.PROPERTY_FUNCTIONTOOL_FUNCTION: // data function has changed
-		case TFrame.PROPERTY_TFRAME_RADIANANGLES:
+		case TrackerPanel.PROPERTY_TRACKERPANEL_RADIANANGLES:
 			// angle units have changed
 			// refresh views of all tracks
 			for (TTrack t : panel.getTracks()) {

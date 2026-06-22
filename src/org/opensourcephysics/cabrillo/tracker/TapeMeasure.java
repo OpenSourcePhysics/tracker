@@ -1229,7 +1229,7 @@ public class TapeMeasure extends InputTrack  implements MarkingRequired {
 								TrackerRes.getString("TapeMeasure.Dialog.ChangeLengthUnit.Title"), //$NON-NLS-1$
 								JOptionPane.YES_NO_OPTION);
 						if (response == JOptionPane.YES_OPTION) {
-							tp.setLengthUnit(split[i]);
+							tp.setLengthUnit(split[i], true);
 							tp.setUnitsVisible(true);
 						}
 					}

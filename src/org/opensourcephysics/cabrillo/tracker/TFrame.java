@@ -238,7 +238,6 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 	}
 
 	public static final String PROPERTY_TFRAME_TAB = "tab";
-	public static final String PROPERTY_TFRAME_RADIANANGLES = "radian_angles";
 	public static final String PROPERTY_TFRAME_WINDOWFOCUS = "windowfocus";
 
 	protected final static String HELP_PATH = "/org/opensourcephysics/cabrillo/tracker/resources/help/"; //$NON-NLS-1$
@@ -306,7 +305,6 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 	protected int framesLoaded, prevFramesLoaded; // used when loading xuggle videos
 	protected boolean splashing = true;
 
-	private boolean anglesInRadians = Tracker.isRadians;
 	private boolean alwaysListenToClipboard;
 
 	private Notes notes;
@@ -519,8 +517,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 
 			trackerPanel.addPropertyChangeListener(VideoPanel.PROPERTY_VIDEOPANEL_DATAFILE, this); // $NON-NLS-1$
 			trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_VIDEO, this); // $NON-NLS-1$
-			// set up trackerPanel to listen for angle format property change
-			addPropertyChangeListener(PROPERTY_TFRAME_RADIANANGLES, trackerPanel); // $NON-NLS-1$
+//			// set up trackerPanel to listen for angle format property change
+//			addPropertyChangeListener(PROPERTY_TFRAME_RADIANANGLES, trackerPanel); // $NON-NLS-1$
 			// create the tab panel components
 			// Note thta MainTView will create a TTrackBar.
 			objects[TFRAME_MAINVIEW] = new MainTView(trackerPanel);
@@ -680,7 +678,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 		FontSizer.setFonts(panel);
 		// inform all tracks of current angle display format
 		for (TTrack track : trackerPanel.getTracksTemp()) {
-			track.setAnglesInRadians(anglesInRadians);
+			track.setAnglesInRadians(trackerPanel.anglesInRadians);
 		}
 		trackerPanel.clearTemp();
 		setIgnoreRepaint(false);
@@ -982,7 +980,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 		deallocatePanelID(panelID);
 		System.gc();
 		Disposable.deallocate(tabPanel);
-		removePropertyChangeListener(TFrame.PROPERTY_TFRAME_RADIANANGLES, trackerPanel); // $NON-NLS-1$
+//		removePropertyChangeListener(TFrame.PROPERTY_TFRAME_RADIANANGLES, trackerPanel); // $NON-NLS-1$
 		firePropertyChange(PROPERTY_TFRAME_TAB, trackerPanel, null); // $NON-NLS-1$
 
 		trackerPanel = null;
@@ -1684,22 +1682,6 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 	public void setVisible(boolean visible) {
 		super.setVisible(visible);
 		Tracker.checkSplash();
-	}
-
-	public boolean isAnglesInRadians() {
-		return anglesInRadians;
-	}
-
-	/**
-	 * Sets the display units for angles.
-	 * 
-	 * @param inRadians true to display radians, false to display degrees
-	 */
-	public void setAnglesInRadians(boolean inRadians) {
-		if (anglesInRadians == inRadians)
-			return;
-		anglesInRadians = inRadians;
-		firePropertyChange(PROPERTY_TFRAME_RADIANANGLES, null, inRadians); // $NON-NLS-1$
 	}
 
 	/**

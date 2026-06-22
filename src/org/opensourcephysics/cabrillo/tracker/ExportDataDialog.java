@@ -582,7 +582,7 @@ public class ExportDataDialog extends JDialog {
 					if (dataset.getYColumnName().equals(colName)) {
 						dataValues[i][k] = getPoints(dataset, true);
 						// convert angles to degrees if needed
-						if (!frame.isAnglesInRadians() && 
+						if (!panel.isAnglesInRadians() && 
 								(colName.startsWith(Tracker.THETA) || 
 									colName.startsWith(Tracker.OMEGA) || 
 									colName.startsWith(Tracker.ALPHA))) {

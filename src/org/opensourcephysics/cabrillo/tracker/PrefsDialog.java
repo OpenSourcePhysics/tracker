@@ -1843,8 +1843,6 @@ public class PrefsDialog extends JDialog {
 			}
 		}
 		Tracker.isRadians = radiansButton.isSelected();
-		if (frame != null)
-			frame.setAnglesInRadians(Tracker.isRadians);
 		if (!OSPRuntime.isJS) {
 			// update recent menu
 			Integer val = (Integer) recentSizeSpinner.getValue();

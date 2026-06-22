@@ -164,6 +164,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	public static final String PROPERTY_TRACKERPANEL_UNITS = "units";
 	public static final String PROPERTY_TRACKERPANEL_VIDEO = "video";
 	public static final String PROPERTY_TRACKERPANEL_VIDEOVISIBLE = "videovisible";
+	public static final String PROPERTY_TRACKERPANEL_RADIANANGLES = "radian_angles";
 
 // static fields
 	/** The minimum zoom level */
@@ -256,8 +257,10 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	protected PropertyChangeListener massParamListener, massChangeListener;
 	@SuppressWarnings("unchecked")
 	protected TreeMap<String, String>[] formatPatterns = new TreeMap[TTrack.getDefaultFormatPatterns().length];
-	protected String lengthUnit = "m", massUnit = "kg"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+	protected String lengthUnit = Tracker.preferredLengthUnit; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+	protected String massUnit = Tracker.preferredMassUnit; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 	protected boolean unitsVisible = true; // visible by default
+	protected boolean anglesInRadians = Tracker.isRadians;
 	protected TCoordinateStringBuilder coordStringBuilder;
 	protected ArrayList<Integer> andWorld = new ArrayList<Integer>();
 	protected double[] dividerFractions = new double[4];
@@ -325,6 +328,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	 */
 	private TrackerPanel(TFrame frame, Video video, TrackerPanel panel, boolean createFrame) {
 		super(video);
+		setTimeUnit(Tracker.preferredTimeUnit);
 		setTFrame(frame == null && createFrame ? new TFrame() : frame);
 		if (panel == null) {
 			andWorld.add(panelID);
@@ -786,7 +790,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		}
 
 		// set angle format of the track
-		track.setAnglesInRadians(frame != null && frame.isAnglesInRadians());
+		track.setAnglesInRadians(track.tp != null && track.tp.isAnglesInRadians());
 		showTrackControlDelayed = true;
 		boolean doAddDrawable = true;
 		if (track instanceof ParticleDataTrack) {
@@ -1846,6 +1850,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		if (visible == unitsVisible)
 			return;
 		unitsVisible = visible;
+		changed = true;
 		refreshTrackBar();
 		coordStringBuilder.setUnitsAndPatterns(getSelectedTrack(), "x", "y"); //$NON-NLS-1$ //$NON-NLS-2$
 		if (getSelectedPoint() != null) {
@@ -1869,25 +1874,25 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	 * @param unit the mass unit
 	 * @return true if unit was changed
 	 */
-	public boolean setMassUnit(String unit) {
-		if (unit != null)
-			unit = unit.trim();
-		if ("".equals(unit)) //$NON-NLS-1$
-			unit = null;
-		if (massUnit != null && massUnit.equals(unit))
+	public boolean setMassUnit(String unit, boolean refresh) {
+		if (unit == null || unit.trim().equals(""))
 			return false;
-		if (massUnit == null && unit == null)
+		unit = unit.trim();
+		if (unit.equals(massUnit))
 			return false;
-		// prevent numbers being set as units
-		try {
-			Double.parseDouble(unit);
-			return false;
-		} catch (Exception e) {
+		// prevent numbers within units
+		for (char c : unit.toCharArray()) {
+      if (Character.isDigit(c)) {
+          return false;
+      }
 		}
 		massUnit = unit;
-		refreshTrackBar();
-		//getTrackBar().refresh();
-		firePropertyChange(PROPERTY_TRACKERPANEL_UNITS, false, true);
+		if (refresh) {
+			refreshTrackBar();
+			//getTrackBar().refresh();
+			firePropertyChange(PROPERTY_TRACKERPANEL_UNITS, false, true);
+		}
+		changed = true;
 		return true;
 	}
 
@@ -1904,48 +1909,68 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	 * Sets the length unit.
 	 *
 	 * @param unit the length unit
+	 * @param refresh true to refresh GUI
 	 * @return true if unit was changed
 	 */
-	public boolean setLengthUnit(String unit) {
-		if (unit != null)
-			unit = unit.trim();
-		if ("".equals(unit)) //$NON-NLS-1$
-			unit = null;
-		if (lengthUnit != null && lengthUnit.equals(unit))
+	public boolean setLengthUnit(String unit, boolean refresh) {
+		if (unit == null || unit.trim().equals(""))
 			return false;
-		if (lengthUnit == null && unit == null)
+		unit = unit.trim();
+		if (unit.equals(lengthUnit))
 			return false;
-		// prevent numbers being set as units
-		try {
-			Double.parseDouble(unit);
-			return false;
-		} catch (Exception e) {
+		// prevent numbers within units
+		for (char c : unit.toCharArray()) {
+      if (Character.isDigit(c)) {
+          return false;
+      }
 		}
 		lengthUnit = unit;
-		refreshTrackBar();
-		//getTrackBar().refresh();
-		coordStringBuilder.setUnitsAndPatterns(getSelectedTrack(), "x", "y"); //$NON-NLS-1$ //$NON-NLS-2$
-		if (getSelectedPoint() != null) {
-			getSelectedPoint().showCoordinates(this);
+		if (refresh) {
+			refreshTrackBar();
+			//getTrackBar().refresh();
+			coordStringBuilder.setUnitsAndPatterns(getSelectedTrack(), "x", "y"); //$NON-NLS-1$ //$NON-NLS-2$
+			if (getSelectedPoint() != null) {
+				getSelectedPoint().showCoordinates(this);
+			}
+			firePropertyChange(PROPERTY_TRACKERPANEL_UNITS, false, true);
 		}
-		firePropertyChange(PROPERTY_TRACKERPANEL_UNITS, false, true);
+		changed = true;
 		return true;
 	}
 
-	@Override
-	public boolean setTimeUnit(String unit) {
+	public boolean setTimeUnit(String unit, boolean refresh) {
 		if (super.setTimeUnit(unit)) {
-			refreshTrackBar();
-			VideoClip clip = getPlayer().getVideoClip();
-			ClipControl clipControl = getPlayer().getClipControl();
-			TFrame frame = getTFrame();
-			ClipInspector inspector = clip.getClipInspector(clipControl, frame);
-			inspector.setTimeUnit(unit);
-			//getTrackBar().refresh();
-			firePropertyChange(PROPERTY_TRACKERPANEL_UNITS, false, true);
+			changed = true;
+			if (refresh) {
+				refreshTrackBar();
+				VideoClip clip = getPlayer().getVideoClip();
+				ClipControl clipControl = getPlayer().getClipControl();
+				TFrame frame = getTFrame();
+				ClipInspector inspector = clip.getClipInspector(clipControl, frame);
+				inspector.setTimeUnit(unit);
+				//getTrackBar().refresh();
+				firePropertyChange(PROPERTY_TRACKERPANEL_UNITS, false, true);
+			}
 			return true;
 		}
 		return false;
+	}
+
+	public boolean isAnglesInRadians() {
+		return anglesInRadians;
+	}
+
+	/**
+	 * Sets the display units for angles.
+	 * 
+	 * @param inRadians true to display radians, false to display degrees
+	 */
+	public void setAnglesInRadians(boolean inRadians) {
+		if (anglesInRadians == inRadians)
+			return;
+		changed = true;
+		anglesInRadians = inRadians;
+		firePropertyChange(PROPERTY_TRACKERPANEL_RADIANANGLES, null, inRadians); // $NON-NLS-1$
 	}
 
 	/**
@@ -1980,8 +2005,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			return sp + massUnit + Tracker.DOT + lengthUnit + sq + "/" + timeUnit + sq; //$NON-NLS-1$
 		case "A/T":
 		case "A/TT":
-			TFrame frame = getTFrame();
-			String angUnit = frame != null && frame.isAnglesInRadians() ? "" : Tracker.DEGREES; //$NON-NLS-1$
+			String angUnit = isAnglesInRadians() ? "" : Tracker.DEGREES; //$NON-NLS-1$
 			return sp + angUnit + "/" + timeUnit + sq; //$NON-NLS-1$
 		}
 		return ""; //$NON-NLS-1$
@@ -2971,9 +2995,9 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		case TTrack.PROPERTY_TTRACK_FORMAT: // data format has changed
 			firePropertyChange(TTrack.PROPERTY_TTRACK_FORMAT, null, null); // to views //$NON-NLS-1$
 			break;
-		case TFrame.PROPERTY_TFRAME_RADIANANGLES: // angle format has changed //$NON-NLS-1$
-			firePropertyChange(TFrame.PROPERTY_TFRAME_RADIANANGLES, null, e.getNewValue()); // to tracks //$NON-NLS-1$
-			break;
+//		case TFrame.PROPERTY_TFRAME_RADIANANGLES: // angle format has changed //$NON-NLS-1$
+//			firePropertyChange(TFrame.PROPERTY_TFRAME_RADIANANGLES, null, e.getNewValue()); // to tracks //$NON-NLS-1$
+//			break;
 		case ImageCoordSystem.PROPERTY_COORDS_FIXEDORIGIN:
 		case ImageCoordSystem.PROPERTY_COORDS_FIXEDANGLE:
 		case ImageCoordSystem.PROPERTY_COORDS_FIXEDSCALE:
@@ -3899,11 +3923,17 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				trackerPanel.contact = control.getString("contact"); //$NON-NLS-1$
 
 				// load units and unit visibility
+				if (control.getPropertyNamesRaw().contains("time_unit")) { //$NON-NLS-1$
+					trackerPanel.setTimeUnit(control.getString("time_unit"), true); //$NON-NLS-1$
+				}
 				if (control.getPropertyNamesRaw().contains("length_unit")) { //$NON-NLS-1$
 					trackerPanel.lengthUnit = control.getString("length_unit"); //$NON-NLS-1$
 				}
 				if (control.getPropertyNamesRaw().contains("mass_unit")) { //$NON-NLS-1$
 					trackerPanel.massUnit = control.getString("mass_unit"); //$NON-NLS-1$
+				}
+				if (control.getPropertyNamesRaw().contains("radians")) { //$NON-NLS-1$
+					trackerPanel.anglesInRadians = control.getBoolean("radians"); //$NON-NLS-1$
 				}
 				if (control.getPropertyNamesRaw().contains("units_visible")) { //$NON-NLS-1$
 					trackerPanel.unitsVisible = control.getBoolean("units_visible"); //$NON-NLS-1$
@@ -4196,8 +4226,10 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				control.setValue("number_formats", customPatterns); //$NON-NLS-1$
 			}
 			// save units and unit visibility
+			control.setValue("time_unit", trackerPanel.getTimeUnit()); //$NON-NLS-1$
 			control.setValue("length_unit", trackerPanel.lengthUnit); //$NON-NLS-1$
 			control.setValue("mass_unit", trackerPanel.massUnit); //$NON-NLS-1$
+			control.setValue("radians", trackerPanel.isAnglesInRadians()); //$NON-NLS-1$
 			control.setValue("units_visible", trackerPanel.unitsVisible); //$NON-NLS-1$
 
 			// save the tracks
