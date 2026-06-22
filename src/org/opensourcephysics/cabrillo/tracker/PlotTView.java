@@ -165,43 +165,51 @@ public class PlotTView extends TrackChooserTView {
 		@Override
 		public Object loadObject(XMLControl control, Object obj) {
 			PlotTView view = (PlotTView) obj;
-			TTrack track = view.getTrack(control.getString("selected_track")); //$NON-NLS-1$
-			if (track != null) {
-				view.setSelectedTrack(track);
-				// following code is for legacy xml only
-				PlotTrackView trackView = (PlotTrackView) view.getTrackView(track);
-				if (trackView != null) {
-					TrackPlottingPanel[] plots = trackView.plots;
-					for (int i = 0; i < plots.length; i++) {
-						XMLControl child = control.getChildControl("plot" + i); //$NON-NLS-1$
-						if (child != null) {
-							child.loadObject(plots[i]);
-						} else {
-							trackView.setPlotCount(Math.max(1, i));
-							break;
-						}
-					}
-				}
-				// end legacy code
-			}
+
 			// load the track_views property, if any
+			XMLProperty trackViewsProp = null;
 			java.util.List<XMLProperty> props = control.getPropsRaw();
 			for (int i = 0, n = props.size(); i < n; i++) {
 				XMLProperty prop = props.get(i);
 				if (prop.getPropertyName().equals("track_views")) { //$NON-NLS-1$
-					XMLControl[] controls = prop.getChildControls();
-					for (int j = 0; j < controls.length; j++) {
-						// get name of track, find its track view and load it
-						String trackName = controls[j].getString(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK); // $NON-NLS-1$
-						track = view.getTrack(trackName);
-						if (track != null) {
-							TrackView v = view.getTrackView(track);
-							if (v == null)
-								v = view.addTrackView(track);
-							controls[j].loadObject(v);
+					trackViewsProp = prop;
+					break;
+				}
+			}
+			TTrack track = view.getTrack(control.getString("selected_track")); //$NON-NLS-1$
+			if (track != null) {
+				view.setSelectedTrack(track);
+				if (trackViewsProp == null) {
+					// following code is for legacy xml only
+					PlotTrackView trackView = (PlotTrackView) view.getTrackView(track);
+					if (trackView != null) {
+						TrackPlottingPanel[] plots = trackView.plots;
+						for (int i = 0; i < plots.length; i++) {
+							XMLControl child = control.getChildControl("plot" + i); //$NON-NLS-1$
+							if (child != null) {
+								child.loadObject(plots[i]);
+							} else {
+								trackView.setPlotCount(Math.max(1, i));
+								break;
+							}
 						}
 					}
-					break;
+					// end legacy code
+				}
+			}
+			// load the track_views property, if any
+			if (trackViewsProp != null) {
+				XMLControl[] controls = trackViewsProp.getChildControls();
+				for (int j = 0; j < controls.length; j++) {
+					// get name of track, find its track view and load it
+					String trackName = controls[j].getString(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK); // $NON-NLS-1$
+					track = view.getTrack(trackName);
+					if (track != null) {
+						TrackView v = view.getTrackView(track);
+						if (v == null)
+							v = view.addTrackView(track);
+						controls[j].loadObject(v);
+					}
 				}
 			}
 			return obj;
