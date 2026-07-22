@@ -1,0 +1,732 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="theme-color" content="#123a63">
+	<meta name="description" content="How Tracker turns everyday video into evidence, graphs and models—and why a touch-first student variant matters for mobile physics learning.">
+	<meta property="og:title" content="From Motion to Meaning | Tracker Student Mobile">
+	<meta property="og:description" content="The pedagogical power of Tracker and the goal of a touch-first student workspace for phones and tablets.">
+	<meta property="og:type" content="article">
+	<meta property="og:url" content="https://iwant2study.org/tracker/TrackerStudentMobilePedagogy.html">
+	<meta property="og:image" content="https://iwant2study.org/tracker/mobile-enhancements/tracker-mobile-pedagogy-hero.png">
+	<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23123a63'/%3E%3Cpath d='M14 43c10-28 20-28 36 0' fill='none' stroke='%23ffd43b' stroke-width='5' stroke-linecap='round'/%3E%3Ccircle cx='32' cy='19' r='6' fill='%231769d2'/%3E%3C/svg%3E">
+	<script async src="https://www.googletagmanager.com/gtag/js?id=G-S9EWRY1CPJ"></script>
+	<script>
+		window.dataLayer = window.dataLayer || [];
+		function gtag() { dataLayer.push(arguments); }
+		gtag("js", new Date());
+		gtag("config", "G-S9EWRY1CPJ");
+	</script>
+	<title>From Motion to Meaning | Tracker Student Mobile</title>
+	<style>
+		:root {
+			--navy: #123a63;
+			--navy-dark: #062b50;
+			--blue: #1769d2;
+			--blue-dark: #0755b7;
+			--yellow: #e5a900;
+			--ink: #192330;
+			--muted: #536172;
+			--rule: #d8e0e8;
+			--soft: #f3f7fb;
+			--white: #fff;
+			--max: 1180px;
+		}
+
+		* { box-sizing: border-box; }
+
+		html {
+			scroll-behavior: smooth;
+			scroll-padding-top: 88px;
+		}
+
+		body {
+			margin: 0;
+			background: var(--white);
+			color: var(--ink);
+			font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+			font-size: 18px;
+			line-height: 1.62;
+			-webkit-font-smoothing: antialiased;
+		}
+
+		a { color: var(--blue-dark); }
+
+		a:focus-visible,
+		button:focus-visible {
+			outline: 3px solid var(--yellow);
+			outline-offset: 3px;
+		}
+
+		.skip-link {
+			position: fixed;
+			z-index: 20;
+			top: 10px;
+			left: 10px;
+			transform: translateY(-150%);
+			padding: 10px 14px;
+			background: var(--white);
+			border: 2px solid var(--navy);
+			font-weight: 750;
+		}
+
+		.skip-link:focus { transform: translateY(0); }
+
+		.site-header {
+			position: sticky;
+			z-index: 10;
+			top: 0;
+			background: rgba(255, 255, 255, .96);
+			border-bottom: 1px solid var(--rule);
+			backdrop-filter: blur(12px);
+		}
+
+		.header-inner,
+		.wrap {
+			width: min(calc(100% - 40px), var(--max));
+			margin-inline: auto;
+		}
+
+		.header-inner {
+			display: flex;
+			min-height: 72px;
+			align-items: center;
+			justify-content: space-between;
+			gap: 24px;
+		}
+
+		.brand {
+			color: var(--navy);
+			font-size: 1.12rem;
+			font-weight: 820;
+			letter-spacing: -.02em;
+			text-decoration: none;
+		}
+
+		.header-actions,
+		.nav-links,
+		.button-row {
+			display: flex;
+			align-items: center;
+			gap: 20px;
+		}
+
+		.nav-links a {
+			color: var(--ink);
+			font-size: .9rem;
+			font-weight: 650;
+			text-decoration: none;
+		}
+
+		.nav-links a:hover { color: var(--blue-dark); }
+
+		.button {
+			display: inline-flex;
+			min-height: 46px;
+			align-items: center;
+			justify-content: center;
+			padding: 11px 20px;
+			border: 2px solid transparent;
+			background: var(--blue);
+			color: var(--white);
+			font-size: .95rem;
+			font-weight: 760;
+			line-height: 1.2;
+			text-align: center;
+			text-decoration: none;
+			transition: background-color 160ms ease, transform 160ms ease;
+		}
+
+		.button:hover {
+			background: var(--blue-dark);
+			transform: translateY(-1px);
+		}
+
+		.text-link {
+			display: inline-flex;
+			min-height: 44px;
+			align-items: center;
+			gap: 8px;
+			font-weight: 750;
+			text-decoration-thickness: 1px;
+			text-underline-offset: 5px;
+		}
+
+		.hero {
+			display: grid;
+			min-height: 690px;
+			grid-template-columns: minmax(0, 1fr) minmax(520px, 1.05fr);
+			align-items: center;
+			gap: clamp(32px, 4vw, 54px);
+			padding-block: 72px 78px;
+		}
+
+		h1,
+		h2,
+		h3 {
+			margin: 0;
+			color: var(--navy-dark);
+			font-weight: 830;
+			letter-spacing: -.035em;
+			line-height: 1.06;
+		}
+
+		h1 {
+			max-width: 680px;
+			font-size: clamp(3.4rem, 5.8vw, 5.25rem);
+		}
+
+		h2 { font-size: clamp(2rem, 4vw, 3.35rem); }
+		h3 { font-size: 1.18rem; letter-spacing: -.015em; }
+
+		.hero-copy > p {
+			max-width: 620px;
+			margin: 28px 0 30px;
+			color: #344252;
+			font-size: clamp(1.18rem, 2.1vw, 1.48rem);
+			line-height: 1.5;
+		}
+
+		.hero .button { min-width: 290px; }
+		.hero .text-link { white-space: nowrap; }
+
+		.hero-visual {
+			margin: 0;
+		}
+
+		.hero-visual img {
+			display: block;
+			width: 100%;
+			height: auto;
+		}
+
+		.hero-visual figcaption {
+			max-width: 660px;
+			margin: 12px auto 0;
+			color: var(--muted);
+			font-size: .78rem;
+			line-height: 1.4;
+			text-align: center;
+		}
+
+		.section {
+			padding-block: 92px;
+			border-top: 1px solid var(--rule);
+		}
+
+		.section-heading {
+			display: grid;
+			grid-template-columns: minmax(0, .85fr) minmax(360px, 1.15fr);
+			gap: 56px;
+			align-items: end;
+			margin-bottom: 58px;
+		}
+
+		.section-heading p {
+			margin: 0;
+			color: var(--muted);
+			font-size: 1.12rem;
+		}
+
+		.three-up {
+			display: grid;
+			grid-template-columns: repeat(3, 1fr);
+			border-block: 1px solid var(--rule);
+		}
+
+		.idea {
+			min-width: 0;
+			padding: 38px 36px 38px 0;
+		}
+
+		.idea + .idea {
+			padding-left: 36px;
+			border-left: 1px solid var(--rule);
+		}
+
+		.icon {
+			display: inline-grid;
+			width: 48px;
+			height: 48px;
+			margin-bottom: 20px;
+			place-items: center;
+			color: var(--blue);
+		}
+
+		.icon.yellow { color: var(--yellow); }
+		.icon svg { width: 100%; height: 100%; }
+
+		.idea p,
+		.cycle-step p,
+		.principle p {
+			margin: 10px 0 0;
+			color: var(--muted);
+			font-size: .95rem;
+		}
+
+		.cycle {
+			display: grid;
+			grid-template-columns: repeat(5, 1fr);
+			margin-top: 64px;
+			border-top: 2px solid var(--navy);
+		}
+
+		.cycle-step {
+			position: relative;
+			padding: 34px 26px 8px 0;
+		}
+
+		.cycle-step::before {
+			position: absolute;
+			top: -7px;
+			left: 0;
+			width: 12px;
+			height: 12px;
+			background: var(--yellow);
+			border: 3px solid var(--white);
+			border-radius: 50%;
+			box-shadow: 0 0 0 1px var(--navy);
+			content: "";
+		}
+
+		.cycle-step strong {
+			display: block;
+			color: var(--blue-dark);
+			font-size: 1.08rem;
+		}
+
+		.cycle-step small {
+			display: block;
+			margin-bottom: 6px;
+			color: var(--yellow);
+			font-weight: 800;
+			letter-spacing: .08em;
+		}
+
+		.pedagogy-band { background: var(--soft); }
+
+		.pedagogy-grid {
+			display: grid;
+			grid-template-columns: .82fr 1.18fr;
+			gap: clamp(44px, 8vw, 110px);
+			align-items: start;
+		}
+
+		.pedagogy-grid h2 {
+			position: sticky;
+			top: 112px;
+		}
+
+		.argument {
+			padding: 0 0 30px;
+			border-bottom: 1px solid #cbd6e1;
+		}
+
+		.argument + .argument { padding-top: 30px; }
+		.argument p { margin: 10px 0 0; color: var(--muted); }
+
+		.quote {
+			margin: 38px 0 0;
+			padding: 26px 0 0 28px;
+			border-top: 1px solid var(--rule);
+			border-left: 4px solid var(--yellow);
+			color: var(--navy);
+			font-size: 1.15rem;
+			font-weight: 660;
+		}
+
+		.mobile-mission {
+			display: grid;
+			grid-template-columns: minmax(0, .85fr) minmax(420px, 1.15fr);
+			gap: clamp(44px, 8vw, 110px);
+			align-items: center;
+		}
+
+		.mission-copy > p {
+			margin: 24px 0 0;
+			color: var(--muted);
+			font-size: 1.08rem;
+		}
+
+		.mission-list {
+			margin: 34px 0 0;
+			padding: 0;
+			list-style: none;
+		}
+
+		.mission-list li {
+			display: grid;
+			grid-template-columns: 34px 1fr;
+			gap: 14px;
+			padding: 18px 0;
+			border-top: 1px solid var(--rule);
+		}
+
+		.mission-list strong { color: var(--navy); }
+		.mission-list span:first-child { color: var(--yellow); font-weight: 900; }
+
+		.interface-map {
+			border: 1px solid var(--rule);
+			background: var(--white);
+			box-shadow: 0 24px 70px rgba(18, 58, 99, .12);
+		}
+
+		.command-row {
+			display: grid;
+			grid-template-columns: repeat(5, 1fr);
+			border-bottom: 1px solid var(--rule);
+		}
+
+		.command-row span {
+			display: grid;
+			min-height: 74px;
+			place-items: center;
+			padding: 10px 6px;
+			color: var(--navy);
+			font-size: .78rem;
+			font-weight: 760;
+			text-align: center;
+		}
+
+		.command-row span + span { border-left: 1px solid var(--rule); }
+
+		.interface-content {
+			display: grid;
+			min-height: 330px;
+			grid-template-columns: 1.08fr .92fr;
+		}
+
+		.video-canvas {
+			position: relative;
+			overflow: hidden;
+			background:
+				linear-gradient(var(--rule) 1px, transparent 1px),
+				linear-gradient(90deg, var(--rule) 1px, transparent 1px),
+				#f9fbfd;
+			background-size: 34px 34px;
+			border-right: 1px solid var(--rule);
+		}
+
+		.arc {
+			position: absolute;
+			left: 14%;
+			top: 22%;
+			width: 72%;
+			height: 54%;
+			border-top: 3px dashed var(--yellow);
+			border-radius: 50% 50% 0 0;
+			transform: rotate(-4deg);
+		}
+
+		.ball {
+			position: absolute;
+			width: 17px;
+			height: 17px;
+			background: #cf2b2b;
+			border: 4px solid #ffd43b;
+			border-radius: 50%;
+		}
+
+		.ball.b1 { left: 18%; top: 62%; }
+		.ball.b2 { left: 32%; top: 38%; }
+		.ball.b3 { left: 49%; top: 27%; }
+		.ball.b4 { left: 65%; top: 37%; }
+		.ball.b5 { left: 78%; top: 62%; }
+
+		.graph-panel {
+			display: grid;
+			place-items: center;
+			padding: 28px;
+			background: var(--navy-dark);
+			color: var(--white);
+		}
+
+		.graph-panel svg { width: 100%; height: auto; }
+
+		.principles {
+			display: grid;
+			grid-template-columns: repeat(3, 1fr);
+			margin-top: 70px;
+			border-block: 1px solid var(--rule);
+		}
+
+		.principle { padding: 34px 34px 34px 0; }
+		.principle + .principle { padding-left: 34px; border-left: 1px solid var(--rule); }
+
+		.sources {
+			padding-block: 76px;
+			border-top: 1px solid var(--rule);
+		}
+
+		.sources h2 { font-size: 1.7rem; }
+		.sources ol { margin: 28px 0 0; padding-left: 24px; }
+		.sources li { margin: 12px 0; color: var(--muted); font-size: .9rem; }
+
+		.closing {
+			background: var(--navy-dark);
+			color: var(--white);
+		}
+
+		.closing-inner {
+			display: grid;
+			grid-template-columns: 1fr auto;
+			gap: 54px;
+			align-items: center;
+			padding-block: 68px;
+		}
+
+		.closing h2 { color: var(--white); }
+		.closing p { max-width: 760px; margin: 16px 0 0; color: #d8e5f2; }
+		.closing .button-row { flex-direction: column; gap: 6px; }
+		.closing .text-link { color: var(--white); }
+
+		.site-footer {
+			padding: 24px 20px;
+			border-top: 1px solid rgba(255, 255, 255, .16);
+			background: var(--navy-dark);
+			color: #b8cadc;
+			font-size: .78rem;
+			text-align: center;
+		}
+
+		.site-footer a {
+			display: inline-flex;
+			align-items: center;
+			margin-inline: 3px;
+			padding: 3px 8px;
+			border: 1px solid rgba(255, 255, 255, .24);
+			border-radius: 999px;
+			color: var(--white);
+			font-weight: 750;
+			text-decoration: none;
+			transition: background-color .18s ease, border-color .18s ease;
+		}
+
+		.site-footer a:hover,
+		.site-footer a:focus-visible {
+			background: rgba(255, 255, 255, .12);
+			border-color: rgba(255, 255, 255, .58);
+		}
+
+		@media (max-width: 920px) {
+			.nav-links { display: none; }
+			.hero,
+			.section-heading,
+			.pedagogy-grid,
+			.mobile-mission {
+				grid-template-columns: 1fr;
+			}
+
+			.hero {
+				min-height: 0;
+				padding-block: 58px 66px;
+			}
+
+			.hero-visual { order: 2; }
+			.pedagogy-grid h2 { position: static; }
+			.interface-map { width: min(100%, 720px); margin-inline: auto; }
+		}
+
+		@media (max-width: 680px) {
+			body { font-size: 16px; }
+			.header-inner,
+			.wrap { width: min(calc(100% - 28px), var(--max)); }
+			.header-inner { min-height: 66px; gap: 12px; }
+			.brand { max-width: 190px; font-size: .98rem; line-height: 1.16; }
+			.header-actions .button { min-height: 44px; padding-inline: 15px; }
+			h1 { font-size: clamp(3rem, 15vw, 4.35rem); }
+			h2 { font-size: 2.25rem; }
+			.hero { gap: 42px; padding-block: 45px 56px; }
+			.hero-copy > p { margin-block: 22px 26px; font-size: 1.17rem; }
+			.button-row { align-items: stretch; flex-direction: column; gap: 4px; }
+			.button-row .button { width: 100%; }
+			.section { padding-block: 66px; }
+			.section-heading { gap: 20px; margin-bottom: 36px; }
+			.three-up,
+			.principles { grid-template-columns: 1fr; }
+			.idea,
+			.idea + .idea,
+			.principle,
+			.principle + .principle {
+				padding: 28px 0;
+				border-left: 0;
+				border-top: 1px solid var(--rule);
+			}
+			.idea:first-child,
+			.principle:first-child { border-top: 0; }
+			.cycle { grid-template-columns: 1fr; margin-top: 46px; border-top: 0; border-left: 2px solid var(--navy); }
+			.cycle-step { padding: 0 0 32px 30px; }
+			.cycle-step::before { top: 4px; left: -7px; }
+			.mobile-mission { grid-template-columns: 1fr; }
+			.interface-content { min-height: 290px; grid-template-columns: 1fr; }
+			.video-canvas { min-height: 230px; border-right: 0; border-bottom: 1px solid var(--rule); }
+			.graph-panel { min-height: 210px; }
+			.command-row { grid-template-columns: repeat(5, minmax(56px, 1fr)); overflow-x: auto; }
+			.command-row span { min-height: 62px; font-size: .68rem; }
+			.principles { margin-top: 48px; }
+			.quote { padding-left: 20px; }
+			.closing-inner { grid-template-columns: 1fr; gap: 30px; padding-block: 54px; }
+			.sources { padding-block: 58px; }
+		}
+
+		@media (prefers-reduced-motion: reduce) {
+			html { scroll-behavior: auto; }
+			.button { transition: none; }
+		}
+	</style>
+</head>
+<body>
+	<a class="skip-link" href="#main">Skip to article</a>
+	<header class="site-header">
+		<div class="header-inner">
+			<a class="brand" href="TrackerStudentMobilePedagogy.html">Tracker Student Mobile</a>
+			<div class="header-actions">
+				<nav class="nav-links" aria-label="Article sections">
+					<a href="#why-tracker">Why Tracker</a>
+					<a href="#learning-cycle">Learning cycle</a>
+					<a href="#mobile-mission">Mobile mission</a>
+				</nav>
+				<a class="button" href="TrackerStudentMobile.html?v=20260722-115">Launch Tracker</a>
+			</div>
+		</div>
+	</header>
+
+	<main id="main">
+		<section class="hero wrap" aria-labelledby="page-title">
+			<div class="hero-copy">
+				<h1 id="page-title">From Motion to Meaning</h1>
+				<p>Video analysis turns everyday movement into evidence students can question, measure and explain.</p>
+				<div class="button-row">
+					<a class="button" href="TrackerStudentMobile.html?v=20260722-115">Launch the mobile workspace</a>
+					<a class="text-link" href="mobile-enhancements/CHANGELOG.md">Read the project history <span aria-hidden="true">→</span></a>
+				</div>
+			</div>
+			<figure class="hero-visual">
+				<img src="mobile-enhancements/tracker-mobile-pedagogy-hero.png" width="1693" height="953" alt="A phone displaying a bouncing-ball video with tracked positions, coordinate axes and a position-time graph.">
+				<figcaption>An everyday event becomes a measurable trajectory and a model students can test.</figcaption>
+			</figure>
+		</section>
+
+		<section class="section" id="why-tracker" aria-labelledby="why-title">
+			<div class="wrap">
+				<div class="section-heading">
+					<h2 id="why-title">A laboratory already in every pocket</h2>
+					<p>Tracker connects familiar video with the representational tools of physics. Students can move repeatedly between the event they filmed, the measurements they made, the graph they produced and the explanation they are ready to defend.</p>
+				</div>
+
+				<div class="three-up">
+					<article class="idea">
+						<span class="icon" aria-hidden="true"><svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 24s8-12 21-12 21 12 21 12-8 12-21 12S3 24 3 24Z"/><circle cx="24" cy="24" r="6"/></svg></span>
+						<h3>Observe</h3>
+						<p>Start with authentic motion: a bounce, a throw, a collision or an oscillation that students can see and revisit frame by frame.</p>
+					</article>
+					<article class="idea">
+						<span class="icon yellow" aria-hidden="true"><svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 32 23-23 7 7-23 23-7-7Z"/><path d="m27 14 3 3m-8 2 3 3m-8 2 3 3m-8 2 3 3"/></svg></span>
+						<h3>Measure</h3>
+						<p>Calibrate scale, set axes and mark positions so pixels and frames become quantities with physical meaning and units.</p>
+					</article>
+					<article class="idea">
+						<span class="icon" aria-hidden="true"><svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 31c-3-2-5-6-5-10a13 13 0 1 1 26 0c0 4-2 8-5 10l-2 4H18l-2-4Z"/><path d="M19 40h10m-9-5h8"/></svg></span>
+						<h3>Explain</h3>
+						<p>Coordinate video, graphs, vectors and models to identify patterns, test assumptions and explain what the evidence supports.</p>
+					</article>
+				</div>
+
+				<div class="cycle" id="learning-cycle" aria-label="Tracker learning cycle">
+					<div class="cycle-step"><small>01</small><strong>Film</strong><p>Record a phenomenon worth investigating.</p></div>
+					<div class="cycle-step"><small>02</small><strong>Mark</strong><p>Identify positions and define the measurement system.</p></div>
+					<div class="cycle-step"><small>03</small><strong>Graph</strong><p>Reveal patterns, rates of change and uncertainty.</p></div>
+					<div class="cycle-step"><small>04</small><strong>Model</strong><p>Compare predictions directly with real-world motion.</p></div>
+					<div class="cycle-step"><small>05</small><strong>Discuss</strong><p>Argue from evidence and refine the explanation.</p></div>
+				</div>
+			</div>
+		</section>
+
+		<section class="section pedagogy-band" aria-labelledby="power-title">
+			<div class="wrap pedagogy-grid">
+				<h2 id="power-title">The pedagogical power is in the connections</h2>
+				<div>
+					<article class="argument">
+						<h3>Real phenomena become investigable</h3>
+						<p>Students do not have to begin with an idealised diagram. They can film motion from their own classroom, home or playground, decide what matters, and confront the messiness of real evidence.</p>
+					</article>
+					<article class="argument">
+						<h3>Representations remain synchronised</h3>
+						<p>A marked position belongs simultaneously to a video frame, a time value, a coordinate, a table row and a graph point. Moving among those representations helps students connect physical events with mathematical descriptions.</p>
+					</article>
+					<article class="argument">
+						<h3>Models face visible tests</h3>
+						<p>Tracker can overlay kinematic and dynamic particle models on the original video. A prediction is therefore not only an equation—it can be compared directly with what happened in the world.</p>
+					</article>
+					<article class="argument">
+						<h3>Evidence becomes discussable</h3>
+						<p>Different choices of scale, origin, frame interval or marked position produce differences that students can inspect. That creates a natural reason to discuss uncertainty, defend decisions and revise explanations.</p>
+					</article>
+					<blockquote class="quote">A well-designed Tracker task can move students through questioning, planning an investigation, analysing data, modelling, constructing explanations and arguing from evidence—not merely through clicking points.</blockquote>
+				</div>
+			</div>
+		</section>
+
+		<section class="section" id="mobile-mission" aria-labelledby="mission-title">
+			<div class="wrap">
+				<div class="mobile-mission">
+					<div class="mission-copy">
+						<h2 id="mission-title">Why a touch-first variant matters</h2>
+						<p>Tracker Online preserves a powerful desktop interface in the browser. The goal of Tracker Student Mobile is different: retain the same scientific engine while making the essential learning journey practical on the phones and tablets students already carry.</p>
+						<ul class="mission-list">
+							<li><span aria-hidden="true">01</span><span><strong>Broader access.</strong> Reduce dependence on a computer laboratory for introductory analysis.</span></li>
+							<li><span aria-hidden="true">02</span><span><strong>Field experiments.</strong> Film and analyse motion where it naturally occurs.</span></li>
+							<li><span aria-hidden="true">03</span><span><strong>Immediate feedback.</strong> Let students inspect a trajectory while the experiment is still in front of them.</span></li>
+							<li><span aria-hidden="true">04</span><span><strong>Less interface friction.</strong> Spend more attention on measurement choices, patterns and explanations.</span></li>
+						</ul>
+					</div>
+
+					<div class="interface-map" aria-label="Illustration of the grouped mobile Tracker interface">
+						<div class="command-row"><span>Project</span><span>New track</span><span>Measure</span><span>Axes</span><span>More</span></div>
+						<div class="interface-content">
+							<div class="video-canvas" aria-hidden="true"><div class="arc"></div><i class="ball b1"></i><i class="ball b2"></i><i class="ball b3"></i><i class="ball b4"></i><i class="ball b5"></i></div>
+							<div class="graph-panel" aria-hidden="true">
+								<svg viewBox="0 0 260 220" fill="none"><path d="M30 16v174h212" stroke="currentColor" stroke-width="2"/><path d="M32 174C64 96 89 48 125 82s39 105 82 29c12-21 24-22 34 8" stroke="#46a0ff" stroke-width="4"/><g fill="#ffd43b"><circle cx="45" cy="146" r="4"/><circle cx="71" cy="89" r="4"/><circle cx="98" cy="59" r="4"/><circle cx="126" cy="83" r="4"/><circle cx="158" cy="154" r="4"/><circle cx="193" cy="124" r="4"/><circle cx="224" cy="103" r="4"/></g><text x="8" y="18" fill="currentColor" font-size="13">y</text><text x="244" y="207" fill="currentColor" font-size="13">t</text></svg>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<div class="principles">
+					<article class="principle"><h3>Scientific depth stays</h3><p>Calibration, coordinate systems, tracks, graphs, tables and models remain part of the same Tracker workflow.</p></article>
+					<article class="principle"><h3>Tools appear when needed</h3><p>Project, track, measurement and axes commands are grouped; the complete menu tree remains available under More.</p></article>
+					<article class="principle"><h3>Touch becomes first-class input</h3><p>Large targets, direct marking and handle dragging replace desktop-only assumptions about hover, Shift-click and tiny controls.</p></article>
+				</div>
+			</div>
+		</section>
+
+		<section class="sources" aria-labelledby="sources-title">
+			<div class="wrap">
+				<h2 id="sources-title">Sources and further reading</h2>
+				<ol>
+					<li><a href="https://opensourcephysics.github.io/tracker-website/">Tracker Video Analysis and Modeling Tool</a>—official feature overview and project information.</li>
+					<li><a href="https://opensourcephysics.github.io/tracker-website/help/gettingstarted.html">Tracker Help: Getting Started</a>—the complete video-analysis sequence from opening a video through calibration, tracking, plotting and saving.</li>
+					<li><a href="https://www.compadre.org/osp/webdocs/Tools.cfm?t=Tracker">Open Source Physics: Tracker</a>—video modelling and direct comparison between particle models and real-world motion.</li>
+					<li><a href="https://www.compadre.org/osp/items/detail.cfm?ID=13625">Video Analysis and Modeling Performance Task to promote becoming like scientists in classrooms</a>—a Singapore secondary-school account connecting Tracker tasks with scientific practices.</li>
+				</ol>
+			</div>
+		</section>
+
+		<section class="closing" aria-labelledby="closing-title">
+			<div class="wrap closing-inner">
+				<div>
+					<h2 id="closing-title">Start with a question worth measuring</h2>
+					<p>Film a motion, mark the evidence, and let the graph begin the conversation.</p>
+				</div>
+				<div class="button-row">
+					<a class="button" href="TrackerStudentMobile.html?v=20260722-115">Open Tracker Student Mobile</a>
+					<a class="text-link" href="mobile-enhancements/CHANGELOG.md">View the change log <span aria-hidden="true">→</span></a>
+				</div>
+			</div>
+		</section>
+	</main>
+
+	<footer class="site-footer">Tracker Student Mobile · Built on the open-source <a href="https://opensourcephysics.github.io/tracker-website/">Tracker project</a> by <a href="https://iwant2study.org/">lookang</a></footer>
+</body>
+</html>

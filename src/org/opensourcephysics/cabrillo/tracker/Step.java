@@ -55,7 +55,9 @@ import org.opensourcephysics.tools.FontSizer;
 public abstract class Step implements Cloneable {
 
 	// static fields
-	protected final static Rectangle hitRect = new Rectangle(-4, -4, 8, 8);
+	// A 24 px target is still precise with a mouse and is much easier to acquire
+	// with a finger or stylus in the touch-first web launcher.
+	protected final static Rectangle hitRect = new Rectangle(-12, -12, 24, 24);
 	protected static Shape selectionShape;
 	protected static Stroke selectionStroke;
 	protected final static AffineTransform transform = new AffineTransform();

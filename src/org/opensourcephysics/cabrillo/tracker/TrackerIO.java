@@ -2188,7 +2188,9 @@ public class TrackerIO extends VideoIO {
 					path = null;
 				} else {
 					// set path to downloaded file
-					path = localFile.toURI().toString();
+					// Keep cached paths as decoded filesystem paths. File.toURI() percent-encodes
+					// spaces, which makes SwingJS look for a literal "%20" filename in /TEMP.
+					path = ResourceLoader.getURIPath(localFile.getAbsolutePath());
 					OSPLog.debug("TrackerIO downloaded zip file: " + path); //$NON-NLS-1$
 				}
 			}
@@ -2483,7 +2485,7 @@ public class TrackerIO extends VideoIO {
 					String name = ResourceLoader.getNonURIPath(XML.getName(path));
 					File localFile = ResourceLoader.downloadToOSPCache(path, name, false);
 					if (localFile != null) {
-						path = localFile.toURI().toString();
+						path = ResourceLoader.getURIPath(localFile.getAbsolutePath());
 					}
 				}
 

@@ -882,6 +882,79 @@ public class Tracker {
 	}
 
 	/**
+	 * Gets a browser-download-safe name for the selected Tracker tab.
+	 *
+	 * @j2sAlias getMobileProjectName
+	 *
+	 * @return a filename ending in .trk
+	 */
+	public String getMobileProjectName() {
+		TrackerPanel panel = frame == null ? null : frame.getSelectedPanel();
+		File dataFile = panel == null ? null : panel.getDataFile();
+		String name = dataFile == null ? "tracker-project" : XML.stripExtension(XML.getName(dataFile.getName())); //$NON-NLS-1$
+		return (name == null || name.trim().isEmpty() ? "tracker-project" : name) + ".trk"; //$NON-NLS-1$ //$NON-NLS-2$
+	}
+
+	/**
+	 * Saves the selected tab using an explicit filename. The explicit file avoids
+	 * SwingJS JFileChooser's synchronous prompt-based save path, which is not
+	 * reliable in mobile browsers. In JavaScript, closing the file output stream
+	 * delegates the resulting bytes to the normal SwingJS browser download.
+	 *
+	 * @j2sAlias saveCurrentTabAs
+	 *
+	 * @param fileName download filename supplied by a native HTML input
+	 * @return true if the tab was written
+	 */
+	public boolean saveCurrentTabAs(String fileName) {
+		TrackerPanel panel = frame == null ? null : frame.getSelectedPanel();
+		if (panel == null || fileName == null)
+			return false;
+		fileName = XML.getName(fileName.trim());
+		if (fileName.isEmpty())
+			return false;
+		if (!"trk".equalsIgnoreCase(XML.getExtension(fileName))) //$NON-NLS-1$
+			fileName = XML.stripExtension(fileName) + ".trk"; //$NON-NLS-1$
+		File saved = TrackerIO.save(new File(fileName), panel);
+		panel.refreshNotesDialog();
+		return saved != null;
+	}
+
+	/**
+	 * Shows one primary Tracker view at a time for the mobile HTML launcher.
+	 * Keeping the view switching in Tracker avoids depending on transpiled Java
+	 * method names from external JavaScript.
+	 *
+	 * @j2sAlias showMobileView
+	 *
+	 * @param viewName video, plot, table, or all
+	 * @return true if the requested view was shown
+	 */
+	public boolean showMobileView(String viewName) {
+		TrackerPanel panel = frame == null ? null : frame.getSelectedPanel();
+		if (panel == null || viewName == null)
+			return false;
+		switch (viewName.trim().toLowerCase(Locale.ROOT)) {
+		case "video": //$NON-NLS-1$
+		case "main": //$NON-NLS-1$
+			frame.maximizeView(panel, TView.VIEW_MAIN);
+			return true;
+		case "plot": //$NON-NLS-1$
+		case "graph": //$NON-NLS-1$
+			frame.maximizeView(panel, TView.VIEW_PLOT);
+			return true;
+		case "table": //$NON-NLS-1$
+			frame.maximizeView(panel, TView.VIEW_TABLE);
+			return true;
+		case "all": //$NON-NLS-1$
+			panel.restoreViews();
+			return true;
+		default:
+			return false;
+		}
+	}
+
+	/**
 	 * Creates the TFrame.
 	 */
 	private TFrame createFrame(Map<String, Object> options) {

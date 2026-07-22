@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+	<meta name="theme-color" content="#143c66">
+	<title>Tracker Student Mobile</title>
+	<link rel="stylesheet" href="mobile-enhancements/tracker-student-mobile.css?v=20260722-115">
+	<script async src="https://www.googletagmanager.com/gtag/js?id=G-S9EWRY1CPJ"></script>
+	<script>
+		window.dataLayer = window.dataLayer || [];
+		function gtag() { dataLayer.push(arguments); }
+		gtag("js", new Date());
+		gtag("config", "G-S9EWRY1CPJ");
+	</script>
+	<script src="mobile-enhancements/swingjs2-tracker-mobile.js?v=20260720-90"></script>
+	<script src="mobile-enhancements/tracker-student-mobile.js?v=20260722-115"></script>
+	<script>
+		function initStudentMobile() {
+			if (!window.Tracker || !Tracker.app) {
+				TrackerStudentMobile.showFatalError("Tracker did not finish loading.");
+				return;
+			}
+			TrackerStudentMobile.init(Tracker.app);
+		}
+
+		window.TrackerInfo = {
+			code: null,
+			main: "org.opensourcephysics.cabrillo.tracker.Tracker",
+			core: "swingjs/j2s/core/core_tracker.z.js?v=20260722-115",
+			resourceZip: "misc-assets.zip",
+			assets: {
+				name: "tracker",
+				zipPath: "tracker-assets.zip",
+				classPaths: ["org/opensourcephysics"]
+			},
+			args: ["-adaptive"],
+			readyFunction: initStudentMobile,
+			j2sPath: "swingjs/j2s",
+			console: "none"
+		};
+	</script>
+</head>
+
+<body>
+	<main id="tracker-stage" aria-label="Tracker video analysis workspace">
+		<div id="loading-message" role="status">Loading Tracker&hellip;</div>
+		<script>
+			if (!window.SwingJS) {
+				document.getElementById("loading-message").textContent = "SwingJS could not be loaded.";
+			} else {
+				SwingJS.getApplet("Tracker", TrackerInfo);
+			}
+		</script>
+	</main>
+	<footer class="tracker-credit" aria-label="Project attribution">
+		Tracker Student Mobile · Built on the open-source&nbsp;<a href="https://opensourcephysics.github.io/tracker-website/">Tracker project</a>&nbsp;by&nbsp;<a href="https://iwant2study.org/">lookang</a>
+	</footer>
+
+	<noscript>Tracker Student Mobile requires JavaScript.</noscript>
+</body>
+
+</html>

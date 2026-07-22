@@ -1,0 +1,1271 @@
+:root {
+	color-scheme: light;
+	font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+	--ink: #102a43;
+	--tracker-credit-height: 28px;
+}
+
+* {
+	box-sizing: border-box;
+}
+
+html,
+body {
+	width: 100%;
+	height: 100%;
+	margin: 0;
+	overflow: hidden;
+	background: #f2f6fa;
+	color: var(--ink);
+	touch-action: manipulation;
+	overscroll-behavior: none;
+}
+
+#tracker-stage {
+	position: fixed;
+	inset: 0 0 calc(var(--tracker-credit-height) + env(safe-area-inset-bottom));
+	overflow: hidden;
+}
+
+.tracker-credit {
+	position: fixed;
+	z-index: 2147483600;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	min-height: calc(var(--tracker-credit-height) + env(safe-area-inset-bottom));
+	padding: 4px 10px calc(4px + env(safe-area-inset-bottom));
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-wrap: wrap;
+	background: #f8fafc;
+	border-top: 1px solid #cbd5e1;
+	color: #334e68;
+	font-size: 11px;
+	line-height: 1.2;
+	text-align: center;
+}
+
+.tracker-credit a {
+	color: #0755b7;
+	font-weight: 650;
+	text-decoration-thickness: 1px;
+	text-underline-offset: 2px;
+}
+
+.tracker-credit a:focus-visible {
+	outline: 2px solid #1769d2;
+	outline-offset: 2px;
+}
+
+@media (max-width: 480px) {
+	:root {
+		--tracker-credit-height: 36px;
+	}
+
+	.tracker-credit {
+		padding-inline: 6px;
+		font-size: 10px;
+	}
+}
+
+#loading-message {
+	position: absolute;
+	inset: 0;
+	display: grid;
+	place-items: center;
+	font-weight: 650;
+}
+
+#loading-message[hidden] {
+	display: none;
+}
+
+/*
+ * SwingJS writes pixel dimensions inline. Keep its global font scale at the
+ * default because changing FontSizer prevents LibraryBrowser HTML pages from
+ * rendering. Enlarge touch targets locally instead.
+ */
+div[id^="Tracker_MenuBarUI_"][id$="div"],
+div[id^="Tracker_ToolBarUI_"][id$="div"] {
+	overflow-x: auto !important;
+	overflow-y: hidden !important;
+	overscroll-behavior-x: contain;
+	scrollbar-width: none;
+	touch-action: pan-x;
+}
+
+div[id^="Tracker_MenuBarUI_"][id$="div"]::-webkit-scrollbar,
+div[id^="Tracker_ToolBarUI_"][id$="div"]::-webkit-scrollbar,
+.swingjsPopupMenu::-webkit-scrollbar {
+	display: none;
+}
+
+.tracker-mobile-toolbar-shell {
+	overflow-x: auto !important;
+	overflow-y: hidden !important;
+}
+
+.tracker-mobile-toolbar {
+	min-width: var(--tracker-toolbar-content-width) !important;
+}
+
+.tracker-mobile-commandbar {
+	display: none;
+}
+
+.tracker-touch-interaction-surface {
+	touch-action: none !important;
+	-webkit-user-select: none;
+	user-select: none;
+}
+
+.tracker-mobile-toolbar > .tracker-toolbar-control {
+	left: var(--tracker-control-left) !important;
+	top: 0 !important;
+	width: var(--tracker-control-width) !important;
+	height: 34px !important;
+}
+
+.tracker-mobile-toolbar > .tracker-toolbar-control > .j2sbutton {
+	left: 1px !important;
+	top: 1px !important;
+	width: calc(100% - 2px) !important;
+	height: 32px !important;
+	min-width: 0 !important;
+	min-height: 0 !important;
+	overflow: visible !important;
+	touch-action: manipulation;
+}
+
+/* Give every action its own quiet button boundary. The one-pixel gaps between
+ * controls remain visible, so adjacent icons do not read as one long image. */
+.tracker-mobile-toolbar > .tracker-toolbar-control:not(.tracker-toolbar-separator) > .j2sbutton {
+	border: 1px solid #b8c2cc !important;
+	border-radius: 4px !important;
+	background: linear-gradient(#ffffff, #f3f6f8) !important;
+	box-shadow:
+		inset 0 1px 0 rgba(255, 255, 255, 0.85),
+		0 1px 1px rgba(16, 42, 67, 0.08) !important;
+}
+
+.tracker-mobile-toolbar > .tracker-toolbar-control:not(.tracker-toolbar-separator) > .j2sbutton:hover {
+	border-color: #7c91a6 !important;
+	background: #eaf2f8 !important;
+}
+
+.tracker-mobile-toolbar > .tracker-toolbar-control:not(.tracker-toolbar-separator) > .j2sbutton:active {
+	background: #dce9f3 !important;
+	box-shadow: inset 0 1px 2px rgba(16, 42, 67, 0.18) !important;
+}
+
+.tracker-mobile-toolbar > .tracker-toolbar-control:not(.tracker-toolbar-separator) > .j2sbutton:focus-visible {
+	outline: 2px solid #1769aa !important;
+	outline-offset: -2px !important;
+}
+
+.tracker-toolbar-icon-only > .j2sbutton > [id$="_ctr"] {
+	position: absolute !important;
+	inset: 0 !important;
+	display: grid !important;
+	place-items: center !important;
+	width: 100% !important;
+	height: 100% !important;
+}
+
+.tracker-toolbar-icon-only > .j2sbutton [id$="_icon"] {
+	position: static !important;
+	display: grid !important;
+	place-items: center !important;
+	width: auto !important;
+	height: auto !important;
+	margin: 0 !important;
+	transform: none !important;
+}
+
+.tracker-toolbar-text-control > .j2sbutton > [id$="_ctr"] {
+	position: absolute !important;
+	inset: 0 !important;
+	display: flex !important;
+	align-items: center !important;
+	justify-content: flex-start !important;
+	width: 100% !important;
+	height: 100% !important;
+	padding: 0 4px !important;
+}
+
+.tracker-toolbar-text-control > .j2sbutton [id$="_icon"],
+.tracker-toolbar-text-control > .j2sbutton [id$="_txt"] {
+	position: static !important;
+	margin: 0 3px !important;
+	transform: none !important;
+}
+
+.tracker-toolbar-text-control > .j2sbutton [id$="_txt"] {
+	font-size: 15px !important;
+	overflow: visible !important;
+}
+
+.tracker-mobile-toolbar canvas[width="16"][height="16"] {
+	transform: scale(1.5);
+	transform-origin: center;
+}
+
+.tracker-mobile-toolbar canvas[width="17"][height="17"] {
+	transform: scale(1.4);
+	transform-origin: center;
+}
+
+.tracker-mobile-toolbar canvas[width="28"][height="16"] {
+	transform: scale(1.2);
+	transform-origin: center;
+}
+
+.tracker-mobile-toolbar canvas[width="9"][height="5"] {
+	transform: scale(1.5);
+	transform-origin: center;
+}
+
+.tracker-toolbar-separator > .j2sbutton {
+	pointer-events: none !important;
+	border: 0 !important;
+	background: transparent !important;
+}
+
+.tracker-toolbar-separator canvas {
+	visibility: hidden !important;
+}
+
+/* SwingJS supplies real toolbar separators as 2px-wide canvases. Replace the
+ * faint bitmap with a consistent divider that is easy to see at any zoom. */
+.tracker-toolbar-separator::after {
+	content: "";
+	position: absolute;
+	top: 5px;
+	bottom: 5px;
+	left: 50%;
+	width: 2px;
+	transform: translateX(-1px);
+	border-radius: 2px;
+	background: #718096;
+	box-shadow: 1px 0 0 rgba(255, 255, 255, 0.9);
+	pointer-events: none;
+}
+
+.swingjsPopupMenu {
+	min-width: min(250px, calc(100vw - 16px)) !important;
+	max-width: calc(100vw - 16px) !important;
+	max-height: var(--tracker-popup-max-height, calc(100dvh - 16px)) !important;
+	overflow-x: hidden !important;
+	overflow-y: auto !important;
+	overscroll-behavior: contain;
+	scrollbar-width: none;
+	-webkit-overflow-scrolling: touch;
+}
+
+/* A SwingJS submenu is positioned outside its parent popup. The scrolling
+ * parent would otherwise clip it, leaving visible hover feedback but no
+ * selectable child menu. Give an open submenu its own scrolling boundary. */
+.swingjsPopupMenu.tracker-popup-submenu-open {
+	max-height: none !important;
+	overflow: visible !important;
+}
+
+.swingjsPopupMenu.tracker-popup-submenu-open ul.ui-j2smenu {
+	max-height: var(--tracker-popup-max-height, calc(100dvh - 16px)) !important;
+	overflow-x: hidden !important;
+	overflow-y: auto !important;
+	overscroll-behavior: contain;
+	-webkit-overflow-scrolling: touch;
+}
+
+@media (min-width: 821px) {
+	.swingjsPopupMenu.tracker-popup-submenu-open ul.ui-j2smenu {
+		min-width: min(320px, calc(100vw - 16px)) !important;
+		max-width: calc(100vw - 16px) !important;
+	}
+}
+
+.swingjsPopupMenu li.ui-j2smenu-item {
+	min-height: 48px !important;
+	width: 100% !important;
+	position: relative !important;
+}
+
+.tracker-submenu-tap-target {
+	position: absolute;
+	inset: 0;
+	z-index: 4;
+	background: transparent;
+	touch-action: manipulation;
+}
+
+.tracker-mobile-submenu-sheet {
+	position: fixed;
+	left: max(8px, env(safe-area-inset-left));
+	right: max(8px, env(safe-area-inset-right));
+	top: max(8px, env(safe-area-inset-top));
+	max-height: calc(100dvh - 16px);
+	z-index: 20000;
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	padding: 8px;
+	overflow-y: auto;
+	border: 1px solid #8da2b5;
+	border-radius: 10px;
+	background: #f8fbfd;
+	box-shadow: 0 8px 30px rgba(16, 42, 67, 0.35);
+	overscroll-behavior: contain;
+}
+
+.tracker-mobile-submenu-heading {
+	position: sticky;
+	top: -8px;
+	z-index: 1;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	min-height: 48px;
+	padding: 4px 6px;
+	background: #e8f1f7;
+}
+
+.tracker-mobile-submenu-sheet > button,
+.tracker-mobile-submenu-heading > button {
+	min-height: 48px;
+	padding: 8px 12px;
+	border: 1px solid #b8c7d4;
+	border-radius: 7px;
+	background: #fff;
+	color: #102a43;
+	font: 600 17px/1.2 system-ui, sans-serif;
+	text-align: left;
+	touch-action: manipulation;
+}
+
+.tracker-mobile-submenu-heading > button {
+	min-height: 40px;
+	font-size: 15px;
+}
+
+.tracker-mobile-sheet-heading-actions {
+	display: flex;
+	gap: 6px;
+	margin-left: 8px;
+}
+
+.tracker-mobile-sheet-heading-actions > button {
+	min-height: 40px;
+	padding: 6px 10px;
+	border: 1px solid #91a7b9;
+	border-radius: 7px;
+	background: #fff;
+	color: #102a43;
+	font: 650 15px/1.1 system-ui, sans-serif;
+	touch-action: manipulation;
+}
+
+.tracker-mobile-command-sheet > button:disabled {
+	opacity: .48;
+}
+
+.tracker-mobile-combo-sheet > button[aria-selected="true"] {
+	border-color: #1769aa;
+	background: #dceeff;
+	box-shadow: inset 4px 0 0 #1769aa;
+}
+
+.tracker-mobile-combo-sheet > button:focus-visible {
+	outline: 3px solid #f59e0b;
+	outline-offset: -3px;
+}
+
+.swingjsPopupMenu.tracker-mobile-native-menu-suppressed {
+	display: none !important;
+}
+
+.swingjsPopupMenu li.ui-j2smenu-item > .a {
+	height: 48px !important;
+	min-height: 48px !important;
+	width: 100% !important;
+	touch-action: manipulation !important;
+}
+
+.swingjsPopupMenu li.ui-j2smenu-item > .a > [id$="_ctr"] {
+	height: 48px !important;
+}
+
+.swingjsPopupMenu li.ui-j2smenu-item [id$="_txt"] {
+	font-size: 18px !important;
+	top: 50% !important;
+	transform: translateY(-50%) !important;
+}
+
+.swingjsPopupMenu li.ui-j2smenu-item .ui-j2smenu-accel {
+	font-size: 14px !important;
+	line-height: 48px !important;
+	transform: none !important;
+}
+
+/* SwingJS gives secondary frames and dialogs fixed desktop pixel bounds. Keep
+ * their logical component tree intact, but constrain the actual window to the
+ * visual viewport (including the smaller viewport above a phone keyboard).
+ * Generic dialogs remain scrollable; the Library Browser receives a full
+ * responsive layout below. */
+.tracker-mobile-responsive-window.tracker-mobile-window-active {
+	position: fixed !important;
+	left: var(--tracker-window-left) !important;
+	top: var(--tracker-window-top) !important;
+	width: var(--tracker-window-width) !important;
+	height: var(--tracker-window-height) !important;
+	max-width: calc(100vw - 8px) !important;
+	max-height: calc(100dvh - 8px) !important;
+	overflow: auto !important;
+	overscroll-behavior: contain;
+	-webkit-overflow-scrolling: touch;
+}
+
+.tracker-mobile-window-active > [id$="_titlebar"],
+.tracker-mobile-window-active > [id$="_titlebar"] > [id$="_closerwrap"] {
+	width: var(--tracker-window-width) !important;
+}
+
+.tracker-mobile-window-active > [id$="_titlebar"] > [id$="_title"] {
+	width: calc(var(--tracker-window-width) - 44px) !important;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+
+.tracker-mobile-window-active > [id$="_titlebar"] [id$="_closer"] {
+	width: 44px !important;
+	height: 36px !important;
+	font-size: 22px !important;
+	line-height: 36px !important;
+	touch-action: manipulation;
+}
+
+.tracker-mobile-library-window.tracker-mobile-window-active {
+	overflow: hidden !important;
+	background: #eef2f6 !important;
+}
+
+.tracker-mobile-library-window.tracker-mobile-window-active > [id$="_titlebar"] {
+	height: 36px !important;
+	font-size: 18px !important;
+	line-height: 36px !important;
+	z-index: 4;
+}
+
+.tracker-mobile-library-window.tracker-mobile-window-active > [id$="_titlebar"] > [id$="_title"] {
+	height: 36px !important;
+	line-height: 36px !important;
+	padding-left: 8px !important;
+}
+
+.tracker-mobile-library-window .tracker-library-root {
+	left: 0 !important;
+	top: 36px !important;
+	width: 100% !important;
+	height: calc(100% - 36px) !important;
+	overflow: hidden !important;
+}
+
+.tracker-mobile-library-window .tracker-library-root > :first-child,
+.tracker-mobile-library-window .tracker-library-layered,
+.tracker-mobile-library-window .tracker-library-layered > :first-child {
+	width: 100% !important;
+	height: 100% !important;
+}
+
+.tracker-mobile-library-window .tracker-library-menubar,
+.tracker-mobile-library-window .tracker-library-menubar > :first-child {
+	width: 100% !important;
+	height: 44px !important;
+}
+
+.tracker-mobile-library-window .tracker-library-menubar {
+	overflow: hidden !important;
+}
+
+.tracker-mobile-library-window .tracker-library-menubar > :first-child {
+	position: relative !important;
+	left: auto !important;
+	top: auto !important;
+	display: flex !important;
+	align-items: stretch !important;
+	gap: 2px;
+	padding: 2px 4px !important;
+}
+
+.tracker-mobile-library-window .tracker-library-menubar [id^="Tracker_MenuUI_"][id$="div"] {
+	position: relative !important;
+	left: auto !important;
+	top: auto !important;
+	display: block !important;
+	flex: 0 0 auto;
+	width: auto !important;
+	min-width: 64px !important;
+	height: 40px !important;
+	overflow: visible !important;
+}
+
+.tracker-mobile-library-window .tracker-library-menubar [id^="Tracker_MenuUI_"][id$="div"] > li,
+.tracker-mobile-library-window .tracker-library-menubar [id^="Tracker_MenuUI_"][id$="div"] > li > .ui-j2smenu-node,
+.tracker-mobile-library-window .tracker-library-menubar [id^="Tracker_MenuUI_"][id$="div"] > li > .ui-j2smenu-node > [id$="_ctr"] {
+	position: relative !important;
+	left: auto !important;
+	top: auto !important;
+	display: flex !important;
+	align-items: center !important;
+	width: auto !important;
+	min-width: 64px !important;
+	height: 40px !important;
+}
+
+.tracker-mobile-library-window .tracker-library-menubar [id^="Tracker_MenuUI_"][id$="div"] [id$="_txt"] {
+	position: static !important;
+	display: block !important;
+	width: auto !important;
+	padding: 0 12px !important;
+	font-size: 17px !important;
+	line-height: 40px !important;
+	white-space: nowrap !important;
+	overflow: visible !important;
+	transform: none !important;
+}
+
+.tracker-mobile-library-window .tracker-library-panel {
+	left: 0 !important;
+	top: 44px !important;
+	width: 100% !important;
+	height: calc(100% - 44px) !important;
+}
+
+.tracker-mobile-library-window .tracker-library-panel > :first-child {
+	width: 100% !important;
+	height: 100% !important;
+}
+
+.tracker-mobile-library-window .tracker-library-toolbar-shell,
+.tracker-mobile-library-window .tracker-library-toolbar {
+	left: 0 !important;
+	top: 0 !important;
+	width: 100% !important;
+	height: 48px !important;
+	overflow: hidden !important;
+}
+
+.tracker-mobile-library-window .tracker-library-toolbar .tracker-mobile-remapped-control {
+	height: 40px !important;
+	top: 4px !important;
+}
+
+.tracker-mobile-library-window .tracker-library-toolbar .tracker-mobile-remapped-control > input,
+.tracker-mobile-library-window .tracker-library-toolbar .tracker-mobile-remapped-control > button,
+.tracker-mobile-library-window .tracker-library-toolbar .tracker-mobile-remapped-control > label {
+	width: 100% !important;
+	height: 100% !important;
+	min-width: 0 !important;
+	font-size: 16px !important;
+	line-height: 38px !important;
+}
+
+.tracker-mobile-library-window .tracker-library-native-toolbar {
+	display: none;
+}
+
+.tracker-mobile-library-window .tracker-library-url-label {
+	left: 6px !important;
+	width: 40px !important;
+}
+
+.tracker-mobile-library-window .tracker-library-url-input {
+	left: 46px !important;
+	width: calc(100% - 446px) !important;
+}
+
+.tracker-mobile-library-window .tracker-library-open {
+	left: calc(100% - 396px) !important;
+	width: 58px !important;
+}
+
+.tracker-mobile-library-window .tracker-library-download {
+	left: calc(100% - 338px) !important;
+	width: 42px !important;
+}
+
+.tracker-mobile-library-window .tracker-library-inspect {
+	left: calc(100% - 296px) !important;
+	width: 42px !important;
+}
+
+.tracker-mobile-library-window .tracker-library-search-label {
+	left: calc(100% - 254px) !important;
+	width: 58px !important;
+}
+
+.tracker-mobile-library-window .tracker-library-search-input {
+	left: calc(100% - 196px) !important;
+	width: 92px !important;
+}
+
+.tracker-mobile-library-window .tracker-library-editor {
+	left: calc(100% - 104px) !important;
+	width: 64px !important;
+}
+
+.tracker-mobile-library-window .tracker-library-refresh {
+	left: calc(100% - 40px) !important;
+	width: 40px !important;
+}
+
+.tracker-mobile-library-window .tracker-library-content {
+	left: 0 !important;
+	top: 92px !important;
+	width: 100% !important;
+	height: calc(100% - 124px) !important;
+	overflow: hidden !important;
+	touch-action: pan-y;
+}
+
+.tracker-mobile-library-window .tracker-library-content > :first-child {
+	width: 100% !important;
+	height: 100% !important;
+}
+
+.tracker-mobile-library-window .tracker-library-split-host {
+	left: 2px !important;
+	top: 26px !important;
+	width: calc(100% - 4px) !important;
+	height: calc(100% - 28px) !important;
+}
+
+.tracker-mobile-library-window .tracker-library-split,
+.tracker-mobile-library-window .tracker-library-split-host > :first-child {
+	left: 0 !important;
+	top: 0 !important;
+	width: 100% !important;
+	height: 100% !important;
+}
+
+.tracker-mobile-library-window .tracker-library-tree-pane {
+	left: 0 !important;
+	top: 0 !important;
+	width: 46% !important;
+	height: 100% !important;
+	border-right: 1px solid #b8c6d2;
+	box-sizing: border-box;
+}
+
+.tracker-mobile-library-window .tracker-library-details-pane {
+	left: calc(46% + 8px) !important;
+	top: 0 !important;
+	width: calc(54% - 8px) !important;
+	height: 100% !important;
+}
+
+.tracker-mobile-library-window .tracker-library-divider {
+	left: 46% !important;
+	top: 0 !important;
+	width: 8px !important;
+	height: 100% !important;
+	background: #dbe5ed !important;
+	border-left: 1px solid #aebdca;
+	border-right: 1px solid #aebdca;
+	box-sizing: border-box;
+}
+
+.tracker-mobile-library-window .tracker-library-details-pane > :first-child,
+.tracker-mobile-library-window .tracker-library-details-pane [id^="Tracker_ScrollPaneUI_"][id$="div"],
+.tracker-mobile-library-window .tracker-library-details-pane [id^="Tracker_ViewportUI_"][id$="div"],
+.tracker-mobile-library-window .tracker-library-details-pane [id^="Tracker_ViewportUI_"]:not([id$="div"]),
+.tracker-mobile-library-window .tracker-library-details-pane [id^="Tracker_EditorPaneUI_"][id$="div"],
+.tracker-mobile-library-window .tracker-library-details-pane [id^="Tracker_EditorPaneUI_"]:not([id$="div"]),
+.tracker-mobile-library-window .tracker-library-document {
+	left: 0 !important;
+	top: 0 !important;
+	width: 100% !important;
+	height: 100% !important;
+}
+
+.tracker-mobile-library-window .tracker-library-viewbar {
+	position: absolute;
+	left: 0;
+	top: 48px;
+	display: flex;
+	align-items: center;
+	width: 100%;
+	height: 44px;
+	padding: 5px 8px;
+	background: #eef3f7;
+	border-top: 1px solid #c4d0da;
+	border-bottom: 1px solid #aebdca;
+	box-sizing: border-box;
+	z-index: 5;
+}
+
+.tracker-mobile-library-window .tracker-library-view-switch {
+	display: none;
+}
+
+.tracker-mobile-library-window .tracker-library-path {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	min-width: 0;
+	width: 100%;
+	font-size: 15px;
+}
+
+.tracker-mobile-library-window .tracker-library-path > span {
+	flex: 0 0 auto;
+	font-weight: 700;
+	color: #334b5f;
+}
+
+.tracker-mobile-library-window .tracker-library-path-readout {
+	display: block;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+	font-size: 14px;
+	color: #18354e;
+}
+
+.tracker-mobile-library-window .tracker-library-status {
+	left: 0 !important;
+	top: calc(100% - 32px) !important;
+	width: 100% !important;
+	height: 32px !important;
+}
+
+.tracker-mobile-library-window .tracker-library-status > button {
+	width: calc(100% - 8px) !important;
+	height: 30px !important;
+	font-size: 15px !important;
+}
+
+.tracker-mobile-library-window .tracker-library-document {
+	padding: 10px !important;
+	font-size: 16px !important;
+	line-height: 1.35 !important;
+	overflow: auto !important;
+	-webkit-overflow-scrolling: touch;
+}
+
+.tracker-mobile-library-window .tracker-library-document img {
+	max-width: 100% !important;
+	height: auto !important;
+}
+
+.tracker-mobile-library-window .tracker-library-document h1 {
+	font-size: clamp(22px, 7vw, 32px) !important;
+	line-height: 1.15 !important;
+	overflow-wrap: anywhere;
+}
+
+/* Library tree rows are 16px high in the desktop Swing model. Space them as
+ * real touch rows, while the runtime maps each visible row back to its saved
+ * Swing coordinates before Java hit-testing. The tree itself becomes the one
+ * native scrolling surface, so taps and scroll gestures share one geometry. */
+.tracker-mobile-library-window .tracker-library-tree {
+	left: 0 !important;
+	top: 0 !important;
+	width: 100% !important;
+	height: 100% !important;
+	overflow-x: hidden !important;
+	overflow-y: auto !important;
+	overscroll-behavior: contain;
+	-webkit-overflow-scrolling: touch;
+	touch-action: pan-y;
+}
+
+.tracker-mobile-library-window .tracker-library-tree-pane > [id^="Tracker_ViewportUI_"][id$="div"],
+.tracker-mobile-library-window .tracker-library-tree-pane > [id^="Tracker_ViewportUI_"]:not([id$="div"]) {
+	left: 0 !important;
+	top: 0 !important;
+	width: 100% !important;
+	height: 100% !important;
+	margin: 0 !important;
+}
+
+.tracker-mobile-library-window .tracker-library-tree-pane > [id^="Tracker_ScrollBarUI_"][id$="div"] {
+	display: none !important;
+}
+
+.tracker-mobile-library-window .tracker-library-tree > .tracker-library-tree-canvas {
+	position: relative !important;
+	width: 100% !important;
+	height: var(--tracker-library-tree-content-height, 100%) !important;
+	min-height: 100% !important;
+}
+
+.tracker-mobile-library-window .tracker-library-tree-label {
+	left: 0 !important;
+	top: var(--tracker-tree-row-top) !important;
+	width: 100% !important;
+	height: 52px !important;
+	min-width: 0 !important;
+	border-bottom: 1px solid #d8e1e8;
+	background: #fff !important;
+	box-sizing: border-box;
+	font-size: 16px !important;
+	line-height: 20px !important;
+	touch-action: manipulation;
+	z-index: 1;
+}
+
+.tracker-mobile-library-window .tracker-library-tree-label::before {
+	position: absolute;
+	left: calc(var(--tracker-tree-row-left) + 8px);
+	top: 50%;
+	width: 18px;
+	transform: translateY(-50%);
+	color: #345872;
+	font-size: 17px;
+	line-height: 1;
+	text-align: center;
+	content: "\2022";
+}
+
+.tracker-mobile-library-window .tracker-library-tree-label.tracker-library-tree-folder::before {
+	content: "\25B8";
+}
+
+.tracker-mobile-library-window .tracker-library-tree-label.tracker-library-tree-folder.tracker-library-tree-expanded::before {
+	content: "\25BE";
+}
+
+.tracker-mobile-library-window .tracker-library-tree-label.tracker-library-selected {
+	background: #dcecff !important;
+	box-shadow: inset 4px 0 #1769d2;
+}
+
+.tracker-mobile-library-window .tracker-library-tree-label.tracker-library-tree-root-file {
+	display: none !important;
+}
+
+.tracker-mobile-library-window .tracker-library-tree-label > [id$="_ctr"] {
+	left: calc(var(--tracker-tree-row-left) + 32px) !important;
+	top: 6px !important;
+	width: calc(100% - var(--tracker-tree-row-left) - 40px) !important;
+	height: 40px !important;
+	display: flex !important;
+	align-items: center !important;
+}
+
+.tracker-mobile-library-window .tracker-library-tree-label [id$="_txt"] {
+	position: static !important;
+	display: -webkit-box !important;
+	width: 100% !important;
+	max-height: 40px;
+	overflow: hidden;
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 2;
+	transform: none !important;
+	white-space: normal !important;
+	overflow-wrap: anywhere;
+	font-size: 16px !important;
+	line-height: 20px !important;
+	background: transparent !important;
+}
+
+.tracker-mobile-library-window .tracker-library-tree > [id^="Tracker_PanelUI_"][id$="div"] {
+	display: none !important;
+}
+
+@media (max-width: 520px) {
+	.tracker-mobile-library-window .tracker-library-toolbar-shell,
+	.tracker-mobile-library-window .tracker-library-toolbar {
+		height: 96px !important;
+	}
+
+	.tracker-mobile-library-window .tracker-library-url-input {
+		width: calc(100% - 194px) !important;
+	}
+
+	.tracker-mobile-library-window .tracker-library-open {
+		left: calc(100% - 148px) !important;
+	}
+
+	.tracker-mobile-library-window .tracker-library-download {
+		left: calc(100% - 90px) !important;
+	}
+
+	.tracker-mobile-library-window .tracker-library-inspect {
+		left: calc(100% - 48px) !important;
+	}
+
+	.tracker-mobile-library-window .tracker-library-search-label,
+	.tracker-mobile-library-window .tracker-library-search-input,
+	.tracker-mobile-library-window .tracker-library-editor,
+	.tracker-mobile-library-window .tracker-library-refresh {
+		top: 52px !important;
+	}
+
+	.tracker-mobile-library-window .tracker-library-search-label {
+		left: 6px !important;
+	}
+
+	.tracker-mobile-library-window .tracker-library-search-input {
+		left: 64px !important;
+		width: calc(100% - 216px) !important;
+	}
+
+	.tracker-mobile-library-window .tracker-library-editor {
+		left: calc(100% - 152px) !important;
+		width: 108px !important;
+	}
+
+	.tracker-mobile-library-window .tracker-library-refresh {
+		left: calc(100% - 44px) !important;
+	}
+
+	.tracker-mobile-library-window .tracker-library-content {
+		top: 184px !important;
+		height: calc(100% - 216px) !important;
+	}
+}
+
+/* visualViewport can be narrower than the CSS layout viewport while Android
+ * browser chrome or the keyboard is visible. The script adds this class from
+ * the real visible width, so the same two-row layout remains usable there. */
+.tracker-mobile-library-window.tracker-library-stacked-toolbar .tracker-library-toolbar-shell,
+.tracker-mobile-library-window.tracker-library-stacked-toolbar .tracker-library-toolbar {
+	height: 96px !important;
+}
+
+.tracker-mobile-library-window.tracker-library-stacked-toolbar .tracker-library-url-input {
+	width: calc(100% - 194px) !important;
+}
+
+.tracker-mobile-library-window.tracker-library-stacked-toolbar .tracker-library-open {
+	left: calc(100% - 148px) !important;
+}
+
+.tracker-mobile-library-window.tracker-library-stacked-toolbar .tracker-library-download {
+	left: calc(100% - 90px) !important;
+}
+
+.tracker-mobile-library-window.tracker-library-stacked-toolbar .tracker-library-inspect {
+	left: calc(100% - 48px) !important;
+}
+
+.tracker-mobile-library-window.tracker-library-stacked-toolbar .tracker-library-search-label,
+.tracker-mobile-library-window.tracker-library-stacked-toolbar .tracker-library-search-input,
+.tracker-mobile-library-window.tracker-library-stacked-toolbar .tracker-library-editor,
+.tracker-mobile-library-window.tracker-library-stacked-toolbar .tracker-library-refresh {
+	top: 52px !important;
+}
+
+.tracker-mobile-library-window.tracker-library-stacked-toolbar .tracker-library-search-label {
+	left: 6px !important;
+}
+
+.tracker-mobile-library-window.tracker-library-stacked-toolbar .tracker-library-search-input {
+	left: 64px !important;
+	width: calc(100% - 216px) !important;
+}
+
+.tracker-mobile-library-window.tracker-library-stacked-toolbar .tracker-library-editor {
+	left: calc(100% - 152px) !important;
+	width: 108px !important;
+}
+
+.tracker-mobile-library-window.tracker-library-stacked-toolbar .tracker-library-refresh {
+	left: calc(100% - 44px) !important;
+}
+
+.tracker-mobile-library-window.tracker-library-stacked-toolbar .tracker-library-content {
+	top: 184px !important;
+	height: calc(100% - 216px) !important;
+}
+
+.tracker-mobile-library-window.tracker-library-stacked-toolbar .tracker-library-viewbar {
+	top: 96px;
+}
+
+.tracker-mobile-library-window.tracker-library-compact .tracker-library-viewbar {
+	display: block;
+	height: 88px;
+	padding: 5px 8px;
+}
+
+/* On narrow screens the SwingJS toolbar's painted controls and logical hit
+ * rectangles diverge after the window is resized. Use in-flow HTML controls
+ * wired to the same Java actions so the visible target is the tappable target. */
+.tracker-mobile-library-window.tracker-library-compact .tracker-library-toolbar-shell {
+	height: 142px !important;
+}
+
+.tracker-mobile-library-window.tracker-library-compact .tracker-library-toolbar {
+	display: none !important;
+}
+
+.tracker-mobile-library-window.tracker-library-compact .tracker-library-native-toolbar {
+	position: absolute;
+	left: 0;
+	top: 0;
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) auto;
+	grid-template-rows: 50px 50px 42px;
+	gap: 0 6px;
+	width: 100%;
+	height: 142px;
+	padding: 4px 8px;
+	background: #eef3f7;
+	border-bottom: 1px solid #aebdca;
+	box-sizing: border-box;
+	z-index: 6;
+}
+
+.tracker-mobile-library-window.tracker-library-compact .tracker-library-native-field {
+	display: grid;
+	grid-template-columns: auto minmax(0, 1fr);
+	align-items: center;
+	gap: 6px;
+	min-width: 0;
+	font: 700 13px/1.2 system-ui, sans-serif;
+	color: #334b5f;
+}
+
+.tracker-mobile-library-window.tracker-library-compact .tracker-library-native-field input {
+	min-width: 0;
+	width: 100%;
+	height: 40px;
+	padding: 5px 8px;
+	border: 1px solid #71869a;
+	border-radius: 6px;
+	background: #fff;
+	font: 16px/1.2 system-ui, sans-serif;
+	box-sizing: border-box;
+}
+
+.tracker-mobile-library-window.tracker-library-compact .tracker-library-native-toolbar > button,
+.tracker-mobile-library-window.tracker-library-compact .tracker-library-native-actions > button {
+	min-width: 64px;
+	height: 40px;
+	padding: 5px 10px;
+	border: 1px solid #71869a;
+	border-radius: 6px;
+	background: #fff;
+	color: #17324a;
+	font: 700 15px/1.1 system-ui, sans-serif;
+	touch-action: manipulation;
+}
+
+.tracker-mobile-library-window.tracker-library-compact .tracker-library-native-toolbar > button:disabled,
+.tracker-mobile-library-window.tracker-library-compact .tracker-library-native-actions > button:disabled {
+	opacity: .48;
+}
+
+.tracker-mobile-library-window.tracker-library-compact .tracker-library-native-actions {
+	grid-column: 1 / -1;
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: 6px;
+	align-items: center;
+}
+
+.tracker-mobile-library-window.tracker-library-compact .tracker-library-viewbar,
+.tracker-mobile-library-window.tracker-library-compact.tracker-library-stacked-toolbar .tracker-library-viewbar {
+	top: 142px;
+}
+
+.tracker-mobile-library-window.tracker-library-compact .tracker-library-content,
+.tracker-mobile-library-window.tracker-library-compact.tracker-library-stacked-toolbar .tracker-library-content,
+.tracker-mobile-library-window.tracker-library-compact:not(.tracker-library-stacked-toolbar) .tracker-library-content {
+	top: 230px !important;
+	height: calc(100% - 262px) !important;
+}
+
+@media (max-height: 520px) and (min-width: 521px) {
+	.tracker-mobile-library-window.tracker-library-compact .tracker-library-toolbar-shell {
+		height: 92px !important;
+	}
+
+	.tracker-mobile-library-window.tracker-library-compact .tracker-library-native-toolbar {
+		grid-template-columns: minmax(0, 1.35fr) auto minmax(0, 1fr) auto;
+		grid-template-rows: 50px 42px;
+		height: 92px;
+	}
+
+	.tracker-mobile-library-window.tracker-library-compact .tracker-library-native-actions {
+		grid-column: 1 / -1;
+	}
+
+	.tracker-mobile-library-window.tracker-library-compact .tracker-library-viewbar,
+	.tracker-mobile-library-window.tracker-library-compact.tracker-library-stacked-toolbar .tracker-library-viewbar {
+		top: 92px;
+		display: flex;
+		height: 44px;
+		gap: 10px;
+	}
+
+	.tracker-mobile-library-window.tracker-library-compact .tracker-library-view-switch {
+		flex: 0 0 240px;
+	}
+
+	.tracker-mobile-library-window.tracker-library-compact .tracker-library-path {
+		margin-top: 0;
+	}
+
+	.tracker-mobile-library-window.tracker-library-compact .tracker-library-content,
+	.tracker-mobile-library-window.tracker-library-compact.tracker-library-stacked-toolbar .tracker-library-content,
+	.tracker-mobile-library-window.tracker-library-compact:not(.tracker-library-stacked-toolbar) .tracker-library-content {
+		top: 136px !important;
+		height: calc(100% - 168px) !important;
+	}
+}
+
+.tracker-mobile-library-window.tracker-library-compact:not(.tracker-library-stacked-toolbar) .tracker-library-content {
+	top: 136px !important;
+	height: calc(100% - 168px) !important;
+}
+
+.tracker-mobile-library-window.tracker-library-compact .tracker-library-view-switch {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 6px;
+	height: 42px;
+}
+
+.tracker-mobile-library-window.tracker-library-compact .tracker-library-view-switch button {
+	min-width: 0;
+	height: 38px;
+	border: 1px solid #8fa8bc;
+	border-radius: 8px;
+	background: #fff;
+	color: #19364f;
+	font: 600 16px/1 Arial, sans-serif;
+}
+
+.tracker-mobile-library-window.tracker-library-compact .tracker-library-view-switch button[aria-pressed="true"] {
+	border-color: #1769d2;
+	background: #1769d2;
+	color: #fff;
+}
+
+.tracker-mobile-library-window.tracker-library-compact .tracker-library-path {
+	height: 35px;
+	padding-top: 3px;
+}
+
+.tracker-mobile-library-window.tracker-library-compact .tracker-library-path-readout {
+	font-size: 13px;
+}
+
+.tracker-mobile-library-window.tracker-library-compact .tracker-library-tree-pane,
+.tracker-mobile-library-window.tracker-library-compact .tracker-library-details-pane {
+	left: 0 !important;
+	top: 0 !important;
+	width: 100% !important;
+	height: 100% !important;
+}
+
+.tracker-mobile-library-window.tracker-library-compact .tracker-library-divider {
+	display: none !important;
+}
+
+.tracker-mobile-library-window.tracker-library-compact .tracker-library-details-pane {
+	display: none !important;
+}
+
+.tracker-mobile-library-window.tracker-library-compact.tracker-library-show-details .tracker-library-tree-pane {
+	display: none !important;
+}
+
+.tracker-mobile-library-window.tracker-library-compact.tracker-library-show-details .tracker-library-details-pane {
+	display: block !important;
+}
+
+@media (max-width: 820px), (pointer: coarse) {
+	/* The desktop menu row plus the oversized icon strip occupy two fixed rows.
+	 * Reuse that same space for five named command groups, so every essential
+	 * action is visible without relying on an undiscoverable horizontal scroll. */
+	.tracker-mobile-main-menubar {
+		visibility: hidden !important;
+		pointer-events: none !important;
+	}
+
+	.tracker-mobile-toolbar-shell {
+		overflow: visible !important;
+		touch-action: manipulation !important;
+	}
+
+	.tracker-mobile-toolbar-shell > .tracker-mobile-toolbar {
+		display: none !important;
+	}
+
+	.tracker-mobile-commandbar {
+		position: absolute;
+		left: 0;
+		top: -25px;
+		z-index: 50;
+		display: grid;
+		grid-template-columns: repeat(5, minmax(0, 1fr));
+		gap: 4px;
+		width: 100%;
+		height: 59px;
+		padding: 5px 4px 6px;
+		border-top: 1px solid #9aabb9;
+		border-bottom: 1px solid #8396a7;
+		background: #e8eef3;
+		box-shadow: 0 1px 2px rgba(16, 42, 67, .14);
+	}
+
+	.tracker-mobile-commandbar > button {
+		min-width: 0;
+		height: 47px;
+		padding: 3px 2px;
+		border: 1px solid #8ea3b5;
+		border-radius: 7px;
+		background: linear-gradient(#fff, #f2f6f9);
+		color: #17324a;
+		font: 700 12px/1.05 system-ui, sans-serif;
+		text-align: center;
+		white-space: normal;
+		touch-action: manipulation;
+	}
+
+	.tracker-mobile-commandbar > button:active,
+	.tracker-mobile-commandbar > button.is-active {
+		border-color: #1769aa;
+		background: #dcecf9;
+		color: #0b4e84;
+	}
+
+	/* Nested SwingJS menus normally open on hover in a narrow side column.
+	 * Present them as a roomy sheet on touch screens instead. */
+	.swingjsPopupMenu ul.ui-j2smenu {
+		position: fixed !important;
+		left: 8px !important;
+		right: auto !important;
+		width: calc(100vw - 16px) !important;
+		min-width: 0 !important;
+		max-width: calc(100vw - 16px) !important;
+		max-height: calc(100dvh - 16px) !important;
+		overflow-x: hidden !important;
+		overflow-y: auto !important;
+		overscroll-behavior: contain;
+		-webkit-overflow-scrolling: touch;
+		z-index: 11050 !important;
+	}
+
+	.swingjsPopupMenu ul.ui-j2smenu > li.ui-j2smenu-item,
+	.swingjsPopupMenu ul.ui-j2smenu > li.ui-j2smenu-item > .a {
+		width: 100% !important;
+		min-height: 48px !important;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	* {
+		scroll-behavior: auto !important;
+		transition-duration: 0.01ms !important;
+	}
+}
