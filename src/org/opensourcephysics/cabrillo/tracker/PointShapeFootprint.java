@@ -373,8 +373,8 @@ public class PointShapeFootprint implements Footprint, Cloneable {
     axes.lineTo(-w, 0);
     axes.moveTo(0, w);
     axes.lineTo(0, -w);
-    axes.moveTo(15, 5); // x axis crosshair
-    axes.lineTo(15, -5);
+    axes.moveTo(25, 5); // x axis crosshair
+    axes.lineTo(25, -5);
     SIMPLE_AXES = new PointShapeFootprint("Footprint.SimpleAxes", axes); //$NON-NLS-1$
     footprints.add(SIMPLE_AXES);
     BOLD_SIMPLE_AXES = new PointShapeFootprint("Footprint.BoldSimpleAxes", axes); //$NON-NLS-1$

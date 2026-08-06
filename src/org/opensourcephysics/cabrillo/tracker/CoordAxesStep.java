@@ -216,7 +216,7 @@ public class CoordAxesStep extends Step {
 			Point p0 = screenPoints[0] = origin.getScreenPosition(trackerPanel);
 			MultiShape axesShape = footprint.getShape(screenPoints, FontSizer.getIntegerFactor());
 			path.reset();
-			path.moveTo(p0.x + 15, p0.y);
+			path.moveTo(p0.x + 25, p0.y);
 			path.lineTo(p0.x + 500, p0.y);
 			Shape hitShape = path;
 			// rotate axes and x-axis hit shape about origin if drawing in image space
