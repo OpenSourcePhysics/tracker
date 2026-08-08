@@ -2187,8 +2187,8 @@ public class TrackerIO extends VideoIO {
 				if (localFile == null) {
 					path = null;
 				} else {
-					// set path to downloaded file
-					path = localFile.toURI().toString();
+					// set path to downloaded file--this retains spaces
+					path = ResourceLoader.getURIPath(localFile.getAbsolutePath());
 					OSPLog.debug("TrackerIO downloaded zip file: " + path); //$NON-NLS-1$
 				}
 			}
@@ -2483,7 +2483,8 @@ public class TrackerIO extends VideoIO {
 					String name = ResourceLoader.getNonURIPath(XML.getName(path));
 					File localFile = ResourceLoader.downloadToOSPCache(path, name, false);
 					if (localFile != null) {
-						path = localFile.toURI().toString();
+						// this retains spaces in local file path
+						path = ResourceLoader.getURIPath(localFile.getAbsolutePath());
 					}
 				}
 
