@@ -6,11 +6,12 @@
 	<meta charset="utf-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" type="text/css" href="physletsJS.css" />
+	<link rel="stylesheet" type="text/css" href="ipad.css" />
 	<script src="compadre.js"></script>
-	<script src="swingjs/swingjs2.js"></script>
+	<script src="swingjs2-tracker-mobile.js"></script>
 	<script>
 		let mainFrame = undefined;
-		if (!self.SwingJS) alert('swingjs2.js was not found. It needs to be in swingjs folder in the same directory as ' +
+		if (!self.SwingJS) alert('swingjs2-tracker-mobile.js was not found. It needs to be in the same directory as ' +
 			document.location.href);
 
 		function initApp() {
@@ -49,7 +50,7 @@
 	</script>
 </head>
 
-<body>
+<body class="tracker-mobile">
 	<h1>JavaScript Tracker Mobile (Beta)</h1>
 	<script>
 		SwingJS.getApplet('Tracker', TrackerInfo);
