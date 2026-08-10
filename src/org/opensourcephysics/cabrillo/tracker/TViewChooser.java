@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2024 Douglas Brown, Wolfgang Christian, Robert M. Hanson
+ * Copyright (c) 2026 Douglas Brown, Wolfgang Christian, Robert M. Hanson
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@
  * or view the license online at <http://www.gnu.org/copyleft/gpl.html>
  *
  * For additional Tracker information and documentation, please see
- * <http://physlets.org/tracker/>.
+ * <https://opensourcephysics.github.io/tracker-website/>.
  */
 package org.opensourcephysics.cabrillo.tracker;
 
@@ -468,6 +468,18 @@ public class TViewChooser extends JPanel implements PropertyChangeListener, OSPR
 				TrackChooserTView chooser = (TrackChooserTView) tViews[i];
 					chooser.refreshMenus();
 			}
+		}
+	}
+	
+	@Override
+	public void setEnabled(boolean enable) {
+		super.setEnabled(enable);
+		chooserButton.setEnabled(enable);
+		maximizeButton.setEnabled(enable);
+		TView view = getSelectedView();
+		ArrayList<Component> comps = view.getToolBarComponents();
+		for (int j = 0; j < comps.size(); j++) {
+			comps.get(j).setEnabled(enable);
 		}
 	}
 

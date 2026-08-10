@@ -15,9 +15,9 @@
             <img src="../help_images/spacer.gif">
             <img src="../help_images/stick_ruler.gif" alt="Calibration Stick">
     </p>
-		<p>The <strong>calibration stick</strong> is the most commonly used tool for calibrating the video <strong>scale</strong>--i.e., the ratio of the <em>world distance in meters</em> (or any desired length unit) to the <em>image distance in pixels </em>between two points.  The world length of a calibration stick is displayed in a <strong>readout</strong> at its center and in a length field on the toolbar. Calibrating the video is simply a matter of setting this world length to a known value--see <a href="#calibrate">Calibrating a video</a> for details.</p>
+		<p>The <strong>calibration stick</strong> is the most commonly used tool for calibrating the video <strong>scale</strong>--i.e., the ratio of the <em>image distance in pixels </em>between two points to the <em>world distance in meters</em> (or any desired length unit) between them.  The world distance between a calibration stick's ends (i.e. its length) is displayed in a <strong>readout</strong> at its center and in a <strong>length</strong> field on the toolbar. Calibrating the video is simply a matter of setting this world length to a known value--see <a href="#calibrate">Calibrating a video</a> for details.</p>
 		<p align="center"><img src="../help_images/stick_fields.gif"></p>
-		<p>A calibration stick can also be used to <a href="stick.html#angle">correct for tilt in the video image</a>.	</p>
+		<p>A calibration stick can also be used to <a href="stick.html#angle">correct for tilt in the video image</a>.</p>
 		<p>If desired, a <strong>ruler</strong> can be displayed along the length of the stick as shown in the right image above. To show the ruler, check the Ruler box on the toolbar. For more about rulers, see <a href="tape.html#ruler">Adjusting the ruler</a>.</p>
 <h3><a name="stick1" id="stick1"></a>1. Creating a calibration stick</h3>
 		<p>Click the arrow on the <strong>Calibration</strong> button on the toolbar and select <strong>New|Calibration Stick</strong> to create a new calibration stick.  If desired, you can create more than one stick. Show or hide the calibration stick (along with other calibration tools, if any) by clicking the main part of the Calibration button.</p>
@@ -35,11 +35,17 @@
             <img src="../help_images/spacer.gif">
             <img src="../help_images/stick_enter_length.gif" align="top">
     </p>
-		<p>To change the pixel length, drag either end of the stick (this changes the scale, since the real-world length does not change). To move the entire stick without changing the scale, drag the middle.</p>
+		<p>To change the pixel length of the stick, drag either end of it (this changes the scale, since the real-world length does not change). To move the entire stick without changing the scale, drag the middle.</p>
 		<p align="center">
 			<img src="../help_images/stick_select_end.gif" align="top">
             <img src="../help_images/spacer.gif">
             <img src="../help_images/stick_select_middle.gif" align="top">
+        </p>
+		<p>To change the scale directly, enter the distance per pixel into the <strong>1 pixel </strong> field on the toolbar. This is often useful to set the same scale for several different videos. (Note: you can also set the same scale on multiple tabs by copying the coordinate system in one (Edit|Copy Object|Coordinate System) and pasting in another (Edit|Paste Coordinate System). In this case the tabs will share not only their scale, but also their origin and axis tilt.)</p>
+		<p align="center">
+			<img src="../help_images/stick_enter_scale.gif" align="top">
+            <img src="../help_images/spacer.gif">
+            <img src="../help_images/stick_new_scale.gif" align="top">
         </p>
         
 	<h3><a name="calibrate" id="calibrate"></a>3. Calibrating a video</h3>

@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2024 Douglas Brown, Wolfgang Christian, Robert M. Hanson
+ * Copyright (c) 2026 Douglas Brown, Wolfgang Christian, Robert M. Hanson
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@
  * or view the license online at <http://www.gnu.org/copyleft/gpl.html>
  *
  * For additional Tracker information and documentation, please see
- * <http://physlets.org/tracker/>.
+ * <https://opensourcephysics.github.io/tracker-website/>.
  */
 package org.opensourcephysics.cabrillo.tracker;
 
@@ -369,6 +369,12 @@ public class TableTrackView extends TrackView {
 
 	@Override
 	public void refresh(int frameNumber, int mode) {
+		
+		forceRefresh = false; // set to false by DB
+		if (!forceRefresh && !isRefreshEnabled() || !viewParent.isViewPaneVisible())
+			return;
+		forceRefresh = false;
+				
 		if (mode == DataTable.MODE_TRACK_CHOOSE) {
 			FontSizer.setFonts(columnsDialogButton);
 			FontSizer.setFonts(gapsButton);
@@ -386,16 +392,7 @@ public class TableTrackView extends TrackView {
 			}
 			
 		}
-		forceRefresh = true; // for now, at least
-
-		if (!forceRefresh && !isRefreshEnabled() || !viewParent.isViewPaneVisible())
-			return;
-
-		// OSPLog.debug("TableTrackView.refresh " + myID + " " +
-		// Integer.toHexString(mode) + " "+ frameNumber + " " + isRefreshEnabled() + " "
-		// + trackerPanel.getPlayer().getStepNumber());
-
-		forceRefresh = false;
+		
 		if (Tracker.timeLogEnabled)
 			Tracker.logTime(getClass().getSimpleName() + hashCode() + " refresh " + frameNumber); //$NON-NLS-1$
 		dataTable.clearSelection();
@@ -404,7 +401,8 @@ public class TableTrackView extends TrackView {
 		// track=" + track);
 		int highlightCol = -1;
 		try {
-			trackDataManager = track.getData(frame.getTrackerPanelForID(panelID), myDatasetIndex);
+			TrackerPanel tp = frame.getTrackerPanelForID(panelID);
+			trackDataManager = track.getData(tp, myDatasetIndex);
 			if (datasetCount != trackDataManager.getDatasetsRaw().size())
 				refreshNameMaps();
 			
@@ -413,7 +411,7 @@ public class TableTrackView extends TrackView {
 			int count = datasets.size();
 			if (count > 0)
 				dataTable.setUnits(datasets.get(0).getXColumnName(), "", track.getDataDescription(0)); //$NON-NLS-1$
-			boolean degrees = frame != null && !frame.isAnglesInRadians();
+			boolean degrees = !tp.isAnglesInRadians();
 
 			dataTableManager.clear();
 			int colCount = 0;

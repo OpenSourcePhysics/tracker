@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2024 Douglas Brown, Wolfgang Christian, Robert M. Hanson
+ * Copyright (c) 2026 Douglas Brown, Wolfgang Christian, Robert M. Hanson
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@
  * or view the license online at <http://www.gnu.org/copyleft/gpl.html>
  *
  * For additional Tracker information and documentation, please see
- * <http://physlets.org/tracker/>.
+ * <https://opensourcephysics.github.io/tracker-website/>.
  */
 package org.opensourcephysics.cabrillo.tracker;
 
@@ -178,7 +178,9 @@ public abstract class TrackView extends JScrollPane implements PropertyChangeLis
 			mode = DataTable.MODE_TRACK_SELECTEDPOINT;
 			break;
 		case TTrack.PROPERTY_TTRACK_STEPS:
-			mode = DataTable.MODE_TRACK_STEPS;
+			mode = TTrack.HINT_STEPS_SELECTED == e.getOldValue()?
+					DataTable.MODE_TRACK_SELECTEDPOINT:
+					DataTable.MODE_TRACK_STEPS;
 			break;
 		case TrackerPanel.PROPERTY_TRACKERPANEL_LOADED:
 			mode = DataTable.MODE_TRACK_LOADED;

@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2024 Douglas Brown, Wolfgang Christian, Robert M. Hanson
+ * Copyright (c) 2026 Douglas Brown, Wolfgang Christian, Robert M. Hanson
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@
  * or view the license online at <http://www.gnu.org/copyleft/gpl.html>
  *
  * For additional Tracker information and documentation, please see
- * <http://physlets.org/tracker/>.
+ * <https://opensourcephysics.github.io/tracker-website/>.
  */
 package org.opensourcephysics.cabrillo.tracker;
 
@@ -155,7 +155,8 @@ public class Protractor extends InputTrack {
 //	protected double[] alpha = new double[5];
 	protected boolean[] validData = new boolean[5];
 	protected Object[] derivData = new Object[] { params, rotationAngle, null, validData };
-
+	protected boolean needsRotationData;
+	
 	/**
 	 * Constructs a Protractor.
 	 */
@@ -424,7 +425,74 @@ public class Protractor extends InputTrack {
 	public int getFootprintLength() {
 		return 3;
 	}
+	
+	private boolean needsRotationData(TrackerPanel trackerPanel) {
+		TView[][] views = tframe.getTViews(trackerPanel, false);
+		for (int i = 0; i < views.length; i++) {
+			if (views[i] == null)
+				continue;
+			for (int j = 0; j < views[i].length; j++) {
+				if (views[i][j] == null)
+					continue;
+				if (views[i][j] != null && views[i][j] instanceof TableTView) {
+					TableTView tableView = (TableTView)views[i][j];
+					TTrack track = tableView.getSelectedTrack();
+					if (track != null && track instanceof Protractor) {
+						TableTrackView trackView = (TableTrackView)tableView.getTrackView(track);
+						String[] cols = trackView.getVisibleColumns();
+						for (int k = 0; k < cols.length; k++) {
+							for (int m = 6; m < 9; m++) {
+								if (dataVariables[m].equals(cols[k])) {
+									return true;
+								}								
+							}							
+						}
+					}
+				}
+				else if (views[i][j] != null && views[i][j] instanceof PlotTView) {
+					PlotTView plotview = (PlotTView)views[i][j];
+					TTrack track = plotview.getSelectedTrack();
+					if (track != null && track instanceof Protractor) {
+						PlotTrackView trackView = (PlotTrackView)plotview.getTrackView(track);
+						TrackPlottingPanel[] plots = trackView.getPlots();
+						for (int k = 0; k < plots.length; k++) {
+							if (plots[k] == null)
+								continue;
+							for (int m = 6; m < 9; m++) {
+								String var = TeXParser.removeSubscripting(dataVariables[m]);
+								if ((plots[k].getXVariable() != null 
+										&& plots[k].getXVariable().startsWith(var))
+										|| (plots[k].getYVariable() != null 
+										&& plots[k].getYVariable().startsWith(var))) {
+									return true;
+								}								
+							}							
+						}
+					}
+				}
+			}
+		}
+		return false;
+		
+	}
 
+	@Override
+	public DatasetManager getData(TrackerPanel panel) {
+		boolean rot = needsRotationData(panel);
+		if (rot && !needsRotationData) {
+			dataValid = false;
+		}
+		needsRotationData = rot;
+		
+		int frameCount = panel.getPlayer().getVideoClip().getFrameCount();
+		if (getSteps().length < frameCount) {
+			steps.setLength(frameCount);
+			dataValid = false;
+		}
+		
+		return super.getData(panel);
+	}
+	
 	/**
 	 * Refreshes the data.
 	 *
@@ -436,19 +504,13 @@ public class Protractor extends InputTrack {
 		if (refreshDataLater || trackerPanel == null || data == null)
 			return;
 
-		// get the datasets
-//		Dataset angle = data.getDataset(count++);
-//		Dataset arm1Length = data.getDataset(count++);
-//		Dataset arm2Length = data.getDataset(count++);
-//		Dataset stepNum = data.getDataset(count++);
-//		Dataset frameNum = data.getDataset(count++);
-//		Dataset rotationAngle = data.getDataset(count++);
 		// assign column names to the datasets
 		int count = dataVariables.length - 1;
 		dataFrames.clear();
 		VideoPlayer player = trackerPanel.getPlayer();
 		VideoClip clip = player.getVideoClip();
 		int len = clip.getStepCount();
+		
 		double[][] validData = new double[count + 1][len];
 //		double rotation = 0, prevAngle = 0;
 		for (int i = 0; i < len; i++) {
@@ -456,13 +518,7 @@ public class Protractor extends InputTrack {
 			ProtractorStep next = (ProtractorStep) getStep(frame);
 			next.dataVisible = true;
 			double theta = next.getProtractorAngle(false);
-//			// determine the cumulative rotation angle
-//			double delta = theta - prevAngle;
-//			if (delta < -Math.PI)
-//				delta += 2 * Math.PI;
-//			else if (delta > Math.PI)
-//				delta -= 2 * Math.PI;
-//			rotation += delta;
+
 			// get the step number and time
 			double t = player.getStepTime(i) / 1000.0;
 			validData[0][i] = theta;
@@ -470,22 +526,22 @@ public class Protractor extends InputTrack {
 			validData[2][i] = next.getArmLength(next.end2);
 			validData[3][i] = i;
 			validData[4][i] = frame;
-//			validData[5][i] = rotation;
 			validData[8][i] = t;
 			dataFrames.add(frame);
-//			prevAngle = theta;
 		}
-		// get the rotational data
-		Object[] rotationData = getRotationData();
-		double[] theta = (double[]) rotationData[0];
-		double[] omega = (double[]) rotationData[1];
-		double[] alpha = (double[]) rotationData[2];
-		double dt = player.getMeanStepDuration() / 1000;
-		for (int i = 0; i < len; i++) {
-			validData[5][i] = theta[clip.stepToFrame(i)];
-			validData[6][i] = omega[clip.stepToFrame(i)] / dt;
-			validData[7][i] = alpha[clip.stepToFrame(i)] / (dt * dt);
-		}
+		if (needsRotationData) {
+			// get the rotational data
+			Object[] rotationData = getRotationData();
+			double[] theta = (double[]) rotationData[0];
+			double[] omega = (double[]) rotationData[1];
+			double[] alpha = (double[]) rotationData[2];
+			double dt = player.getMeanStepDuration() / 1000;
+			for (int i = 0; i < len; i++) {
+				validData[5][i] = theta[clip.stepToFrame(i)];
+				validData[6][i] = omega[clip.stepToFrame(i)] / dt;
+				validData[7][i] = alpha[clip.stepToFrame(i)] / (dt * dt);
+			}
+		}			
 		clearColumns(data, count, dataVariables, "Protractor.Data.Description.", validData, len);
 	}
 	
@@ -724,7 +780,7 @@ public class Protractor extends InputTrack {
 		item.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				tframe.setAnglesInRadians(!radians);
+				tp.anglesInRadians = !radians;
 			}
 		});
 		item.setText(radians ? TrackerRes.getString("TTrack.AngleField.Popup.Degrees") : //$NON-NLS-1$

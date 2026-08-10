@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2024 Douglas Brown, Wolfgang Christian, Robert M. Hanson
+ * Copyright (c) 2026 Douglas Brown, Wolfgang Christian, Robert M. Hanson
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,16 +20,20 @@
  * or view the license online at <http://www.gnu.org/copyleft/gpl.html>
  *
  * For additional Tracker information and documentation, please see
- * <http://physlets.org/tracker/>.
+ * <https://opensourcephysics.github.io/tracker-website/>.
  */
 package org.opensourcephysics.cabrillo.tracker;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Cursor;
 import java.awt.Dimension;
+import java.awt.Point;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 
 import javax.swing.AbstractAction;
@@ -45,7 +49,10 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextPane;
 import javax.swing.border.Border;
 import javax.swing.border.TitledBorder;
+import javax.swing.event.HyperlinkEvent;
+import javax.swing.event.HyperlinkListener;
 
+import org.opensourcephysics.desktop.OSPDesktop;
 import org.opensourcephysics.tools.FontSizer;
 
 /**
@@ -63,11 +70,13 @@ public class DerivativeAlgorithmDialog extends JDialog {
 	protected ArrayList<PointMass> targetMasses = new ArrayList<PointMass>();
 	protected JButton okButton, cancelButton;
 	JTextPane textPane;
-	int[] types = new int[] { PointMass.FINITE_DIFF, PointMass.BOUNCE_DETECT };
-//	int[] types = new int[] {PointMass.FINITE_DIFF, PointMass.FINITE_DIFF_VSPILL2, PointMass.BOUNCE_DETECT};
+//	int[] types = new int[] { PointMass.FINITE_DIFF, PointMass.BOUNCE_DETECT };
+	int[] types = new int[] {PointMass.FINITE_DIFF, PointMass.FINITE_DIFF_VSPILL2, PointMass.BOUNCE_DETECT};
 	JRadioButton[] buttons = new JRadioButton[types.length];
 	TitledBorder choiceBorder;
 	int prevAlgorithm;
+	String bounceUrl = "http://gasstationwithoutpumps.wordpress.com/2011/11/08/tracker-video-analysis-tool-fixes/"; //$NON-NLS-1$
+
 
 	/**
 	 * Constructor.
@@ -112,6 +121,21 @@ public class DerivativeAlgorithmDialog extends JDialog {
 		setContentPane(contentPane);
 
 		textPane = new JTextPane();
+		textPane.setEditable(false);
+		textPane.addHyperlinkListener(new HyperlinkListener() {
+	    @Override
+	    public void hyperlinkUpdate(HyperlinkEvent e) {
+	        if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
+	          OSPDesktop.browse(e.getURL().toString());
+	        }
+	        else if (e.getEventType() == HyperlinkEvent.EventType.ENTERED) {
+	        	textPane.setToolTipText(bounceUrl);
+	        }
+	        else if (e.getEventType() == HyperlinkEvent.EventType.EXITED) {
+	        	textPane.setToolTipText(null);
+	        }
+	    }
+		});
 		JScrollPane scroller = new JScrollPane(textPane);
 		contentPane.add(scroller, BorderLayout.CENTER);
 
@@ -199,16 +223,19 @@ public class DerivativeAlgorithmDialog extends JDialog {
 	private void refreshInfo(int algorithm) {
 		String s = ""; //$NON-NLS-1$
 		if (algorithm == PointMass.FINITE_DIFF) {
+			textPane.setContentType("text/plain");
 			s = TrackerRes.getString("AlgorithmDialog.FiniteDifference.Message1") //$NON-NLS-1$
 					+ "\n\n    " + TrackerRes.getString("AlgorithmDialog.FiniteDifference.Message2") //$NON-NLS-1$ //$NON-NLS-2$
 					+ "\n\n    " + TrackerRes.getString("AlgorithmDialog.FiniteDifference.Message3"); //$NON-NLS-1$ //$NON-NLS-2$
+		
 		} else if (algorithm == PointMass.BOUNCE_DETECT) {
-			String url = "http://gasstationwithoutpumps.wordpress.com/2011/11/08/tracker-video-analysis-tool-fixes/"; //$NON-NLS-1$
-
+			textPane.setContentType("text/html");
+			String linkName = "Tracker video analysis tool fixes";
 			s = TrackerRes.getString("AlgorithmDialog.BounceDetect.Message1") //$NON-NLS-1$
 					+ " " + TrackerRes.getString("AlgorithmDialog.BounceDetect.Message2") //$NON-NLS-1$ //$NON-NLS-2$
-					+ "\n\n" + url; //$NON-NLS-1$
+					+ "<a href='"+bounceUrl+"'> "+linkName+"</a>."; //$NON-NLS-1$
 		} else if (algorithm == PointMass.FINITE_DIFF_VSPILL2) {
+			textPane.setContentType("text/plain");
 			s = TrackerRes.getString("AlgorithmDialog.SmoothFiniteDifference.Message1") //$NON-NLS-1$
 					+ "\n\n    " + TrackerRes.getString("AlgorithmDialog.SmoothFiniteDifference.Message2") //$NON-NLS-1$ //$NON-NLS-2$
 					+ "\n\n    " + TrackerRes.getString("AlgorithmDialog.SmoothFiniteDifference.Message3"); //$NON-NLS-1$ //$NON-NLS-2$

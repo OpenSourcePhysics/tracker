@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2024 Douglas Brown, Wolfgang Christian, Robert M. Hanson
+ * Copyright (c) 2026 Douglas Brown, Wolfgang Christian, Robert M. Hanson
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@
  * or view the license online at <http://www.gnu.org/copyleft/gpl.html>
  *
  * For additional Tracker information and documentation, please see
- * <http://physlets.org/tracker/>.
+ * <https://opensourcephysics.github.io/tracker-website/>.
  */
 package org.opensourcephysics.cabrillo.tracker;
 
@@ -152,7 +152,11 @@ public class TMouseHandler implements InteractiveMouseHandler {
 				trackerPanel.setMessage(""); //$NON-NLS-1$
 			}
 			TrackControl.getControl(trackerPanel).popup.setVisible(false);
-			marking = (selectedTrack != null && trackerPanel.getCursor() == selectedTrack.getMarkingCursor(e));
+			// A touch press may not be preceded by MOUSE_MOVED, so the interactive
+			// object saved during the last move can be stale. Hit-test at the press
+			// location to let a touch on empty canvas clear the current selection.
+			iad = trackerPanel.getInteractive();
+			marking = (selectedTrack != null && trackerPanel.cursorType == selectedTrack.getMarkingCursorType(e));
 			if (marking) {
 				markPoint(trackerPanel, e, autoTracker);
 				return;
@@ -369,12 +373,12 @@ public class TMouseHandler implements InteractiveMouseHandler {
 														// calibration pts
 		int index = selectedTrack.getTargetIndex();
 		int nextIndex = index;
+		boolean newStep = (step == null);
 		if (step == null || !autotrackTrigger) {
 			if (autotrackTrigger) {
 				selectedTrack.autoMarkAt(frameNumber, trackerPanel.getMouseX(), trackerPanel.getMouseY());
 				step = selectedTrack.getStep(frameNumber);
 			} else {
-				boolean newStep = (step == null);
 				if (selectedTrack.ttype == TTrack.TYPE_POINTMASS) {
 					selectedTrack.keyFrames.add(frameNumber);
 				}
@@ -424,8 +428,16 @@ public class TMouseHandler implements InteractiveMouseHandler {
 					break;
 				}
 			}
-			autoTracker.addKeyFrame(target, trackerPanel.getMouseX(), trackerPanel.getMouseY());
-			trackerPanel.refreshTrackBar();
+			if (autoTracker.addKeyFrame(target, trackerPanel.getMouseX(), trackerPanel.getMouseY())) {
+				trackerPanel.refreshTrackBar();
+			}
+			else {
+				if (newStep) {
+					selectedTrack.steps.setStep(frameNumber, null);
+					selectedTrack.fireStepsChanged();
+				}
+				return;
+			}
 		}
 
 		if (step != null && !autotrackTrigger) {

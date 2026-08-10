@@ -48,12 +48,17 @@ public class TrackerCountReader extends JFrame {
 	private String[] actions = {"read launch counts", "read downloads", "version", "list launch log failures", "list download failures",  //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$
 			"clear launch log failures", "clear download failures", "test launch log", "test downloads"}; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
 	private String[] versions = {"all", "6.", "5.", "4.",  //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-			"6.1.7", "6.1.6", "6.1.5", "6.1.4",    //$NON-NLS-1$//$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ 
+			"6.3", "6.2", "6.1", "6.0",   //$NON-NLS-1$//$NON-NLS-2$
+			"6.3.5", "6.3.4",    //$NON-NLS-1$//$NON-NLS-2$
+			"6.3.3", "6.3.2", "6.3.1",    //$NON-NLS-1$//$NON-NLS-2$
+			"6.3.0", "6.2.0", "6.1.7",    //$NON-NLS-1$//$NON-NLS-2$ //$NON-NLS-3$
+			"6.1.6", "6.1.5", "6.1.4",    //$NON-NLS-1$//$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ 
 			"6.1.3", "6.1.2", "6.1.1",    //$NON-NLS-1$//$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ 
 			"6.1.0", "6.0.10", "6.0.9",    //$NON-NLS-1$//$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ 
 			"6.0.8", "6.0.7", "6.0.6",   //$NON-NLS-1$//$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ 
 			"6.0.5", "6.0.4", "6.0.3", "6.0.2",   //$NON-NLS-1$//$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ 
-			"6.0.1", "6.0.0", "5.3.4", "5.3.3",   //$NON-NLS-1$//$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$
+			"6.0.1", "6.0.0", "5.5.0", "5.4.0", "5.3.7",   //$NON-NLS-1$//$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$
+			"5.3.6", "5.3.5", "5.3.4", "5.3.3",   //$NON-NLS-1$//$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$
 			"5.3.2", "5.3.1", "5.3.0",   //$NON-NLS-1$//$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$
 			"5.2.10", "5.2.9", "5.2.8",   //$NON-NLS-1$//$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$
 			"5.2.7", "5.2.6",   //$NON-NLS-1$//$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$
@@ -61,9 +66,7 @@ public class TrackerCountReader extends JFrame {
 			"5.1.5", "5.1.4", "5.1.3",   //$NON-NLS-1$//$NON-NLS-2$ //$NON-NLS-3$ 
 			"5.1.2", "5.1.1", "5.1.0", "5.0.7", //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
 			"5.0.6", "5.0.5", "5.0.4", "5.0.3", "5.0.2", //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$ 
-			"5.0.1", "5.0.0", "4.11.0", "4.10.0", //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
-			"4.9.8", "4.97", "4.96", "4.95", "4.94",  //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$ 
-			"4.93", "4.92", "4.91", "4.90"}; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
+			"5.0.1", "5.0.0"}; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
 	private String[] OSs = {"all", "windows", "osx", "linux"}; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
 	private String[] engines = {"all", "Xuggle", "none"}; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ 
 	JComboBox<String> actionDropdown, versionDropdown, osDropdown, engineDropdown;
@@ -210,6 +213,19 @@ public class TrackerCountReader extends JFrame {
 					}
 					ver = vers.toArray(new String[vers.size()]);
 				}
+				else if (versionDropdown.getSelectedItem().equals("6.0") //$NON-NLS-1$
+						|| versionDropdown.getSelectedItem().equals("6.1")
+						|| versionDropdown.getSelectedItem().equals("6.2")
+						|| versionDropdown.getSelectedItem().equals("6.3")) { //$NON-NLS-1$
+					ArrayList<String> vers = new ArrayList<String>();
+					String s = versionDropdown.getSelectedItem().toString();
+					for (int i=0; i<versions.length; i++) {
+						if (versions[i].startsWith(s) && !versions[i].equals(s)) {
+							vers.add(versions[i]);
+						}
+					}
+					ver = vers.toArray(new String[vers.size()]);
+				}
 				else {
 					ver = new String[] {versionDropdown.getSelectedItem().toString()};
 				}
@@ -265,6 +281,7 @@ public class TrackerCountReader extends JFrame {
 					// typical Tracker-4.9.8-osx-installer.zip
 					// typical Tracker-4.9.8-linux-32bit-installer.run
 					// typical Tracker-4.9.8-linux-64bit-installer.run
+					// linux vers 6.2+: Tracker-6.2.0-linux-x64-installer.run
 					String osname = os[j];
 					String ext = osname.equals("windows")? ".exe": osname.equals("osx")? ".dmg": ".run"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$
 					if (osname.equals("osx")) { // change ext to "zip" for versions earlier than 5.1.3 //$NON-NLS-1$
@@ -281,6 +298,9 @@ public class TrackerCountReader extends JFrame {
 					}
 					if (osname.equals("linux")) { //$NON-NLS-1$
 						osname = ver[i].startsWith("6")? "linux-64bit": "linux-32bit"; //$NON-NLS-1$
+						if (ver[i].startsWith("6.2") || ver[i].startsWith("6.3")) {
+							osname = "linux-x64"; //$NON-NLS-1$
+						}
 					}
 					String command = "Tracker-"+ver[i]+"-"+osname+"-installer"+ext; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 					if (ver[i].equals("6.0.0") && osname.equals(OSs[1])) {
@@ -293,6 +313,9 @@ public class TrackerCountReader extends JFrame {
 						continue;
 					}
 					else if (ver[i].startsWith("5.3") && !osname.equals(OSs[2])) {
+						continue;
+					}
+					else if (ver[i].startsWith("5.4") && !osname.equals(OSs[2])) {
 						continue;
 					}
 					String result = send(downloadPHPPath, command+suffix);
@@ -396,6 +419,6 @@ public class TrackerCountReader extends JFrame {
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston MA 02111-1307 USA
  * or view the license online at http://www.gnu.org/copyleft/gpl.html
  *
- * Copyright (c) 2024  The Open Source Physics project
+ * Copyright (c) 2026  The Open Source Physics project
  *                     https://www.compadre.org/osp
  */

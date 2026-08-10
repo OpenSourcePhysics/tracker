@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2024 Douglas Brown, Wolfgang Christian, Robert M. Hanson
+ * Copyright (c) 2026 Douglas Brown, Wolfgang Christian, Robert M. Hanson
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@
  * or view the license online at <http://www.gnu.org/copyleft/gpl.html>
  *
  * For additional Tracker information and documentation, please see
- * <http://physlets.org/tracker/>.
+ * <https://opensourcephysics.github.io/tracker-website/>.
  */
 package org.opensourcephysics.cabrillo.tracker;
 
@@ -44,7 +44,6 @@ import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.controls.XMLControlElement;
 import org.opensourcephysics.display.DrawingPanel;
 import org.opensourcephysics.display.Interactive;
-import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.media.core.ImageCoordSystem;
 import org.opensourcephysics.media.core.TPoint;
 import org.opensourcephysics.media.core.VideoPanel;
@@ -439,6 +438,7 @@ public class TapeStep extends Step {
 		tape.angleField.setValue(xAxisToTapeAngle);
 		double length = fromEnds ? Math.sqrt(dx * dx + dy * dy) : worldLength;
 		tape.magField.setValue(length);
+		tape.pixelLengthField.setValue(1/scaleX);
 		return length;
 	}
 
@@ -611,7 +611,7 @@ public class TapeStep extends Step {
 		double cos = end1.cos(end2);
 		double d = end1.distance(end2);
 		double factor = worldLength / getTapeLength(true);
-
+		
 		// special case: d==0 must be corrected
 		if (d == 0) {
 			sin = 0;
@@ -665,6 +665,12 @@ public class TapeStep extends Step {
 			double y2 = middle.getY() - sin * d * factor / 2;
 			end1.setLocation(x1, y1);
 			end2.setLocation(x2, y2);
+		}
+		if (tape.isFixedPosition()) {
+			// set ends of frame 0 as well
+			TapeStep ts = (TapeStep)tape.getSteps()[0];
+			ts.end1.setLocation(end1);
+			ts.end2.setLocation(end2);
 		}
 		adjustingTips = false;
 	}
@@ -873,6 +879,8 @@ public class TapeStep extends Step {
 		public void setXY(double x, double y) {
 			if (getTrack().locked)
 				return;
+			if (x == prevX && y == prevY)
+				return;
 			if (tape.isStickMode() && isAdjusting()) {
 				prevX = x;
 				prevY = y;
@@ -924,6 +932,8 @@ public class TapeStep extends Step {
 				if (wasAdjusting && !adjusting && !java.lang.Double.isNaN(prevX)) {
 					setXY(prevX, prevY);
 				}
+				ImageCoordSystem coords = tape.tp.getCoords();
+				coords.setAdjusting(isAdjusting());
 			} else
 				super.setAdjusting(adjusting, e);
 			

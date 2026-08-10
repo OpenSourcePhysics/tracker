@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2024 Douglas Brown, Wolfgang Christian, Robert M. Hanson
+ * Copyright (c) 2026 Douglas Brown, Wolfgang Christian, Robert M. Hanson
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@
  * or view the license online at <http://www.gnu.org/copyleft/gpl.html>
  *
  * For additional Tracker information and documentation, please see
- * <http://physlets.org/tracker/>.
+ * <https://opensourcephysics.github.io/tracker-website/>.
  */
 package org.opensourcephysics.cabrillo.tracker;
 
@@ -136,8 +136,10 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 								@Override
 								public void actionPerformed(ActionEvent e) {
 									// test action goes here	
-																				
-//									TrackerPanel trackerPanel = frame.getSelectedPanel();
+									TrackerPanel trackerPanel = frame.getSelectedPanel();
+									testIndex++;
+									testButton.setEnabled(true);
+
 //									VideoClip clip = trackerPanel.getPlayer().getVideoClip();
 //									String path = clip.getVideoPath();
 //									path = XML.forwardSlash(path);
@@ -162,7 +164,6 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 //										try {
 //											Process process = builder.start();
 //											int n = process.waitFor();
-//											System.out.println("pig done "+n);
 //										} catch (Exception e1) {
 //											e1.printStackTrace();
 //										}
@@ -288,6 +289,15 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 		Object[] objectsToSize = new Object[] { newVersionButton, trackButton, sizingField, testButton };
 		FontSizer.setFonts(objectsToSize, level);
 		numberFieldWidth = sizingField.getPreferredSize().width;
+	}
+
+	@Override
+	public void setEnabled(boolean enable) {
+		super.setEnabled(enable);
+		Component[] comps = getComponents();
+		for (int i = 0; i < comps.length; i++) {
+			comps[i].setEnabled(enable);
+		}
 	}
 
 	private static final String[] panelProps = new String[] { 

@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2024 Douglas Brown, Wolfgang Christian, Robert M. Hanson
+ * Copyright (c) 2026 Douglas Brown, Wolfgang Christian, Robert M. Hanson
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@
  * or view the license online at <http://www.gnu.org/copyleft/gpl.html>
  *
  * For additional Tracker information and documentation, please see
- * <http://physlets.org/tracker/>.
+ * <https://opensourcephysics.github.io/tracker-website/>.
  */
 package org.opensourcephysics.cabrillo.tracker;
 
@@ -34,13 +34,13 @@ public interface Derivative {
   /**
    * Evaluates the derivative(s).
    * 
-   * Input data:
+   * Typical input data:
    *    data[0] = parameters (int[] {spill, start, stepsize, count})
    *    data[1] = xData (double[])
    *    data[2] = yData (double[])
    *    data[3] = validData (boolean[])
    *    
-   * Returned result:
+   * Typical returned result:
    *    result[0] = firstDerivX (double[]) may be null
    *    result[1] = firstDerivY (double[]) may be null
    *    result[2] = secondDerivX (double[]) may be null

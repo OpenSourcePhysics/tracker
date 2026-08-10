@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2024 Douglas Brown, Wolfgang Christian, Robert M. Hanson
+ * Copyright (c) 2026 Douglas Brown, Wolfgang Christian, Robert M. Hanson
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@
  * or view the license online at <http://www.gnu.org/copyleft/gpl.html>
  *
  * For additional Tracker information and documentation, please see
- * <http://physlets.org/tracker/>.
+ * <https://opensourcephysics.github.io/tracker-website/>.
  */
 package org.opensourcephysics.cabrillo.tracker;
 
@@ -73,7 +73,7 @@ public abstract class TrackChooserTView extends TView {
 		TrackerPanel.PROPERTY_TRACKERPANEL_IMAGE,
 		TTrack.PROPERTY_TTRACK_DATA,
 		TTrack.PROPERTY_TTRACK_FORMAT,
-		TFrame.PROPERTY_TFRAME_RADIANANGLES,
+		TrackerPanel.PROPERTY_TRACKERPANEL_RADIANANGLES,
 		FunctionTool.PROPERTY_FUNCTIONTOOL_FUNCTION,
 	};
 	public static boolean ignoreRefresh = false;
@@ -569,7 +569,7 @@ public abstract class TrackChooserTView extends TView {
 			}
 			break;
 		case FunctionTool.PROPERTY_FUNCTIONTOOL_FUNCTION: // data function has changed
-		case TFrame.PROPERTY_TFRAME_RADIANANGLES:
+		case TrackerPanel.PROPERTY_TRACKERPANEL_RADIANANGLES:
 			// angle units have changed
 			// refresh views of all tracks
 			for (TTrack t : panel.getTracks()) {

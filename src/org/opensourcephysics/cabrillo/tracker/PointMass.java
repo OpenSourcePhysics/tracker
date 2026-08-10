@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2024 Douglas Brown, Wolfgang Christian, Robert M. Hanson
+ * Copyright (c) 2026 Douglas Brown, Wolfgang Christian, Robert M. Hanson
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@
  * or view the license online at <http://www.gnu.org/copyleft/gpl.html>
  *
  * For additional Tracker information and documentation, please see
- * <http://physlets.org/tracker/>.
+ * <https://opensourcephysics.github.io/tracker-website/>.
  */
 package org.opensourcephysics.cabrillo.tracker;
 
@@ -414,6 +414,7 @@ public class PointMass extends TTrack {
 	protected JMenuItem autotrackItem;
 	protected JCheckBoxMenuItem vVisibleItem;
 	protected JCheckBoxMenuItem aVisibleItem;
+	protected JCheckBoxMenuItem showFilteredItem;
 
 	protected boolean vAtOrigin, aAtOrigin;
 	protected boolean traceVisible = false;
@@ -421,6 +422,13 @@ public class PointMass extends TTrack {
 	protected Stroke traceStroke = new BasicStroke(1);
 	protected boolean drawsTrace; // ParticleModel
 	protected boolean loading;
+	
+	// FilteredPointMass
+	protected FilteredPointMass filteredPM = null;
+	protected MotionFilter filter;
+	protected int filteredColor;
+	protected String filteredFootprintName;
+	protected boolean filteredOpen;
 
 	/**
 	 * Constructs a PointMass with mass 1.0.
@@ -537,7 +545,9 @@ public class PointMass extends TTrack {
 		} else if (x != step.getPosition().x || y != step.getPosition().y) {
 			XMLControl state = new XMLControlElement(step);
 			step.getPosition().setLocation(x, y);
-			Undo.postStepEdit(step, state);
+			if (this.undoEnabled) {
+				Undo.postStepEdit(step, state);
+			}
 			step.erase();
 		}
 		step.valid = true;
@@ -547,7 +557,7 @@ public class PointMass extends TTrack {
 			}
 			firePropertyChange(PROPERTY_TTRACK_STEP, HINT_STEP_ADDED_OR_REMOVED, new Integer(n)); // $NON-NLS-1$
 			// check independent point masses for skipped steps during marking
-			if (skippedStepWarningOn && steps.isPreceded(n) && tp != null && !isDependent()
+			if (Tracker.warnSkippedStep && steps.isPreceded(n) && tp != null && !isDependent()
 					&& !AutoTracker.mayLeaveGaps()) {
 				VideoClip clip = tp.getPlayer().getVideoClip();
 				int stepNumber = clip.frameToStep(n);
@@ -585,7 +595,24 @@ public class PointMass extends TTrack {
 		if (autoTracker != null && autoTracker.getTrack() == this)
 			autoTracker.delete(n);
 	}
-
+	
+	@Override
+	public void delete() {
+		if (filteredPM != null) {
+			filteredPM.delete();
+		}
+		super.delete(true);
+	}
+	
+	@Override
+	protected void delete(boolean postEdit) {
+		if (filteredPM != null) {
+			filteredPM.delete();
+		}
+		super.delete(postEdit);
+	}
+	
+	
 	/**
 	 * Overrides TTrack getStep method.
 	 *
@@ -2211,7 +2238,6 @@ public class PointMass extends TTrack {
 			xDeriv2 = (double[]) result[2];
 			yDeriv2 = (double[]) result[3];
 		}
-
 		// create, delete and/or set components of velocity vectors
 		StepArray array = panelVMap.get(panel.getID());
 		int endFrame = startFrame + (stepCount - 1) * clip.getStepSize();
@@ -2536,7 +2562,7 @@ public class PointMass extends TTrack {
 				updateDerivatives();
 				invalidateData(null);
 				int stepSize = tp.getPlayer().getVideoClip().getStepSize();
-				if (skippedStepWarningOn && stepSizeWhenFirstMarked > 1 && stepSize != stepSizeWhenFirstMarked) {
+				if (Tracker.warnSkippedStep && stepSizeWhenFirstMarked > 1 && stepSize != stepSizeWhenFirstMarked) {
 					JDialog warning = getStepSizeWarningDialog();
 					if (warning != null)
 						warning.setVisible(true);
@@ -2638,21 +2664,30 @@ public class PointMass extends TTrack {
 			aFootprintMenu.add(item);
 			fp[i].setStroke(stroke);
 		}
-		// if video is not null, add autotrack item just above dataColumnsItem item
-		if (panel.isEnabled("track.autotrack")) { //$NON-NLS-1$
+		// add showFiltered item for PointMass only
+		if (this.getClass()==PointMass.class) { 
+			TMenuBar.checkAddMenuSep(menu);
+			showFilteredItem.setText(TrackerRes.getString("PointMass.MenuItem.Filter.Text")); //$NON-NLS-1$
+			showFilteredItem.setSelected(filteredPM != null && filteredPM.isOpen());
+			menu.add(showFilteredItem);
+		}
+
+		// if video is not null, add autotrack item just below filterItem 
+		if (panel.isEnabled("track.autotrack") && !isDependent()) { //$NON-NLS-1$
 			autotrackItem.setText(TrackerRes.getString("PointMass.MenuItem.Autotrack")); //$NON-NLS-1$
 			autotrackItem.setEnabled(panel.getVideo() != null);
 			boolean added = false;
 			for (int i = 0; i < menu.getItemCount(); i++) {
 				JMenuItem next = menu.getItem(i);
-				if (next == dataBuilderItem) {
-					menu.insert(autotrackItem, i);
+				if (next == showFilteredItem) {
+					menu.insert(autotrackItem, i+1);
 					added = true;
 				}
 			}
 			if (!added)
 				menu.add(autotrackItem); // just in case
 		}
+
 		// add autoAdvance and markByDefault items
 		if (panel.isEnabled("track.autoAdvance") || //$NON-NLS-1$
 				panel.isEnabled("track.markByDefault")) { //$NON-NLS-1$
@@ -2862,6 +2897,13 @@ public class PointMass extends TTrack {
 				i++;
 			}
 			control.setValue("keyFrames", keys); //$NON-NLS-1$
+			// save filteredPM if non-null with non-null filter
+			if (p.filteredPM != null && p.filteredPM.filter != null) { 
+				control.setValue("filtered_filter", p.filteredPM.filter); //$NON-NLS-1$
+				control.setValue("filtered_colorRGB", p.filteredPM.getColor().getRGB()); //$NON-NLS-1$
+				control.setValue("filtered_footprint", p.filteredPM.getFootprintName()); //$NON-NLS-1$
+				control.setValue("filtered_open", p.filteredPM.isOpen()); //$NON-NLS-1$
+			}
 		}
 
 		@Override
@@ -2948,10 +2990,19 @@ public class PointMass extends TTrack {
 				Step[] steps = p.getSteps();
 				for (int i = 0; i < steps.length; i++) {
 					if (steps[i] != null)
-						p.keyFrames.add(i);						
+						p.keyFrames.add(i);
 				}
 			}
-			
+
+			//load filteredPointMass data if present (older files have no filter; default null)
+			s = control.getString("filtered_footprint");
+			if (s != null) {
+				p.filter = (MotionFilter) control.getObject("filtered_filter");
+				p.filteredColor = control.getInt("filtered_colorRGB");
+				p.filteredFootprintName = s;
+				p.filteredOpen = control.getBoolean("filtered_open");
+			}
+
 			p.setLocked(locked);
 			return obj;
 		}
@@ -3179,6 +3230,45 @@ public class PointMass extends TTrack {
 			}
 		});
 
+		showFilteredItem = new JCheckBoxMenuItem();
+		showFilteredItem.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if (tp == null)
+					return;
+				if (showFilteredItem.isSelected()) {
+					showFilteredPointMass(filter == null);
+				}
+				else {
+					if (filteredPM == null)
+						return;
+					tp.removeTrack(filteredPM);
+					tp.getFilterDialog().setVisible(false);
+				}
+			}
+		});
+	}
+	
+	protected void showFilteredPointMass(boolean showDialog) {
+		if (filteredPM == null) {			
+			filteredPM = new FilteredPointMass(PointMass.this, filter);
+		}
+		if (filteredFootprintName != null) {
+			filteredPM.setFootprint(filteredFootprintName);
+			filteredPM.setColor(new Color(filteredColor));
+			filteredFootprintName = null;
+		}
+		filteredPM.setTrailLength(getTrailLength());
+		filteredPM.setVisible(true);
+		tp.addTrack(filteredPM);
+		tp.setSelectedTrack(filteredPM);
+		filteredPM.refreshPositions(true);
+		filteredPM.updateDerivatives();
+		filteredPM.fireStepsChanged();
+		MotionFilterDialog dialog = tp.getFilterDialog();
+		dialog.setTargetMass(filteredPM);
+		if (showDialog)
+			dialog.setVisible(true);
 	}
 
 	/**
@@ -3285,7 +3375,7 @@ public class PointMass extends TTrack {
 								TrackerRes.getString("PointMass.Dialog.ChangeMassUnit.Title"), //$NON-NLS-1$
 								JOptionPane.YES_NO_OPTION);
 						if (response == JOptionPane.YES_OPTION) {
-							tp.setMassUnit(split[i]);
+							tp.setMassUnit(split[i], true);
 							tp.setUnitsVisible(true);
 						}
 					}

@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2024 Douglas Brown, Wolfgang Christian, Robert M. Hanson
+ * Copyright (c) 2026 Douglas Brown, Wolfgang Christian, Robert M. Hanson
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@
  * or view the license online at <http://www.gnu.org/copyleft/gpl.html>
  *
  * For additional Tracker information and documentation, please see
- * <http://physlets.org/tracker/>.
+ * <https://opensourcephysics.github.io/tracker-website/>.
  */
 package org.opensourcephysics.cabrillo.tracker;
 
@@ -652,12 +652,10 @@ public class Upgrader {
 	}
 	
 	/**
-	 * Gets the upgrade folder url on the server. Returns major version subfolder.
+	 * Gets the upgrade folder url on the server.
 	 */
-	private String getUpgradeURL() {
-		int ver = OSPRuntime.getMajorVersion();
-		String url = ResourceLoader.getString("https://physlets.org/tracker/upgradeURL.txt"); //$NON-NLS-1$
-		return url==null? null: url.trim() + "ver" + ver + "/";
+	protected String getUpgradeURL() {
+		return "https://opensourcephysics.github.io/tracker-website/installers/upgrade/";
 	}
 
 	private JDialog getUpgradeDialog() {

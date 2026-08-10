@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2024 Douglas Brown, Wolfgang Christian, Robert M. Hanson
+ * Copyright (c) 2026 Douglas Brown, Wolfgang Christian, Robert M. Hanson
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@
  * or view the license online at <http://www.gnu.org/copyleft/gpl.html>
  *
  * For additional Tracker information and documentation, please see
- * <http://physlets.org/tracker/>.
+ * <https://opensourcephysics.github.io/tracker-website/>.
  */
 package org.opensourcephysics.cabrillo.tracker;
 
@@ -635,6 +635,7 @@ public class TActions {
 	protected static void tapeAction(TrackerPanel trackerPanel) {
 		TapeMeasure tape = new TapeMeasure();
 		tape.setReadOnly(true);
+		tape.getRuler().setVisible(true);
 		// place tape at center of viewport
 		MainTView mainView = trackerPanel.getTFrame().getMainView(trackerPanel);
 		Rectangle rect = mainView.scrollPane.getViewport().getViewRect();
@@ -644,7 +645,6 @@ public class TActions {
 		double y = trackerPanel.pixToY(ypix);
 		tape.createStep(0, x - 100, y, x + 100, y); // length 200 image units
 		addTrack(tape, trackerPanel);
-		tape.getRuler().setVisible(true);
 	}
 
 	protected static void circleFitterAction(TrackerPanel trackerPanel) {

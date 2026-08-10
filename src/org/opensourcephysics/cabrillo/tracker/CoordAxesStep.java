@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2024 Douglas Brown, Wolfgang Christian, Robert M. Hanson
+ * Copyright (c) 2026 Douglas Brown, Wolfgang Christian, Robert M. Hanson
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@
  * or view the license online at <http://www.gnu.org/copyleft/gpl.html>
  *
  * For additional Tracker information and documentation, please see
- * <http://physlets.org/tracker/>.
+ * <https://opensourcephysics.github.io/tracker-website/>.
  */
 package org.opensourcephysics.cabrillo.tracker;
 
@@ -216,7 +216,7 @@ public class CoordAxesStep extends Step {
 			Point p0 = screenPoints[0] = origin.getScreenPosition(trackerPanel);
 			MultiShape axesShape = footprint.getShape(screenPoints, FontSizer.getIntegerFactor());
 			path.reset();
-			path.moveTo(p0.x + 15, p0.y);
+			path.moveTo(p0.x + 25, p0.y);
 			path.lineTo(p0.x + 500, p0.y);
 			Shape hitShape = path;
 			// rotate axes and x-axis hit shape about origin if drawing in image space

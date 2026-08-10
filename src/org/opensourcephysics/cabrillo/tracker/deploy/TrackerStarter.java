@@ -1,7 +1,7 @@
 /*
  * The tracker.deploy package defines classes for launching and installing Tracker.
  *
- * Copyright (c) 2024 Douglas Brown, Wolfgang Christian, Robert M. Hanson
+ * Copyright (c) 2026 Douglas Brown, Wolfgang Christian, Robert M. Hanson
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@
  * or view the license online at <http://www.gnu.org/copyleft/gpl.html>
  *
  * For additional Tracker information and documentation, please see
- * <http://physlets.org/tracker/>.
+ * <https://https://opensourcephysics.github.io/tracker-website/>.
  */
 package org.opensourcephysics.cabrillo.tracker.deploy;
 
@@ -68,6 +68,7 @@ public class TrackerStarter {
 //	public static final String PREFERRED_TRACKER_PREFS = "PREFERRED_TRACKER_PREFS"; //$NON-NLS-1$
 	public static final String TRACKER_RELAUNCH = "TRACKER_RELAUNCH"; //$NON-NLS-1$	
 	public static final String TRACKER_NEW_VERSION = "TRACKER_NEW_VERSION"; //$NON-NLS-1$	
+	public static final String NEW_INSTALL = "NEW_INSTALL"; //$NON-NLS-1$	
 	public static final String LOG_FILE_NAME = "tracker_start.log"; //$NON-NLS-1$
 	public static final String LOG_DIAGNOSTICS_NAME = "tracker_start_diagnostics.log"; //$NON-NLS-1$
   public static final int DEFAULT_MEMORY_SIZE = 1024;
@@ -97,6 +98,7 @@ public class TrackerStarter {
 	static boolean log = true;
 	static boolean relaunching = false;
 	static boolean launching = false;
+	static boolean isNewInstall = false;
 	static int port = 12321;
 	static Thread launchThread, exitThread;
 	static boolean abortExit;
@@ -156,6 +158,7 @@ public class TrackerStarter {
 		try {
 			userHome = OSPRuntime.getUserHome();
 			javaHome = System.getProperty("java.home"); //$NON-NLS-1$
+			
 			if (OSPRuntime.isWindows()) {
 				userDocuments = new JFileChooser().getFileSystemView().getDefaultDirectory().toString();
 			} 
@@ -585,20 +588,20 @@ public class TrackerStarter {
 		} catch (Exception e) {}
 		
 		if (OSPRuntime.isWindows()) {
-			File jre = JREFinder.getFinder().getDefaultJRE(64, trackerHome, false);
+			File jre = JREFinder.getFinder().getDefaultJRE(64, trackerHome, false, "OpenJDK");
 			String jrepath = jre == null? null: jre.getPath();
-			File jre32 = JREFinder.getFinder().getDefaultJRE(32, trackerHome, false);
+			File jre32 = JREFinder.getFinder().getDefaultJRE(32, trackerHome, false, "OpenJDK");
 			String jre32path = jre32 == null? null: jre32.getPath();
 			return new String[] {jrepath, jre32path};
 		}
 		else if (OSPRuntime.isMac()) {
 			File home = new File(trackerHome);
-			String path = home.getParent()+"/PlugIns/Java.runtime"; //$NON-NLS-1$
-			File jre = JREFinder.getFinder().getDefaultJRE(64, path, false);
+			String path = home.getParent()+"/runtime"; //$NON-NLS-1$
+			File jre = JREFinder.getFinder().getDefaultJRE(64, path, false, null);
 			return new String[] {jre == null? null: jre.getPath()};
 		}
 		else {
-			File jre = JREFinder.getFinder().getDefaultJRE(64, trackerHome, false);
+			File jre = JREFinder.getFinder().getDefaultJRE(64, trackerHome, false, "OpenJDK");
 			return new String[] {jre == null? null: jre.getPath()};
 		}
 	}
@@ -625,7 +628,7 @@ public class TrackerStarter {
 									+ "." + newline + newline //$NON-NLS-1$
 									+ startLogLine
 									+ "For trouble-shooting or to download the latest installer," + newline //$NON-NLS-1$
-									+ "please see http://physlets.org/tracker/." + newline + newline //$NON-NLS-1$
+									+ "please see https://opensourcephysics.github.io/tracker-website/." + newline + newline //$NON-NLS-1$
 									+ "Problems:" + newline + exceptions, //$NON-NLS-1$
 							"TrackerStarter Vers " + OSPRuntime.VERSION + ": Error Starting Tracker", //$NON-NLS-1$ //$NON-NLS-2$
 							JOptionPane.ERROR_MESSAGE);
@@ -643,7 +646,7 @@ public class TrackerStarter {
 											+ newline
 											+ startLogLine
 											+ "For trouble-shooting or to download the latest installer," + newline //$NON-NLS-1$
-											+ "please see http://physlets.org/tracker/." + newline + newline //$NON-NLS-1$
+											+ "please see https://https://opensourcephysics.github.io/tracker-website/." + newline + newline //$NON-NLS-1$
 											+ "Problems:" + newline + exceptions, //$NON-NLS-1$
 									"TrackerStarter Vers " + OSPRuntime.VERSION + ": Error Starting Tracker", //$NON-NLS-1$ //$NON-NLS-2$
 									JOptionPane.ERROR_MESSAGE);
@@ -656,7 +659,7 @@ public class TrackerStarter {
 											+ "no tracker.jar or tracker-x.xx.jar file exists in the current directory." + newline + newline //$NON-NLS-1$
 											+ startLogLine
 											+ "For trouble-shooting or to download the latest installer," + newline //$NON-NLS-1$
-											+ "please see http://physlets.org/tracker/." + newline + newline //$NON-NLS-1$
+											+ "please see https://https://opensourcephysics.github.io/tracker-website/." + newline + newline //$NON-NLS-1$
 											+ "Problems:" + newline + exceptions, //$NON-NLS-1$
 									"TrackerStarter Vers " + OSPRuntime.VERSION + ": Error Starting Tracker", //$NON-NLS-1$ //$NON-NLS-2$
 									JOptionPane.ERROR_MESSAGE);
@@ -673,7 +676,7 @@ public class TrackerStarter {
 										+ newline
 										+ startLogLine
 										+ "For trouble-shooting or to download the latest installer," + newline //$NON-NLS-1$
-										+ "please see http://physlets.org/tracker/." + newline + newline //$NON-NLS-1$
+										+ "please see https://https://opensourcephysics.github.io/tracker-website/." + newline + newline //$NON-NLS-1$
 										+ "Problems:" + newline + exceptions, //$NON-NLS-1$
 								"TrackerStarter Vers " + OSPRuntime.VERSION + ": Error Starting Tracker", //$NON-NLS-1$ //$NON-NLS-2$
 								JOptionPane.ERROR_MESSAGE);
@@ -685,6 +688,29 @@ public class TrackerStarter {
 		OSPRuntime.exit();
 		System.exit(0);
 	}
+	
+	static boolean isNewInstall() {
+		Object curVersion = OSPRuntime.getPreference("local_OSP_version"); //$NON-NLS-1$
+		logMessage("local OSP version " + curVersion); //$NON-NLS-1$
+		if (curVersion == null)
+			return true;
+
+		String prev = curVersion.toString();
+		String[] v1 = OSPRuntime.VERSION.split("\\."); //$NON-NLS-1$
+		String[] v2 = prev.split("\\."); //$NON-NLS-1$
+		for (int i = 0; i < 3; i++) {
+			int current = Integer.parseInt(v1[i]);
+			int old = Integer.parseInt(v2[i]);
+			if (current > old) {
+				return true;
+			} 
+			else if (current < old) {
+				// unlikely! 
+				break;
+			}
+		}			
+		return false;
+	}
 
 	/**
 	 * Loads preferences from a preferences file.
@@ -692,25 +718,29 @@ public class TrackerStarter {
 	private static void loadPreferences() {
 		trackerJarPath = null;
 		boolean loaded = false;
-		
 		XMLControl prefsXMLControl = findPreferences();
+		isNewInstall = prefsXMLControl==null || isNewInstall();
+		if (isNewInstall) {
+			OSPRuntime.setPreference("local_OSP_version", OSPRuntime.VERSION);
+			OSPRuntime.savePreferences();
+			logMessage("a new Tracker version has been installed"); //$NON-NLS-1$ 
+		}
 		if (prefsXMLControl==null) {
-			logMessage("no preferences file found"); //$NON-NLS-1$    
 			return;
 		}
 		String prefsPath = prefsXMLControl.getString("prefsPath"); //$NON-NLS-1$
 		
 		// now read the preferences from the prefsXMLControl
-		// but also check environment preferences which trump prefs file
+		// but also check environment preferences which override prefs file
 		if (!prefsXMLControl.failedToRead()) {
 			logMessage("loading starter preferences from: " + prefsPath); //$NON-NLS-1$
-			
+
 			String jar = null; // preferred jar name to be determined
 			
 			// preferred tracker jar
 			String systemProperty = System.getProperty(PREFERRED_TRACKER_JAR);
 
-			if (systemProperty!=null) {
+			if (systemProperty != null) {
 				loaded = true;
 				trackerJarPath = systemProperty;
 				jar = XML.getName(trackerJarPath);
@@ -751,6 +781,14 @@ public class TrackerStarter {
 					logMessage("preferred Tracker version: tracker.jar"); //$NON-NLS-1$				
 				}
 			}
+			if (isNewInstall) {
+				useDefaultTrackerJar = true; 
+				if (jar != null && !"tracker.jar".equals(jar))
+				logMessage("new installation--preferred Tracker version ignored"); //$NON-NLS-1$
+				jar = "tracker.jar";
+				preferredVersionString = null;
+			}
+
 			if (useDefaultTrackerJar) {
 				if (jar == null)
 					logMessage("no preferred Tracker version, using tracker.jar (presumed "+OSPRuntime.VERSION+")"); //$NON-NLS-1$	
@@ -766,11 +804,11 @@ public class TrackerStarter {
 			logMessage("preferred xuggle version: "+ (requestXuggleServer? "5.7 server": "3.4")); //$NON-NLS-1$				
 			
 			// preferred java vm
-//			OSPRuntime.Version ver = new OSPRuntime.Version(versionStr);
 			preferredVM = null;
 			if (prefsXMLControl.getPropertyNamesRaw().contains("java_vm")) { //$NON-NLS-1$
 				loaded = true;
 				preferredVM = prefsXMLControl.getString("java_vm"); //$NON-NLS-1$
+				logMessage("preferred java VM: "+preferredVM); //$NON-NLS-1$
 			}
 			// if requesting xuggle server and preferredVM is 32-bit, set preferredVM to null
 			if (requestXuggleServer && xuggleServerJar != null &&
@@ -784,8 +822,11 @@ public class TrackerStarter {
 				logMessage("preferred VM ignored since xuggle 3.4 requires a 32 bit java VM"); //$NON-NLS-1$
 				preferredVM = null;
 			}
+			if (isNewInstall && preferredVM != null) {
+				logMessage("new installation--preferred VM ignored"); //$NON-NLS-1$
+				preferredVM = null;
+			}
 			if (preferredVM!=null) {
-				logMessage("preferred java VM: " + preferredVM); //$NON-NLS-1$
 				File javaFile = OSPRuntime.getJavaFile(preferredVM);
 				if (javaFile != null) {
 					javaCommand = XML.stripExtension(javaFile.getPath());
@@ -796,14 +837,13 @@ public class TrackerStarter {
 				}
 			}
 			if (preferredVM==null) {
-				logMessage("no preferred java VM"); //$NON-NLS-1$
 				// look for bundled VMs
 				bundledVMs = findBundledVMs();
 				// is xuggle server requested and available?
 				if (requestXuggleServer && xuggleServerJar != null) {
 					if (bundledVMs[0] == null) {
 						// if no bundled 64-bit use default 64-bit
-						File vm = JREFinder.getFinder().getDefaultJRE(64, trackerHome, true);
+						File vm = JREFinder.getFinder().getDefaultJRE(64, trackerHome, true, null);
 						if (vm != null) {						
 							File javaFile = OSPRuntime.getJavaFile(vm.getPath());
 							if (javaFile!=null) {
@@ -825,7 +865,7 @@ public class TrackerStarter {
 					int index = OSPRuntime.isWindows()? 1: 0;
 					int bitness = OSPRuntime.isWindows()? 32: 64;
 					if (bundledVMs.length <= index || bundledVMs[index] == null) {
-						File vm = JREFinder.getFinder().getDefaultJRE(bitness, trackerHome, true);
+						File vm = JREFinder.getFinder().getDefaultJRE(bitness, trackerHome, true, null);
 						if (vm != null) {						
 							File javaFile = OSPRuntime.getJavaFile(vm.getPath());
 							if (javaFile!=null) {
@@ -1069,11 +1109,22 @@ public class TrackerStarter {
 			javaCommand = XML.forwardSlash(javaHome) + "/bin/java"; //$NON-NLS-1$
 		}
 		cmd.add(javaCommand);
+		
+		boolean isOpenjdk = javaCommand.contains("OpenJDK");
+		File file = new File(trackerHome, "fontconfig.properties");
+		boolean hasLocalFontConfig = file.exists();
+		if (isOpenjdk && hasLocalFontConfig) {
+			String s = "-Dsun.awt.fontconfig=" + file.getPath();
+			cmd.add(s); //$NON-NLS-1$
+			logMessage("found fontconfig.properties at " + file.getPath()); //$NON-NLS-1$ 
+		}
 
 		if (memorySize > 0) {
 			cmd.add("-Xms32m"); //$NON-NLS-1$
 			cmd.add("-Xmx" + memorySize + "m"); //$NON-NLS-1$ //$NON-NLS-2$
 		}
+		// code below not functional for dock name in newer MacOS
+		// but may still work for menu listings
 		if (OSPRuntime.isMac()) {
 			cmd.add("-Xdock:name=Tracker"); //$NON-NLS-1$
 		}
@@ -1177,6 +1228,12 @@ public class TrackerStarter {
 		}
 		else env.remove(TRACKER_RELAUNCH);
 		
+		// add NEW_INSTALL to environment if isNewInstall
+		if (isNewInstall) {
+			env.put(NEW_INSTALL, "true"); //$NON-NLS-1$
+		}
+		else env.remove(NEW_INSTALL);
+		
 		// add TRACKER_NEW_VERSION to process environment if launching a new version
 		if (newVersionURL!=null) {
 			logMessage("setting "+TRACKER_NEW_VERSION+" = " + newVersionURL); //$NON-NLS-1$ //$NON-NLS-2$ 
@@ -1203,7 +1260,7 @@ public class TrackerStarter {
 		if (startLogPath!=null)
 			env.put("START_LOG", startLogPath); //$NON-NLS-1$
 		
-		// start exit thread that waits a second before exiting 
+		// start exit thread that waits 2 seconds before exiting 
 		// to give time to start the new process
 		exitCounter = 0;
 		if (exitThread==null) {
@@ -1211,7 +1268,7 @@ public class TrackerStarter {
 				@Override
 				public void run() {
 					abortExit = false;
-					while (exitCounter<10) {
+					while (exitCounter<20) {
 						try {
 							if (abortExit) return;
 							Thread.sleep(100);
@@ -1320,6 +1377,11 @@ public class TrackerStarter {
 	
 	private static void addLogHeader() {
 		if (!logText.startsWith("TrackerStarter")) { //$NON-NLS-1$
+			
+//			// use code below for testing
+//			Properties props = System.getProperties();
+//			props.forEach((k, v) -> logMessage(k+": "+v));			
+			
 			SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss  MMM dd yyyy"); //$NON-NLS-1$
 			Calendar cal = Calendar.getInstance();
 			logText = "TrackerStarter version " + OSPRuntime.VERSION + "  " //$NON-NLS-1$ //$NON-NLS-2$

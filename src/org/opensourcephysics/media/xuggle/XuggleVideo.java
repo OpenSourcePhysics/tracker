@@ -2,7 +2,7 @@
  * The org.opensourcephysics.media.xuggle package provides Xuggle
  * services including implementations of the Video and VideoRecorder interfaces.
  *
- * Copyright (c) 2024  Douglas Brown and Wolfgang Christian.
+ * Copyright (c) 2026  Douglas Brown and Wolfgang Christian.
  *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -342,9 +342,10 @@ public class XuggleVideo extends MovieVideo implements SmoothPlayable, Increment
 						break;
 					offset += bytesDecoded;
 					if (!picture.isComplete()) {
-						System.out.println("!! XuggleVideo picture was incomplete! dts=" + dts + " index=" + index);
 						if (!haveImages)
 							firstDisplayPacket++;
+						else
+							System.out.println("!! XuggleVideo picture was incomplete! dts=" + dts + " index=" + index);
 						continue;
 					}
 				}
@@ -368,7 +369,7 @@ public class XuggleVideo extends MovieVideo implements SmoothPlayable, Increment
 				if (keyTS0 == Long.MIN_VALUE)
 					keyTS0 = dts;
 				frameTimes.add((dts - keyTS0) * timebase);
-				firePropertyChange(PROPERTY_VIDEO_PROGRESS, path, index);
+				firePropertyChange(PROPERTY_VIDEO_PROGRESS, path, index++);
 				//frameRefs[FRAME] = index++;
 			}
 		}
@@ -714,7 +715,7 @@ public class XuggleVideo extends MovieVideo implements SmoothPlayable, Increment
 
 	private boolean seekToStart() {
 		// initial time stamps can be negative. See
-		// https://physlets.org/tracker/library/experiments/projectile_model.zip
+		// https://opensourcephysics.github.io/resources/CAB/experiments/projectile_model.zip
 		return (container.seekKeyFrame(-1, Long.MIN_VALUE, 0, Long.MAX_VALUE,
 				IContainer.SEEK_FLAG_BACKWARDS) >= 0);
 	}
@@ -841,7 +842,7 @@ public class XuggleVideo extends MovieVideo implements SmoothPlayable, Increment
 			resetContainer();
 		while (container.readNextPacket(packet) >= 0) {
 			dts = packet.getTimeStamp();
-			if (dts == keyTS) {
+			if (dts == keyTS && (packet.getStreamIndex() == streamIndex)) {
 				loadPictureFromPacket();
 				return true;
 			}

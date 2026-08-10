@@ -3,7 +3,7 @@
  * frame services including implementations of the Video and VideoRecorder interfaces
  * using Xuggle (Java) and JS (JavaScript -- our minimal implementation).
  *
- * Copyright (c) 2024  Douglas Brown and Wolfgang Christian.
+ * Copyright (c) 2026  Douglas Brown and Wolfgang Christian.
  *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -137,14 +137,16 @@ public class XuggleMovieVideoType extends MovieVideoType {
 //				video.setProperty("video_type", this); //$NON-NLS-1$
 //			}
 			
-			if (!video.isFullyLoaded()) {
-				// drop video from AsyncLoadser.loadVideo->VidewoIO.getVideo(String,VideoType)--> getVideo(String,null,null)
-
-				// step thru container quickly and find all video frames
-				while (video.loadMoreFrames(500)) {
-					System.out.println("loading");
-				}
-			}
+			// DB 1/9/25 loadMoreFrames() breaks progress monitoring!!
+//			if (!video.isFullyLoaded()) {
+//				// drop video from AsyncLoadser.loadVideo->VidewoIO.getVideo(String,VideoType)--> getVideo(String,null,null)
+//
+//				// step thru container quickly and find all video frames
+//				while (video.loadMoreFrames(500)) {
+//					System.out.println("loading");
+//				}
+//			}
+			
 			video.setProperty("video_type", this); //$NON-NLS-1$
 		} catch (IOException ex) {
 			OSPLog.fine(getDescription() + ": " + ex.getMessage()); //$NON-NLS-1$
@@ -195,6 +197,6 @@ public class XuggleMovieVideoType extends MovieVideoType {
  * Suite 330, Boston MA 02111-1307 USA or view the license online at
  * http://www.gnu.org/copyleft/gpl.html
  *
- * Copyright (c) 2024 The Open Source Physics project
+ * Copyright (c) 2026 The Open Source Physics project
  * https://www.compadre.org/osp
  */

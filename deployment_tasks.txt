@@ -5,9 +5,9 @@ workspace_trackerJS:
 -- check out master and merge SwingJS
 -- add version tag to master and push all code to GitHub
 -- build tracker.jar, tracker_starter.jar using build-tracker-jar.xml file in tracker/jarscripts
--- temporarily change version to 5.3.x from 6.1.x. 
--- build tracker-5.3.x.jar using tracker_jar_xuggle3.4 target in build-tracker-jar.xml
--- change version back to 6.1.x
+-- temporarily change version to 5.5.x from 6.3.x. 
+-- build tracker-5.5.x.jar using tracker_jar_xuggle3.4 target in build-tracker-jar.xml
+-- change version back to 6.3.x
 
 workspace_trackerJS/launch4j:
 -- update version number
@@ -15,19 +15,20 @@ workspace_trackerJS/launch4j:
 
 workspace_trackerJS/installbuilder:
 -- update docs/Tracker_README.txt
--- update version number in tracker_installer_6.xml
+-- update version number in tracker_installer_6.3.xml
+-- update prev_version list in tracker_installer_6.3.xml (2 places)
 -- update version number in tracker_upgrade_installer.xml
--- build Windows and Linux installers & upgrade installers in workspace_trackerJS/installbuilder
+-- build Windows (and Linux in future?) installers & Linux (and Win in future?) upgrade installers in workspace_trackerJS/installbuilder
 
--- For both vers 6.1.x (Xuggle 5.7+) & vers 5.3.x (Xuggle 3.4):
--- on Mac: replace tracker.jar, tracker_starter.jar, tracker-x.x.x.jar in Desktop Tracker.app/Contents/Java 
--- on Mac: replace xuggle-xuggler-server-all.jar and supporting jars in Desktop Tracker.app/Contents/Java & Xuggle
--- on Mac: replace Tracker_README.txt in Desktop Tracker.app/Contents/Resources 
+-- For both vers 6.x.y (Xuggle 5.7+) & vers 5.x+2.y (Xuggle 3.4):
+-- on Mac: replace tracker.jar, tracker_starter.jar, tracker-x.x.x.jar in Tracker.app/Contents/app 
+-- on Mac: (if needed) replace xuggle-xuggler-server-all.jar and supporting jars in Tracker.app/Contents/Xuggle
+-- on Mac: delete Tracker_README.txt and tracker.prefs.default in Desktop Tracker.app/Contents/Resources 
 -- on Mac: update version number in Info.plist in Desktop Tracker.app/Contents 
--- on Mac: update version number in Tracker.cfg in Desktop Tracker.app/Contents/Java
+-- on Mac: update version number in Tracker.cfg in Desktop Tracker.app/Contents/app
 -- on Mac: sudo chmod 644 tracker.jar, tracker-x.x.x.jar, tracker_starter.jar, Info.plist and Tracker.cfg
--- on Mac: test Desktop Tracker.app, clean up Java folder (old jars, start log and xuggle jars)
--- on Mac: compress Desktop Tracker.app to Tracker.app.zip
+-- on Mac: test Tracker.app, clean up app folder (old jars, and xuggle jars)
+-- on Mac: compress Tracker.app to Tracker.app.zip
 
 -- on Win: duplicate folder BitRockTrackerWorkspace\TrackerBuildYYY (previous OSX release), rename to XXX
 -- on Win: replace Tracker.app.zip in D:\BitRockWorkspace\TrackerBuildXXX\bin with new one
@@ -39,18 +40,23 @@ workspace_trackerJS/installbuilder:
 
 -- test installers & upgrade installers
 
--- delete output files in TrackerBuildXXX folder, both 6.1.x & 5.3.x
+-- delete output files in TrackerBuildXXX folder, both 6.3.x & 5.5.x
 -- zip the entire TrackerBuildXXX folder and send to Wolfgang via dropbox for building/notarizing
 -- use the tracker-X.X.X-osx-installer.dmg files returned by Wolfgang
 
-dreamweaver:
--- upload installers to installers folder
--- upload windows/osx/linux upgrade installers, tracker-x.x.x.jar and Tracker.exe to upgrade/ver6 folder 
--- upload tracker-X.X.X.jar to archives on Davidson server
+GitHub tracker-website:
+-- update CITATION.cff
+
+GitHub tracker-website/docs:
 -- update changeLog
--- upload text files for recording downloads and launches
+-- upload upgrade installers, tracker-x.x.x.jar and Tracker.exe to installers/upgrade
+-- upload tracker-X.X.X.jar to archives
 -- update tracker home page (index.html)
--- update counter.php on Davidson server
+
+FileZilla:
+-- upload full installers to installers folder on Davidson server
+-- upload text files for recording downloads and launches to Davidson server
+-- update version number in counter.php on Davidson server
 
 desktop:
 --add filenames to download_counts.csv and launch_counts.csv in analytics folder

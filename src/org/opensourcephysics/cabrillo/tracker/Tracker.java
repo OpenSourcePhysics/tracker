@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2024 Douglas Brown, Wolfgang Christian, Robert M. Hanson
+ * Copyright (c) 2026 Douglas Brown, Wolfgang Christian, Robert M. Hanson
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@
  * or view the license online at <http://www.gnu.org/copyleft/gpl.html>
  *
  * For additional Tracker information and documentation, please see
- * <http://physlets.org/tracker/>.
+ * <https://opensourcephysics.github.io/tracker-website/>.
  */
 package org.opensourcephysics.cabrillo.tracker;
 
@@ -36,6 +36,7 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
@@ -115,6 +116,7 @@ import org.opensourcephysics.tools.LaunchNode;
 import org.opensourcephysics.tools.Resource;
 import org.opensourcephysics.tools.ResourceLoader;
 
+import javajs.async.AsyncDialog;
 import javajs.async.AsyncSwingWorker;
 import javajs.async.SwingJSUtils.Performance;
 import swingjs.api.JSUtilI;
@@ -182,7 +184,7 @@ public class Tracker {
 	// 3/09/21: abandon Tracker.VERSION for OSPRuntime.VERSION for smaller
 	// tracker_starter.jar
 //	public static final String VERSION = "5.9.20210307"; //$NON-NLS-1$
-	public static final String COPYRIGHT = "Copyright (c) 2024 D Brown, W Christian, R M Hanson"; //$NON-NLS-1$
+	public static final String COPYRIGHT = "Copyright (c) 2026 D Brown, W Christian, R M Hanson"; //$NON-NLS-1$
 
 	/**
 	 * Gets an icon from a class resource image.
@@ -218,10 +220,14 @@ public class Tracker {
   static final int MEMORY_LOW_DONTIGNORE = 2;
 	static final int MEMORY_OUT            = 3;
 	static final int MEMORY_INCREASE       = 4;
+	
+	static final String SI_TIME_UNIT = "s";
+	static final String SI_LENGTH_UNIT = "m";
+	static final String SI_MASS_UNIT = "kg";
 
 	// for testing
 	static boolean testOn = false;
-	
+	static double testVal = 0;
 	private static String testString;
 
 	// define static fields
@@ -268,19 +274,20 @@ public class Tracker {
 	private static String counterPath = "https://physlets.org/tracker/counter/counter.php?"; //$NON-NLS-1$
 	private static Tracker sharedTracker;
 
-    private static String rootXMLPath = ""; // path to root directory of trk files //$NON-NLS-1$
+  private static String rootXMLPath = ""; // path to root directory of trk files //$NON-NLS-1$
 	private static Cursor zoomInCursor, zoomOutCursor;
 	private static Locale[] locales;
 	private static Locale defaultLocale;
 
 	// preferences
-	
+	static final String DEFAULT_TRACKER_PREFS = "tracker.prefs.default";
 	static String latestVersion; // last version for which user has been informed
 	static String newerVersion; // new version available if non-null
 
 	static boolean checkedForNewerVersion; // true if checked for new version
+	static boolean isNewInstall;
 	
-	static String trackerWebsite = "physlets.org/tracker"; //$NON-NLS-1$
+	static String trackerWebsite = "opensourcephysics.github.io/tracker-website"; //$NON-NLS-1$
 	static Cursor grabCursor;
 	static boolean showHints = true;
 	static boolean startupHintShown;
@@ -323,6 +330,7 @@ public class Tracker {
 	static int checkForUpgradeInterval = 0;
 	static int preferredFontLevel = 0, preferredFontLevelPlus = 0;
 	static boolean isRadians, isXuggleFast;
+	static boolean warnSkippedStep = true;
 	static boolean warnXuggleError = true;
 	static boolean warnNoVideoEngine = !OSPRuntime.isJS;
 	static boolean warnVariableDuration = true;
@@ -333,6 +341,9 @@ public class Tracker {
 	static boolean scrubMouseWheel, centerCalibrationStick = true, hideLabels;
 	static boolean enableAutofill = true, showGaps = true;
 	static int preferredTrailLengthIndex = DEFAULT_TRAIL_LENGTH_INDEX;
+	static String preferredTimeUnit = SI_TIME_UNIT;
+	static String preferredLengthUnit = SI_LENGTH_UNIT;
+	static String preferredMassUnit = SI_MASS_UNIT;
 
 	private static boolean declareLocales = true;// !OSPRuntime.isJS;
 
@@ -464,6 +475,7 @@ public class Tracker {
 				new Locale("in"), // indonesian //$NON-NLS-1$
 				new Locale("it"), // Locale.ITALIAN,
 				new Locale("iw", "IL"), // hebrew //$NON-NLS-1$ //$NON-NLS-2$
+				new Locale("ja"), // japanese //$NON-NLS-1$
 				new Locale("ko"), // korean //$NON-NLS-1$
 				new Locale("lv"), // latvian //$NON-NLS-1$
 				new Locale("ms", "MY"), // malaysian //$NON-NLS-1$ //$NON-NLS-2$
@@ -485,8 +497,7 @@ public class Tracker {
 		// last updated Dec 2021
 		incompleteLocales = new Object[][] {
 				{ new Locale("fi"), "2013" }, // finnish //$NON-NLS-1$ //$NON-NLS-2$
-				{ new Locale("sk"), "2011" }, // slovak //$NON-NLS-1$ //$NON-NLS-2$
-				{ new Locale("in"), "2013" } };// indonesian //$NON-NLS-1$ //$NON-NLS-2$
+				{ new Locale("sk"), "2011" } }; // slovak //$NON-NLS-1$ //$NON-NLS-2$
 
 		return locales;
 	}
@@ -1927,7 +1938,6 @@ public class Tracker {
 	 * Loads preferences from a preferences file, if any.
 	 */
 	protected static void loadPreferences() {
-
 		XMLControl prefsControl = TrackerStarter.findPreferences();
 		if (prefsControl != null) {
 			prefsPath = prefsControl.getString("prefsPath"); //$NON-NLS-1$
@@ -1936,7 +1946,21 @@ public class Tracker {
 				OSPLog.info("preferences loaded from " + XML.getAbsolutePath(new File(prefsPath))); //$NON-NLS-1$
 			}
 			prefsControl.loadObject(null); // the loader itself reads the values
+
+			isNewInstall = System.getenv(TrackerStarter.NEW_INSTALL) != null;
+			if (isNewInstall) {
+				// reset preferred JRE and Tracker jar to defaults
+				// so new version will be opened in bundled JRE
+				preferredJRE = null;
+				preferredTrackerJar = null;		
+				savePreferences();
+			}	
+			
 			return;
+		}
+		else { // no prefsControl, so must be new install
+			loadDefaultPreferences();
+			// new prefs will be saved below			
 		}
 
 		/**
@@ -1978,6 +2002,26 @@ public class Tracker {
 	}
 
 	/**
+	 * Loads preferences from the preferences file, if any.
+	 */
+	protected static void loadDefaultPreferences() {
+		if (trackerHome == null)
+			return;
+		File f = new File(trackerHome);
+		if (OSPRuntime.isMac()) {
+			f = new File(f.getParent(), "Resources/"+DEFAULT_TRACKER_PREFS);
+		}
+		else {
+			f = new File(f.getPath(), DEFAULT_TRACKER_PREFS);
+		}
+		XMLControl prefsControl = f.exists()? new XMLControlElement(f): null;
+
+		if (prefsControl != null) {
+			prefsControl.loadObject(null); // the loader itself reads the values
+		}
+	}
+	
+	/**
 	 * Saves the current preferences.
 	 * 
 	 * @return the path to the saved file
@@ -1989,6 +2033,8 @@ public class Tracker {
 			// save prefs file in current preferences path
 			if (prefsPath != null) {
 				control.write(prefsPath);
+				if (isNewInstall)
+					OSPLog.info("new preferences saved at " + prefsPath);
 			}
 
 			// save other existing prefs files
@@ -2085,7 +2131,6 @@ public class Tracker {
 	 * @param args array of tracker or video file names
 	 */
 	public static void main(String[] args) {
-
 		OSPLog.debug(Performance.timeCheckStr("Tracker.main start", Performance.TIME_RESET));
 
 		boolean isHeadless = (args != null && args.length > 0 && ("-headless".equals(args[0])) || "true".equals(System.getProperty("java.awt.headless")));
@@ -2168,7 +2213,8 @@ public class Tracker {
 			java.lang.management.MemoryMXBean memory = java.lang.management.ManagementFactory.getMemoryMXBean();
 			long currentMemory = memory.getHeapMemoryUsage().getMax() / (1024 * 1024);
 
-			if (!checkIsRelaunch(args)) {
+			isNewInstall = System.getenv(TrackerStarter.NEW_INSTALL) != null;
+			if (!isNewInstall && !isRelaunch(args)) {
 				boolean isJar = checkIsJAR(); // check jar to set usesXuggleServer BEFORE checking java VM
 				boolean needsJavaVM = checkNeedsJVM(currentMemory);
 				// update video engine resources
@@ -2260,7 +2306,7 @@ public class Tracker {
 
 	}
 
-	private static boolean checkIsRelaunch(String[] args) {
+	private static boolean isRelaunch(String[] args) {
 		// determine if this is a relaunch or if relaunch is needed
 		boolean isRelaunch = (args != null && args.length > 0 && "relaunch".equals(args[args.length - 1])); //$NON-NLS-1$
 		if (args != null && isRelaunch) {
@@ -2295,7 +2341,8 @@ public class Tracker {
 	 */
 	private static void start(String[] args) {
 		FontSizer.setLevel(preferredFontLevel + preferredFontLevelPlus);
-		Dataset.maxPointsMultiplier = 6; // increase max points in dataset
+		// be ready to handle videos and tracks of length 500,000 frames!
+		Dataset.maxPointsMultiplier = 32; // increase max points in dataset to 32x16x1024=524,288
 		// idea is Tracker.jar -headless -output "xxx.zip"
 		// to use Xuggle to create an image video set
 		Tracker tracker = new Tracker(args, true, true, null);
@@ -2350,8 +2397,24 @@ public class Tracker {
 
 		showJavaMessages(frame);
 
-		if (OSPRuntime.isJS)
+		if (OSPRuntime.isJS) {
 			frame.setVisible(true);
+			if (OSPRuntime.cssCursor) { // running on iPad
+				new AsyncDialog().showConfirmDialog(frame,
+						TrackerRes.getString("Tracker.Dialog.MobileKeyboard.Message"),
+						TrackerRes.getString("Tracker.Dialog.MobileKeyboard.Title"),
+						JOptionPane.YES_NO_OPTION,
+						new ActionListener() {
+							@Override
+							public void actionPerformed(ActionEvent e) {
+								switch (e.getID()) {
+								case JOptionPane.YES_OPTION:
+									OSPRuntime.hasKeyboard = true;
+								}
+							}
+						});
+			}
+		}
 	}
 
 	private static void showJavaMessages(TFrame frame) {
@@ -2588,6 +2651,8 @@ public class Tracker {
 					control.setValue("warn_variable_frame_duration", warnVariableDuration); //$NON-NLS-1$
 				if (!warnXuggleError) // true by default
 					control.setValue("warn_xuggle_error", warnXuggleError); //$NON-NLS-1$
+				if (!warnSkippedStep) // true by default
+					control.setValue("warn_skipped_step", warnSkippedStep); //$NON-NLS-1$
 				// always save preferred tracker.jar
 				String jar = preferredTrackerJar == null ? "tracker.jar" : preferredTrackerJar; //$NON-NLS-1$
 				if (!new File(trackerHome, jar).exists())
@@ -2607,6 +2672,12 @@ public class Tracker {
 					control.setValue("locale", preferredLocale); //$NON-NLS-1$
 				if (preferredDecimalSeparator != null)
 					control.setValue("decimal_separator", preferredDecimalSeparator); //$NON-NLS-1$
+				if (!SI_TIME_UNIT.equals(preferredTimeUnit))
+					control.setValue("time_unit", preferredTimeUnit); //$NON-NLS-1$
+				if (!SI_LENGTH_UNIT.equals(preferredLengthUnit))
+					control.setValue("length_unit", preferredLengthUnit); //$NON-NLS-1$
+				if (!SI_MASS_UNIT.equals(preferredMassUnit))
+					control.setValue("mass_unit", preferredMassUnit); //$NON-NLS-1$
 				if (preferredFontLevel > 0) {
 					control.setValue("font_size", preferredFontLevel); //$NON-NLS-1$
 				}
@@ -2718,6 +2789,8 @@ public class Tracker {
 					warnNoVideoEngine = control.getBoolean("warn_no_engine"); //$NON-NLS-1$
 				if (control.getPropertyNamesRaw().contains("warn_xuggle_error")) //$NON-NLS-1$
 					warnXuggleError = control.getBoolean("warn_xuggle_error"); //$NON-NLS-1$
+				if (control.getPropertyNamesRaw().contains("warn_skipped_step")) //$NON-NLS-1$
+					warnSkippedStep = control.getBoolean("warn_skipped_step"); //$NON-NLS-1$
 				if (control.getPropertyNamesRaw().contains("warn_variable_frame_duration")) //$NON-NLS-1$
 					warnVariableDuration = control.getBoolean("warn_variable_frame_duration"); //$NON-NLS-1$
 				if (control.getPropertyNamesRaw().contains("show_hints")) { //$NON-NLS-1$
@@ -2743,6 +2816,12 @@ public class Tracker {
 					preferredDecimalSeparator = control.getString("decimal_separator"); //$NON-NLS-1$
 					OSPRuntime.setPreferredDecimalSeparator(preferredDecimalSeparator);
 				}
+				if (control.getPropertyNamesRaw().contains("time_unit")) //$NON-NLS-1$
+					preferredTimeUnit = control.getString("time_unit"); //$NON-NLS-1$
+				if (control.getPropertyNamesRaw().contains("length_unit")) //$NON-NLS-1$
+					preferredLengthUnit = control.getString("length_unit"); //$NON-NLS-1$
+				if (control.getPropertyNamesRaw().contains("mass_unit")) //$NON-NLS-1$
+					preferredMassUnit = control.getString("mass_unit"); //$NON-NLS-1$
 				if (control.getPropertyNamesRaw().contains("run")) //$NON-NLS-1$
 					prelaunchExecutables = (String[]) control.getObject("run"); //$NON-NLS-1$
 				if (control.getPropertyNamesRaw().contains("locale")) //$NON-NLS-1$
@@ -3070,7 +3149,7 @@ public class Tracker {
 	static void checkSplash() {
 		if (splash == null || !splash.isVisible())
 			return;
-		OSPRuntime.trigger(1000, (e) -> {splash.dispose(); splash = null;});
+		OSPRuntime.trigger(1000, (e) -> {if (splash!=null)splash.dispose(); splash = null;});
 	}
 
 	static boolean isDefaultConfiguration(Set<String> panelConfig) {

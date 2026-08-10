@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2024 Douglas Brown, Wolfgang Christian, Robert M. Hanson
+ * Copyright (c) 2026 Douglas Brown, Wolfgang Christian, Robert M. Hanson
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@
  * or view the license online at <http://www.gnu.org/copyleft/gpl.html>
  *
  * For additional Tracker information and documentation, please see
- * <http://physlets.org/tracker/>.
+ * <https://opensourcephysics.github.io/tracker-website/>.
  */
 package org.opensourcephysics.cabrillo.tracker;
 
@@ -53,6 +53,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
@@ -237,11 +238,10 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 	}
 
 	public static final String PROPERTY_TFRAME_TAB = "tab";
-	public static final String PROPERTY_TFRAME_RADIANANGLES = "radian_angles";
 	public static final String PROPERTY_TFRAME_WINDOWFOCUS = "windowfocus";
 
 	protected final static String HELP_PATH = "/org/opensourcephysics/cabrillo/tracker/resources/help/"; //$NON-NLS-1$
-	protected final static String WEB_HELP_PATH = "https://physlets.org/tracker/help/"; //$NON-NLS-1$
+	protected final static String WEB_HELP_PATH = "https://opensourcephysics.github.io/tracker-website/help/frameset.html"; //$NON-NLS-1$
 	protected final static Color YELLOW = new Color(255, 255, 105);
 	private final static int DEFAULT_DIVIDER_SIZE = 10;
 	private final static double MIN_DIVIDER_OFFSET = 0.07;
@@ -305,10 +305,10 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 	protected int framesLoaded, prevFramesLoaded; // used when loading xuggle videos
 	protected boolean splashing = true;
 
-	private boolean anglesInRadians = Tracker.isRadians;
 	private boolean alwaysListenToClipboard;
 
 	private Notes notes;
+	private JPanel frameContentPane;
 
 	/**
 	 * Constructs an empty TFrame.
@@ -344,8 +344,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 		setTitle("Tracker" + (OSPRuntime.isJS ? " Online" : ""));
 		if (options == null)
 			options = new HashMap<>();
-		isLayoutAdaptive = (options.get("-adaptive") != null);
-//		isLayoutAdaptive = true; // for testing
+//		isLayoutAdaptive = (options.get("-adaptive") != null);
+		isLayoutAdaptive = OSPRuntime.isJS;
 		Dimension dim = (Dimension) options.get("-dim");
 		Rectangle bounds = (Rectangle) options.get("-bounds");
 		Video video = (Video) options.get("-video");
@@ -493,6 +493,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 	 * @param whenDone
 	 */
 	public void addTab(final TrackerPanel trackerPanel, int addMode, Runnable whenDone) {
+		setFrameBlocker(false, trackerPanel);
 		boolean doSelect = ((addMode & ADD_SELECT) != 0);
 		boolean doRefresh = ((addMode & ADD_REFRESH) != 0);
 		Integer panelID = trackerPanel.getID();
@@ -516,8 +517,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 
 			trackerPanel.addPropertyChangeListener(VideoPanel.PROPERTY_VIDEOPANEL_DATAFILE, this); // $NON-NLS-1$
 			trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_VIDEO, this); // $NON-NLS-1$
-			// set up trackerPanel to listen for angle format property change
-			addPropertyChangeListener(PROPERTY_TFRAME_RADIANANGLES, trackerPanel); // $NON-NLS-1$
+//			// set up trackerPanel to listen for angle format property change
+//			addPropertyChangeListener(PROPERTY_TFRAME_RADIANANGLES, trackerPanel); // $NON-NLS-1$
 			// create the tab panel components
 			// Note thta MainTView will create a TTrackBar.
 			objects[TFRAME_MAINVIEW] = new MainTView(trackerPanel);
@@ -677,7 +678,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 		FontSizer.setFonts(panel);
 		// inform all tracks of current angle display format
 		for (TTrack track : trackerPanel.getTracksTemp()) {
-			track.setAnglesInRadians(anglesInRadians);
+			track.setAnglesInRadians(trackerPanel.anglesInRadians);
 		}
 		trackerPanel.clearTemp();
 		setIgnoreRepaint(false);
@@ -979,7 +980,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 		deallocatePanelID(panelID);
 		System.gc();
 		Disposable.deallocate(tabPanel);
-		removePropertyChangeListener(TFrame.PROPERTY_TFRAME_RADIANANGLES, trackerPanel); // $NON-NLS-1$
+//		removePropertyChangeListener(TFrame.PROPERTY_TFRAME_RADIANANGLES, trackerPanel); // $NON-NLS-1$
 		firePropertyChange(PROPERTY_TFRAME_TAB, trackerPanel, null); // $NON-NLS-1$
 
 		trackerPanel = null;
@@ -1681,22 +1682,6 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 	public void setVisible(boolean visible) {
 		super.setVisible(visible);
 		Tracker.checkSplash();
-	}
-
-	public boolean isAnglesInRadians() {
-		return anglesInRadians;
-	}
-
-	/**
-	 * Sets the display units for angles.
-	 * 
-	 * @param inRadians true to display radians, false to display degrees
-	 */
-	public void setAnglesInRadians(boolean inRadians) {
-		if (anglesInRadians == inRadians)
-			return;
-		anglesInRadians = inRadians;
-		firePropertyChange(PROPERTY_TFRAME_RADIANANGLES, null, inRadians); // $NON-NLS-1$
 	}
 
 	/**
@@ -2435,7 +2420,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 
 		// create the tabbed pane
 		tabbedPane = new JTabbedPane(SwingConstants.BOTTOM);
-		setContentPane(new JPanel(new BorderLayout()));
+		frameContentPane = new JPanel(new BorderLayout());
+		setContentPane(frameContentPane);
 		getContentPane().add(tabbedPane, BorderLayout.CENTER);
 		// create the default menubar
 //		TrackerRes.locale = Locale.forLanguageTag("es");
@@ -3307,18 +3293,20 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 	}
 
 	/**
-	 * An empty JDialog that serves as a modal blocker when the progress monitor is
-	 * visible.
+	 * A frame blocker screenshot shown when the progress monitor is visible.
 	 */
-	private Object frameBlocker;
+	private FrameBlocker frameBlocker;
 
 	public void setFrameBlocker(boolean blocking, TrackerPanel panel) {
 		getJMenuBar().setEnabled(!blocking);
-		tabbedPane.setEnabled(!blocking);
-		getContentPane().setVisible(!blocking);
+//		tabbedPane.setEnabled(!blocking);
+//		getContentPane().setVisible(!blocking);
+						
 		state = (blocking ? STATE_BLOCKED : STATE_ACTIVE);
 		if (blocking) {
-			frameBlocker = new Object();
+			frameBlocker = new FrameBlocker();
+			setContentPane(frameBlocker);
+			revalidate();
 			if (notesVisible()) {
 				setNotesVisible(false);
 				notes.wasVisible = true;
@@ -3328,6 +3316,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 				panel.onBlocked();
 		} else if (frameBlocker != null) {
 			frameBlocker = null;
+			setContentPane(frameContentPane);
 			if (panel != null) // null for file not found
 				panel.onLoaded();
 			if (notesVisible()) {
@@ -3335,6 +3324,29 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 				notes.wasVisible = false;
 			}
 		}
+	}
+	
+	/**
+	 * A class to draw an image of the content pane during frame blocking
+	 */
+	private class FrameBlocker extends JPanel {
+		
+    private BufferedImage image;
+
+    public FrameBlocker() {
+			image = new BufferedImage(frameContentPane.getWidth(), frameContentPane.getHeight(), 
+					BufferedImage.TYPE_3BYTE_BGR);
+			java.awt.Graphics g = image.getGraphics();
+			frameContentPane.paint(g);
+			g.dispose();
+    }
+
+    @Override
+    protected void paintComponent(Graphics g) {
+      super.paintComponent(g);
+      g.drawImage(image, 0, 0, this);
+    }
+
 	}
 
 	public void setNotesVisible(boolean b) {
@@ -3879,14 +3891,16 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 	}
 
 	public static void main(String[] args) {
+		
+		Tracker.main(args);
 
 		// The TFrame is necessary for providing access to the panel via a panelID.
 
-		TFrame f = new TFrame();
-		TrackerPanel tp = new TrackerPanel(f);
-		System.out.println(tp);
-		System.out.println(f.getTrackerPanelForID(tp.getID()));
-		System.exit(0);
+//		TFrame f = new TFrame();
+//		TrackerPanel tp = new TrackerPanel(f);
+//		System.out.println(tp);
+//		System.out.println(f.getTrackerPanelForID(tp.getID()));
+//		System.exit(0);
 	}
 
 	public void sayFileNotFound(String path) {
@@ -3896,6 +3910,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 				JOptionPane.WARNING_MESSAGE);
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public boolean importData(Object data, Component component) {
 		if (data instanceof List) {

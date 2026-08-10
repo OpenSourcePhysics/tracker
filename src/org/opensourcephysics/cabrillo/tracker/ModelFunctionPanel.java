@@ -248,7 +248,7 @@ public abstract class ModelFunctionPanel extends FunctionPanel {
 			break;
 		case FunctionEditor.PROPERTY_FUNCTIONEDITOR_ANGLESINRADIANS:
 			if (model.tp != null) {
-				model.tframe.setAnglesInRadians((Boolean) e.getNewValue());
+				model.tp.anglesInRadians = (Boolean) e.getNewValue();
 				break;
 			}
 		}
@@ -281,6 +281,6 @@ public abstract class ModelFunctionPanel extends FunctionPanel {
  * Suite 330, Boston MA 02111-1307 USA or view the license online at
  * http://www.gnu.org/copyleft/gpl.html
  *
- * Copyright (c) 2024 The Open Source Physics project
+ * Copyright (c) 2026 The Open Source Physics project
  * https://www.compadre.org/osp
  */

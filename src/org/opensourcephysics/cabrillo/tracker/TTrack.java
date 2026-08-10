@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2024 Douglas Brown, Wolfgang Christian, Robert M. Hanson
+ * Copyright (c) 2026 Douglas Brown, Wolfgang Christian, Robert M. Hanson
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@
  * or view the license online at <http://www.gnu.org/copyleft/gpl.html>
  *
  * For additional Tracker information and documentation, please see
- * <http://physlets.org/tracker/>.
+ * <https://opensourcephysics.github.io/tracker-website/>.
  */
 package org.opensourcephysics.cabrillo.tracker;
 
@@ -173,7 +173,7 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 //	};
 
 	private final static String[] panelEventsTTrack = new String[] { 
-			TFrame.PROPERTY_TFRAME_RADIANANGLES, 
+			TrackerPanel.PROPERTY_TRACKERPANEL_RADIANANGLES, 
 			TrackerPanel.PROPERTY_TRACKERPANEL_MAGNIFICATION, 
 			TrackerPanel.PROPERTY_TRACKERPANEL_STEPNUMBER, // (Calibration,
 															// CircleFitter,CoordAxes,LineProfile,OffsetOrigin,Protractor,RGBRegion,TapeMeasure)
@@ -193,7 +193,7 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 		if (e.getSource() instanceof TrackerPanel) {
 			TrackerPanel trackerPanel = (TrackerPanel) e.getSource();
 			switch (e.getPropertyName()) {
-			case TFrame.PROPERTY_TFRAME_RADIANANGLES:
+			case TrackerPanel.PROPERTY_TRACKERPANEL_RADIANANGLES:
 				setAnglesInRadians((Boolean) e.getNewValue());
 				break;
 			case TrackerPanel.PROPERTY_TRACKERPANEL_MAGNIFICATION:
@@ -358,7 +358,6 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 	protected static JTextPane skippedStepWarningTextpane;
 	protected static JCheckBox skippedStepWarningCheckbox;
 	protected static JButton closeButton;
-	protected static boolean skippedStepWarningOn = true;
 	protected static NameDialog nameDialog;
 	protected static int nextID = 1;
 	// instance fields
@@ -389,6 +388,7 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 	protected boolean autoAdvance;
 	protected boolean markByDefault = false, isMarking = false;
 	protected TextLineLabel xLabel, yLabel, magLabel, angleLabel;
+	protected boolean undoEnabled = true;
 
 	protected ActionListener footprintListener, circleFootprintListener;
 
@@ -627,7 +627,7 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 		item.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				tframe.setAnglesInRadians(!radians);
+				tp.anglesInRadians = !radians;
 			}
 		});
 		item.setText(radians ? TrackerRes.getString("TTrack.AngleField.Popup.Degrees") : //$NON-NLS-1$
@@ -774,7 +774,7 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 		dispose();
 	}
 
-    TrackerPanel panel(Integer panelID) {
+  TrackerPanel panel(Integer panelID) {
 		return tframe.getTrackerPanelForID(panelID);
 	}
 
@@ -1391,7 +1391,7 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 	 * @return the step array
 	 */
 	public Step[] getSteps() {
-		return steps.array;
+		return steps != null? steps.array: new Step[0];
 	}
 
 	/**
@@ -1402,7 +1402,18 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 	 * @return <code>true</code> if the step is complete, otherwise false
 	 */
 	public boolean isStepComplete(int n) {
-		return false; // enables remarking
+		if (isMarkByDefault()) {
+			Step step = getStep(n);
+			if (step != null) {
+				TPoint[] points = step.getPoints();
+				for (int i = 0; i < points.length; i++) {
+					if (points[i] == null)
+						return false;
+				}
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/**
@@ -1550,6 +1561,11 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 		if (datasetManager == null) {
 			datasetManager = new DatasetManager(true);
 			datasetManager.setSorted(true);
+			boolean b = refreshDataLater;
+			refreshDataLater = false;
+			refreshData(datasetManager, panel);
+			refreshDataLater = b;
+			return datasetManager;
 		}
 		if (refreshDataLater || dataValid)
 			return datasetManager;
@@ -3085,7 +3101,7 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 			skippedStepWarningDialog.addWindowListener(new WindowAdapter() {
 				@Override
 				public void windowClosing(WindowEvent e) {
-					skippedStepWarningOn = !skippedStepWarningCheckbox.isSelected();
+					Tracker.warnSkippedStep = !skippedStepWarningCheckbox.isSelected();
 				}
 			});
 			JPanel contentPane = new JPanel(new BorderLayout());
@@ -3104,7 +3120,7 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 			closeButton.addActionListener(new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent e) {
-					skippedStepWarningOn = !skippedStepWarningCheckbox.isSelected();
+					Tracker.warnSkippedStep = !skippedStepWarningCheckbox.isSelected();
 					skippedStepWarningDialog.setVisible(false);
 				}
 			});
@@ -3210,7 +3226,7 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 	protected class StepArray {
 
 		// instance fields
-		protected int delta = 5;
+		protected int delta = 10;
 		protected Step[] array = new Step[delta];
 		private boolean autofill = false;
 
@@ -3232,18 +3248,6 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 			step.n = 0;
 			array[0] = step;
 			fill(array, step);
-		}
-
-		/**
-		 * Constructs an autofill StepArray and fills the array with clones of the
-		 * specified step.
-		 *
-		 * @param step      the step to fill the array with
-		 * @param increment the array sizing increment
-		 */
-		public StepArray(Step step, int increment) {
-			this(step);
-			delta = increment;
 		}
 
 		/**
@@ -3610,7 +3614,9 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 			// data functions
 			if (track.tp != null) {
 				ArrayList<Dataset> list = new ArrayList<Dataset>();
+				track.refreshDataLater = true;
 				DatasetManager data = track.getData(track.tp);
+				track.refreshDataLater = false;
 				ArrayList<Dataset> datasets = data.getDatasetsRaw();
 				for (int i = 0, n = datasets.size(); i < n; i++) {
 					Dataset dataset = datasets.get(i);

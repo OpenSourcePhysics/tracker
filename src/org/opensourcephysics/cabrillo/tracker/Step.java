@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2024 Douglas Brown, Wolfgang Christian, Robert M. Hanson
+ * Copyright (c) 2026 Douglas Brown, Wolfgang Christian, Robert M. Hanson
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@
  * or view the license online at <http://www.gnu.org/copyleft/gpl.html>
  *
  * For additional Tracker information and documentation, please see
- * <http://physlets.org/tracker/>.
+ * <https://opensourcephysics.github.io/tracker-website/>.
  */
 package org.opensourcephysics.cabrillo.tracker;
 
@@ -55,7 +55,9 @@ import org.opensourcephysics.tools.FontSizer;
 public abstract class Step implements Cloneable {
 
 	// static fields
-	protected final static Rectangle hitRect = new Rectangle(-4, -4, 8, 8);
+	
+	// 24px hitRect is still precise enough with a mouse but easy to acquire with a finger
+	protected final static Rectangle hitRect = new Rectangle(-12, -12, 24, 24);
 	protected static Shape selectionShape;
 	protected static Stroke selectionStroke;
 	protected final static AffineTransform transform = new AffineTransform();
@@ -174,8 +176,8 @@ public abstract class Step implements Cloneable {
 	 * @param trackerPanel the tracker panel
 	 */
 	public void erase(Integer panelID) {
-		if (panelMarks.get(panelID) == null)
-			return; // already dirty
+		if (panelMarks.get(panelID) == null || panel(panelID) == null)
+			return; // already dirty or unavailable
 		panel(panelID).addDirtyRegion(null);//getBounds(trackerPanel)); // old bounds
 		panelMarks.put(panelID, null); // triggers new mark
 	}
@@ -188,6 +190,8 @@ public abstract class Step implements Cloneable {
 	 * @param trackerPanel the tracker panel
 	 */
 	public void remark(Integer panelID) {
+		if (panel(panelID) == null)
+			return; // unavailable
 		erase(panelID);
 		panel(panelID).addDirtyRegion(null);//getBounds(trackerPanel)); // new bounds
 	}
@@ -199,6 +203,8 @@ public abstract class Step implements Cloneable {
 	 * @param trackerPanel the tracker panel
 	 */
 	public void repaint(Integer panelID) {
+		if (panel(panelID) == null)
+			return; // unavailable
 		remark(panelID);
 		panel(panelID).repaintDirtyRegion();
 	}
@@ -235,8 +241,10 @@ public abstract class Step implements Cloneable {
 	}
 
 	private TrackerPanel panel(Integer panelID) {
-		if (getTrack() == null)
+		if (getTrack() == null) {
 			System.out.println("OHOH");
+			return null;
+		}
 		return getTrack().panel(panelID);
 	}
 

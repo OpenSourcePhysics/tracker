@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2024 Douglas Brown, Wolfgang Christian, Robert M. Hanson
+ * Copyright (c) 2026 Douglas Brown, Wolfgang Christian, Robert M. Hanson
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@
  * or view the license online at <http://www.gnu.org/copyleft/gpl.html>
  *
  * For additional Tracker information and documentation, please see
- * <http://physlets.org/tracker/>.
+ * <https://opensourcephysics.github.io/tracker-website/>.
  */
 package org.opensourcephysics.cabrillo.tracker;
 
@@ -1803,7 +1803,8 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 			edit_copyObjectMenu.add(item);
 			// copy track items
 			for (TTrack next : panel().getTracksTemp()) {
-				if (next == panel().getAxes() || next instanceof PerspectiveTrack)
+				if (next == panel().getAxes() || next instanceof PerspectiveTrack
+						|| next instanceof FilteredPointMass)
 					continue;
 				item = new JMenuItem(next.getName());
 				item.setActionCommand(next.getName());
@@ -1818,7 +1819,9 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 
 	protected void refreshEditMenu(boolean opening) {
 		if (isTainted(MENU_EDIT)) {
-			boolean hasTracks = !panel().getUserTracks().isEmpty();
+			ArrayList<TTrack> tracks = panel().getUserTracks();
+			tracks.removeAll(panel().getDrawablesTemp(FilteredPointMass.class));
+			boolean hasTracks = !tracks.isEmpty();
 			boolean undoEnabled = panel().isEnabled("edit.undoRedo");
 			boolean copyDataEnabled = panel().isEnabled("edit.copyData"); //$NON-NLS-1$
 			boolean copyImageEnabled = panel().isEnabled("edit.copyImage"); //$NON-NLS-1$
@@ -2210,7 +2213,8 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 			switch (menu) {
 			case MENU_COORDS:
 				if (track.ttype == TTrack.TYPE_POINTMASS
-						&& !track.getClass().getSimpleName().endsWith("DataTrack")) {
+						&& !track.getClass().getSimpleName().endsWith("DataTrack")
+						&& !track.getClass().getSimpleName().startsWith("Filtered")) {
 					JRadioButtonMenuItem item = new JRadioButtonMenuItem(trackName);
 					item.addActionListener(actions.get("refFrame")); //$NON-NLS-1$
 					coords_refFrameGroup.add(item);
@@ -2248,6 +2252,8 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		// long t0 = Performance.now(0);
 
 		ArrayList<TTrack> userTracks = panel().getUserTracks();
+		userTracks.removeAll(panel().getDrawablesTemp(FilteredPointMass.class));
+
 		boolean hasTracks = !userTracks.isEmpty();
 
 		if (isTainted(MENU_TRACK)) {
@@ -2268,6 +2274,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 			// for each track
 			for (int i = 0, n = userTracks.size(); i < n; i++) {
 				track = userTracks.get(i);
+				
 				String trackName = track.getName("track"); //$NON-NLS-1$
 				// add item to clone menu for each track
 				JMenuItem item = new JMenuItem(trackName);
@@ -2667,7 +2674,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 						language);
 				if (response == 1) { // language translation
 					String helpURL = "https://translate.google.com/translate?hl=en&sl=en&tl=" + lang //$NON-NLS-1$
-							+ "&u=https://physlets.org/tracker/help/frameset.html"; //$NON-NLS-1$
+							+ "&u=https://opensourcephysics.github.io/tracker-website/help/frameset.html"; //$NON-NLS-1$
 					OSPDesktop.displayURL(helpURL);
 				} else if (response == 0) { // english
 					OSPDesktop.displayURL("https://" + Tracker.trackerWebsite + "/help/frameset.html"); //$NON-NLS-1$ //$NON-NLS-2$
@@ -2721,7 +2728,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 			
 			JMenuItem trackerOnlineItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.TrackerOnline")); //$NON-NLS-1$
 			trackerOnlineItem.addActionListener((e) -> {
-				String uRL = "https://physlets.org/tracker/trackerJS/"; //$NON-NLS-1$
+				String uRL = "https://opensourcephysics.github.io/tracker-online/"; //$NON-NLS-1$
 				OSPDesktop.displayURL(uRL);
 			});
 			helpMenu.addSeparator();
@@ -2730,7 +2737,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		else {
 			JMenuItem trackerHomeItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.TrackerHome")); //$NON-NLS-1$
 			trackerHomeItem.addActionListener((e) -> {
-				String uRL = "https://physlets.org/tracker/"; //$NON-NLS-1$
+				String uRL = "https://opensourcephysics.github.io/tracker-website/"; //$NON-NLS-1$
 				OSPDesktop.displayURL(uRL);
 			});
 			helpMenu.addSeparator();

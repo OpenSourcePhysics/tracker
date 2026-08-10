@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2024 Douglas Brown, Wolfgang Christian, Robert M. Hanson
+ * Copyright (c) 2026 Douglas Brown, Wolfgang Christian, Robert M. Hanson
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@
  * or view the license online at <http://www.gnu.org/copyleft/gpl.html>
  *
  * For additional Tracker information and documentation, please see
- * <http://physlets.org/tracker/>.
+ * <https://opensourcephysics.github.io/tracker-website/>.
  */
 package org.opensourcephysics.cabrillo.tracker;
 
@@ -138,7 +138,7 @@ public class PrefsDialog extends JDialog {
 	protected IntegerField memoryField;
 	protected JLabel memoryLabel, recentSizeLabel, lookFeelLabel, cacheLabel, versionLabel, runLabel;
 	protected JCheckBox defaultMemoryCheckbox, hintsCheckbox, vidWarningCheckbox, showGapsCheckbox, xuggleErrorCheckbox,
-			variableDurationCheckBox, resetToStep0Checkbox, autofillCheckbox;
+			variableDurationCheckBox, resetToStep0Checkbox, autofillCheckbox, skippedStepsCheckbox;
 	protected int memorySize = Tracker.requestedMemorySize;
 	protected JSpinner recentSizeSpinner, runSpinner;
 	protected JComboBox<String> lookFeelDropdown, languageDropdown, jreDropdown, trailLengthDropdown,
@@ -1012,7 +1012,7 @@ public class PrefsDialog extends JDialog {
 		});
 
 		warningsNorthPanel.add(variableDurationCheckBox);
-
+		
 		// set selected states of engine buttons AFTER creating the xugglefast,
 		// xuggleslow and warnxuggle buttons
 //		if (MovieFactory.hasVideoEngine()) {
@@ -1111,6 +1111,17 @@ public class PrefsDialog extends JDialog {
 			}
 		});
 		dataGapSubPanel.add(autofillCheckbox);
+		
+		skippedStepsCheckbox = new JCheckBox();
+		skippedStepsCheckbox.setOpaque(false);
+		skippedStepsCheckbox.setSelected(Tracker.warnSkippedStep);
+		skippedStepsCheckbox.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				Tracker.warnSkippedStep = skippedStepsCheckbox.isSelected();
+			}
+		});
+		dataGapSubPanel.add(skippedStepsCheckbox);
 		
 		// footprint and trail length subpanels side by side in horz box
 		horz = Box.createHorizontalBox();
@@ -1665,6 +1676,7 @@ public class PrefsDialog extends JDialog {
 			xuggleFastButton.setText(TrackerRes.getString("PrefsDialog.Xuggle.Fast")); //$NON-NLS-1$
 			xuggleSlowButton.setText(TrackerRes.getString("PrefsDialog.Xuggle.Slow")); //$NON-NLS-1$
 			vidWarningCheckbox.setText(TrackerRes.getString("PrefsDialog.Checkbox.WarnIfNoEngine")); //$NON-NLS-1$
+			skippedStepsCheckbox.setText(TrackerRes.getString("PrefsDialog.Checkbox.WarnSkippedSteps")); //$NON-NLS-1$
 			xuggleErrorCheckbox.setText(TrackerRes.getString("PrefsDialog.Checkbox.WarnIfXuggleError")); //$NON-NLS-1$
 //	    videoTypeSubPanelBorder.setTitle(TrackerRes.getString("PrefsDialog.VideoPref.BorderTitle")); //$NON-NLS-1$
 			xuggleSpeedSubPanelBorder.setTitle(TrackerRes.getString("PrefsDialog.Xuggle.Speed.BorderTitle")); //$NON-NLS-1$
@@ -1717,19 +1729,20 @@ public class PrefsDialog extends JDialog {
 						ArrayList<String> availableJREPaths = new ArrayList<String>();
 						String path = Tracker.trackerHome;
 						if (OSPRuntime.isMac()) {
-							path = new File(Tracker.trackerHome).getParent() + "/PlugIns/Java.runtime"; //$NON-NLS-1$
+							path = new File(Tracker.trackerHome).getParent() + "/runtime"; //$NON-NLS-1$
 						}
 						String[] bundledVMs = TrackerStarter.findBundledVMs();
 						String bundledVM = vmBitness == 32 && OSPRuntime.isWindows() ? bundledVMs[1] : bundledVMs[0];
 
-						File defaultVM = jreFinder.getDefaultJRE(vmBitness, path, true);
+						File defaultVM = jreFinder.getDefaultJRE(vmBitness, path, true, null);
 						for (File next : availableJREs) {
 							String jrePath = next.getPath();
 							if (bundledVM != null && jrePath.equals(bundledVM)) {
 								availableJREPaths.add(jrePath);
 								jreDropdown.insertItemAt(
 										TrackerRes.getString("PrefsDialog.JREDropdown.BundledJRE") + " " + jrePath, 0); //$NON-NLS-1$
-							} else if (defaultVM != null && jrePath.equals(defaultVM.getPath())) {
+							} else if (defaultVM != null && jrePath.equals(defaultVM.getPath())
+									&& bundledVM ==  null) {
 								availableJREPaths.add(jrePath);
 								jreDropdown.insertItemAt(TrackerRes.getString("PrefsDialog.JREDropdown.LatestJRE"), 0); //$NON-NLS-1$
 								jreDropdown.addItem(jrePath); // duplicate latest
@@ -1830,8 +1843,6 @@ public class PrefsDialog extends JDialog {
 			}
 		}
 		Tracker.isRadians = radiansButton.isSelected();
-		if (frame != null)
-			frame.setAnglesInRadians(Tracker.isRadians);
 		if (!OSPRuntime.isJS) {
 			// update recent menu
 			Integer val = (Integer) recentSizeSpinner.getValue();
@@ -1990,6 +2001,7 @@ public class PrefsDialog extends JDialog {
 			vidWarningCheckbox.setSelected(Tracker.warnNoVideoEngine);
 			variableDurationCheckBox.setSelected(Tracker.warnVariableDuration);
 			xuggleErrorCheckbox.setSelected(Tracker.warnXuggleError);
+			skippedStepsCheckbox.setSelected(Tracker.warnSkippedStep);
 
 			// memory size
 			defaultMemoryCheckbox.setSelected(Tracker.preferredMemorySize < 0);

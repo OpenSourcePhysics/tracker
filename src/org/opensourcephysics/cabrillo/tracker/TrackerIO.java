@@ -2,7 +2,7 @@
 * The tracker package defines a set of video/image analysis tools
 * built on the Open Source Physics framework by Wolfgang Christian.
 *
-* Copyright (c) 2024 Douglas Brown, Wolfgang Christian, Robert M. Hanson
+* Copyright (c) 2026 Douglas Brown, Wolfgang Christian, Robert M. Hanson
 *
 * Tracker is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@
 * or view the license online at <http://www.gnu.org/copyleft/gpl.html>
 *
 * For additional Tracker information and documentation, please see
-* <http://physlets.org/tracker/>.
+* <https://opensourcephysics.github.io/tracker-website/>.
 */
 package org.opensourcephysics.cabrillo.tracker;
 
@@ -2187,8 +2187,8 @@ public class TrackerIO extends VideoIO {
 				if (localFile == null) {
 					path = null;
 				} else {
-					// set path to downloaded file
-					path = localFile.toURI().toString();
+					// set path to downloaded file--this retains spaces
+					path = ResourceLoader.getURIPath(localFile.getAbsolutePath());
 					OSPLog.debug("TrackerIO downloaded zip file: " + path); //$NON-NLS-1$
 				}
 			}
@@ -2483,7 +2483,8 @@ public class TrackerIO extends VideoIO {
 					String name = ResourceLoader.getNonURIPath(XML.getName(path));
 					File localFile = ResourceLoader.downloadToOSPCache(path, name, false);
 					if (localFile != null) {
-						path = localFile.toURI().toString();
+						// this retains spaces in local file path
+						path = ResourceLoader.getURIPath(localFile.getAbsolutePath());
 					}
 				}
 
