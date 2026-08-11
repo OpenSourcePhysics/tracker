@@ -12452,7 +12452,7 @@ if (ev.keyCode == 9 && ev.target["data-focuscomponent"]) {
 
 	var isTouchPointerEvent = function(ev) {
 		var oe = ev.originalEvent || ev;
-		return ev.type == "pointerdown" || ev.type == "pointerup" ?
+		return ev.type.indexOf("pointer") == 0 ?
 			(oe.pointerType == "touch" || ev.pointerType == "touch") : false;
 	};
 
@@ -12466,6 +12466,208 @@ if (ev.keyCode == 9 && ev.target["data-focuscomponent"]) {
 			x: oe.pageX != null ? oe.pageX : ev.pageX,
 			y: oe.pageY != null ? oe.pageY : ev.pageY
 		};
+	};
+
+	// On a touch screen there is no secondary mouse button. A hold or a
+	// two-finger press therefore delivers the same Java MouseEvent sequence as
+	// a desktop right-click. Keeping this at the event bridge means Tracker's
+	// existing context menus continue to decide which menu belongs to the item.
+	var isTouchEvent = function(ev) {
+		return ev && (ev.type == "touchstart" || ev.type == "touchmove" ||
+			ev.type == "touchend" || ev.type == "touchcancel" ||
+			isTouchPointerEvent(ev));
+	};
+
+	var stopTouchEvent = function(ev) {
+		if (ev.preventDefault)
+			ev.preventDefault();
+		if (ev.stopPropagation)
+			ev.stopPropagation();
+	};
+
+	var clearTouchContext = function(who) {
+		var state = who && who._touchContext;
+		if (state && state.timer)
+			clearTimeout(state.timer);
+		if (state && state.cleanupTimer)
+			clearTimeout(state.cleanupTimer);
+		if (who)
+			who._touchContext = null;
+	};
+
+	var makeTouchContextMouseEvent = function(state, button) {
+		var point = state.point;
+		var target = state.target;
+		var eventType = state.isTouch ? "touchstart" : "mousedown";
+		var originalEvent = {
+			type: eventType,
+			target: target,
+			pageX: point.x,
+			pageY: point.y,
+			button: button,
+			buttons: (button == 2 ? 2 : 0),
+			which: (button == 2 ? 3 : 1),
+			preventDefault: function() {},
+			stopPropagation: function() {}
+		};
+		return {
+			type: eventType,
+			target: target,
+			pageX: point.x,
+			pageY: point.y,
+			button: button,
+			buttons: (button == 2 ? 2 : 0),
+			which: (button == 2 ? 3 : 1),
+			originalEvent: originalEvent,
+			preventDefault: function() {},
+			stopPropagation: function() {}
+		};
+	};
+
+	var dispatchTrackpadContextMouseEvent = function(state, type, button, buttons) {
+		var target = state.target;
+		if (!target || !target.dispatchEvent || typeof MouseEvent == "undefined")
+			return false;
+		var scrollX = window.pageXOffset || document.documentElement.scrollLeft || 0;
+		var scrollY = window.pageYOffset || document.documentElement.scrollTop || 0;
+		var event = new MouseEvent(type, {
+			bubbles: true,
+			cancelable: true,
+			view: window,
+			clientX: state.point.x - scrollX,
+			clientY: state.point.y - scrollY,
+			button: button,
+			buttons: buttons
+		});
+		target.dispatchEvent(event);
+		return true;
+	};
+
+	var fireTouchContextMenu = function(who, state) {
+		if (!state || state.triggered || !who || !who.applet)
+			return;
+		state.triggered = true;
+		if (state.timer) {
+			clearTimeout(state.timer);
+			state.timer = null;
+		}
+		// A browser can issue pointercancel for a long hold before it allows the
+		// timer callback to run. Do not leave that cancelled gesture attached to
+		// the canvas after the context action has been delivered.
+		state.cleanupTimer = setTimeout(function() {
+			if (who._touchContext === state)
+				clearTouchContext(who);
+		}, 1000);
+
+		// Finish the ordinary touch press first. This prevents the selected marker
+		// from being left in a pressed/dragging state before its popup is opened.
+		var leftRelease = makeTouchContextMouseEvent(state, 0);
+		var xym = getXY(who, leftRelease, 502);
+		if (xym)
+			who.applet._processEvent(502, xym, leftRelease, who._frameViewer);
+		who.isDown = false;
+		who.isDragging = false;
+		J2S.setMouseOwner(null);
+		if (!state.isTouch && dispatchTrackpadContextMouseEvent(state, "mousedown", 2, 2)) {
+			// Route the synthetic right-click through the DOM so it follows exactly
+			// the same SwingJS path as a two-finger trackpad press. The physical
+			// primary-button release that follows must not create an extra click.
+			who._suppressContextMouseUp = true;
+			clearTouchContext(who);
+			J2S._lastTouchContextMenu = { time: Date.now(), target: getTapControl(state.target) };
+			dispatchTrackpadContextMouseEvent(state, "mouseup", 2, 0);
+			return;
+		}
+
+		var rightDown = makeTouchContextMouseEvent(state, 2);
+		xym = getXY(who, rightDown, 0);
+		if (!xym)
+			return;
+		who.applet._processEvent(501, xym, rightDown, who._frameViewer);
+		var rightRelease = makeTouchContextMouseEvent(state, 2);
+		xym = getXY(who, rightRelease, 502);
+		if (xym)
+			who.applet._processEvent(502, xym, rightRelease, who._frameViewer);
+		J2S._lastTouchContextMenu = { time: Date.now(), target: getTapControl(state.target) };
+	};
+
+	var prepareTouchContext = function(who, ev) {
+		var isTouch = isTouchEvent(ev);
+		// A physical trackpad press reaches us as mousedown, whereas a touch
+		// screen uses pointerdown/touchstart. Both primary-button gestures can
+		// become a three-second context press; button 3 remains the native popup.
+		if (!isTouch && (ev.type != "mousedown" || ev.button != 0))
+			return null;
+		var state = who._touchContext;
+		var point = getRawEventPoint(ev);
+		if (!state) {
+			state = who._touchContext = {
+				point: point,
+				target: ev.target,
+				isTouch: isTouch,
+				pointerIDs: {},
+				triggered: false,
+				timer: null
+			};
+			state.timer = setTimeout(function() {
+				if (who._touchContext === state)
+					fireTouchContextMenu(who, state);
+			}, 3000);
+		}
+		var oe = ev.originalEvent || ev;
+		if (isTouchPointerEvent(ev) && oe.pointerId != null)
+			state.pointerIDs[oe.pointerId] = true;
+		if ((oe.touches && oe.touches.length >= 2) ||
+			Object.keys(state.pointerIDs).length >= 2)
+			fireTouchContextMenu(who, state);
+		return state;
+	};
+
+	var updateTouchContext = function(who, ev) {
+		var state = who._touchContext;
+		if (!state || (state.isTouch ? !isTouchEvent(ev) : ev.type != "mousemove"))
+			return false;
+		if (state.triggered) {
+			stopTouchEvent(ev);
+			return true;
+		}
+		var point = getRawEventPoint(ev);
+		var dx = point.x - state.point.x;
+		var dy = point.y - state.point.y;
+		if (dx * dx + dy * dy > 144)
+			clearTouchContext(who); // movement turns a hold into the normal drag
+		return false;
+	};
+
+	var finishTouchContext = function(who, ev) {
+		var state = who._touchContext;
+		if (!state || (state.isTouch ? !isTouchEvent(ev) : ev.type != "mouseup"))
+			return false;
+		var oe = ev.originalEvent || ev;
+		if (isTouchPointerEvent(ev) && oe.pointerId != null)
+			delete state.pointerIDs[oe.pointerId];
+		if ((ev.type == "pointercancel" || ev.type == "touchcancel") && !state.triggered) {
+			// Firefox and mobile WebKit can cancel the pointer stream while the
+			// browser is considering a long hold. Preserve the timer so the hold
+			// still becomes the requested context action.
+			stopTouchEvent(ev);
+			return true;
+		}
+		if (!state.triggered) {
+			clearTouchContext(who);
+			return false;
+		}
+		var fingersRemain = (oe.touches && oe.touches.length) ||
+			Object.keys(state.pointerIDs).length;
+		if (!fingersRemain)
+			clearTouchContext(who);
+		who.isDown = false;
+		who.isDragging = false;
+		J2S.setMouseOwner(null);
+		if (state.isTouch)
+			J2S._lastTouchPointerUp = Date.now();
+		stopTouchEvent(ev);
+		return true;
 	};
 
 	J2S.$bind('body', //'pointerdown pointermove 
@@ -12531,6 +12733,11 @@ if (ev.keyCode == 9 && ev.target["data-focuscomponent"]) {
 		// prevent touch dragging
 		if (who.applet == null)
 			return;
+		var touchContext = prepareTouchContext(who, ev);
+		if (touchContext && touchContext.triggered) {
+			stopTouchEvent(ev);
+			return true;
+		}
 		if (isTouchPointerEvent(ev)) {
 			var pointerDownPoint = getRawEventPoint(ev);
 			J2S._lastTouchPointerDown = {
@@ -12610,6 +12817,8 @@ if (ev.keyCode == 9 && ev.target["data-focuscomponent"]) {
 		
 		if (who.applet == null)
 			return;
+		if (updateTouchContext(who, ev))
+			return true;
 
 		if (ev.type == "touchmove" && 
 				(J2S._firstTouch || J2S._haveMouse)) {
@@ -12658,6 +12867,16 @@ if (ev.keyCode == 9 && ev.target["data-focuscomponent"]) {
 		}
 		if (!who || who.applet == null)
 			return;
+		if (who._suppressContextMouseUp && ev.type == "mouseup" && ev.button == 0) {
+			who._suppressContextMouseUp = false;
+			who.isDown = false;
+			who.isDragging = false;
+			J2S.setMouseOwner(null);
+			stopTouchEvent(ev);
+			return true;
+		}
+		if (finishTouchContext(who, ev))
+			return true;
 		if (ev.type == "touchend" && J2S._lastTouchPointerUp &&
 			Date.now() - J2S._lastTouchPointerUp < 500) {
 			// pointerup already completed this tap. Ignore the matching legacy
@@ -12748,6 +12967,14 @@ if (ev.keyCode == 9 && ev.target["data-focuscomponent"]) {
 		if (lastTouchClick && Date.now() - lastTouchClick.time < 800 &&
 			lastTouchClick.target == getTapControl(ev.target)) {
 			J2S._lastTouchClick = null;
+			ev.preventDefault();
+			ev.stopPropagation();
+			return true;
+		}
+		var lastTouchContextMenu = J2S._lastTouchContextMenu;
+		if (lastTouchContextMenu && Date.now() - lastTouchContextMenu.time < 800 &&
+			lastTouchContextMenu.target == getTapControl(ev.target)) {
+			J2S._lastTouchContextMenu = null;
 			ev.preventDefault();
 			ev.stopPropagation();
 			return true;
@@ -12871,8 +13098,8 @@ if (ev.keyCode == 9 && ev.target["data-focuscomponent"]) {
 		J2S.$bind(who, (J2S._haveMouse ? 'mousedown pointerdown' : 'pointerdown mousedown touchstart'), 
 				function(ev) { return mouseDown(who, ev) });
 
-		J2S.$bind(who, (J2S._haveMouse ? 'mouseup pointerup' :
-		'pointerup mouseup touchend'), 
+		J2S.$bind(who, (J2S._haveMouse ? 'mouseup pointerup pointercancel' :
+		'pointerup pointercancel mouseup touchend touchcancel'),
 				function(ev) { return mouseUp(who, ev) });
 
 		J2S.$bind(who, 'pointerenter mouseenter', function(ev) { return mouseEnter(who, ev) });
@@ -12910,7 +13137,7 @@ if (ev.keyCode == 9 && ev.target["data-focuscomponent"]) {
 				'mouseupoutjsmol click touchoutjsmol pointerupoutjsmol '
 				+'mousedown pointerdown touchstart '
 				+'mousemove touchmove pointermove ' 
-				+'mouseup pointerup touchend '
+				+'mouseup pointerup pointercancel touchend touchcancel '
 				+'DOMMouseScroll mousewheel contextmenu '
 				+'mouseleave mouseenter mousemoveoutjsmol '
 				+'pointerout pointerenter pointermoveoutjsmol ',
