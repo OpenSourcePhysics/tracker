@@ -307,18 +307,18 @@ public class TrackerStarter {
 		}
 
 		// copy appropriate xuggle jars
-		boolean usesServer = TrackerStarter.usesXuggleServer(jarPath);
-		xuggleVersionIndex = usesServer? INDEX_XUGGLE_57: INDEX_XUGGLE_34;
-		String xuggleVers = usesServer? "5.7": "3.4";
-		String source = XML.forwardSlash(xuggleHome); //$NON-NLS-1$
-		if (xuggleVersionIndex == INDEX_XUGGLE_34)
-			source += "/share/java/jars";
-		if (copyXuggleJarsTo(trackerHome, source)) {
-			logMessage("xuggle "+xuggleVers+" files up to date "); //$NON-NLS-1$			
-		}
-		else {
-			logMessage("xuggle "+xuggleVers+" files missing or not up to date "); //$NON-NLS-1$			
-		}
+//		boolean usesServer = TrackerStarter.usesXuggleServer(jarPath);
+//		xuggleVersionIndex = usesServer? INDEX_XUGGLE_57: INDEX_XUGGLE_34;
+//		String xuggleVers = usesServer? "5.7": "3.4";
+//		String source = XML.forwardSlash(xuggleHome); //$NON-NLS-1$
+//		if (xuggleVersionIndex == INDEX_XUGGLE_34)
+//			source += "/share/java/jars";
+//		if (copyXuggleJarsTo(trackerHome, source)) {
+//			logMessage("xuggle "+xuggleVers+" files up to date "); //$NON-NLS-1$			
+//		}
+//		else {
+//			logMessage("xuggle "+xuggleVers+" files missing or not up to date "); //$NON-NLS-1$			
+//		}
 		
 		// launch Tracker
 		boolean launched = true;

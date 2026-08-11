@@ -3389,7 +3389,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 
 	public class DefaultMenuBar extends DeactivatingMenuBar {
 		DefaultMenuBar() {
-			int keyMask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
+			int keyMask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx();
 			// file menu
 			JMenu fileMenu = new JMenu(TrackerRes.getString("TMenuBar.Menu.File")); //$NON-NLS-1$
 			add(fileMenu);
