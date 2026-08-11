@@ -286,7 +286,10 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 	 * @param level the desired font level
 	 */
 	public void setFontLevel(int level) {
-		Object[] objectsToSize = new Object[] { newVersionButton, trackButton, sizingField, testButton };
+		// sizingField is always present. The desktop-only newVersionButton is null
+		// in Tracker Online, and FontSizer examines the first array element before
+		// it filters null entries.
+		Object[] objectsToSize = new Object[] { sizingField, newVersionButton, trackButton, testButton };
 		FontSizer.setFonts(objectsToSize, level);
 		numberFieldWidth = sizingField.getPreferredSize().width;
 	}
