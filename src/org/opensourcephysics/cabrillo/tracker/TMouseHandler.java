@@ -51,6 +51,7 @@ public class TMouseHandler implements InteractiveMouseHandler {
 	static final int STATE_MARK = 1;
 	static final int STATE_AUTO = 2;
 	static final int STATE_AUTOMARK = 3;
+	static final int LONG_PRESS_DRAG_TOLERANCE_SQUARED = 144;
 
 	// instance fields
 	Interactive iad = null;
@@ -62,6 +63,12 @@ public class TMouseHandler implements InteractiveMouseHandler {
 	Point mousePtRelativeToViewRect = new Point(); // starting position of mouse
 	Point viewLoc = new Point(); // starting position of view rect
 	Dimension dim = new Dimension();
+	Timer longPressTimer;
+	TrackerPanel longPressPanel;
+	TPoint longPressPoint;
+	Point longPressStartPoint;
+	MouseEvent longPressEvent;
+	boolean longPressReady;
 
 	static {
 		ImageIcon icon = (ImageIcon) Tracker.getResourceIcon("creatept.gif", false); //$NON-NLS-1$
@@ -147,6 +154,7 @@ public class TMouseHandler implements InteractiveMouseHandler {
 
 		// create and/or select/deselect TPoints by pressing mouse
 		case InteractivePanel.MOUSE_PRESSED:
+			clearLongPress();
 			if (Tracker.startupHintShown) {
 				Tracker.startupHintShown = false;
 				trackerPanel.setMessage(""); //$NON-NLS-1$
@@ -163,11 +171,22 @@ public class TMouseHandler implements InteractiveMouseHandler {
 			}
 			if (iad instanceof TPoint) {
 				selectPoint(trackerPanel, e);
+				if (selectedPoint != null) {
+					startLongPress(trackerPanel, selectedPoint, e);
+				}
 				return;
 			}
 			clearInteractive(trackerPanel, e);
 			return;
 		case InteractivePanel.MOUSE_DRAGGED:
+			if (longPressStartPoint != null) {
+				int longPressDX = e.getX() - longPressStartPoint.x;
+				int longPressDY = e.getY() - longPressStartPoint.y;
+				if (longPressDX * longPressDX + longPressDY * longPressDY
+						> LONG_PRESS_DRAG_TOLERANCE_SQUARED) {
+					clearLongPress();
+				}
+			}
 			// move TPoints by dragging mouse
 			selectedPoint = trackerPanel.getSelectedPoint();
 			TTrack track = trackerPanel.getSelectedTrack();
@@ -239,12 +258,75 @@ public class TMouseHandler implements InteractiveMouseHandler {
 				stepCreated = false;
 			}
 			autoTracked = false;
+			clearLongPress();
 			break;
 		case InteractivePanel.MOUSE_ENTERED:
 			// request focus from owners other than text fields
 			if (focusOwner != null && !(focusOwner instanceof JTextComponent)) {
 				trackerPanel.requestFocusInWindow();
 			}
+		}
+	}
+
+	private void startLongPress(TrackerPanel trackerPanel, TPoint point, MouseEvent e) {
+		if (!OSPRuntime.isJS)
+			return;
+		longPressPanel = trackerPanel;
+		longPressPoint = point;
+		longPressStartPoint = e.getPoint();
+		longPressEvent = e;
+		longPressReady = false;
+		/**
+		 * Use the browser timer directly. A Swing timer action is deferred by
+		 * SwingJS until the current pointer gesture ends, which would delay the
+		 * popup until the marker is released.
+		 *
+		 * @j2sNative
+		 * var handler = this;
+		 * this.longPressTimer = setTimeout(function() {
+		 *   if (handler.longPressPanel != null) {
+		 *     handler.longPressReady = true;
+		 *     handler.showLongPressPopup$org_opensourcephysics_cabrillo_tracker_TrackerPanel$java_awt_event_MouseEvent(
+		 *         handler.longPressPanel, handler.longPressEvent);
+		 *   }
+		 * }, 2000);
+		 * return;
+		 */
+		longPressTimer = new Timer(2000, event -> {
+			if (longPressPanel != null) {
+				longPressReady = true;
+				showLongPressPopup(longPressPanel, longPressEvent);
+			}
+		});
+		longPressTimer.setRepeats(false);
+		longPressTimer.start();
+	}
+
+	private void clearLongPress() {
+		/**
+		 * @j2sNative
+		 * if (this.longPressTimer != null) clearTimeout(this.longPressTimer);
+		 * this.longPressTimer = null;
+		 */
+		if (longPressTimer != null)
+			longPressTimer.stop();
+		longPressTimer = null;
+		longPressPanel = null;
+		longPressPoint = null;
+		longPressStartPoint = null;
+		longPressEvent = null;
+		longPressReady = false;
+	}
+
+	private void showLongPressPopup(TrackerPanel trackerPanel, MouseEvent e) {
+		boolean showPopup = longPressReady && longPressPanel == trackerPanel;
+		clearLongPress();
+		if (!showPopup)
+			return;
+		JPopupMenu popup = trackerPanel.updateMainPopup();
+		if (popup != null) {
+			popup.show(trackerPanel, e.getX(), e.getY());
+			e.consume();
 		}
 	}
 

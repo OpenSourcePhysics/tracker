@@ -12453,7 +12453,20 @@ if (ev.keyCode == 9 && ev.target["data-focuscomponent"]) {
 	var isTouchPointerEvent = function(ev) {
 		var oe = ev.originalEvent || ev;
 		return ev.type.indexOf("pointer") == 0 ?
-			(oe.pointerType == "touch" || ev.pointerType == "touch") : false;
+			(oe.pointerType == "touch" || oe.pointerType == "pen" ||
+				ev.pointerType == "touch" || ev.pointerType == "pen") : false;
+	};
+
+	// Mobile Safari may follow a touch or Pencil pointer event with compatibility
+	// mouse events. Those must not switch SwingJS permanently into mouse-only mode
+	// or duplicate the press/release already delivered by the pointer stream.
+	var isCompatibilityMouseEvent = function(ev) {
+		var oe = ev.originalEvent || ev;
+		return !!(oe.sourceCapabilities && oe.sourceCapabilities.firesTouchEvents) ||
+			(!!J2S._lastTouchPointerDown &&
+				Date.now() - J2S._lastTouchPointerDown.time < 800) ||
+			(!!J2S._lastTouchPointerUp &&
+				Date.now() - J2S._lastTouchPointerUp < 800);
 	};
 
 	var getRawEventPoint = function(ev) {
@@ -12595,12 +12608,26 @@ if (ev.keyCode == 9 && ev.target["data-focuscomponent"]) {
 		var isTouch = isTouchEvent(ev);
 		// A physical trackpad press reaches us as mousedown, whereas a touch
 		// screen uses pointerdown/touchstart. Both primary-button gestures can
-		// become a three-second context press; button 3 remains the native popup.
+		// become a two-second context press; button 3 remains the native popup.
 		if (!isTouch && (ev.type != "mousedown" || ev.button != 0))
 			return null;
 		var state = who._touchContext;
+		var isNewPress = ev.type == "pointerdown" || ev.type == "touchstart" ||
+			ev.type == "mousedown";
+		// Mobile Safari may omit the release after a context hold. Never let that
+		// completed gesture swallow the next real press on the same canvas/control.
+		if (state && state.triggered && isNewPress) {
+			clearTouchContext(who);
+			state = null;
+		}
 		var point = getRawEventPoint(ev);
 		if (!state) {
+			// A new canvas contact is also an explicit click outside any open
+			// context menu. Do this before dispatching the Java press because menu
+			// overlays can otherwise retain capture on mobile Safari.
+			var role = ev.target && ev.target.getAttribute && ev.target.getAttribute("role");
+			if (!role && J2S.Swing && J2S.Swing.hideMenus)
+				J2S.Swing.hideMenus(who.applet);
 			state = who._touchContext = {
 				point: point,
 				target: ev.target,
@@ -12612,7 +12639,7 @@ if (ev.keyCode == 9 && ev.target["data-focuscomponent"]) {
 			state.timer = setTimeout(function() {
 				if (who._touchContext === state)
 					fireTouchContextMenu(who, state);
-			}, 3000);
+			}, 2000);
 		}
 		var oe = ev.originalEvent || ev;
 		if (isTouchPointerEvent(ev) && oe.pointerId != null)
@@ -12672,7 +12699,8 @@ if (ev.keyCode == 9 && ev.target["data-focuscomponent"]) {
 
 	J2S.$bind('body', //'pointerdown pointermove 
 		'mousedown mousemove mouseup', function(ev) {
-		J2S._haveMouse = true;
+		if (!isCompatibilityMouseEvent(ev))
+			J2S._haveMouse = true;
 	});
 	
 	J2S.$bind('body', //'pointerup 
@@ -12766,8 +12794,9 @@ if (ev.keyCode == 9 && ev.target["data-focuscomponent"]) {
 		// otherwise, if J2S._firstTouch is undefined (!!x != x), set J2S._firstTouch
 		// and ignore future touch events (through the first touchend):
 		
-		if (//ev.type == "pointerdown" || 
-			ev.type == "mousedown") {// BHTEst
+		if (ev.type == "mousedown") {// BHTEst
+			if (isCompatibilityMouseEvent(ev))
+				return true;
 		    J2S._haveMouse = true;
 		} else { 
 		    if (J2S._haveMouse) return;
@@ -12865,8 +12894,16 @@ if (ev.keyCode == 9 && ev.target["data-focuscomponent"]) {
 				J2S._dmouseOwner = null;
 			}
 		}
+		// A pressed toolbar button can repaint and replace its DOM node before
+		// pointerup. The body-level release then arrives without a bound `who`;
+		// route it to the component that owned the original press.
+		var orphanedRelease = !who && J2S._mouseOwner;
+		if (orphanedRelease)
+			who = J2S._mouseOwner;
 		if (!who || who.applet == null)
 			return;
+		if (!orphanedRelease && ev.type == "mouseup" && isCompatibilityMouseEvent(ev))
+			return true;
 		if (who._suppressContextMouseUp && ev.type == "mouseup" && ev.button == 0) {
 			who._suppressContextMouseUp = false;
 			who.isDown = false;
