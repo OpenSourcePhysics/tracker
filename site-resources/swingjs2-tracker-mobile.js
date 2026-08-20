@@ -14395,9 +14395,32 @@ if (ev.keyCode == 9 && ev.target["data-focuscomponent"]) {
 
 		tag._isDragger = true;
 
+		// The SwingJS window resizer is normally a 10-by-10 transparent mouse
+		// target. That target is too small for a finger or Apple Pencil, and with
+		// the default touch action iPadOS may take over the drag for page panning.
+		// Enlarge the invisible target inward and reserve the gesture for resizing.
+		var isResizer = (" " + tag.className + " ").indexOf(" swingjs-resizer ") >= 0;
+		if (isResizer) {
+			$tag.css({
+				"width" : "28px",
+				"height" : "28px",
+				"margin-left" : "-18px",
+				"margin-top" : "-18px",
+				"touch-action" : "none",
+				"user-select" : "none",
+				"-webkit-user-select" : "none"
+			});
+		}
+
 		var x, y, dx, dy, pageX0, pageY0, pageX, pageY;
 
 		var down = function(ev) {
+			var ev0 = ev.originalEvent || ev;
+			if (isResizer && ev0.pointerId != null && tag.setPointerCapture) {
+				try {
+					tag.setPointerCapture(ev0.pointerId);
+				} catch (e) {}
+			}
 			J2S._dmouseOwner = tag;
 			J2S._dmouseDrag = drag;
 			J2S._dmouseUp = up;
@@ -14451,6 +14474,12 @@ if (ev.keyCode == 9 && ev.target["data-focuscomponent"]) {
 				}
 			}
 		}, up = function(ev) {
+			var ev0 = ev.originalEvent || ev;
+			if (isResizer && ev0.pointerId != null && tag.releasePointerCapture) {
+				try {
+					tag.releasePointerCapture(ev0.pointerId);
+				} catch (e) {}
+			}
 			J2S._dmouseDrag = null;
 			J2S._dmouseUp = null;
 			if (J2S._dmouseOwner == tag) {
@@ -14487,7 +14516,7 @@ if (ev.keyCode == 9 && ev.target["data-focuscomponent"]) {
 			return drag && drag(fixTouch(ev));
 		});
 
-		$tag.bind('pointerup mouseup touchend', function(ev) {
+		$tag.bind('pointerup pointercancel mouseup touchend touchcancel', function(ev) {
 			// touchend does not express a position, and we don't use it anyway
 			return up && up(ev);
 		});
