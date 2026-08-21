@@ -701,7 +701,12 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 					FontSizer.setFonts(item, i);
 					int n = i;
 					item.addActionListener((e) -> {
-						FontSizer.setLevel(n);
+						// FontSizer rebuilds much of the Swing UI. On touch devices,
+						// doing that while this popup is still dispatching its action can
+						// leave SwingJS's popup/input-blocking layer active. Close the
+						// popup first and resize fonts on the next event-loop pass.
+						popup.setVisible(false);
+						SwingUtilities.invokeLater(() -> FontSizer.setLevel(n));
 					});
 					popup.add(item);
 					if (i == FontSizer.getLevel()) {

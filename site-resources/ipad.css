@@ -41,3 +41,18 @@
   left: 50%;
   transform: translateX(-50%);
 }
+
+[id^="Tracker_FrameUI_"][id$="_frame"] {
+  touch-action: none;
+}
+
+/* Keep the video slider thumb visible when iPad layout briefly gives the
+   em-sized SwingJS handle zero geometry while a video is loading. */
+[id^="Tracker_SliderUI_"] .ui-j2sslider-handle {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  min-width: 14px;
+  min-height: 14px;
+  z-index: 2;
+}
