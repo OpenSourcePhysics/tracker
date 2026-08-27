@@ -119,7 +119,6 @@ import org.opensourcephysics.tools.ResourceLoader;
 import javajs.async.AsyncDialog;
 import javajs.async.AsyncSwingWorker;
 import javajs.async.SwingJSUtils.Performance;
-import swingjs.api.JSUtilI;
 
 /**
  * This is the default Tracker application.
@@ -151,19 +150,6 @@ public class Tracker {
 
 	static {
 		XML.setLoader(Preferences.class, new Preferences.Loader());
-	}
-
-	public static JSUtilI jsutil;
-
-	static {
-		try {
-			if (OSPRuntime.isJS) {
-				OSPRuntime.launcherAllowEJSModel = false;
-				jsutil = ((JSUtilI) Class.forName("swingjs.JSUtil").newInstance());
-			}
-		} catch (Exception e) {
-			OSPLog.warning("OSPRuntime could not create jsutil");
-		}
 	}
 
 	static {

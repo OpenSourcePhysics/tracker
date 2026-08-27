@@ -12462,6 +12462,11 @@ if (ev.keyCode == 9 && ev.target["data-focuscomponent"]) {
 	// or duplicate the press/release already delivered by the pointer stream.
 	var isCompatibilityMouseEvent = function(ev) {
 		var oe = ev.originalEvent || ev;
+		// A long touch deliberately re-enters the normal mouse bridge as a
+		// synthetic secondary-button event. Do not mistake that event for the
+		// compatibility mouse event that Mobile Safari emits after a touch.
+		if (oe.trackerTouchContext || ev.trackerTouchContext)
+			return false;
 		return !!(oe.sourceCapabilities && oe.sourceCapabilities.firesTouchEvents) ||
 			(!!J2S._lastTouchPointerDown &&
 				Date.now() - J2S._lastTouchPointerDown.time < 800) ||
@@ -12496,6 +12501,30 @@ if (ev.keyCode == 9 && ev.target["data-focuscomponent"]) {
 			ev.preventDefault();
 		if (ev.stopPropagation)
 			ev.stopPropagation();
+	};
+
+	var setLongPressStatus = function(stage, details) {
+		J2S._trackerLongPressStatus = {
+			version: "20260827-touch10",
+			stage: stage,
+			time: Date.now(),
+			details: details || null
+		};
+	};
+	setLongPressStatus("bridge-loaded");
+
+	var hideAppletMenus = function(who) {
+		if (!who || !who.applet || !J2S.Swing)
+			return;
+		if (J2S.Swing.hideMenus) {
+			J2S.Swing.hideMenus(who.applet);
+			return;
+		}
+		var menus = who.applet._menus;
+		if (!menus || !J2S.Swing.hideMenu)
+			return;
+		for (var id in menus)
+			J2S.Swing.hideMenu(menus[id], true);
 	};
 
 	var clearTouchContext = function(who) {
@@ -12538,9 +12567,19 @@ if (ev.keyCode == 9 && ev.target["data-focuscomponent"]) {
 	};
 
 	var dispatchTrackpadContextMouseEvent = function(state, type, button, buttons) {
-		var target = state.target;
-		if (!target || !target.dispatchEvent || typeof MouseEvent == "undefined")
+		// Tracker can repaint and replace the canvas element that was below the
+		// original press. Dispatch to the stable SwingJS mouse surface retained in
+		// the state, otherwise a timer can fire on a detached DOM node.
+		var target = state.who || state.target;
+		if (!target || !target.dispatchEvent || typeof MouseEvent == "undefined") {
+			setLongPressStatus("dispatch-unavailable", {
+				type: type,
+				hasTarget: !!target,
+				hasDispatch: !!(target && target.dispatchEvent),
+				hasMouseEvent: typeof MouseEvent != "undefined"
+			});
 			return false;
+		}
 		var scrollX = window.pageXOffset || document.documentElement.scrollLeft || 0;
 		var scrollY = window.pageYOffset || document.documentElement.scrollTop || 0;
 		var event = new MouseEvent(type, {
@@ -12552,6 +12591,8 @@ if (ev.keyCode == 9 && ev.target["data-focuscomponent"]) {
 			button: button,
 			buttons: buttons
 		});
+		event.trackerTouchContext = true;
+		setLongPressStatus("dispatch-" + type, { button: button, connected: !!target.isConnected });
 		target.dispatchEvent(event);
 		return true;
 	};
@@ -12560,6 +12601,7 @@ if (ev.keyCode == 9 && ev.target["data-focuscomponent"]) {
 		if (!state || state.triggered || !who || !who.applet)
 			return;
 		state.triggered = true;
+		setLongPressStatus("timer-fired", { isTouch: state.isTouch });
 		if (state.timer) {
 			clearTimeout(state.timer);
 			state.timer = null;
@@ -12581,26 +12623,24 @@ if (ev.keyCode == 9 && ev.target["data-focuscomponent"]) {
 		who.isDown = false;
 		who.isDragging = false;
 		J2S.setMouseOwner(null);
-		if (!state.isTouch && dispatchTrackpadContextMouseEvent(state, "mousedown", 2, 2)) {
-			// Route the synthetic right-click through the DOM so it follows exactly
-			// the same SwingJS path as a two-finger trackpad press. The physical
-			// primary-button release that follows must not create an extra click.
-			who._suppressContextMouseUp = true;
-			clearTouchContext(who);
-			J2S._lastTouchContextMenu = { time: Date.now(), target: getTapControl(state.target) };
-			dispatchTrackpadContextMouseEvent(state, "mouseup", 2, 0);
-			return;
-		}
-
+		// DOM dispatchEvent() does not re-enter SwingJS on Mobile Safari while a
+		// physical touch is active. Deliver the secondary press/release directly
+		// to the same applet event processor used by the normal mouse bridge.
 		var rightDown = makeTouchContextMouseEvent(state, 2);
 		xym = getXY(who, rightDown, 0);
-		if (!xym)
+		if (!xym) {
+			setLongPressStatus("direct-getxy-failed");
 			return;
+		}
+		setLongPressStatus("direct-mousedown", { x: xym[0], y: xym[1] });
 		who.applet._processEvent(501, xym, rightDown, who._frameViewer);
 		var rightRelease = makeTouchContextMouseEvent(state, 2);
 		xym = getXY(who, rightRelease, 502);
-		if (xym)
+		if (xym) {
 			who.applet._processEvent(502, xym, rightRelease, who._frameViewer);
+			setLongPressStatus("direct-mouseup", { x: xym[0], y: xym[1] });
+		}
+		who._suppressContextMouseUp = true;
 		J2S._lastTouchContextMenu = { time: Date.now(), target: getTapControl(state.target) };
 	};
 
@@ -12625,17 +12665,24 @@ if (ev.keyCode == 9 && ev.target["data-focuscomponent"]) {
 			// A new canvas contact is also an explicit click outside any open
 			// context menu. Do this before dispatching the Java press because menu
 			// overlays can otherwise retain capture on mobile Safari.
-			var role = ev.target && ev.target.getAttribute && ev.target.getAttribute("role");
-			if (!role && J2S.Swing && J2S.Swing.hideMenus)
-				J2S.Swing.hideMenus(who.applet);
+			var menuTarget = ev.target && ev.target.closest &&
+				ev.target.closest(".swingjsPopupMenu, .ui-j2smenu, [role=menuitem]");
+			if (!menuTarget)
+				hideAppletMenus(who);
 			state = who._touchContext = {
 				point: point,
 				target: ev.target,
+				who: who,
 				isTouch: isTouch,
+				started: Date.now(),
 				pointerIDs: {},
 				triggered: false,
 				timer: null
 			};
+			setLongPressStatus("timer-started", {
+				type: ev.type,
+				pointerType: (ev.originalEvent || ev).pointerType || null
+			});
 			state.timer = setTimeout(function() {
 				if (who._touchContext === state)
 					fireTouchContextMenu(who, state);
@@ -12661,8 +12708,11 @@ if (ev.keyCode == 9 && ev.target["data-focuscomponent"]) {
 		var point = getRawEventPoint(ev);
 		var dx = point.x - state.point.x;
 		var dy = point.y - state.point.y;
-		if (dx * dx + dy * dy > 144)
+		var toleranceSquared = state.isTouch ? 1024 : 144;
+		if (dx * dx + dy * dy > toleranceSquared) {
+			setLongPressStatus("cancelled-move", { dx: dx, dy: dy, isTouch: state.isTouch });
 			clearTouchContext(who); // movement turns a hold into the normal drag
+		}
 		return false;
 	};
 
@@ -12681,6 +12731,10 @@ if (ev.keyCode == 9 && ev.target["data-focuscomponent"]) {
 			return true;
 		}
 		if (!state.triggered) {
+			setLongPressStatus("released-before-timer", {
+				type: ev.type,
+				elapsed: Date.now() - state.started
+			});
 			clearTouchContext(who);
 			return false;
 		}
@@ -12693,6 +12747,7 @@ if (ev.keyCode == 9 && ev.target["data-focuscomponent"]) {
 		J2S.setMouseOwner(null);
 		if (state.isTouch)
 			J2S._lastTouchPointerUp = Date.now();
+		hideAppletMenus(who);
 		stopTouchEvent(ev);
 		return true;
 	};
@@ -12798,8 +12853,7 @@ if (ev.keyCode == 9 && ev.target["data-focuscomponent"]) {
 			if (isCompatibilityMouseEvent(ev))
 				return true;
 		    J2S._haveMouse = true;
-		} else { 
-		    if (J2S._haveMouse) return;
+		} else {
 		    if (!!J2S._firstTouch != J2S._firstTouch) {
 // q - why did we do this?
 //			J2S._firstTouch = true;
@@ -12849,8 +12903,7 @@ if (ev.keyCode == 9 && ev.target["data-focuscomponent"]) {
 		if (updateTouchContext(who, ev))
 			return true;
 
-		if (ev.type == "touchmove" && 
-				(J2S._firstTouch || J2S._haveMouse)) {
+		if (ev.type == "touchmove" && J2S._firstTouch) {
 			return;
 		}
 		
@@ -12940,7 +12993,6 @@ if (ev.keyCode == 9 && ev.target["data-focuscomponent"]) {
 		// and set J2S.firstTouch false:
 			
 		if (ev.type == "touchend") {
-		    if (J2S._haveMouse) return;
 		    if (J2S._firstTouch) {
 		    	J2S._firstTouch = false;
 		        return;
@@ -13125,18 +13177,22 @@ if (ev.keyCode == 9 && ev.target["data-focuscomponent"]) {
 		// swingjs.api.J2SInterface
 
 
-		J2S.$bind(who, (J2S._haveMouse ? 'mousemove pointermove' : 'pointermove mousemove touchmove'), 
+		// Always listen for all three browser input families. Mobile Safari can
+		// report a compatibility mouse during startup and set _haveMouse before
+		// the user touches the video; omitting touch events after that prevents a
+		// long press from ever starting. The handlers below already suppress the
+		// duplicate compatibility events generated from the same physical touch.
+		J2S.$bind(who, 'pointermove mousemove touchmove',
 				function(ev) { return mouseMove(who, ev) });
 
 		J2S.$bind(who, 'click', function(ev) { return mouseClick(who, ev) });
 		
 		J2S.$bind(who, 'DOMMouseScroll mousewheel', function(ev) { return mouseWheel(who, ev) });
 
-		J2S.$bind(who, (J2S._haveMouse ? 'mousedown pointerdown' : 'pointerdown mousedown touchstart'), 
+		J2S.$bind(who, 'pointerdown mousedown touchstart',
 				function(ev) { return mouseDown(who, ev) });
 
-		J2S.$bind(who, (J2S._haveMouse ? 'mouseup pointerup pointercancel' :
-		'pointerup pointercancel mouseup touchend touchcancel'),
+		J2S.$bind(who, 'pointerup pointercancel mouseup touchend touchcancel',
 				function(ev) { return mouseUp(who, ev) });
 
 		J2S.$bind(who, 'pointerenter mouseenter', function(ev) { return mouseEnter(who, ev) });
@@ -13287,8 +13343,15 @@ if (ev.keyCode == 9 && ev.target["data-focuscomponent"]) {
 
 	var getXY = function(who, ev, id) {
 		// id 0, 502, or 503 only 
-		if (!who.applet._ready || J2S._touching && ev.type.indexOf("touch") < 0)
+		var oe = ev.originalEvent || ev;
+		if (!who.applet._ready || J2S._touching && ev.type.indexOf("touch") < 0
+				&& !oe.trackerTouchContext && !ev.trackerTouchContext) {
+			if (oe.trackerTouchContext || ev.trackerTouchContext)
+				setLongPressStatus("getxy-rejected", { ready: !!who.applet._ready, touching: !!J2S._touching });
 			return false;
+		}
+		if (oe.trackerTouchContext || ev.trackerTouchContext)
+			setLongPressStatus("getxy-accepted", { id: id, touching: !!J2S._touching });
 		// text-box clicking in SwingJS
 		if (ev.target == who) {
 			var ui = ev.target["data-ui"];
@@ -14459,8 +14522,12 @@ if (ev.keyCode == 9 && ev.target["data-focuscomponent"]) {
 		}, drag = function(ev) {
 			// we will move the frame's parent node and take the frame along
 			// with it
-			var ev0 = ev.ev0 || ev;
-			if (ev0.buttons == 0 && ev0.button == 0)
+			var ev0 = ev.originalEvent || ev.ev0 || ev;
+			var touchPointer = ev0.pointerType == "touch" || ev0.pointerType == "pen";
+			// Mobile Safari can report buttons=0/button=0 throughout an active
+			// touch or Pencil drag. Only interpret that combination as a released
+			// button for a real mouse pointer.
+			if (!touchPointer && ev0.buttons == 0 && ev0.button == 0)
 				tag.isDragging = false;
 			var mode = (tag.isDragging ? 506 : 503);
 			if (!J2S._dmouseOwner || tag.isDragging && J2S._dmouseOwner == tag) {
