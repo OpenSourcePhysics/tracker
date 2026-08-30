@@ -2340,7 +2340,10 @@ public class Tracker {
 	 * @param args array of tracker or video file names
 	 */
 	private static void start(String[] args) {
-		FontSizer.setLevel(preferredFontLevel + preferredFontLevelPlus);
+		int fontLevel = preferredFontLevel + preferredFontLevelPlus;
+		if (OSPRuntime.isJS)
+			fontLevel = Math.max(2, fontLevel);
+		FontSizer.setLevel(fontLevel);
 		// be ready to handle videos and tracks of length 500,000 frames!
 		Dataset.maxPointsMultiplier = 32; // increase max points in dataset to 32x16x1024=524,288
 		// idea is Tracker.jar -headless -output "xxx.zip"
