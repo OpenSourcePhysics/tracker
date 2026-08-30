@@ -95,6 +95,7 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 	protected int toolbarComponentHeight, numberFieldWidth;
 	protected TButton trackButton;
 	protected JButton maximizeButton;
+	protected JButton nextViewButton;
 	protected TButton selectButton;
 	protected JLabel emptyLabel = new JLabel();
 	protected JPopupMenu selectPopup = new JPopupMenu();
@@ -286,7 +287,8 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 	 * @param level the desired font level
 	 */
 	public void setFontLevel(int level) {
-		Object[] objectsToSize = new Object[] { newVersionButton, trackButton, sizingField, testButton };
+		Object[] objectsToSize = new Object[] { newVersionButton, trackButton, sizingField, testButton,
+				maximizeButton};
 		FontSizer.setFonts(objectsToSize, level);
 		numberFieldWidth = sizingField.getPreferredSize().width;
 	}
@@ -385,22 +387,40 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 		maximizeButton = new TButton(TViewChooser.MAXIMIZE_ICON, TViewChooser.RESTORE_ICON);
 		maximizeButton.setBorder(BorderFactory.createCompoundBorder(etched, empty));
 		maximizeButton.setToolTipText(TrackerRes.getString("TViewChooser.Maximize.Tooltip")); //$NON-NLS-1$
+		maximizeButton.setHorizontalTextPosition(TButton.LEFT);
 		maximizeButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				boolean maximize = (frame.getMaximizedView() == TView.VIEW_UNSET);
+				boolean maximize = (panel().getMaximizedView() == TView.VIEW_UNSET);
 				if (maximize) {
 					frame.saveCurrentDividerLocations(panel());
 					frame.maximizeView(panel(), TView.VIEW_MAIN);
 				} else {
 					frame.restoreViews(panel());
 				}
-				maximizeButton.setSelected(maximize);
-				if (OSPRuntime.isJS) {
-					maximizeButton.setIcon(maximize? TViewChooser.RESTORE_ICON: TViewChooser.MAXIMIZE_ICON);
+//				maximizeButton.setSelected(maximize);
+//				if (OSPRuntime.isJS) {
+//					maximizeButton.setIcon(maximize? TViewChooser.RESTORE_ICON: TViewChooser.MAXIMIZE_ICON);
+//				}
+//				maximizeButton.setToolTipText(maximize ? TrackerRes.getString("TViewChooser.Restore.Tooltip") : //$NON-NLS-1$
+//					TrackerRes.getString("TViewChooser.Maximize.Tooltip")); //$NON-NLS-1$				
+				rebuild();
+			}
+		});
+		nextViewButton = new TButton(TViewChooser.RIGHT_ARROW_ICON);
+		nextViewButton.setBorder(BorderFactory.createCompoundBorder(etched, empty));
+		nextViewButton.setToolTipText(TrackerRes.getString("TViewChooser.Maximize.Tooltip")); //$NON-NLS-1$
+		nextViewButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				int viewNum = panel().getMaximizedView();
+				if (viewNum != TView.VIEW_UNSET) {
+					int next = viewNum + 1;
+					next = next > TView.VIEW_MAIN? TView.VIEW_PLOT: next;
+					frame.maximizeView(panel(), next);										
 				}
-				maximizeButton.setToolTipText(maximize ? TrackerRes.getString("TViewChooser.Restore.Tooltip") : //$NON-NLS-1$
-					TrackerRes.getString("TViewChooser.Maximize.Tooltip")); //$NON-NLS-1$
+				rebuild();
+				nextViewButton.setToolTipText(TrackerRes.getString("TViewChooser.Maximize.Tooltip")); //$NON-NLS-1$				
 			}
 		});
 
@@ -599,7 +619,20 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 				add(testButton);
 			}
 		}
+		maximizeButton.setText(TrackerRes.getString("TFrame.View.Main"));
 		add(maximizeButton);
+		if (panel().getMaximizedView() != TView.VIEW_UNSET) {
+			maximizeButton.setIcon(TViewChooser.RESTORE_ICON);
+			maximizeButton.setToolTipText(TrackerRes.getString("TViewChooser.Restore.Tooltip"));//$NON-NLS-1$
+			nextViewButton.setToolTipText(TrackerRes.getString("TViewChooser.NextView.Tooltip")); //$NON-NLS-1$
+			add(nextViewButton);			
+		}
+		else {
+			maximizeButton.setIcon(TViewChooser.MAXIMIZE_ICON);
+			maximizeButton.setToolTipText(TrackerRes.getString("TViewChooser.Maximize.Tooltip"));//$NON-NLS-1$
+		}
+
+		FontSizer.setFonts(maximizeButton);
 		revalidate();
 		TFrame.repaintT(this);
 //		toolbarComponentHeight = selectButton.getPreferredSize().height;
