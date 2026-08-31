@@ -317,6 +317,12 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 	private JMenuItem coords_emptyCoordsItem;
 	// window menu
 	private JMenu viewMenu;
+	private JMenu view_maximizeMenu;
+	private JMenuItem view_mainItem;
+	private JMenuItem view_1Item;
+	private JMenuItem view_2Item;
+	private JMenuItem view_3Item;
+	private JMenuItem view_4Item;
 	private JMenuItem view_restoreItem;
 	protected JCheckBoxMenuItem view_rightPaneItem;
 	protected JCheckBoxMenuItem view_bottomPaneItem;
@@ -1163,12 +1169,39 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		track_emptyTracksItem.setEnabled(false);
 		add(trackMenu);
 	}
+	
+	private void maximizeView(int view) {
+		frame.maximizeView(panel(), view);		
+	}
 
 	private void createViewMenu(int keyMask) {
 		viewMenu = new JMenu(TrackerRes.getString("TMenuBar.Menu.Window")); //$NON-NLS-1$
 		viewMenu.setName("window");
 		viewMenu.addMenuListener(this);
 
+		// maximizeMenu
+		view_maximizeMenu = new JMenu(TrackerRes.getString("TFrame.Maximize.Tooltip")); //$NON-NLS-1$
+		view_mainItem = new JMenuItem(TrackerRes.getString("TFrame.View.Main")); //$NON-NLS-1$
+		view_mainItem.addActionListener((e) -> {
+			maximizeView(TView.VIEW_MAIN);
+		});
+		
+		view_1Item = new JMenuItem(); //$NON-NLS-1$
+		view_1Item.addActionListener((e) -> {
+			maximizeView(TView.VIEW_PLOT);
+		});
+		view_2Item = new JMenuItem(); //$NON-NLS-1$
+		view_2Item.addActionListener((e) -> {
+			maximizeView(TView.VIEW_TABLE);
+		});
+		view_3Item = new JMenuItem(); //$NON-NLS-1$
+		view_3Item.addActionListener((e) -> {
+			maximizeView(TView.VIEW_WORLD);
+		});
+		view_4Item = new JMenuItem(); //$NON-NLS-1$
+		view_4Item.addActionListener((e) -> {
+			maximizeView(TView.VIEW_PAGE);
+		});
 		// restoreItem
 		view_restoreItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.Restore")); //$NON-NLS-1$
 		view_restoreItem.addActionListener((e) -> {
@@ -2528,6 +2561,11 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 						TrackerRes.getString("PageTView.Button.Page"):
 					null;
 		}
+		
+		view_1Item.setText(TrackerRes.getString("TMenuBar.Menu.Window") + " 1 ("+viewNames[0]+")"); //$NON-NLS-1$;
+		view_2Item.setText(TrackerRes.getString("TMenuBar.Menu.Window") + " 2 ("+viewNames[1]+")"); //$NON-NLS-1$;
+		view_3Item.setText(TrackerRes.getString("TMenuBar.Menu.Window") + " 3 ("+viewNames[2]+")"); //$NON-NLS-1$;
+		view_4Item.setText(TrackerRes.getString("TMenuBar.Menu.Window") + " 4 ("+viewNames[3]+")"); //$NON-NLS-1$;
 				
 		// long t0 = Performance.now(0);
 		// determine if right pane is open or closed
@@ -2564,9 +2602,16 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 				viewMenu.remove(i);
 			}
 //			viewMenu.removeAll();
-			if (frame.getMaximizedView() != TView.VIEW_UNSET) {
+			if (panel().getMaximizedView() != TView.VIEW_UNSET) {
 				viewMenu.add(view_restoreItem);
 			} else {
+				viewMenu.add(view_maximizeMenu);
+				view_maximizeMenu.add(view_mainItem);
+				view_maximizeMenu.add(view_1Item);
+				view_maximizeMenu.add(view_2Item);
+				view_maximizeMenu.add(view_3Item);
+				view_maximizeMenu.add(view_4Item);
+				viewMenu.addSeparator();
 				viewMenu.add(view_rightPaneItem);
 				viewMenu.add(view_bottomPaneItem);
 			}

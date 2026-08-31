@@ -190,7 +190,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		return panelID;
 	}
 	
-
+	private int maximizedView = TView.VIEW_UNSET;
 	private double defaultImageBorder;
 	private String description = ""; //$NON-NLS-1$
 	protected TPoint selectedPoint;
@@ -948,6 +948,15 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			}
 		}
 		return false;
+	}
+	
+	public int getMaximizedView() {
+		return maximizedView;
+	}
+
+	public void setMaximizedView(int viewNumber) {
+		maximizedView = (viewNumber >= TView.VIEW_UNSET && viewNumber <= TView.VIEW_MAIN)?
+				viewNumber: TView.VIEW_UNSET;
 	}
 
 	/**
@@ -2408,7 +2417,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	protected void restoreViews() {
 		TFrame frame = getTFrame();
 		if (frame != null) {
-			int n = frame.getMaximizedView();
+			int n = getMaximizedView();
 			switch (n) {
 			case TView.VIEW_UNSET:
 				return;

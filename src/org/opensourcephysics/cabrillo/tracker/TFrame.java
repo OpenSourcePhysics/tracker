@@ -301,7 +301,6 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 	protected File tabsetFile; // used when saving tabsets
 	protected String currentLangugae = "en";
 	protected Integer prevPanelID;
-	protected int maximizedView = TView.VIEW_UNSET;
 	protected int framesLoaded, prevFramesLoaded; // used when loading xuggle videos
 	protected boolean splashing = true;
 
@@ -541,6 +540,9 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 
 		setupAddedPanel(tabPanel, tab, trackerPanel, doSelect, doRefresh, whenDone);
 		doTabStateChanged();
+		
+		if (OSPRuntime.isJS && OSPRuntime.cssCursor) // opening on iPad
+			maximizeView(trackerPanel, TView.VIEW_MAIN);
 	}
 
 	private void setupAddedPanel(TTabPanel tabPanel, int tab, TrackerPanel trackerPanel, boolean doSelect,
@@ -1825,18 +1827,16 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 		pane.setOneTouchExpandable(true);
 	}
 
-	public int getMaximizedView() {
-		return maximizedView;
-	}
-
 	void maximizeView(TrackerPanel trackerPanel, int viewIndex) {
-		maximizedView = viewIndex;
+		saveCurrentDividerLocations(trackerPanel);		
+		trackerPanel.setMaximizedView(viewIndex);
 		JSplitPane[] panes = getSplitPanes(trackerPanel);
 		for (int i = 0; i < panes.length; i++) {
 			panes[i].setDividerSize(0);
 		}
 		int[] order = (isPortraitLayout() ? PORTRAIT_VIEW_ORDER : DEFAULT_ORDER);
 		int viewPosition = viewIndex < order.length ? order[viewIndex] : viewIndex;
+
 		switch (viewPosition) {
 		case TView.VIEW_PLOT: // right upper
 			panes[SPLIT_PLOT_TABLE].setResizeWeight(1);
@@ -1868,6 +1868,26 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 		}
 		TMenuBar menubar = getMenuBar(trackerPanel.getID(), true);
 		menubar.setMenuTainted(TMenuBar.MENU_VIEW, true);
+		
+		// add player bar to maximized view
+		JToolBar player = getMainView(trackerPanel).getPlayerBar();
+		if (trackerPanel.getMaximizedView() == TView.VIEW_MAIN) {
+			getMainView(trackerPanel).add(player, BorderLayout.SOUTH);							
+			TTrackBar tbar = getTrackBar(trackerPanel.getID(), false);
+			if (tbar != null)
+				tbar.rebuild();
+		}
+		else {
+			TViewChooser[] choosers = getViewChoosers(trackerPanel);
+			for (int i = 0; i < choosers.length; i++) {
+				choosers[i].refreshToolbar();
+				if (trackerPanel.getMaximizedView() == i) {
+					choosers[i].add(player, BorderLayout.SOUTH);			
+				}
+			}
+		}
+		
+
 //		int tab = getTab(trackerPanel);
 //		if (tab == -1) return;
 //		TTabPanel tabPanel = (TTabPanel) tabbedPane.getComponentAt(tab);
@@ -1876,7 +1896,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 	}
 
 	void saveCurrentDividerLocations(TrackerPanel trackerPanel) {
-		if (maximizedView != TView.VIEW_UNSET)
+		if (trackerPanel.getMaximizedView() != TView.VIEW_UNSET)
 			return;
 		if (trackerPanel.dividerLocs == null)
 			trackerPanel.dividerLocs = new double[4];
@@ -1893,8 +1913,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 	}
 
 	void restoreViews(TrackerPanel trackerPanel) {
-//		if (maximizedView < 0)
-//			return;
+		if (trackerPanel.getMaximizedView() == TView.VIEW_UNSET)
+			return;
 		for (int i = 0; i < trackerPanel.dividerFractions.length; i++) {
 			if (trackerPanel.dividerLocs == null)
 				setDividerLocation(trackerPanel, i, trackerPanel.dividerFractions[i]);
@@ -1902,12 +1922,19 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 				setDividerLocation(trackerPanel, i, (int) trackerPanel.dividerLocs[i]);
 		}
 		setDefaultWeights(getSplitPanes(trackerPanel));
-		maximizedView = TView.VIEW_UNSET;
+		trackerPanel.setMaximizedView(TView.VIEW_UNSET);
 		TMenuBar menubar = getMenuBar(trackerPanel.getID(), true);
 		menubar.setMenuTainted(TMenuBar.MENU_VIEW, true);
 		if (isLayoutChanged) {
 			frameResized();
 		}
+		TViewChooser[] choosers = getViewChoosers(trackerPanel);
+		for (int i = 0; i < choosers.length; i++) {
+			choosers[i].refreshToolbar();
+		}
+		TTrackBar tbar = getTrackBar(trackerPanel.getID(), false);
+		if (tbar != null)
+			tbar.rebuild();
 
 //		int tab = getTab(trackerPanel);
 //		if (tab == -1) return;
@@ -2575,15 +2602,19 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 
 	protected void frameResized() {
 		TrackerPanel trackerPanel = getSelectedPanel();
-		if (!isLayoutAdaptive || trackerPanel == null)
+		if (trackerPanel == null)
 			return;
-		Rectangle rect = getBounds();
-		isLayoutChanged = isPortraitOrientation != (rect.height > rect.width);
-		if (maximizedView != TView.VIEW_UNSET) {
-			maximizeView(trackerPanel, maximizedView);
+		int viewNum = trackerPanel.getMaximizedView();
+		if (viewNum != TView.VIEW_UNSET) {
+			maximizeView(trackerPanel, viewNum);
 			trackerPanel.dividerLocs = null;
 			return;
 		}
+		if (!isLayoutAdaptive)
+			return;
+		Rectangle rect = getBounds();
+		isLayoutChanged = isPortraitOrientation != (rect.height > rect.width);
+		
 		if (isLayoutChanged) {
 			// determine if dimensions are portrait or landscape and arrange views
 			isPortraitOrientation = !isPortraitOrientation;

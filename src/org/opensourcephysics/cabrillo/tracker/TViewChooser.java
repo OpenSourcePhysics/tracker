@@ -67,6 +67,7 @@ public class TViewChooser extends JPanel implements PropertyChangeListener, OSPR
 	protected final static Icon MAXIMIZE_ICON = Tracker.getResourceIcon("maximize.gif", true); //$NON-NLS-1$
 	protected final static Icon	RESTORE_ICON = Tracker.getResourceIcon("restore.gif", true); //$NON-NLS-1$
 	protected final static Icon DOWN_ARROW_ICON = Tracker.getResourceIcon("triangle_down.gif", true); //$NON-NLS-1$
+	protected final static Icon RIGHT_ARROW_ICON = Tracker.getResourceIcon("right_arrow.gif", true); //$NON-NLS-1$; //$NON-NLS-1$
 
 	// instance fields
 
@@ -84,12 +85,13 @@ public class TViewChooser extends JPanel implements PropertyChangeListener, OSPR
 
 	private JToolBar toolbar;
 	private Component toolbarFiller = Box.createHorizontalGlue();
-	private JButton maximizeButton;
+	private JButton maximizeButton, nextViewButton;
 	private JPanel viewPanel;
 	private JButton chooserButton;
 	
 	public boolean isMaximized() {
-		return frame != null && (frame.getMaximizedView() != TView.VIEW_UNSET);
+		TrackerPanel panel = getTrackerPanel();
+		return panel != null && (panel.getMaximizedView() != TView.VIEW_UNSET);
 	}
 	
 	// popup menu
@@ -146,15 +148,30 @@ public class TViewChooser extends JPanel implements PropertyChangeListener, OSPR
 		Border empty = BorderFactory.createEmptyBorder(7, 3, 7, 3);
 		Border etched = BorderFactory.createEtchedBorder();
 		maximizeButton = new TButton(MAXIMIZE_ICON, RESTORE_ICON);
+		maximizeButton.setHorizontalTextPosition(TButton.LEFT);
+		maximizeButton.setName(String.valueOf(type + 1));
 		maximizeButton.setBorder(BorderFactory.createCompoundBorder(etched, empty));
-		maximizeButton.setToolTipText(TrackerRes.getString("TViewChooser.Maximize.Tooltip")); //$NON-NLS-1$
 		maximizeButton.addActionListener(new ActionListener() {
 			@Override
-			public void actionPerformed(ActionEvent e) {
+			public void actionPerformed(ActionEvent e) {			
 				if (!isMaximized()) {
 					maximize();
-				} else
-					restore();
+				} 
+				else restore();
+			}
+		});
+		// next view button
+		nextViewButton = new TButton(RIGHT_ARROW_ICON);
+		nextViewButton.setBorder(BorderFactory.createCompoundBorder(etched, empty));
+		nextViewButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				int viewNum = getTrackerPanel().getMaximizedView();
+				if (viewNum != TView.VIEW_UNSET) {
+					int next = viewNum + 1;
+					next = next > TView.VIEW_MAIN? TView.VIEW_PLOT: next;
+					frame.maximizeView(getTrackerPanel(), next);
+				}
 			}
 		});
 		setSelectedViewType(type);
@@ -162,13 +179,12 @@ public class TViewChooser extends JPanel implements PropertyChangeListener, OSPR
 	
 	private void refreshMaximizeButton() {
 		boolean maximized = isMaximized();
-		maximizeButton.setSelected(maximized);
-		if (OSPRuntime.isJS) {
-			maximizeButton.setIcon(maximized? RESTORE_ICON: MAXIMIZE_ICON);
-		}
+		maximizeButton.setIcon(maximized? RESTORE_ICON: MAXIMIZE_ICON);
 		maximizeButton.setToolTipText(maximized ? 
 				TrackerRes.getString("TViewChooser.Restore.Tooltip") : //$NON-NLS-1$
 				TrackerRes.getString("TViewChooser.Maximize.Tooltip")); //$NON-NLS-1$
+		maximizeButton.setText(TrackerRes.getString("TMenuBar.Menu.Window")+" "+maximizeButton.getName());
+		nextViewButton.setToolTipText(TrackerRes.getString("TViewChooser.NextView.Tooltip")); //$NON-NLS-1$
 	}
 
 	protected void showToolbarPopup(int x, int y) {
@@ -476,6 +492,7 @@ public class TViewChooser extends JPanel implements PropertyChangeListener, OSPR
 		super.setEnabled(enable);
 		chooserButton.setEnabled(enable);
 		maximizeButton.setEnabled(enable);
+		nextViewButton.setEnabled(enable);
 		TView view = getSelectedView();
 		ArrayList<Component> comps = view.getToolBarComponents();
 		for (int j = 0; j < comps.size(); j++) {
@@ -487,15 +504,12 @@ public class TViewChooser extends JPanel implements PropertyChangeListener, OSPR
 	 * Maximizes this chooser and its views.
 	 */
 	public void maximize() {
-		if (isMaximized())
+		if (isMaximized()) {
 			return;
+		}
+		
 		// save divider locations and size
 		TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
-		frame.saveCurrentDividerLocations(trackerPanel);
-		JToolBar player = frame.getMainView(trackerPanel).getPlayerBar();
-		if (player.getTopLevelAncestor()==frame) {
-			add(player, BorderLayout.SOUTH);
-		}
 		TViewChooser[] choosers = frame.getViewChoosers(trackerPanel);
 		for (int i = 0; i < choosers.length; i++) {
 			if (choosers[i] == this) {
@@ -503,7 +517,7 @@ public class TViewChooser extends JPanel implements PropertyChangeListener, OSPR
 				break;
 			}
 		}
-		refreshMaximizeButton();
+		refreshToolbar();
 	}
 
 	/**
@@ -517,7 +531,7 @@ public class TViewChooser extends JPanel implements PropertyChangeListener, OSPR
 			mainView.add(player, BorderLayout.SOUTH);
 		}
 		frame.restoreViews(trackerPanel);
-		refreshMaximizeButton();
+		refreshToolbar();
 	}
 	
 	/**
@@ -538,7 +552,10 @@ public class TViewChooser extends JPanel implements PropertyChangeListener, OSPR
 			}
 		}
 		toolbar.add(toolbarFiller);
+		refreshMaximizeButton();
 		toolbar.add(maximizeButton);
+		if (isMaximized())
+			toolbar.add(nextViewButton);
 //		FontSizer.setFonts(toolbar);
 		toolbar.repaint();
 	}

@@ -167,10 +167,15 @@ public class TMouseHandler implements InteractiveMouseHandler {
 			selectedTrack = trackerPanel.getSelectedTrack();
 			frameNumber = trackerPanel.getFrameNumber();
 			iad = trackerPanel.getInteractive();
-			marking = trackerPanel.setCursorForMarking(e.isShiftDown(), e);
+			// determine marking: prefer setCursorForMarking (updates cursor) but
+			// also accept the cursorType-based comparison added by SwingJS so a
+			// touch hit-test on the canvas can clear/select appropriately.
+			boolean markingFromCursor = trackerPanel.setCursorForMarking(e.isShiftDown(), e);
+			marking = markingFromCursor || (selectedTrack != null && trackerPanel.cursorType == selectedTrack.getMarkingCursorType(e));
 			if (selectedTrack != null && marking != selectedTrack.isMarking) {
 				selectedTrack.setMarking(marking);
 			}
+
 			if (marking) {
 				markPoint(trackerPanel, e, autoTracker);
 				return;
