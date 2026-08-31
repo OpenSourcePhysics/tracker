@@ -784,6 +784,7 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 //		maximizeButton.setBorder(BorderFactory.createCompoundBorder(etched, empty));
 		maximizeButton.setName(BUTTON_MAXIMIZE);
 		maximizeButton.setToolTipText(TrackerRes.getString("TFrame.Maximize.Tooltip")); //$NON-NLS-1$
+		maximizeButton.setSelected(TFrame.maximize);
 		maximizeButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
