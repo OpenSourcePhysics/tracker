@@ -540,6 +540,9 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 
 		setupAddedPanel(tabPanel, tab, trackerPanel, doSelect, doRefresh, whenDone);
 		doTabStateChanged();
+		
+		if (OSPRuntime.isJS && OSPRuntime.cssCursor) // opening on iPad
+			maximizeView(trackerPanel, TView.VIEW_MAIN);
 	}
 
 	private void setupAddedPanel(TTabPanel tabPanel, int tab, TrackerPanel trackerPanel, boolean doSelect,
@@ -1825,6 +1828,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 	}
 
 	void maximizeView(TrackerPanel trackerPanel, int viewIndex) {
+		saveCurrentDividerLocations(trackerPanel);		
 		trackerPanel.setMaximizedView(viewIndex);
 		JSplitPane[] panes = getSplitPanes(trackerPanel);
 		for (int i = 0; i < panes.length; i++) {

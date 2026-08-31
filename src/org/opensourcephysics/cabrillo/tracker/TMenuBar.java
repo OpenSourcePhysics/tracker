@@ -1171,7 +1171,6 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 	}
 	
 	private void maximizeView(int view) {
-		frame.saveCurrentDividerLocations(panel());
 		frame.maximizeView(panel(), view);		
 	}
 

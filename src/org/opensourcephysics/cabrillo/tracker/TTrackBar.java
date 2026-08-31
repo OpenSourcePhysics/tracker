@@ -393,7 +393,6 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 			public void actionPerformed(ActionEvent e) {
 				boolean maximize = (panel().getMaximizedView() == TView.VIEW_UNSET);
 				if (maximize) {
-					frame.saveCurrentDividerLocations(panel());
 					frame.maximizeView(panel(), TView.VIEW_MAIN);
 				} else {
 					frame.restoreViews(panel());
@@ -523,6 +522,9 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 	private boolean buildRequested;
 
 	protected void rebuild() {
+		if (selectButton == null)
+			createGUI();
+		
 		buildRequested = false;
 		numberFieldWidth = sizingField.getPreferredSize().width;
 		selectButton.setToolTipText(TrackerRes.getString("TToolBar.Button.SelectTrack.Tooltip")); //$NON-NLS-1$

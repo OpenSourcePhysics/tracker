@@ -510,7 +510,6 @@ public class TViewChooser extends JPanel implements PropertyChangeListener, OSPR
 		
 		// save divider locations and size
 		TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
-		frame.saveCurrentDividerLocations(trackerPanel);
 		TViewChooser[] choosers = frame.getViewChoosers(trackerPanel);
 		for (int i = 0; i < choosers.length; i++) {
 			if (choosers[i] == this) {
