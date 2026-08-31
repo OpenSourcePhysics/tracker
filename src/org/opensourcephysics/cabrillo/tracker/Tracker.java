@@ -2341,8 +2341,10 @@ public class Tracker {
 	 */
 	private static void start(String[] args) {
 		int fontLevel = preferredFontLevel + preferredFontLevelPlus;
-		if (OSPRuntime.isJS)
+		if (OSPRuntime.isJS && OSPRuntime.cssCursor) { // running on iPad/iPhone
 			fontLevel = Math.max(2, fontLevel);
+			TFrame.maximize = true;
+		}
 		FontSizer.setLevel(fontLevel);
 		// be ready to handle videos and tracks of length 500,000 frames!
 		Dataset.maxPointsMultiplier = 32; // increase max points in dataset to 32x16x1024=524,288
@@ -2366,8 +2368,9 @@ public class Tracker {
 		final TFrame frame = tracker.getFrame();
 		if (frame == null)
 			return;
-		if (!OSPRuntime.isJS)
+		if (!OSPRuntime.isJS) {
 			frame.setVisible(true);
+		}
 
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
