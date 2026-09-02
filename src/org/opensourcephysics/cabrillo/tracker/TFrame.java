@@ -208,10 +208,16 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 				toolbarBox.add(bar);
 			}
 			if (vis) {
-				add(toolbarBox, BorderLayout.NORTH);
-			} else {
+				if (toolbarBox.getParent() != this)
+					add(toolbarBox, BorderLayout.NORTH);
+			} else if (toolbarBox.getParent() == this) {
 				remove(toolbarBox);
 			}
+			// In SwingJS the toolbar can be added before the containing frame has a
+			// visible DOM peer. Force a fresh layout and paint so it is materialized
+			// when the frame becomes visible.
+			revalidate();
+			repaint();
 		}
 
 		@Override
@@ -1683,6 +1689,15 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 	@Override
 	public void setVisible(boolean visible) {
 		super.setVisible(visible);
+		if (visible) {
+			TrackerPanel trackerPanel = getSelectedPanel();
+			TTabPanel tabPanel = trackerPanel == null ? null : getTabPanel(trackerPanel);
+			if (tabPanel != null)
+				tabPanel.setToolbarVisible(true);
+			TMenuBar menuBar = trackerPanel == null ? null : getMenuBar(trackerPanel.getID(), true);
+			if (menuBar != null)
+				setJMenuBar(menuBar);
+		}
 		Tracker.checkSplash();
 	}
 
@@ -3388,6 +3403,13 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 	public void setJMenuBar(JMenuBar bar) {
 		super.setJMenuBar(bar);
 		bar.setEnabled(frameBlocker == null);
+		// SwingJS may install the menu bar before the frame has a visible DOM peer.
+		// Force the root pane to materialize and lay out the text menu after every
+		// per-tab menu-bar swap.
+		if (getRootPane() != null) {
+			getRootPane().revalidate();
+			getRootPane().repaint();
+		}
 	}
 
 	static class DeactivatingMenuBar extends JMenuBar {

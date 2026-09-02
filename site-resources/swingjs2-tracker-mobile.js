@@ -12505,7 +12505,7 @@ if (ev.keyCode == 9 && ev.target["data-focuscomponent"]) {
 
 	var setLongPressStatus = function(stage, details) {
 		J2S._trackerLongPressStatus = {
-			version: "20260827-touch10",
+			version: "20260901-resize27",
 			stage: stage,
 			time: Date.now(),
 			details: details || null
@@ -12758,8 +12758,11 @@ if (ev.keyCode == 9 && ev.target["data-focuscomponent"]) {
 			J2S._haveMouse = true;
 	});
 	
-	J2S.$bind('body', //'pointerup 
-		'mouseup touchend', function(ev) {
+	// A Swing button may repaint and replace its DOM node between press and
+	// release. Listen on the body for pointer releases as well so mouseUp() can
+	// route an orphaned iPad release to the component that owns the press.
+	J2S.$bind('body',
+		'pointerup pointercancel mouseup touchend touchcancel', function(ev) {
 		mouseUp(null, ev);
 		return true;
 	});
@@ -14464,6 +14467,8 @@ if (ev.keyCode == 9 && ev.target["data-focuscomponent"]) {
 		// Enlarge the invisible target inward and reserve the gesture for resizing.
 		var isResizer = (" " + tag.className + " ").indexOf(" swingjs-resizer ") >= 0;
 		var isSliderHandle = (" " + tag.className + " ").indexOf(" ui-j2sslider-handle ") >= 0;
+		var isIPadResizer = isResizer && (/iPad|iPhone|iPod/.test(navigator.userAgent)
+				|| navigator.platform == "MacIntel" && navigator.maxTouchPoints > 1);
 		if (isSliderHandle) {
 			$tag.css({
 				"touch-action" : "none",
@@ -14483,10 +14488,97 @@ if (ev.keyCode == 9 && ev.target["data-focuscomponent"]) {
 			});
 		}
 
-		var x, y, dx, dy, pageX0, pageY0, pageX, pageY;
+		var x, y, dx, dy, pageX0, pageY0, pageX, pageY, dragPointerType;
+		var capturedRelease = null;
+		var resizeFrame = null;
+		var setBoundsMethod = "setBounds$I$I$I$I";
+
+		var findResizeFrame = function(node) {
+			for (; node && node != document.body; node = node.parentNode) {
+				var ui = node.ui || node["data-ui"];
+				var component = ui && ui.jc || node["data-component"];
+				if (component && component.getBounds$
+						&& (component.setSize$II || component[setBoundsMethod]))
+					return component;
+			}
+			return null;
+		};
+
+		var removeCapturedRelease = function() {
+			if (!capturedRelease)
+				return;
+			document.removeEventListener("pointerup", capturedRelease, true);
+			document.removeEventListener("pointercancel", capturedRelease, true);
+			document.removeEventListener("touchend", capturedRelease, true);
+			document.removeEventListener("touchcancel", capturedRelease, true);
+			capturedRelease = null;
+		};
+
+		var finishTouchResize = function(xye) {
+			var root = tag.parentNode;
+			var frame = resizeFrame || findResizeFrame(root);
+			J2S._trackerResizeStatus = { version : "20260901-resize27", stage : "commit-start" };
+			if (!frame || !frame.getBounds$
+					|| !(frame.setSize$II || frame[setBoundsMethod])) {
+				J2S._trackerResizeStatus.stage = "frame-unavailable";
+				return false;
+			}
+			var bounds = frame.getBounds$();
+			var width = Math.max(10, bounds.width + xye.dx);
+			var height = Math.max(10, bounds.height + xye.dy);
+			J2S._trackerResizeStatus = {
+				version : "20260901-resize27", stage : "before-set-size",
+				width : width, height : height, dx : xye.dx, dy : xye.dy
+			};
+			var rubberBand = tag.nextSibling;
+			$tag.css("background-color", "red");
+			if (rubberBand) {
+				$(rubberBand).hide().css({ width : width + "px", height : height + "px" });
+			}
+			document.body.style.cursor = "auto";
+			// Resizer normally sets a preferred size, invalidates the full tree, and
+			// packs the window. That pack cycle does not terminate reliably on iPad.
+			// setSize updates the top-level peer; avoid another validation cycle.
+			if (frame.setSize$II)
+				frame.setSize$II(width, height);
+			else
+				frame[setBoundsMethod](bounds.x, bounds.y, width, height);
+			J2S._trackerResizeStatus.stage = "after-set-size";
+			$tag.css({ left : (width - 4) + "px", top : (height - 4) + "px" });
+			J2S._trackerResizeStatus.stage = "commit-complete";
+			resizeFrame = null;
+			return true;
+		};
 
 		var down = function(ev) {
 			var ev0 = ev.originalEvent || ev;
+			if (isIPadResizer) {
+				resizeFrame = findResizeFrame(tag.parentNode);
+				J2S._trackerResizeStatus = {
+					version : "20260901-resize27", stage : "pointer-down",
+					frameFound : !!resizeFrame
+				};
+				removeCapturedRelease();
+				capturedRelease = function(releaseEvent) {
+					if (J2S._dmouseOwner != tag || !tag.isDragging)
+						return;
+					J2S._trackerResizeStatus.stage = "release-captured";
+					up(releaseEvent);
+					releaseEvent.preventDefault && releaseEvent.preventDefault();
+					releaseEvent.stopPropagation && releaseEvent.stopPropagation();
+				};
+				document.addEventListener("pointerup", capturedRelease, true);
+				document.addEventListener("pointercancel", capturedRelease, true);
+				document.addEventListener("touchend", capturedRelease, true);
+				document.addEventListener("touchcancel", capturedRelease, true);
+			}
+			var pointerType = ev0.pointerType
+					|| (ev0.targetTouches ? "touch" : "mouse");
+			// Once a direct-manipulation event identifies this gesture as touch or
+			// Pencil, do not let WebKit's following compatibility mouse event change
+			// the release path back to the hanging JFrame pack implementation.
+			if (!dragPointerType || pointerType == "touch" || pointerType == "pen")
+				dragPointerType = pointerType;
 			if ((isResizer || isSliderHandle) && ev0.pointerId != null && tag.setPointerCapture) {
 				try {
 					tag.setPointerCapture(ev0.pointerId);
@@ -14518,6 +14610,9 @@ if (ev.keyCode == 9 && ev.target["data-focuscomponent"]) {
 			}
 			pageX0 = xy.x;
 			pageY0 = xy.y;
+			x = pageX0;
+			y = pageY0;
+			dx = dy = 0;
 			return false;
 		}, drag = function(ev) {
 			// we will move the frame's parent node and take the frame along
@@ -14549,7 +14644,24 @@ if (ev.keyCode == 9 && ev.target["data-focuscomponent"]) {
 				}
 			}
 		}, up = function(ev) {
+			removeCapturedRelease();
 			var ev0 = ev.originalEvent || ev;
+			// A captured iPad release can arrive without the last pointermove having
+			// reached the resizer. Derive the final delta from the release itself.
+			if (isIPadResizer) {
+				var releasePoint = ev0.changedTouches && ev0.changedTouches.length
+						? ev0.changedTouches[0] : ev0;
+				if (releasePoint.pageX != null && releasePoint.pageY != null) {
+					dx = Math.round(releasePoint.pageX) - pageX;
+					dy = Math.round(releasePoint.pageY) - pageY;
+					x = pageX0 + dx;
+					y = pageY0 + dy;
+					J2S._trackerResizeStatus = {
+						version : "20260901-resize27", stage : "release-position",
+						dx : dx, dy : dy
+					};
+				}
+			}
 			if ((isResizer || isSliderHandle) && ev0.pointerId != null && tag.releasePointerCapture) {
 				try {
 					tag.releasePointerCapture(ev0.pointerId);
@@ -14561,13 +14673,20 @@ if (ev.keyCode == 9 && ev.target["data-focuscomponent"]) {
 				tag.isDragging = false;
 				J2S._dmouseOwner = null
 				if (isNaN(x))return;
-				fUp && fUp({
+				var xye = {
 					x : x,
 					y : y,
 					dx : dx,
 					dy : dy,
 					ev : ev
-				}, 502);
+				};
+				if (fUp && (isIPadResizer || isResizer
+						&& (dragPointerType == "touch" || dragPointerType == "pen"))) {
+					setTimeout(function() { finishTouchResize(xye); }, 0);
+				} else {
+					fUp && fUp(xye, 502);
+				}
+				dragPointerType = null;
 				return false;
 			} else {
 // if (ev.ev0)
@@ -14583,16 +14702,16 @@ if (ev.keyCode == 9 && ev.target["data-focuscomponent"]) {
 			return ev;
 		}
 
-		var useSliderPointerEvents = isSliderHandle && self.PointerEvent;
-		$tag.bind(useSliderPointerEvents ? 'pointerdown' : 'pointerdown mousedown touchstart', function(ev) {
+		var usePointerEvents = (isSliderHandle || isResizer) && self.PointerEvent;
+		$tag.bind(usePointerEvents ? 'pointerdown' : 'pointerdown mousedown touchstart', function(ev) {
 			return down && down(fixTouch(ev));
 		});
 
-		$tag.bind(useSliderPointerEvents ? 'pointermove' : 'pointermove mousemove touchmove', function(ev) {
+		$tag.bind(usePointerEvents ? 'pointermove' : 'pointermove mousemove touchmove', function(ev) {
 			return drag && drag(fixTouch(ev));
 		});
 
-		$tag.bind(useSliderPointerEvents ? 'pointerup pointercancel' : 'pointerup pointercancel mouseup touchend touchcancel', function(ev) {
+		$tag.bind(usePointerEvents ? 'pointerup pointercancel' : 'pointerup pointercancel mouseup touchend touchcancel', function(ev) {
 			// touchend does not express a position, and we don't use it anyway
 			return up && up(ev);
 		});
