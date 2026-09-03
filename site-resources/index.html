@@ -19,6 +19,7 @@
 	<link rel="stylesheet" type="text/css" href="ipad.css?v=20260901-close13" />
 	<script src="compadre.js"></script>
 	<script src="swingjs2-tracker-mobile.js?v=20260901-resize27"></script>
+	<script src="tracker-camera-import.js"></script>
 	<script>
 		let mainFrame = undefined;
 		if (!self.SwingJS) alert('swingjs2-tracker-mobile.js was not found. It needs to be in the same directory as ' +
@@ -32,6 +33,7 @@
 			//window.addEventListener('resize', centerApp);
 			//centerApp();
 			setTop();
+			TrackerCameraImporter.setTrackerReady();
 		}
 		
 		function setTop() {

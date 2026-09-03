@@ -101,6 +101,7 @@ import org.opensourcephysics.display.OSPFrame;
 import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.display.ResizableIcon;
 import org.opensourcephysics.display.TeXParser;
+import org.opensourcephysics.media.core.ImageVideo;
 import org.opensourcephysics.media.core.Video;
 import org.opensourcephysics.media.core.VideoIO;
 import org.opensourcephysics.media.mov.MovieFactory;
@@ -832,6 +833,30 @@ public class Tracker {
 	 */
 	public void loadExperimentURL(String path) {
 		getFrame().loadExperimentURL(path);
+	}
+
+	/**
+	 * Imports a browser-created video or image stack into the current tab.
+	 * <p>
+	 * This is a JavaScript-facing bridge used by Tracker Online. Browser code
+	 * first writes the media bytes to SwingJS's temporary file cache, then calls
+	 * this method with the path of the video or first numbered image.
+	 *
+	 * @j2sAlias importVideo
+	 *
+	 * @param path      the cached video path or first image-stack path
+	 * @param frameRate image-stack frame rate in frames per second
+	 */
+	public void importVideo(String path, double frameRate) {
+		if (path != null && !path.trim().isEmpty()) {
+			getFrame().loadVideo(path, false, null, () -> {
+				TrackerPanel panel = getFrame().getSelectedPanel();
+				Video video = (panel == null ? null : panel.getVideo());
+				if (video instanceof ImageVideo && frameRate > 0) {
+					((ImageVideo) video).setFrameDuration(1000 / frameRate);
+				}
+			});
+		}
 	}
 
 	/**
