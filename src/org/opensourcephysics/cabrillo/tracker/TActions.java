@@ -159,7 +159,7 @@ public class TActions {
 						if (frame != null) {
 //							boolean isVisible = frame.getLibraryBrowser().isVisible();
 //							frame.getLibraryBrowser().setVisible(!isVisible);
-							frame.getLibraryBrowser().setVisible(true);
+							frame.showLibraryBrowser();
 						}
 					}
 				}, true));

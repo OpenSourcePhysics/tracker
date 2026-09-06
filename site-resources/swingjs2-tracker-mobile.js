@@ -11985,6 +11985,84 @@ if (database == "_" && J2S._serverUrl.indexOf("//your.server.here/") >= 0) {
 	// J2S._localFileSaveFunction -- // do something local here; Maybe try the
 	// FileSave interface? return true if successful
 
+	J2S._isIOSDevice = function() {
+		var userAgent = navigator.userAgent || "";
+		return /iPad|iPhone|iPod/.test(userAgent)
+				|| (/Macintosh/.test(userAgent) && navigator.maxTouchPoints > 1);
+	}
+
+	J2S._showIOSSaveDialog = function(filename, data, mimetype) {
+		if (!J2S._isIOSDevice() || typeof Blob == "undefined"
+				|| !self.URL || !URL.createObjectURL)
+			return false;
+
+		var oldDialog = document.getElementById("_j2s_ios_save_dialog");
+		oldDialog && oldDialog.parentNode.removeChild(oldDialog);
+		if (J2S._iosSaveURL) {
+			URL.revokeObjectURL(J2S._iosSaveURL);
+			J2S._iosSaveURL = null;
+		}
+
+		try {
+			var blob = new Blob([data], {
+				type : mimetype || "application/octet-stream"
+			});
+			var objectURL = J2S._iosSaveURL = URL.createObjectURL(blob);
+			var screen = document.createElement("div");
+			screen.id = "_j2s_ios_save_dialog";
+			screen.setAttribute("role", "dialog");
+			screen.setAttribute("aria-modal", "true");
+			screen.style.cssText = "z-index:1000000;background:rgba(0,0,0,.45);"
+					+ "position:fixed;inset:0;display:flex;align-items:center;"
+					+ "justify-content:center;padding:20px;box-sizing:border-box";
+
+			var panel = document.createElement("div");
+			panel.style.cssText = "background:white;color:#222;border-radius:12px;"
+					+ "padding:20px;max-width:420px;width:100%;font:16px sans-serif;"
+					+ "box-shadow:0 8px 30px rgba(0,0,0,.3);text-align:center";
+			var message = document.createElement("div");
+			message.textContent = "Your file is ready. Tap Download File to save it on this iPad.";
+			message.style.cssText = "margin-bottom:18px;line-height:1.4";
+			var download = document.createElement("a");
+			download.href = objectURL;
+			download.download = filename;
+			download.target = "_blank";
+			download.textContent = "Download File";
+			download.style.cssText = "display:block;background:#1769aa;color:white;"
+					+ "padding:12px 16px;border-radius:8px;text-decoration:none;"
+					+ "font-weight:bold;margin-bottom:10px";
+			var cancel = document.createElement("button");
+			cancel.type = "button";
+			cancel.textContent = "Cancel";
+			cancel.style.cssText = "background:transparent;border:0;color:#1769aa;"
+					+ "padding:8px 16px;font:inherit";
+
+			var closeDialog = function(revokeNow) {
+				screen.parentNode && screen.parentNode.removeChild(screen);
+				setTimeout(function() {
+					if (J2S._iosSaveURL == objectURL) {
+						URL.revokeObjectURL(objectURL);
+						J2S._iosSaveURL = null;
+					}
+				}, revokeNow ? 0 : 60000);
+			};
+			download.addEventListener("click", function() {
+				setTimeout(function() { closeDialog(false); }, 250);
+			});
+			cancel.addEventListener("click", function() { closeDialog(true); });
+			panel.appendChild(message);
+			panel.appendChild(download);
+			panel.appendChild(cancel);
+			screen.appendChild(panel);
+			document.body.appendChild(screen);
+			download.focus();
+			return true;
+		} catch (e) {
+			J2S._iosSaveURL = null;
+			return false;
+		}
+	}
+
 	J2S.saveFile = J2S._saveFile = function(filename, data, mimetype, encoding) {
 		var isString = (typeof data == "string");
 		if (filename.indexOf(J2S.getGlobal("j2s.tmpdir")) == 0) {
@@ -11996,15 +12074,17 @@ if (database == "_" && J2S._serverUrl.indexOf("//your.server.here/") >= 0) {
 		var filename = filename.substring(filename.lastIndexOf("/") + 1);
 		mimetype
 				|| (mimetype = (filename.indexOf(".pdf") >= 0 ? "application/pdf"
-						: filename.indexOf(".zip") >= 0 ? "application/zip"
+						: filename.indexOf(".zip") >= 0 || filename.indexOf(".trz") >= 0 ? "application/zip"
 								: filename.indexOf(".png") >= 0 ? "image/png"
 										: filename.indexOf(".gif") >= 0 ? "image/gif"
 												: filename.indexOf(".jpg") >= 0
 														| filename
 																.indexOf(".jpeg") >= 0 ? "image/jpg"
 														: ""));
-		data = Clazz.loadClass("javajs.util.Base64").getBase64$BA(
-				isString ? data.getBytes$S("UTF-8") : data).toString();
+		var bytes = (isString ? data.getBytes$S("UTF-8") : data);
+		if (J2S._showIOSSaveDialog(filename, bytes, mimetype))
+			return "OK";
+		data = Clazz.loadClass("javajs.util.Base64").getBase64$BA(bytes).toString();
 		encoding || (encoding = "base64");
 		var url = J2S._serverUrl;
 		url && url.indexOf("your.server") >= 0 && (url = "");
@@ -12439,6 +12519,191 @@ if (ev.keyCode == 9 && ev.target["data-focuscomponent"]) {
 			return ev.originalEvent.xallowKeyEvent || !!(target);
 		});
 	}
+
+	var getNoKeyboardRuntime = function() {
+		if (!self.Clazz || !Clazz.loadClass)
+			return null;
+		try {
+			var runtime = Clazz.loadClass("org.opensourcephysics.display.OSPRuntime");
+			return runtime && runtime.cssCursor && !runtime.hasKeyboard ? runtime : null;
+		} catch (e) {
+			return null;
+		}
+	};
+
+	var getNumericFieldUI = function(node) {
+		if (!node || node.tagName != "INPUT")
+			return null;
+		var ui = node["data-ui"];
+		var component = ui && ui.jc;
+		if (!component || !Clazz.instanceOf(component,
+				"org.opensourcephysics.media.core.NumberField"))
+			return null;
+		if (component.isEnabled$ && !component.isEnabled$()
+				|| component.isEditable$ && !component.isEditable$())
+			return null;
+		return ui;
+	};
+
+	var closeMobileNumberPad = function() {
+		var pad = document.getElementById("_tracker_mobile_number_pad");
+		pad && pad.parentNode.removeChild(pad);
+	};
+
+	var showMobileNumberPad = function(field, ui, runtime) {
+		closeMobileNumberPad();
+		field.blur();
+
+		var state = {
+			value : field.value || "",
+			replace : true
+		};
+		var decimal = runtime.getCurrentDecimalSeparator$
+				? "" + runtime.getCurrentDecimalSeparator$() : ".";
+		var overlay = document.createElement("div");
+		overlay.id = "_tracker_mobile_number_pad";
+		overlay.setAttribute("role", "dialog");
+		overlay.setAttribute("aria-modal", "true");
+		overlay.setAttribute("aria-label", "Numeric keypad");
+		overlay.style.cssText = "position:fixed;inset:0;z-index:1000002;"
+				+ "background:rgba(0,0,0,.25);display:flex;align-items:flex-end;"
+				+ "justify-content:center;padding:12px 12px calc(12px + env(safe-area-inset-bottom));"
+				+ "box-sizing:border-box";
+
+		var panel = document.createElement("div");
+		panel.style.cssText = "width:min(360px,100%);background:#f4f4f6;border-radius:14px;"
+				+ "padding:12px;box-sizing:border-box;box-shadow:0 4px 24px rgba(0,0,0,.35);"
+				+ "font:20px -apple-system,BlinkMacSystemFont,Segoe UI,sans-serif";
+		var display = document.createElement("input");
+		display.type = "text";
+		display.readOnly = true;
+		display.setAttribute("aria-label", "Value");
+		display.style.cssText = "display:block;width:100%;height:48px;margin:0 0 10px;"
+				+ "box-sizing:border-box;border:1px solid #aaa;border-radius:8px;"
+				+ "background:white;color:#111;text-align:right;padding:6px 12px;font:24px monospace";
+		var grid = document.createElement("div");
+		grid.style.cssText = "display:grid;grid-template-columns:repeat(4,1fr);gap:7px";
+
+		var refresh = function() {
+			display.value = state.value;
+		};
+		var appendDigit = function(digit) {
+			if (state.replace) {
+				state.value = digit;
+				state.replace = false;
+			} else {
+				state.value += digit;
+			}
+			refresh();
+		};
+		var appendDecimal = function() {
+			if (state.replace) {
+				state.value = "0" + decimal;
+				state.replace = false;
+			} else if (!/[eE]/.test(state.value)
+					&& state.value.indexOf(decimal) < 0) {
+				state.value += decimal;
+			}
+			refresh();
+		};
+		var toggleSign = function() {
+			var exponent = Math.max(state.value.indexOf("e"), state.value.indexOf("E"));
+			var signAt = exponent < 0 ? 0 : exponent + 1;
+			if (state.value.charAt(signAt) == "-")
+				state.value = state.value.substring(0, signAt)
+						+ state.value.substring(signAt + 1);
+			else
+				state.value = state.value.substring(0, signAt) + "-"
+						+ state.value.substring(signAt);
+			state.replace = false;
+			refresh();
+		};
+		var makeButton = function(label, action, accent) {
+			var button = document.createElement("button");
+			button.type = "button";
+			button.textContent = label;
+			button.style.cssText = "min-height:48px;border:0;border-radius:8px;"
+					+ "background:" + (accent ? "#1769aa" : "white") + ";"
+					+ "color:" + (accent ? "white" : "#111") + ";font:inherit;"
+					+ "font-weight:" + (accent ? "600" : "400") + ";touch-action:manipulation";
+			button.addEventListener("click", function(ev) {
+				ev.preventDefault();
+				ev.stopPropagation();
+				action();
+			});
+			grid.appendChild(button);
+			return button;
+		};
+
+		[ "7", "8", "9" ].forEach(function(digit) {
+			makeButton(digit, function() { appendDigit(digit); });
+		});
+		makeButton("⌫", function() {
+			state.value = state.replace ? "" : state.value.slice(0, -1);
+			state.replace = false;
+			refresh();
+		});
+		[ "4", "5", "6" ].forEach(function(digit) {
+			makeButton(digit, function() { appendDigit(digit); });
+		});
+		makeButton("+/−", toggleSign);
+		[ "1", "2", "3" ].forEach(function(digit) {
+			makeButton(digit, function() { appendDigit(digit); });
+		});
+		makeButton(decimal, appendDecimal);
+		makeButton("0", function() { appendDigit("0"); });
+		makeButton("E", function() {
+			if (state.value && !/[eE]/.test(state.value)) {
+				state.value += "E";
+				state.replace = false;
+				refresh();
+			}
+		});
+		makeButton("Clear", function() {
+			state.value = "";
+			state.replace = false;
+			refresh();
+		});
+		var done = makeButton("Done", function() {
+			var component = ui.jc;
+			field.value = state.value;
+			ui.checkNewEditorTextValue$ && ui.checkNewEditorTextValue$();
+			ui.handleEnter$ && ui.handleEnter$();
+			setTimeout(function() {
+				if (component && component.getValue$ && component.setValue$D)
+					component.setValue$D(component.getValue$());
+			}, 0);
+			field.blur();
+			closeMobileNumberPad();
+		}, true);
+		var cancel = makeButton("Cancel", closeMobileNumberPad);
+		cancel.style.gridColumn = "1 / -1";
+
+		panel.appendChild(display);
+		panel.appendChild(grid);
+		overlay.appendChild(panel);
+		overlay.addEventListener("click", function(ev) {
+			if (ev.target == overlay)
+				closeMobileNumberPad();
+		});
+		document.body.appendChild(overlay);
+		refresh();
+		done.focus();
+	};
+
+	document.addEventListener(self.PointerEvent ? "pointerdown" : "touchstart",
+			function(ev) {
+				var oe = ev.originalEvent || ev;
+				if (oe.isPrimary === false)
+					return;
+				var runtime = getNoKeyboardRuntime();
+				var ui = runtime && getNumericFieldUI(ev.target);
+				if (!ui)
+					return;
+				ev.preventDefault();
+				ev.stopPropagation();
+				showMobileNumberPad(ev.target, ui, runtime);
+			}, true);
 	
 	// set to ignore touches if a mouse is found. Will break gestures on touch-screen laptops, but 
 	// it enables click in touch-only devices. What a pain!
@@ -12501,6 +12766,148 @@ if (ev.keyCode == 9 && ev.target["data-focuscomponent"]) {
 			ev.preventDefault();
 		if (ev.stopPropagation)
 			ev.stopPropagation();
+	};
+
+	var isMobileFrameDragEvent = function(ev) {
+		var userAgent = navigator.userAgent || "";
+		var isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(userAgent)
+				|| (/Macintosh/.test(userAgent) && navigator.maxTouchPoints > 1);
+		return isMobile && (isTouchPointerEvent(ev)
+				|| ev.type == "touchstart" || ev.type == "touchmove"
+				|| ev.type == "touchend" || ev.type == "touchcancel");
+	};
+
+	var getVideoPanelNode = function(target, frameNode) {
+		for (var node = target; node && node != frameNode; node = node.parentNode) {
+			if (node.getAttribute && node.getAttribute("name") == "VideoPanel")
+				return node;
+		}
+		return null;
+	};
+
+	var isOutsideVideoImage = function(frame, panelNode, point) {
+		var panel = frame.getSelectedPanel$ && frame.getSelectedPanel$();
+		if (!panel || !panel.getVideo$ || !panel.getPixelMatrix$)
+			return false;
+		var video = panel.getVideo$();
+		if (!video)
+			return true;
+		var size = video.getImageSize$Z && video.getImageSize$Z(true);
+		var matrix = panel.getPixelMatrix$();
+		if (!size || !matrix)
+			return false;
+
+		var width = size.width;
+		var height = size.height;
+		var corners = [ [ 0, 0 ], [ width, 0 ], [ 0, height ], [ width, height ] ];
+		var xmin = Infinity, xmax = -Infinity, ymin = Infinity, ymax = -Infinity;
+		for (var i = 0; i < corners.length; i++) {
+			var imageX = corners[i][0];
+			var imageY = corners[i][1];
+			var screenX = matrix[0] * imageX + matrix[2] * imageY + matrix[4];
+			var screenY = matrix[1] * imageX + matrix[3] * imageY + matrix[5];
+			xmin = Math.min(xmin, screenX);
+			xmax = Math.max(xmax, screenX);
+			ymin = Math.min(ymin, screenY);
+			ymax = Math.max(ymax, screenY);
+		}
+
+		var rect = panelNode.getBoundingClientRect();
+		var pageLeft = rect.left + (window.pageXOffset || 0);
+		var pageTop = rect.top + (window.pageYOffset || 0);
+		var x = point.x - pageLeft;
+		var y = point.y - pageTop;
+		return x < xmin || x > xmax || y < ymin || y > ymax;
+	};
+
+	var prepareMobileFrameDrag = function(who, ev) {
+		if (!isMobileFrameDragEvent(ev) || who._trackerFrameDrag)
+			return;
+		var panelNode = getVideoPanelNode(ev.target, who);
+		if (!panelNode)
+			return;
+		var frame = who._frameViewer && who._frameViewer.top;
+		if (!frame || !frame.getX$ || !frame.getY$ || !frame.setLocation$I$I)
+			return;
+		var point = getRawEventPoint(ev);
+		if (!isOutsideVideoImage(frame, panelNode, point))
+			return;
+		var oe = ev.originalEvent || ev;
+		who._trackerFrameDrag = {
+			frame : frame,
+			target : ev.target,
+			pointerId : oe.pointerId,
+			startX : point.x,
+			startY : point.y,
+			frameX : frame.getX$(),
+			frameY : frame.getY$(),
+			active : false
+		};
+		if (oe.pointerId != null && who.setPointerCapture) {
+			try {
+				who.setPointerCapture(oe.pointerId);
+			} catch (e) {}
+		}
+	};
+
+	var moveMobileFrameDrag = function(who, ev) {
+		var state = who._trackerFrameDrag;
+		if (!state || !isMobileFrameDragEvent(ev))
+			return false;
+		if (who._touchContext && who._touchContext.triggered) {
+			who._trackerFrameDrag = null;
+			return false;
+		}
+		var point = getRawEventPoint(ev);
+		var dx = Math.round(point.x - state.startX);
+		var dy = Math.round(point.y - state.startY);
+		if (!state.active && dx * dx + dy * dy >= 100) {
+			state.active = true;
+			clearTouchContext(who);
+			var xym = getXY(who, ev, 502);
+			if (xym)
+				who.applet._processEvent(502, xym, ev, who._frameViewer);
+			who.isDown = false;
+			who.isDragging = false;
+			J2S.setMouseOwner(who, true, state.target);
+			hideAppletMenus(who);
+		}
+		if (state.active) {
+			var x = Math.max(30 - state.frame.getWidth$(), state.frameX + dx);
+			var y = Math.max(0, state.frameY + dy);
+			state.frame.setLocation$I$I(x, y);
+			J2S._trackerFrameDragStatus = {
+				version : "20260905-framedrag4", stage : "moving",
+				x : x, y : y, dx : dx, dy : dy
+			};
+		}
+		stopTouchEvent(ev);
+		return true;
+	};
+
+	var finishMobileFrameDrag = function(who, ev) {
+		var state = who && who._trackerFrameDrag;
+		if (!state || !isMobileFrameDragEvent(ev))
+			return false;
+		var oe = ev.originalEvent || ev;
+		if (state.pointerId != null && who.releasePointerCapture) {
+			try {
+				who.releasePointerCapture(state.pointerId);
+			} catch (e) {}
+		}
+		who._trackerFrameDrag = null;
+		if (!state.active)
+			return false;
+		who.isDown = false;
+		who.isDragging = false;
+		J2S.setMouseOwner(null);
+		J2S._lastTouchPointerUp = Date.now();
+		J2S._trackerFrameDragStatus = {
+			version : "20260905-framedrag4", stage : "complete",
+			x : state.frame.getX$(), y : state.frame.getY$()
+		};
+		stopTouchEvent(ev);
+		return true;
 	};
 
 	var setLongPressStatus = function(stage, details) {
@@ -12845,6 +13252,7 @@ if (ev.keyCode == 9 && ev.target["data-focuscomponent"]) {
 				y: touchDownPoint.y
 			};
 		}
+		prepareMobileFrameDrag(who, ev);
 		if (J2S._traceMouse)
 			J2S.traceMouse(who,"DOWN", ev);
 
@@ -12903,6 +13311,8 @@ if (ev.keyCode == 9 && ev.target["data-focuscomponent"]) {
 		
 		if (who.applet == null)
 			return;
+		if (moveMobileFrameDrag(who, ev))
+			return true;
 		if (updateTouchContext(who, ev))
 			return true;
 
@@ -12958,6 +13368,8 @@ if (ev.keyCode == 9 && ev.target["data-focuscomponent"]) {
 			who = J2S._mouseOwner;
 		if (!who || who.applet == null)
 			return;
+		if (finishMobileFrameDrag(who, ev))
+			return true;
 		if (!orphanedRelease && ev.type == "mouseup" && isCompatibilityMouseEvent(ev))
 			return true;
 		if (who._suppressContextMouseUp && ev.type == "mouseup" && ev.button == 0) {

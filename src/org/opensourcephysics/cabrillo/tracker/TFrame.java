@@ -268,6 +268,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 	protected static final double MAXIMIZED_FRAME_WIDTH = 1.0;
 	protected static final double DEFAULT_FRAME_HEIGHT = 0.75;
 	protected static final double MAXIMIZED_FRAME_HEIGHT = 1.0;
+	private static final double LIBRARY_BROWSER_MINIMUM_FRACTION = 0.8;
 	protected static final int DEFAULT_FRAME_CEILING = 60;
 	protected static final int MAXIMIZED_FRAME_CEILING = 0;
 
@@ -284,6 +285,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 
 	protected ClipboardListener clipboardListener;
 	protected LibraryBrowser libraryBrowser;
+	private Dimension libraryBrowserDefaultSize;
 	protected Launcher helpLauncher;
 	private JToolBar playerBar;
 	protected JDialog helpDialog;
@@ -2199,6 +2201,10 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 				LibraryComPADRE.desiredOSPType = "Tracker"; //$NON-NLS-1$
 
 				libraryBrowser = LibraryBrowser.getBrowser(null);
+				Container browserWindow = libraryBrowser.getTopLevelAncestor();
+				if (browserWindow != null) {
+					libraryBrowserDefaultSize = browserWindow.getSize();
+				}
 
 				libraryBrowser.addOSPLibrary(LibraryBrowser.TRACKER_LIBRARY);
 				libraryBrowser.addOSPLibrary(LibraryBrowser.SHARED_LIBRARY);
@@ -2254,6 +2260,36 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 			}
 		}
 		return libraryBrowser;
+	}
+
+	/**
+	 * Sizes and centers the Library Browser in the Tracker Online display area,
+	 * then shows it. The default browser size is retained when possible, while
+	 * each dimension is at least 80% of the Tracker window and never extends
+	 * beyond it.
+	 */
+	protected void showLibraryBrowser() {
+		LibraryBrowser browser = getLibraryBrowser();
+		if (OSPRuntime.isJS) {
+			Container browserWindow = browser.getTopLevelAncestor();
+			Dimension trackerSize = getSize();
+			if (browserWindow != null && trackerSize.width > 0 && trackerSize.height > 0) {
+				if (libraryBrowserDefaultSize == null) {
+					libraryBrowserDefaultSize = browserWindow.getSize();
+				}
+				int minimumWidth = (int) Math.round(LIBRARY_BROWSER_MINIMUM_FRACTION * trackerSize.width);
+				int minimumHeight = (int) Math.round(LIBRARY_BROWSER_MINIMUM_FRACTION * trackerSize.height);
+				int width = Math.min(trackerSize.width,
+						Math.max(libraryBrowserDefaultSize.width, minimumWidth));
+				int height = Math.min(trackerSize.height,
+						Math.max(libraryBrowserDefaultSize.height, minimumHeight));
+				Point trackerLocation = getLocation();
+				browserWindow.setSize(width, height);
+				browserWindow.setLocation(trackerLocation.x + (trackerSize.width - width) / 2,
+						trackerLocation.y + (trackerSize.height - height) / 2);
+			}
+		}
+		browser.setVisible(true);
 	}
 
 	/**
@@ -3019,7 +3055,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 						JOptionPane.showMessageDialog(libraryBrowser, s + " \"" + XML.getName(target) + "\"", //$NON-NLS-1$ //$NON-NLS-2$
 								TrackerRes.getString("TFrame.Dialog.LibraryError.FileNotFound.Title"), //$NON-NLS-1$
 								JOptionPane.WARNING_MESSAGE);
-						libraryBrowser.setVisible(true);
+						showLibraryBrowser();
 						loadFailed = true;
 						return;
 					}
@@ -3078,7 +3114,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 			// open the TR Z in the Library Browser
 			setCursor(Cursor.getDefaultCursor());
 			libraryBrowser.open(path);
-			libraryBrowser.setVisible(true);
+			showLibraryBrowser();
 			OSPRuntime.trigger(1000, (e) -> {
 				LibraryTreePanel treePanel = libraryBrowser.getSelectedTreePanel();
 				if (treePanel != null) {
@@ -3413,6 +3449,24 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 	}
 
 	static class DeactivatingMenuBar extends JMenuBar {
+		private static final int CAPTURE_BUTTON_RIGHT_MARGIN = 24;
+
+		@Override
+		public void doLayout() {
+			super.doLayout();
+			if (OSPRuntime.isJS) {
+				for (Component component : getComponents()) {
+					if ("captureVideo".equals(component.getName())) {
+						Dimension size = component.getPreferredSize();
+						int x = getWidth() - getInsets().right - size.width - CAPTURE_BUTTON_RIGHT_MARGIN;
+						component.setBounds(Math.max(getInsets().left, x), component.getY(), size.width,
+								component.getHeight());
+						break;
+					}
+				}
+			}
+		}
+
 		@Override
 		public void setEnabled(boolean b) {
 			super.setEnabled(b);
@@ -3462,7 +3516,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 			openBrowserItem.addActionListener(new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent e) {
-					getLibraryBrowser().setVisible(true);
+					showLibraryBrowser();
 				}
 			});
 			openMenu.add(openBrowserItem);
@@ -3534,6 +3588,9 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 			editMenu.addSeparator();
 			editMenu.add(prefsItem);
 			add(TMenuBar.getTrackerHelpMenu(null, null));
+			if (OSPRuntime.isJS) {
+				add(TMenuBar.createCaptureVideoButton());
+			}
 		}
 
 	}
