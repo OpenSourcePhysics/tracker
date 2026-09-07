@@ -20,6 +20,15 @@ public class FitDataMetadataTest {
    }
    DataTool tool=new DataTool(source);DataToolTab tab=tool.getTab(0);tab.checkGUI();
    FitDataMetadata.attach(track,tab,source);tab.setWorkingColumns("t","x");
+   FitMetadataProvider metadata;
+   try {
+    java.lang.reflect.Method method=DataToolTab.class.getDeclaredMethod("getFitMetadataProvider");
+    method.setAccessible(true);metadata=(FitMetadataProvider)method.invoke(tab);
+   } catch(Exception ex){throw new RuntimeException(ex);}
+   check("x".equals(metadata.getPositionComponent("t","x")),"x versus time identified");
+   check("y".equals(metadata.getPositionComponent("t","y")),"y versus time identified");
+   check(metadata.getPositionComponent("x","y")==null,"position versus position not velocity");
+   check(metadata.getPositionComponent("t","v_{x}")==null,"derived velocity not labeled position");
    DatasetCurveFitter fitter=tab.getCurveFitter();
    near(fitter.getYUnitsPerPixel(),.01,"x scale");
    for(double p:new double[]{.5,1,1.5,2,2.5,3,.73}){
@@ -34,7 +43,7 @@ public class FitDataMetadataTest {
    check(Double.isNaN(fitter.getYUnitsPerPixel()),"varying scale unavailable");
    panel.getCoords().setFixedScale(true);
    tab.setWorkingColumns("t","v_{x}");check(Double.isNaN(fitter.getYUnitsPerPixel()),"velocity unavailable");
-   tool.dispose();window.dispose();
+   tool.removeTab(0,false);tool.dispose();window.dispose();
   }); } catch(Throwable t){t.printStackTrace();System.exit(1);}
   System.out.println("Passed: "+passed+" Tracker calibration checks");System.exit(0);
  }

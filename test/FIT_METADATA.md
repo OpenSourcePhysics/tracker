@@ -17,7 +17,9 @@ Data Tool from a plot or table. Generic OSP callers can continue without a provi
 
 Build against the new OSP classes, then compile and run
 `test/org/opensourcephysics/cabrillo/tracker/FitDataMetadataTest.java` with the
-built Tracker/OSP classpath on a graphical desktop. The fixture contains 13 checks
+built Tracker/OSP classpath on a graphical desktop. The fixture contains 17 checks
 of fractional/custom pixel values, physical conversion, rotation, and exclusions.
 The four changed Tracker source files also pass SwingJS transpilation; the actual
 Tracker calibration fixture was run on macOS, not inside a browser.
+
+The optional position-component callback identifies x(t) and y(t) through the same source-column metadata. OSP uses it to label motion results in copied fit reports. Position-versus-position and velocity-versus-time pairs are excluded; no derivative uncertainty propagation or tracking algorithm changes are introduced.

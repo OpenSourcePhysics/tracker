@@ -26,6 +26,11 @@ final class FitDataMetadata implements FitMetadataProvider {
         }
         return null;
     }
+    @Override public String getPositionComponent(String independentColumn, String dependentColumn) {
+        String dependent = variable(dependentColumn);
+        return track instanceof PointMass && "t".equals(variable(independentColumn))
+                && ("x".equals(dependent) || "y".equals(dependent)) ? dependent : null;
+    }
     @Override public String getUnits(String column) {
         String variable=variable(column);
         return variable==null || track.tp==null?null:track.tp.getDataUnits(track,variable);
