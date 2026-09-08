@@ -5,10 +5,30 @@
 	<title>Tracker JS</title>
 	<meta charset="utf-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<style>
+		#tracker-loading-splash {
+			position: fixed;
+			inset: 0;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			z-index: 2147483647;
+			background: rgba(255, 255, 255, 0.96);
+			color: #1f2937;
+			font: 600 28px/1.5 Arial, Helvetica, sans-serif;
+			text-align: center;
+			transition: opacity 200ms ease;
+		}
+
+		#tracker-loading-splash.tracker-loading-splash-hidden {
+			opacity: 0;
+			pointer-events: none;
+		}
+	</style>
 	<link rel="stylesheet" type="text/css" href="physletsJS.css" />
 	<link rel="stylesheet" type="text/css" href="ipad.css?v=20260901-close13" />
 	<script src="compadre.js"></script>
-	<script src="swingjs2-tracker-mobile.js?v=20260905-numberpad1"></script>
+	<script src="swingjs2-tracker-mobile.js?v=20260907-framekeyboard1"></script>
 	<script src="tracker-camera-import.js?v=20260906-toolbar1"></script>
 	<script>
 		let mainFrame = undefined;
@@ -23,6 +43,18 @@
 			window.addEventListener('resize', centerApp);
 			centerApp();
 			TrackerCameraImporter.setTrackerReady();
+			hideLoadingSplash();
+		}
+
+		function hideLoadingSplash() {
+			const splash = document.getElementById("tracker-loading-splash");
+			if (!splash) return;
+			requestAnimationFrame(function() {
+				splash.classList.add("tracker-loading-splash-hidden");
+				window.setTimeout(function() {
+					if (splash.parentNode) splash.parentNode.removeChild(splash);
+				}, 200);
+			});
 		}
 
 		function centerApp() {
@@ -40,7 +72,7 @@
 		TrackerInfo = {
 			code: null,
 			main: "org.opensourcephysics.cabrillo.tracker.Tracker",
-			core: "swingjs/j2s/core/core_tracker.z.js?v=20260906-capture-right3",
+			core: "swingjs/j2s/core/core_tracker.z.js?v=20260907-tapesync1",
 			resourceZip: "misc-assets.zip",
 			assets: { name: "tracker", zipPath: "tracker-assets.zip", classPaths: ["org/opensourcephysics"] },
 			width: 850,
@@ -52,7 +84,10 @@
 	</script>
 </head>
 
-<body class="tracker-mobile">
+<body class="tracker-mobile" writingsuggestions="false">
+	<div id="tracker-loading-splash" role="status" aria-live="polite">
+		Loading Tracker Online<br>Please wait.
+	</div>
 	<h1>JavaScript Tracker Mobile (Beta)</h1>
 	<script>
 		SwingJS.getApplet('Tracker', TrackerInfo);

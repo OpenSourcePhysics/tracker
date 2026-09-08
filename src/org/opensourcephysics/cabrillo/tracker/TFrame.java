@@ -78,6 +78,7 @@ import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
+import javax.swing.JEditorPane;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
@@ -2270,8 +2271,9 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 	 */
 	protected void showLibraryBrowser() {
 		LibraryBrowser browser = getLibraryBrowser();
+		Container browserWindow = null;
 		if (OSPRuntime.isJS) {
-			Container browserWindow = browser.getTopLevelAncestor();
+			browserWindow = browser.getTopLevelAncestor();
 			Dimension trackerSize = getSize();
 			if (browserWindow != null && trackerSize.width > 0 && trackerSize.height > 0) {
 				if (libraryBrowserDefaultSize == null) {
@@ -2290,6 +2292,59 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 			}
 		}
 		browser.setVisible(true);
+		if (OSPRuntime.isJS) {
+			// Chrome can finish creating the SwingJS window peer after this first
+			// visibility request. Repeat it on the event queue and once after the
+			// peer has had time to attach, matching a successful second menu choice.
+			// Mobile WebKit can retain the layout calculated while this window was
+			// hidden, leaving the initial HTML welcome pane empty or at zero size.
+			// Reinstall the document while it is showing, then validate the window.
+			Container window = browserWindow;
+			SwingUtilities.invokeLater(() -> {
+				refreshLibraryBrowserWelcomePane(browser);
+				ensureLibraryBrowserVisible(browser, window);
+			});
+			OSPRuntime.trigger(250, (e) -> ensureLibraryBrowserVisible(browser, window));
+		}
+	}
+
+	/** Completes a deferred SwingJS visibility and layout request. */
+	private void ensureLibraryBrowserVisible(LibraryBrowser browser, Container window) {
+		browser.setVisible(true);
+		browser.revalidate();
+		if (window != null) {
+			window.setVisible(true);
+			window.invalidate();
+			window.validate();
+			window.repaint();
+		}
+		browser.repaint();
+	}
+
+	/**
+	 * Reinstalls the Library Browser welcome document after its SwingJS peer is
+	 * visible. On iPad WebKit, installing it while the browser is hidden can leave
+	 * the editor peer empty even though its Swing document contains the text.
+	 */
+	private boolean refreshLibraryBrowserWelcomePane(Container parent) {
+		for (Component component : parent.getComponents()) {
+			if (component instanceof JEditorPane) {
+				JEditorPane pane = (JEditorPane) component;
+				String text = pane.getText();
+				if (text != null && text.indexOf("Open Source Physics Library Browser") >= 0) {
+					pane.setText(text);
+					pane.setCaretPosition(0);
+					pane.revalidate();
+					pane.repaint();
+					return true;
+				}
+			}
+			if (component instanceof Container
+					&& refreshLibraryBrowserWelcomePane((Container) component)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/**

@@ -12552,7 +12552,6 @@ if (ev.keyCode == 9 && ev.target["data-focuscomponent"]) {
 
 	var showMobileNumberPad = function(field, ui, runtime) {
 		closeMobileNumberPad();
-		field.blur();
 
 		var state = {
 			value : field.value || "",
@@ -12621,11 +12620,17 @@ if (ev.keyCode == 9 && ev.target["data-focuscomponent"]) {
 		var makeButton = function(label, action, accent) {
 			var button = document.createElement("button");
 			button.type = "button";
+			button.tabIndex = -1;
 			button.textContent = label;
 			button.style.cssText = "min-height:48px;border:0;border-radius:8px;"
 					+ "background:" + (accent ? "#1769aa" : "white") + ";"
 					+ "color:" + (accent ? "white" : "#111") + ";font:inherit;"
 					+ "font-weight:" + (accent ? "600" : "400") + ";touch-action:manipulation";
+			button.addEventListener(self.PointerEvent ? "pointerdown" : "mousedown", function(ev) {
+				// Keep the NumberField focused until Done so its focus-lost listener
+				// cannot end an on-video edit before the keypad value is committed.
+				ev.preventDefault();
+			});
 			button.addEventListener("click", function(ev) {
 				ev.preventDefault();
 				ev.stopPropagation();
@@ -12668,6 +12673,16 @@ if (ev.keyCode == 9 && ev.target["data-focuscomponent"]) {
 			var component = ui.jc;
 			field.value = state.value;
 			ui.checkNewEditorTextValue$ && ui.checkNewEditorTextValue$();
+			// NumberField normally marks itself as edited in its Java key listener.
+			// The on-screen keypad updates the DOM directly, so provide the same
+			// dirty state before Enter listeners commit and synchronize the value.
+			try {
+				var color = Clazz.loadClass("java.awt.Color");
+				component && component.setBackground$java_awt_Color
+						&& component.setBackground$java_awt_Color(color.YELLOW);
+			} catch (e) {
+				// The normal Enter path below remains available if Color is not loaded.
+			}
 			ui.handleEnter$ && ui.handleEnter$();
 			setTimeout(function() {
 				if (component && component.getValue$ && component.setValue$D)
@@ -12676,19 +12691,23 @@ if (ev.keyCode == 9 && ev.target["data-focuscomponent"]) {
 			field.blur();
 			closeMobileNumberPad();
 		}, true);
-		var cancel = makeButton("Cancel", closeMobileNumberPad);
+		var cancel = makeButton("Cancel", function() {
+			field.blur();
+			closeMobileNumberPad();
+		});
 		cancel.style.gridColumn = "1 / -1";
 
 		panel.appendChild(display);
 		panel.appendChild(grid);
 		overlay.appendChild(panel);
 		overlay.addEventListener("click", function(ev) {
-			if (ev.target == overlay)
+			if (ev.target == overlay) {
+				field.blur();
 				closeMobileNumberPad();
+			}
 		});
 		document.body.appendChild(overlay);
 		refresh();
-		done.focus();
 	};
 
 	document.addEventListener(self.PointerEvent ? "pointerdown" : "touchstart",
@@ -12772,9 +12791,74 @@ if (ev.keyCode == 9 && ev.target["data-focuscomponent"]) {
 		var userAgent = navigator.userAgent || "";
 		var isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(userAgent)
 				|| (/Macintosh/.test(userAgent) && navigator.maxTouchPoints > 1);
-		return isMobile && (isTouchPointerEvent(ev)
-				|| ev.type == "touchstart" || ev.type == "touchmove"
-				|| ev.type == "touchend" || ev.type == "touchcancel");
+		if (!isMobile)
+			return false;
+		var oe = ev.originalEvent || ev;
+		if (isTouchPointerEvent(ev) || ev.type == "touchstart" ||
+				ev.type == "touchmove" || ev.type == "touchend" ||
+				ev.type == "touchcancel")
+			return oe.isPrimary !== false;
+		// A keyboard-equipped mobile device may use a trackpad or mouse. Accept
+		// its primary event stream too, but not the compatibility mouse events
+		// generated immediately after a real touch.
+		if (isCompatibilityMouseEvent(ev))
+			return false;
+		if (ev.type.indexOf("pointer") == 0)
+			return oe.isPrimary !== false &&
+				(ev.type != "pointerdown" || oe.button == 0);
+		return ev.type == "mousedown" || ev.type == "mousemove" ||
+			ev.type == "mouseup";
+	};
+
+	var isLibraryTreeFrameDragEvent = function(ev) {
+		var oe = ev.originalEvent || ev;
+		if (isTouchEvent(ev))
+			return oe.isPrimary !== false;
+		if (ev.type.indexOf("pointer") == 0)
+			return oe.isPrimary !== false &&
+				(ev.type != "pointerdown" || oe.button == 0);
+		return ev.type == "mousedown" || ev.type == "mousemove" ||
+			ev.type == "mouseup";
+	};
+
+	// Returns the drag source only when the pointer is in unused tree space, or
+	// in the welcome pane shown before the Library Browser has a collection tree.
+	// Each rendered node is a direct child of the inner TreeUI div, so walking
+	// from the event target to that div distinguishes a node hit from background.
+	var getLibraryBrowserDragSource = function(target, frameNode) {
+		var treeHost = null;
+		var htmlPane = null;
+		var browserPanel = null;
+		for (var node = target; node; node = node.parentNode) {
+			var name = node.getAttribute && node.getAttribute("name");
+			if (name && name.indexOf("org.opensourcephysics.tools.LibraryTreePanel$") == 0 &&
+				node.id && node.id.indexOf("_TreeUI_") >= 0) {
+				treeHost = node;
+			}
+			if (name == "org.opensourcephysics.tools.LibraryTreePanel.HTMLPane")
+				htmlPane = node;
+			if (name == "org.opensourcephysics.tools.LibraryBrowser")
+				browserPanel = node;
+			if (node == frameNode)
+				break;
+		}
+		if (treeHost) {
+			var treeSurface = treeHost.firstElementChild;
+			if (!treeSurface || !treeSurface.contains(target))
+				return null;
+			if (target == treeSurface)
+				return "library-tree";
+			var row = target;
+			while (row && row.parentNode != treeSurface)
+				row = row.parentNode;
+			return row ? null : "library-tree";
+		}
+		if (!htmlPane || !browserPanel ||
+			browserPanel.querySelector('[name^="org.opensourcephysics.tools.LibraryTreePanel$"][id*="_TreeUI_"]'))
+			return null;
+		var interactive = target.closest &&
+			target.closest("a, button, input, textarea, select, [role=button], [contenteditable=true]");
+		return interactive && htmlPane.contains(interactive) ? null : "library-empty";
 	};
 
 	var getVideoPanelNode = function(target, frameNode) {
@@ -12821,16 +12905,21 @@ if (ev.keyCode == 9 && ev.target["data-focuscomponent"]) {
 	};
 
 	var prepareMobileFrameDrag = function(who, ev) {
-		if (!isMobileFrameDragEvent(ev) || who._trackerFrameDrag)
+		if (who._trackerFrameDrag)
+			return;
+		var libraryDragSource = getLibraryBrowserDragSource(ev.target, who);
+		var isLibraryTreeDrag = !!libraryDragSource &&
+			isLibraryTreeFrameDragEvent(ev);
+		if (!isLibraryTreeDrag && !isMobileFrameDragEvent(ev))
 			return;
 		var panelNode = getVideoPanelNode(ev.target, who);
-		if (!panelNode)
+		if (!isLibraryTreeDrag && !panelNode)
 			return;
 		var frame = who._frameViewer && who._frameViewer.top;
 		if (!frame || !frame.getX$ || !frame.getY$ || !frame.setLocation$I$I)
 			return;
 		var point = getRawEventPoint(ev);
-		if (!isOutsideVideoImage(frame, panelNode, point))
+		if (!isLibraryTreeDrag && !isOutsideVideoImage(frame, panelNode, point))
 			return;
 		var oe = ev.originalEvent || ev;
 		who._trackerFrameDrag = {
@@ -12841,6 +12930,8 @@ if (ev.keyCode == 9 && ev.target["data-focuscomponent"]) {
 			startY : point.y,
 			frameX : frame.getX$(),
 			frameY : frame.getY$(),
+			libraryTree : isLibraryTreeDrag,
+			librarySource : libraryDragSource,
 			active : false
 		};
 		if (oe.pointerId != null && who.setPointerCapture) {
@@ -12852,7 +12943,8 @@ if (ev.keyCode == 9 && ev.target["data-focuscomponent"]) {
 
 	var moveMobileFrameDrag = function(who, ev) {
 		var state = who._trackerFrameDrag;
-		if (!state || !isMobileFrameDragEvent(ev))
+		if (!state || !(state.libraryTree ? isLibraryTreeFrameDragEvent(ev) :
+			isMobileFrameDragEvent(ev)))
 			return false;
 		if (who._touchContext && who._touchContext.triggered) {
 			who._trackerFrameDrag = null;
@@ -12877,7 +12969,8 @@ if (ev.keyCode == 9 && ev.target["data-focuscomponent"]) {
 			var y = Math.max(0, state.frameY + dy);
 			state.frame.setLocation$I$I(x, y);
 			J2S._trackerFrameDragStatus = {
-				version : "20260905-framedrag4", stage : "moving",
+				version : "20260907-framekeyboard1", stage : "moving",
+				source : state.librarySource || "video-panel",
 				x : x, y : y, dx : dx, dy : dy
 			};
 		}
@@ -12887,7 +12980,8 @@ if (ev.keyCode == 9 && ev.target["data-focuscomponent"]) {
 
 	var finishMobileFrameDrag = function(who, ev) {
 		var state = who && who._trackerFrameDrag;
-		if (!state || !isMobileFrameDragEvent(ev))
+		if (!state || !(state.libraryTree ? isLibraryTreeFrameDragEvent(ev) :
+			isMobileFrameDragEvent(ev)))
 			return false;
 		var oe = ev.originalEvent || ev;
 		if (state.pointerId != null && who.releasePointerCapture) {
@@ -12903,7 +12997,8 @@ if (ev.keyCode == 9 && ev.target["data-focuscomponent"]) {
 		J2S.setMouseOwner(null);
 		J2S._lastTouchPointerUp = Date.now();
 		J2S._trackerFrameDragStatus = {
-			version : "20260905-framedrag4", stage : "complete",
+			version : "20260907-framekeyboard1", stage : "complete",
+			source : state.librarySource || "video-panel",
 			x : state.frame.getX$(), y : state.frame.getY$()
 		};
 		stopTouchEvent(ev);

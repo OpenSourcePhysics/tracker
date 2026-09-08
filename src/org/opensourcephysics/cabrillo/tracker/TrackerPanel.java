@@ -491,9 +491,43 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 
 	@Override
 	protected void addVideoPlayer() {
-		super.addVideoPlayer();
+		player = new TrackerVideoPlayer(this);
+		player.addFrameListener(this);
+		add(player, BorderLayout.SOUTH);
+		player.getVideoClip().addListener(this);
 		player.setInspectorButtonVisible(false);
 		player.addActionListener(this);		
+	}
+
+	/**
+	 * Video player with a click fallback for touch browsers. SwingJS normally
+	 * invokes the play command from mousePressed, but WebKit can omit that
+	 * synthetic event after a modal Library Browser interaction. JButton's action
+	 * event is retained as a second path, while the short debounce prevents the
+	 * normal press and click pair from toggling playback twice.
+	 */
+	private static class TrackerVideoPlayer extends VideoPlayer {
+		private static final long MOBILE_PLAY_DEBOUNCE_MS = 350;
+		private long lastMobilePlayTime;
+
+		TrackerVideoPlayer(VideoPanel panel) {
+			super(panel);
+			if (OSPRuntime.isJS && OSPRuntime.cssCursor) {
+				playButton.addActionListener((e) -> doPlay());
+			}
+		}
+
+		@Override
+		protected void doPlay() {
+			if (OSPRuntime.isJS && OSPRuntime.cssCursor) {
+				long now = System.currentTimeMillis();
+				if (now - lastMobilePlayTime < MOBILE_PLAY_DEBOUNCE_MS) {
+					return;
+				}
+				lastMobilePlayTime = now;
+			}
+			super.doPlay();
+		}
 	}
 
 	@Override

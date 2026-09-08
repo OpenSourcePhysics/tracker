@@ -242,6 +242,7 @@ public class TapeMeasure extends InputTrack  implements MarkingRequired {
 						checkLengthUnits(rawText);
 					}
 					step.setTapeLength(magField.getValue());
+					synchronizeLengthFields(step);
 					invalidateData(null);
 					if (isFixedPosition())
 						fireStepsChanged();
@@ -1345,6 +1346,14 @@ public class TapeMeasure extends InputTrack  implements MarkingRequired {
 		};
 	}
 
+	/** Keeps the toolbar and on-video length editors on the same tape value. */
+	private void synchronizeLengthFields(TapeStep step) {
+		double length = step.getTapeLength(!isStickMode());
+		magField.setValue(length);
+		inputField.setValue(length);
+		step.repaint(tp.getID());
+	}
+
 	@Override
 	protected Rectangle getLayoutBounds(Step step) {
 		return ((TapeStep) step).panelLayoutBounds.get(tp.getID());
@@ -1365,6 +1374,7 @@ public class TapeMeasure extends InputTrack  implements MarkingRequired {
 		}
 		if (t.worldLength > 0) {
 			t.setTapeLength(inputField.getValue());
+			synchronizeLengthFields(t);
 			t.repaint(tp.getID());
 		}
 		inputField.setSigFigs(4);
