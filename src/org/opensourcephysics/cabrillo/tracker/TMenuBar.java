@@ -375,11 +375,6 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 	 */
 	@Override
 	public void menuSelected(MenuEvent e) {
-//		if (OSPRuntime.isJS) {
-//			// signals SwingJS that there is no need to do anything with the DOM during this
-//			// process of rebuilding the menu.
-//			OSPRuntime.jsutil.setUIEnabled(this, false);
-//		}
 		switch (((JMenu) e.getSource()).getName()) {
 		case "file":
 			refreshFileMenu(true);
@@ -422,9 +417,6 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 			refreshHelpMenu(true);
 			break;
 		}
-//		if (OSPRuntime.isJS) {
-//			OSPRuntime.jsutil.setUIEnabled(this, true);
-//		}
 	}
 
 	@Override
@@ -496,18 +488,6 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 			case REFRESH_TFRAME_REFRESH:
 			default:
 				setMenuTainted(MENU_ALL, true);
-//				OSPLog.debug(Performance.timeCheckStr("TMenuBar refreshAll full rebuild start", Performance.TIME_MARK));
-//				if (OSPRuntime.isJS) {
-//					// signals SwingJS that there is no need to do anything with the DOM during this
-//					// process
-//					// of rebuilding the menu.
-//					OSPRuntime.jsutil.setUIEnabled(this, false);
-//				}
-//				
-//				//FontSizer.setFonts(this, FontSizer.getLevel());
-//				if (OSPRuntime.isJS) {
-//					OSPRuntime.jsutil.setUIEnabled(this, true);
-//				}
 			}
 		} catch (Throwable t) {
 			System.out.println(t);// t.printStackTrace();

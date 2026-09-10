@@ -409,7 +409,6 @@ javajs/api/GenericImageEncoder.js
 javajs/api/GenericLineReader.js
 javajs/api/GenericOutputChannel.js
 
-javajs/api/JSFunction.js
 javajs/api/JSONEncodable.js
 
 javajs/async/Assets.js
@@ -1246,13 +1245,14 @@ swingjs/a2s/Dialog.js
 swingjs/a2s/Frame.js
 swingjs/a2s/Util.js
 swingjs/api/Interface.js
-swingjs/api/JSUtilI.js
+
+
+
+javajs/api/JSUtilI.js
 swingjs/api/js/DOMNode.js
-swingjs/api/js/HTML5Canvas.js
-swingjs/api/js/HTML5CanvasContext2D.js
 swingjs/api/js/HTML5Video.js
-swingjs/api/js/JQueryObject.js
-swingjs/api/js/JSFunction.js
+
+
 swingjs/api/js/JSInterface.js
 swingjs/image/JSImageWriter.js
 swingjs/image/JpgImageWriteParam.js
