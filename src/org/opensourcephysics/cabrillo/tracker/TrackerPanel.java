@@ -1992,6 +1992,11 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	public String getUnits(TTrack track, String var) {
 		if (!isUnitsVisible())
 			return ""; //$NON-NLS-1$
+		return getDataUnits(track,var);
+	}
+
+    /** Units metadata for reports, independent of display visibility. */
+    public String getDataUnits(TTrack track,String var) {
 		String dimensions = TTrack.getVariableDimensions(track, var);
 		if (dimensions == null)
 			return ""; //$NON-NLS-1$
