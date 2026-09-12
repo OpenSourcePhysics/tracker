@@ -3426,6 +3426,62 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	}
 
 	/**
+	 * Gets the screen bounds of the current video image on this panel.
+	 * 
+	 * @return the bounding rectangle in panel coordinates, or null if no video is visible
+	 */
+	public Rectangle getImageBounds() {
+		try {
+			if (getVideo() == null || !getVideo().isVisible()) {
+				return null;
+			}
+			double w = getImageWidth();
+			double h = getImageHeight();
+			if (w <= 0 || h <= 0) {
+				return null;
+			}
+			Point p1 = new TPoint(0, 0).getScreenPosition(this);
+			Point p2 = new TPoint(w, h).getScreenPosition(this);
+			if (p1 == null || p2 == null) {
+				return null;
+			}
+			int x = Math.min(p1.x, p2.x);
+			int y = Math.min(p1.y, p2.y);
+			int width = Math.abs(p2.x - p1.x);
+			int height = Math.abs(p2.y - p1.y);
+			return new Rectangle(x, y, width, height);
+		} catch (Throwable t) {
+			return null;
+		}
+	}
+
+	/**
+	 * Determines whether a point is directly on the visible video image.
+	 * 
+	 * @param p the point in panel coordinates
+	 * @return true if the point is on the visible image
+	 */
+	public boolean isPointOnImage(Point p) {
+		return p != null && isPointOnImage(p.x, p.y);
+	}
+
+	/**
+	 * Determines whether the specified panel coordinates are directly on the visible video image.
+	 * 
+	 * @param x x-coordinate in panel coordinates
+	 * @param y y-coordinate in panel coordinates
+	 * @return true if (x, y) is on the visible image
+	 */
+	public boolean isPointOnImage(int x, int y) {
+		try {
+			Rectangle bounds = getImageBounds();
+			return bounds != null && bounds.contains(x, y);
+		} catch (Throwable t) {
+			return false;
+		}
+	}
+
+	/**
 	 * Gets the TFrame parent of this panel
 	 * 
 	 * @return the TFrame, if any

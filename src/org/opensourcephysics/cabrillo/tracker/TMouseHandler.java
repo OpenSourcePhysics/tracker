@@ -62,6 +62,9 @@ public class TMouseHandler implements InteractiveMouseHandler {
 	Point mousePtRelativeToViewRect = new Point(); // starting position of mouse
 	Point viewLoc = new Point(); // starting position of view rect
 	Dimension dim = new Dimension();
+	boolean isDraggingFrame = false;
+	Point mouseLoc = new Point(); // starting screen position of mouse for frame drag
+	Point frameLoc = new Point(); // starting position of frame for frame drag
 
 	static {
 		ImageIcon icon = (ImageIcon) Tracker.getResourceIcon("creatept.gif", false); //$NON-NLS-1$
@@ -166,8 +169,45 @@ public class TMouseHandler implements InteractiveMouseHandler {
 				return;
 			}
 			clearInteractive(trackerPanel, e);
+			isDraggingFrame = false;
+			if (!SwingUtilities.isRightMouseButton(e)
+					&& !SwingUtilities.isMiddleMouseButton(e)
+					&& !Tracker.isZoomInCursor(trackerPanel.getCursor())
+					&& !Tracker.isZoomOutCursor(trackerPanel.getCursor())
+					&& !trackerPanel.isPointOnImage(e.getPoint())) {
+				Window frame = trackerPanel.getTFrame();
+				if (frame == null) {
+					frame = SwingUtilities.getWindowAncestor(trackerPanel);
+				}
+				if (frame != null) {
+					Point startMouse = getScreenLocation(e, trackerPanel);
+					if (startMouse != null) {
+						mouseLoc.setLocation(startMouse);
+						frameLoc.setLocation(frame.getLocation());
+						isDraggingFrame = true;
+						trackerPanel.setMouseCursor(Tracker.grabCursor);
+					}
+				}
+			}
 			return;
 		case InteractivePanel.MOUSE_DRAGGED:
+			if (isDraggingFrame) {
+				Window frame = trackerPanel.getTFrame();
+				if (frame == null) {
+					frame = SwingUtilities.getWindowAncestor(trackerPanel);
+				}
+				if (frame != null) {
+					Point curMouse = getScreenLocation(e, trackerPanel);
+					if (curMouse != null) {
+						int dx = curMouse.x - mouseLoc.x;
+						int dy = curMouse.y - mouseLoc.y;
+						frame.setLocation(frameLoc.x + dx, frameLoc.y + dy);
+						trackerPanel.setMouseCursor(Tracker.grabCursor);
+					}
+				}
+				TFrame.repaintT(trackerPanel);
+				break;
+			}
 			// move TPoints by dragging mouse
 			selectedPoint = trackerPanel.getSelectedPoint();
 			TTrack track = trackerPanel.getSelectedTrack();
@@ -219,6 +259,12 @@ public class TMouseHandler implements InteractiveMouseHandler {
 				TFrame.repaintT(trackerPanel);
 			break;
 		case InteractivePanel.MOUSE_RELEASED:
+			if (isDraggingFrame) {
+				isDraggingFrame = false;
+				trackerPanel.setMouseCursor(Cursor.getDefaultCursor());
+				trackerPanel.requestFocusInWindow();
+				break;
+			}
 			// snap vectors and/or autoAdvance when releasing mouse
 			Cursor c = trackerPanel.getCursor();
 			if (!Tracker.isZoomInCursor(c) && !Tracker.isZoomOutCursor(c)) {
@@ -461,6 +507,64 @@ public class TMouseHandler implements InteractiveMouseHandler {
 				&& autoTracker.getWizard().isVisible() 
 				&& (frameData = autoTracker.getOrCreateFrameData(frameNumber)).getKeyFrameData()
 						== frameData ? (KeyFrameData) frameData : null);
+	}
+
+	/**
+	 * Gets the screen/page coordinates of a mouse or touch event.
+	 * In standard Java desktop, delegates to getLocationOnScreen().
+	 * In SwingJS / JavaScript on iPad or desktop browser, extracts pageX/pageY
+	 * directly from the underlying DOM/touch event.
+	 *
+	 * @param e the mouse event
+	 * @param trackerPanel the source tracker panel
+	 * @return the point in screen/page coordinates
+	 */
+	private Point getScreenLocation(MouseEvent e, TrackerPanel trackerPanel) {
+		int[] pt = new int[2];
+		boolean found = false;
+		/**
+		 * @j2sNative
+		 * try {
+		 *   var je = (e && e.bdata ? e.bdata.jqevent : null);
+		 *   if (je) {
+		 *     var oe = je.originalEvent || je;
+		 *     var t = (oe.touches && oe.touches.length > 0 ? oe.touches[0] : 
+		 *             (oe.changedTouches && oe.changedTouches.length > 0 ? oe.changedTouches[0] : 
+		 *             (oe.targetTouches && oe.targetTouches.length > 0 ? oe.targetTouches[0] : null)));
+		 *     var px = (t ? t.pageX : (je.pageX != null ? je.pageX : null));
+		 *     var py = (t ? t.pageY : (je.pageY != null ? je.pageY : null));
+		 *     if (px == null && window.J2S && J2S._mousePageX != null) {
+		 *       px = J2S._mousePageX;
+		 *       py = J2S._mousePageY;
+		 *     }
+		 *     if (px != null && isFinite(px) && py != null && isFinite(py)) {
+		 *       pt[0] = Math.round(px);
+		 *       pt[1] = Math.round(py);
+		 *       found = true;
+		 *     }
+		 *   }
+		 * } catch (ex) {}
+		 */
+		{
+		}
+		if (found) {
+			return new Point(pt[0], pt[1]);
+		}
+		try {
+			Point p = e.getLocationOnScreen();
+			if (p != null && (p.x != 0 || p.y != 0)) {
+				return p;
+			}
+		} catch (Throwable t) {
+		}
+		if (trackerPanel != null && trackerPanel.isShowing()) {
+			try {
+				Point p = trackerPanel.getLocationOnScreen();
+				return new Point(p.x + e.getX(), p.y + e.getY());
+			} catch (Throwable t) {
+			}
+		}
+		return e.getPoint();
 	}
 
 }
