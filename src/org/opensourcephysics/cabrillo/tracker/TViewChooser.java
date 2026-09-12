@@ -85,7 +85,8 @@ public class TViewChooser extends JPanel implements PropertyChangeListener, OSPR
 
 	private JToolBar toolbar;
 	private Component toolbarFiller = Box.createHorizontalGlue();
-	private JButton maximizeButton, nextViewButton;
+	private TButton maximizeButton;
+	private TButton chooseViewButton;
 	private JPanel viewPanel;
 	private JButton chooserButton;
 	
@@ -97,6 +98,7 @@ public class TViewChooser extends JPanel implements PropertyChangeListener, OSPR
 	// popup menu
 	
 	protected JPopupMenu popup = new JPopupMenu();
+	protected JPopupMenu panesPopup = new JPopupMenu();
 	protected boolean ignoreSelectedTrack;
 		
 	/**
@@ -160,20 +162,24 @@ public class TViewChooser extends JPanel implements PropertyChangeListener, OSPR
 				else restore();
 			}
 		});
-		// next view button
-		nextViewButton = new TButton(RIGHT_ARROW_ICON);
-		nextViewButton.setBorder(BorderFactory.createCompoundBorder(etched, empty));
-		nextViewButton.addActionListener(new ActionListener() {
+		// choose view button
+		chooseViewButton = new TButton(RIGHT_ARROW_ICON) {
 			@Override
-			public void actionPerformed(ActionEvent e) {
-				int viewNum = getTrackerPanel().getMaximizedView();
-				if (viewNum != TView.VIEW_UNSET) {
-					int next = viewNum + 1;
-					next = next > TView.VIEW_MAIN? TView.VIEW_PLOT: next;
-					frame.maximizeView(getTrackerPanel(), next);
-				}
+			protected JPopupMenu getPopup() {
+				panesPopup.removeAll();
+				if (frame.currentMenuBar == null)
+					return panesPopup;
+				frame.currentMenuBar.refreshViewMenu(true);
+				panesPopup.add(frame.currentMenuBar.getMenuItem("view_mainItem"));
+				panesPopup.add(frame.currentMenuBar.getMenuItem("view_1Item"));
+				panesPopup.add(frame.currentMenuBar.getMenuItem("view_2Item"));
+				panesPopup.add(frame.currentMenuBar.getMenuItem("view_3Item"));
+				panesPopup.add(frame.currentMenuBar.getMenuItem("view_4Item"));
+				return panesPopup;
 			}
-		});
+		}; //$NON-NLS-1$
+		chooseViewButton.setBorder(BorderFactory.createCompoundBorder(etched, empty));
+		chooseViewButton.alignPopup = TButton.RIGHT;
 		setSelectedViewType(type);
 	}
 	
@@ -184,7 +190,7 @@ public class TViewChooser extends JPanel implements PropertyChangeListener, OSPR
 				TrackerRes.getString("TViewChooser.Restore.Tooltip") : //$NON-NLS-1$
 				TrackerRes.getString("TViewChooser.Maximize.Tooltip")); //$NON-NLS-1$
 		maximizeButton.setText(TrackerRes.getString("TMenuBar.Menu.Window")+" "+maximizeButton.getName());
-		nextViewButton.setToolTipText(TrackerRes.getString("TViewChooser.NextView.Tooltip")); //$NON-NLS-1$
+		chooseViewButton.setToolTipText(TrackerRes.getString("TViewChooser.NextView.Tooltip")); //$NON-NLS-1$
 	}
 
 	protected void showToolbarPopup(int x, int y) {
@@ -492,7 +498,7 @@ public class TViewChooser extends JPanel implements PropertyChangeListener, OSPR
 		super.setEnabled(enable);
 		chooserButton.setEnabled(enable);
 		maximizeButton.setEnabled(enable);
-		nextViewButton.setEnabled(enable);
+		chooseViewButton.setEnabled(enable);
 		TView view = getSelectedView();
 		ArrayList<Component> comps = view.getToolBarComponents();
 		for (int j = 0; j < comps.size(); j++) {
@@ -541,7 +547,6 @@ public class TViewChooser extends JPanel implements PropertyChangeListener, OSPR
 		// BH THIS IS A PROBLEM
 		// DB 7/11/20 I added checks to call this only when required
 		toolbar.removeAll();
-		toolbar.add(chooserButton);
 		if (selectedView != null) {
 			ArrayList<Component> list = selectedView.getToolBarComponents();
 			if (list != null) {
@@ -553,9 +558,11 @@ public class TViewChooser extends JPanel implements PropertyChangeListener, OSPR
 		}
 		toolbar.add(toolbarFiller);
 		refreshMaximizeButton();
+		toolbar.add(chooserButton);
 		toolbar.add(maximizeButton);
-		if (isMaximized())
-			toolbar.add(nextViewButton);
+		if (isMaximized()) {
+			toolbar.add(chooseViewButton);
+		}
 //		FontSizer.setFonts(toolbar);
 		toolbar.repaint();
 	}

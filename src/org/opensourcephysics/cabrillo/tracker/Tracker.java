@@ -211,6 +211,8 @@ public class Tracker {
 	static final String SI_LENGTH_UNIT = "m";
 	static final String SI_MASS_UNIT = "kg";
 
+	static final int DEFAULT_MOBILE_FONT_LEVEL = 1;
+
 	// for testing
 	static boolean testOn = false;
 	static double testVal = 0;
@@ -644,6 +646,8 @@ public class Tracker {
 					startupHintShown = true;
 					panel.setMessage(TrackerRes.getString("Tracker.Startup.Hint")); //$NON-NLS-1$
 				}
+				if (OSPRuntime.isMobile()) // opening on iPad
+					frame.maximizeView(panel, TView.VIEW_MAIN);
 			});
 		}
 	}
@@ -2327,8 +2331,8 @@ public class Tracker {
 	 */
 	private static void start(String[] args) {
 		int fontLevel = preferredFontLevel + preferredFontLevelPlus;
-		if (OSPRuntime.isJS && OSPRuntime.cssCursor) { // running on iPad/iPhone
-			fontLevel = Math.max(1, fontLevel);
+		if (OSPRuntime.cssCursor && OSPRuntime.isJS) { // running on iPad/iPhone
+			fontLevel = Math.max(DEFAULT_MOBILE_FONT_LEVEL, fontLevel);
 			TFrame.maximize = true;
 		}
 		FontSizer.setLevel(fontLevel);
@@ -2391,7 +2395,7 @@ public class Tracker {
 
 		if (OSPRuntime.isJS) {
 			frame.setVisible(true);
-			if (OSPRuntime.cssCursor) { // running on iPad
+			if (OSPRuntime.isMobile()) { // running on iPad
 				new AsyncDialog().showConfirmDialog(frame,
 						TrackerRes.getString("Tracker.Dialog.MobileKeyboard.Message"),
 						TrackerRes.getString("Tracker.Dialog.MobileKeyboard.Title"),

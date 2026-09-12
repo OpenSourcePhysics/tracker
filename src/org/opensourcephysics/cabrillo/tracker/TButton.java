@@ -43,6 +43,7 @@ public class TButton extends JButton {
   private JPopupMenu popup;
   protected String context = "track"; //$NON-NLS-1$
   protected boolean alwaysShowBorder;
+  protected int alignPopup = LEFT; 
 
   /**
    * Constructs a TButton.
@@ -101,7 +102,9 @@ public class TButton extends JButton {
 						popup.setVisible(false);
 					} else {
 						hidePopup = true;
-						popup.show(TButton.this, 0, TButton.this.getHeight());
+						int popupWidth = popup.getPreferredSize().width;
+						int offset = alignPopup == LEFT? 0: getWidth() - popupWidth;
+						popup.show(TButton.this, offset, getHeight());
 					}
 				}
 			}
@@ -207,15 +210,6 @@ public class TButton extends JButton {
 		return null;
 	}
 	
-	protected void showPopup() {
-		popup = getPopup();
-		if (popup != null) {
-			hidePopup = true;
-			popup.show(TButton.this, 0, TButton.this.getHeight());
-		}
-		
-	}
-
 	protected void alwaysShowBorder(boolean showBorder) {
 		alwaysShowBorder = showBorder;		
 		setOpaque(alwaysShowBorder);

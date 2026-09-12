@@ -219,7 +219,6 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 			revalidate();
 			repaint();
 		}
-
 		@Override
 		public void paintComponent(Graphics g) {
 			if (!isPaintable())
@@ -289,6 +288,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 	protected JDialog helpDialog;
 	protected JDialog dataToolDialog;
 	protected PrefsDialog prefsDialog;
+	protected TMenuBar currentMenuBar;
 
 	private DataDropHandler dataDropHandler;
 	protected FileDropHandler fileDropHandler;
@@ -547,8 +547,6 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 		setupAddedPanel(tabPanel, tab, trackerPanel, doSelect, doRefresh, whenDone);
 		doTabStateChanged();
 		
-		if (OSPRuntime.isJS && OSPRuntime.cssCursor) // opening on iPad
-			maximizeView(trackerPanel, TView.VIEW_MAIN);
 	}
 
 	private void setupAddedPanel(TTabPanel tabPanel, int tab, TrackerPanel trackerPanel, boolean doSelect,
@@ -1689,15 +1687,6 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 	@Override
 	public void setVisible(boolean visible) {
 		super.setVisible(visible);
-		if (visible) {
-			TrackerPanel trackerPanel = getSelectedPanel();
-			TTabPanel tabPanel = trackerPanel == null ? null : getTabPanel(trackerPanel);
-			if (tabPanel != null)
-				tabPanel.setToolbarVisible(true);
-			TMenuBar menuBar = trackerPanel == null ? null : getMenuBar(trackerPanel.getID(), true);
-			if (menuBar != null)
-				setJMenuBar(menuBar);
-		}
 		Tracker.checkSplash();
 	}
 
@@ -1930,11 +1919,20 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 	void restoreViews(TrackerPanel trackerPanel) {
 		if (trackerPanel.getMaximizedView() == TView.VIEW_UNSET)
 			return;
+		
+		// first determine if both right and bottom views are closed
+		boolean closedViews = trackerPanel.dividerFractions[0] > 0.95
+				&& trackerPanel.dividerFractions[2] > 0.95;
+		
 		for (int i = 0; i < trackerPanel.dividerFractions.length; i++) {
-			if (trackerPanel.dividerLocs == null)
-				setDividerLocation(trackerPanel, i, trackerPanel.dividerFractions[i]);
-			else
-				setDividerLocation(trackerPanel, i, (int) trackerPanel.dividerLocs[i]);
+			if (closedViews && i == 0)
+				setDividerLocation(trackerPanel, i, TFrame.DEFAULT_MAIN_DIVIDER);
+			else {
+				if (trackerPanel.dividerLocs == null)
+					setDividerLocation(trackerPanel, i, trackerPanel.dividerFractions[i]);
+				else
+					setDividerLocation(trackerPanel, i, (int) trackerPanel.dividerLocs[i]);
+			}
 		}
 		setDefaultWeights(getSplitPanes(trackerPanel));
 		trackerPanel.setMaximizedView(TView.VIEW_UNSET);
@@ -3344,7 +3342,10 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 	private FrameBlocker frameBlocker;
 
 	public void setFrameBlocker(boolean blocking, TrackerPanel panel) {
-		getJMenuBar().setEnabled(!blocking);
+		JMenuBar menuBar = getJMenuBar();
+		if (menuBar != null) {
+			menuBar.setEnabled(!blocking);
+		}
 //		tabbedPane.setEnabled(!blocking);
 //		getContentPane().setVisible(!blocking);
 						
@@ -3401,15 +3402,12 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 
 	@Override
 	public void setJMenuBar(JMenuBar bar) {
-		super.setJMenuBar(bar);
-		bar.setEnabled(frameBlocker == null);
-		// SwingJS may install the menu bar before the frame has a visible DOM peer.
-		// Force the root pane to materialize and lay out the text menu after every
-		// per-tab menu-bar swap.
-		if (getRootPane() != null) {
-			getRootPane().revalidate();
-			getRootPane().repaint();
+		boolean empty = getTabCount()==0;
+		super.setJMenuBar(OSPRuntime.isMobile() && !empty? null:  bar);
+		if (bar != null) {
+			bar.setEnabled(frameBlocker == null);			
 		}
+		currentMenuBar = bar == defaultMenuBar? null: (TMenuBar)bar;
 	}
 
 	static class DeactivatingMenuBar extends JMenuBar {
