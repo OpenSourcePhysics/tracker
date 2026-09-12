@@ -3441,7 +3441,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 			openBrowserItem.addActionListener(new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent e) {
-					getLibraryBrowser().setVisible(true);
+					LibraryBrowserDragHandler.openLibraryBrowser(TFrame.this);
 				}
 			});
 			openMenu.add(openBrowserItem);

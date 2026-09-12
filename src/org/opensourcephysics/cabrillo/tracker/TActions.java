@@ -157,9 +157,7 @@ public class TActions {
 					public void actionPerformed(ActionEvent e) {
 						
 						if (frame != null) {
-//							boolean isVisible = frame.getLibraryBrowser().isVisible();
-//							frame.getLibraryBrowser().setVisible(!isVisible);
-							frame.getLibraryBrowser().setVisible(true);
+							LibraryBrowserDragHandler.openLibraryBrowser(frame);
 						}
 					}
 				}, true));
