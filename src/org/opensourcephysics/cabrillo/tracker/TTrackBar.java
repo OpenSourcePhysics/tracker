@@ -503,7 +503,6 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 	protected void rebuild() {
 		if (selectButton == null)
 			createGUI();
-		
 		buildRequested = false;
 		numberFieldWidth = sizingField.getPreferredSize().width;
 		selectButton.setToolTipText(TrackerRes.getString("TToolBar.Button.SelectTrack.Tooltip")); //$NON-NLS-1$
@@ -580,17 +579,15 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 					frame.setDividerLocation(panel, TFrame.SPLIT_MAIN_BOTTOM, 1.0); 
 			}
 			
-  		// show main view name if no video and no calibration tools
-			// and no selected track
-  		if (panel.getVideo() == null && panel.calibrationTools.isEmpty()
-  				&& panel.getSelectedTrack() == null) {
-  			String name = TrackerRes.getString("TFrame.View.Main");
-   			viewLabel.setText(name); //$NON-NLS-1$
-   			FontSizer.setFonts(viewLabel);
-  			add(viewLabel);
-  		}
 		}
-		
+
+		if (panel.getSelectedTrack() == null) {
+			String name = TrackerRes.getString("TFrame.View.Main");
+ 			viewLabel.setText(name); //$NON-NLS-1$
+ 			FontSizer.setFonts(viewLabel);
+			add(viewLabel);
+		}
+
 		add(toolbarEnd);
 		if (!OSPRuntime.isJS) /** @j2sNative */
 		{
