@@ -24,6 +24,7 @@
  */
 package org.opensourcephysics.cabrillo.tracker;
 
+import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -419,6 +420,18 @@ public class TapeStep extends Step {
 	 * @param fromEnds true if calculated from the current tip positions
 	 * @return the length in world units
 	 */
+	public double calcTapeLength(boolean fromEnds) {
+		double scaleX = 1;
+		double scaleY = 1;
+		if (tape.tp != null) {
+			scaleX = tape.tp.getCoords().getScaleX(n);
+			scaleY = tape.tp.getCoords().getScaleY(n);
+		}
+		double dx = (end2.getX() - end1.getX()) / scaleX;
+		double dy = (end1.getY() - end2.getY()) / scaleY;
+		return fromEnds ? Math.sqrt(dx * dx + dy * dy) : worldLength;
+	}
+
 	public double getTapeLength(boolean fromEnds) {
 		double scaleX = 1;
 		double scaleY = 1;
@@ -435,9 +448,13 @@ public class TapeStep extends Step {
 		if (Double.isNaN(xAxisToTapeAngle)) {
 			xAxisToTapeAngle = 0;
 		}
-		tape.angleField.setValue(xAxisToTapeAngle);
+		if (tape.angleField != null && !tape.angleField.hasFocus()) {
+			tape.angleField.setValue(xAxisToTapeAngle);
+		}
 		double length = fromEnds ? Math.sqrt(dx * dx + dy * dy) : worldLength;
-		tape.magField.setValue(length);
+		if (tape.magField != null && !tape.magField.hasFocus()) {
+			tape.magField.setValue(length);
+		}
 		tape.pixelLengthField.setValue(1/scaleX);
 		return length;
 	}
@@ -462,7 +479,7 @@ public class TapeStep extends Step {
 			return;
 		length = Math.abs(length);
 		length = Math.max(length, TapeMeasure.MIN_LENGTH);
-		double factor = getTapeLength(!tape.isStickMode()) / length;
+		double factor = calcTapeLength(!tape.isStickMode()) / length;
 		if (factor == 1 || factor == 0 || Double.isInfinite(factor) || Double.isNaN(factor))
 			return;
 
@@ -471,7 +488,22 @@ public class TapeStep extends Step {
 //      tape.lengthKeyFrames.add(n);
 			worldLength = length;
 			adjustTipsToLength();
-			tape.repaintStep(this);
+			if (tape.isFixedPosition()) {
+				for (int i = 0; i < tape.steps.array.length; i++) {
+					TapeStep ts = (TapeStep) tape.steps.array[i];
+					if (ts != null) {
+						ts.end1.setLocation(end1);
+						ts.end2.setLocation(end2);
+						ts.worldLength = length;
+						ts.erase();
+					}
+				}
+			}
+			erase();
+			tape.magField.setValue(worldLength);
+			tape.magField.setBackground(Color.white);
+			tape.inputField.setValue(worldLength);
+			tape.repaint();
 			Undo.postTrackEdit(tape, trackControl);
 			return;
 		}
@@ -514,7 +546,21 @@ public class TapeStep extends Step {
 			XMLControl trackControl = new XMLControlElement(tape);
 			xAxisToTapeAngle = theta;
 			adjustTipsToAngle(null);
-			tape.repaintStep(this);
+			if (tape.isFixedPosition()) {
+				for (int i = 0; i < tape.steps.array.length; i++) {
+					TapeStep ts = (TapeStep) tape.steps.array[i];
+					if (ts != null) {
+						ts.xAxisToTapeAngle = theta;
+						ts.end1.setLocation(end1);
+						ts.end2.setLocation(end2);
+						ts.erase();
+					}
+				}
+			}
+			erase();
+			tape.angleField.setValue(theta);
+			tape.angleField.setBackground(Color.white);
+			tape.repaint();
 			Undo.postTrackEdit(tape, trackControl);
 			return;
 		}
@@ -610,7 +656,7 @@ public class TapeStep extends Step {
 		double sin = end1.sin(end2);
 		double cos = end1.cos(end2);
 		double d = end1.distance(end2);
-		double factor = worldLength / getTapeLength(true);
+		double factor = worldLength / calcTapeLength(true);
 		
 		// special case: d==0 must be corrected
 		if (d == 0) {
@@ -741,6 +787,15 @@ public class TapeStep extends Step {
 			double y2 = middle.getY() - sin * d / 2;
 			end1.setLocation(x1, y1);
 			end2.setLocation(x2, y2);
+		}
+		if (tape.isFixedPosition()) {
+			for (int i = 0; i < tape.steps.array.length; i++) {
+				TapeStep ts = (TapeStep) tape.steps.array[i];
+				if (ts != null) {
+					ts.end1.setLocation(end1);
+					ts.end2.setLocation(end2);
+				}
+			}
 		}
 		adjustingTips = false;
 	}

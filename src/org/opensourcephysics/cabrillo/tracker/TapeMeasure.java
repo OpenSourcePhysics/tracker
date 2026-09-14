@@ -229,67 +229,114 @@ public class TapeMeasure extends InputTrack  implements MarkingRequired {
 		final FocusListener magFocusListener = new FocusAdapter() {
 			@Override
 			public void focusLost(FocusEvent e) {
-				if (magField.getBackground() == Color.yellow) {
-					int n = tp.getFrameNumber();
-					// if not fixed, add frame number to key frames
-					if (!isFixedPosition())
-						keyFrames.add(n);
-					TapeStep step = (TapeStep) getStep(n);
-					// replace with key frame step
-					step = (TapeStep) getKeyStep(step);
-					String rawText = magField.getText();
-					if (!TapeMeasure.this.isReadOnly()) {
-						checkLengthUnits(rawText);
-					}
-					step.setTapeLength(magField.getValue());
-					invalidateData(null);
-					if (isFixedPosition())
-						fireStepsChanged();
-					else
-						firePropertyChange(PROPERTY_TTRACK_STEP, null, new Integer(n)); // $NON-NLS-1$
-					if (tp.getSelectedPoint() instanceof TapeStep.Rotator)
-						tp.setSelectedPoint(null);
-				}
+				commitMagField();
 			}
 		};
 		magField.addFocusListener(magFocusListener);
 		magField.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				magFocusListener.focusLost(null);
+				commitMagField();
 				magField.requestFocusInWindow();
 			}
 		});
 		final FocusListener angleFocusListener = new FocusAdapter() {
 			@Override
 			public void focusLost(FocusEvent e) {
-				if (angleField.getBackground() == Color.yellow) {
-					int n = tp.getFrameNumber();
-					// if not fixed, add frame number to key frames
-					if (!isFixedPosition())
-						keyFrames.add(n);
-					TapeStep step = (TapeStep) getStep(n);
-					// replace with key frame step
-					step = (TapeStep) getKeyStep(step);
-					step.setTapeAngle(angleField.getValue());
-					invalidateData(null);
-					if (isFixedPosition())
-						fireStepsChanged();
-					else
-						firePropertyChange(PROPERTY_TTRACK_STEP, null, new Integer(n)); // $NON-NLS-1$
-					if (!isReadOnly())
-						tp.getAxes().setVisible(true);
-				}
+				commitAngleField();
 			}
 		};
 		angleField.addFocusListener(angleFocusListener);
 		angleField.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				angleFocusListener.focusLost(null);
+				commitAngleField();
 				angleField.requestFocusInWindow();
 			}
 		});
+	}
+
+	private void commitMagField() {
+		if (tp == null)
+			return;
+		int n = tp.getFrameNumber();
+		TapeStep step = (TapeStep) getStep(n);
+		if (step == null)
+			return;
+		double newLength = magField.getValue();
+		step = (TapeStep) getKeyStep(step);
+		double currentLength = step.calcTapeLength(!isStickMode());
+		if (Double.isNaN(newLength) || newLength <= 0) {
+			magField.setValue(currentLength);
+			magField.setBackground(Color.white);
+			return;
+		}
+		boolean isYellow = magField.getBackground() == Color.yellow
+				|| Color.yellow.equals(magField.getBackground());
+		if (isYellow || Math.abs(newLength - currentLength) > 1e-10) {
+			if (!isFixedPosition())
+				keyFrames.add(n);
+			String rawText = magField.getText();
+			if (!isReadOnly()) {
+				checkLengthUnits(rawText);
+			}
+			step.setTapeLength(newLength);
+			inputField.setValue(newLength);
+			magField.setValue(newLength);
+			magField.setBackground(Color.white);
+			invalidateData(null);
+			erase();
+			repaint();
+			if (isFixedPosition())
+				fireStepsChanged();
+			else
+				firePropertyChange(PROPERTY_TTRACK_STEP, null, new Integer(n)); // $NON-NLS-1$
+			if (tp.getSelectedPoint() instanceof TapeStep.Rotator)
+				tp.setSelectedPoint(null);
+			TFrame.repaintT(tp);
+			tp.refreshTrackBar();
+		} else {
+			magField.setBackground(Color.white);
+		}
+	}
+
+	private void commitAngleField() {
+		if (tp == null)
+			return;
+		int n = tp.getFrameNumber();
+		TapeStep step = (TapeStep) getStep(n);
+		if (step == null)
+			return;
+		double newAngle = angleField.getValue();
+		step = (TapeStep) getKeyStep(step);
+		double currentAngle = step.getTapeAngle();
+		if (Double.isNaN(newAngle)) {
+			angleField.setValue(currentAngle);
+			angleField.setBackground(Color.white);
+			return;
+		}
+		boolean isYellow = angleField.getBackground() == Color.yellow
+				|| Color.yellow.equals(angleField.getBackground());
+		if (isYellow || Math.abs(newAngle - currentAngle) > 1e-10) {
+			if (!isFixedPosition())
+				keyFrames.add(n);
+			step.setTapeAngle(newAngle);
+			angleField.setValue(newAngle);
+			angleField.setBackground(Color.white);
+			invalidateData(null);
+			erase();
+			repaint();
+			if (isFixedPosition())
+				fireStepsChanged();
+			else
+				firePropertyChange(PROPERTY_TTRACK_STEP, null, new Integer(n)); // $NON-NLS-1$
+			if (!isReadOnly())
+				tp.getAxes().setVisible(true);
+			TFrame.repaintT(tp);
+			tp.refreshTrackBar();
+		} else {
+			angleField.setBackground(Color.white);
+		}
 	}
 
 	/**
@@ -1318,8 +1365,8 @@ public class TapeMeasure extends InputTrack  implements MarkingRequired {
 		}
 
 		// check length only if in stick mode
-		if (isStickMode() || t.worldLength == 0) {
-			k = (TapeStep) steps.getStep(isFixedLength() ? 0 : lengthKey);
+		if (isStickMode() || isFixedPosition() || t.worldLength == 0) {
+			k = (TapeStep) steps.getStep(isFixedLength() || isFixedPosition() ? 0 : lengthKey);
 			different = k.worldLength != t.worldLength;
 			if (different) {
 				t.worldLength = k.worldLength;
@@ -1363,10 +1410,14 @@ public class TapeMeasure extends InputTrack  implements MarkingRequired {
 		if (!this.isReadOnly()) {
 			checkLengthUnits(rawText);
 		}
-		if (t.worldLength > 0) {
-			t.setTapeLength(inputField.getValue());
-			t.repaint(tp.getID());
+		double val = inputField.getValue();
+		if (!Double.isNaN(val) && val > 0) {
+			t.setTapeLength(val);
 		}
+		magField.setValue(t.getTapeLength(!isStickMode()));
+		magField.setBackground(Color.white);
+		t.erase();
+		t.repaint();
 		inputField.setSigFigs(4);
 	}
 

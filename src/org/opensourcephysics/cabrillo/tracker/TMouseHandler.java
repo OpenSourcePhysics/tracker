@@ -63,8 +63,10 @@ public class TMouseHandler implements InteractiveMouseHandler {
 	Point viewLoc = new Point(); // starting position of view rect
 	Dimension dim = new Dimension();
 	boolean isDraggingFrame = false;
+	boolean isResizingFrame = false;
 	Point mouseLoc = new Point(); // starting screen position of mouse for frame drag
 	Point frameLoc = new Point(); // starting position of frame for frame drag
+	Dimension frameDim = new Dimension(); // starting size of frame for frame resize
 
 	static {
 		ImageIcon icon = (ImageIcon) Tracker.getResourceIcon("creatept.gif", false); //$NON-NLS-1$
@@ -154,7 +156,7 @@ public class TMouseHandler implements InteractiveMouseHandler {
 				Tracker.startupHintShown = false;
 				trackerPanel.setMessage(""); //$NON-NLS-1$
 			}
-			TrackControl.getControl(trackerPanel).popup.setVisible(false);
+			trackerPanel.hidePopup();
 			// A touch press may not be preceded by MOUSE_MOVED, so the interactive
 			// object saved during the last move can be stale. Hit-test at the press
 			// location to let a touch on empty canvas clear the current selection.
@@ -170,6 +172,7 @@ public class TMouseHandler implements InteractiveMouseHandler {
 			}
 			clearInteractive(trackerPanel, e);
 			isDraggingFrame = false;
+			isResizingFrame = false;
 			if (!SwingUtilities.isRightMouseButton(e)
 					&& !SwingUtilities.isMiddleMouseButton(e)
 					&& !Tracker.isZoomInCursor(trackerPanel.getCursor())
@@ -182,15 +185,44 @@ public class TMouseHandler implements InteractiveMouseHandler {
 				if (frame != null) {
 					Point startMouse = getScreenLocation(e, trackerPanel);
 					if (startMouse != null) {
-						mouseLoc.setLocation(startMouse);
-						frameLoc.setLocation(frame.getLocation());
-						isDraggingFrame = true;
-						trackerPanel.setMouseCursor(Tracker.grabCursor);
+						Point ptInFrame = SwingUtilities.convertPoint(trackerPanel, e.getPoint(), frame);
+						int cornerSize = 44;
+						if (ptInFrame.x >= frame.getWidth() - cornerSize && ptInFrame.y >= frame.getHeight() - cornerSize) {
+							mouseLoc.setLocation(startMouse);
+							frameDim.setSize(frame.getSize());
+							isResizingFrame = true;
+							trackerPanel.setMouseCursor(Cursor.getPredefinedCursor(Cursor.SE_RESIZE_CURSOR));
+						} else {
+							mouseLoc.setLocation(startMouse);
+							frameLoc.setLocation(frame.getLocation());
+							isDraggingFrame = true;
+							trackerPanel.setMouseCursor(Tracker.grabCursor);
+						}
 					}
 				}
 			}
 			return;
 		case InteractivePanel.MOUSE_DRAGGED:
+			if (isResizingFrame) {
+				Window frame = trackerPanel.getTFrame();
+				if (frame == null) {
+					frame = SwingUtilities.getWindowAncestor(trackerPanel);
+				}
+				if (frame != null) {
+					Point curMouse = getScreenLocation(e, trackerPanel);
+					if (curMouse != null) {
+						int dx = curMouse.x - mouseLoc.x;
+						int dy = curMouse.y - mouseLoc.y;
+						int newW = Math.max(320, frameDim.width + dx);
+						int newH = Math.max(220, frameDim.height + dy);
+						frame.setSize(newW, newH);
+						frame.validate();
+						trackerPanel.setMouseCursor(Cursor.getPredefinedCursor(Cursor.SE_RESIZE_CURSOR));
+					}
+				}
+				TFrame.repaintT(trackerPanel);
+				break;
+			}
 			if (isDraggingFrame) {
 				Window frame = trackerPanel.getTFrame();
 				if (frame == null) {
@@ -259,6 +291,13 @@ public class TMouseHandler implements InteractiveMouseHandler {
 				TFrame.repaintT(trackerPanel);
 			break;
 		case InteractivePanel.MOUSE_RELEASED:
+			if (isResizingFrame) {
+				isResizingFrame = false;
+				trackerPanel.setMouseCursor(Cursor.getDefaultCursor());
+				trackerPanel.requestFocusInWindow();
+				TWindowResizeHandler.setupResizer(trackerPanel.getTFrame());
+				break;
+			}
 			if (isDraggingFrame) {
 				isDraggingFrame = false;
 				trackerPanel.setMouseCursor(Cursor.getDefaultCursor());

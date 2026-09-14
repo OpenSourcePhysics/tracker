@@ -3,6 +3,7 @@ package org.opensourcephysics.cabrillo.tracker;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
+import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Window;
@@ -406,6 +407,7 @@ public class LibraryBrowserDragHandler {
 		w = wHolder[0];
 
 		if (w != null) {
+			TWindowResizeHandler.install(w);
 			attachDragAdapter(w, browser);
 			if (w instanceof RootPaneContainer) {
 				JRootPane rp = ((RootPaneContainer) w).getRootPane();
@@ -554,7 +556,9 @@ public class LibraryBrowserDragHandler {
 		private final LibraryBrowser browser;
 		private final Point mouseLoc = new Point();
 		private final Point windowLoc = new Point();
+		private final Dimension windowDim = new Dimension();
 		private boolean isDragging = false;
+		private boolean isResizing = false;
 
 		public DragMouseAdapter(Component comp, LibraryBrowser browser) {
 			this.component = comp;
@@ -606,16 +610,26 @@ public class LibraryBrowserDragHandler {
 			if (w != null) {
 				Point startPt = getScreenLocation(e, component);
 				if (startPt != null) {
-					mouseLoc.setLocation(startPt);
-					windowLoc.setLocation(w.getLocation());
-					isDragging = true;
+					Point ptInWindow = SwingUtilities.convertPoint(component, e.getPoint(), w);
+					int cornerSize = 44;
+					if (ptInWindow.x >= w.getWidth() - cornerSize && ptInWindow.y >= w.getHeight() - cornerSize) {
+						mouseLoc.setLocation(startPt);
+						windowDim.setSize(w.getSize());
+						isResizing = true;
+						isDragging = false;
+					} else {
+						mouseLoc.setLocation(startPt);
+						windowLoc.setLocation(w.getLocation());
+						isDragging = true;
+						isResizing = false;
+					}
 				}
 			}
 		}
 
 		@Override
 		public void mouseDragged(MouseEvent e) {
-			if (!isDragging) return;
+			if (!isDragging && !isResizing) return;
 			Window w = SwingUtilities.getWindowAncestor(component);
 			if (w == null && browser != null) {
 				w = SwingUtilities.getWindowAncestor(browser);
@@ -639,8 +653,17 @@ public class LibraryBrowserDragHandler {
 				if (curPt != null) {
 					int dx = curPt.x - mouseLoc.x;
 					int dy = curPt.y - mouseLoc.y;
-					w.setLocation(windowLoc.x + dx, windowLoc.y + dy);
-					w.repaint();
+					if (isResizing) {
+						int newW = Math.max(400, windowDim.width + dx);
+						int newH = Math.max(300, windowDim.height + dy);
+						w.setSize(newW, newH);
+						w.validate();
+						w.repaint();
+						TWindowResizeHandler.setupResizer(w);
+					} else {
+						w.setLocation(windowLoc.x + dx, windowLoc.y + dy);
+						w.repaint();
+					}
 				}
 			}
 		}
@@ -648,6 +671,7 @@ public class LibraryBrowserDragHandler {
 		@Override
 		public void mouseReleased(MouseEvent e) {
 			isDragging = false;
+			isResizing = false;
 		}
 	}
 

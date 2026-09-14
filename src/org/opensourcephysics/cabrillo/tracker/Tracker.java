@@ -2328,7 +2328,7 @@ public class Tracker {
 	private static void start(String[] args) {
 		int fontLevel = preferredFontLevel + preferredFontLevelPlus;
 		if (OSPRuntime.isJS && OSPRuntime.cssCursor) { // running on iPad/iPhone
-			fontLevel = Math.max(2, fontLevel);
+			fontLevel = Math.max(1, fontLevel);
 			TFrame.maximize = true;
 		}
 		FontSizer.setLevel(fontLevel);

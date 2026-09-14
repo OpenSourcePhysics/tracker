@@ -396,6 +396,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 			addTab(panel, ADD_NOSELECT | ADD_REFRESH, () -> {
 			});
 		}
+		TWindowResizeHandler.install(this);
 	}
 
 	@SuppressWarnings("unused")
@@ -2428,6 +2429,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 			@Override
 			public void componentResized(ComponentEvent e) {
 				frameResized();
+				TWindowResizeHandler.setupResizer(TFrame.this);
 			}
 		});
 		// add focus listener to notify ParticleDataTracks and other listeners

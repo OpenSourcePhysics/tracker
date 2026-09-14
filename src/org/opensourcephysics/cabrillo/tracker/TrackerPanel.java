@@ -71,6 +71,7 @@ import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
+import javax.swing.MenuSelectionManager;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.Scrollable;
@@ -204,6 +205,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	protected double zoom = 1;
 	protected JScrollPane scrollPane;
 	protected JPopupMenu popup;
+	public JPopupMenu displayedPopup;
 	protected Set<String> enabled; // enabled GUI features (subset of full_config)
 	protected TPoint snapPoint; // used for origin snap
 	private BufferedImage renderedImage;  // for video export
@@ -2253,6 +2255,85 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			}
 		}));
 	}
+
+	/**
+	 * Hides any displayed context popup menu (such as marker point menu, track menu,
+	 * or zoom popup) on this tracker panel.
+	 */
+	public void hidePopup() {
+		if (displayedPopup != null) {
+			try {
+				displayedPopup.setVisible(false);
+			} catch (Throwable t) {}
+			displayedPopup = null;
+		}
+		if (popup != null && popup.isVisible()) {
+			try {
+				popup.setVisible(false);
+			} catch (Throwable t) {}
+		}
+		try {
+			TrackControl tc = TrackControl.getControl(this);
+			if (tc != null && tc.popup != null && tc.popup.isVisible()) {
+				tc.popup.setVisible(false);
+			}
+		} catch (Throwable t) {}
+		try {
+			MenuSelectionManager.defaultManager().clearSelectedPath();
+		} catch (Throwable t) {}
+		/**
+		 * @j2sNative
+		 * try {
+		 *   if (swingjs && swingjs.plaf && swingjs.plaf.JSPopupMenuUI) {
+		 *     swingjs.plaf.JSPopupMenuUI.closeAllMenus$();
+		 *   }
+		 *   if (swingjs && swingjs.plaf && swingjs.plaf.JSComponentUI) {
+		 *     swingjs.plaf.JSComponentUI.hideMenusAndToolTip$();
+		 *   }
+		 *   var applet = this.getFrameViewer$ ? (this.getFrameViewer$() && this.getFrameViewer$().applet) : null;
+		 *   if (!applet && window.J2S && J2S._applets) {
+		 *     for (var a in J2S._applets) {
+		 *       applet = J2S._applets[a];
+		 *       if (applet && applet._menus) break;
+		 *     }
+		 *   }
+		 *   if (applet && applet._menus && window.J2S && J2S.Swing && J2S.Swing.hideMenu) {
+		 *     for (var i in applet._menus) {
+		 *       J2S.Swing.hideMenu(applet._menus[i], true);
+		 *     }
+		 *   }
+		 *   if (window.$) {
+		 *     $(".ui-j2smenu:visible, .swingjsPopupMenu:visible").hide().attr("aria-hidden", "true").attr("aria-expanded", "false");
+		 *     $(".ui-j2smenu-node").removeClass("ui-state-active").removeClass("ui-state-focus");
+		 *   }
+		 * } catch (e) {}
+		 */
+		{
+		}
+	}
+
+	/**
+	 * Determines if a popup menu is currently visible on this tracker panel.
+	 * 
+	 * @return true if a popup menu is visible
+	 */
+	public boolean isPopupVisible() {
+		if (displayedPopup != null && displayedPopup.isVisible()) {
+			return true;
+		}
+		if (popup != null && popup.isVisible()) {
+			return true;
+		}
+		/**
+		 * @j2sNative
+		 * if (window.$ && $(".ui-j2smenu:visible, .swingjsPopupMenu:visible").length > 0) {
+		 *   return true;
+		 * }
+		 */
+		{
+		}
+		return false;
+	}
 	
 	/**
 	 * Gets the units dialog.
@@ -2456,7 +2537,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			markable = !(
 					(selectedTrack.isStepComplete(n) && !invert)
 					|| selectedTrack.isLocked()
-					|| (popup != null && popup.isVisible()));
+					|| isPopupVisible());
 			marking = markable && (selectedTrack.isMarkByDefault() || invert);
 		}
 		Interactive iad = getTracksTemp().isEmpty() || mouseEvent == null ? null : getInteractive();
@@ -3815,6 +3896,22 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	 * selected point coordinates.
 	 */
 	private class TMouseController extends IADMouseController {
+		@Override
+		public void mousePressed(MouseEvent e) {
+			super.mousePressed(e);
+			if (!OSPRuntime.isPopupTrigger(e)) {
+				hidePopup();
+			}
+		}
+
+		@Override
+		public void mouseClicked(MouseEvent e) {
+			super.mouseClicked(e);
+			if (!OSPRuntime.isPopupTrigger(e)) {
+				hidePopup();
+			}
+		}
+
 		/**
 		 * Handle the mouse released event.
 		 * 
@@ -4656,6 +4753,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			popup.add(helpItem);
 			return popup;
 		} finally {
+			displayedPopup = popup;
 			FontSizer.setFonts(popup, FontSizer.getLevel());
 		}
 	}
