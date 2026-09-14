@@ -1923,7 +1923,7 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 		if (frame.currentMenuBar == null) 
 			return;
 		
-		frame.currentMenuBar.setMenuTainted(frame.currentMenuBar.MENU_VIEW, true);
+		frame.currentMenuBar.setMenuTainted(TMenuBar.MENU_VIEW, true);
 		frame.currentMenuBar.refreshViewMenu(true);
 		filePopup.add(frame.currentMenuBar.getMenuItem("file_newTabItem"));
 		filePopup.addSeparator();
@@ -2092,7 +2092,7 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 		if (frame.currentMenuBar == null) 
 			return;
 		
-		frame.currentMenuBar.setMenuTainted(frame.currentMenuBar.MENU_VIEW, true);
+		frame.currentMenuBar.setMenuTainted(TMenuBar.MENU_VIEW, true);
 		frame.currentMenuBar.refreshViewMenu(true);
 		viewPopup.add(frame.currentMenuBar.getMenuItem("view_singleViewMenu"));
 		viewPopup.addSeparator();
