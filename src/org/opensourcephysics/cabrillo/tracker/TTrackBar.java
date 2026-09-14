@@ -95,10 +95,12 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 	protected int toolbarComponentHeight, numberFieldWidth;
 	protected TButton trackButton;
 	protected JButton maximizeButton;
-	protected JButton nextViewButton;
+	protected TButton chooseViewButton;
+	protected JLabel mainViewIconLabel;
 	protected TButton selectButton;
 	protected JLabel emptyLabel = new JLabel();
 	protected JPopupMenu selectPopup = new JPopupMenu();
+	protected JPopupMenu panesPopup = new JPopupMenu();
 
 	private TFrame frame;
 	private Integer panelID;
@@ -130,7 +132,7 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 			testButton.addActionListener(new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent e) {
-					final TFrame frame = (TFrame) testButton.getTopLevelAncestor();
+					final TFrame frame = (TFrame) testButton.getTopLevelAncestor();					
 					if (frame != null && frame.getSelectedPanel() != null) {
 						if (testTimer == null) {
 							testTimer = new Timer(20, new ActionListener() {
@@ -138,39 +140,9 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 								public void actionPerformed(ActionEvent e) {
 									// test action goes here	
 									TrackerPanel trackerPanel = frame.getSelectedPanel();
-									testIndex++;
-									testButton.setEnabled(true);
-
-//									VideoClip clip = trackerPanel.getPlayer().getVideoClip();
-//									String path = clip.getVideoPath();
-//									path = XML.forwardSlash(path);
-//									path = ResourceLoader.getNonURIPath(path);
-//									
-//									if (!"".equals(path)) {
-//										path = XML.stripExtension(path) + ".zip";
-//										String src = trackerPanel.openedFromPath;
-//										
-//										// assemble command 
-//										final ArrayList<String> cmd = new ArrayList<String>();
-//										cmd.add("C:/Program Files/Java/jre1.8.0_321/bin/java");
-//										cmd.add("-Djava.awt.headless=true");
-//										cmd.add("-jar");
-//										cmd.add("C:/Program Files/Tracker/tracker.jar");
-//										cmd.add("-headless");
-//										cmd.add(src);
-//										cmd.add("-exportVideo");
-//										cmd.add(path);
-//										
-//										ProcessBuilder builder = new ProcessBuilder(cmd);
-//										try {
-//											Process process = builder.start();
-//											int n = process.waitFor();
-//										} catch (Exception e1) {
-//											e1.printStackTrace();
-//										}
-//									    
-//									}
 									
+//									testIndex++;
+//									testButton.setEnabled(true);								
 											
 									if (!testTimer.isRepeats()) {
 										testTimer.stop();
@@ -287,8 +259,11 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 	 * @param level the desired font level
 	 */
 	public void setFontLevel(int level) {
-		Object[] objectsToSize = new Object[] { newVersionButton, trackButton, sizingField, testButton,
-				maximizeButton};
+		// sizingField is always present. The desktop-only newVersionButton is null
+		// in Tracker Online, and FontSizer examines the first array element before
+		// it filters null entries.
+		Object[] objectsToSize = new Object[] { sizingField, newVersionButton, trackButton, testButton, maximizeButton};
+
 		FontSizer.setFonts(objectsToSize, level);
 		numberFieldWidth = sizingField.getPreferredSize().width;
 	}
@@ -350,7 +325,7 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 		selectButton = new TButton(selectTrackIcon) {
 			@Override
 			protected JPopupMenu getPopup() {
-				return getSelectTrackPopup();
+				return getSelectTrackPopup(selectPopup);
 			}
 		};
 		trackButton = new TButton() {
@@ -406,23 +381,27 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 				rebuild();
 			}
 		});
-		nextViewButton = new TButton(TViewChooser.RIGHT_ARROW_ICON);
-		nextViewButton.setBorder(BorderFactory.createCompoundBorder(etched, empty));
-		nextViewButton.setToolTipText(TrackerRes.getString("TViewChooser.Maximize.Tooltip")); //$NON-NLS-1$
-		nextViewButton.addActionListener(new ActionListener() {
+		// choose view button
+		chooseViewButton = new TButton(TViewChooser.RIGHT_ARROW_ICON) {
 			@Override
-			public void actionPerformed(ActionEvent e) {
-				int viewNum = panel().getMaximizedView();
-				if (viewNum != TView.VIEW_UNSET) {
-					int next = viewNum + 1;
-					next = next > TView.VIEW_MAIN? TView.VIEW_PLOT: next;
-					frame.maximizeView(panel(), next);										
-				}
-				rebuild();
-				nextViewButton.setToolTipText(TrackerRes.getString("TViewChooser.Maximize.Tooltip")); //$NON-NLS-1$				
+			protected JPopupMenu getPopup() {
+				panesPopup.removeAll();
+				if (frame.currentMenuBar == null)
+					return panesPopup;
+				frame.currentMenuBar.refreshViewMenu(true);
+				panesPopup.add(frame.currentMenuBar.getMenuItem("view_mainItem"));
+				panesPopup.add(frame.currentMenuBar.getMenuItem("view_1Item"));
+				panesPopup.add(frame.currentMenuBar.getMenuItem("view_2Item"));
+				panesPopup.add(frame.currentMenuBar.getMenuItem("view_3Item"));
+				panesPopup.add(frame.currentMenuBar.getMenuItem("view_4Item"));
+				return panesPopup;
 			}
-		});
+		}; //$NON-NLS-1$
+		chooseViewButton.setBorder(BorderFactory.createCompoundBorder(etched, empty));
+		chooseViewButton.alignPopup = TButton.RIGHT;
 
+		mainViewIconLabel = new JLabel(TToolBar.pointmassOffIcon);
+		mainViewIconLabel.setBorder(BorderFactory.createEmptyBorder(2, 0, 2, 6));
 //		Border space = BorderFactory.createEmptyBorder(1, 4, 1, 4);
 //		Border line = BorderFactory.createLineBorder(Color.GRAY);
 //		trackButton.setBorder(BorderFactory.createCompoundBorder(line, space));
@@ -434,8 +413,8 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 	 *
 	 * @return the popup
 	 */
-	protected JPopupMenu getSelectTrackPopup() {
-		selectPopup.removeAll();
+	protected JPopupMenu getSelectTrackPopup(JPopupMenu popup) {
+		popup.removeAll();
 		// add measuring tools, calibration tools and axes at end
 //    final CoordAxes axes = trackerPanel.getAxes();
 		final ActionListener listener = new ActionListener() {
@@ -460,10 +439,10 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 			hasTracks = true;
 			JMenuItem item = new JMenuItem(track.getName("track"), track.getIcon(21, 16, "track")); //$NON-NLS-1$ //$NON-NLS-2$
 			item.addActionListener(listener);
-			selectPopup.add(item);
+			popup.add(item);
 		}
 		if (hasTracks) {
-			selectPopup.addSeparator();
+			popup.addSeparator();
 		}
 		for (TTrack track : panel.getTracks()) {
 			if (!userTracks.contains(track)) {
@@ -495,11 +474,11 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 				}
 				JMenuItem item = new JMenuItem(track.getName(), track.getFootprint().getIcon(21, 16));
 				item.addActionListener(listener);
-				selectPopup.add(item);
+				popup.add(item);
 			}
 		}
-		FontSizer.setFonts(selectPopup, FontSizer.getLevel());
-		return selectPopup;
+		FontSizer.setFonts(popup, FontSizer.getLevel());
+		return popup;
 	}
 
 	/**
@@ -540,7 +519,6 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 			track.removeListenerNCF(this);
 		}
 		add(selectButton);
-		selectButton.setForeground(Color.red);
 		trackButton.context = "track"; //$NON-NLS-1$
 		track = panel.getSelectedTrack();
 		if (track != null && track.ttype != TTrack.TYPE_PERSPECTIVE) {
@@ -602,14 +580,13 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 					frame.setDividerLocation(panel, TFrame.SPLIT_MAIN_BOTTOM, 1.0); 
 			}
 			
-  		// show noData message if no video and no calibration tools
+  		// show main view name if no video and no calibration tools
 			// and no selected track
   		if (panel.getVideo() == null && panel.calibrationTools.isEmpty()
   				&& panel.getSelectedTrack() == null) {
   			String name = TrackerRes.getString("TFrame.View.Main");
-  			String hint = TrackerRes.getString("TTrackBar.Hint.OpenFile");
-  			viewLabel.setText(name + ": " + hint); //$NON-NLS-1$
-  			FontSizer.setFonts(viewLabel);
+   			viewLabel.setText(name); //$NON-NLS-1$
+   			FontSizer.setFonts(viewLabel);
   			add(viewLabel);
   		}
 		}
@@ -622,12 +599,13 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 			}
 		}
 		maximizeButton.setText(TrackerRes.getString("TFrame.View.Main"));
+		add(mainViewIconLabel);
 		add(maximizeButton);
 		if (panel().getMaximizedView() != TView.VIEW_UNSET) {
 			maximizeButton.setIcon(TViewChooser.RESTORE_ICON);
 			maximizeButton.setToolTipText(TrackerRes.getString("TViewChooser.Restore.Tooltip"));//$NON-NLS-1$
-			nextViewButton.setToolTipText(TrackerRes.getString("TViewChooser.NextView.Tooltip")); //$NON-NLS-1$
-			add(nextViewButton);			
+			chooseViewButton.setToolTipText(TrackerRes.getString("TViewChooser.NextView.Tooltip")); //$NON-NLS-1$
+			add(chooseViewButton);			
 		}
 		else {
 			maximizeButton.setIcon(TViewChooser.MAXIMIZE_ICON);
