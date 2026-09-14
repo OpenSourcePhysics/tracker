@@ -2672,6 +2672,9 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 				panel().hideMouseBox();
 				if (!calibrationButton.isSelected()) {
 					calibrationButton.setSelected(true);
+					if (panel().visibleCalibrationTools.isEmpty() && !panel().calibrationTools.isEmpty()) {
+						panel().visibleCalibrationTools.addAll(panel().calibrationTools);
+					}
 					// show tools in visibleTools list
 					for (TTrack track : panel().visibleCalibrationTools) {
 						showCalibrationTool(track);
@@ -2698,6 +2701,7 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 							for (TTrack next : panel().visibleCalibrationTools) {
 								showCalibrationTool(next);
 							}
+							panel().setSelectedTrack(track);
 						} else {
 							hideCalibrationTool(track);
 							panel().visibleCalibrationTools.remove(track);
@@ -2721,19 +2725,7 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 		void showCalibrationTool(TTrack track) {
 			track.erase();
 			track.setVisible(true);
-			if (track.ttype == TTrack.TYPE_CALIBRATION) {
-				int n = panel().getFrameNumber();
-				Step step = track.getStep(n);
-				if (step == null || step.getPoints()[1] == null) {
-					panel().setSelectedTrack(track);
-				}
-			} else if (track.ttype == TTrack.TYPE_OFFSETORIGIN) {
-				int n = panel().getFrameNumber();
-				Step step = track.getStep(n);
-				if (step == null) {
-					panel().setSelectedTrack(track);
-				}
-			}
+			panel().setSelectedTrack(track);
 		}
 
 		/**
@@ -2846,6 +2838,9 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 				panel().hideMouseBox();
 				if (!rulerButton.isSelected()) {
 					rulerButton.setSelected(true);
+					if (panel().visibleMeasuringTools.isEmpty() && !panel().measuringTools.isEmpty()) {
+						panel().visibleMeasuringTools.addAll(panel().measuringTools);
+					}
 					// show tools in visibleMeasuringTools list
 					for (TTrack track : panel().visibleMeasuringTools) {
 						showMeasuringTool(track);
@@ -2872,6 +2867,7 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 							for (TTrack next : panel().visibleMeasuringTools) {
 								showMeasuringTool(next);
 							}
+							panel().setSelectedTrack(track);
 						} else {
 							hideMeasuringTool(track);
 							panel().visibleMeasuringTools.remove(track);
@@ -2890,13 +2886,7 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 		void showMeasuringTool(TTrack track) {
 			track.erase();
 			track.setVisible(true);
-			if (track.ttype == TTrack.TYPE_CIRCLEFITTER) {
-				CircleFitter fitter = (CircleFitter)track;
-				CircleFitterStep step = (CircleFitterStep) fitter.getStep(0);
-				if (step.getValidDataPoints().size() < 3) {
-					panel().setSelectedTrack(track);
-				}
-			}
+			panel().setSelectedTrack(track);
 		}
 
 		/**

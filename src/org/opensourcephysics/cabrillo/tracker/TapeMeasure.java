@@ -898,6 +898,9 @@ public class TapeMeasure extends InputTrack  implements MarkingRequired {
 		// look for newly created tapes
 		n = trackerPanel.getFrameNumber();
 		TapeStep step = (TapeStep) getStep(n);
+		if (step != null) {
+			step.getTapeLength(!isStickMode());
+		}
 
 		// add world coordinate fields and labels
 		boolean exists = (step != null);

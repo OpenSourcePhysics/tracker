@@ -270,9 +270,11 @@ public class TapeStep extends Step {
 				Rectangle bounds = panelLayoutBounds.get(trackerPanel.getID());
 				Font gfont = g.getFont();
 				g.setFont(TFrame.textLayoutFont);
-				layout.draw(g, bounds.x, bounds.y + bounds.height);
+				if (layout != null && bounds != null) {
+					layout.draw(g, bounds.x, bounds.y + bounds.height);
+				}
 				g.setFont(gfont);
-				if (drawLayoutBounds && tape.isFieldsEnabled()) {
+				if (drawLayoutBounds && tape.isFieldsEnabled() && bounds != null) {
 					g.drawRect(bounds.x - 2, bounds.y - 3, bounds.width + 6, bounds.height + 5);
 				}
 			}
@@ -452,6 +454,12 @@ public class TapeStep extends Step {
 			tape.angleField.setValue(xAxisToTapeAngle);
 		}
 		double length = fromEnds ? Math.sqrt(dx * dx + dy * dy) : worldLength;
+		if (length == 0 && (end1.getX() != end2.getX() || end1.getY() != end2.getY())) {
+			length = Math.sqrt(dx * dx + dy * dy);
+			if (worldLength == 0) {
+				worldLength = length;
+			}
+		}
 		if (tape.magField != null && !tape.magField.hasFocus()) {
 			tape.magField.setValue(length);
 		}
