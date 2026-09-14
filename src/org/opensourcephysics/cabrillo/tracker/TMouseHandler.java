@@ -186,7 +186,7 @@ public class TMouseHandler implements InteractiveMouseHandler {
 					Point startMouse = getScreenLocation(e, trackerPanel);
 					if (startMouse != null) {
 						Point ptInFrame = SwingUtilities.convertPoint(trackerPanel, e.getPoint(), frame);
-						int cornerSize = 22;
+						int cornerSize = 20;
 						if (ptInFrame.x >= frame.getWidth() - cornerSize && ptInFrame.y >= frame.getHeight() - cornerSize) {
 							mouseLoc.setLocation(startMouse);
 							frameDim.setSize(frame.getSize());
