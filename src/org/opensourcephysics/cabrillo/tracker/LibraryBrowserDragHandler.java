@@ -611,7 +611,7 @@ public class LibraryBrowserDragHandler {
 				Point startPt = getScreenLocation(e, component);
 				if (startPt != null) {
 					Point ptInWindow = SwingUtilities.convertPoint(component, e.getPoint(), w);
-					int cornerSize = 44;
+					int cornerSize = 22;
 					if (ptInWindow.x >= w.getWidth() - cornerSize && ptInWindow.y >= w.getHeight() - cornerSize) {
 						mouseLoc.setLocation(startPt);
 						windowDim.setSize(w.getSize());

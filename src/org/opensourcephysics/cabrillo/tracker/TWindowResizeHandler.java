@@ -110,11 +110,11 @@ public class TWindowResizeHandler {
 		 *     rubberBandNode.style.pointerEvents = "none";
 		 *   }
 		 *   
-		 *   // 1. Enlarge touch target to 44x44 points (Apple HIG recommended minimum)
-		 *   resizerNode.style.width = "44px";
-		 *   resizerNode.style.height = "44px";
-		 *   resizerNode.style.marginLeft = "-36px";
-		 *   resizerNode.style.marginTop = "-36px";
+		 *   // 1. Touch target reduced by 50% from 44x44 to 22x22 points
+		 *   resizerNode.style.width = "22px";
+		 *   resizerNode.style.height = "22px";
+		 *   resizerNode.style.marginLeft = "-14px";
+		 *   resizerNode.style.marginTop = "-14px";
 		 *   resizerNode.style.touchAction = "none";
 		 *   resizerNode.style.zIndex = "100002";
 		 *   resizerNode.style.userSelect = "none";
@@ -126,7 +126,7 @@ public class TWindowResizeHandler {
 		 *   resizerNode.style.backgroundImage = "linear-gradient(135deg, transparent 0%, transparent 50%, #888888 50%, #888888 56%, transparent 56%, transparent 68%, #888888 68%, #888888 74%, transparent 74%, transparent 86%, #888888 86%, #888888 92%, transparent 92%)";
 		 *   resizerNode.style.backgroundRepeat = "no-repeat";
 		 *   resizerNode.style.backgroundPosition = "right bottom";
-		 *   resizerNode.style.backgroundSize = "22px 22px";
+		 *   resizerNode.style.backgroundSize = "11px 11px";
 		 *   
 		 *   // 3. Attach dedicated touch listeners with passive: false to prevent iOS Safari scrolling
 		 *   if (!resizerNode._tTouchAttached) {
