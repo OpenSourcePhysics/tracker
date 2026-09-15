@@ -820,19 +820,22 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				if (tape.isReadOnly()) {
 					// tape measure
 					measuringTools.add(tape);
-					visibleMeasuringTools.add(tape);
+					if (!OSPRuntime.isMobile())
+						visibleMeasuringTools.add(tape);
 					isUserTrack = true;
 				} else {
 					// calibration tape or stick
 					calibrationTools.add(tape);
-					visibleCalibrationTools.add(tape);
+					if (!OSPRuntime.isMobile())
+						visibleCalibrationTools.add(tape);
 				}
 				break;
 			case "OffsetOrigin":
 			case "Calibration":
 				showTrackControlDelayed = false;
 				calibrationTools.add(track);
-				visibleCalibrationTools.add(track);
+				if (!OSPRuntime.isMobile())
+					visibleCalibrationTools.add(track);
 				break;
 			case "CoordAxes":
 				showTrackControlDelayed = false;
@@ -850,7 +853,8 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			case "CircleFitter":
 				showTrackControlDelayed = false;
 				measuringTools.add(track);
-				visibleMeasuringTools.add(track);
+				if (!OSPRuntime.isMobile())
+					visibleMeasuringTools.add(track);
 				isUserTrack = true;
 				break;
 			default:

@@ -1371,6 +1371,8 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 		popup.removeAll();
 		for (TTrack track : panel().calibrationTools) {
 			JMenuItem item = new JCheckBoxMenuItem(track.getName());
+			if (track.isVisible())
+				panel().visibleCalibrationTools.add(track);
 			item.setSelected(panel().visibleCalibrationTools.contains(track));
 			item.setActionCommand(track.getName());
 			item.addActionListener(calibrationButton);
