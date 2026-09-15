@@ -37,6 +37,7 @@ public class TWindowResizeHandler {
 			if (rp != null) {
 				if (rp.getClientProperty(RESIZE_HANDLER_KEY) != null) {
 					setupResizer(window);
+					isolateWindowGestures(window);
 					return; // already installed
 				}
 				rp.putClientProperty(RESIZE_HANDLER_KEY, Boolean.TRUE);
@@ -47,21 +48,144 @@ public class TWindowResizeHandler {
 			@Override
 			public void componentShown(ComponentEvent e) {
 				setupResizer(window);
+				isolateWindowGestures(window);
 			}
 
 			@Override
 			public void componentResized(ComponentEvent e) {
 				setupResizer(window);
+				isolateWindowGestures(window);
 			}
 		});
 
 		setupResizer(window);
+		isolateWindowGestures(window);
 
 		// In SwingJS, Resizer DOM node may be created asynchronously when window peer finishes initializing
 		if (OSPRuntime.isJS) {
-			OSPRuntime.trigger(100, (e) -> setupResizer(window));
-			OSPRuntime.trigger(500, (e) -> setupResizer(window));
-			OSPRuntime.trigger(1500, (e) -> setupResizer(window));
+			OSPRuntime.trigger(100, (e) -> {
+				setupResizer(window);
+				isolateWindowGestures(window);
+			});
+			OSPRuntime.trigger(500, (e) -> {
+				setupResizer(window);
+				isolateWindowGestures(window);
+			});
+			OSPRuntime.trigger(1500, (e) -> {
+				setupResizer(window);
+				isolateWindowGestures(window);
+			});
+		}
+	}
+
+	/**
+	 * Isolates the window DOM node from propagating gestures to the host HTML page in SwingJS.
+	 * Prevents pinch-to-zoom, two-finger pan, overscroll rubber-banding, and touch drag bubbling
+	 * from escaping the Tracker window to the surrounding webpage.
+	 *
+	 * @param window the top-level Window (TFrame or JDialog)
+	 */
+	public static void isolateWindowGestures(final Window window) {
+		if (window == null) return;
+		if (!OSPRuntime.isJS) return;
+
+		/**
+		 * @j2sNative
+		 * try {
+		 *   var frame = window;
+		 *   var viewer = (frame.getFrameViewer$ ? frame.getFrameViewer$() : (frame.秘frameViewer || null));
+		 *   if (!viewer && window.getRootPane$) {
+		 *     var rp = window.getRootPane$();
+		 *     viewer = (rp && rp.getFrameViewer$ ? rp.getFrameViewer$() : (rp ? rp.秘frameViewer : null));
+		 *   }
+		 *   
+		 *   var frameNode = (frame.ui && frame.ui.frameNode ? frame.ui.frameNode : (frame.ui && frame.ui.domNode ? frame.ui.domNode : null));
+		 *   if (!frameNode && frame.秘htmlName) {
+		 *     frameNode = document.getElementById(frame.秘htmlName + "_frame") || document.getElementById(frame.秘htmlName);
+		 *   }
+		 *   if (!frameNode && window.getRootPane$) {
+		 *     var rp = window.getRootPane$();
+		 *     frameNode = (rp && rp.ui && rp.ui.domNode ? rp.ui.domNode : (rp && rp.秘htmlName ? document.getElementById(rp.秘htmlName) : null));
+		 *   }
+		 *   
+		 *   var rp = (window.getRootPane$ ? window.getRootPane$() : null);
+		 *   var rpNode = (rp ? (rp.ui && rp.ui.domNode ? rp.ui.domNode : (rp.秘htmlName ? document.getElementById(rp.秘htmlName) : null)) : null);
+		 *   
+		 *   var isolate = function(node) {
+		 *     if (!node || node._tGestureIsolated) return;
+		 *     node._tGestureIsolated = true;
+		 *     
+		 *     // 1. CSS Touch & Overscroll Containment
+		 *     node.style.touchAction = "none";
+		 *     node.style.overscrollBehavior = "none";
+		 *     node.style.webkitUserSelect = "none";
+		 *     node.style.userSelect = "none";
+		 *     node.style.webkitTouchCallout = "none";
+		 *     
+		 *     // 2. Suppress iOS Safari gesture events (pinch zoom & rotate)
+		 *     var killGesture = function(e) {
+		 *       e.preventDefault();
+		 *       e.stopPropagation();
+		 *     };
+		 *     node.addEventListener("gesturestart", killGesture, { passive: false });
+		 *     node.addEventListener("gesturechange", killGesture, { passive: false });
+		 *     node.addEventListener("gestureend", killGesture, { passive: false });
+		 *     
+		 *     // 3. Prevent multi-touch pinch/pan & stop bubbling to host HTML page
+		 *     node.addEventListener("touchmove", function(e) {
+		 *       if (e.touches && e.touches.length > 1) {
+		 *         e.preventDefault();
+		 *       }
+		 *       e.stopPropagation();
+		 *     }, { passive: false });
+		 *     
+		 *     node.addEventListener("touchstart", function(e) {
+		 *       e.stopPropagation();
+		 *     }, { passive: false });
+		 *     
+		 *     node.addEventListener("touchend", function(e) {
+		 *       e.stopPropagation();
+		 *     }, { passive: false });
+		 *     
+		 *     // 4. Suppress trackpad pinch-to-zoom (ctrl + wheel)
+		 *     node.addEventListener("wheel", function(e) {
+		 *       if (e.ctrlKey) {
+		 *         e.preventDefault();
+		 *         e.stopPropagation();
+		 *       }
+		 *     }, { passive: false });
+		 *   };
+		 *   
+		 *   isolate(frameNode);
+		 *   if (rpNode && rpNode !== frameNode) {
+		 *     isolate(rpNode);
+		 *   }
+		 *   
+		 *   var appletViewer = (viewer && viewer.appletViewer ? viewer.appletViewer : null);
+		 *   if (appletViewer && appletViewer.fullName) {
+		 *     var appletNode = document.getElementById(appletViewer.fullName + "_appletdiv");
+		 *     if (appletNode && !appletNode._tGestureIsolated) {
+		 *       appletNode._tGestureIsolated = true;
+		 *       appletNode.style.touchAction = "none";
+		 *       appletNode.style.overscrollBehavior = "none";
+		 *       var killGesture = function(e) {
+		 *         e.preventDefault();
+		 *         e.stopPropagation();
+		 *       };
+		 *       appletNode.addEventListener("gesturestart", killGesture, { passive: false });
+		 *       appletNode.addEventListener("gesturechange", killGesture, { passive: false });
+		 *       appletNode.addEventListener("gestureend", killGesture, { passive: false });
+		 *       appletNode.addEventListener("touchmove", function(e) {
+		 *         if (e.touches && e.touches.length > 1) {
+		 *           e.preventDefault();
+		 *         }
+		 *         e.stopPropagation();
+		 *       }, { passive: false });
+		 *     }
+		 *   }
+		 * } catch (ex) {}
+		 */
+		{
 		}
 	}
 
@@ -73,6 +197,7 @@ public class TWindowResizeHandler {
 	public static void setupResizer(final Window window) {
 		if (window == null) return;
 		if (!OSPRuntime.isJS) return;
+		isolateWindowGestures(window);
 
 		/**
 		 * @j2sNative
