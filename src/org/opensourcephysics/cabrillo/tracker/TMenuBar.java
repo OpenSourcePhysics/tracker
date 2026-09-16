@@ -55,7 +55,9 @@ import java.util.TreeMap;
 import javax.swing.AbstractAction;
 import javax.swing.AbstractButton;
 import javax.swing.Action;
+import javax.swing.Box;
 import javax.swing.ButtonGroup;
+import javax.swing.JButton;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
@@ -600,7 +602,42 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		helpMenu = getTrackerHelpMenu(panel(), null);
 		helpMenu.setName("help");
 		add(helpMenu);
+		if (OSPRuntime.isJS) {
+			add(Box.createHorizontalGlue());
+			add(createCaptureVideoButton());
+		}
 	}
+	
+	/**
+	 * Creates the Tracker Online menu-bar button that opens the existing camera
+	 * capture dialog.
+	 *
+	 * @return the capture video button
+	 */
+	static JButton createCaptureVideoButton() {
+		JButton button = new JButton("Capture Video");
+		button.setName("captureVideo");
+		button.setFocusable(false);
+		button.setMaximumSize(button.getPreferredSize());
+		button.addActionListener((e) -> invokeCreateDialog());
+		return button;
+	}
+
+     /**
+ 	 * Invokes the existing JavaScript handler whose showDialog() function calls
+	 * createDialog() the first time the capture dialog is opened.
+	 */
+	private static void invokeCreateDialog() {
+	/**
+			 * @j2sNative
+			 * if (window.TrackerCameraImporter &&
+			 * typeof window.TrackerCameraImporter.createDialog == "function") {
+			 *   window.TrackerCameraImporter.createDialog();
+			 * } else if (typeof createDialog == "function") {
+			 *   createDialog();
+			 * }
+			 */
+		}	
 
 	private static boolean testing = false;
 	

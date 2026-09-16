@@ -214,6 +214,7 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 	// mobile buttons and popups
 	protected JPopupMenu filePopup, videoPopup, coordsPopup, trackPopup, viewPopup; 
 	protected TButton fileButton, videoButton, coordsButton, trackButton, viewButton;
+	protected JButton captureVideoButton;
 			
 
 	static {
@@ -1901,6 +1902,12 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 		add(trackButton);
 		add(viewButton);
 		add(overflowButton);
+		if (OSPRuntime.isJS) {
+			if (captureVideoButton == null) {
+				captureVideoButton = TMenuBar.createCaptureVideoButton();
+			}
+			add(captureVideoButton);
+		}
 	
 		rebuildMobileFile();
 		rebuildMobileVideo();
@@ -1917,6 +1924,9 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 		TButton[] buttons = {fileButton, videoButton, coordsButton, 
 				trackButton, viewButton, overflowButton};
 		FontSizer.setFonts(buttons);
+		if (captureVideoButton != null) {
+			FontSizer.setFonts(captureVideoButton);
+		}
 		TFrame.repaintT(this);
 	}
 

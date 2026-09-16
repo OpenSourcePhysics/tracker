@@ -857,6 +857,7 @@ org/opensourcephysics/cabrillo/tracker/Tracker.js
 org/opensourcephysics/cabrillo/tracker/TrackerIO.js
 org/opensourcephysics/cabrillo/tracker/TrackerPanel.js
 org/opensourcephysics/cabrillo/tracker/TrackerRes.js
+org/opensourcephysics/cabrillo/tracker/TWindowResizeHandler.js
 org/opensourcephysics/cabrillo/tracker/Undo.js
 org/opensourcephysics/cabrillo/tracker/UnitsDialog.js
 org/opensourcephysics/cabrillo/tracker/Upgrader.js
