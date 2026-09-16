@@ -243,7 +243,7 @@ public class TActions {
 		// save zip resource (TRZ)
 		actions.put("saveZip", //$NON-NLS-1$
 				new AbstractAction(TrackerRes.getString("TActions.Action.SaveZip") + "...", //$NON-NLS-1$ //$NON-NLS-2$
-						Tracker.getResourceIcon("save_zip.gif", true) //$NON-NLS-1$
+						Tracker.getResourceIcon("save_zip2.gif", true) //$NON-NLS-1$
 				) {
 					@Override
 					public void actionPerformed(ActionEvent e) {

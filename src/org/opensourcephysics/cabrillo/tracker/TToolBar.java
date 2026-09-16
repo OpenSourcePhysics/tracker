@@ -124,6 +124,7 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 //	final protected static Icon checkboxOnDisabledIcon;
 	final protected static Icon pencilOffIcon, pencilOnIcon, pencilOffRolloverIcon, pencilOnRolloverIcon;
 	final protected static Icon pencilIcon;
+	final protected static Icon libraryIcon, openBrowserIcon;
 	final protected static NumberFormat zoomFormat = NumberFormat.getNumberInstance();
 	// numbers below will require changing if wide button icons change
 	final protected static int wideIconWidth = 28;
@@ -214,7 +215,6 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 	// mobile buttons and popups
 	protected JPopupMenu filePopup, videoPopup, coordsPopup, trackPopup, viewPopup; 
 	protected TButton fileButton, videoButton, coordsButton, trackButton, viewButton;
-	protected JButton captureVideoButton;
 			
 
 	static {
@@ -280,6 +280,8 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 		pencilOffRolloverIcon = Tracker.getResourceIcon("pencil_off_rollover.gif", true); //$NON-NLS-1$
 		pencilOnRolloverIcon = Tracker.getResourceIcon("pencil_on_rollover.gif", true); //$NON-NLS-1$
 		zoomFormat.setMaximumFractionDigits(0);
+		libraryIcon = Tracker.getResourceIcon("library.gif", true); //$NON-NLS-1$
+		openBrowserIcon = Tracker.getResourceIcon("open_catalog.gif", true); //$NON-NLS-1$
 	}
 
 	protected boolean refreshing; // true when refreshing toolbar
@@ -938,17 +940,22 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 		popup.removeAll();
 		Map<String, AbstractAction> actions = panel().getActions();
 		JMenuItem openfile = new JMenuItem(actions.get("open"));
-		openfile.setIcon(null);
+		if (!OSPRuntime.isMobile())
+			openfile.setIcon(null);
 		popup.add(openfile);
 		JMenuItem openbrowser = new JMenuItem(actions.get("openBrowser"));
-		openbrowser.setIcon(null);
+		if (OSPRuntime.isMobile())
+			openbrowser.setIcon(openBrowserIcon);
 		boolean showbrowser = (panel().isEnabled("file.library") //$NON-NLS-1$
 				&& panel().isEnabled("file.open"));
 		if (showbrowser)
 			popup.add(openbrowser);
-		if (isButton) {
+		if (isButton || OSPRuntime.isMobile()) {
 			openfile.setText(TrackerRes.getString("TActions.Action.Open"));
 			openbrowser.setText(TrackerRes.getString("TActions.Action.OpenBrowser"));
+			if (OSPRuntime.isMobile()) {
+				
+			}
 		}
 		else {
 			openfile.setText(TrackerRes.getString("TMenuBar.MenuItem.FileChooser")+"...");
@@ -965,15 +972,17 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 		popup.removeAll();
 		Map<String, AbstractAction> actions = panel().getActions();
 		JMenuItem savetab = new JMenuItem(actions.get("save"));
-		savetab.setIcon(null);
+		if (!OSPRuntime.isMobile())
+			savetab.setIcon(null);
 		File file = panel().getDataFile();
 		String path = file == null? "...": " \"" + file.getName() + "\"";
-		savetab.setText(TrackerRes.getString(isButton?
+		savetab.setText(TrackerRes.getString(isButton || OSPRuntime.isMobile()?
 				"TActions.Action.Save": "TMenuBar.MenuItem.Tab")+path);
 		popup.add(savetab);				
 		JMenuItem saveproject = new JMenuItem(actions.get("saveZip"));
-		saveproject.setIcon(null);
-		saveproject.setText(TrackerRes.getString(isButton?
+		if (!OSPRuntime.isMobile())
+			saveproject.setIcon(null);
+		saveproject.setText(TrackerRes.getString(isButton || OSPRuntime.isMobile()?
 				"TActions.Action.SaveZip": "TMenuBar.MenuItem.Project")+"...");
 		popup.add(saveproject);
 		FontSizer.setFonts(popup, FontSizer.getLevel());
@@ -1902,12 +1911,6 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 		add(trackButton);
 		add(viewButton);
 		add(overflowButton);
-		if (OSPRuntime.isJS) {
-			if (captureVideoButton == null) {
-				captureVideoButton = TMenuBar.createCaptureVideoButton();
-			}
-			add(captureVideoButton);
-		}
 	
 		rebuildMobileFile();
 		rebuildMobileVideo();
@@ -1924,9 +1927,6 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 		TButton[] buttons = {fileButton, videoButton, coordsButton, 
 				trackButton, viewButton, overflowButton};
 		FontSizer.setFonts(buttons);
-		if (captureVideoButton != null) {
-			FontSizer.setFonts(captureVideoButton);
-		}
 		TFrame.repaintT(this);
 	}
 
@@ -1943,17 +1943,27 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 		if (panel().isEnabled("file.open")) { //$NON-NLS-1$
 			add(openButton, filePopup);
 			refreshOpenPopup(openMenu.getPopupMenu());
+			// move items from openMenu to filePopup
+			filePopup.add(openMenu.getPopupMenu().getComponent(0));
+			filePopup.add(openMenu.getPopupMenu().getComponent(0));
+			filePopup.remove(openMenu);
+//			filePopup.addSeparator();
 			if (!OSPRuntime.isJS) {
 				JMenu file_openRecentMenu = (JMenu)frame.currentMenuBar.getMenuItem("file_openRecentMenu");
 				frame.refreshOpenRecentMenu(file_openRecentMenu);
 				filePopup.add(file_openRecentMenu);
 			}
 		}
-		filePopup.add(frame.currentMenuBar.getMenuItem("file_closeItem"));
+//		filePopup.add(frame.currentMenuBar.getMenuItem("file_closeItem"));
 		filePopup.addSeparator();
 		if (panel().isEnabled("file.save")) { //$NON-NLS-1$
 			add(saveButton, filePopup);
 			refreshSavePopup(saveMenu.getPopupMenu());
+			// move items from saveMenu to filePopup
+			filePopup.add(saveMenu.getPopupMenu().getComponent(0));
+			filePopup.add(saveMenu.getPopupMenu().getComponent(0));
+			filePopup.remove(saveMenu);
+//			filePopup.addSeparator();
 			filePopup.add(frame.currentMenuBar.getMenuItem("file_saveTabAsItem"));
 		}								
 		filePopup.addSeparator();
@@ -2069,10 +2079,13 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 			trackPopup.add(newTrackMenu);
 			trackPopup.addSeparator();
 			add(trackControlButton, trackPopup);
+			trackControlCheckbox.setSelected(trackControlButton.isSelected());
 		}
 
-		if (panel().isEnabled("track.autotrack")) //$NON-NLS-1$
+		if (panel().isEnabled("track.autotrack")) { //$NON-NLS-1$
 			add(autotrackerButton, trackPopup);
+			autotrackerCheckbox.setSelected(autotrackerButton.isSelected());
+		}
 		else {
 			// if not enabled, close autotracker if visible
 			AutoTracker autoTracker = panel().getAutoTracker(false);
