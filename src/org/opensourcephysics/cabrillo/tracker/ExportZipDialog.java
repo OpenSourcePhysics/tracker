@@ -239,12 +239,12 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 			if (videoTarget != null) {
 				// add video file(s) to ziplist
 				File vidFile = new File(videoTarget);
-				File vidFileTemp = new File(getTempDirectory(), videoTarget);
-				if (vidFile.exists()) {
-					// BH copy to same directory as JAR file will be
-					ResourceLoader.copyFile(vidFile, vidFileTemp);
-				}
-				vidFile = vidFileTemp;
+//				File vidFileTemp = new File(getTempDirectory(), videoTarget);
+//				if (vidFile.exists()) {
+//					// BH copy to same directory as JAR file will be
+//					ResourceLoader.copyFile(vidFile, vidFileTemp);
+//				}
+//				vidFile = vidFileTemp;
 				if (vidFile.exists())
 					zipList.add(vidFile);
 
