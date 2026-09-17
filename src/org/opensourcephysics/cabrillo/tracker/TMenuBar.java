@@ -1355,6 +1355,8 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 						OSPRuntime.preferMobile = false;
 						OSPRuntime.neverMobile = true;						
 					}
+					Dimension dim = OSPRuntime.getHTMLPageSize();
+					OSPLog.info("Screen size "+dim.width+" x "+dim.height);
 					panel().taintEnabled();
 					TToolBar toolbar = frame.getToolBar(panelID, false);
 					toolbar.refresh(TToolBar.REFRESH__REFRESH_ACTION_TRUE);
