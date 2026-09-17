@@ -317,7 +317,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 	private JRadioButtonMenuItem coords_defaultRefFrameItem;
 	private JMenuItem coords_showUnitDialogItem;
 	private JMenuItem coords_emptyCoordsItem;
-	// window menu
+	// view menu
 	private JMenu viewMenu;
 	private JMenu view_singleViewMenu;
 	private JMenuItem view_mainItem;
@@ -334,6 +334,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 	private JMenuItem view_dataToolItem;
 	private JMenu view_TabsMenu;
 	private JMenuItem[] tabItems;
+	protected JCheckBoxMenuItem view_mobileLayoutItem;
 	// help menu
 	private JMenu helpMenu;
 
@@ -511,6 +512,8 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 			return view_dataToolItem;
 		case "view_TabsMenu":
 			return view_TabsMenu;
+		case "view_mobileLayoutItem":
+			return view_mobileLayoutItem;
 		case "helpMenu":
 			return helpMenu;
 		}
@@ -590,7 +593,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 	 * Creates the menu bar.
 	 */
 	protected void createGUI() {
-		int keyMask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
+		int keyMask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx();
 		createFileMenu(keyMask);
 		createEditMenu(keyMask);
 		createVideoMenu(keyMask);
@@ -1340,6 +1343,28 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 //					frame.saveCurrentDividerLocations(trackerPanel);
 				}
 		});
+		// mobile layout item
+		view_mobileLayoutItem = new JCheckBoxMenuItem(TrackerRes.getString("TMenuBar.MenuItem.Mobile"), false); //$NON-NLS-1$
+		view_mobileLayoutItem.addActionListener((e) -> {
+				if (frame != null) {
+					if (view_mobileLayoutItem.isSelected()) {
+						OSPRuntime.preferMobile = true;
+						OSPRuntime.neverMobile = false;
+					}
+					else {
+						OSPRuntime.preferMobile = false;
+						OSPRuntime.neverMobile = true;						
+					}
+					panel().taintEnabled();
+					TToolBar toolbar = frame.getToolBar(panelID, false);
+					toolbar.refresh(TToolBar.REFRESH__REFRESH_ACTION_TRUE);
+					if (frame.currentMenuBar != null) {
+						frame.currentMenuBar.setMenuTainted(MENU_ALL, true);
+						frame.currentMenuBar.rebuild();
+						frame.setJMenuBar(frame.currentMenuBar);
+					}
+				}
+		});
 		// trackControlItem
 		view_trackControlItem = new JCheckBoxMenuItem(TrackerRes.getString("TMenuBar.MenuItem.TrackControl")); //$NON-NLS-1$
 		view_trackControlItem.addActionListener((e) -> {
@@ -1836,6 +1861,22 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 				return true;
 		}
 		return false;
+	}
+	
+	protected void rebuild() {
+		removeAll();
+		add(fileMenu);
+		add(editMenu);
+		add(videoMenu);
+		add(trackMenu);
+		add(coordsMenu);
+		add(viewMenu);
+		add(helpMenu);
+		
+		if (OSPRuntime.isJS) {
+			add(Box.createHorizontalGlue());
+			add(createCaptureVideoButton());
+		}
 	}
 	
 	protected void rebuildEditCopyMenu(String type) {
@@ -2736,6 +2777,11 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 					
 					viewMenu.add(view_dataToolItem);
 			}
+			
+			view_mobileLayoutItem.setSelected(OSPRuntime.isMobile());
+			viewMenu.addSeparator();
+			viewMenu.add(view_mobileLayoutItem);
+			
 			view_TabsMenu = new JMenu(TrackerRes.getString("TMenuBar.TabMenu.Text"));
 			viewMenu.addSeparator();
 			viewMenu.add(view_TabsMenu);
@@ -2760,7 +2806,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		for (int i = 0; i < tabItems.length; i++) {
 			tabItems[i].setSelected(i == frame.getSelectedTab());
 		}
-
+		
 		// OSPLog.debug("!!! " + Performance.now(t0) + " TMenuBar window refresh");
 	}
 
@@ -2780,7 +2826,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 	 */
 	protected static JMenu getTrackerHelpMenu(final TrackerPanel trackerPanel, JMenu hMenu) {
 		// help menu
-		int keyMask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
+		int keyMask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx();
 		if (hMenu == null)
 			hMenu = new JMenu();
 		else

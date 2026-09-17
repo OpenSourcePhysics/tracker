@@ -5345,7 +5345,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		Class<? extends Filter> filterClass = filterClasses.get(type);
 		if (filterClass != null) {
 			try {
-				filter = filterClass.newInstance();
+				filter = filterClass.getDeclaredConstructor().newInstance();
 			} catch (Exception ex) {
 				ex.printStackTrace();
 			}

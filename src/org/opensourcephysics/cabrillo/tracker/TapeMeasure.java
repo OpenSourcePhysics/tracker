@@ -290,7 +290,7 @@ public class TapeMeasure extends InputTrack  implements MarkingRequired {
 			if (isFixedPosition())
 				fireStepsChanged();
 			else
-				firePropertyChange(PROPERTY_TTRACK_STEP, null, new Integer(n)); // $NON-NLS-1$
+				firePropertyChange(PROPERTY_TTRACK_STEP, null, Integer.valueOf(n)); // $NON-NLS-1$
 			if (tp.getSelectedPoint() instanceof TapeStep.Rotator)
 				tp.setSelectedPoint(null);
 			TFrame.repaintT(tp);
@@ -329,7 +329,7 @@ public class TapeMeasure extends InputTrack  implements MarkingRequired {
 			if (isFixedPosition())
 				fireStepsChanged();
 			else
-				firePropertyChange(PROPERTY_TTRACK_STEP, null, new Integer(n)); // $NON-NLS-1$
+				firePropertyChange(PROPERTY_TTRACK_STEP, null, Integer.valueOf(n)); // $NON-NLS-1$
 			if (!isReadOnly())
 				tp.getAxes().setVisible(true);
 			TFrame.repaintT(tp);
@@ -907,11 +907,11 @@ public class TapeMeasure extends InputTrack  implements MarkingRequired {
 		boolean complete = (step != null && step.worldLength > 0);
 		String unmarked = isStickMode() ? TrackerRes.getString("TapeMeasure.Label.UnmarkedStick")
 				: TrackerRes.getString("TapeMeasure.Label.UnmarkedTape"); //$NON-NLS-1$
-		if (!exists) {
+		if (!exists && !Tracker.centerCalibrationStick) {
 			end1Label.setText(unmarked); // $NON-NLS-1$
 			end1Label.setForeground(Color.red.darker());
 			list.add(end1Label);
-		} else if (!complete) {
+		} else if (!complete && !Tracker.centerCalibrationStick) {
 			end1Label.setText(unmarked); // $NON-NLS-1$ //$NON-NLS-2$
 			end1Label.setForeground(Color.red.darker());
 			list.add(end1Label);
