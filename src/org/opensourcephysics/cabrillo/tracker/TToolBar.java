@@ -1980,7 +1980,13 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 			return;
 		}
 		
-		videoPopup.add(frame.currentMenuBar.getMenuItem("video_openVideoItem"));
+		boolean importEnabled = panel().isEnabled("video.import") //$NON-NLS-1$
+				|| panel().isEnabled("video.open"); //$NON-NLS-1$
+		if (importEnabled) {
+			videoPopup.add(frame.currentMenuBar.getMenuItem("video_openVideoItem"));
+			if (OSPRuntime.isJS)
+				videoPopup.add(frame.currentMenuBar.getMenuItem("video_captureItem"));
+		}
 		if (panel().getVideo() != null)
 			videoPopup.add(frame.currentMenuBar.getMenuItem("video_closeVideoItem"));
 			
@@ -2012,8 +2018,7 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 			
 			videoPopup.addSeparator();
 			videoPopup.add(frame.currentMenuBar.getMenuItem("file_saveVideoAsItem"));			
-		}
-		
+		}		
 	}
 	
 	private void rebuildMobileCoordsPopup() {

@@ -334,7 +334,8 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 	private JMenuItem view_dataToolItem;
 	private JMenu view_TabsMenu;
 	private JMenuItem[] tabItems;
-	protected JCheckBoxMenuItem view_mobileLayoutItem;
+	private JCheckBoxMenuItem view_mobileLayoutItem;
+	private JMenuItem video_captureItem;
 	// help menu
 	private JMenu helpMenu;
 
@@ -484,6 +485,8 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 			return video_filtersMenu;
 		case "video_aboutVideoItem":
 			return video_aboutVideoItem;
+		case "video_captureItem":
+			return video_captureItem;
 		case "file_saveVideoAsItem":
 			return file_saveVideoAsItem;
 		case "view_singleViewMenu":
@@ -605,10 +608,10 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		helpMenu = getTrackerHelpMenu(panel(), null);
 		helpMenu.setName("help");
 		add(helpMenu);
-		if (OSPRuntime.isJS) {
-			add(Box.createHorizontalGlue());
-			add(createCaptureVideoButton());
-		}
+//		if (OSPRuntime.isJS) {
+//			add(Box.createHorizontalGlue());
+//			add(createCaptureVideoButton());
+//		}
 	}
 	
 	/**
@@ -1203,6 +1206,12 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		video_clearFiltersItem = video_filtersMenu.add(actions.get("clearFilters")); //$NON-NLS-1$
 		video_emptyVideoItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.Empty")); //$NON-NLS-1$
 		video_emptyVideoItem.setEnabled(false);
+		
+		video_captureItem = new JMenuItem("Capture..."); // pig
+		video_captureItem.addActionListener((e) -> {
+			invokeCreateDialog(); 
+		});
+
 		add(videoMenu);
 	}
 
@@ -1875,10 +1884,10 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		add(viewMenu);
 		add(helpMenu);
 		
-		if (OSPRuntime.isJS) {
-			add(Box.createHorizontalGlue());
-			add(createCaptureVideoButton());
-		}
+//		if (OSPRuntime.isJS) {
+//			add(Box.createHorizontalGlue());
+//			add(createCaptureVideoButton());
+//		}
 	}
 	
 	protected void rebuildEditCopyMenu(String type) {
@@ -2196,6 +2205,8 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 //				else
 					video_openVideoItem.setText(TrackerRes.getString("TActions.Action.ImportVideo")); //$NON-NLS-1$
 				videoMenu.add(video_openVideoItem);
+				if (OSPRuntime.isJS)
+					videoMenu.add(video_captureItem);				
 			}
 			// close video item
 			if (hasVideo) {
