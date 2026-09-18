@@ -322,8 +322,10 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 		addComponentListener(new ComponentAdapter() {
 	    @Override
 			public void componentResized(ComponentEvent componentEvent) {
-  			rebuild(-1);
-	    }
+  				if (!rebuilding) {
+  					rebuild(-1);
+  				}
+	    	}
 		});
 		overflowButtons = new ArrayList<JButton>();
 		// create buttons
@@ -1726,17 +1728,30 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
   	return n-1;
 	}
 
+	private boolean rebuilding = false;
+
 	private void rebuild(int overflow) {
-		if (OSPRuntime.isMobile()) {
-			rebuildForMobile();
+		if (rebuilding && overflow == -1)
 			return;
-		}
-		
-		// assemble buttons
-		removeAll();
-		overflowPopup.removeAll();
-		overflowIndex = overflow;
-		overflowButtons.clear();
+		boolean topLevel = !rebuilding;
+		if (topLevel)
+			rebuilding = true;
+		try {
+			if (OSPRuntime.isMobile()) {
+				rebuildForMobile();
+				return;
+			}
+			
+			// assemble buttons
+			removeAll();
+			overflowPopup.removeAll();
+			if (filePopup != null) filePopup.removeAll();
+			if (videoPopup != null) videoPopup.removeAll();
+			if (coordsPopup != null) coordsPopup.removeAll();
+			if (trackPopup != null) trackPopup.removeAll();
+			if (viewPopup != null) viewPopup.removeAll();
+			overflowIndex = overflow;
+			overflowButtons.clear();
 		int index = 0;
 		//if (!OSPRuntime.isApplet) {
 			if (panel().isEnabled("file.open")) { //$NON-NLS-1$
@@ -1905,6 +1920,10 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 
 		else
 			TFrame.repaintT(this);
+		} finally {
+			if (topLevel)
+				rebuilding = false;
+		}
 	}
 
 	private void rebuildForMobile() {
@@ -2972,7 +2991,10 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 			Dimension dim = super.getPreferredSize();
 			if (OSPRuntime.isMobile()) {
 				Dimension size = OSPRuntime.getHTMLPageSize();
-				dim.width = size.width / 6;
+				int frameW = (frame != null && frame.getWidth() > 0) ? frame.getWidth() : (int)(size.width * TFrame.DEFAULT_FRAME_WIDTH);
+				int extra = TFrame.isLayoutAdaptive ? 40 : 10;
+				int btnW = (frameW - extra) / 6;
+				dim.width = Math.max(btnW, 30);
 			}
 			return dim;
 		}

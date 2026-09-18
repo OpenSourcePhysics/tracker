@@ -66,6 +66,7 @@ import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JSeparator;
 import javax.swing.JSplitPane;
 import javax.swing.KeyStroke;
+import javax.swing.MenuSelectionManager;
 import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
 import javax.swing.event.MenuEvent;
@@ -1355,7 +1356,21 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		view_mobileLayoutItem = new JCheckBoxMenuItem(TrackerRes.getString("TMenuBar.MenuItem.Mobile"), false); //$NON-NLS-1$
 		view_mobileLayoutItem.addActionListener((e) -> {
 				if (frame != null) {
-					if (view_mobileLayoutItem.isSelected()) {
+					MenuSelectionManager.defaultManager().clearSelectedPath();
+					if (OSPRuntime.isJS) {
+						/**
+						 * @j2sNative
+						 * if (swingjs.plaf.JSPopupMenuUI && swingjs.plaf.JSPopupMenuUI.closeAllMenus$) {
+						 *     swingjs.plaf.JSPopupMenuUI.closeAllMenus$();
+						 * }
+						 * if (swingjs.plaf.JSComponentUI && swingjs.plaf.JSComponentUI.hideMenusAndToolTip$) {
+						 *     swingjs.plaf.JSComponentUI.hideMenusAndToolTip$();
+						 * }
+						 */
+						{}
+					}
+					boolean mobile = view_mobileLayoutItem.isSelected();
+					if (mobile) {
 						OSPRuntime.preferMobile = true;
 						OSPRuntime.neverMobile = false;
 					}
@@ -1364,13 +1379,17 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 						OSPRuntime.neverMobile = true;						
 					}
 					panel().taintEnabled();
-					TToolBar toolbar = frame.getToolBar(panelID, false);
-					toolbar.refresh(TToolBar.REFRESH__REFRESH_ACTION_TRUE);
-					if (frame.currentMenuBar != null) {
-						frame.currentMenuBar.setMenuTainted(MENU_ALL, true);
-						frame.currentMenuBar.rebuild();
-						frame.setJMenuBar(frame.currentMenuBar);
-					}
+					SwingUtilities.invokeLater(() -> {
+						TToolBar toolbar = frame.getToolBar(panelID, false);
+						if (toolbar != null) {
+							toolbar.refresh(TToolBar.REFRESH__REFRESH_ACTION_TRUE);
+						}
+						if (frame.currentMenuBar != null) {
+							frame.currentMenuBar.setMenuTainted(MENU_ALL, true);
+							frame.currentMenuBar.rebuild();
+							frame.setJMenuBar(frame.currentMenuBar);
+						}
+					});
 				}
 		});
 		// trackControlItem
@@ -1880,6 +1899,16 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		add(coordsMenu);
 		add(viewMenu);
 		add(helpMenu);
+		if (OSPRuntime.isJS) {
+			/**
+			 * @j2sNative
+			 * if (this.ui) {
+			 *   if (this.ui.outerNode) this.ui.outerNode.style.zIndex = "";
+			 *   if (this.ui.domNode) this.ui.domNode.style.zIndex = "";
+			 * }
+			 */
+			{}
+		}
 		
 //		if (OSPRuntime.isJS) {
 //			add(Box.createHorizontalGlue());
@@ -2813,8 +2842,11 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 			setMenuTainted(MENU_VIEW, false);
 		}
 		// select tab item for selected tab AFTER rebuilding if needed
-		for (int i = 0; i < tabItems.length; i++) {
-			tabItems[i].setSelected(i == frame.getSelectedTab());
+		if (tabItems != null) {
+			for (int i = 0; i < tabItems.length; i++) {
+				if (tabItems[i] != null)
+					tabItems[i].setSelected(i == frame.getSelectedTab());
+			}
 		}
 		
 		// OSPLog.debug("!!! " + Performance.now(t0) + " TMenuBar window refresh");

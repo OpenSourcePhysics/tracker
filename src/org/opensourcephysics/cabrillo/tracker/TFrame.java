@@ -3409,7 +3409,27 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 		boolean empty = getTabCount()==0;
 		super.setJMenuBar(OSPRuntime.isMobile() && !empty? null:  bar);
 		if (bar != null) {
-			bar.setEnabled(frameBlocker == null);			
+			bar.setEnabled(frameBlocker == null);
+			if (OSPRuntime.isJS) {
+				/**
+				 * @j2sNative
+				 * if (bar && bar.ui) {
+				 *   if (bar.ui.outerNode) bar.ui.outerNode.style.zIndex = "";
+				 *   if (bar.ui.domNode) bar.ui.domNode.style.zIndex = "";
+				 * }
+				 */
+				{}
+				SwingUtilities.invokeLater(() -> {
+					/**
+					 * @j2sNative
+					 * if (bar && bar.ui) {
+					 *   if (bar.ui.outerNode) bar.ui.outerNode.style.zIndex = "";
+					 *   if (bar.ui.domNode) bar.ui.domNode.style.zIndex = "";
+					 * }
+					 */
+					{}
+				});
+			}
 		}
 		currentMenuBar = bar == defaultMenuBar? null: (TMenuBar)bar;
 	}
