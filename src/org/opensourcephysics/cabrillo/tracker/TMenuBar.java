@@ -596,7 +596,8 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 	 * Creates the menu bar.
 	 */
 	protected void createGUI() {
-		int keyMask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx();
+		//int keyMask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx();
+		int keyMask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
 		createFileMenu(keyMask);
 		createEditMenu(keyMask);
 		createVideoMenu(keyMask);
@@ -2839,7 +2840,8 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 	 */
 	protected static JMenu getTrackerHelpMenu(final TrackerPanel trackerPanel, JMenu hMenu) {
 		// help menu
-		int keyMask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx();
+		//int keyMask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx();
+		int keyMask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
 		if (hMenu == null)
 			hMenu = new JMenu();
 		else
