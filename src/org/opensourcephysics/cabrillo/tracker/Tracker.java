@@ -1959,6 +1959,8 @@ public class Tracker {
 			if (prefsPath != null) {
 				OSPLog.getOSPLog();
 				OSPLog.info("preferences loaded from " + XML.getAbsolutePath(new File(prefsPath))); //$NON-NLS-1$
+				Dimension dim = OSPRuntime.getHTMLPageSize();
+				OSPLog.info("Screen size "+dim.width+" x "+dim.height);
 			}
 			prefsControl.loadObject(null); // the loader itself reads the values
 

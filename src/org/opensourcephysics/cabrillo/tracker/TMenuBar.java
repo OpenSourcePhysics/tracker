@@ -55,7 +55,6 @@ import java.util.TreeMap;
 import javax.swing.AbstractAction;
 import javax.swing.AbstractButton;
 import javax.swing.Action;
-import javax.swing.Box;
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JCheckBoxMenuItem;
@@ -596,7 +595,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 	 * Creates the menu bar.
 	 */
 	protected void createGUI() {
-		int keyMask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx();
+		int keyMask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
 		createFileMenu(keyMask);
 		createEditMenu(keyMask);
 		createVideoMenu(keyMask);
@@ -1207,7 +1206,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		video_emptyVideoItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.Empty")); //$NON-NLS-1$
 		video_emptyVideoItem.setEnabled(false);
 		
-		video_captureItem = new JMenuItem("Capture..."); // pig
+		video_captureItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.Capture")+"..."); //$NON-NLS-1$
 		video_captureItem.addActionListener((e) -> {
 			invokeCreateDialog(); 
 		});
@@ -1364,8 +1363,6 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 						OSPRuntime.preferMobile = false;
 						OSPRuntime.neverMobile = true;						
 					}
-					Dimension dim = OSPRuntime.getHTMLPageSize();
-					OSPLog.info("Screen size "+dim.width+" x "+dim.height);
 					panel().taintEnabled();
 					TToolBar toolbar = frame.getToolBar(panelID, false);
 					toolbar.refresh(TToolBar.REFRESH__REFRESH_ACTION_TRUE);
@@ -2839,7 +2836,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 	 */
 	protected static JMenu getTrackerHelpMenu(final TrackerPanel trackerPanel, JMenu hMenu) {
 		// help menu
-		int keyMask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx();
+		int keyMask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
 		if (hMenu == null)
 			hMenu = new JMenu();
 		else
