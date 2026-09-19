@@ -1013,7 +1013,18 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 		if (newToolsMenu.getItemCount() > 0) {
 			if (!panel().measuringTools.isEmpty())
 				popup.addSeparator();
-			popup.add(newToolsMenu);
+			if (OSPRuntime.isMobile()) {
+				// Touch users must be able to select a tool without opening another
+				// cascading submenu (Coords > Calibration Tools > New on mobile).
+				JMenuItem heading = new JMenuItem(newToolsMenu.getText());
+				heading.setEnabled(false);
+				popup.add(heading);
+				for (Component item : newToolsMenu.getMenuComponents()) {
+					popup.add(item);
+				}
+			} else {
+				popup.add(newToolsMenu);
+			}
 		}
 		FontSizer.setFonts(popup, FontSizer.getLevel());
 		return popup;
