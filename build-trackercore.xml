@@ -38,6 +38,12 @@
 	  	<replace dir="${site.path}/js/core" includes="tmp.js" token="Clazz." value="Clazz_"/>
 	  	<replace dir="${site.path}/js/core" includes="tmp.js" token="Clazz__" value="Clazz._"/>
 	   	<echo>......Generating ${site.path}/j2s/core/core${call-core.name}.js</echo> 	
+	   	<concat destfile="${site.path}/j2s/core/core${call-core.name}.js"><filelist dir="${site.path}/js" files="
+	   		core/coretop2.js
+	   		core/tmp.js
+	   		core/corebottom2.js
+	   		" />
+	   	</concat>
 	   	<echo>......Generating ${site.path}/j2s/core/core${call-core.name}.z.js</echo> 	
 	   	<java jar="jars/closure_compiler.jar" fork="true" dir="${site.path}/j2s/core" failonerror="false">
 	   		<arg line="--js core${call-core.name}.js --js_output_file core${call-core.name}.z.js" />

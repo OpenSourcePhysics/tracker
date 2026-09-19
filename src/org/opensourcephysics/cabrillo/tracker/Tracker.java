@@ -2148,85 +2148,14 @@ public class Tracker {
 	 * @param args array of tracker or video file names
 	 */
 	public static void main(String[] args) {
-		if (OSPRuntime.isJS) {
-			showOnlineSplash(() -> {
-				try {
-					initializeApplication(args);
-				} finally {
-					hideOnlineSplash();
-				}
-			});
-		} else {
+		try {
 			initializeApplication(args);
+		} finally {
+			// The launcher HTML displays the splash before SwingJS loads.
+			if (OSPRuntime.isJS) {
+				hideOnlineSplash();
+			}
 		}
-	}
-
-	/** Shows the browser splash without creating another Swing window. */
-	private static void showOnlineSplash(Runnable whenReady) {
-		/**
-		 * @j2sNative
-		 * var splash = document.getElementById("tracker-online-splash");
-		 * if (splash) {
-		 *   whenReady.run$();
-		 *   return;
-		 * }
-		 * splash = document.createElement("div");
-		 * splash.id = "tracker-online-splash";
-		 * splash.setAttribute("role", "status");
-		 * splash.setAttribute("aria-live", "polite");
-		 * splash.style.cssText = "position:fixed;inset:0;z-index:2147483647;"
-		 *   + "display:flex;flex-direction:column;align-items:center;justify-content:center;"
-		 *   + "background:white;color:#222;text-align:center;font:20px/1.5 Arial,sans-serif;"
-		 *   + "padding:24px;box-sizing:border-box;pointer-events:none;";
-		 * var image = document.createElement("img");
-		 * image.alt = "";
-		 * image.style.cssText = "display:block;width:508px;height:auto;flex-shrink:0;max-width:80%;max-height:50vh;"
-		 *   + "object-fit:contain;margin:0 auto 24px;";
-		 * splash.appendChild(image);
-		 * var message = document.createElement("div");
-		 * message.textContent = "Loading Tracker Online";
-		 * splash.appendChild(message);
-		 * var detail = document.createElement("div");
-		 * detail.textContent = "Please wait.";
-		 * splash.appendChild(detail);
-		 * document.body.appendChild(splash);
-		 * // Wait for the image, then allow a paint before blocking initialization.
-		 * // A missing image must never prevent Tracker from starting.
-		 * var started = false;
-		 * var timer;
-		 * var start = function() {
-		 *   if (started) return;
-		 *   started = true;
-		 *   clearTimeout(timer);
-		 *   image.onload = image.onerror = null;
-		 *   requestAnimationFrame(function() {
-		 *     setTimeout(function() { whenReady.run$(); }, 50);
-		 *   });
-		 * };
-		 * // Use browser URLs: Java asset URLs need not be usable as an img src.
-		 * var logoURLs = [new URL("splash_logo.png", document.baseURI).href];
-		 * var scripts = document.getElementsByTagName("script");
-		 * for (var i = 0; i < scripts.length; i++) {
-		 *   if (/\/swingjs2\.js(?:[?#]|$)/.test(scripts[i].src)) {
-		 *     logoURLs.push(new URL("j2s/splash_logo.png", scripts[i].src).href);
-		 *     break;
-		 *   }
-		 * }
-		 * logoURLs.push(new URL("swingjs/j2s/splash_logo.png", document.baseURI).href);
-		 * var logoIndex = 0;
-		 * image.onload = start;
-		 * image.onerror = function() {
-		 *   if (++logoIndex < logoURLs.length) {
-		 *     image.src = logoURLs[logoIndex];
-		 *   } else {
-		 *     console.warn("Tracker splash logo could not be loaded:", logoURLs);
-		 *     start();
-		 *   }
-		 * };
-		 * timer = setTimeout(start, 5000);
-		 * image.src = logoURLs[0];
-		 */
-		{}
 	}
 
 	private static void hideOnlineSplash() {
