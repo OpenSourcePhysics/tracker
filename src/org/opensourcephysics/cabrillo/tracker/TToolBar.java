@@ -216,6 +216,8 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 	protected ArrayList<JButton> overflowButtons;
 	// mobile buttons and popups
 	protected JPopupMenu filePopup, videoPopup, coordsPopup, trackPopup, viewPopup; 
+	private final JMenu mobileEditMenu = new JMenu();
+	private final JMenu mobileHelpMenu = new JMenu();
 	protected TButton fileButton, videoButton, coordsButton, trackButton, viewButton;
 	private boolean noButtonIcons = true;	
 
@@ -322,10 +324,8 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 		addComponentListener(new ComponentAdapter() {
 	    @Override
 			public void componentResized(ComponentEvent componentEvent) {
-  				if (!rebuilding) {
-  					rebuild(-1);
-  				}
-	    	}
+  			rebuild(-1);
+	    }
 		});
 		overflowButtons = new ArrayList<JButton>();
 		// create buttons
@@ -1728,30 +1728,17 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
   	return n-1;
 	}
 
-	private boolean rebuilding = false;
-
 	private void rebuild(int overflow) {
-		if (rebuilding && overflow == -1)
+		if (OSPRuntime.isMobile()) {
+			rebuildForMobile();
 			return;
-		boolean topLevel = !rebuilding;
-		if (topLevel)
-			rebuilding = true;
-		try {
-			if (OSPRuntime.isMobile()) {
-				rebuildForMobile();
-				return;
-			}
-			
-			// assemble buttons
-			removeAll();
-			overflowPopup.removeAll();
-			if (filePopup != null) filePopup.removeAll();
-			if (videoPopup != null) videoPopup.removeAll();
-			if (coordsPopup != null) coordsPopup.removeAll();
-			if (trackPopup != null) trackPopup.removeAll();
-			if (viewPopup != null) viewPopup.removeAll();
-			overflowIndex = overflow;
-			overflowButtons.clear();
+		}
+		
+		// assemble buttons
+		removeAll();
+		overflowPopup.removeAll();
+		overflowIndex = overflow;
+		overflowButtons.clear();
 		int index = 0;
 		//if (!OSPRuntime.isApplet) {
 			if (panel().isEnabled("file.open")) { //$NON-NLS-1$
@@ -1920,10 +1907,6 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 
 		else
 			TFrame.repaintT(this);
-		} finally {
-			if (topLevel)
-				rebuilding = false;
-		}
 	}
 
 	private void rebuildForMobile() {
@@ -2179,6 +2162,20 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 		viewPopup.add(frame.currentMenuBar.getMenuItem("view_TabsMenu"));
 	}
 		
+	/**
+	 * Reuse the actions without moving a top-level JMenu into a popup. SwingJS
+	 * gives top-level menus and submenus different DOM structures; changing that
+	 * role during a layout switch can leave the menu UI without an outer node.
+	 */
+	private static void populateMobileMenu(JMenu source, JMenu target) {
+		target.removeAll();
+		target.setText(source.getText());
+		target.setEnabled(source.isEnabled());
+		for (Component item : source.getMenuComponents()) {
+			target.add(item);
+		}
+	}
+
 	private void rebuildMobileOverflowPopup() {
 		if (frame.currentMenuBar != null) {
 			overflowPopup.removeAll();
@@ -2186,9 +2183,11 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 			frame.currentMenuBar.refreshEditMenu(true);
 			frame.currentMenuBar.setMenuTainted(TMenuBar.MENU_HELP, true);
 			frame.currentMenuBar.refreshHelpMenu(true);
-			overflowPopup.add(frame.currentMenuBar.getMenuItem("editMenu"));
+			populateMobileMenu((JMenu) frame.currentMenuBar.getMenuItem("editMenu"), mobileEditMenu);
+			overflowPopup.add(mobileEditMenu);
 			overflowPopup.addSeparator();
-			overflowPopup.add(frame.currentMenuBar.getMenuItem("helpMenu"));
+			populateMobileMenu((JMenu) frame.currentMenuBar.getMenuItem("helpMenu"), mobileHelpMenu);
+			overflowPopup.add(mobileHelpMenu);
 			overflowPopup.addSeparator();
 			
 			if (panel().isEnabled("button.drawing")) { //$NON-NLS-1$
@@ -2991,10 +2990,7 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 			Dimension dim = super.getPreferredSize();
 			if (OSPRuntime.isMobile()) {
 				Dimension size = OSPRuntime.getHTMLPageSize();
-				int frameW = (frame != null && frame.getWidth() > 0) ? frame.getWidth() : (int)(size.width * TFrame.DEFAULT_FRAME_WIDTH);
-				int extra = TFrame.isLayoutAdaptive ? 40 : 10;
-				int btnW = (frameW - extra) / 6;
-				dim.width = Math.max(btnW, 30);
+				dim.width = size.width / 6;
 			}
 			return dim;
 		}
