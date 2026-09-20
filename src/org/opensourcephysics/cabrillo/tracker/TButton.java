@@ -105,6 +105,9 @@ public class TButton extends JButton {
 						int popupWidth = popup.getPreferredSize().width;
 						int offset = alignPopup == LEFT? 0: getWidth() - popupWidth;
 						popup.show(TButton.this, offset, getHeight());
+						if (alignPopup == RIGHT) {
+							alignRenderedPopup(popup);
+						}
 					}
 				}
 			}
@@ -185,6 +188,29 @@ public class TButton extends JButton {
 		}
 	}
   
+  /**
+   * SwingJS popup width is available only after its menu has been rendered.
+   * Align its right edge with the button and keep it inside the visible viewport.
+   */
+  private void alignRenderedPopup(JPopupMenu menu) {
+    /**
+     * @j2sNative
+     * var node = menu.ui && menu.ui.domNode;
+     * var button = this.ui && this.ui.domNode;
+     * if (!node || !button) return;
+     * var rect = node.getBoundingClientRect();
+     * var anchor = button.getBoundingClientRect();
+     * var viewport = window.visualViewport;
+     * var left = (viewport ? viewport.offsetLeft : 0) + 4;
+     * var right = (viewport ? viewport.offsetLeft + viewport.width
+     *   : document.documentElement.clientWidth) - 4;
+     * var target = Math.max(left, Math.min(anchor.right, right) - rect.width);
+     * var current = parseFloat(node.style.left);
+     * if (isFinite(current)) node.style.left = (current + target - rect.left) + "px";
+     */
+    {}
+  }
+
   /**
    * Gets the track associated with this button.
    * @return the track

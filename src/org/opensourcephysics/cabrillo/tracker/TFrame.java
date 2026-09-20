@@ -279,6 +279,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 	public static boolean haveExportDialog;
 	public static boolean haveThumbnailDialog;
 	public static boolean maximize;
+	private Dimension maximizedFrameSize;
 
 	// instance fields
 
@@ -419,6 +420,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 		int margin = (int) ((1 - wid) * dim.width / 2);
 		int h = (int) (ht * (dim.height - ceil));
 		Rectangle rect = new Rectangle(margin, ceil, w, h);
+		maximizedFrameSize = maximize ? new Dimension(w, h) : null;
 		if (isInit) {
 			// JS only
 			Runnable onOrient = new Runnable() {
@@ -2442,6 +2444,16 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 		this.addComponentListener(new ComponentAdapter() {
 			@Override
 			public void componentResized(ComponentEvent e) {
+				// Keep the restore arrow only for the size requested by Maximize.
+				// Comparing sizes also handles resize events delivered after setBounds.
+				if (OSPRuntime.isJS && maximize && maximizedFrameSize != null
+						&& !getSize().equals(maximizedFrameSize)) {
+					maximize = false;
+					maximizedFrameSize = null;
+					for (TToolBar bar : _atoolbars) {
+						if (bar != null) bar.refreshMaximizeButton();
+					}
+				}
 				frameResized();
 				TWindowResizeHandler.setupResizer(TFrame.this);
 			}
