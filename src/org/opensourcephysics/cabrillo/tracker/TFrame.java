@@ -419,6 +419,24 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 		int w = (int) (wid * dim.width);
 		int margin = (int) ((1 - wid) * dim.width / 2);
 		int h = (int) (ht * (dim.height - ceil));
+		// A maximized browser frame must fit the visible viewport, including its border.
+		if (OSPRuntime.isJS && maximize) {
+			/**
+			 * @j2sNative
+			 * var viewport = window.visualViewport;
+			 * var viewportWidth = document.documentElement.clientWidth || window.innerWidth;
+			 * var viewportHeight = document.documentElement.clientHeight || window.innerHeight;
+			 * if (viewport) {
+			 *   viewportWidth = Math.min(viewportWidth, viewport.width);
+			 *   viewportHeight = Math.min(viewportHeight, viewport.height);
+			 * }
+			 * margin = Math.floor(viewport ? viewport.pageLeft : window.pageXOffset) + 2;
+			 * ceil = Math.floor(viewport ? viewport.pageTop : window.pageYOffset) + 2;
+			 * w = Math.max(1, Math.floor(viewportWidth) - 4);
+			 * h = Math.max(1, Math.floor(viewportHeight) - 4);
+			 */
+			{}
+		}
 		Rectangle rect = new Rectangle(margin, ceil, w, h);
 		maximizedFrameSize = maximize ? new Dimension(w, h) : null;
 		if (isInit) {
