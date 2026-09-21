@@ -235,11 +235,11 @@ public class TWindowResizeHandler {
 		 *     rubberBandNode.style.pointerEvents = "none";
 		 *   }
 		 *   
-		 *   // 1. Set resizer hotspot to 20x20 points
+		 *   // 1. Keep the 20x20 hotspot inside the frame to avoid page overflow
 		 *   resizerNode.style.width = "20px";
 		 *   resizerNode.style.height = "20px";
-		 *   resizerNode.style.marginLeft = "-12px";
-		 *   resizerNode.style.marginTop = "-12px";
+		 *   resizerNode.style.marginLeft = "-20px";
+		 *   resizerNode.style.marginTop = "-20px";
 		 *   resizerNode.style.touchAction = "none";
 		 *   resizerNode.style.zIndex = "100002";
 		 *   resizerNode.style.userSelect = "none";
