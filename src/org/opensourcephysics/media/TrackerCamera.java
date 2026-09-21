@@ -7,14 +7,11 @@ import org.opensourcephysics.display.OSPRuntime;
 import javajs.api.js.HTML5Applet;
 
 /**
- * When this class is statically initialized using new TrackerCamera(), 
- *  j2s/_ES6/tracker-camera-import.js is loaded. It creates
- *  
- *  Tracker.TrackerCameraImporter.createDialog(), which is 
- *  called in the instance using SwingUtilities.invokeLater() to make sure
- *  that we have processed the script file. 
+ * When this class is initialized using new TrackerCamera(), 
+ *  j2s/_ES6/tracker-camera-import.js is loaded if does not already exist.
+ *  This creates J2S.TrackerCameraImporter.createDialog(), which is 
+ *  called in the constructorto make sure that we have processed the script file. 
  * 
- *  When the 
  * 
  * @author hanso
  *
