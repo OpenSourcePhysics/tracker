@@ -126,7 +126,7 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 //	final protected static Icon checkboxOnDisabledIcon;
 	final protected static Icon pencilOffIcon, pencilOnIcon, pencilOffRolloverIcon, pencilOnRolloverIcon;
 	final protected static Icon pencilIcon;
-	final protected static Icon libraryIcon, openBrowserIcon, overflowIcon;
+	final protected static Icon libraryIcon, openBrowserIcon, overflowIcon, cameraIcon;
 	final protected static NumberFormat zoomFormat = NumberFormat.getNumberInstance();
 	// numbers below will require changing if wide button icons change
 	final protected static int wideIconWidth = 28;
@@ -167,6 +167,7 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 	private static final String BUTTON_ZOOM = "Zoom";
 	private static final String BUTTON_DRAWINGS = "Drawings";
 	private static final String BUTTON_NOTES = "Notes";
+	private static final String BUTTON_CAPTURE = "Capture";
 	private static final String BUTTON_MEMORY = "Memory";
 	private static final String BUTTON_REFRESH = "Refresh";
 	private static final String BUTTON_DESKTOP = "SupportDocs";
@@ -200,7 +201,7 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 	protected ButtonGroup vGroup, aGroup;
 	final protected JMenuItem showTrackControlItem, selectNoneItem, stretchOffItem;
 	final protected JButton notesButton, refreshButton, desktopButton, memoryButton;
-	final protected JButton maximizeButton;
+	final protected JButton maximizeButton, captureButton;
 	final protected Component toolbarFiller;
 	final protected JMenu cloneMenu;
 	final protected ArrayList<PageTView.TabData> pageViewTabs = new ArrayList<PageTView.TabData>();
@@ -213,6 +214,7 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 	protected JCheckBoxMenuItem trackControlCheckbox, notesCheckbox, maximizeCheckbox;
 	protected JCheckBoxMenuItem axesCheckbox, autotrackerCheckbox, clipCheckbox;
 	protected JCheckBoxMenuItem drawingControlCheckbox;
+	protected JMenuItem captureVideoItem;
 	protected ArrayList<JButton> overflowButtons;
 	// mobile buttons and popups
 	protected JPopupMenu filePopup, videoPopup, coordsPopup, trackPopup, viewPopup; 
@@ -287,6 +289,7 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 		libraryIcon = Tracker.getResourceIcon("library.gif", true); //$NON-NLS-1$
 		openBrowserIcon = Tracker.getResourceIcon("open_catalog.gif", true); //$NON-NLS-1$
 		overflowIcon = Tracker.getResourceIcon("overflow.gif", true); //$NON-NLS-1$
+		cameraIcon = Tracker.getResourceIcon("camera.gif", true); //$NON-NLS-1$
 	}
 
 	protected boolean refreshing; // true when refreshing toolbar
@@ -751,6 +754,12 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 				doNotesAction();
 		});
 		notesButton.setName(BUTTON_NOTES);
+		
+		captureButton = new TButton(cameraIcon);
+		captureButton.addActionListener((e) -> {
+			TMenuBar.invokeCreateDialog(); 
+		});
+		captureButton.setName(BUTTON_CAPTURE);
 		
 		/**
 		 * Java only; transpiler may ignore
@@ -1276,6 +1285,16 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 			}
 			drawingMenu.setText(getLocalizedName(button));
 			return drawingMenu;
+		case BUTTON_CAPTURE:
+			if (captureVideoItem == null) {
+				captureVideoItem = new JMenuItem("", button.getIcon());
+				captureVideoItem.addActionListener((e) -> {
+					button.doClick(0);
+				});
+			}
+			captureVideoItem.setToolTipText(button.getToolTipText());
+			captureVideoItem.setText(getLocalizedName(button));
+			return captureVideoItem;
 		case BUTTON_NOTES:
 			if (notesCheckbox == null) {
 				notesCheckbox = new JCheckBoxMenuItem("", button.getIcon());
@@ -1730,6 +1749,8 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
   	for (int i = n - 1; i > -1; i--) {
   		Component c = getComponent(i);
   		int end = c.getLocation().x + c.getWidth();
+  		if (i < n-1)
+  			end += overflowButton.getWidth()/2;
   		if (w > end
   			&& c instanceof JButton
   			&& ((JButton)c).getName() != null) {
@@ -1890,8 +1911,12 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 			TTrackBar.newVersionButton.setText(s + " " + Tracker.newerVersion); //$NON-NLS-1$
 			add(TTrackBar.newVersionButton);
 		}
+		if (OSPRuntime.isJS)
+			add(index++, captureButton);
+		
 		if (panel().isEnabled("button.drawing")) //$NON-NLS-1$
 			add(index++, drawingButton);
+		
 		if (desktopButton.isEnabled()) {
 			add(index++, desktopButton);
 		}
@@ -1916,8 +1941,10 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 			rebuild(i);
 		//OSPLog.debug(Performance.timeCheckStr("TToolBar rebuild validate", Performance.TIME_MARK));
 
-		else
+		else {
+			FontSizer.setFont(overflowButton);
 			TFrame.repaintT(this);
+		}
 	}
 
 	private void rebuildForMobile() {
@@ -2382,6 +2409,7 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 		clipSettingsButton.setToolTipText(MediaRes.getString("VideoPlayer.Button.ClipSettings.ToolTip")); //$NON-NLS-1$
 		axesButton.setToolTipText(TrackerRes.getString("TToolbar.Button.AxesVisible.Tooltip")); //$NON-NLS-1$
 		zoomButton.setToolTipText(TrackerRes.getString("TToolBar.Button.Zoom.Tooltip")); //$NON-NLS-1$
+		captureButton.setToolTipText(TrackerRes.getString("TToolBar.Button.Capture.Tooltip")); //$NON-NLS-1$
 		notesButton.setToolTipText(TrackerRes.getString("TActions.Action.Description")); //$NON-NLS-1$
 		refreshButton.setToolTipText(TrackerRes.getString("TToolbar.Button.Refresh.Tooltip")); //$NON-NLS-1$
 		desktopButton.setToolTipText(TrackerRes.getString("TToolbar.Button.Desktop.Tooltip")); //$NON-NLS-1$

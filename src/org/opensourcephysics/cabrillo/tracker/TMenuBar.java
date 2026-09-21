@@ -633,17 +633,17 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
  	 * Invokes the existing JavaScript handler whose showDialog() function calls
 	 * createDialog() the first time the capture dialog is opened.
 	 */
-	private static void invokeCreateDialog() {
-	/**
-			 * @j2sNative
-			 * if (window.TrackerCameraImporter &&
-			 * typeof window.TrackerCameraImporter.createDialog == "function") {
-			 *   window.TrackerCameraImporter.createDialog();
-			 * } else if (typeof createDialog == "function") {
-			 *   createDialog();
-			 * }
-			 */
-		}	
+	protected static void invokeCreateDialog() {
+		/**
+		 * @j2sNative
+		 * if (window.TrackerCameraImporter &&
+		 * typeof window.TrackerCameraImporter.createDialog == "function") {
+		 *   window.TrackerCameraImporter.createDialog();
+		 * } else if (typeof createDialog == "function") {
+		 *   createDialog();
+		 * }
+		 */
+	}	
 
 	private static boolean testing = false;
 	
