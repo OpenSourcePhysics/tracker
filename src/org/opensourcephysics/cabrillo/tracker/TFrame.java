@@ -2915,7 +2915,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 				JOptionPane.QUESTION_MESSAGE, lastExperiment)) == null)
 			return;
 		if (TrackerIO.isVideo(new File(path))) {
-			loadVideo(path, false, null, null); // imports video into current tab
+			loadVideo(path, false, null, null, 0, -1); // imports video into current tab
 			return;
 		}
 		if (getTabCount() > 0)
@@ -3049,7 +3049,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 				return;
 			}
 			if (TrackerIO.isVideo(new File(target))) {
-				loadVideo(target, true, libraryBrowser, whenDone);
+				loadVideo(target, true, libraryBrowser, whenDone, 0, -1);
 				whenDone = null;
 				return;
 			}
@@ -3139,8 +3139,9 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 	 * @param path     path to the video
 	 * @param asNewTab true to load into a new tab
 	 * @param whenDone optional Runnable
+	 * @param limit    number of frames or -1 if unknown
 	 */
-	void loadVideo(String path, boolean asNewTab, LibraryBrowser libraryBrowser, Runnable whenDone) {
+	void loadVideo(String path, boolean asNewTab, LibraryBrowser libraryBrowser, Runnable whenDone, double frameRate, int limit) {
 		// from loadExperimentURL and openLibraryResource actions
 		if (!VideoIO.checkMP4(path, libraryBrowser, getSelectedPanel()))
 			return;
@@ -3152,10 +3153,17 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 			}
 		}
 		File localFile = ResourceLoader.download(path, null, false);
+		Runnable whenDoneFinal = (whenDone == null && frameRate > 0 ? () -> {
+			TrackerPanel panel = getSelectedPanel();
+			Video video = (panel == null ? null : panel.getVideo());
+			if (video instanceof ImageVideo && frameRate > 0) {
+				((ImageVideo) video).setFrameDuration(1000 / frameRate);
+			}
+		} : whenDone);
 		Runnable importer = new Runnable() {
 			@Override
 			public void run() {
-				TrackerIO.importVideo(XML.getAbsolutePath(localFile), getSelectedPanel(), whenDone);
+				TrackerIO.importVideo(XML.getAbsolutePath(localFile), getSelectedPanel(), whenDoneFinal);
 			}
 		};
 		if (asNewTab)

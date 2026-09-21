@@ -41,6 +41,8 @@ import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.net.URL;
 import java.text.DecimalFormat;
@@ -101,7 +103,6 @@ import org.opensourcephysics.display.OSPFrame;
 import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.display.ResizableIcon;
 import org.opensourcephysics.display.TeXParser;
-import org.opensourcephysics.media.core.ImageVideo;
 import org.opensourcephysics.media.core.Video;
 import org.opensourcephysics.media.core.VideoIO;
 import org.opensourcephysics.media.mov.MovieFactory;
@@ -838,27 +839,62 @@ public class Tracker {
 		getFrame().loadExperimentURL(path);
 	}
 
+//	/**
+//   * BH: Better to limit this by the number of frames captured.
+//	 * Imports a browser-created video or image stack into the current tab.
+//	 * <p>
+//	 * This is a JavaScript-facing bridge used by Tracker Online. Browser code
+//	 * first writes the media bytes to SwingJS's temporary file cache, then calls
+//	 * this method with the path of the video or first numbered image.
+//	 *
+//	 * @j2sAlias importVideo
+//	 *
+//	 * @param path      the cached video path or first image-stack path
+//	 * @param frameRate image-stack frame rate in frames per second
+//	 */
+//	public void importVideo(String path, double frameRate) {
+//		if (path != null && !path.trim().isEmpty()) {
+//			getFrame().loadVideo(path, false, null, null, frameRate, -1);
+//		}
+//	}
+	
 	/**
+	 * JavaScript only (but not necessarily)
+	 * 
 	 * Imports a browser-created video or image stack into the current tab.
+	 * Tracker.TrackerCameraImport is created by new _ES6.TrackerCamera() and
+	 * calls back to this method via Tracker.app
+	 * 
 	 * <p>
-	 * This is a JavaScript-facing bridge used by Tracker Online. Browser code
-	 * first writes the media bytes to SwingJS's temporary file cache, then calls
-	 * this method with the path of the video or first numbered image.
+	 * This is a JavaScript-facing bridge used by Tracker Online. 
 	 *
-	 * @j2sAlias importVideo
+	 * @j2sAlias importVideoCapture
 	 *
-	 * @param path      the cached video path or first image-stack path
+	 * @param id unique session id
+	 * @param data the array of JPG image byte[], one for each frame captured
 	 * @param frameRate image-stack frame rate in frames per second
 	 */
-	public void importVideo(String path, double frameRate) {
-		if (path != null && !path.trim().isEmpty()) {
-			getFrame().loadVideo(path, false, null, () -> {
-				TrackerPanel panel = getFrame().getSelectedPanel();
-				Video video = (panel == null ? null : panel.getVideo());
-				if (video instanceof ImageVideo && frameRate > 0) {
-					((ImageVideo) video).setFrameDuration(1000 / frameRate);
+	public void importVideoCapture(String id, byte[][] data, double frameRate) {
+		if (data != null && data.length > 0) {
+			String path = null;
+			String firstPath = null;
+			String tempDir = System.getProperty("java.io.tmpdir");
+			for (int i = 0; i < data.length; i++) {
+				String index = "0000" + i;				
+				path = tempDir + "capture-" + id + "-" + index.substring(index.length() - 4) + ".jpg";
+				try {
+					File file = new File(path);
+					FileOutputStream fos = new FileOutputStream(file);
+					fos.write(data[i]);
+					fos.close();
+					if (firstPath == null)
+						firstPath = file.getAbsolutePath();
+				} catch (IOException e) {
+					System.err.println("Could not create " + path);
+					return;
 				}
-			});
+			}
+			getFrame().loadVideo(firstPath, false, null, null, frameRate, data.length);
 		}
 	}
 	
