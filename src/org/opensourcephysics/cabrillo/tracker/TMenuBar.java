@@ -614,13 +614,13 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 //		}
 	}
 	
-	/**
-	 * Creates the Tracker Online menu-bar button that opens the existing camera
-	 * capture dialog.
-	 *
-	 * @return the capture video button
-	 */
-//	JButton createCaptureVideoButton() {
+//	/**
+//	 * Creates the Tracker Online menu-bar button that opens the existing camera
+//	 * capture dialog.
+//	 *
+//	 * @return the capture video button
+//	 */
+//	static JButton createCaptureVideoButton() {
 //		JButton button = new JButton("Capture Video");
 //		button.setName("captureVideo");
 //		button.setFocusable(false);
