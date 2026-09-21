@@ -1990,13 +1990,13 @@ public class Tracker {
 	 */
 	protected static void loadPreferences() {
 		XMLControl prefsControl = TrackerStarter.findPreferences();
+		OSPLog.getOSPLog();
+		Dimension dim = OSPRuntime.getHTMLPageSize();
+		OSPLog.info("Screen size "+dim.width+" x "+dim.height);
 		if (prefsControl != null) {
 			prefsPath = prefsControl.getString("prefsPath"); //$NON-NLS-1$
 			if (prefsPath != null) {
-				OSPLog.getOSPLog();
 				OSPLog.info("preferences loaded from " + XML.getAbsolutePath(new File(prefsPath))); //$NON-NLS-1$
-				Dimension dim = OSPRuntime.getHTMLPageSize();
-				OSPLog.info("Screen size "+dim.width+" x "+dim.height);
 			}
 			prefsControl.loadObject(null); // the loader itself reads the values
 
