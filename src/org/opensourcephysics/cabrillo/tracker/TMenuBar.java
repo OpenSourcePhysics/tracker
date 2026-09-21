@@ -56,7 +56,6 @@ import javax.swing.AbstractAction;
 import javax.swing.AbstractButton;
 import javax.swing.Action;
 import javax.swing.ButtonGroup;
-import javax.swing.JButton;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
@@ -81,6 +80,7 @@ import org.opensourcephysics.desktop.OSPDesktop;
 import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.display.OSPRuntime.Disposable;
 import org.opensourcephysics.display.ResizableIcon;
+import org.opensourcephysics.media.TrackerCamera;
 import org.opensourcephysics.media.core.Filter;
 import org.opensourcephysics.media.core.FilterStack;
 import org.opensourcephysics.media.core.ImageCoordSystem;
@@ -614,22 +614,22 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 //		}
 	}
 	
-	/**
-	 * Creates the Tracker Online menu-bar button that opens the existing camera
-	 * capture dialog.
-	 *
-	 * @return the capture video button
-	 */
-	static JButton createCaptureVideoButton() {
-		JButton button = new JButton("Capture Video");
-		button.setName("captureVideo");
-		button.setFocusable(false);
-		button.setMaximumSize(button.getPreferredSize());
-		button.addActionListener((e) -> invokeCreateDialog());
-		return button;
-	}
+//	/**
+//	 * Creates the Tracker Online menu-bar button that opens the existing camera
+//	 * capture dialog.
+//	 *
+//	 * @return the capture video button
+//	 */
+//	static JButton createCaptureVideoButton() {
+//		JButton button = new JButton("Capture Video");
+//		button.setName("captureVideo");
+//		button.setFocusable(false);
+//		button.setMaximumSize(button.getPreferredSize());
+//		button.addActionListener((e) -> invokeCreateCameraDialog(frame));
+//		return button;
+//	}
 
-     /**
+  /**
  	 * Invokes the existing JavaScript handler whose showDialog() function calls
 	 * createDialog() the first time the capture dialog is opened.
 	 */
@@ -643,6 +643,10 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		 *   createDialog();
 		 * }
 		 */
+	}
+
+	private static void invokeCreateCameraDialog(TFrame frame) {
+		new TrackerCamera(frame);
 	}	
 
 	private static boolean testing = false;
@@ -1196,8 +1200,13 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		video_pasteFilterItem = new JMenuItem(TrackerRes.getString("TActions.Action.Paste")); //$NON-NLS-1$
 		video_pasteFilterItem.addActionListener((e) -> {
 				OSPRuntime.paste((s) -> {
-					if (s != null) {
-						Filter filter = (Filter) new XMLControlElement(s).loadObject(null);
+					if (s != null && panel().getVideo() != null) {
+						XMLControlElement control = new XMLControlElement(s);
+						Class<?> type = control.getObjectClass();
+						if (control.failedToRead() || type == null || !Filter.class.isAssignableFrom(type))
+							return;
+						Filter filter = (Filter) control.loadObject(null);
+						if (filter == null) return;
 						panel().getVideo().getFilterStack().addFilter(filter);
 						filter.setVideoPanel(panel());
 					}
@@ -1209,7 +1218,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		
 		video_captureItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.Capture")+"..."); //$NON-NLS-1$
 		video_captureItem.addActionListener((e) -> {
-			invokeCreateDialog(); 
+			invokeCreateCameraDialog(frame); 
 		});
 
 		add(videoMenu);
@@ -1459,34 +1468,43 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 			addItems(video_filtersMenu, videoFiltersMenuItems);
 		}
 
-		// enable paste image item if clipboard contains image data
-		Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-		Transferable data = clipboard.getContents(null);
-		boolean b = data != null && data.isDataFlavorSupported(DataFlavor.imageFlavor);
-		video_pasteImageMenu.setEnabled(b);
-		video_pasteImageItem.setEnabled(b);
-		video_pasteFilterItem.setEnabled(false);
-
-		// enable pasteFilterItem if clipboard contains VideoFilter xml
-		OSPRuntime.paste((xml) -> {
-			boolean filterOnClipboard = false;
-			String pasteFilterText = TrackerRes.getString("TActions.Action.Paste"); //$NON-NLS-1$
-			if (xml != null && xml.contains("<?xml")) { //$NON-NLS-1$
-				XMLControl control = new XMLControlElement(xml);
-				filterOnClipboard = Filter.class.isAssignableFrom(control.getObjectClass());
-				if (filterOnClipboard) {
-					String filterName = control.getObjectClass().getSimpleName();
-					int i = filterName.indexOf("Filter"); //$NON-NLS-1$
-					if (i > 0 && i < filterName.length() - 1) {
-						filterName = filterName.substring(0, i);
+		if (OSPRuntime.isJS) {
+			// Opening a menu must not request browser clipboard permission.
+			// Read and validate the clipboard only in the explicit Paste actions.
+			video_pasteImageMenu.setEnabled(true);
+			video_pasteImageItem.setEnabled(true);
+			video_pasteFilterItem.setEnabled(true);
+			video_pasteFilterItem.setText(TrackerRes.getString("TActions.Action.Paste")); //$NON-NLS-1$
+		} else {
+			// enable paste image item if clipboard contains image data
+			Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+			Transferable data = clipboard.getContents(null);
+			boolean b = data != null && data.isDataFlavorSupported(DataFlavor.imageFlavor);
+			video_pasteImageMenu.setEnabled(b);
+			video_pasteImageItem.setEnabled(b);
+			video_pasteFilterItem.setEnabled(false);
+	
+			// enable pasteFilterItem if clipboard contains VideoFilter xml
+			OSPRuntime.paste((xml) -> {
+				boolean filterOnClipboard = false;
+				String pasteFilterText = TrackerRes.getString("TActions.Action.Paste"); //$NON-NLS-1$
+				if (xml != null && xml.contains("<?xml")) { //$NON-NLS-1$
+					XMLControl control = new XMLControlElement(xml);
+					filterOnClipboard = Filter.class.isAssignableFrom(control.getObjectClass());
+					if (filterOnClipboard) {
+						String filterName = control.getObjectClass().getSimpleName();
+						int i = filterName.indexOf("Filter"); //$NON-NLS-1$
+						if (i > 0 && i < filterName.length() - 1) {
+							filterName = filterName.substring(0, i);
+						}
+						filterName = MediaRes.getString("VideoFilter." + filterName); //$NON-NLS-1$
+						pasteFilterText += " " + filterName; //$NON-NLS-1$
 					}
-					filterName = MediaRes.getString("VideoFilter." + filterName); //$NON-NLS-1$
-					pasteFilterText += " " + filterName; //$NON-NLS-1$
 				}
-			}
-			video_pasteFilterItem.setEnabled(filterOnClipboard);
-			video_pasteFilterItem.setText(pasteFilterText);
-		});
+				video_pasteFilterItem.setEnabled(filterOnClipboard);
+				video_pasteFilterItem.setText(pasteFilterText);
+			});
+		}
 
 		// refresh video filters menu
 		Video video = panel().getVideo();
@@ -2349,6 +2367,11 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		// enable and refresh paste item if clipboard contains xml string data
 		String paste = actions.get("paste").getValue(Action.NAME).toString(); //$NON-NLS-1$
 		edit_pasteItem.setText(paste);
+		if (OSPRuntime.isJS) {
+			// Browser clipboard reads belong to the user's Paste command, not refresh.
+			edit_pasteItem.setEnabled(true);
+			return;
+		}
 		edit_pasteItem.setEnabled(false);
 		String s = OSPRuntime.paste(null);
 		if (s == null)

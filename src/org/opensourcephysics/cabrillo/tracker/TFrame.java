@@ -279,6 +279,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 	public static boolean haveExportDialog;
 	public static boolean haveThumbnailDialog;
 	public static boolean maximize;
+	private Dimension maximizedFrameSize;
 
 	// instance fields
 
@@ -418,7 +419,26 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 		int w = (int) (wid * dim.width);
 		int margin = (int) ((1 - wid) * dim.width / 2);
 		int h = (int) (ht * (dim.height - ceil));
+		// A maximized browser frame must fit the visible viewport, including its border.
+		if (OSPRuntime.isJS && maximize) {
+			/**
+			 * @j2sNative
+			 * var viewport = window.visualViewport;
+			 * var viewportWidth = document.documentElement.clientWidth || window.innerWidth;
+			 * var viewportHeight = document.documentElement.clientHeight || window.innerHeight;
+			 * if (viewport) {
+			 *   viewportWidth = Math.min(viewportWidth, viewport.width);
+			 *   viewportHeight = Math.min(viewportHeight, viewport.height);
+			 * }
+			 * margin = Math.floor(viewport ? viewport.pageLeft : window.pageXOffset) + 2;
+			 * ceil = Math.floor(viewport ? viewport.pageTop : window.pageYOffset) + 2;
+			 * w = Math.max(1, Math.floor(viewportWidth) - 4);
+			 * h = Math.max(1, Math.floor(viewportHeight) - 4);
+			 */
+			{}
+		}
 		Rectangle rect = new Rectangle(margin, ceil, w, h);
+		maximizedFrameSize = maximize ? new Dimension(w, h) : null;
 		if (isInit) {
 			// JS only
 			Runnable onOrient = new Runnable() {
@@ -2442,6 +2462,16 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 		this.addComponentListener(new ComponentAdapter() {
 			@Override
 			public void componentResized(ComponentEvent e) {
+				// Keep the restore arrow only for the size requested by Maximize.
+				// Comparing sizes also handles resize events delivered after setBounds.
+				if (OSPRuntime.isJS && maximize && maximizedFrameSize != null
+						&& !getSize().equals(maximizedFrameSize)) {
+					maximize = false;
+					maximizedFrameSize = null;
+					for (TToolBar bar : _atoolbars) {
+						if (bar != null) bar.refreshMaximizeButton();
+					}
+				}
 				frameResized();
 				TWindowResizeHandler.setupResizer(TFrame.this);
 			}
@@ -2903,7 +2933,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 				JOptionPane.QUESTION_MESSAGE, lastExperiment)) == null)
 			return;
 		if (TrackerIO.isVideo(new File(path))) {
-			loadVideo(path, false, null, null); // imports video into current tab
+			loadVideo(path, false, null, null, 0, -1); // imports video into current tab
 			return;
 		}
 		if (getTabCount() > 0)
@@ -3037,7 +3067,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 				return;
 			}
 			if (TrackerIO.isVideo(new File(target))) {
-				loadVideo(target, true, libraryBrowser, whenDone);
+				loadVideo(target, true, libraryBrowser, whenDone, 0, -1);
 				whenDone = null;
 				return;
 			}
@@ -3127,8 +3157,9 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 	 * @param path     path to the video
 	 * @param asNewTab true to load into a new tab
 	 * @param whenDone optional Runnable
+	 * @param limit    number of frames or -1 if unknown
 	 */
-	void loadVideo(String path, boolean asNewTab, LibraryBrowser libraryBrowser, Runnable whenDone) {
+	void loadVideo(String path, boolean asNewTab, LibraryBrowser libraryBrowser, Runnable whenDone, double frameRate, int limit) {
 		// from loadExperimentURL and openLibraryResource actions
 		if (!VideoIO.checkMP4(path, libraryBrowser, getSelectedPanel()))
 			return;
@@ -3140,10 +3171,17 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 			}
 		}
 		File localFile = ResourceLoader.download(path, null, false);
+		Runnable whenDoneFinal = (whenDone == null && frameRate > 0 ? () -> {
+			TrackerPanel panel = getSelectedPanel();
+			Video video = (panel == null ? null : panel.getVideo());
+			if (video instanceof ImageVideo && frameRate > 0) {
+				((ImageVideo) video).setFrameDuration(1000 / frameRate);
+			}
+		} : whenDone);
 		Runnable importer = new Runnable() {
 			@Override
 			public void run() {
-				TrackerIO.importVideo(XML.getAbsolutePath(localFile), getSelectedPanel(), whenDone);
+				TrackerIO.importVideo(XML.getAbsolutePath(localFile), getSelectedPanel(), whenDoneFinal);
 			}
 		};
 		if (asNewTab)

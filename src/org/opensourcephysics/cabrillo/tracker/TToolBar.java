@@ -810,17 +810,12 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 		maximizeButton = new TButton(TViewChooser.MAXIMIZE_ICON, TViewChooser.RESTORE_ICON);
 		maximizeButton.setName(BUTTON_MAXIMIZE);
 		maximizeButton.setToolTipText(TrackerRes.getString("TFrame.Maximize.Tooltip")); //$NON-NLS-1$
-		maximizeButton.setSelected(TFrame.maximize);
+		refreshMaximizeButton();
 		maximizeButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				TFrame.maximize = !TFrame.maximize;
-				maximizeButton.setSelected(TFrame.maximize);
-				if (OSPRuntime.isJS) {
-					maximizeButton.setIcon(TFrame.maximize? TViewChooser.RESTORE_ICON: TViewChooser.MAXIMIZE_ICON);
-				}
-				maximizeButton.setToolTipText(TFrame.maximize ? TrackerRes.getString("TFrame.Restore.Tooltip") : //$NON-NLS-1$
-					TrackerRes.getString("TFrame.Maximize.Tooltip")); //$NON-NLS-1$
+				refreshMaximizeButton();
 				if (TFrame.maximize) {
 					// save current bounds for restore??
 					panel().getTFrame().getAdaptiveBounds(false);
@@ -1434,6 +1429,17 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 		}
 		FontSizer.setFonts(popup, FontSizer.getLevel());
 		return popup;
+	}
+
+	/** Synchronizes the maximize arrow, tooltip, and overflow item with the frame. */
+	void refreshMaximizeButton() {
+		maximizeButton.setSelected(TFrame.maximize);
+		if (OSPRuntime.isJS) {
+			maximizeButton.setIcon(TFrame.maximize ? TViewChooser.RESTORE_ICON : TViewChooser.MAXIMIZE_ICON);
+		}
+		maximizeButton.setToolTipText(TrackerRes.getString(TFrame.maximize
+				? "TFrame.Restore.Tooltip" : "TFrame.Maximize.Tooltip")); //$NON-NLS-1$ //$NON-NLS-2$
+		if (maximizeCheckbox != null) maximizeCheckbox.setSelected(TFrame.maximize);
 	}
 
 	protected void refreshZoomButton() {
