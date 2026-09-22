@@ -634,6 +634,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 	 * createDialog() the first time the capture dialog is opened.
 	 */
 	protected static void invokeCreateDialog() {
+
 		/**
 		 * @j2sNative
 		 * if (window.TrackerCameraImporter &&
@@ -645,7 +646,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		 */
 	}
 
-	private static void invokeCreateCameraDialog(TFrame frame) {
+	protected static void invokeCreateCameraDialog(TFrame frame) {
 		new TrackerCamera(frame);
 	}	
 
@@ -668,11 +669,11 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		file_newTabItem.setAccelerator(KeyStroke.getKeyStroke('N', keyMask));
 		// open menu
 		file_openMenu = new JMenu(TrackerRes.getString("TrackerIO.Dialog.Open.Title")); //$NON-NLS-1$
+		file_openMenu.setIcon(Tracker.getResourceIcon("open.gif", true)); //$NON-NLS-1$
 
 		file_openItem = new JMenuItem(actions.get("open")); //$NON-NLS-1$
 		file_openItem.setAccelerator(KeyStroke.getKeyStroke('O', keyMask));
 		file_openItem.setText(TrackerRes.getString("TMenuBar.MenuItem.FileChooser")+"...");
-		file_openMenu.setIcon(file_openItem.getIcon()); //$NON-NLS-1$
 		file_openItem.setIcon(null); //$NON-NLS-1$
 		// open library browser item
 		file_openBrowserItem = new JMenuItem(actions.get("openBrowser")); //$NON-NLS-1$
@@ -1102,6 +1103,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 
 		// open and close video items
 		video_openVideoItem = videoMenu.add(actions.get("openVideo")); //$NON-NLS-1$
+		video_openVideoItem.setIcon(Tracker.getResourceIcon("open.gif", true)); //$NON-NLS-1$
 		video_closeVideoItem = videoMenu.add(actions.get("closeVideo")); //$NON-NLS-1$
 		
 		// clip settings item
@@ -1109,7 +1111,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		video_clipSettingsItem.addActionListener((e) -> {
 			panel().setClipSettingsVisible(true);
 		});
-
+		video_clipSettingsItem.setIcon(TToolBar.clipOffIcon);
 		// goTo item
 		video_goToItem = new JMenuItem(MediaRes.getString("VideoPlayer.Readout.Menu.GoTo") + "..."); //$NON-NLS-1$ //$NON-NLS-2$
 		video_goToItem.setAccelerator(KeyStroke.getKeyStroke('G', keyMask));
@@ -1220,7 +1222,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		video_captureItem.addActionListener((e) -> {
 			invokeCreateCameraDialog(frame); 
 		});
-
+		video_captureItem.setIcon(TToolBar.cameraIcon);
 		add(videoMenu);
 	}
 

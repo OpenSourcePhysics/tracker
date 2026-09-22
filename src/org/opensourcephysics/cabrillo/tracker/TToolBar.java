@@ -757,7 +757,7 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 		
 		captureButton = new TButton(cameraIcon);
 		captureButton.addActionListener((e) -> {
-			TMenuBar.invokeCreateDialog(); 
+			TMenuBar.invokeCreateCameraDialog(panel().getTFrame()); 			
 		});
 		captureButton.setName(BUTTON_CAPTURE);
 		
@@ -1284,8 +1284,9 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 			if (captureVideoItem == null) {
 				captureVideoItem = new JMenuItem("", button.getIcon());
 				captureVideoItem.addActionListener((e) -> {
-					button.doClick(0);
+					TMenuBar.invokeCreateCameraDialog(panel().getTFrame());			
 				});
+				captureVideoItem.setIcon(cameraIcon);
 			}
 			captureVideoItem.setToolTipText(button.getToolTipText());
 			captureVideoItem.setText(getLocalizedName(button));
@@ -2042,7 +2043,9 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 		boolean importEnabled = panel().isEnabled("video.import") //$NON-NLS-1$
 				|| panel().isEnabled("video.open"); //$NON-NLS-1$
 		if (importEnabled) {
-			videoPopup.add(frame.currentMenuBar.getMenuItem("video_openVideoItem"));
+			JMenuItem item = frame.currentMenuBar.getMenuItem("video_openVideoItem");
+			item.setIcon(Tracker.getResourceIcon("open.gif", true)); //$NON-NLS-1$
+			videoPopup.add(item);
 			if (OSPRuntime.isJS)
 				videoPopup.add(frame.currentMenuBar.getMenuItem("video_captureItem"));
 		}

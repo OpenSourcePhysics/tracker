@@ -1424,7 +1424,7 @@ public class Tracker {
 			};
 
 			// about Xuggle--only if xuggle resources present?
-			if (MovieFactory.xuggleIsPresent || true) {
+			if (MovieFactory.xuggleIsPresent) {
 				aboutXuggleAction = new AbstractAction(TrackerRes.getString("Tracker.Action.AboutXuggle")) { //$NON-NLS-1$
 					@Override
 					public void actionPerformed(ActionEvent e) {
