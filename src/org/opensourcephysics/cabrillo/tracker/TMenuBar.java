@@ -1383,6 +1383,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 					toolbar.refresh(TToolBar.REFRESH__REFRESH_ACTION_TRUE);
 					if (frame.currentMenuBar != null) {
 						frame.currentMenuBar.setMenuTainted(MENU_ALL, true);
+						frame.currentMenuBar.refreshHelpMenu(false);
 						frame.setJMenuBar(frame.currentMenuBar);
 					}
 				}
@@ -2885,16 +2886,18 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 //        }
 		});
 		helpMenu.add(startItem);
-		JMenuItem helpItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.TrackerHelp")); //$NON-NLS-1$
-		helpItem.setAccelerator(KeyStroke.getKeyStroke('H', keyMask));
-		helpItem.addActionListener((e) -> {
-			Container c = helpMenu.getTopLevelAncestor();
-			if (c instanceof TFrame) {
-				TFrame frame = (TFrame) c;
-				frame.showHelp(null, 0);
-			}
-		});
+		if (!OSPRuntime.isJS) {
+			JMenuItem helpItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.TrackerHelp")); //$NON-NLS-1$
+			helpItem.setAccelerator(KeyStroke.getKeyStroke('H', keyMask));
+			helpItem.addActionListener((e) -> {
+				Container c = helpMenu.getTopLevelAncestor();
+				if (c instanceof TFrame) {
+					TFrame frame = (TFrame) c;
+					frame.showHelp(null, 0);
+				}
+			});
 		helpMenu.add(helpItem);
+		}
 		JMenuItem onlineHelpItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.OnlineHelp") + "..."); //$NON-NLS-1$ //$NON-NLS-2$
 		onlineHelpItem.addActionListener((e) -> {
 			String lang = TrackerRes.locale.getLanguage();
