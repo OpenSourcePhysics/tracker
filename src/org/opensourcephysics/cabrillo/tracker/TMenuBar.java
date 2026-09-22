@@ -646,7 +646,8 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		 */
 	}
 
-	protected static void invokeCreateCameraDialog(TFrame frame) {
+	/** Opens camera capture for both the Video menu and the toolbar button. */
+	static void invokeCreateCameraDialog(TFrame frame) {
 		new TrackerCamera(frame);
 	}	
 

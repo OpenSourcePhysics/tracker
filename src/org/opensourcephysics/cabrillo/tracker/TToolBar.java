@@ -757,7 +757,7 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 		
 		captureButton = new TButton(cameraIcon);
 		captureButton.addActionListener((e) -> {
-			TMenuBar.invokeCreateCameraDialog(panel().getTFrame()); 			
+			TMenuBar.invokeCreateCameraDialog(frame);
 		});
 		captureButton.setName(BUTTON_CAPTURE);
 		
