@@ -756,9 +756,7 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 		notesButton.setName(BUTTON_NOTES);
 		
 		captureButton = new TButton(cameraIcon);
-		captureButton.addActionListener((e) -> {
-			TMenuBar.invokeCreateCameraDialog(frame);
-		});
+		captureButton.addActionListener(actions.get("captureVideo")); //$NON-NLS-1$
 		captureButton.setName(BUTTON_CAPTURE);
 		
 		/**
@@ -1283,9 +1281,7 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 		case BUTTON_CAPTURE:
 			if (captureVideoItem == null) {
 				captureVideoItem = new JMenuItem("", button.getIcon());
-				captureVideoItem.addActionListener((e) -> {
-					TMenuBar.invokeCreateCameraDialog(panel().getTFrame());			
-				});
+				captureVideoItem.addActionListener(panel().getActions().get("captureVideo")); //$NON-NLS-1$
 				captureVideoItem.setIcon(cameraIcon);
 			}
 			captureVideoItem.setToolTipText(button.getToolTipText());
