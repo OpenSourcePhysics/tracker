@@ -1659,8 +1659,13 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 			if (saveAsEnabled) {
 				file_saveMenu.add(file_saveItem);
 				fileMenu.add(file_saveTabAsItem);
-				if (panel().getVideo() != null) 
-					fileMenu.add(file_saveVideoAsItem);
+//				if (panel().getVideo() != null) {
+//					if (OSPRuntime.isMobile()) {
+//						boolean canCopy = panel().getVideo().getTypeName().equals(MovieFactory.ENGINE_JS);
+//						file_saveVideoAsItem.setEnabled(canCopy);
+//					}
+//					fileMenu.add(file_saveVideoAsItem);
+//				}
 				file_saveMenu.add(file_saveProjectAsItem);
 				if (frame != null && frame.getTabCount() > 1)
 					fileMenu.add(file_saveTabsetAsItem);
