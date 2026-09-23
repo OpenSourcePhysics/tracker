@@ -3164,7 +3164,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 		if (!VideoIO.checkMP4(path, libraryBrowser, getSelectedPanel()))
 			return;
 		// load a video file or a directory containing images
-		ArrayList<String> stackPaths = ImageVideo.getStackPaths(path);
+		ArrayList<String> stackPaths = ImageVideo.getStackPaths(path, limit);
 		for (int i = 0; i < stackPaths.size(); i++) {
 			if (ResourceLoader.download(stackPaths.get(i), null, false) == null) {
 				break;
