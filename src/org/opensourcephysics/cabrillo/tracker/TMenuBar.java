@@ -196,6 +196,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 
 	// file menu
 	private JMenu fileMenu;
+	private int fileMenuStructure = -1;
 	private JMenuItem file_newTabItem;
 	private JMenuItem file_replaceTabItem;
 	private JMenu file_openMenu;
@@ -713,8 +714,16 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		// export video item
 		file_export_videoItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.VideoClip") + "..."); //$NON-NLS-1$ //$NON-NLS-2$
 		file_export_videoItem.addActionListener((e) -> {
-			ExportVideoDialog exporter = ExportVideoDialog.getVideoDialog(panel());
-			exporter.setVisible(true);
+			TrackerPanel trackerPanel = panel();
+			// Finish dispatching the menu click before opening a modal dialog.
+			// SwingJS can otherwise leave the File popup active behind the dialog.
+			SwingUtilities.invokeLater(() -> {
+				MenuSelectionManager.defaultManager().clearSelectedPath();
+				file_exportMenu.getPopupMenu().setVisible(false);
+				fileMenu.getPopupMenu().setVisible(false);
+				ExportVideoDialog exporter = ExportVideoDialog.getVideoDialog(trackerPanel);
+				exporter.setVisible(true);
+			});
 		});
 		file_exportMenu.add(file_export_videoItem);
 		new JMenuItem(actions.get("export"));
@@ -1619,7 +1628,19 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		boolean saveAsEnabled = panel().isEnabled("file.saveAs"); //$NON-NLS-1$
 		boolean printEnabled = panel().isEnabled("file.print"); //$NON-NLS-1$
 
-//		if (!opening) {
+		// Keep existing popup components when only labels or enabled states change.
+		// Removing and reattaching submenus during menuSelected invalidates the
+		// SwingJS popup's event targets on subsequent menu openings.
+		int structure = (newtabEnabled ? 1 : 0) | (openEnabled ? 2 : 0)
+				| (closeEnabled ? 4 : 0) | (importEnabled ? 8 : 0)
+				| (exportEnabled ? 16 : 0) | (showLib ? 32 : 0)
+				| (saveEnabled ? 64 : 0) | (saveAsEnabled ? 128 : 0)
+				| (printEnabled ? 256 : 0) | (panel().getDataFile() != null ? 512 : 0)
+				| (panel().getVideo() != null ? 1024 : 0)
+				| (frame != null && frame.getTabCount() > 1 ? 2048 : 0);
+		if (!opening || structure != fileMenuStructure) {
+			fileMenuStructure = structure;
+			setMenuTainted(MENU_FILE, true);
 			fileMenu.removeAll();
 			if (newtabEnabled) {
 				fileMenu.add(file_newTabItem);
@@ -1678,8 +1699,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 			if (printEnabled)
 				fileMenu.add(file_printFrameItem);
 			fileMenu.add(file_exitItem);
-//			return;
-//		}
+		}
 			
 		// opening
 		if (opening && isTainted(MENU_FILE)) {
