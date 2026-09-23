@@ -80,7 +80,6 @@ import org.opensourcephysics.desktop.OSPDesktop;
 import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.display.OSPRuntime.Disposable;
 import org.opensourcephysics.display.ResizableIcon;
-import org.opensourcephysics.media.TrackerCamera;
 import org.opensourcephysics.media.core.Filter;
 import org.opensourcephysics.media.core.FilterStack;
 import org.opensourcephysics.media.core.ImageCoordSystem;
@@ -609,49 +608,8 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		helpMenu = getTrackerHelpMenu(panel(), null);
 		helpMenu.setName("help");
 		add(helpMenu);
-//		if (OSPRuntime.isJS) {
-//			add(Box.createHorizontalGlue());
-//			add(createCaptureVideoButton());
-//		}
 	}
 	
-//	/**
-//	 * Creates the Tracker Online menu-bar button that opens the existing camera
-//	 * capture dialog.
-//	 *
-//	 * @return the capture video button
-//	 */
-//	static JButton createCaptureVideoButton() {
-//		JButton button = new JButton("Capture Video");
-//		button.setName("captureVideo");
-//		button.setFocusable(false);
-//		button.setMaximumSize(button.getPreferredSize());
-//		button.addActionListener((e) -> invokeCreateCameraDialog(frame));
-//		return button;
-//	}
-
-//  /**
-// 	 * Invokes the existing JavaScript handler whose showDialog() function calls
-//	 * createDialog() the first time the capture dialog is opened.
-//	 */
-//	protected static void invokeCreateDialog() {
-//
-//		/**
-//		 * @j2sNative
-//		 * if (window.TrackerCameraImporter &&
-//		 * typeof window.TrackerCameraImporter.createDialog == "function") {
-//		 *   window.TrackerCameraImporter.createDialog();
-//		 * } else if (typeof createDialog == "function") {
-//		 *   createDialog();
-//		 * }
-//		 */
-//	}
-
-	/** Opens camera capture for both the Video menu and the toolbar button. */
-	static void invokeCreateCameraDialog(TFrame frame) {
-		new TrackerCamera(frame);
-	}	
-
 	private static boolean testing = false;
 	
 	private void createFileMenu(int keyMask) {
@@ -1229,9 +1187,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		video_emptyVideoItem.setEnabled(false);
 		
 		video_captureItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.Capture")+"..."); //$NON-NLS-1$
-		video_captureItem.addActionListener((e) -> {
-			invokeCreateCameraDialog(frame); 
-		});
+		video_captureItem.addActionListener(actions.get("captureVideo")); //$NON-NLS-1$
 		video_captureItem.setIcon(TToolBar.cameraIcon);
 		add(videoMenu);
 	}
@@ -1928,11 +1884,6 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		add(coordsMenu);
 		add(viewMenu);
 		add(helpMenu);
-		
-//		if (OSPRuntime.isJS) {
-//			add(Box.createHorizontalGlue());
-//			add(createCaptureVideoButton());
-//		}
 	}
 	
 	protected void rebuildEditCopyMenu(String type) {

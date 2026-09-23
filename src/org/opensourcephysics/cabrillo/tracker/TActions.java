@@ -38,6 +38,7 @@ import javax.swing.SwingUtilities;
 
 import org.opensourcephysics.controls.XMLControlElement;
 import org.opensourcephysics.display.OSPRuntime;
+import org.opensourcephysics.media.TrackerCamera;
 import org.opensourcephysics.media.core.Filter;
 import org.opensourcephysics.media.core.FilterStack;
 import org.opensourcephysics.media.core.TPoint;
@@ -87,6 +88,16 @@ public class TActions {
 	private Map<String, AbstractAction> getActions() {
 		
 		HashMap<String, AbstractAction> actions = new HashMap<String, AbstractAction>();
+
+		// Use the same camera entry point as test.TrackerCameraTest.
+		actions.put("captureVideo", new AbstractAction() { //$NON-NLS-1$
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if (OSPRuntime.isJS) {
+					new TrackerCamera(frame);
+				}
+			}
+		});
 
 		// clear tracks
 		actions.put("clearTracks", //$NON-NLS-1$
