@@ -34,6 +34,8 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.text.JTextComponent;
 import javax.swing.tree.TreePath;
+
+import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.tools.LibraryBrowser;
 import org.opensourcephysics.tools.Resource;
 import org.opensourcephysics.tools.ResourceLoader;
@@ -160,12 +162,15 @@ public class LibraryBrowserDragHandler {
 			m.invoke(browser);
 		} catch (Throwable t) {
 		}
-		/**
-		 * @j2sNative
-		 * if (browser && browser.refreshGUI$) browser.refreshGUI$();
-		 */
-		{
-		}
+		if (OSPRuntime.isJS)
+			browser.refreshGUI();
+//		// BH NOT ACCEPTABLE-FIXED
+//		/**
+//		 * @-j2sNative
+//		 * if (browser && browser.refreshGUI$) browser.refreshGUI$();
+//		 */
+//		{
+//		}
 
 		final JEditorPane ep = findEditorPane(browser);
 		if (ep != null) {
@@ -173,6 +178,7 @@ public class LibraryBrowserDragHandler {
 		}
 
 		// In SwingJS, also ensure browser outer DOM node is styled and visible
+		// BH NOT ACCEPTABLE!!
 		/**
 		 * @j2sNative
 		 * try {
@@ -199,30 +205,34 @@ public class LibraryBrowserDragHandler {
 	public static JEditorPane findEditorPane(final LibraryBrowser browser) {
 		if (browser == null) return null;
 
-		// 1. Check direct field in SwingJS transpiled code
-		final JEditorPane[] holder = new JEditorPane[1];
-		/**
-		 * @j2sNative
-		 * if (browser && browser.htmlAboutPane) {
-		 *   holder[0] = browser.htmlAboutPane;
-		 * }
-		 */
-		{
-		}
-		if (holder[0] != null) {
-			return holder[0];
-		}
-
-		// 2. Check direct field via reflection in desktop Java
-		try {
-			java.lang.reflect.Field f = LibraryBrowser.class.getDeclaredField("htmlAboutPane"); //$NON-NLS-1$
-			f.setAccessible(true);
-			Object obj = f.get(browser);
-			if (obj instanceof JEditorPane) {
-				return (JEditorPane) obj;
-			}
-		} catch (Throwable t) {
-		}
+		if (browser.htmlAboutPane != null)
+			return browser.htmlAboutPane;
+		
+//		// BH NOT ACCEPTABLE-FIXED
+//		// 1. Check direct field in SwingJS transpiled code
+//		final JEditorPane[] holder = new JEditorPane[1];
+//		/**
+//		 * @-j2sNative
+//		 * if (browser && browser.htmlAboutPane) {
+//		 *   holder[0] = browser.htmlAboutPane;
+//		 * }
+//		 */
+//		{
+//		}
+//		if (holder[0] != null) {
+//			return holder[0];
+//		}
+//
+//		// 2. Check direct field via reflection in desktop Java
+//		try {
+//			java.lang.reflect.Field f = LibraryBrowser.class.getDeclaredField("htmlAboutPane"); //$NON-NLS-1$
+//			f.setAccessible(true);
+//			Object obj = f.get(browser);
+//			if (obj instanceof JEditorPane) {
+//				return (JEditorPane) obj;
+//			}
+//		} catch (Throwable t) {
+//		}
 
 		// 3. Search component hierarchy
 		return findEditorPaneInHierarchy(browser);
@@ -279,6 +289,7 @@ public class LibraryBrowserDragHandler {
 			}
 		});
 
+		// BH NOT ACCEPTABLE!!
 		// In SwingJS on iPad / Safari: directly inject and style the DOM elements
 		/**
 		 * @j2sNative
@@ -395,17 +406,22 @@ public class LibraryBrowserDragHandler {
 		if (w == null && browser.getTopLevelAncestor() instanceof Window) {
 			w = (Window) browser.getTopLevelAncestor();
 		}
-		final Window[] wHolder = new Window[] { w };
-		/**
-		 * @j2sNative
-		 * if (!wHolder[0] && org.opensourcephysics.tools.LibraryBrowser.frame) {
-		 *   wHolder[0] = org.opensourcephysics.tools.LibraryBrowser.frame;
-		 * }
-		 */
-		{
+		if (w == null && LibraryBrowser.frame != null) {
+			// risky -- not instance-specific
+			w = LibraryBrowser.frame;
 		}
-		w = wHolder[0];
-
+//		// BH NOT ACCEPTABLE-FIXED
+//		final Window[] wHolder = new Window[] { w };
+//		/**
+//		 * @-j2sNative
+//		 * if (!wHolder[0] && org.opensourcephysics.tools.LibraryBrowser.frame) {
+//		 *   wHolder[0] = org.opensourcephysics.tools.LibraryBrowser.frame;
+//		 * }
+//		 */
+//		{
+//		}
+//		w = wHolder[0];
+//
 		if (w != null) {
 			TWindowResizeHandler.install(w);
 			attachDragAdapter(w, browser);
@@ -588,25 +604,7 @@ public class LibraryBrowserDragHandler {
 					}
 				}
 			}
-
-			Window w = SwingUtilities.getWindowAncestor(component);
-			if (w == null && browser != null) {
-				w = SwingUtilities.getWindowAncestor(browser);
-			}
-			if (w == null && browser != null && browser.getTopLevelAncestor() instanceof Window) {
-				w = (Window) browser.getTopLevelAncestor();
-			}
-			final Window[] wHolder = new Window[] { w };
-			/**
-			 * @j2sNative
-			 * if (!wHolder[0] && org.opensourcephysics.tools.LibraryBrowser.frame) {
-			 *   wHolder[0] = org.opensourcephysics.tools.LibraryBrowser.frame;
-			 * }
-			 */
-			{
-			}
-			w = wHolder[0];
-
+			Window w = getWindowForBrowser(component, browser);
 			if (w != null) {
 				Point startPt = getScreenLocation(e, component);
 				if (startPt != null) {
@@ -630,24 +628,7 @@ public class LibraryBrowserDragHandler {
 		@Override
 		public void mouseDragged(MouseEvent e) {
 			if (!isDragging && !isResizing) return;
-			Window w = SwingUtilities.getWindowAncestor(component);
-			if (w == null && browser != null) {
-				w = SwingUtilities.getWindowAncestor(browser);
-			}
-			if (w == null && browser != null && browser.getTopLevelAncestor() instanceof Window) {
-				w = (Window) browser.getTopLevelAncestor();
-			}
-			final Window[] wHolder = new Window[] { w };
-			/**
-			 * @j2sNative
-			 * if (!wHolder[0] && org.opensourcephysics.tools.LibraryBrowser.frame) {
-			 *   wHolder[0] = org.opensourcephysics.tools.LibraryBrowser.frame;
-			 * }
-			 */
-			{
-			}
-			w = wHolder[0];
-
+			Window w = getWindowForBrowser(component, browser);
 			if (w != null) {
 				Point curPt = getScreenLocation(e, component);
 				if (curPt != null) {
@@ -725,5 +706,32 @@ public class LibraryBrowserDragHandler {
 			}
 		}
 		return e.getPoint();
+	}
+
+	public static Window getWindowForBrowser(Component component, LibraryBrowser browser) {
+		Window w = SwingUtilities.getWindowAncestor(component);
+		if (w == null && browser != null) {
+			w = SwingUtilities.getWindowAncestor(browser);
+		}
+		if (w == null && browser != null && browser.getTopLevelAncestor() instanceof Window) {
+			w = (Window) browser.getTopLevelAncestor();
+		}
+		if (w == null && LibraryBrowser.frame != null) {
+			// risky -- not instance-specific
+			w = LibraryBrowser.frame;
+		}
+		// BH NOT ACCEPTABLE-FIXED
+//		final Window[] wHolder = new Window[] { w };
+//		/**
+//		 * @-j2sNative
+//		 * if (!wHolder[0] && org.opensourcephysics.tools.LibraryBrowser.frame) {
+//		 *   wHolder[0] = org.opensourcephysics.tools.LibraryBrowser.frame;
+//		 * }
+//		 */
+//		{
+//		}
+//		w = wHolder[0];
+//
+		return w;
 	}
 }

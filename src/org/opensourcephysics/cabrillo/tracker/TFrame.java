@@ -409,36 +409,24 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 
 	@SuppressWarnings("unused")
 	protected Rectangle getAdaptiveBounds(boolean isInit) {
-		Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
-//		int w = (int) (0.9 * dim.width);
-//		int margin = (int) (0.05 * dim.width);
-//		int h = (int) (0.7 * (dim.height - 80));
-		double wid = maximize ? MAXIMIZED_FRAME_WIDTH : DEFAULT_FRAME_WIDTH;
-		double ht = maximize ? MAXIMIZED_FRAME_HEIGHT : DEFAULT_FRAME_HEIGHT;
-		int ceil = maximize ? MAXIMIZED_FRAME_CEILING : DEFAULT_FRAME_CEILING;
-		int w = (int) (wid * dim.width);
-		int margin = (int) ((1 - wid) * dim.width / 2);
-		int h = (int) (ht * (dim.height - ceil));
-		// A maximized browser frame must fit the visible viewport, including its border.
+		Rectangle rect;
 		if (OSPRuntime.isJS && maximize) {
-			/**
-			 * @j2sNative
-			 * var viewport = window.visualViewport;
-			 * var viewportWidth = document.documentElement.clientWidth || window.innerWidth;
-			 * var viewportHeight = document.documentElement.clientHeight || window.innerHeight;
-			 * if (viewport) {
-			 *   viewportWidth = Math.min(viewportWidth, viewport.width);
-			 *   viewportHeight = Math.min(viewportHeight, viewport.height);
-			 * }
-			 * margin = Math.floor(viewport ? viewport.pageLeft : window.pageXOffset) + 2;
-			 * ceil = Math.floor(viewport ? viewport.pageTop : window.pageYOffset) + 2;
-			 * w = Math.max(1, Math.floor(viewportWidth) - 4);
-			 * h = Math.max(1, Math.floor(viewportHeight) - 4);
-			 */
-			{}
+			rect = OSPRuntime.jsutil.getMaximumViewport(2, 2);
+		} else {
+			Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
+//			int w = (int) (0.9 * dim.width);
+//			int margin = (int) (0.05 * dim.width);
+//			int h = (int) (0.7 * (dim.height - 80));
+			double wid = maximize ? MAXIMIZED_FRAME_WIDTH : DEFAULT_FRAME_WIDTH;
+			double ht = maximize ? MAXIMIZED_FRAME_HEIGHT : DEFAULT_FRAME_HEIGHT;
+			int ceil = maximize ? MAXIMIZED_FRAME_CEILING : DEFAULT_FRAME_CEILING;
+			int w = (int) (wid * dim.width);
+			int margin = (int) ((1 - wid) * dim.width / 2);
+			int h = (int) (ht * (dim.height - ceil));
+			rect = new Rectangle(margin, ceil, w, h);
+			// A maximized browser frame must fit the visible viewport, including its border.
 		}
-		Rectangle rect = new Rectangle(margin, ceil, w, h);
-		maximizedFrameSize = maximize ? new Dimension(w, h) : null;
+		maximizedFrameSize = (maximize ? new Dimension(rect.width, rect.height) : null);
 		if (isInit) {
 			// JS only
 			Runnable onOrient = new Runnable() {

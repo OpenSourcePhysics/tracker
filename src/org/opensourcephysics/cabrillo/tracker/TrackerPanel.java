@@ -2285,6 +2285,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		try {
 			MenuSelectionManager.defaultManager().clearSelectedPath();
 		} catch (Throwable t) {}
+		// BH NOT ACCEPTABLE!
 		/**
 		 * @j2sNative
 		 * try {
@@ -2328,6 +2329,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		if (popup != null && popup.isVisible()) {
 			return true;
 		}
+		// BH NOT ACCEPTABLE!
 		/**
 		 * @j2sNative
 		 * if (window.$ && $(".ui-j2smenu:visible, .swingjsPopupMenu:visible").length > 0) {

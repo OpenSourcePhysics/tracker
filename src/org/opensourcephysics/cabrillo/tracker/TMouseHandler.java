@@ -558,11 +558,15 @@ public class TMouseHandler implements InteractiveMouseHandler {
 	 * @param trackerPanel the source tracker panel
 	 * @return the point in screen/page coordinates
 	 */
+	@SuppressWarnings({ "null", "unused" })
 	private Point getScreenLocation(MouseEvent e, TrackerPanel trackerPanel) {
-		int[] pt = new int[2];
-		boolean found = false;
+		System.out.println(e.getLocationOnScreen());
+
+		Point p = e.getLocationOnScreen();
+		
+		int[] pt = null;
 		/**
-		 * @j2sNative
+		 * @-j2sNative
 		 * try {
 		 *   var je = (e && e.bdata ? e.bdata.jqevent : null);
 		 *   if (je) {
@@ -577,20 +581,19 @@ public class TMouseHandler implements InteractiveMouseHandler {
 		 *       py = J2S._mousePageY;
 		 *     }
 		 *     if (px != null && isFinite(px) && py != null && isFinite(py)) {
-		 *       pt[0] = Math.round(px);
-		 *       pt[1] = Math.round(py);
-		 *       found = true;
+		 *       pt = [Math.round(px), Math.round(py)];
 		 *     }
 		 *   }
 		 * } catch (ex) {}
 		 */
-		{
-		}
-		if (found) {
-			return new Point(pt[0], pt[1]);
+		if (pt != null) {
+			System.out.println("TMH1 " + p);
+			p = new Point(pt[0], pt[1]);
+			System.out.println("TMH2 " + p);
+			return p;
 		}
 		try {
-			Point p = e.getLocationOnScreen();
+			System.out.println("TMH3 returning " + p);
 			if (p != null && (p.x != 0 || p.y != 0)) {
 				return p;
 			}
@@ -598,7 +601,7 @@ public class TMouseHandler implements InteractiveMouseHandler {
 		}
 		if (trackerPanel != null && trackerPanel.isShowing()) {
 			try {
-				Point p = trackerPanel.getLocationOnScreen();
+				p = trackerPanel.getLocationOnScreen();
 				return new Point(p.x + e.getX(), p.y + e.getY());
 			} catch (Throwable t) {
 			}
