@@ -832,7 +832,7 @@ public class Tracker {
 	 * Replace any open tabs with a single tab loaded with the given path.
 	 * JavaScript only?
 	 * 
-	 * @j2sAlias loadExperimentURL
+	 * @j2sAlias
 	 * 
 	 * @param path
 	 * @author Bob Hanson
@@ -840,25 +840,6 @@ public class Tracker {
 	public void loadExperimentURL(String path) {
 		getFrame().loadExperimentURL(path);
 	}
-
-//	/**
-//   * BH: Better to limit this by the number of frames captured.
-//	 * Imports a browser-created video or image stack into the current tab.
-//	 * <p>
-//	 * This is a JavaScript-facing bridge used by Tracker Online. Browser code
-//	 * first writes the media bytes to SwingJS's temporary file cache, then calls
-//	 * this method with the path of the video or first numbered image.
-//	 *
-//	 * @j2sAlias importVideo
-//	 *
-//	 * @param path      the cached video path or first image-stack path
-//	 * @param frameRate image-stack frame rate in frames per second
-//	 */
-//	public void importVideo(String path, double frameRate) {
-//		if (path != null && !path.trim().isEmpty()) {
-//			getFrame().loadVideo(path, false, null, null, frameRate, -1);
-//		}
-//	}
 	
 	/**
 	 * JavaScript only (but not necessarily)
@@ -870,7 +851,7 @@ public class Tracker {
 	 * <p>
 	 * This is a JavaScript-facing bridge used by Tracker Online. 
 	 *
-	 * @j2sAlias importVideoCapture
+	 * @j2sAlias
 	 *
 	 * @param id unique session id
 	 * @param data the array of JPG image byte[], one for each frame captured
@@ -904,7 +885,7 @@ public class Tracker {
 	/**
 	 * Gets the frame with alias for JavaScript
 	 *
-	 * @j2sAlias getFrame
+	 * @j2sAlias
 	 *
 	 * @return the frame
 	 */
@@ -915,7 +896,7 @@ public class Tracker {
 	/**
 	 * OSP API to get the main program frame.
 	 * 
-	 * @j2sAlias getMainFrame
+	 * @j2sAlias
 	 * 
 	 * @return OSPFrame
 	 */
@@ -926,7 +907,7 @@ public class Tracker {
 	/**
 	 * OSP API to get the main Tracker frame size.
 	 * 
-	 * @j2sAlias getMainFrameSize
+	 * @j2sAlias
 	 * 
 	 */
 	public int[] getMainFrameSize() {
@@ -937,7 +918,7 @@ public class Tracker {
 	/**
 	 * OSP API to get the main Tracker frame location.
 	 * 
-	 * @j2sAlias getMainFrameLocation
+	 * @j2sAlias
 	 * 
 	 */
 	public int[] getMainFrameLocation() {
