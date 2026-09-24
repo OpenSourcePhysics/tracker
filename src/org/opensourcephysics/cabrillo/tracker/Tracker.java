@@ -103,6 +103,7 @@ import org.opensourcephysics.display.OSPFrame;
 import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.display.ResizableIcon;
 import org.opensourcephysics.display.TeXParser;
+import org.opensourcephysics.js.AIPatch;
 import org.opensourcephysics.media.core.Video;
 import org.opensourcephysics.media.core.VideoIO;
 import org.opensourcephysics.media.mov.MovieFactory;
@@ -370,27 +371,30 @@ public class Tracker {
 			locales = new Locale[] { Locale.ENGLISH };
 			incompleteLocales = new Object[][] {};
 		}
-		
+
 		OSPLog.getOSPLog(!isHeadless);
 
 		setDefaultConfig(getFullConfig());
 		loadPreferences();
-		if (!OSPRuntime.isJS && !isHeadless) /** @j2sNative */
-		{
-			// load current version after a delay to allow video engines to load
-			// and every 24 hours thereafter (if program is left running)
-			Timer timer = new Timer(86400000, (e) -> {
-				Thread opener = new Thread(() -> {
-					checkedForNewerVersion = false;
-					loadCurrentVersion(false, true, true);
+
+		if (!isHeadless) {
+			/** @j2sIgnore */
+			{
+				// load current version after a delay to allow video engines to load
+				// and every 24 hours thereafter (if program is left running)
+				Timer timer = new Timer(86400000, (e) -> {
+					Thread opener = new Thread(() -> {
+						checkedForNewerVersion = false;
+						loadCurrentVersion(false, true, true);
+					});
+					opener.setPriority(Thread.NORM_PRIORITY);
+					opener.setDaemon(true);
+					opener.start();
 				});
-				opener.setPriority(Thread.NORM_PRIORITY);
-				opener.setDaemon(true);
-				opener.start();
-			});
-			timer.setInitialDelay(10000);
-			timer.setRepeats(true);
-			timer.start();
+				timer.setInitialDelay(10000);
+				timer.setRepeats(true);
+				timer.start();
+			}
 		}
 		xmlFilter = new java.io.FileFilter() {
 			// accept only *.xml files.
@@ -408,9 +412,8 @@ public class Tracker {
 		checkForUpgradeChoices = new ArrayList<String>();
 		checkForUpgradeIntervals = new HashMap<String, Integer>();
 
-		if (!OSPRuntime.isJS) /** @j2sNative */
+		/** @j2sIgnore */
 		{
-
 			autoloadDataFunctions();
 
 			// check for upgrade intervals
@@ -426,7 +429,6 @@ public class Tracker {
 			s = "PrefsDialog.Upgrades.Never"; //$NON-NLS-1$
 			checkForUpgradeChoices.add(s);
 			checkForUpgradeIntervals.put(s, 10000);
-
 		}
 
 		VideoIO.setDefaultXMLExtension("trk"); //$NON-NLS-1$
@@ -1195,7 +1197,7 @@ public class Tracker {
 			aboutString += newline + TrackerRes.getString("Tracker.About.TrackerHome") //$NON-NLS-1$
 					+ newline + trackerHome + newline;
 		}
-		if (!OSPRuntime.isJS) /** @j2sNative */
+		/** @j2sIgnore */
 		{
 			loadCurrentVersion(true, false, false);
 			if (newerVersion != null) {
@@ -1332,7 +1334,7 @@ public class Tracker {
 			};
 		}
 
-		if (!OSPRuntime.isJS) /** @j2sNative */
+		/** @j2sIgnore */
 		{
 			// Tracker README
 			readmeAction = new AbstractAction(TrackerRes.getString("Tracker.Readme") + "...") { //$NON-NLS-1$ //$NON-NLS-2$
@@ -2008,16 +2010,14 @@ public class Tracker {
 				preferredTrackerJar = null;		
 				savePreferences();
 			}	
-			
 			return;
 		}
-		else { // no prefsControl, so must be new install
+		// no prefsControl, so must be new install
 			loadDefaultPreferences();
 			// new prefs will be saved below			
-		}
-
+	
 		/**
-		 * @j2sNative return;
+		 * @j2sIgnore
 		 */
 		{
 			// unable to find prefs, so write new one(s) if possible
@@ -2080,8 +2080,10 @@ public class Tracker {
 	 * @return the path to the saved file
 	 */
 	protected static String savePreferences() {
+		// BH Q: is this next line needed in JavaScript?
 		XMLControl control = new XMLControlElement(new Preferences());
-		if (!OSPRuntime.isJS) /** @j2sNative */
+		String s = null;
+		/** @j2sIgnore */
 		{
 			// save prefs file in current preferences path
 			if (prefsPath != null) {
@@ -2125,11 +2127,9 @@ public class Tracker {
 				OSPRuntime.setPreference("XUGGLE_HOME", xuggleHome); //$NON-NLS-1$
 			}
 			OSPRuntime.savePreferences();
-			return prefsPath;
-		} else { // JS
-					// localStorage.setItem("trackerprefs", control.toXML());
+			s = prefsPath;
 		}
-		return null;
+		return s;
 	}
 
 	/**
@@ -2195,12 +2195,7 @@ public class Tracker {
 	}
 
 	private static void hideOnlineSplash() {
-		/**
-		 * @j2sNative
-		 * var splash = document.getElementById("tracker-online-splash");
-		 * if (splash && splash.parentNode) splash.parentNode.removeChild(splash);
-		 */
-		{}
+		AIPatch.disposeElement("tracker-online-splash");
 	}
 
 	private static void initializeApplication(String[] args) {
@@ -2276,7 +2271,7 @@ public class Tracker {
 		/**
 		 * Java only; transpiler can ignore.
 		 * 
-		 * @j2sNative
+		 * @j2sIgnore
 		 * 
 		 */
 		{
@@ -2497,11 +2492,9 @@ public class Tracker {
 	}
 
 	private static void showJavaMessages(TFrame frame) {
-		if (!OSPRuntime.isJS)
-		/** @j2sNative */
+		/** @j2sIgnore */
 		{
-
-			final String newVersionURL = System.getenv(TrackerStarter.TRACKER_NEW_VERSION);
+			String newVersionURL = System.getenv(TrackerStarter.TRACKER_NEW_VERSION);
 			if (newVersionURL != null) {
 				OSPRuntime.trigger(2000, (e) -> {
 					if (OSPRuntime.isWindows()) {

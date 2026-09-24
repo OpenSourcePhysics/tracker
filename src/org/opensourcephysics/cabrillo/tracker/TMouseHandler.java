@@ -34,6 +34,7 @@ import org.opensourcephysics.cabrillo.tracker.AutoTracker.FrameData;
 import org.opensourcephysics.cabrillo.tracker.AutoTracker.KeyFrameData;
 import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.display.*;
+import org.opensourcephysics.js.AIPatch;
 import org.opensourcephysics.media.core.*;
 
 /**
@@ -295,7 +296,7 @@ public class TMouseHandler implements InteractiveMouseHandler {
 				isResizingFrame = false;
 				trackerPanel.setMouseCursor(Cursor.getDefaultCursor());
 				trackerPanel.requestFocusInWindow();
-				TWindowResizeHandler.setupResizer(trackerPanel.getTFrame());
+				AIPatch.setupResizer(trackerPanel.getTFrame());
 				break;
 			}
 			if (isDraggingFrame) {

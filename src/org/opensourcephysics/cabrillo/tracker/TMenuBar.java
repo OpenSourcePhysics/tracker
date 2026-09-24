@@ -608,44 +608,8 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		helpMenu = getTrackerHelpMenu(panel(), null);
 		helpMenu.setName("help");
 		add(helpMenu);
-//		if (OSPRuntime.isJS) {
-//			add(Box.createHorizontalGlue());
-//			add(createCaptureVideoButton());
-//		}
 	}
 	
-//	/**
-//	 * Creates the Tracker Online menu-bar button that opens the existing camera
-//	 * capture dialog.
-//	 *
-//	 * @return the capture video button
-//	 */
-//	static JButton createCaptureVideoButton() {
-//		JButton button = new JButton("Capture Video");
-//		button.setName("captureVideo");
-//		button.setFocusable(false);
-//		button.setMaximumSize(button.getPreferredSize());
-//		button.addActionListener((e) -> invokeCreateCameraDialog(frame));
-//		return button;
-//	}
-
-//  /**
-// 	 * Invokes the existing JavaScript handler whose showDialog() function calls
-//	 * createDialog() the first time the capture dialog is opened.
-//	 */
-//	protected static void invokeCreateDialog() {
-//
-//		/**
-//		 * @j2sNative
-//		 * if (window.TrackerCameraImporter &&
-//		 * typeof window.TrackerCameraImporter.createDialog == "function") {
-//		 *   window.TrackerCameraImporter.createDialog();
-//		 * } else if (typeof createDialog == "function") {
-//		 *   createDialog();
-//		 * }
-//		 */
-//	}
-
 	/** Opens camera capture for both the Video menu and the toolbar button. */
 	static void invokeCreateCameraDialog(TFrame frame) {
 		new TrackerCamera(frame);
