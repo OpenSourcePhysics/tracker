@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
+import java.awt.Event;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Window;
@@ -69,7 +70,7 @@ public class LibraryBrowserDragHandler {
 			LibraryBrowser browser = frame.getLibraryBrowser();
 			if (browser != null) {
 				browser.setVisible(true);
-				ensureWelcomeScreen(browser);
+				ensureWelcomeScreen(browser, "open");
 			}
 		} catch (Throwable t) {
 		}
@@ -80,7 +81,7 @@ public class LibraryBrowserDragHandler {
 	 * 
 	 * @param browser the LibraryBrowser instance
 	 */
-	public static void install(final LibraryBrowser browser) {
+	public static void install(LibraryBrowser browser) {
 		if (browser == null) return;
 
 		// Attach to browser and all existing components in the dialog
@@ -93,14 +94,14 @@ public class LibraryBrowserDragHandler {
 		attachTabListeners(browser, browser);
 
 		// Ensure welcome screen is rendered and formatted immediately
-		ensureWelcomeScreen(browser);
+		ensureWelcomeScreen(browser, "install");
 
 		// Listen for added components (e.g. tabs, trees, welcome panes loaded asynchronously)
 		browser.addContainerListener(new ContainerAdapter() {
 			@Override
 			public void componentAdded(ContainerEvent e) {
 				attachToHierarchy(e.getChild(), browser);
-				ensureWelcomeScreen(browser);
+				ensureWelcomeScreen(browser, e);
 			}
 		});
 
@@ -108,11 +109,11 @@ public class LibraryBrowserDragHandler {
 		browser.addComponentListener(new ComponentAdapter() {
 			@Override
 			public void componentShown(ComponentEvent e) {
-				ensureWelcomeScreen(browser);
+				ensureWelcomeScreen(browser, e);
 			}
 			@Override
 			public void componentResized(ComponentEvent e) {
-				ensureWelcomeScreen(browser);
+				ensureWelcomeScreen(browser, e);
 			}
 		});
 
@@ -120,10 +121,12 @@ public class LibraryBrowserDragHandler {
 		browser.addHierarchyListener(new HierarchyListener() {
 			@Override
 			public void hierarchyChanged(HierarchyEvent e) {
+				int flags = (int) e.getChangeFlags();
+				
 				attachToHierarchy(browser, browser);
 				attachToWindow(browser);
 				attachTabListeners(browser, browser);
-				ensureWelcomeScreen(browser);
+				ensureWelcomeScreen(browser, e);
 			}
 		});
 
@@ -134,38 +137,54 @@ public class LibraryBrowserDragHandler {
 				attachToHierarchy(browser, browser);
 				attachToWindow(browser);
 				attachTabListeners(browser, browser);
-				ensureWelcomeScreen(browser);
+				ensureWelcomeScreen(browser, evt);
 			}
 		});
 	}
 
 	/**
-	 * Finds any JEditorPane in the browser (e.g. htmlAboutPane) and ensures it renders
-	 * the welcome message properly in both desktop Java and SwingJS on iPad.
+	 * Finds any JEditorPane in the browser (e.g. htmlAboutPane) and ensures it
+	 * renders the welcome message properly in both desktop Java and SwingJS on
+	 * iPad.
 	 * 
 	 * @param browser the LibraryBrowser instance
 	 */
-	public static void ensureWelcomeScreen(final LibraryBrowser browser) {
-		if (browser == null) return;
+	public static void ensureWelcomeScreen(final LibraryBrowser browser, Object e) {
+		if (true) {
+			System.err.println("LBDH skipping ensureWelcome " + e);
+			return;
+		}
+		if (browser == null || browser.getTabCount() > 0) {
+			return;
+		}
+		if (e instanceof PropertyChangeEvent) {
+			System.err.println("LBDH skipping property change " + e);
+			return;
+		}
 
-		// If tabs are currently open, do not overwrite tabs with welcome screen
-		try {
-			if (browser.getTabCount() > 0) {
-				return;
-			}
-		} catch (Throwable t) {
+		if (e instanceof HierarchyEvent) {
+			System.err.println("LBDH skipping heirarchy event " + e);
+			return;
+		}
+		
+		if (e instanceof String) {
+			
 		}
 
 		// Ensure htmlScroller is placed in Center if tabCount == 0
-		try {
-			java.lang.reflect.Method m = LibraryBrowser.class.getDeclaredMethod("refreshGUI"); //$NON-NLS-1$
-			m.setAccessible(true);
-			m.invoke(browser);
-		} catch (Throwable t) {
-		}
-		if (OSPRuntime.isJS)
-			browser.refreshGUI();
+		browser.refreshGUI();
+		
+		
+
 //		// BH NOT ACCEPTABLE-FIXED
+//		try {
+//			java.lang.reflect.Method m = LibraryBrowser.class.getDeclaredMethod("refreshGUI"); //$NON-NLS-1$
+//			m.setAccessible(true);
+//			m.invoke(browser);
+//		} catch (Throwable t) {
+//		}
+//		if (OSPRuntime.isJS)
+//			browser.refreshGUI();
 //		/**
 //		 * @-j2sNative
 //		 * if (browser && browser.refreshGUI$) browser.refreshGUI$();
@@ -179,7 +198,7 @@ public class LibraryBrowserDragHandler {
 		}
 		if (OSPRuntime.isJS) {
 			// In SwingJS, also ensure browser outer DOM node is styled and visible ??
-			AIPatch.hackStyle((JComponent) browser, "display", "block", "backgroundColor", "#ffffff");
+			AIPatch.hackUIDOMNodeStyle((JComponent) browser, "display", "block", "backgroundColor", "#ffffff");
 		}
 
 		// Ensure drag adapters and window listeners are attached
@@ -367,22 +386,22 @@ public class LibraryBrowserDragHandler {
 			w.addComponentListener(new ComponentAdapter() {
 				@Override
 				public void componentShown(ComponentEvent e) {
-					ensureWelcomeScreen(browser);
+					ensureWelcomeScreen(browser, e);
 				}
 				@Override
 				public void componentResized(ComponentEvent e) {
-					ensureWelcomeScreen(browser);
+					ensureWelcomeScreen(browser, e);
 				}
 			});
 
 			w.addWindowListener(new WindowAdapter() {
 				@Override
 				public void windowOpened(WindowEvent e) {
-					ensureWelcomeScreen(browser);
+					ensureWelcomeScreen(browser, e);
 				}
 				@Override
 				public void windowActivated(WindowEvent e) {
-					ensureWelcomeScreen(browser);
+					ensureWelcomeScreen(browser, e);
 				}
 			});
 		}
@@ -527,7 +546,7 @@ public class LibraryBrowserDragHandler {
 			}
 			Window w = getWindowForBrowser(component, browser);
 			if (w != null) {
-				Point startPt = AIPatch.getScreenLocation(e, component);
+				Point startPt = AIPatch.getScreenLocation(e, component, "LB mouse pressed");
 				if (startPt != null) {
 					Point ptInWindow = SwingUtilities.convertPoint(component, e.getPoint(), w);
 					int cornerSize = 20;
@@ -551,7 +570,7 @@ public class LibraryBrowserDragHandler {
 			if (!isDragging && !isResizing) return;
 			Window w = getWindowForBrowser(component, browser);
 			if (w != null) {
-				Point curPt = AIPatch.getScreenLocation(e, component);
+				Point curPt = AIPatch.getScreenLocation(e, component, "LB mouseDragged");
 				if (curPt != null) {
 					int dx = curPt.x - mouseLoc.x;
 					int dy = curPt.y - mouseLoc.y;
