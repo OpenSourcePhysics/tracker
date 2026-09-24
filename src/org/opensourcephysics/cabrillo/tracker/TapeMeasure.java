@@ -308,7 +308,10 @@ public class TapeMeasure extends InputTrack  implements MarkingRequired {
 		if (step == null)
 			return;
 		double newAngle = angleField.getValue();
-//		step = (TapeStep) getKeyStep(step); // 
+		// apply changes to keystep
+		step = (TapeStep) getKeyStep(step);
+		// MUST refresh keystep tape angle by calling getTapeLength first  
+		step.getTapeLength(!isStickMode());
 		double currentAngle = step.getTapeAngle();
 		if (Double.isNaN(newAngle)) {
 			angleField.setValue(currentAngle);
