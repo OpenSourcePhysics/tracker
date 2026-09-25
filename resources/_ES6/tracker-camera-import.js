@@ -111,13 +111,72 @@
 		};
 	}
 
+	// Source-video pixels, with a top-left origin and exclusive maximum bounds.
+	function getCropBounds(crop) {
+		var preview = element("tracker-camera-preview");
+		if (!state.stream || !preview || !preview.videoWidth || !preview.videoHeight) return null;
+		crop = crop || { x: 0, y: 0, width: 1, height: 1 };
+		function axis(start, size, limit) {
+			var minimumSize = Math.min(10, limit);
+			var min = Math.max(0, Math.min(limit - minimumSize, Math.round(start * limit)));
+			var max = Math.max(min + minimumSize, Math.min(limit, Math.round((start + size) * limit)));
+			return [min, max];
+		}
+		var x = axis(crop.x, crop.width, preview.videoWidth);
+		var y = axis(crop.y, crop.height, preview.videoHeight);
+		return { xmin: x[0], xmax: x[1], ymin: y[0], ymax: y[1] };
+	}
+
+	function cropFromBounds(bounds) {
+		var preview = element("tracker-camera-preview");
+		return {
+			x: bounds.xmin / preview.videoWidth, y: bounds.ymin / preview.videoHeight,
+			width: (bounds.xmax - bounds.xmin) / preview.videoWidth,
+			height: (bounds.ymax - bounds.ymin) / preview.videoHeight
+		};
+	}
+
+	function updateCropCoordinates() {
+		var bounds = getCropBounds(state.cropEnabled ? state.cropDraft || state.crop : null);
+		var preview = element("tracker-camera-preview");
+		["xmin", "xmax", "ymin", "ymax"].forEach(function (key) {
+			var input = element("tracker-camera-" + key);
+			if (!input) return;
+			input.value = bounds ? bounds[key] : "";
+			input.disabled = !bounds || !state.cropEnabled || state.capturing || state.countingDown;
+			if (!bounds) return;
+			var axis = key.charAt(0);
+			var limit = axis === "x" ? preview.videoWidth : preview.videoHeight;
+			var minimumSize = Math.min(10, limit);
+			input.min = key === axis + "min" ? 0 : bounds[axis + "min"] + minimumSize;
+			input.max = key === axis + "min" ? bounds[axis + "max"] - minimumSize : limit;
+		});
+	}
+
+	function editCropCoordinate(event) {
+		var input = event.currentTarget;
+		if (input.disabled) return;
+		var bounds = getCropBounds(state.crop);
+		if (!bounds) return;
+		var value = input.value === "" ? NaN : Number(input.value);
+		if (Number.isFinite(value)) {
+			var key = input.id.substring("tracker-camera-".length);
+			bounds[key] = Math.max(Number(input.min), Math.min(Number(input.max), Math.round(value)));
+			state.crop = cropFromBounds(bounds);
+		}
+		setControls();
+	}
+
 	function updateCropVisual() {
+		updateCropCoordinates();
 		var selection = element("tracker-camera-selection");
 		var layer = element("tracker-camera-selection-layer");
 		if (!selection || !layer) return;
 		layer.classList.toggle("tracker-camera-selection-active",
 			state.cropEnabled && !!state.stream && !state.capturing && !state.countingDown);
 		var crop = state.cropDraft || state.crop;
+		var bounds = getCropBounds(crop);
+		if (crop && bounds) crop = cropFromBounds(bounds);
 		var metrics = getVideoDisplayMetrics();
 		if (!state.cropEnabled || !crop || !metrics) {
 			selection.hidden = true;
@@ -160,7 +219,7 @@
 		state.cropStart = null;
 		state.cropDraft = null;
 		if (metrics && crop.width * metrics.width >= 8 && crop.height * metrics.height >= 8) {
-			state.crop = crop;
+			state.crop = cropFromBounds(getCropBounds(crop));
 			setStatus("Region selected. Record will capture only the outlined area.");
 		} else {
 			state.crop = null;
@@ -311,13 +370,11 @@
 		var reachedLimit = false;
 		try {
 			var canvas = element("tracker-camera-canvas");
-			var crop = state.cropEnabled && state.crop ? state.crop : { x: 0, y: 0, width: 1, height: 1 };
-			var sourceX = Math.round(crop.x * preview.videoWidth);
-			var sourceY = Math.round(crop.y * preview.videoHeight);
-			var sourceWidth = Math.max(1, Math.round(crop.width * preview.videoWidth));
-			var sourceHeight = Math.max(1, Math.round(crop.height * preview.videoHeight));
-			sourceWidth = Math.min(sourceWidth, preview.videoWidth - sourceX);
-			sourceHeight = Math.min(sourceHeight, preview.videoHeight - sourceY);
+			var bounds = getCropBounds(state.cropEnabled ? state.crop : null);
+			var sourceX = bounds.xmin;
+			var sourceY = bounds.ymin;
+			var sourceWidth = bounds.xmax - bounds.xmin;
+			var sourceHeight = bounds.ymax - bounds.ymin;
 			canvas.width = sourceWidth;
 			canvas.height = sourceHeight;
 			canvas.getContext("2d", { alpha: false }).drawImage(
@@ -456,20 +513,19 @@
 		var dialog = element("tracker-camera-dialog") || createDialog();
 		dialog.hidden = false;
 		dialog.focus();
-		setStatus(isIOSOrAndroid()
-			? "Start the camera to preview the video."
-			: "Start a camera, or select Capture screen and choose a window.");
+		setStatus("");
 		setControls();
 	}
 
 	function createDialog() {
 		var showScreenCapture = !isIOSOrAndroid();
-		var screenHelp = showScreenCapture
-			? '<p id="tracker-screen-capture-help" class="tracker-camera-help"><strong>Screen capture:</strong> ' +
-				'choose a window in the browser list, select a region, then press Record for a four-second countdown.</p>'
-			: "";
+		var screenHelp = '<p id="tracker-screen-capture-help" class="tracker-camera-help">' +
+			'For <strong>Camera capture</strong> start the camera and press record. ' +
+			(showScreenCapture ? 'For <strong>Screen capture</strong> press that button, select a browser window from the list, ' +
+				'and press record for a four-second count-down. ' : '') +
+			'You can choose frames/sec or select a region before recording a video.</p>';
 		var screenButton = showScreenCapture
-			? '<button id="tracker-screen-open" type="button">Capture screen</button>'
+			? '<button id="tracker-screen-open" type="button">Screen capture</button>'
 			: "";
 		var dialog = document.createElement("div");
 		dialog.id = "tracker-camera-dialog";
@@ -478,7 +534,7 @@
 		dialog.setAttribute("role", "dialog");
 		dialog.setAttribute("aria-modal", "true");
 		dialog.setAttribute("aria-label", "Capture video for Tracker");
-		if (showScreenCapture) dialog.setAttribute("aria-describedby", "tracker-screen-capture-help");
+		dialog.setAttribute("aria-describedby", "tracker-screen-capture-help");
 		dialog.innerHTML =
 			'<div class="tracker-camera-content">' +
 			screenHelp +
@@ -492,8 +548,16 @@
 			'<button id="tracker-camera-open" type="button">Start camera</button>' +
 			screenButton +
 			'<label>Frames/sec <select id="tracker-camera-fps"><option>5</option><option selected>10</option><option>15</option><option>30</option></select></label>' +
-			'<label><input id="tracker-camera-crop-toggle" type="checkbox" disabled> Capture selected region only</label>' +
+			'</div><div class="tracker-camera-controls">' +
 			'<button id="tracker-camera-crop-clear" type="button" disabled>Clear region</button>' +
+			'<label><input id="tracker-camera-crop-toggle" type="checkbox" disabled> Capture selected region only</label>' +
+			'</div><div class="tracker-camera-coordinates" aria-label="Capture coordinates">' +
+			'<span>Video pixels (origin: top left)</span>' +
+			'<label>X min <input id="tracker-camera-xmin" type="number" step="1" disabled></label>' +
+			'<label>X max <input id="tracker-camera-xmax" type="number" step="1" disabled></label>' +
+			'<label>Y min <input id="tracker-camera-ymin" type="number" step="1" disabled></label>' +
+			'<label>Y max <input id="tracker-camera-ymax" type="number" step="1" disabled></label>' +
+			'</div><div class="tracker-camera-controls">' +
 			'<button id="tracker-camera-record" type="button">Record</button>' +
 			'<button id="tracker-camera-stop" type="button">Stop and import</button>' +
 			'<button id="tracker-camera-cancel" type="button">Cancel</button>' +
@@ -530,6 +594,13 @@
 			setStatus("Drag over the video preview to select a new capture region.");
 			setControls();
 		});
+		["xmin", "xmax", "ymin", "ymax"].forEach(function (key) {
+			var input = element("tracker-camera-" + key);
+			input.addEventListener("change", editCropCoordinate);
+			input.addEventListener("keydown", function (event) {
+				if (event.key === "Enter") editCropCoordinate(event);
+			});
+		});
 		var selectionLayer = element("tracker-camera-selection-layer");
 		selectionLayer.addEventListener("pointerdown", beginCrop);
 		selectionLayer.addEventListener("pointermove", moveCrop);
@@ -556,6 +627,9 @@
 			"#tracker-camera-selection{position:absolute;box-sizing:border-box;border:2px solid #ffe600;background:#ffe60022;box-shadow:0 0 0 9999px #0007}" +
 			"#tracker-camera-countdown{position:absolute;z-index:2;left:50%;top:50%;transform:translate(-50%,-50%);min-width:1.4em;text-align:center;color:#fff;font:bold clamp(64px,18vw,150px)/1 sans-serif;text-shadow:0 3px 12px #000;background:#0008;border-radius:14px;padding:.08em .18em}" +
 			".tracker-camera-controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:12px}" +
+			".tracker-camera-coordinates{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:12px}" +
+			".tracker-camera-coordinates span{flex-basis:100%}" +
+			".tracker-camera-coordinates input{width:5em;font:inherit;padding:4px}" +
 			".tracker-camera-controls button,.tracker-camera-controls select{font:inherit;padding:7px 10px}" +
 			"#tracker-camera-status{min-height:1.4em;margin:10px 0 0}" +
 			".tracker-camera-error{color:#a40000;font-weight:600}";
