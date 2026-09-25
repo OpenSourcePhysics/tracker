@@ -34,6 +34,7 @@ import org.opensourcephysics.cabrillo.tracker.AutoTracker.FrameData;
 import org.opensourcephysics.cabrillo.tracker.AutoTracker.KeyFrameData;
 import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.display.*;
+import org.opensourcephysics.js.AIPatch;
 import org.opensourcephysics.media.core.*;
 
 /**
@@ -295,7 +296,7 @@ public class TMouseHandler implements InteractiveMouseHandler {
 				isResizingFrame = false;
 				trackerPanel.setMouseCursor(Cursor.getDefaultCursor());
 				trackerPanel.requestFocusInWindow();
-				TWindowResizeHandler.setupResizer(trackerPanel.getTFrame());
+				AIPatch.setupResizer(trackerPanel.getTFrame());
 				break;
 			}
 			if (isDraggingFrame) {
@@ -559,51 +560,7 @@ public class TMouseHandler implements InteractiveMouseHandler {
 	 * @return the point in screen/page coordinates
 	 */
 	private Point getScreenLocation(MouseEvent e, TrackerPanel trackerPanel) {
-		int[] pt = new int[2];
-		boolean found = false;
-		/**
-		 * @j2sNative
-		 * try {
-		 *   var je = (e && e.bdata ? e.bdata.jqevent : null);
-		 *   if (je) {
-		 *     var oe = je.originalEvent || je;
-		 *     var t = (oe.touches && oe.touches.length > 0 ? oe.touches[0] : 
-		 *             (oe.changedTouches && oe.changedTouches.length > 0 ? oe.changedTouches[0] : 
-		 *             (oe.targetTouches && oe.targetTouches.length > 0 ? oe.targetTouches[0] : null)));
-		 *     var px = (t ? t.pageX : (je.pageX != null ? je.pageX : null));
-		 *     var py = (t ? t.pageY : (je.pageY != null ? je.pageY : null));
-		 *     if (px == null && window.J2S && J2S._mousePageX != null) {
-		 *       px = J2S._mousePageX;
-		 *       py = J2S._mousePageY;
-		 *     }
-		 *     if (px != null && isFinite(px) && py != null && isFinite(py)) {
-		 *       pt[0] = Math.round(px);
-		 *       pt[1] = Math.round(py);
-		 *       found = true;
-		 *     }
-		 *   }
-		 * } catch (ex) {}
-		 */
-		{
-		}
-		if (found) {
-			return new Point(pt[0], pt[1]);
-		}
-		try {
-			Point p = e.getLocationOnScreen();
-			if (p != null && (p.x != 0 || p.y != 0)) {
-				return p;
-			}
-		} catch (Throwable t) {
-		}
-		if (trackerPanel != null && trackerPanel.isShowing()) {
-			try {
-				Point p = trackerPanel.getLocationOnScreen();
-				return new Point(p.x + e.getX(), p.y + e.getY());
-			} catch (Throwable t) {
-			}
-		}
-		return e.getPoint();
+		return AIPatch.getScreenLocation(e, trackerPanel, "TMouseHandler " + e);
 	}
 
 }

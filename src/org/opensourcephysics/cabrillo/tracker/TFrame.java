@@ -118,6 +118,7 @@ import org.opensourcephysics.display.GUIUtils;
 import org.opensourcephysics.display.OSPFrame;
 import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.display.OSPRuntime.Disposable;
+import org.opensourcephysics.js.AIPatch;
 import org.opensourcephysics.media.core.ClipInspector;
 import org.opensourcephysics.media.core.DataTrack;
 import org.opensourcephysics.media.core.ImageVideo;
@@ -404,41 +405,29 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 			addTab(panel, ADD_NOSELECT | ADD_REFRESH, () -> {
 			});
 		}
-		TWindowResizeHandler.install(this);
+		AIPatch.installResizeHandler(this);
 	}
 
 	@SuppressWarnings("unused")
 	protected Rectangle getAdaptiveBounds(boolean isInit) {
-		Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
-//		int w = (int) (0.9 * dim.width);
-//		int margin = (int) (0.05 * dim.width);
-//		int h = (int) (0.7 * (dim.height - 80));
-		double wid = maximize ? MAXIMIZED_FRAME_WIDTH : DEFAULT_FRAME_WIDTH;
-		double ht = maximize ? MAXIMIZED_FRAME_HEIGHT : DEFAULT_FRAME_HEIGHT;
-		int ceil = maximize ? MAXIMIZED_FRAME_CEILING : DEFAULT_FRAME_CEILING;
-		int w = (int) (wid * dim.width);
-		int margin = (int) ((1 - wid) * dim.width / 2);
-		int h = (int) (ht * (dim.height - ceil));
-		// A maximized browser frame must fit the visible viewport, including its border.
+		Rectangle rect;
 		if (OSPRuntime.isJS && maximize) {
-			/**
-			 * @j2sNative
-			 * var viewport = window.visualViewport;
-			 * var viewportWidth = document.documentElement.clientWidth || window.innerWidth;
-			 * var viewportHeight = document.documentElement.clientHeight || window.innerHeight;
-			 * if (viewport) {
-			 *   viewportWidth = Math.min(viewportWidth, viewport.width);
-			 *   viewportHeight = Math.min(viewportHeight, viewport.height);
-			 * }
-			 * margin = Math.floor(viewport ? viewport.pageLeft : window.pageXOffset) + 2;
-			 * ceil = Math.floor(viewport ? viewport.pageTop : window.pageYOffset) + 2;
-			 * w = Math.max(1, Math.floor(viewportWidth) - 4);
-			 * h = Math.max(1, Math.floor(viewportHeight) - 4);
-			 */
-			{}
+			rect = OSPRuntime.jsutil.getMaximumViewport(2, 2);
+		} else {
+			Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
+//			int w = (int) (0.9 * dim.width);
+//			int margin = (int) (0.05 * dim.width);
+//			int h = (int) (0.7 * (dim.height - 80));
+			double wid = maximize ? MAXIMIZED_FRAME_WIDTH : DEFAULT_FRAME_WIDTH;
+			double ht = maximize ? MAXIMIZED_FRAME_HEIGHT : DEFAULT_FRAME_HEIGHT;
+			int ceil = maximize ? MAXIMIZED_FRAME_CEILING : DEFAULT_FRAME_CEILING;
+			int w = (int) (wid * dim.width);
+			int margin = (int) ((1 - wid) * dim.width / 2);
+			int h = (int) (ht * (dim.height - ceil));
+			rect = new Rectangle(margin, ceil, w, h);
+			// A maximized browser frame must fit the visible viewport, including its border.
 		}
-		Rectangle rect = new Rectangle(margin, ceil, w, h);
-		maximizedFrameSize = maximize ? new Dimension(w, h) : null;
+		maximizedFrameSize = (maximize ? new Dimension(rect.width, rect.height) : null);
 		if (isInit) {
 			// JS only
 			Runnable onOrient = new Runnable() {
@@ -449,13 +438,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 				}
 
 			};
-
 			// startup
-			/**
-			 * @j2sNative window.addEventListener(window.onorientationchange ?
-			 *            "orientationchange" : "resize", function() {
-			 *            console.log("Orientation changed"); onOrient.run$(); }, false);
-			 */
+			AIPatch.addWindowOrientationChangeListener(onOrient);
 		} else {
 			setBounds(rect);
 			validate();
@@ -2048,7 +2032,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 	 * @param menu the menu to refresh
 	 */
 	public void refreshOpenRecentMenu(final JMenu menu) {
-		if (!OSPRuntime.isJS) /** @j2sNative */
+		/** @j2sIgnore */
 		{
 			synchronized (Tracker.recentFiles) {
 				menu.setText(TrackerRes.getString("TMenuBar.Menu.OpenRecent")); //$NON-NLS-1$
@@ -2473,7 +2457,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 					}
 				}
 				frameResized();
-				TWindowResizeHandler.setupResizer(TFrame.this);
+				AIPatch.setupResizer(TFrame.this);
 			}
 		});
 		// add focus listener to notify ParticleDataTracks and other listeners
@@ -3295,24 +3279,23 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 						JOptionPane.showMessageDialog(frame, "\"" + next[1] + "\" " //$NON-NLS-1$ //$NON-NLS-2$
 								+ MediaRes.getString("VideoClip.Dialog.VideoNotFound.Message")); //$NON-NLS-1$
 						continue;
-					} else /** @j2sNative */
+					} 
+					/** @j2sIgnore */
 					{
 						int i = JOptionPane.showConfirmDialog(frame, "\"" + next[1] + "\" " //$NON-NLS-1$ //$NON-NLS-2$
 								+ MediaRes.getString("VideoClip.Dialog.VideoNotFound.Message"), //$NON-NLS-1$
 								TrackerRes.getString("TFrame.Dialog.FileNotFound.Title"), //$NON-NLS-1$
 								JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
-						if (i == JOptionPane.YES_OPTION) {
-							TrackerIO.getChooser().setSelectedFile(file);
-							@SuppressWarnings("deprecation")
-							java.io.File[] a = TrackerIO.getChooserFiles("open"); //$NON-NLS-1$
-							if (a != null) {
-								file = a[0];
-							} else {
-								continue;
-							}
-						} else {
+						if (i != JOptionPane.YES_OPTION) {
 							continue;
 						}
+						TrackerIO.getChooser().setSelectedFile(file);
+						@SuppressWarnings("deprecation")
+						java.io.File[] a = TrackerIO.getChooserFiles("open"); //$NON-NLS-1$
+						if (a == null) {
+							continue;								
+						}
+						file = a[0];
 					}
 				}
 				// BH! but if the file is set in the prev block, res is still null. So this will

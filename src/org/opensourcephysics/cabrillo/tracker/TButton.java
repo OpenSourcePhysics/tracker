@@ -24,10 +24,16 @@
  */
 package org.opensourcephysics.cabrillo.tracker;
 
-import java.awt.event.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
-import javax.swing.*;
+import javax.swing.Icon;
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JMenu;
+import javax.swing.JPopupMenu;
 
+import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.tools.FontSizer;
 
 /**
@@ -37,62 +43,61 @@ import org.opensourcephysics.tools.FontSizer;
  */
 @SuppressWarnings("serial")
 public class TButton extends JButton {
-	
-  private int trackID;
-  private boolean hidePopup = false;
-  private JPopupMenu popup;
-  protected String context = "track"; //$NON-NLS-1$
-  protected boolean alwaysShowBorder;
-  protected int alignPopup = LEFT; 
 
-  /**
-   * Constructs a TButton.
-   */
-  public TButton() {
+	private int trackID;
+	private boolean hidePopup = false;
+	private JPopupMenu popup;
+	protected String context = "track"; //$NON-NLS-1$
+	protected boolean alwaysShowBorder;
+	protected int alignPopup = LEFT;
+
+	/**
+	 * Constructs a TButton.
+	 */
+	public TButton() {
 		setOpaque(false);
 		setBorderPainted(false);
-    addMouseListener(new MouseAdapter() {
-    	@Override
-		public void mouseEntered(MouseEvent e) {
-    		if (!TButton.this.isEnabled()) 
-    			return;
-    		setBorderPainted(true);
-        hidePopup = popup!=null && popup.isVisible();
-        TTrack track = getTrack();
-      	if (Tracker.showHints && track!=null && track.tp!=null) {
-        	if (track.tp.getSelectedTrack() == track)
-        		track.tp.setMessage(track.getMessage());
-        	else {
-          	String s = track.getClass().getSimpleName()+" " //$NON-NLS-1$
-              	+ track.getName() + " (" //$NON-NLS-1$
-                + TrackerRes.getString("TTrack.Unselected.Hint")+")"; //$NON-NLS-1$ //$NON-NLS-2$
-          	track.tp.setMessage(s);
-        	}
-      	}    		
-    	}
+		addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseEntered(MouseEvent e) {
+				if (!TButton.this.isEnabled())
+					return;
+				setBorderPainted(true);
+				hidePopup = popup != null && popup.isVisible();
+				TTrack track = getTrack();
+				if (Tracker.showHints && track != null && track.tp != null) {
+					if (track.tp.getSelectedTrack() == track)
+						track.tp.setMessage(track.getMessage());
+					else {
+						String s = track.getClass().getSimpleName() + " " //$NON-NLS-1$
+								+ track.getName() + " (" //$NON-NLS-1$
+								+ TrackerRes.getString("TTrack.Unselected.Hint") + ")"; //$NON-NLS-1$ //$NON-NLS-2$
+						track.tp.setMessage(s);
+					}
+				}
+			}
 
-    	@Override
-		public void mouseExited(MouseEvent e) {
-    		if (!alwaysShowBorder)
-    			setBorderPainted(false);
-    	}
+			@Override
+			public void mouseExited(MouseEvent e) {
+				if (!alwaysShowBorder)
+					setBorderPainted(false);
+			}
 
-    	@Override
-		public void mousePressed(MouseEvent e) {
-        TTrack track = getTrack();
-    		if (track!=null && track.tp!=null
-    				&& track != track.tp.getSelectedTrack()) {
-    			track.tp.setSelectedTrack(track);
-    			track.tp.setSelectedPoint(null);
-          track.tp.selectedSteps.clear();
+			@Override
+			public void mousePressed(MouseEvent e) {
+				TTrack track = getTrack();
+				if (track != null && track.tp != null && track != track.tp.getSelectedTrack()) {
+					track.tp.setSelectedTrack(track);
+					track.tp.setSelectedPoint(null);
+					track.tp.selectedSteps.clear();
 //        	hidePopup = true;
-        }
-    	}
+				}
+			}
 
 			@Override
 			public void mouseClicked(MouseEvent e) {
-    		if (!TButton.this.isEnabled()) 
-    			return;
+				if (!TButton.this.isEnabled())
+					return;
 				popup = getPopup();
 				if (popup != null) {
 					if (e.getClickCount() == 2)
@@ -103,17 +108,17 @@ public class TButton extends JButton {
 					} else {
 						hidePopup = true;
 						int popupWidth = popup.getPreferredSize().width;
-						int offset = alignPopup == LEFT? 0: getWidth() - popupWidth;
+						int offset = alignPopup == LEFT ? 0 : getWidth() - popupWidth;
 						popup.show(TButton.this, offset, getHeight());
-						if (alignPopup == RIGHT) {
-							alignRenderedPopup(popup);
+						if (OSPRuntime.isJS && alignPopup == RIGHT) {
+							alignComponentRight(popup, TButton.this);
 						}
 					}
 				}
 			}
-    });
-  }
-  
+		});
+	}
+
 //  /**
 //   * Constructs an icon-only TButton with an AbstractAction.
 //   *
@@ -125,48 +130,48 @@ public class TButton extends JButton {
 //  	setIcon((Icon)action.getValue(Action.SMALL_ICON));
 //  }  
 //  
-  /**
-   * Constructs a TButton with a TTrack.
-   *
-   * @param track the track
-   */
-  public TButton(TTrack track) {
-  	this();
-  	setTrack(track);
-  }  
-  
-  /**
-   * Constructs a TButton with an Icon.
-   *
-   * @param icon the icon
-   */
-  public TButton(Icon icon) {
-  	this();
+	/**
+	 * Constructs a TButton with a TTrack.
+	 *
+	 * @param track the track
+	 */
+	public TButton(TTrack track) {
+		this();
+		setTrack(track);
+	}
+
+	/**
+	 * Constructs a TButton with an Icon.
+	 *
+	 * @param icon the icon
+	 */
+	public TButton(Icon icon) {
+		this();
 		setIcon(icon);
-  }
-  
-  /**
-   * Constructs a TButton with icons for selected and unselected states.
-   *
-   * @param off the unselected state icon
-   * @param on the selected state icon
-   */
-  public TButton(Icon off, Icon on) {
+	}
+
+	/**
+	 * Constructs a TButton with icons for selected and unselected states.
+	 *
+	 * @param off the unselected state icon
+	 * @param on  the selected state icon
+	 */
+	public TButton(Icon off, Icon on) {
 		this();
 		setIcons(off, on);
-  }
-  
-  /**
-   * Sets the icons for selected and unselected states.
-   *
-   * @param off the unselected state icon
-   * @param on the selected state icon
-   */
-  public void setIcons(Icon off, Icon on) {
+	}
+
+	/**
+	 * Sets the icons for selected and unselected states.
+	 *
+	 * @param off the unselected state icon
+	 * @param on  the selected state icon
+	 */
+	public void setIcons(Icon off, Icon on) {
 		super.setIcon(off);
 		setSelectedIcon(on);
-  }
-  
+	}
+
 	/**
 	 * Sets the track associated with this button.
 	 *
@@ -187,42 +192,28 @@ public class TButton extends JButton {
 			FontSizer.setFont(this);
 		}
 	}
-  
-  /**
-   * SwingJS popup width is available only after its menu has been rendered.
-   * Align its right edge with the button and keep it inside the visible viewport.
-   */
-  private void alignRenderedPopup(JPopupMenu menu) {
-    /**
-     * @j2sNative
-     * var node = menu.ui && menu.ui.domNode;
-     * var button = this.ui && this.ui.domNode;
-     * if (!node || !button) return;
-     * var rect = node.getBoundingClientRect();
-     * var anchor = button.getBoundingClientRect();
-     * var viewport = window.visualViewport;
-     * var left = (viewport ? viewport.offsetLeft : 0) + 4;
-     * var right = (viewport ? viewport.offsetLeft + viewport.width
-     *   : document.documentElement.clientWidth) - 4;
-     * var target = Math.max(left, Math.min(anchor.right, right) - rect.width);
-     * var current = parseFloat(node.style.left);
-     * if (isFinite(current)) node.style.left = (current + target - rect.left) + "px";
-     */
-    {}
-  }
 
-  /**
-   * Gets the track associated with this button.
-   * @return the track
-   */
-  public TTrack getTrack() {
-  	return TTrack.getTrack(trackID);
-  }
-  
 	/**
-	 * Gets the TMenuBar's trackMenu popup menu to display. If a track is associated with this button, the
-	 * track menu is returned, but subclasses can override this method to return any
-	 * popup menu.
+	 * Align a component's right edge with the reference component 
+	 * or within the visible viewport.
+	 */
+	private void alignComponentRight(JComponent c, JComponent ref) {
+		OSPRuntime.jsutil.alignComponentRight(c, ref, 0);
+	}
+
+	/**
+	 * Gets the track associated with this button.
+	 * 
+	 * @return the track
+	 */
+	public TTrack getTrack() {
+		return TTrack.getTrack(trackID);
+	}
+
+	/**
+	 * Gets the TMenuBar's trackMenu popup menu to display. If a track is associated
+	 * with this button, the track menu is returned, but subclasses can override
+	 * this method to return any popup menu.
 	 *
 	 * @return the popup menu, or null if none
 	 */
@@ -235,9 +226,9 @@ public class TButton extends JButton {
 		}
 		return null;
 	}
-	
+
 	protected void alwaysShowBorder(boolean showBorder) {
-		alwaysShowBorder = showBorder;		
+		alwaysShowBorder = showBorder;
 		setOpaque(alwaysShowBorder);
 		setBorderPainted(alwaysShowBorder);
 	}

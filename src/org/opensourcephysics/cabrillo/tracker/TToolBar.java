@@ -762,7 +762,7 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 		/**
 		 * Java only; transpiler may ignore
 		 * 
-		 * @j2sNative
+		 * @j2sIgnore
 		 * 
 		 */
 		{
