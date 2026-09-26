@@ -493,6 +493,7 @@
 	}
 
 	function closeDialog() {
+		dialogDrag = null;
 		if (state.capturing) {
 			state.capturing = false;
 			global.clearInterval(state.captureTimer);
@@ -508,10 +509,135 @@
 
 	var trackerApp;
 	
+	var dialogOffset = { x: 0, y: 0 };
+	var dialogDrag = null;
+
+	function positionCameraDialog(allowPartial) {
+		var dialog = element("tracker-camera-dialog");
+		if (!dialog || dialog.hidden) return;
+		var viewport = global.visualViewport;
+		var width = Math.min(global.innerWidth, viewport ? viewport.width : global.innerWidth);
+		var height = Math.min(global.innerHeight, viewport ? viewport.height : global.innerHeight);
+		var scale = viewport ? viewport.scale : 1;
+		var compact = width > height && height * scale <= 500;
+		dialog.classList.toggle("tracker-camera-landscape", compact);
+		dialog.style.left = (viewport ? viewport.offsetLeft : 0) + "px";
+		dialog.style.top = (viewport ? viewport.offsetTop : 0) + "px";
+		dialog.style.width = width + "px";
+		dialog.style.height = height + "px";
+		var content = element("tracker-camera-content");
+		var padding = global.getComputedStyle(dialog);
+		var availableHeight = Math.max(0, height - parseFloat(padding.paddingTop) - parseFloat(padding.paddingBottom));
+		// Explicit pixel limits also work when Safari changes its browser bars or keyboard.
+		content.style.maxHeight = availableHeight + "px";
+		content.style.maxWidth = Math.max(0, width - parseFloat(padding.paddingLeft) - parseFloat(padding.paddingRight)) + "px";
+		var contentStyle = global.getComputedStyle(content);
+		var title = element("tracker-camera-title");
+		var titleStyle = global.getComputedStyle(title);
+		element("tracker-camera-body").style.maxHeight = Math.max(0, availableHeight
+			- parseFloat(contentStyle.paddingTop) - parseFloat(contentStyle.paddingBottom)
+			- title.offsetHeight - parseFloat(titleStyle.marginBottom)) + "px";
+		element("tracker-camera-preview").style.maxHeight = Math.floor(height * (compact ? 0.5 : 0.62)) + "px";
+		content.style.transform = "translate(" + dialogOffset.x + "px," + dialogOffset.y + "px)";
+		var bounds = dialog.getBoundingClientRect();
+		var rect = content.getBoundingClientRect();
+		var left = bounds.left + parseFloat(padding.paddingLeft);
+		var right = bounds.right - parseFloat(padding.paddingRight);
+		var top = bounds.top + parseFloat(padding.paddingTop);
+		var bottom = bounds.bottom - parseFloat(padding.paddingBottom);
+		if (allowPartial === true) {
+			// A full-screen-sized dialog must still move under the finger.
+			// Keep enough title visible to drag it back; resize/open fit the whole dialog.
+			var gripWidth = Math.min(120, rect.width);
+			dialogOffset.x += Math.max(left + gripWidth - rect.right, Math.min(0, right - gripWidth - rect.left));
+			dialogOffset.y += Math.max(top - rect.top, Math.min(0, bottom - rect.top
+				- title.offsetHeight - parseFloat(contentStyle.paddingTop)));
+		} else {
+			dialogOffset.x += Math.max(left - rect.left, Math.min(0, right - rect.right));
+			dialogOffset.y += Math.max(top - rect.top, Math.min(0, bottom - rect.bottom));
+		}
+		content.style.transform = "translate(" + dialogOffset.x + "px," + dialogOffset.y + "px)";
+		updateCropVisual();
+	}
+
+	function enableDialogDragging() {
+		var handle = element("tracker-camera-title");
+		function consume(event) {
+			if (event.cancelable) event.preventDefault();
+			event.stopPropagation();
+		}
+		function start(event, point, kind, id) {
+			consume(event);
+			dialogDrag = { kind: kind, id: id, x: point.clientX, y: point.clientY,
+				left: dialogOffset.x, top: dialogOffset.y };
+		}
+		function move(event, point) {
+			consume(event);
+			dialogOffset.x = dialogDrag.left + point.clientX - dialogDrag.x;
+			dialogOffset.y = dialogDrag.top + point.clientY - dialogDrag.y;
+			positionCameraDialog(true);
+		}
+		// Use native Touch Events on iOS. Do not depend on Safari maintaining
+		// pointer capture while the touched title is itself being moved.
+		handle.addEventListener("touchstart", function (event) {
+			if (event.touches.length !== 1) { dialogDrag = null; return; }
+			var touch = event.touches[0];
+			start(event, touch, "touch", touch.identifier);
+		}, { passive: false });
+		handle.addEventListener("touchmove", function (event) {
+			if (!dialogDrag || dialogDrag.kind !== "touch") return;
+			for (var i = 0; i < event.touches.length; i++) {
+				if (event.touches[i].identifier === dialogDrag.id) {
+					move(event, event.touches[i]);
+					break;
+				}
+			}
+		}, { passive: false });
+		["touchend", "touchcancel"].forEach(function (name) {
+			handle.addEventListener(name, function (event) {
+				if (!dialogDrag || dialogDrag.kind !== "touch") return;
+				consume(event);
+				dialogDrag = null;
+			}, { passive: false });
+		});
+		handle.addEventListener("pointerdown", function (event) {
+			if (event.pointerType === "touch" && "ontouchstart" in global) return;
+			if (event.isPrimary === false || event.button > 0) return;
+			start(event, event, "pointer", event.pointerId);
+		});
+		// Listen outside the title so mouse/pen drags continue after leaving it.
+		global.addEventListener("pointermove", function (event) {
+			if (!dialogDrag || dialogDrag.kind !== "pointer" || dialogDrag.id !== event.pointerId) return;
+			move(event, event);
+		}, true);
+		["pointerup", "pointercancel"].forEach(function (name) {
+			global.addEventListener(name, function (event) {
+				if (!dialogDrag || dialogDrag.kind !== "pointer" || dialogDrag.id !== event.pointerId) return;
+				consume(event);
+				dialogDrag = null;
+			}, true);
+		});
+		handle.addEventListener("keydown", function (event) {
+			var directions = { ArrowLeft: [-10, 0], ArrowRight: [10, 0],
+				ArrowUp: [0, -10], ArrowDown: [0, 10] };
+			var delta = directions[event.key];
+			if (!delta) return;
+			event.preventDefault();
+			event.stopPropagation();
+			dialogOffset.x += delta[0];
+			dialogOffset.y += delta[1];
+			positionCameraDialog(true);
+		});
+	}
+
 	function showDialog(app) {
 		trackerApp = app;
 		var dialog = element("tracker-camera-dialog") || createDialog();
 		dialog.hidden = false;
+		element("tracker-camera-body").scrollTop = 0;
+		dialogOffset = { x: 0, y: 0 };
+		dialogDrag = null;
+		positionCameraDialog();
 		dialog.focus();
 		setStatus("");
 		setControls();
@@ -536,14 +662,16 @@
 		dialog.setAttribute("aria-label", "Capture video for Tracker");
 		dialog.setAttribute("aria-describedby", "tracker-screen-capture-help");
 		dialog.innerHTML =
-			'<div class="tracker-camera-content">' +
+			'<div id="tracker-camera-content" class="tracker-camera-content">' +
+			'<h2 id="tracker-camera-title" tabindex="0" title="Drag to move; use arrow keys when focused">Capture video <span>Drag to move</span></h2>' +
+			'<div id="tracker-camera-body" class="tracker-camera-body">' +
 			screenHelp +
-			'<div id="tracker-camera-preview-wrap">' +
+			'<div class="tracker-camera-workspace"><div id="tracker-camera-preview-wrap">' +
 			'<video id="tracker-camera-preview" playsinline muted></video>' +
 			'<div id="tracker-camera-selection-layer" aria-label="Video capture region">' +
 			'<div id="tracker-camera-selection" hidden></div></div>' +
 			'<div id="tracker-camera-countdown" aria-hidden="true" hidden></div></div>' +
-			'<canvas id="tracker-camera-canvas" hidden></canvas>' +
+			'<canvas id="tracker-camera-canvas" hidden></canvas><div class="tracker-camera-settings">' +
 			'<div class="tracker-camera-controls">' +
 			'<button id="tracker-camera-open" type="button">Start camera</button>' +
 			screenButton +
@@ -561,7 +689,7 @@
 			'<button id="tracker-camera-record" type="button">Record</button>' +
 			'<button id="tracker-camera-stop" type="button">Stop and import</button>' +
 			'<button id="tracker-camera-cancel" type="button">Cancel</button>' +
-			'</div><p id="tracker-camera-status" role="status" aria-live="polite"></p></div>';
+			'</div><p id="tracker-camera-status" role="status" aria-live="polite"></p></div></div></div></div>';
 		element("tracker-camera-host").appendChild(dialog);
 
 		element("tracker-camera-open").addEventListener("click", function () {
@@ -606,19 +734,26 @@
 		selectionLayer.addEventListener("pointermove", moveCrop);
 		selectionLayer.addEventListener("pointerup", finishCrop);
 		selectionLayer.addEventListener("pointercancel", cancelCrop);
-		element("tracker-camera-preview").addEventListener("resize", updateCropVisual);
+		element("tracker-camera-preview").addEventListener("resize", positionCameraDialog);
 		dialog.addEventListener("keydown", function (event) {
 			if (event.key === "Escape") closeDialog();
 		});
+		enableDialogDragging();
+		if (global.ResizeObserver) {
+			new global.ResizeObserver(positionCameraDialog).observe(element("tracker-camera-content"));
+		}
 		return dialog;
 	}
 
 	function addStyles() {
 		var style = document.createElement("style");
 		style.textContent =
-			"#tracker-camera-dialog{position:fixed;z-index:1000000;inset:0;display:flex;align-items:center;justify-content:center;padding:16px;background:#0009}" +
+			"#tracker-camera-dialog{position:fixed;z-index:1000000;inset:0;box-sizing:border-box;overflow:hidden;display:flex;align-items:center;justify-content:center;padding:16px;padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right));background:#0009}" +
 			"#tracker-camera-dialog[hidden]{display:none}" +
-			".tracker-camera-content{box-sizing:border-box;width:min(92vw,720px);padding:16px;border-radius:10px;background:#fff;box-shadow:0 12px 45px #0008;font:15px/1.35 sans-serif;color:#222}" +
+			".tracker-camera-content{box-sizing:border-box;width:720px;max-width:100%;max-height:100%;display:flex;flex-direction:column;overflow:hidden;padding:16px;border-radius:10px;background:#fff;box-shadow:0 12px 45px #0008;font:15px/1.35 sans-serif;color:#222}" +
+			"#tracker-camera-title{flex:none;display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 8px;padding:4px 0;min-height:24px;font:bold 16px/1.4 sans-serif;cursor:move;touch-action:none;user-select:none;-webkit-user-select:none}" +
+			"#tracker-camera-title span{font:normal 12px/1.4 sans-serif;color:#555}" +
+			".tracker-camera-body{min-height:0;overflow:auto;overscroll-behavior:contain}" +
 			".tracker-camera-help{margin:0 0 10px}" +
 			"#tracker-camera-preview-wrap{position:relative;overflow:hidden;border-radius:6px;background:#111}" +
 			"#tracker-camera-preview{display:block;width:100%;max-height:62vh;background:#111;border-radius:6px;object-fit:contain}" +
@@ -632,7 +767,19 @@
 			".tracker-camera-coordinates input{width:5em;font:inherit;padding:4px}" +
 			".tracker-camera-controls button,.tracker-camera-controls select{font:inherit;padding:7px 10px}" +
 			"#tracker-camera-status{min-height:1.4em;margin:10px 0 0}" +
-			".tracker-camera-error{color:#a40000;font-weight:600}";
+			".tracker-camera-error{color:#a40000;font-weight:600}" +
+			"#tracker-camera-dialog.tracker-camera-landscape{padding-top:8px;padding-bottom:8px}" +
+			"#tracker-camera-dialog.tracker-camera-landscape .tracker-camera-content{width:900px;padding:10px;font-size:13px}" +
+			"#tracker-camera-dialog.tracker-camera-landscape #tracker-camera-title{margin-bottom:4px;font-size:14px}" +
+			"#tracker-camera-dialog.tracker-camera-landscape .tracker-camera-help{font-size:12px;margin-bottom:6px}" +
+			"#tracker-camera-dialog.tracker-camera-landscape .tracker-camera-workspace{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;align-items:start}" +
+			"#tracker-camera-dialog.tracker-camera-landscape #tracker-camera-preview{max-height:55vh}" +
+			"#tracker-camera-dialog.tracker-camera-landscape .tracker-camera-controls,#tracker-camera-dialog.tracker-camera-landscape .tracker-camera-coordinates{gap:4px;margin-top:6px}" +
+			"#tracker-camera-dialog.tracker-camera-landscape .tracker-camera-settings>.tracker-camera-controls:first-child{margin-top:0}" +
+			"#tracker-camera-dialog.tracker-camera-landscape .tracker-camera-controls button,#tracker-camera-dialog.tracker-camera-landscape .tracker-camera-controls select{padding:4px 6px}" +
+			"#tracker-camera-dialog.tracker-camera-landscape .tracker-camera-coordinates input{width:4em;padding:2px}" +
+			"#tracker-camera-dialog.tracker-camera-landscape #tracker-camera-status{margin-top:4px}" +
+			"#tracker-camera-dialog.tracker-camera-landscape .tracker-camera-settings{min-width:0}";
 		document.head.appendChild(style);
 	}
 
@@ -641,7 +788,16 @@
 		addStyles();
 		var host = document.createElement("div");
 		host.id = "tracker-camera-host";
-		global.addEventListener("resize", updateCropVisual);
+		global.addEventListener("resize", positionCameraDialog);
+		global.addEventListener("orientationchange", function () {
+			dialogOffset = { x: 0, y: 0 };
+			dialogDrag = null;
+			global.requestAnimationFrame(positionCameraDialog);
+		});
+		if (global.visualViewport) {
+			global.visualViewport.addEventListener("resize", positionCameraDialog);
+			global.visualViewport.addEventListener("scroll", positionCameraDialog);
+		}
 		document.body.appendChild(host);
 	}
 	J2S.TrackerCameraImporter = {
