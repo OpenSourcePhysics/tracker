@@ -880,6 +880,25 @@ public class Tracker {
 			getFrame().loadVideo(firstPath, false, null, null, frameRate, data.length);
 		}
 	}
+
+	/**
+	 * Imports an MP4 recorded by the browser into the current tab.
+	 * Uses the video's encoded timing rather than the requested capture rate.
+	 *
+	 * @j2sAlias
+	 * @param id unique capture session id
+	 * @param data encoded MP4 bytes
+	 */
+	public void importMP4Capture(String id, byte[] data) throws IOException {
+		if (data == null || data.length == 0)
+			throw new IOException("No MP4 video was captured.");
+		File file = new File(System.getProperty("java.io.tmpdir"), "capture-" + id + ".mp4");
+		try (FileOutputStream out = new FileOutputStream(file)) {
+			out.write(data);
+		}
+		getFrame().loadVideo(file.getAbsolutePath(), false, null, null, 0, -1);
+	}
+
 	
 	
 	/**
