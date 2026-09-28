@@ -279,10 +279,11 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 	public static boolean haveExportDialog;
 	public static boolean haveThumbnailDialog;
 	public static boolean maximize;
-	private Dimension maximizedFrameSize;
 
 	// instance fields
 
+	private Dimension maximizedFrameSize;
+	private Rectangle prevFrameSize;
 	protected ClipboardListener clipboardListener;
 	protected LibraryBrowser libraryBrowser;
 	protected Launcher helpLauncher;
@@ -406,6 +407,10 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 		}
 		TWindowResizeHandler.install(this);
 	}
+	
+	protected void saveBounds() {
+		prevFrameSize = this.getBounds();
+	}
 
 	@SuppressWarnings("unused")
 	protected Rectangle getAdaptiveBounds(boolean isInit) {
@@ -437,7 +442,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 			 */
 			{}
 		}
-		Rectangle rect = new Rectangle(margin, ceil, w, h);
+		Rectangle rect = prevFrameSize==null? new Rectangle(margin, ceil, w, h): prevFrameSize;
 		maximizedFrameSize = maximize ? new Dimension(w, h) : null;
 		if (isInit) {
 			// JS only

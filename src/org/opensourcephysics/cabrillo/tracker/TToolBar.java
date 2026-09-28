@@ -815,11 +815,12 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 				TFrame.maximize = !TFrame.maximize;
 				refreshMaximizeButton();
 				if (TFrame.maximize) {
-					// save current bounds for restore??
+					// save current bounds for restore
+					panel().getTFrame().saveBounds();
 					panel().getTFrame().getAdaptiveBounds(false);
 				}
 				else
-					// do we want to restore previous here?
+					// this will restore saved bounds
 					panel().getTFrame().getAdaptiveBounds(false);
 			}
 		});
