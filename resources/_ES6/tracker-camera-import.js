@@ -111,13 +111,72 @@
 		};
 	}
 
+	// Source-video pixels, with a top-left origin and exclusive maximum bounds.
+	function getCropBounds(crop) {
+		var preview = element("tracker-camera-preview");
+		if (!state.stream || !preview || !preview.videoWidth || !preview.videoHeight) return null;
+		crop = crop || { x: 0, y: 0, width: 1, height: 1 };
+		function axis(start, size, limit) {
+			var minimumSize = Math.min(10, limit);
+			var min = Math.max(0, Math.min(limit - minimumSize, Math.round(start * limit)));
+			var max = Math.max(min + minimumSize, Math.min(limit, Math.round((start + size) * limit)));
+			return [min, max];
+		}
+		var x = axis(crop.x, crop.width, preview.videoWidth);
+		var y = axis(crop.y, crop.height, preview.videoHeight);
+		return { xmin: x[0], xmax: x[1], ymin: y[0], ymax: y[1] };
+	}
+
+	function cropFromBounds(bounds) {
+		var preview = element("tracker-camera-preview");
+		return {
+			x: bounds.xmin / preview.videoWidth, y: bounds.ymin / preview.videoHeight,
+			width: (bounds.xmax - bounds.xmin) / preview.videoWidth,
+			height: (bounds.ymax - bounds.ymin) / preview.videoHeight
+		};
+	}
+
+	function updateCropCoordinates() {
+		var bounds = getCropBounds(state.cropEnabled ? state.cropDraft || state.crop : null);
+		var preview = element("tracker-camera-preview");
+		["xmin", "xmax", "ymin", "ymax"].forEach(function (key) {
+			var input = element("tracker-camera-" + key);
+			if (!input) return;
+			input.value = bounds ? bounds[key] : "";
+			input.disabled = !bounds || !state.cropEnabled || state.capturing || state.countingDown;
+			if (!bounds) return;
+			var axis = key.charAt(0);
+			var limit = axis === "x" ? preview.videoWidth : preview.videoHeight;
+			var minimumSize = Math.min(10, limit);
+			input.min = key === axis + "min" ? 0 : bounds[axis + "min"] + minimumSize;
+			input.max = key === axis + "min" ? bounds[axis + "max"] - minimumSize : limit;
+		});
+	}
+
+	function editCropCoordinate(event) {
+		var input = event.currentTarget;
+		if (input.disabled) return;
+		var bounds = getCropBounds(state.crop);
+		if (!bounds) return;
+		var value = input.value === "" ? NaN : Number(input.value);
+		if (Number.isFinite(value)) {
+			var key = input.id.substring("tracker-camera-".length);
+			bounds[key] = Math.max(Number(input.min), Math.min(Number(input.max), Math.round(value)));
+			state.crop = cropFromBounds(bounds);
+		}
+		setControls();
+	}
+
 	function updateCropVisual() {
+		updateCropCoordinates();
 		var selection = element("tracker-camera-selection");
 		var layer = element("tracker-camera-selection-layer");
 		if (!selection || !layer) return;
 		layer.classList.toggle("tracker-camera-selection-active",
 			state.cropEnabled && !!state.stream && !state.capturing && !state.countingDown);
 		var crop = state.cropDraft || state.crop;
+		var bounds = getCropBounds(crop);
+		if (crop && bounds) crop = cropFromBounds(bounds);
 		var metrics = getVideoDisplayMetrics();
 		if (!state.cropEnabled || !crop || !metrics) {
 			selection.hidden = true;
@@ -160,7 +219,7 @@
 		state.cropStart = null;
 		state.cropDraft = null;
 		if (metrics && crop.width * metrics.width >= 8 && crop.height * metrics.height >= 8) {
-			state.crop = crop;
+			state.crop = cropFromBounds(getCropBounds(crop));
 			setStatus("Region selected. Record will capture only the outlined area.");
 		} else {
 			state.crop = null;
@@ -311,13 +370,11 @@
 		var reachedLimit = false;
 		try {
 			var canvas = element("tracker-camera-canvas");
-			var crop = state.cropEnabled && state.crop ? state.crop : { x: 0, y: 0, width: 1, height: 1 };
-			var sourceX = Math.round(crop.x * preview.videoWidth);
-			var sourceY = Math.round(crop.y * preview.videoHeight);
-			var sourceWidth = Math.max(1, Math.round(crop.width * preview.videoWidth));
-			var sourceHeight = Math.max(1, Math.round(crop.height * preview.videoHeight));
-			sourceWidth = Math.min(sourceWidth, preview.videoWidth - sourceX);
-			sourceHeight = Math.min(sourceHeight, preview.videoHeight - sourceY);
+			var bounds = getCropBounds(state.cropEnabled ? state.crop : null);
+			var sourceX = bounds.xmin;
+			var sourceY = bounds.ymin;
+			var sourceWidth = bounds.xmax - bounds.xmin;
+			var sourceHeight = bounds.ymax - bounds.ymin;
 			canvas.width = sourceWidth;
 			canvas.height = sourceHeight;
 			canvas.getContext("2d", { alpha: false }).drawImage(
@@ -436,6 +493,7 @@
 	}
 
 	function closeDialog() {
+		dialogDrag = null;
 		if (state.capturing) {
 			state.capturing = false;
 			global.clearInterval(state.captureTimer);
@@ -451,25 +509,149 @@
 
 	var trackerApp;
 	
+	var dialogOffset = { x: 0, y: 0 };
+	var dialogDrag = null;
+
+	function positionCameraDialog(allowPartial) {
+		var dialog = element("tracker-camera-dialog");
+		if (!dialog || dialog.hidden) return;
+		var viewport = global.visualViewport;
+		var width = Math.min(global.innerWidth, viewport ? viewport.width : global.innerWidth);
+		var height = Math.min(global.innerHeight, viewport ? viewport.height : global.innerHeight);
+		var scale = viewport ? viewport.scale : 1;
+		var compact = width > height && height * scale <= 500;
+		dialog.classList.toggle("tracker-camera-landscape", compact);
+		dialog.style.left = (viewport ? viewport.offsetLeft : 0) + "px";
+		dialog.style.top = (viewport ? viewport.offsetTop : 0) + "px";
+		dialog.style.width = width + "px";
+		dialog.style.height = height + "px";
+		var content = element("tracker-camera-content");
+		var padding = global.getComputedStyle(dialog);
+		var availableHeight = Math.max(0, height - parseFloat(padding.paddingTop) - parseFloat(padding.paddingBottom));
+		// Explicit pixel limits also work when Safari changes its browser bars or keyboard.
+		content.style.maxHeight = availableHeight + "px";
+		content.style.maxWidth = Math.max(0, width - parseFloat(padding.paddingLeft) - parseFloat(padding.paddingRight)) + "px";
+		var contentStyle = global.getComputedStyle(content);
+		var title = element("tracker-camera-title");
+		var titleStyle = global.getComputedStyle(title);
+		element("tracker-camera-body").style.maxHeight = Math.max(0, availableHeight
+			- parseFloat(contentStyle.paddingTop) - parseFloat(contentStyle.paddingBottom)
+			- title.offsetHeight - parseFloat(titleStyle.marginBottom)) + "px";
+		element("tracker-camera-preview").style.maxHeight = Math.floor(height * (compact ? 0.5 : 0.62)) + "px";
+		content.style.transform = "translate(" + dialogOffset.x + "px," + dialogOffset.y + "px)";
+		var bounds = dialog.getBoundingClientRect();
+		var rect = content.getBoundingClientRect();
+		var left = bounds.left + parseFloat(padding.paddingLeft);
+		var right = bounds.right - parseFloat(padding.paddingRight);
+		var top = bounds.top + parseFloat(padding.paddingTop);
+		var bottom = bounds.bottom - parseFloat(padding.paddingBottom);
+		if (allowPartial === true) {
+			// A full-screen-sized dialog must still move under the finger.
+			// Keep enough title visible to drag it back; resize/open fit the whole dialog.
+			var gripWidth = Math.min(120, rect.width);
+			dialogOffset.x += Math.max(left + gripWidth - rect.right, Math.min(0, right - gripWidth - rect.left));
+			dialogOffset.y += Math.max(top - rect.top, Math.min(0, bottom - rect.top
+				- title.offsetHeight - parseFloat(contentStyle.paddingTop)));
+		} else {
+			dialogOffset.x += Math.max(left - rect.left, Math.min(0, right - rect.right));
+			dialogOffset.y += Math.max(top - rect.top, Math.min(0, bottom - rect.bottom));
+		}
+		content.style.transform = "translate(" + dialogOffset.x + "px," + dialogOffset.y + "px)";
+		updateCropVisual();
+	}
+
+	function enableDialogDragging() {
+		var handle = element("tracker-camera-title");
+		function consume(event) {
+			if (event.cancelable) event.preventDefault();
+			event.stopPropagation();
+		}
+		function start(event, point, kind, id) {
+			consume(event);
+			dialogDrag = { kind: kind, id: id, x: point.clientX, y: point.clientY,
+				left: dialogOffset.x, top: dialogOffset.y };
+		}
+		function move(event, point) {
+			consume(event);
+			dialogOffset.x = dialogDrag.left + point.clientX - dialogDrag.x;
+			dialogOffset.y = dialogDrag.top + point.clientY - dialogDrag.y;
+			positionCameraDialog(true);
+		}
+		// Use native Touch Events on iOS. Do not depend on Safari maintaining
+		// pointer capture while the touched title is itself being moved.
+		handle.addEventListener("touchstart", function (event) {
+			if (event.touches.length !== 1) { dialogDrag = null; return; }
+			var touch = event.touches[0];
+			start(event, touch, "touch", touch.identifier);
+		}, { passive: false });
+		handle.addEventListener("touchmove", function (event) {
+			if (!dialogDrag || dialogDrag.kind !== "touch") return;
+			for (var i = 0; i < event.touches.length; i++) {
+				if (event.touches[i].identifier === dialogDrag.id) {
+					move(event, event.touches[i]);
+					break;
+				}
+			}
+		}, { passive: false });
+		["touchend", "touchcancel"].forEach(function (name) {
+			handle.addEventListener(name, function (event) {
+				if (!dialogDrag || dialogDrag.kind !== "touch") return;
+				consume(event);
+				dialogDrag = null;
+			}, { passive: false });
+		});
+		handle.addEventListener("pointerdown", function (event) {
+			if (event.pointerType === "touch" && "ontouchstart" in global) return;
+			if (event.isPrimary === false || event.button > 0) return;
+			start(event, event, "pointer", event.pointerId);
+		});
+		// Listen outside the title so mouse/pen drags continue after leaving it.
+		global.addEventListener("pointermove", function (event) {
+			if (!dialogDrag || dialogDrag.kind !== "pointer" || dialogDrag.id !== event.pointerId) return;
+			move(event, event);
+		}, true);
+		["pointerup", "pointercancel"].forEach(function (name) {
+			global.addEventListener(name, function (event) {
+				if (!dialogDrag || dialogDrag.kind !== "pointer" || dialogDrag.id !== event.pointerId) return;
+				consume(event);
+				dialogDrag = null;
+			}, true);
+		});
+		handle.addEventListener("keydown", function (event) {
+			var directions = { ArrowLeft: [-10, 0], ArrowRight: [10, 0],
+				ArrowUp: [0, -10], ArrowDown: [0, 10] };
+			var delta = directions[event.key];
+			if (!delta) return;
+			event.preventDefault();
+			event.stopPropagation();
+			dialogOffset.x += delta[0];
+			dialogOffset.y += delta[1];
+			positionCameraDialog(true);
+		});
+	}
+
 	function showDialog(app) {
 		trackerApp = app;
 		var dialog = element("tracker-camera-dialog") || createDialog();
 		dialog.hidden = false;
+		element("tracker-camera-body").scrollTop = 0;
+		dialogOffset = { x: 0, y: 0 };
+		dialogDrag = null;
+		positionCameraDialog();
 		dialog.focus();
-		setStatus(isIOSOrAndroid()
-			? "Start the camera to preview the video."
-			: "Start a camera, or select Capture screen and choose a window.");
+		setStatus("");
 		setControls();
 	}
 
 	function createDialog() {
 		var showScreenCapture = !isIOSOrAndroid();
-		var screenHelp = showScreenCapture
-			? '<p id="tracker-screen-capture-help" class="tracker-camera-help"><strong>Screen capture:</strong> ' +
-				'choose a window in the browser list, select a region, then press Record for a four-second countdown.</p>'
-			: "";
+		var screenHelp = '<p id="tracker-screen-capture-help" class="tracker-camera-help">' +
+			'For <strong>Camera capture</strong> start the camera and press record. ' +
+			(showScreenCapture ? 'For <strong>Screen capture</strong> press that button, select a browser window from the list, ' +
+				'and press record for a four-second count-down. ' : '') +
+			'You can choose frames/sec or select a region before recording a video.</p>';
 		var screenButton = showScreenCapture
-			? '<button id="tracker-screen-open" type="button">Capture screen</button>'
+			? '<button id="tracker-screen-open" type="button">Screen capture</button>'
 			: "";
 		var dialog = document.createElement("div");
 		dialog.id = "tracker-camera-dialog";
@@ -478,26 +660,36 @@
 		dialog.setAttribute("role", "dialog");
 		dialog.setAttribute("aria-modal", "true");
 		dialog.setAttribute("aria-label", "Capture video for Tracker");
-		if (showScreenCapture) dialog.setAttribute("aria-describedby", "tracker-screen-capture-help");
+		dialog.setAttribute("aria-describedby", "tracker-screen-capture-help");
 		dialog.innerHTML =
-			'<div class="tracker-camera-content">' +
+			'<div id="tracker-camera-content" class="tracker-camera-content">' +
+			'<h2 id="tracker-camera-title" tabindex="0" title="Drag to move; use arrow keys when focused">Capture video <span>Drag to move</span></h2>' +
+			'<div id="tracker-camera-body" class="tracker-camera-body">' +
 			screenHelp +
-			'<div id="tracker-camera-preview-wrap">' +
+			'<div class="tracker-camera-workspace"><div id="tracker-camera-preview-wrap">' +
 			'<video id="tracker-camera-preview" playsinline muted></video>' +
 			'<div id="tracker-camera-selection-layer" aria-label="Video capture region">' +
 			'<div id="tracker-camera-selection" hidden></div></div>' +
 			'<div id="tracker-camera-countdown" aria-hidden="true" hidden></div></div>' +
-			'<canvas id="tracker-camera-canvas" hidden></canvas>' +
+			'<canvas id="tracker-camera-canvas" hidden></canvas><div class="tracker-camera-settings">' +
 			'<div class="tracker-camera-controls">' +
 			'<button id="tracker-camera-open" type="button">Start camera</button>' +
 			screenButton +
 			'<label>Frames/sec <select id="tracker-camera-fps"><option>5</option><option selected>10</option><option>15</option><option>30</option></select></label>' +
-			'<label><input id="tracker-camera-crop-toggle" type="checkbox" disabled> Capture selected region only</label>' +
+			'</div><div class="tracker-camera-controls">' +
 			'<button id="tracker-camera-crop-clear" type="button" disabled>Clear region</button>' +
+			'<label><input id="tracker-camera-crop-toggle" type="checkbox" disabled> Capture selected region only</label>' +
+			'</div><div class="tracker-camera-coordinates" aria-label="Capture coordinates">' +
+			'<span>Video pixels (origin: top left)</span>' +
+			'<label>X min <input id="tracker-camera-xmin" type="number" step="1" disabled></label>' +
+			'<label>X max <input id="tracker-camera-xmax" type="number" step="1" disabled></label>' +
+			'<label>Y min <input id="tracker-camera-ymin" type="number" step="1" disabled></label>' +
+			'<label>Y max <input id="tracker-camera-ymax" type="number" step="1" disabled></label>' +
+			'</div><div class="tracker-camera-controls">' +
 			'<button id="tracker-camera-record" type="button">Record</button>' +
 			'<button id="tracker-camera-stop" type="button">Stop and import</button>' +
 			'<button id="tracker-camera-cancel" type="button">Cancel</button>' +
-			'</div><p id="tracker-camera-status" role="status" aria-live="polite"></p></div>';
+			'</div><p id="tracker-camera-status" role="status" aria-live="polite"></p></div></div></div></div>';
 		element("tracker-camera-host").appendChild(dialog);
 
 		element("tracker-camera-open").addEventListener("click", function () {
@@ -530,24 +722,38 @@
 			setStatus("Drag over the video preview to select a new capture region.");
 			setControls();
 		});
+		["xmin", "xmax", "ymin", "ymax"].forEach(function (key) {
+			var input = element("tracker-camera-" + key);
+			input.addEventListener("change", editCropCoordinate);
+			input.addEventListener("keydown", function (event) {
+				if (event.key === "Enter") editCropCoordinate(event);
+			});
+		});
 		var selectionLayer = element("tracker-camera-selection-layer");
 		selectionLayer.addEventListener("pointerdown", beginCrop);
 		selectionLayer.addEventListener("pointermove", moveCrop);
 		selectionLayer.addEventListener("pointerup", finishCrop);
 		selectionLayer.addEventListener("pointercancel", cancelCrop);
-		element("tracker-camera-preview").addEventListener("resize", updateCropVisual);
+		element("tracker-camera-preview").addEventListener("resize", positionCameraDialog);
 		dialog.addEventListener("keydown", function (event) {
 			if (event.key === "Escape") closeDialog();
 		});
+		enableDialogDragging();
+		if (global.ResizeObserver) {
+			new global.ResizeObserver(positionCameraDialog).observe(element("tracker-camera-content"));
+		}
 		return dialog;
 	}
 
 	function addStyles() {
 		var style = document.createElement("style");
 		style.textContent =
-			"#tracker-camera-dialog{position:fixed;z-index:1000000;inset:0;display:flex;align-items:center;justify-content:center;padding:16px;background:#0009}" +
+			"#tracker-camera-dialog{position:fixed;z-index:1000000;inset:0;box-sizing:border-box;overflow:hidden;display:flex;align-items:center;justify-content:center;padding:16px;padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right));background:#0009}" +
 			"#tracker-camera-dialog[hidden]{display:none}" +
-			".tracker-camera-content{box-sizing:border-box;width:min(92vw,720px);padding:16px;border-radius:10px;background:#fff;box-shadow:0 12px 45px #0008;font:15px/1.35 sans-serif;color:#222}" +
+			".tracker-camera-content{box-sizing:border-box;width:720px;max-width:100%;max-height:100%;display:flex;flex-direction:column;overflow:hidden;padding:16px;border-radius:10px;background:#fff;box-shadow:0 12px 45px #0008;font:15px/1.35 sans-serif;color:#222}" +
+			"#tracker-camera-title{flex:none;display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 8px;padding:4px 0;min-height:24px;font:bold 16px/1.4 sans-serif;cursor:move;touch-action:none;user-select:none;-webkit-user-select:none}" +
+			"#tracker-camera-title span{font:normal 12px/1.4 sans-serif;color:#555}" +
+			".tracker-camera-body{min-height:0;overflow:auto;overscroll-behavior:contain}" +
 			".tracker-camera-help{margin:0 0 10px}" +
 			"#tracker-camera-preview-wrap{position:relative;overflow:hidden;border-radius:6px;background:#111}" +
 			"#tracker-camera-preview{display:block;width:100%;max-height:62vh;background:#111;border-radius:6px;object-fit:contain}" +
@@ -556,9 +762,24 @@
 			"#tracker-camera-selection{position:absolute;box-sizing:border-box;border:2px solid #ffe600;background:#ffe60022;box-shadow:0 0 0 9999px #0007}" +
 			"#tracker-camera-countdown{position:absolute;z-index:2;left:50%;top:50%;transform:translate(-50%,-50%);min-width:1.4em;text-align:center;color:#fff;font:bold clamp(64px,18vw,150px)/1 sans-serif;text-shadow:0 3px 12px #000;background:#0008;border-radius:14px;padding:.08em .18em}" +
 			".tracker-camera-controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:12px}" +
+			".tracker-camera-coordinates{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:12px}" +
+			".tracker-camera-coordinates span{flex-basis:100%}" +
+			".tracker-camera-coordinates input{width:5em;font:inherit;padding:4px}" +
 			".tracker-camera-controls button,.tracker-camera-controls select{font:inherit;padding:7px 10px}" +
 			"#tracker-camera-status{min-height:1.4em;margin:10px 0 0}" +
-			".tracker-camera-error{color:#a40000;font-weight:600}";
+			".tracker-camera-error{color:#a40000;font-weight:600}" +
+			"#tracker-camera-dialog.tracker-camera-landscape{padding-top:8px;padding-bottom:8px}" +
+			"#tracker-camera-dialog.tracker-camera-landscape .tracker-camera-content{width:900px;padding:10px;font-size:13px}" +
+			"#tracker-camera-dialog.tracker-camera-landscape #tracker-camera-title{margin-bottom:4px;font-size:14px}" +
+			"#tracker-camera-dialog.tracker-camera-landscape .tracker-camera-help{font-size:12px;margin-bottom:6px}" +
+			"#tracker-camera-dialog.tracker-camera-landscape .tracker-camera-workspace{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;align-items:start}" +
+			"#tracker-camera-dialog.tracker-camera-landscape #tracker-camera-preview{max-height:55vh}" +
+			"#tracker-camera-dialog.tracker-camera-landscape .tracker-camera-controls,#tracker-camera-dialog.tracker-camera-landscape .tracker-camera-coordinates{gap:4px;margin-top:6px}" +
+			"#tracker-camera-dialog.tracker-camera-landscape .tracker-camera-settings>.tracker-camera-controls:first-child{margin-top:0}" +
+			"#tracker-camera-dialog.tracker-camera-landscape .tracker-camera-controls button,#tracker-camera-dialog.tracker-camera-landscape .tracker-camera-controls select{padding:4px 6px}" +
+			"#tracker-camera-dialog.tracker-camera-landscape .tracker-camera-coordinates input{width:4em;padding:2px}" +
+			"#tracker-camera-dialog.tracker-camera-landscape #tracker-camera-status{margin-top:4px}" +
+			"#tracker-camera-dialog.tracker-camera-landscape .tracker-camera-settings{min-width:0}";
 		document.head.appendChild(style);
 	}
 
@@ -567,7 +788,16 @@
 		addStyles();
 		var host = document.createElement("div");
 		host.id = "tracker-camera-host";
-		global.addEventListener("resize", updateCropVisual);
+		global.addEventListener("resize", positionCameraDialog);
+		global.addEventListener("orientationchange", function () {
+			dialogOffset = { x: 0, y: 0 };
+			dialogDrag = null;
+			global.requestAnimationFrame(positionCameraDialog);
+		});
+		if (global.visualViewport) {
+			global.visualViewport.addEventListener("resize", positionCameraDialog);
+			global.visualViewport.addEventListener("scroll", positionCameraDialog);
+		}
 		document.body.appendChild(host);
 	}
 	J2S.TrackerCameraImporter = {

@@ -135,7 +135,7 @@ public class TrackerStarter {
 		// identify codeBaseDir
 		newline = System.getProperty("line.separator", "\n"); //$NON-NLS-1$ //$NON-NLS-2$
 		/**
-		 * @j2sNative 
+		 * @j2sIgnore 
 		 */
 		{
 		try {			
@@ -378,7 +378,7 @@ public class TrackerStarter {
 		/**
 		 * Java only; transpiler may ignore
 		 * 
-		 * @j2sNative
+		 * @j2sIgnore
 		 * 
 		 */
 		{
@@ -964,81 +964,79 @@ public class TrackerStarter {
 	 * @return the path, or null if none found
 	 */
 	private static String getTrackerJarPath() throws Exception {
-		if (trackerJarPath!=null) {
+		if (trackerJarPath != null) {
 			return trackerJarPath;
 		}
 		String jarPath = null;
 		/**
-		 * @j2sNative
+		 * @j2sIgnore
 		 */
 		{
-		String jarHome = OSPRuntime.isMac() ? codeBaseDir.getAbsolutePath()
-				: trackerHome;
-		if (OSPRuntime.isMac()) {
-			logMessage("Mac OSX: looking for tracker jars in " + jarHome); //$NON-NLS-1$
-		} else if (OSPRuntime.isWindows()) {
-			logMessage("Windows: looking for tracker jars in " + jarHome); //$NON-NLS-1$
-		} else {
-			logMessage("Linux: looking for tracker jars in " + jarHome); //$NON-NLS-1$
-		}
-		try {
-			File dir = new File(jarHome);
-			String[] fileNames = dir.list(trackerJarFilter);
-			if (fileNames != null && fileNames.length > 0) {
-				String s = "tracker jars found: "; //$NON-NLS-1$
-				for (String next : fileNames) {
-					s += next + ", "; //$NON-NLS-1$
-				}
-				logMessage(s.substring(0, s.length() - 2));
-				String defaultJar = null;
-				String numberedJar = null;
-				OSPRuntime.Version newestVersion = null;
-				for (int i = 0; i < fileNames.length; i++) {
-					if ("tracker.jar".equals(fileNames[i].toLowerCase())) {//$NON-NLS-1$
-						defaultJar = fileNames[i];
+			String jarHome = OSPRuntime.isMac() ? codeBaseDir.getAbsolutePath() : trackerHome;
+			if (OSPRuntime.isMac()) {
+				logMessage("Mac OSX: looking for tracker jars in " + jarHome); //$NON-NLS-1$
+			} else if (OSPRuntime.isWindows()) {
+				logMessage("Windows: looking for tracker jars in " + jarHome); //$NON-NLS-1$
+			} else {
+				logMessage("Linux: looking for tracker jars in " + jarHome); //$NON-NLS-1$
+			}
+			try {
+				File dir = new File(jarHome);
+				String[] fileNames = dir.list(trackerJarFilter);
+				if (fileNames != null && fileNames.length > 0) {
+					String s = "tracker jars found: "; //$NON-NLS-1$
+					for (String next : fileNames) {
+						s += next + ", "; //$NON-NLS-1$
 					}
-					try {
-						String vers = fileNames[i].substring(8);
-						vers = vers.substring(0, vers.length() - 4);
-						String versionStr = vers;
-		    		int n = vers.toLowerCase().indexOf(snapshot);
-		    		if (n>-1) {
-		    			vers = vers.substring(0, n);
-		    		}
-
-		    		OSPRuntime.Version v = new OSPRuntime.Version(vers);
-						if (v.isValid()) {
-							if (versionStr.equals(preferredVersionString)) {
-								File file = new File(jarHome, fileNames[i]);
-								logMessage("using tracker jar: " + file.getAbsolutePath()); //$NON-NLS-1$
-								return file.getAbsolutePath();
-							}
-							if (newestVersion==null || newestVersion.compareTo(v)<0) {
-								newestVersion = v;
-								numberedJar = fileNames[i];
-							}
+					logMessage(s.substring(0, s.length() - 2));
+					String defaultJar = null;
+					String numberedJar = null;
+					OSPRuntime.Version newestVersion = null;
+					for (int i = 0; i < fileNames.length; i++) {
+						if ("tracker.jar".equals(fileNames[i].toLowerCase())) {//$NON-NLS-1$
+							defaultJar = fileNames[i];
 						}
-					} catch (Exception ex) {
+						try {
+							String vers = fileNames[i].substring(8);
+							vers = vers.substring(0, vers.length() - 4);
+							String versionStr = vers;
+							int n = vers.toLowerCase().indexOf(snapshot);
+							if (n > -1) {
+								vers = vers.substring(0, n);
+							}
+
+							OSPRuntime.Version v = new OSPRuntime.Version(vers);
+							if (v.isValid()) {
+								if (versionStr.equals(preferredVersionString)) {
+									File file = new File(jarHome, fileNames[i]);
+									logMessage("using tracker jar: " + file.getAbsolutePath()); //$NON-NLS-1$
+									return file.getAbsolutePath();
+								}
+								if (newestVersion == null || newestVersion.compareTo(v) < 0) {
+									newestVersion = v;
+									numberedJar = fileNames[i];
+								}
+							}
+						} catch (Exception ex) {
+						}
 					}
+					jarPath = defaultJar != null ? defaultJar : numberedJar;
 				}
-				jarPath = defaultJar != null ? defaultJar : numberedJar;
+			} catch (Exception ex) { // if file access fails, try unnumbered tracker.jar
+				exceptions += ex.getClass().getSimpleName() + ": " + ex.getMessage() + newline; //$NON-NLS-1$
+				logMessage(ex.toString());
+				jarPath = "tracker.jar"; //$NON-NLS-1$
 			}
-		} catch (Exception ex) { // if file access fails, try unnumbered tracker.jar
-			exceptions += ex.getClass().getSimpleName()
-					+ ": " + ex.getMessage() + newline; //$NON-NLS-1$
-			logMessage(ex.toString());
-			jarPath = "tracker.jar"; //$NON-NLS-1$
-		}
-		if (jarPath != null) {
-			// look in jarHome
-			File file = new File(jarHome, jarPath);
-			if (file.exists()) {
-				String path = XML.forwardSlash(file.getAbsolutePath());
-				logMessage("using tracker jar: " + path); //$NON-NLS-1$
-				return path;
+			if (jarPath != null) {
+				// look in jarHome
+				File file = new File(jarHome, jarPath);
+				if (file.exists()) {
+					String path = XML.forwardSlash(file.getAbsolutePath());
+					logMessage("using tracker jar: " + path); //$NON-NLS-1$
+					return path;
+				}
 			}
-		}
-		throw new NullPointerException("No Tracker jar files found in " + jarHome); //$NON-NLS-1$
+			throw new NullPointerException("No Tracker jar files found in " + jarHome); //$NON-NLS-1$
 		}
 	}
 	

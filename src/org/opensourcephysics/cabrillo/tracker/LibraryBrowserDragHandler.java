@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
+import java.awt.Event;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Window;
@@ -34,6 +35,9 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.text.JTextComponent;
 import javax.swing.tree.TreePath;
+
+import org.opensourcephysics.display.OSPRuntime;
+import org.opensourcephysics.js.AIPatch;
 import org.opensourcephysics.tools.LibraryBrowser;
 import org.opensourcephysics.tools.Resource;
 import org.opensourcephysics.tools.ResourceLoader;
@@ -66,7 +70,7 @@ public class LibraryBrowserDragHandler {
 			LibraryBrowser browser = frame.getLibraryBrowser();
 			if (browser != null) {
 				browser.setVisible(true);
-				ensureWelcomeScreen(browser);
+				ensureWelcomeScreen(browser, "open");
 			}
 		} catch (Throwable t) {
 		}
@@ -77,7 +81,7 @@ public class LibraryBrowserDragHandler {
 	 * 
 	 * @param browser the LibraryBrowser instance
 	 */
-	public static void install(final LibraryBrowser browser) {
+	public static void install(LibraryBrowser browser) {
 		if (browser == null) return;
 
 		// Attach to browser and all existing components in the dialog
@@ -90,14 +94,14 @@ public class LibraryBrowserDragHandler {
 		attachTabListeners(browser, browser);
 
 		// Ensure welcome screen is rendered and formatted immediately
-		ensureWelcomeScreen(browser);
+		ensureWelcomeScreen(browser, "install");
 
 		// Listen for added components (e.g. tabs, trees, welcome panes loaded asynchronously)
 		browser.addContainerListener(new ContainerAdapter() {
 			@Override
 			public void componentAdded(ContainerEvent e) {
 				attachToHierarchy(e.getChild(), browser);
-				ensureWelcomeScreen(browser);
+				ensureWelcomeScreen(browser, e);
 			}
 		});
 
@@ -105,11 +109,11 @@ public class LibraryBrowserDragHandler {
 		browser.addComponentListener(new ComponentAdapter() {
 			@Override
 			public void componentShown(ComponentEvent e) {
-				ensureWelcomeScreen(browser);
+				ensureWelcomeScreen(browser, e);
 			}
 			@Override
 			public void componentResized(ComponentEvent e) {
-				ensureWelcomeScreen(browser);
+				ensureWelcomeScreen(browser, e);
 			}
 		});
 
@@ -117,10 +121,12 @@ public class LibraryBrowserDragHandler {
 		browser.addHierarchyListener(new HierarchyListener() {
 			@Override
 			public void hierarchyChanged(HierarchyEvent e) {
+				int flags = (int) e.getChangeFlags();
+				
 				attachToHierarchy(browser, browser);
 				attachToWindow(browser);
 				attachTabListeners(browser, browser);
-				ensureWelcomeScreen(browser);
+				ensureWelcomeScreen(browser, e);
 			}
 		});
 
@@ -131,58 +137,68 @@ public class LibraryBrowserDragHandler {
 				attachToHierarchy(browser, browser);
 				attachToWindow(browser);
 				attachTabListeners(browser, browser);
-				ensureWelcomeScreen(browser);
+				ensureWelcomeScreen(browser, evt);
 			}
 		});
 	}
 
 	/**
-	 * Finds any JEditorPane in the browser (e.g. htmlAboutPane) and ensures it renders
-	 * the welcome message properly in both desktop Java and SwingJS on iPad.
+	 * Finds any JEditorPane in the browser (e.g. htmlAboutPane) and ensures it
+	 * renders the welcome message properly in both desktop Java and SwingJS on
+	 * iPad.
 	 * 
 	 * @param browser the LibraryBrowser instance
 	 */
-	public static void ensureWelcomeScreen(final LibraryBrowser browser) {
-		if (browser == null) return;
+	public static void ensureWelcomeScreen(final LibraryBrowser browser, Object e) {
+		if (true) {
+			System.err.println("LBDH skipping ensureWelcome " + e);
+			return;
+		}
+		if (browser == null || browser.getTabCount() > 0) {
+			return;
+		}
+		if (e instanceof PropertyChangeEvent) {
+			System.err.println("LBDH skipping property change " + e);
+			return;
+		}
 
-		// If tabs are currently open, do not overwrite tabs with welcome screen
-		try {
-			if (browser.getTabCount() > 0) {
-				return;
-			}
-		} catch (Throwable t) {
+		if (e instanceof HierarchyEvent) {
+			System.err.println("LBDH skipping heirarchy event " + e);
+			return;
+		}
+		
+		if (e instanceof String) {
+			
 		}
 
 		// Ensure htmlScroller is placed in Center if tabCount == 0
-		try {
-			java.lang.reflect.Method m = LibraryBrowser.class.getDeclaredMethod("refreshGUI"); //$NON-NLS-1$
-			m.setAccessible(true);
-			m.invoke(browser);
-		} catch (Throwable t) {
-		}
-		/**
-		 * @j2sNative
-		 * if (browser && browser.refreshGUI$) browser.refreshGUI$();
-		 */
-		{
-		}
+		browser.refreshGUI();
+		
+		
+
+//		// BH NOT ACCEPTABLE-FIXED
+//		try {
+//			java.lang.reflect.Method m = LibraryBrowser.class.getDeclaredMethod("refreshGUI"); //$NON-NLS-1$
+//			m.setAccessible(true);
+//			m.invoke(browser);
+//		} catch (Throwable t) {
+//		}
+//		if (OSPRuntime.isJS)
+//			browser.refreshGUI();
+//		/**
+//		 * @-j2sNative
+//		 * if (browser && browser.refreshGUI$) browser.refreshGUI$();
+//		 */
+//		{
+//		}
 
 		final JEditorPane ep = findEditorPane(browser);
 		if (ep != null) {
 			refreshWelcomePane(ep);
 		}
-
-		// In SwingJS, also ensure browser outer DOM node is styled and visible
-		/**
-		 * @j2sNative
-		 * try {
-		 *   if (browser.ui && browser.ui.domNode) {
-		 *     browser.ui.domNode.style.display = "block";
-		 *     browser.ui.domNode.style.backgroundColor = "#ffffff";
-		 *   }
-		 * } catch (ex) {}
-		 */
-		{
+		if (OSPRuntime.isJS) {
+			// In SwingJS, also ensure browser outer DOM node is styled and visible ??
+			AIPatch.hackUIDOMNodeStyle((JComponent) browser, "display", "block", "backgroundColor", "#ffffff");
 		}
 
 		// Ensure drag adapters and window listeners are attached
@@ -199,30 +215,34 @@ public class LibraryBrowserDragHandler {
 	public static JEditorPane findEditorPane(final LibraryBrowser browser) {
 		if (browser == null) return null;
 
-		// 1. Check direct field in SwingJS transpiled code
-		final JEditorPane[] holder = new JEditorPane[1];
-		/**
-		 * @j2sNative
-		 * if (browser && browser.htmlAboutPane) {
-		 *   holder[0] = browser.htmlAboutPane;
-		 * }
-		 */
-		{
-		}
-		if (holder[0] != null) {
-			return holder[0];
-		}
-
-		// 2. Check direct field via reflection in desktop Java
-		try {
-			java.lang.reflect.Field f = LibraryBrowser.class.getDeclaredField("htmlAboutPane"); //$NON-NLS-1$
-			f.setAccessible(true);
-			Object obj = f.get(browser);
-			if (obj instanceof JEditorPane) {
-				return (JEditorPane) obj;
-			}
-		} catch (Throwable t) {
-		}
+		if (browser.htmlAboutPane != null)
+			return browser.htmlAboutPane;
+		
+//		// BH NOT ACCEPTABLE-FIXED
+//		// 1. Check direct field in SwingJS transpiled code
+//		final JEditorPane[] holder = new JEditorPane[1];
+//		/**
+//		 * @-j2sNative
+//		 * if (browser && browser.htmlAboutPane) {
+//		 *   holder[0] = browser.htmlAboutPane;
+//		 * }
+//		 */
+//		{
+//		}
+//		if (holder[0] != null) {
+//			return holder[0];
+//		}
+//
+//		// 2. Check direct field via reflection in desktop Java
+//		try {
+//			java.lang.reflect.Field f = LibraryBrowser.class.getDeclaredField("htmlAboutPane"); //$NON-NLS-1$
+//			f.setAccessible(true);
+//			Object obj = f.get(browser);
+//			if (obj instanceof JEditorPane) {
+//				return (JEditorPane) obj;
+//			}
+//		} catch (Throwable t) {
+//		}
 
 		// 3. Search component hierarchy
 		return findEditorPaneInHierarchy(browser);
@@ -248,7 +268,7 @@ public class LibraryBrowserDragHandler {
 	 * 
 	 * @param ep the JEditorPane instance
 	 */
-	public static void refreshWelcomePane(final JEditorPane ep) {
+	public static void refreshWelcomePane(JEditorPane ep) {
 		if (ep == null) return;
 
 		final String welcomeHtml = getWelcomeHTML();
@@ -278,76 +298,7 @@ public class LibraryBrowserDragHandler {
 			} catch (Throwable t) {
 			}
 		});
-
-		// In SwingJS on iPad / Safari: directly inject and style the DOM elements
-		/**
-		 * @j2sNative
-		 * try {
-		 *   var thePane = (typeof ep != "undefined" && ep != null ? ep : (this.$finals$ && this.$finals$.ep ? this.$finals$.ep : null));
-		 *   if (!thePane) return;
-		 *   var rawHTML = welcomeHtml;
-		 *   
-		 *   var injectDOM = function() {
-		 *     try {
-		 *       var ui = (thePane.ui || (thePane.getUI ? thePane.getUI() : null));
-		 *       if (ui) {
-		 *         ui.mytext = null;
-		 *         ui.rawHTML = null;
-		 *         ui.currentHTML = null;
-		 *         if (ui.setText$S) {
-		 *           try { ui.setText$S(rawHTML); } catch(e) {}
-		 *         }
-		 *         if (ui.domNode) {
-		 *           ui.domNode.style.width = "100%";
-		 *           ui.domNode.style.height = "100%";
-		 *           ui.domNode.style.minHeight = "350px";
-		 *           ui.domNode.style.overflow = "auto";
-		 *           ui.domNode.style.display = "block";
-		 *           ui.domNode.style.backgroundColor = "#ffffff";
-		 *           ui.domNode.style.webkitOverflowScrolling = "touch";
-		 *           ui.domNode.style.boxSizing = "border-box";
-		 *           
-		 *           var target = ui.bodyNode || ui.domNode;
-		 *           target.style.width = "100%";
-		 *           target.style.backgroundColor = "#ffffff";
-		 *           target.style.color = "#000000";
-		 *           target.style.display = "block";
-		 *           target.style.boxSizing = "border-box";
-		 *           target.style.padding = "20px";
-		 *           target.style.fontFamily = "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
-		 *           
-		 *           if (!target.innerHTML || target.innerHTML.indexOf("Open Source Physics") < 0) {
-		 *             target.innerHTML = rawHTML;
-		 *           }
-		 *         }
-		 *         if (ui.domNode && ui.domNode.parentElement) {
-		 *           ui.domNode.parentElement.style.width = "100%";
-		 *           ui.domNode.parentElement.style.height = "100%";
-		 *           ui.domNode.parentElement.style.overflow = "auto";
-		 *           ui.domNode.parentElement.style.backgroundColor = "#ffffff";
-		 *         }
-		 *         if (ui.domNode && ui.domNode.parentElement && ui.domNode.parentElement.parentElement) {
-		 *           ui.domNode.parentElement.parentElement.style.width = "100%";
-		 *           ui.domNode.parentElement.parentElement.style.height = "100%";
-		 *           ui.domNode.parentElement.parentElement.style.backgroundColor = "#ffffff";
-		 *         }
-		 *       }
-		 *     } catch (e) {}
-		 *   };
-		 *   
-		 *   injectDOM();
-		 *   if (window.requestAnimationFrame) {
-		 *     window.requestAnimationFrame(injectDOM);
-		 *   }
-		 *   setTimeout(injectDOM, 30);
-		 *   setTimeout(injectDOM, 100);
-		 *   setTimeout(injectDOM, 250);
-		 *   setTimeout(injectDOM, 500);
-		 *   setTimeout(injectDOM, 1000);
-		 * } catch (ex) {}
-		 */
-		{
-		}
+		AIPatch.hackWelcomePane(ep, welcomeHtml);
 	}
 
 	private static String getWelcomeHTML() {
@@ -395,19 +346,24 @@ public class LibraryBrowserDragHandler {
 		if (w == null && browser.getTopLevelAncestor() instanceof Window) {
 			w = (Window) browser.getTopLevelAncestor();
 		}
-		final Window[] wHolder = new Window[] { w };
-		/**
-		 * @j2sNative
-		 * if (!wHolder[0] && org.opensourcephysics.tools.LibraryBrowser.frame) {
-		 *   wHolder[0] = org.opensourcephysics.tools.LibraryBrowser.frame;
-		 * }
-		 */
-		{
+		if (w == null && LibraryBrowser.frame != null) {
+			// risky -- not instance-specific
+			w = LibraryBrowser.frame;
 		}
-		w = wHolder[0];
-
+//		// BH NOT ACCEPTABLE-FIXED
+//		final Window[] wHolder = new Window[] { w };
+//		/**
+//		 * @-j2sNative
+//		 * if (!wHolder[0] && org.opensourcephysics.tools.LibraryBrowser.frame) {
+//		 *   wHolder[0] = org.opensourcephysics.tools.LibraryBrowser.frame;
+//		 * }
+//		 */
+//		{
+//		}
+//		w = wHolder[0];
+//
 		if (w != null) {
-			TWindowResizeHandler.install(w);
+			AIPatch.installResizeHandler(w);
 			attachDragAdapter(w, browser);
 			if (w instanceof RootPaneContainer) {
 				JRootPane rp = ((RootPaneContainer) w).getRootPane();
@@ -430,22 +386,22 @@ public class LibraryBrowserDragHandler {
 			w.addComponentListener(new ComponentAdapter() {
 				@Override
 				public void componentShown(ComponentEvent e) {
-					ensureWelcomeScreen(browser);
+					ensureWelcomeScreen(browser, e);
 				}
 				@Override
 				public void componentResized(ComponentEvent e) {
-					ensureWelcomeScreen(browser);
+					ensureWelcomeScreen(browser, e);
 				}
 			});
 
 			w.addWindowListener(new WindowAdapter() {
 				@Override
 				public void windowOpened(WindowEvent e) {
-					ensureWelcomeScreen(browser);
+					ensureWelcomeScreen(browser, e);
 				}
 				@Override
 				public void windowActivated(WindowEvent e) {
-					ensureWelcomeScreen(browser);
+					ensureWelcomeScreen(browser, e);
 				}
 			});
 		}
@@ -588,27 +544,9 @@ public class LibraryBrowserDragHandler {
 					}
 				}
 			}
-
-			Window w = SwingUtilities.getWindowAncestor(component);
-			if (w == null && browser != null) {
-				w = SwingUtilities.getWindowAncestor(browser);
-			}
-			if (w == null && browser != null && browser.getTopLevelAncestor() instanceof Window) {
-				w = (Window) browser.getTopLevelAncestor();
-			}
-			final Window[] wHolder = new Window[] { w };
-			/**
-			 * @j2sNative
-			 * if (!wHolder[0] && org.opensourcephysics.tools.LibraryBrowser.frame) {
-			 *   wHolder[0] = org.opensourcephysics.tools.LibraryBrowser.frame;
-			 * }
-			 */
-			{
-			}
-			w = wHolder[0];
-
+			Window w = getWindowForBrowser(component, browser);
 			if (w != null) {
-				Point startPt = getScreenLocation(e, component);
+				Point startPt = AIPatch.getScreenLocation(e, component, "LB mouse pressed");
 				if (startPt != null) {
 					Point ptInWindow = SwingUtilities.convertPoint(component, e.getPoint(), w);
 					int cornerSize = 20;
@@ -630,26 +568,9 @@ public class LibraryBrowserDragHandler {
 		@Override
 		public void mouseDragged(MouseEvent e) {
 			if (!isDragging && !isResizing) return;
-			Window w = SwingUtilities.getWindowAncestor(component);
-			if (w == null && browser != null) {
-				w = SwingUtilities.getWindowAncestor(browser);
-			}
-			if (w == null && browser != null && browser.getTopLevelAncestor() instanceof Window) {
-				w = (Window) browser.getTopLevelAncestor();
-			}
-			final Window[] wHolder = new Window[] { w };
-			/**
-			 * @j2sNative
-			 * if (!wHolder[0] && org.opensourcephysics.tools.LibraryBrowser.frame) {
-			 *   wHolder[0] = org.opensourcephysics.tools.LibraryBrowser.frame;
-			 * }
-			 */
-			{
-			}
-			w = wHolder[0];
-
+			Window w = getWindowForBrowser(component, browser);
 			if (w != null) {
-				Point curPt = getScreenLocation(e, component);
+				Point curPt = AIPatch.getScreenLocation(e, component, "LB mouseDragged");
 				if (curPt != null) {
 					int dx = curPt.x - mouseLoc.x;
 					int dy = curPt.y - mouseLoc.y;
@@ -659,7 +580,7 @@ public class LibraryBrowserDragHandler {
 						w.setSize(newW, newH);
 						w.validate();
 						w.repaint();
-						TWindowResizeHandler.setupResizer(w);
+						AIPatch.setupResizer(w);
 					} else {
 						w.setLocation(windowLoc.x + dx, windowLoc.y + dy);
 						w.repaint();
@@ -675,55 +596,31 @@ public class LibraryBrowserDragHandler {
 		}
 	}
 
-	/**
-	 * Gets the screen or page location of a mouse event, compatible with desktop Java
-	 * and touch events in SwingJS on iPad.
-	 */
-	private static Point getScreenLocation(MouseEvent e, Component comp) {
-		int[] pt = new int[2];
-		boolean found = false;
-		/**
-		 * @j2sNative
-		 * try {
-		 *   var je = (e && e.bdata ? e.bdata.jqevent : null);
-		 *   if (je) {
-		 *     var oe = je.originalEvent || je;
-		 *     var t = (oe.touches && oe.touches.length > 0 ? oe.touches[0] : 
-		 *             (oe.changedTouches && oe.changedTouches.length > 0 ? oe.changedTouches[0] : 
-		 *             (oe.targetTouches && oe.targetTouches.length > 0 ? oe.targetTouches[0] : null)));
-		 *     var px = (t ? t.pageX : (je.pageX != null ? je.pageX : null));
-		 *     var py = (t ? t.pageY : (je.pageY != null ? je.pageY : null));
-		 *     if (px == null && window.J2S && J2S._mousePageX != null) {
-		 *       px = J2S._mousePageX;
-		 *       py = J2S._mousePageY;
-		 *     }
-		 *     if (px != null && isFinite(px) && py != null && isFinite(py)) {
-		 *       pt[0] = Math.round(px);
-		 *       pt[1] = Math.round(py);
-		 *       found = true;
-		 *     }
-		 *   }
-		 * } catch (ex) {}
-		 */
-		{
+	public static Window getWindowForBrowser(Component component, LibraryBrowser browser) {
+		Window w = SwingUtilities.getWindowAncestor(component);
+		if (w == null && browser != null) {
+			w = SwingUtilities.getWindowAncestor(browser);
 		}
-		if (found) {
-			return new Point(pt[0], pt[1]);
+		if (w == null && browser != null && browser.getTopLevelAncestor() instanceof Window) {
+			w = (Window) browser.getTopLevelAncestor();
 		}
-		try {
-			Point p = e.getLocationOnScreen();
-			if (p != null && (p.x != 0 || p.y != 0)) {
-				return p;
-			}
-		} catch (Throwable t) {
+		if (w == null && LibraryBrowser.frame != null) {
+			// risky -- not instance-specific
+			w = LibraryBrowser.frame;
 		}
-		if (comp != null && comp.isShowing()) {
-			try {
-				Point p = comp.getLocationOnScreen();
-				return new Point(p.x + e.getX(), p.y + e.getY());
-			} catch (Throwable t) {
-			}
-		}
-		return e.getPoint();
+		// BH NOT ACCEPTABLE-FIXED
+//		final Window[] wHolder = new Window[] { w };
+//		/**
+//		 * @-j2sNative
+//		 * if (!wHolder[0] && org.opensourcephysics.tools.LibraryBrowser.frame) {
+//		 *   wHolder[0] = org.opensourcephysics.tools.LibraryBrowser.frame;
+//		 * }
+//		 */
+//		{
+//		}
+//		w = wHolder[0];
+//
+		return w;
 	}
+	
 }

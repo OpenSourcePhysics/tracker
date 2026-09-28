@@ -95,6 +95,7 @@ import org.opensourcephysics.display.GUIUtils;
 import org.opensourcephysics.display.Interactive;
 import org.opensourcephysics.display.MessageDrawable;
 import org.opensourcephysics.display.OSPRuntime;
+import org.opensourcephysics.js.AIPatch;
 import org.opensourcephysics.media.core.AsyncVideoI;
 import org.opensourcephysics.media.core.BaselineFilter;
 import org.opensourcephysics.media.core.BrightnessFilter;
@@ -2285,34 +2286,9 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		try {
 			MenuSelectionManager.defaultManager().clearSelectedPath();
 		} catch (Throwable t) {}
-		/**
-		 * @j2sNative
-		 * try {
-		 *   if (swingjs && swingjs.plaf && swingjs.plaf.JSPopupMenuUI) {
-		 *     swingjs.plaf.JSPopupMenuUI.closeAllMenus$();
-		 *   }
-		 *   if (swingjs && swingjs.plaf && swingjs.plaf.JSComponentUI) {
-		 *     swingjs.plaf.JSComponentUI.hideMenusAndToolTip$();
-		 *   }
-		 *   var applet = this.getFrameViewer$ ? (this.getFrameViewer$() && this.getFrameViewer$().applet) : null;
-		 *   if (!applet && window.J2S && J2S._applets) {
-		 *     for (var a in J2S._applets) {
-		 *       applet = J2S._applets[a];
-		 *       if (applet && applet._menus) break;
-		 *     }
-		 *   }
-		 *   if (applet && applet._menus && window.J2S && J2S.Swing && J2S.Swing.hideMenu) {
-		 *     for (var i in applet._menus) {
-		 *       J2S.Swing.hideMenu(applet._menus[i], true);
-		 *     }
-		 *   }
-		 *   if (window.$) {
-		 *     $(".ui-j2smenu:visible, .swingjsPopupMenu:visible").hide().attr("aria-hidden", "true").attr("aria-expanded", "false");
-		 *     $(".ui-j2smenu-node").removeClass("ui-state-active").removeClass("ui-state-focus");
-		 *   }
-		 * } catch (e) {}
-		 */
-		{
+		
+		if (OSPRuntime.isJS) {
+			AIPatch.closeAllMenus();
 		}
 	}
 
@@ -2328,14 +2304,8 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		if (popup != null && popup.isVisible()) {
 			return true;
 		}
-		/**
-		 * @j2sNative
-		 * if (window.$ && $(".ui-j2smenu:visible, .swingjsPopupMenu:visible").length > 0) {
-		 *   return true;
-		 * }
-		 */
-		{
-		}
+		if (OSPRuntime.isJS)
+			return AIPatch.haveAnyVisibleMenusInAnyApplication();
 		return false;
 	}
 	
@@ -4865,15 +4835,10 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	 */
 	@Override
 	public void repaint(long time, int x, int y, int w, int h) {
-		if (!isPaintable())
-			return;
 		// BH note that this check can prevent 85 repaint requests when
 		// car.trz is loaded!
-
-//		String s = /** @j2sNative  Clazz._getStackTrace() || */null;
-
-//		OSPLog.debug("TrackerPanel repaint " + (++repaintCount));
-
+		if (!isPaintable())
+			return;
 		super.repaint(time, x, y, w, h);
 	}
 

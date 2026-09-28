@@ -168,7 +168,7 @@ public class TrackerIO extends VideoIO {
 	protected static boolean dataCopiedToClipboard;
 
 	static {
-		if (!OSPRuntime.isJS) /** @j2sNative */
+		/** @j2sIgnore */
 		{
 			ffmpegListener = (e) -> {
 				if (e.getPropertyName().equals("ffmpeg_error")) { //$NON-NLS-1$

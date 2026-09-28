@@ -238,13 +238,9 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 		newVersionButton = new TButton() {
 			@Override
 			public JPopupMenu getPopup() {
-				JPopupMenu popup = new JPopupMenu();				
-				/**
-				 * @j2sNative
-				 */
-				{
+				JPopupMenu popup = new JPopupMenu();
+				if (!OSPRuntime.isJS)
 					buildUpgradePopup(popup);
-				}
 				return popup;
 			}
 		};
@@ -589,7 +585,7 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 		}
 
 		add(toolbarEnd);
-		if (!OSPRuntime.isJS) /** @j2sNative */
+		/** @j2sIgnore */
 		{
 			if (testButton != null) {
 				add(testButton);

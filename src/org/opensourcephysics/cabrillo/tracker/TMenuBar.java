@@ -80,6 +80,7 @@ import org.opensourcephysics.desktop.OSPDesktop;
 import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.display.OSPRuntime.Disposable;
 import org.opensourcephysics.display.ResizableIcon;
+import org.opensourcephysics.media.TrackerCamera;
 import org.opensourcephysics.media.core.Filter;
 import org.opensourcephysics.media.core.FilterStack;
 import org.opensourcephysics.media.core.ImageCoordSystem;

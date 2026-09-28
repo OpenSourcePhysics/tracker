@@ -15,6 +15,11 @@ import org.opensourcephysics.media.TrackerCamera;
 /**
  * Transpile and run test.TrackerCameraTest to test the browser camera dialog.
  * Uses the existing _ES6/tracker-camera-import.js resource in the SwingJS site.
+ * After starting a source, check the video-pixel X/Y min/max fields. Enable
+ * "Capture selected region only" to edit them or drag a selection. Edits must
+ * stay within the source dimensions and preserve at least 10 pixels per axis.
+ * The fields should reflect the full frame when cropping is disabled and be
+ * locked during recording and the screen-capture countdown.
  */
 public class TrackerCameraTest {
 

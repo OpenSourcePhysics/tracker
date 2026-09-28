@@ -253,13 +253,8 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 		panel.addDrawable(this);
 		panel.addListeners(panelProps, this);
 		try {
-			/**
-			 * @j2sNative
-			 * 
-			 */
-			{
+			if (!OSPRuntime.isJS)
 				robot = new Robot();
-			}
 		} catch (AWTException e) {
 		}
 
