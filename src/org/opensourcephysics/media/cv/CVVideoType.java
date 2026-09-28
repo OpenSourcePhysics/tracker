@@ -23,7 +23,7 @@
  * For additional information and documentation on Open Source Physics,
  * please see <https://www.compadre.org/osp/>.
  */
-package org.opensourcephysics.media.avp;
+package org.opensourcephysics.media.cv;
 
 import java.io.File;
 import java.io.IOException;
@@ -31,39 +31,40 @@ import java.io.IOException;
 import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
+import org.opensourcephysics.media.core.ImageVideoType;
 import org.opensourcephysics.media.core.MediaRes;
 import org.opensourcephysics.media.core.Video;
 import org.opensourcephysics.media.core.VideoFileFilter;
 import org.opensourcephysics.media.core.VideoIO;
 import org.opensourcephysics.media.core.VideoRecorder;
+import org.opensourcephysics.media.gif.GifVideoType;
 import org.opensourcephysics.media.mov.MovieFactory;
 import org.opensourcephysics.media.mov.MovieVideoType;
 import org.opensourcephysics.tools.ResourceLoader;
 
 /**
- * This implements the VideoType interface with the AVP type.
+ * This implements the VideoType interface with the CVVideo type.
  *
  * @author Douglas Brown
  * @version 1.0
  */
-public class AVPMovieVideoType extends MovieVideoType {
+public class CVVideoType extends MovieVideoType {
+	
+	public static void main(String[] args) {
+		CVVideoType type = new CVVideoType();
+		System.out.println("pig testing "+type);
+	}
 
 	public static void register() {
-		// Registers AVP video types with VideoIO class.
+		// Registers JavaCV video types with VideoIO class.
 		// Executes once only, via this static initializer.
-		// null first value indicates nonrecordable
+		// Each extension is {record, read} (record = null if not recordable)
 		String[][] EXTENSIONS = { 
 				{ null, "avi" }, //$NON-NLS-1$
-				{ null, "dv" }, //$NON-NLS-1$
-				{ "flv", "flv" }, //$NON-NLS-1$ //$NON-NLS-2$
-				{ null, "m2ts" }, //$NON-NLS-1$
-				{ null, "mod" }, //$NON-NLS-1$
-				{ "mov", "mov" }, //$NON-NLS-1$ //$NON-NLS-2$
+				{ null, "flv" }, //$NON-NLS-1$ //$NON-NLS-2$
+				{ null, "mov" }, //$NON-NLS-1$ //$NON-NLS-2$
 				{ "mp4", "mp4" }, //$NON-NLS-1$ //$NON-NLS-2$
-				{ null, "mpg" }, //$NON-NLS-1$
-				{ "wmv", "asf" }, //$NON-NLS-1$ //$NON-NLS-2$
-				{ null, "mts" }, //$NON-NLS-1$
-				{ null, "ogg" }, //$NON-NLS-1$
+				{ null, "wmv" } //$NON-NLS-1$ //$NON-NLS-2$
 		};
 		
 		for (String[] ext : EXTENSIONS) {
@@ -71,7 +72,7 @@ public class AVPMovieVideoType extends MovieVideoType {
 			String containerType = ext[1];
 			String[] extensions = new String[] { ext[isRecordable ? 0 : 1] };
 			VideoFileFilter filter = new VideoFileFilter(containerType, extensions); // $NON-NLS-1$
-			MovieVideoType vidType = new AVPMovieVideoType(filter);
+			MovieVideoType vidType = new CVVideoType(filter);
 			vidType.setRecordable(isRecordable);
 			VideoIO.addVideoType(vidType);
 			ResourceLoader.addExtractExtension(ext[0]);
@@ -85,7 +86,7 @@ public class AVPMovieVideoType extends MovieVideoType {
 	 * Constructor attempts to load a movie class the first time used. This will
 	 * throw an error if movies are not available.
 	 */
-	public AVPMovieVideoType() {
+	public CVVideoType() {
 		super();
 	}
 
@@ -94,7 +95,7 @@ public class AVPMovieVideoType extends MovieVideoType {
 	 * 
 	 * @param filter the file filter
 	 */
-	public AVPMovieVideoType(VideoFileFilter filter) {
+	public CVVideoType(VideoFileFilter filter) {
 		super(filter);
 	}
 
@@ -107,7 +108,7 @@ public class AVPMovieVideoType extends MovieVideoType {
 	public String getDescription() {
 		if (singleTypeFilter != null)
 			return singleTypeFilter.getDescription();
-		return MediaRes.getString("AVPVideoType.Description"); //$NON-NLS-1$
+		return MediaRes.getString("CVVideoType.Description"); //$NON-NLS-1$
 	}
 
 	/**
@@ -118,7 +119,7 @@ public class AVPMovieVideoType extends MovieVideoType {
 	 */
 	@Override
 	public boolean isType(Video video) {
-		if (!video.getClass().equals(AVPVideo.class))
+		if (!video.getClass().equals(CVVideo.class))
 			return false;
 		if (singleTypeFilter == null)
 			return true;
@@ -128,51 +129,34 @@ public class AVPMovieVideoType extends MovieVideoType {
 
 	@Override
 	public Video getVideo(String name, String basePath, XMLControl control) {
-		AVPVideo video;
+		Video video = null;
 		try {
-			video = new AVPVideo(XML.getResolvedPath(name, basePath), control);
-//JSV does this			if (video.getFrameNumber() == Integer.MIN_VALUE) {
-//				video = null;
-//			} else {
-//				video.setProperty("video_type", this); //$NON-NLS-1$
-//			}
-			
-			// DB 1/9/25 loadMoreFrames() breaks progress monitoring!!
-//			if (!video.isFullyLoaded()) {
-//				// drop video from AsyncLoadser.loadVideo->VidewoIO.getVideo(String,VideoType)--> getVideo(String,null,null)
-//
-//				// step thru container quickly and find all video frames
-//				while (video.loadMoreFrames(500)) {
-//					System.out.println("loading");
-//				}
-//			}
-			
+			video = new CVVideo(XML.getResolvedPath(name, basePath), control);
 			video.setProperty("video_type", this); //$NON-NLS-1$
 		} catch (IOException ex) {
 			OSPLog.fine(getDescription() + ": " + ex.getMessage()); //$NON-NLS-1$
-			video = null;
 		}
 		return video;
 	}
 
 	/**
-	 * Gets a AVP video recorder.
+	 * Gets a CV video recorder.
 	 *
 	 * @return the video recorder
 	 */
 	@Override
 	public VideoRecorder getRecorder() {
-		return new AVPVideoRecorder(this);
+		return new CVVideoRecorder(this);
 	}
 
 	@Override
 	public String getTypeName() {
-		return MovieFactory.ENGINE_AVP;
+		return MovieFactory.ENGINE_CV;
 	}
 
 	@Override
 	public String toString() {
-		return "[" + getTypeName() + " " + getDescription() + "]";
+		return _toString();
 	}
 	
 }

@@ -83,7 +83,7 @@ public class AVPVideo extends MovieVideo implements SmoothPlayable, Incrementall
 	static {
 		IContainer.make(); // throws exception if avp not available
 		AVPThumbnailTool.start();
-    	AVPMovieVideoType.register();
+    	AVPVideoType.register();
 	}
 
 	/**

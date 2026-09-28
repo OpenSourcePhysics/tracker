@@ -22,7 +22,7 @@
  * For additional information and documentation on Open Source Physics,
  * please see <https://www.compadre.org/osp/>.
  */
-package org.opensourcephysics.media.avp;
+package org.opensourcephysics.media.cv;
 
 import java.awt.AlphaComposite;
 import java.awt.Dimension;
@@ -31,20 +31,21 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 
+import org.bytedeco.javacv.FFmpegFrameGrabber;
+import org.bytedeco.javacv.Frame;
+import org.bytedeco.javacv.Java2DFrameConverter;
 import org.opensourcephysics.media.core.VideoIO;
-import org.opensourcephysics.tools.ResourceLoader;
-
-import com.avpkit.mediatool.*;
-import com.avpkit.mediatool.event.IVideoPictureEvent;
 
   /**
    * A class to create thumbnail images of videos.
    */
-public class AVPThumbnailTool extends MediaToolAdapter {
+public class CVThumbnailTool {
 	
-	private static final AVPThumbnailTool THUMBNAIL_TOOL = new AVPThumbnailTool();
-	private static final int TARGET_FRAME_NUMBER = 15;
+	private static final CVThumbnailTool THUMBNAIL_TOOL = new CVThumbnailTool();
+	private static final int TARGET_FRAME_NUMBER = 6;
 	
 	private BufferedImage thumbnail;
 	private Graphics2D g;
@@ -73,12 +74,34 @@ public class AVPThumbnailTool extends MediaToolAdapter {
    */
   public static synchronized BufferedImage createThumbnailImage(Dimension dim, String pathToVideo) {
   	THUMBNAIL_TOOL.initialize(dim);
-  	String path = pathToVideo.startsWith("http")? ResourceLoader.getURIPath(pathToVideo): pathToVideo; //$NON-NLS-1$
-    IMediaReader mediaReader = ToolFactory.makeReader(path);
-    mediaReader.setBufferedImageTypeToGenerate(BufferedImage.TYPE_3BYTE_BGR);
-    mediaReader.addListener(THUMBNAIL_TOOL);
-    while (!THUMBNAIL_TOOL.isFinished() && mediaReader.readPacket()==null); // reads video until a thumbnail is created
-    mediaReader.close();
+    java.io.InputStream videoStream = null;
+		try {			
+			videoStream = new FileInputStream(pathToVideo);
+		} catch (FileNotFoundException e) {
+      System.err.println("Error: file not found: "+pathToVideo);
+      return null;
+		}
+		FFmpegFrameGrabber grabber = new FFmpegFrameGrabber(videoStream);
+		Java2DFrameConverter converter = new Java2DFrameConverter();
+  	 try {
+       grabber.start();
+       int frameCount = grabber.getLengthInVideoFrames();
+       // Set the target frame number
+       THUMBNAIL_TOOL.frameNumber = TARGET_FRAME_NUMBER >= frameCount? 0: TARGET_FRAME_NUMBER;
+       grabber.setFrameNumber(THUMBNAIL_TOOL.frameNumber);      
+       Frame frame = grabber.grabImage();       
+       
+       if (frame != null) {
+           BufferedImage bi = converter.convert(frame);
+           THUMBNAIL_TOOL.createThumbnailFromImage(bi);
+       } else {
+           System.out.println("Could not grab frame");
+       }
+        grabber.stop();
+      
+   } catch (Exception e) {
+       e.printStackTrace();
+   }
     return THUMBNAIL_TOOL.thumbnail;
   }
   
@@ -94,14 +117,8 @@ public class AVPThumbnailTool extends MediaToolAdapter {
     return VideoIO.writeImageFile(thumb, pathToThumbnail);
   }
   
-  /**
-   * Creates a thumbnail image from the video image passed in by an IMediaReader. 
-   * @param event the IVideoPictureEvent from the mediaReader
-   */
-  @Override
-  public void onVideoPicture(IVideoPictureEvent event) {
+  public BufferedImage createThumbnailFromImage(BufferedImage image) {
   	if (!isFinished()) {
-      BufferedImage image = event.getImage();
       
       double widthFactor = dim.getWidth()/image.getWidth();
       double heightFactor = dim.getHeight()/image.getHeight();
@@ -129,13 +146,10 @@ public class AVPThumbnailTool extends MediaToolAdapter {
         g.drawImage(overlay, 0, 0, null);
 
       }
-      frameNumber++;
-      finished = frameNumber>=TARGET_FRAME_NUMBER;
+//      frameNumber++;
+//      finished = frameNumber>=TARGET_FRAME_NUMBER;
   	}
-      
-    // call parent which will pass the video onto next tool in chain
-    super.onVideoPicture(event);
-      
+    return thumbnail;
   }
     
   private void initialize(Dimension dimension) {

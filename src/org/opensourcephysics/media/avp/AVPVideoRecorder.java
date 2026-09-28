@@ -64,7 +64,7 @@ public class AVPVideoRecorder extends ScratchVideoRecorder {
    * Constructs a AVPVideoRecorder object.
 	 * @param type the video type
    */
-  public AVPVideoRecorder(MovieVideoType type) {
+  public AVPVideoRecorder(AVPVideoType type) {
     super(type);
   }
 
