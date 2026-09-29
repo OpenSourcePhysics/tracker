@@ -949,7 +949,9 @@ org/opensourcephysics/display/axes/DrawableAxes.js
 org/opensourcephysics/display/dialogs/DialogsRes.js
 org/opensourcephysics/ejs/EjsRes.js
 org/opensourcephysics/frames/ImageFrame.js
+org/opensourcephysics/js/AIPatch.js
 org/opensourcephysics/js/JSUtil.js
+org/opensourcephysics/media/TrackerCamera.js
 org/opensourcephysics/media/core/AsyncVideoI.js
 org/opensourcephysics/media/core/BaselineFilter.js
 org/opensourcephysics/media/core/BarrelPincushionFilter.js
