@@ -290,7 +290,7 @@ public class Tracker {
 	// static String author = "Douglas Brown"; //$NON-NLS-1$
 	// static String osp = "Open Source Physics"; //$NON-NLS-1$
 	
-	static AbstractAction aboutXuggleAction, aboutThreadsAction;
+	static AbstractAction aboutXuggleAction, aboutThreadsAction, aboutCVAction;
 	static Action aboutTrackerAction, readmeAction;
 	static Action aboutJavaAction, startLogAction, trackerPrefsAction;
 	static String readmeFileName = "Tracker_README.txt"; //$NON-NLS-1$
@@ -1424,6 +1424,16 @@ public class Tracker {
 					Diagnostics.aboutJava();
 				}
 			};
+
+			// about CV
+			if (MovieFactory.cvIsPresent) {
+				aboutCVAction = new AbstractAction(TrackerRes.getString("Tracker.Action.AboutCV")) { //$NON-NLS-1$
+					@Override
+					public void actionPerformed(ActionEvent e) {
+						MovieFactory.showAbout(MovieFactory.ENGINE_CV, "Tracker"); //$NON-NLS-1$
+					}
+				};
+			}
 
 			// about Xuggle--only if xuggle resources present?
 			if (MovieFactory.xuggleIsPresent) {

@@ -63,6 +63,7 @@ import org.opensourcephysics.media.core.Video;
 import org.opensourcephysics.media.core.VideoClip;
 import org.opensourcephysics.media.core.VideoType;
 import org.opensourcephysics.media.mov.MovieVideo;
+import org.opensourcephysics.media.cv.CVVideoType;
 import org.opensourcephysics.tools.FontSizer;
 import org.opensourcephysics.tools.ResourceLoader;
 
@@ -219,7 +220,9 @@ public class PropertiesDialog extends JDialog {
 				if (n > -1) {
 					if (video instanceof MovieVideo) {
 						type = type.substring(0, n);
-						type += OSPRuntime.isJS? "(JS)": "(Xuggle)"; //$NON-NLS-1$
+						type += OSPRuntime.isJS? "(JS)": 
+							videoType instanceof CVVideoType?  //$NON-NLS-1$
+							"(JavaCV)": "(Xuggle)"; //$NON-NLS-1$ //$NON-NLS-2$
 					}
 					else if (video instanceof ImageVideo && video.getProperty("ext") != null) {
 						String ext = (String)video.getProperty("ext");

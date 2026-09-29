@@ -127,6 +127,36 @@
 		<delete dir="${temp}"/>
 	</target>
 
+	<!--tracker_jar_javacv: copy bin and create tracker jar from temp directory-->
+    <target name="tracker_jar_javacv" depends="copy_bin_for_tracker">
+		<manifest file="${temp}/meta-inf/TRACKER.mf">
+			<attribute name="Built-By" value="${author}"/>
+			<attribute name="Build-Date" value="${buildtime.isoformat}"/>
+			<attribute name="Main-Class" value="org.opensourcephysics.cabrillo.tracker.Tracker"/>
+			<attribute name="Class-Path" value=". JavaCV/javacv.jar JavaCV/javacpp.jar JavaCV/opencv-windows-x86_64.jar JavaCV/ffmpeg-windows-x86_64.jar JavaCV/javacpp-windows-x86_64.jar JavaCV/ffmpeg.jar JavaCV/opencv.jar"/>
+			<attribute name="permissions" value="all-permissions"/>
+		</manifest >
+		<jar jarfile="${output}/tracker-6.5.${date}.jar" basedir="${temp}" manifest="${temp}/meta-inf/TRACKER.mf" 
+			includes="
+			**/epsgraphics/,
+            **/controls/,
+            **/javajs/,
+            **/js/,
+            **/analysis/,
+            **/display/,
+            **/desktop/,
+            **/ejs/EjsRes.class,
+            **/frames/ImageFrame*,
+            **/numerics/,
+            **/tools/,
+			**/media/,
+			**/tracker/,
+            **/opensourcephysics/resources/" 
+        	excludes="**/html/, **/*.zip, **/*.mp4">
+		</jar>
+		<delete dir="${temp}"/>
+	</target>
+
 	<!--tracker_jar: copy bin and create tracker jar from temp directory-->
     <target name="tracker_jar" depends="copy_bin_for_tracker">
 		<manifest file="${temp}/meta-inf/TRACKER.mf">

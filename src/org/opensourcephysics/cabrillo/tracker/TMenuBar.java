@@ -80,7 +80,6 @@ import org.opensourcephysics.desktop.OSPDesktop;
 import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.display.OSPRuntime.Disposable;
 import org.opensourcephysics.display.ResizableIcon;
-import org.opensourcephysics.media.TrackerCamera;
 import org.opensourcephysics.media.core.Filter;
 import org.opensourcephysics.media.core.FilterStack;
 import org.opensourcephysics.media.core.ImageCoordSystem;
@@ -2989,6 +2988,8 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 			diagMenu.addSeparator();
 			if (Tracker.aboutJavaAction != null)
 				diagMenu.add(Tracker.aboutJavaAction);
+			if (Tracker.aboutCVAction != null)
+				diagMenu.add(Tracker.aboutCVAction);
 			if (Tracker.aboutXuggleAction != null)
 				diagMenu.add(Tracker.aboutXuggleAction);
 			if (Tracker.aboutThreadsAction != null)
