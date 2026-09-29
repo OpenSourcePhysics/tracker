@@ -61,7 +61,8 @@ public class CVDiagnostics extends Diagnostics {
 		// display appropriate dialog
 		if (status == 0) { // AVP working correctly
 			try {
-				message = MediaRes.getString("CVDiagnostics.Message.Version") + " ";
+				message = MediaRes.getString("CVDiagnostics.Message.Description") + newline;
+				message += MediaRes.getString("CVDiagnostics.Message.Version") + " ";
 				message += getVersion();
 				DateFormat format = DateFormat.getDateInstance(DateFormat.SHORT);
 				Date date = new Date(myJarFile.lastModified());
