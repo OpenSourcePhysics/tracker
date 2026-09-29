@@ -14,7 +14,12 @@ import org.opensourcephysics.media.TrackerCamera;
 
 /**
  * Transpile and run test.TrackerCameraTest to test the browser camera dialog.
- * Uses the existing _ES6/tracker-camera-import.js resource in the SwingJS site.
+ * Uses the existing _ES6/tracker-mp4-import.js resource in the SwingJS site.
+ * After starting a source, check the video-pixel X/Y min/max fields. Enable
+ * "Capture selected region only" to edit them or drag a selection. Edits must
+ * stay within the source dimensions and preserve at least 10 pixels per axis.
+ * The fields should reflect the full frame when cropping is disabled and be
+ * locked during recording and the screen-capture countdown.
  */
 public class TrackerCameraTest {
 
@@ -58,4 +63,13 @@ public class TrackerCameraTest {
 		int count = data == null ? 0 : data.length;
 		status.setText("Received " + count + " frames at " + frameRate + " fps.");
 	}
+
+	/**
+	 * Receives an encoded clip without launching Tracker.
+	 * @j2sAlias importMP4Capture
+	 */
+	public void importMP4Capture(String id, byte[] data) {
+		status.setText("Received MP4: " + (data == null ? 0 : data.length) + " bytes.");
+	}
+
 }

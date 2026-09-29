@@ -812,8 +812,21 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 		maximizeButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
+<<<<<<< HEAD
 				frame.toggleMaximized();
 				refreshMaximizeButton(frame);
+=======
+				TFrame.maximize = !TFrame.maximize;
+				refreshMaximizeButton();
+				if (TFrame.maximize) {
+					// save current bounds for restore
+					panel().getTFrame().saveBounds();
+					panel().getTFrame().getAdaptiveBounds(false);
+				}
+				else
+					// this will restore saved bounds
+					panel().getTFrame().getAdaptiveBounds(false);
+>>>>>>> branch 'SwingJS' of https://github.com/OpenSourcePhysics/tracker.git
 			}
 		});
 
