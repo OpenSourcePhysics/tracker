@@ -2392,7 +2392,6 @@ public class Tracker {
 		int fontLevel = preferredFontLevel + preferredFontLevelPlus;
 		if (OSPRuntime.isJS && OSPRuntime.cssCursor) { // running on iPad/iPhone
 			fontLevel = Math.max(DEFAULT_MOBILE_FONT_LEVEL, fontLevel);
-			TFrame.maximize = true;
 		}
 		FontSizer.setLevel(fontLevel);
 		// be ready to handle videos and tracks of length 500,000 frames!

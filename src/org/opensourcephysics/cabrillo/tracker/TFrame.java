@@ -279,11 +279,19 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 
 	public static boolean haveExportDialog;
 	public static boolean haveThumbnailDialog;
-	public static boolean maximize;
-	private Dimension maximizedFrameSize;
 
 	// instance fields
 
+	/**
+	 * state of frame maximization
+	 */
+	public boolean maximized;
+	/**
+	 * current frame size if maximized; null otherwise
+	 */
+	private Dimension maximizedFrameSize;
+
+	private Rectangle prevFrameSize;
 	protected ClipboardListener clipboardListener;
 	protected LibraryBrowser libraryBrowser;
 	protected Launcher helpLauncher;
@@ -367,12 +375,16 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 
 		// set size and limit maximized size so taskbar not covered
 		Rectangle screenRect = GraphicsEnvironment.getLocalGraphicsEnvironment().getMaximumWindowBounds();
-		if (OSPRuntime.isJS)
+		if (OSPRuntime.isJS) {
 			// DB when this is set in Java the frame doesn't maximize fully!
 			setMaximizedBounds(screenRect);
-		// process -bounds or -dim option
-
+			// process -bounds or -dim option
+		}
 		if (isLayoutAdaptive) {
+			if (OSPRuntime.cssCursor) { 
+				// running on iPad/iPhone
+				maximized = true;
+			}
 			bounds = getAdaptiveBounds(true);
 		}
 		if (bounds == null) {
@@ -406,28 +418,28 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 			});
 		}
 		AIPatch.installResizeHandler(this);
+		AIPatch.installGestureHandler(this);
 	}
-
-	@SuppressWarnings("unused")
+	
 	protected Rectangle getAdaptiveBounds(boolean isInit) {
+		// "maximized" here means "maximizing"
 		Rectangle rect;
-		if (OSPRuntime.isJS && maximize) {
+		if (OSPRuntime.isJS && maximized) {
 			rect = OSPRuntime.jsutil.getMaximumViewport(2, 2);
+		} else if (prevFrameSize != null && !maximized) {
+			rect = prevFrameSize;
 		} else {
 			Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
-//			int w = (int) (0.9 * dim.width);
-//			int margin = (int) (0.05 * dim.width);
-//			int h = (int) (0.7 * (dim.height - 80));
-			double wid = maximize ? MAXIMIZED_FRAME_WIDTH : DEFAULT_FRAME_WIDTH;
-			double ht = maximize ? MAXIMIZED_FRAME_HEIGHT : DEFAULT_FRAME_HEIGHT;
-			int ceil = maximize ? MAXIMIZED_FRAME_CEILING : DEFAULT_FRAME_CEILING;
+			double wid = maximized ? MAXIMIZED_FRAME_WIDTH : DEFAULT_FRAME_WIDTH;
+			double ht = maximized ? MAXIMIZED_FRAME_HEIGHT : DEFAULT_FRAME_HEIGHT;
+			int ceil = maximized ? MAXIMIZED_FRAME_CEILING : DEFAULT_FRAME_CEILING;
 			int w = (int) (wid * dim.width);
 			int margin = (int) ((1 - wid) * dim.width / 2);
 			int h = (int) (ht * (dim.height - ceil));
 			rect = new Rectangle(margin, ceil, w, h);
 			// A maximized browser frame must fit the visible viewport, including its border.
 		}
-		maximizedFrameSize = (maximize ? new Dimension(rect.width, rect.height) : null);
+		maximizedFrameSize = (maximized ? new Dimension(rect.width, rect.height) : null);
 		if (isInit) {
 			// JS only
 			Runnable onOrient = new Runnable() {
@@ -2193,6 +2205,22 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 	}
 
 	/**
+	 * Opens the Library Browser dialog and guarantees the Welcome screen is displayed.
+	 * 
+	 * @param frame the Tracker main frame
+	 */
+	public void openLibraryBrowser() {
+		try {
+			LibraryBrowser browser = getLibraryBrowser();
+			if (browser != null) {
+				browser.setVisible(true);
+				//ensuerWelcomeScreen(browser, "open");
+			}
+		} catch (Throwable t) {
+		}
+	}
+
+	/**
 	 * Gets the library browser.
 	 *
 	 * @return the library browser
@@ -2203,7 +2231,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 				LibraryComPADRE.desiredOSPType = "Tracker"; //$NON-NLS-1$
 
 				libraryBrowser = LibraryBrowser.getBrowser(null);
-				LibraryBrowserDragHandler.install(libraryBrowser);
+				AIPatch.FullFrameDragHandler.installFullFrameDragHandler(libraryBrowser, true);
 
 				libraryBrowser.addOSPLibrary(LibraryBrowser.TRACKER_LIBRARY);
 				libraryBrowser.addOSPLibrary(LibraryBrowser.SHARED_LIBRARY);
@@ -2446,16 +2474,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 		this.addComponentListener(new ComponentAdapter() {
 			@Override
 			public void componentResized(ComponentEvent e) {
-				// Keep the restore arrow only for the size requested by Maximize.
-				// Comparing sizes also handles resize events delivered after setBounds.
-				if (OSPRuntime.isJS && maximize && maximizedFrameSize != null
-						&& !getSize().equals(maximizedFrameSize)) {
-					maximize = false;
-					maximizedFrameSize = null;
-					for (TToolBar bar : _atoolbars) {
-						if (bar != null) bar.refreshMaximizeButton();
-					}
-				}
+				checkMaximizedSizeChanged();
 				frameResized();
 				AIPatch.setupResizer(TFrame.this);
 			}
@@ -3485,7 +3504,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 			openBrowserItem.addActionListener(new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent e) {
-					LibraryBrowserDragHandler.openLibraryBrowser(TFrame.this);
+					openLibraryBrowser();
 				}
 			});
 			openMenu.add(openBrowserItem);
@@ -3998,6 +4017,31 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 			return true;
 		}
 		return false;
+	}
+
+	/**
+	 * JavaScript only, from device rotation
+	 * Keep the restore arrow only for the size requested by Maximize. Comparing
+	 * sizes also handles resize events delivered after setBounds.
+	 * 
+	 */
+	protected void checkMaximizedSizeChanged() {
+		if (OSPRuntime.isJS && maximized && maximizedFrameSize != null
+				&& !getSize().equals(maximizedFrameSize)) {
+			maximized = false;
+			maximizedFrameSize = null;
+			for (TToolBar bar : _atoolbars) {
+				if (bar != null) bar.refreshMaximizeButton(this);
+			}
+		}
+	}
+
+	public void toggleMaximized() {
+		if (!maximized) {
+			prevFrameSize = getBounds();
+		}
+		maximized = !maximized;
+		getAdaptiveBounds(false);
 	}
 
 }

@@ -298,7 +298,8 @@ public class LibraryBrowserDragHandler {
 			} catch (Throwable t) {
 			}
 		});
-		AIPatch.hackWelcomePane(ep, welcomeHtml);
+		if (OSPRuntime.isJS)
+			AIPatch.hackWelcomePane(ep, welcomeHtml);
 	}
 
 	private static String getWelcomeHTML() {

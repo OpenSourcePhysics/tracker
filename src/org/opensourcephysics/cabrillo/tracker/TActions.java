@@ -168,7 +168,7 @@ public class TActions {
 					public void actionPerformed(ActionEvent e) {
 						
 						if (frame != null) {
-							LibraryBrowserDragHandler.openLibraryBrowser(frame);
+							frame.openLibraryBrowser();
 						}
 					}
 				}, true));
