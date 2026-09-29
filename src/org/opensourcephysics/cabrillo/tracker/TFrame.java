@@ -279,14 +279,9 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 
 	public static boolean haveExportDialog;
 	public static boolean haveThumbnailDialog;
-<<<<<<< HEAD
-=======
-	public static boolean maximize;
->>>>>>> branch 'SwingJS' of https://github.com/OpenSourcePhysics/tracker.git
 
 	// instance fields
 
-<<<<<<< HEAD
 	/**
 	 * state of frame maximization
 	 */
@@ -296,9 +291,6 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 	 */
 	private Dimension maximizedFrameSize;
 
-=======
-	private Dimension maximizedFrameSize;
->>>>>>> branch 'SwingJS' of https://github.com/OpenSourcePhysics/tracker.git
 	private Rectangle prevFrameSize;
 	protected ClipboardListener clipboardListener;
 	protected LibraryBrowser libraryBrowser;
@@ -429,30 +421,14 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 		AIPatch.installGestureHandler(this);
 	}
 	
-<<<<<<< HEAD
-=======
-	protected void saveBounds() {
-		prevFrameSize = this.getBounds();
-	}
-
-	@SuppressWarnings("unused")
->>>>>>> branch 'SwingJS' of https://github.com/OpenSourcePhysics/tracker.git
 	protected Rectangle getAdaptiveBounds(boolean isInit) {
 		// "maximized" here means "maximizing"
 		Rectangle rect;
 		if (OSPRuntime.isJS && maximized) {
 			rect = OSPRuntime.jsutil.getMaximumViewport(2, 2);
-<<<<<<< HEAD
 		} else if (prevFrameSize != null && !maximized) {
 			rect = prevFrameSize;
 		} else {
-=======
-		} 
-		else if (prevFrameSize != null && !maximize) {
-			rect = prevFrameSize;
-		}
-		else {
->>>>>>> branch 'SwingJS' of https://github.com/OpenSourcePhysics/tracker.git
 			Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
 			double wid = maximized ? MAXIMIZED_FRAME_WIDTH : DEFAULT_FRAME_WIDTH;
 			double ht = maximized ? MAXIMIZED_FRAME_HEIGHT : DEFAULT_FRAME_HEIGHT;
