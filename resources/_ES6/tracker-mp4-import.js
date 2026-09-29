@@ -669,7 +669,7 @@
 		element("tracker-mp4-body").style.maxHeight = Math.max(0, availableHeight
 			- parseFloat(contentStyle.paddingTop) - parseFloat(contentStyle.paddingBottom)
 			- title.offsetHeight - parseFloat(titleStyle.marginBottom)) + "px";
-		element("tracker-mp4-preview").style.maxHeight = Math.floor(height * (compact ? 0.5 : 0.62)) + "px";
+		element("tracker-mp4-preview-wrap").style.maxHeight = Math.floor(height * (compact ? 0.5 : 0.62)) + "px";
 		content.style.transform = "translate(" + dialogOffset.x + "px," + dialogOffset.y + "px)";
 		var bounds = dialog.getBoundingClientRect();
 		var rect = content.getBoundingClientRect();
@@ -882,13 +882,17 @@
 		selectionLayer.addEventListener("pointermove", moveCrop);
 		selectionLayer.addEventListener("pointerup", finishCrop);
 		selectionLayer.addEventListener("pointercancel", cancelCrop);
-		element("tracker-mp4-preview").addEventListener("resize", positionCameraDialog);
+		// Source dimensions affect letterboxing and crop coordinates, not dialog layout.
+		element("tracker-mp4-preview").addEventListener("resize", updateCropVisual);
+		element("tracker-mp4-preview").addEventListener("loadedmetadata", updateCropVisual);
 		dialog.addEventListener("keydown", function (event) {
 			if (event.key === "Escape") closeDialog();
 		});
 		enableDialogDragging();
 		if (global.ResizeObserver) {
-			new global.ResizeObserver(positionCameraDialog).observe(element("tracker-mp4-content"));
+			// Observe the preview box only to align the overlay. Never resize the
+			// observed layout in response to its own size changes.
+			new global.ResizeObserver(updateCropVisual).observe(element("tracker-mp4-preview-wrap"));
 		}
 		return dialog;
 	}
@@ -904,10 +908,10 @@
 			"#tracker-mp4-source label{display:inline-flex;align-items:center;gap:4px;cursor:pointer}" +
 			"#tracker-mp4-title{flex:none;display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0;padding:4px 0;min-height:24px;font:bold 16px/1.4 sans-serif;cursor:move;touch-action:none;user-select:none;-webkit-user-select:none}" +
 			"#tracker-mp4-drag-hint{margin-left:auto;font:normal 12px/1.4 sans-serif;color:#555;white-space:nowrap;user-select:none;-webkit-user-select:none}" +
-			".tracker-mp4-body{min-height:0;overflow:auto;overscroll-behavior:contain}" +
+			".tracker-mp4-body{min-height:0;overflow:auto;scrollbar-gutter:stable;overscroll-behavior:contain}" +
 			".tracker-mp4-help{margin:0 0 10px}" +
-			"#tracker-mp4-preview-wrap{position:relative;overflow:hidden;border-radius:6px;background:#111}" +
-			"#tracker-mp4-preview{display:block;width:100%;max-height:62vh;background:#111;border-radius:6px;object-fit:contain}" +
+			"#tracker-mp4-preview-wrap{position:relative;width:100%;aspect-ratio:16/9;max-height:62vh;overflow:hidden;border-radius:6px;background:#111}" +
+			"#tracker-mp4-preview{position:absolute;inset:0;display:block;width:100%;height:100%;background:#111;border-radius:6px;object-fit:contain}" +
 			"#tracker-mp4-selection-layer{position:absolute;inset:0;pointer-events:none}" +
 			"#tracker-mp4-selection-layer.tracker-mp4-selection-active{pointer-events:auto;cursor:crosshair;touch-action:none}" +
 			"#tracker-mp4-selection{position:absolute;box-sizing:border-box;border:2px solid #ffe600;background:#ffe60022;box-shadow:0 0 0 9999px #0007}" +
@@ -917,14 +921,14 @@
 			".tracker-mp4-coordinates>.tracker-mp4-coordinates-heading{flex-basis:100%;margin-top:0}" +
 			".tracker-mp4-coordinates input{width:5em;font:inherit;padding:4px}" +
 			".tracker-mp4-controls button,.tracker-mp4-controls select{font:inherit;padding:7px 10px}" +
-			"#tracker-mp4-status{min-height:1.4em;margin:10px 0 0}" +
+			"#tracker-mp4-status{height:2.8em;line-height:1.4;overflow:auto;margin:10px 0 0}" +
 			".tracker-mp4-error{color:#a40000;font-weight:600}" +
 			"#tracker-mp4-dialog.tracker-mp4-landscape{padding-top:8px;padding-bottom:8px}" +
 			"#tracker-mp4-dialog.tracker-mp4-landscape .tracker-mp4-content{width:900px;padding:10px;font-size:13px}" +
 			"#tracker-mp4-dialog.tracker-mp4-landscape #tracker-mp4-title{font-size:14px}" +
 			"#tracker-mp4-dialog.tracker-mp4-landscape .tracker-mp4-help{font-size:12px;margin-bottom:6px}" +
 			"#tracker-mp4-dialog.tracker-mp4-landscape .tracker-mp4-workspace{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;align-items:start}" +
-			"#tracker-mp4-dialog.tracker-mp4-landscape #tracker-mp4-preview{max-height:55vh}" +
+			"#tracker-mp4-dialog.tracker-mp4-landscape #tracker-mp4-preview-wrap{max-height:50vh}" +
 			"#tracker-mp4-dialog.tracker-mp4-landscape .tracker-mp4-controls,#tracker-mp4-dialog.tracker-mp4-landscape .tracker-mp4-coordinates{gap:4px;margin-top:6px}" +
 			"#tracker-mp4-dialog.tracker-mp4-landscape .tracker-mp4-settings>.tracker-mp4-controls:first-child{margin-top:0}" +
 			"#tracker-mp4-dialog.tracker-mp4-landscape .tracker-mp4-controls button,#tracker-mp4-dialog.tracker-mp4-landscape .tracker-mp4-controls select{padding:4px 6px}" +
