@@ -24,7 +24,7 @@ function setup(mp4, supported) {
  const errors = [];
  const context = {Error: function JavaError() {this.toString = () => 'java.lang.Error';}, Clazz: {_Error: Error}, console: {error(...args) {errors.push(args);}}, document: {getElementById: el, querySelectorAll: () => []}, navigator: {}, performance: {now: () => 1000}, Blob: BlobMock, J2S: {_toBytes: b => new Uint8Array(b)}, setInterval: () => 1, clearInterval() {}, setTimeout() {}, MediaRecorder: Recorder};
  context.window = context;
- let code = fs.readFileSync('resources/_ES6/tracker-mp4-import.js', 'utf8');
+ let code = fs.readFileSync('resources/ES6/tracker-mp4-import.js', 'utf8');
  code = code.replace('\tmount();', '\tglobal.test = {state: state, begin: beginCapture, stop: stopAndImport, toggle: toggleCapture, close: closeDialog, setApp: function(app) {trackerApp = app;}};');
  vm.runInNewContext(code, context);
  const api = context.test;

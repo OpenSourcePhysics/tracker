@@ -8,9 +8,9 @@ import javajs.api.js.HTML5Applet;
 
 /**
  * When this class is initialized using new TrackerCamera(), 
- *  j2s/_ES6/tracker-mp4-import.js is loaded if does not already exist.
+ *  j2s/ES6/tracker-mp4-import.js is loaded if does not already exist.
  *  This creates J2S.TrackerMP4Importer.createDialog(), which is
- *  called in the constructorto make sure that we have processed the script file. 
+ *  called in the constructor to make sure that we have processed the script file. 
  * 
  * 
  * @author hanso
@@ -31,7 +31,7 @@ public class TrackerCamera {
 			 *  app = applet.app;
 			 *  if (!J2S.TrackerMP4Importer) {
 			 * 	  var path = applet._j2sPath +
-			 *      "/_ES6/tracker-mp4-import.js";
+			 *      "/ES6/tracker-mp4-import.js";
 			 *    $.getScript(path, function(){me.openDialog$O(app)});
 			 *    return;
 			 *  }
