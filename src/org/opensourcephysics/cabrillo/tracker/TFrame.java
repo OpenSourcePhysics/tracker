@@ -2269,7 +2269,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 								}
 							}
 						});
-				LibraryBrowser.fireHelpEvent = true;
+				libraryBrowser.setFireHelpEvent(true);
 				libraryBrowser.addPropertyChangeListener("help", new PropertyChangeListener() { //$NON-NLS-1$
 					@Override
 					public void propertyChange(PropertyChangeEvent e) {
