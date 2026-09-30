@@ -838,7 +838,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 	}
 
 	private void checkMemTest() {
-		if (!OSPRuntime.isJS) { // TEST_BH
+		/** @j2sIgnore */ { // TEST_BH
 			System.gc();
 			System.gc();
 			try {
@@ -2207,7 +2207,6 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 	/**
 	 * Opens the Library Browser dialog and guarantees the Welcome screen is displayed.
 	 * 
-	 * @param frame the Tracker main frame
 	 */
 	public void openLibraryBrowser() {
 		try {
@@ -2230,7 +2229,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 			try {
 				LibraryComPADRE.desiredOSPType = "Tracker"; //$NON-NLS-1$
 
-				libraryBrowser = LibraryBrowser.getBrowser(null);
+				libraryBrowser = LibraryBrowser.getBrowser();
 				AIPatch.FullFrameDragHandler.installFullFrameDragHandler(libraryBrowser, true);
 
 				libraryBrowser.addOSPLibrary(LibraryBrowser.TRACKER_LIBRARY);
@@ -2269,7 +2268,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 								}
 							}
 						});
-				LibraryBrowser.fireHelpEvent = true;
+				libraryBrowser.setFireHelpEvent(true);
 				libraryBrowser.addPropertyChangeListener("help", new PropertyChangeListener() { //$NON-NLS-1$
 					@Override
 					public void propertyChange(PropertyChangeEvent e) {
