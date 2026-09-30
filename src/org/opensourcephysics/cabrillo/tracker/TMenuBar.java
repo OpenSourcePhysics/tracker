@@ -1,4 +1,4 @@
-/*
+/* 
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
@@ -2865,7 +2865,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 //        }
 		});
 		helpMenu.add(startItem);
-		if (!OSPRuntime.isJS) {
+		/** @j2sIgnore */ {
 			JMenuItem helpItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.TrackerHelp")); //$NON-NLS-1$
 			helpItem.setAccelerator(KeyStroke.getKeyStroke('H', keyMask));
 			helpItem.addActionListener((e) -> {
@@ -2875,7 +2875,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 					frame.showHelp(null, 0);
 				}
 			});
-		helpMenu.add(helpItem);
+			helpMenu.add(helpItem);
 		}
 		JMenuItem onlineHelpItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.OnlineHelp") + "..."); //$NON-NLS-1$ //$NON-NLS-2$
 		onlineHelpItem.addActionListener((e) -> {
@@ -2944,17 +2944,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 			helpMenu.add(hintsItem);
 		}
 
-		if (!OSPRuntime.isJS) {
-			
-			JMenuItem trackerOnlineItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.TrackerOnline")); //$NON-NLS-1$
-			trackerOnlineItem.addActionListener((e) -> {
-				String uRL = "https://opensourcephysics.github.io/tracker-online/"; //$NON-NLS-1$
-				OSPDesktop.displayURL(uRL);
-			});
-			helpMenu.addSeparator();
-			helpMenu.add(trackerOnlineItem);
-		}
-		else {
+		if (OSPRuntime.isJS) {
 			JMenuItem trackerHomeItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.TrackerHome")); //$NON-NLS-1$
 			trackerHomeItem.addActionListener((e) -> {
 				String uRL = "https://opensourcephysics.github.io/tracker-website/"; //$NON-NLS-1$
@@ -2962,6 +2952,14 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 			});
 			helpMenu.addSeparator();
 			helpMenu.add(trackerHomeItem);
+		} else {
+			JMenuItem trackerOnlineItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.TrackerOnline")); //$NON-NLS-1$
+			trackerOnlineItem.addActionListener((e) -> {
+				String uRL = "https://opensourcephysics.github.io/tracker-online/"; //$NON-NLS-1$
+				OSPDesktop.displayURL(uRL);
+			});
+			helpMenu.addSeparator();
+			helpMenu.add(trackerOnlineItem);
 		}
 
 		// diagnostics menu
@@ -2997,7 +2995,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		} // end diagnostics menu
 
 		helpMenu.addSeparator();
-		if (!OSPRuntime.isJS) {
+		/** @j2sIgnore */ {
 			JMenuItem checkForUpgradeItem = new JMenuItem(
 					TrackerRes.getString("TMenuBar.MenuItem.CheckForUpgrade.Text")); //$NON-NLS-1$
 			checkForUpgradeItem.addActionListener((e) -> {

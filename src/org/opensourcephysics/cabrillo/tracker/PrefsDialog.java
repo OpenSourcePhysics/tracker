@@ -314,7 +314,7 @@ public class PrefsDialog extends JDialog {
 		Color color = Color.WHITE;
 
 		// configuration panel for Java only
-		if (!OSPRuntime.isJS) {
+		/** @j2sIgnore */ {
 			configPanel = new JPanel(new BorderLayout());
 			// config checkPanel
 			int n = 1 + Tracker.getFullConfig().size() / 2;
@@ -429,7 +429,7 @@ public class PrefsDialog extends JDialog {
 //		});
 //		lfSubPanel.add(lookFeelDropdown);
 
-		if (!OSPRuntime.isJS) {
+		/** @j2sIgnore */ {
 			// language subpanel
 			JPanel langSubPanel = new JPanel();
 			horz.add(langSubPanel);
@@ -520,7 +520,7 @@ public class PrefsDialog extends JDialog {
 		unitsSubPanel.add(radiansButton);
 		unitsSubPanel.add(degreesButton);
 
-		if (!OSPRuntime.isJS) {
+		/** @j2sIgnore */ {
 			// hints subpanel
 			hintsCheckbox = new JCheckBox();
 			hintsCheckbox.setOpaque(false);
@@ -587,7 +587,7 @@ public class PrefsDialog extends JDialog {
 		Icon openFileIcon = Tracker.getResourceIcon("open.gif", true); //$NON-NLS-1$
 
 		// runtime pane--only for Java
-		if (!OSPRuntime.isJS) {
+		/** @j2sIgnore */ {
 			runtimePanel = new JPanel(new BorderLayout());
 			box = Box.createVerticalBox();
 			runtimePanel.add(box, BorderLayout.CENTER);
@@ -935,7 +935,7 @@ public class PrefsDialog extends JDialog {
 //		videoTypeSubPanel.add(movieEngineButton);
 //		videoTypeSubPanel.add(noEngineButton);
 
-		if (!OSPRuntime.isJS) {
+		/** @j2sIgnore */ {
 			// xuggle speed subpanel
 			JPanel xuggleSpeedSubPanel = new JPanel();
 			box.add(xuggleSpeedSubPanel);
@@ -979,7 +979,7 @@ public class PrefsDialog extends JDialog {
 		centerSouthPanel.add(warningsSouthPanel, BorderLayout.CENTER);
 		warningsSubPanel.add(centerSouthPanel, BorderLayout.CENTER);
 
-		if (!OSPRuntime.isJS) {
+		/** @j2sIgnore */ {
 			vidWarningCheckbox = new JCheckBox();
 			vidWarningCheckbox.setOpaque(false);
 			vidWarningCheckbox.setSelected(Tracker.warnNoVideoEngine);
@@ -1198,7 +1198,7 @@ public class PrefsDialog extends JDialog {
 //		if (OSPRuntime.isJS || Tracker.testOn) {
 
 		// recent menu subpanel--only for Java
-		if (!OSPRuntime.isJS) {
+		/** @j2sIgnore */ {
 			JPanel recentSubPanel = new JPanel();
 			box.add(recentSubPanel);
 			recentSubPanel.setBackground(color);
@@ -1235,7 +1235,7 @@ public class PrefsDialog extends JDialog {
 		}
 
 		// cache subpanel--only for Java
-		if (!OSPRuntime.isJS) {
+		/** @j2sIgnore */ {
 			JPanel cacheSubPanel = new JPanel(new BorderLayout());
 			box.add(cacheSubPanel);
 			cacheSubPanel.setBackground(color);
@@ -1392,7 +1392,7 @@ public class PrefsDialog extends JDialog {
 		logLevelSubPanel.add(logLevelDropdown);
 
 		// check for upgrades subpane--only for Java
-		if (!OSPRuntime.isJS) {
+		/** @j2sIgnore */ {
 			checkForUpgradeButton = new JButton();
 			checkForUpgradeButton.addActionListener(new ActionListener() {
 				@Override
@@ -1476,7 +1476,7 @@ public class PrefsDialog extends JDialog {
 		buttonGroup.add(vm32Button);
 		buttonGroup.add(vm64Button);
 
-		if (!OSPRuntime.isJS) {
+		/** @j2sIgnore */ {
 			// add engine buttons to buttongroups
 			buttonGroup = new ButtonGroup();
 			buttonGroup.add(movieEngineButton);
@@ -1582,7 +1582,7 @@ public class PrefsDialog extends JDialog {
 		Tracker.preferredTrailLengthIndex = prevTrailLengthIndex;
 		ResourceLoader.setOSPCache(prevCache);
 		Tracker.checkForUpgradeInterval = prevUpgradeInterval;
-		if (!OSPRuntime.isJS) {
+		/** @j2sIgnore */ {
 			// reset JRE dropdown to initial state
 			int vmBitness = OSPRuntime.getVMBitness();
 			if (vmBitness == 32) {
@@ -1645,7 +1645,7 @@ public class PrefsDialog extends JDialog {
 		setTabTitle(displayPanel, TrackerRes.getString("PrefsDialog.Tab.Display.Title")); //$NON-NLS-1$
 		setTabTitle(actionsPanel, TrackerRes.getString("PrefsDialog.Tab.Tracking.Title")); //$NON-NLS-1$
 		setTabTitle(videoPanel, TrackerRes.getString("PrefsDialog.Tab.Video.Title")); //$NON-NLS-1$
-		if (!OSPRuntime.isJS) {
+		/** @j2sIgnore */ {
 			setTabTitle(generalPanel, TrackerRes.getString("PrefsDialog.Tab.General.Title")); //$NON-NLS-1$
 			hintsCheckbox.setText(TrackerRes.getString("PrefsDialog.Checkbox.HintsOn")); //$NON-NLS-1$
 			logLevelSubPanelBorder.setTitle(TrackerRes.getString("PrefsDialog.LogLevel.BorderTitle")); //$NON-NLS-1$
@@ -1843,7 +1843,7 @@ public class PrefsDialog extends JDialog {
 			}
 		}
 		Tracker.isRadians = radiansButton.isSelected();
-		if (!OSPRuntime.isJS) {
+		/** @j2sIgnore */ {
 			// update recent menu
 			Integer val = (Integer) recentSizeSpinner.getValue();
 			Tracker.setRecentSize(val);
@@ -1955,7 +1955,7 @@ public class PrefsDialog extends JDialog {
 		else
 			markStickEndsButton.setSelected(true);
 
-		if (!OSPRuntime.isJS) {
+		/** @j2sIgnore */ {
 			// hints
 			hintsCheckbox.setSelected(Tracker.showHintsByDefault);
 			// locale

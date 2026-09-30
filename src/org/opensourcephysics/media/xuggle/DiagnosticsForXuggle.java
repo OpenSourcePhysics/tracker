@@ -76,7 +76,7 @@ public class DiagnosticsForXuggle extends Diagnostics {
 	 */
 
 	static { // added by W. Christian
-		if (!OSPRuntime.isJS) {
+		/** @j2sIgnore */ {
 			vmBitness = OSPRuntime.getVMBitness();
 
 			// get code base and and XUGGLE_HOME

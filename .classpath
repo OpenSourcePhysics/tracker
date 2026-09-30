@@ -1,9 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<classpath> 
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+<classpath>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER">
+		<attributes>
+			<attribute name="module" value="true"/>
+		</attributes>
+	</classpathentry>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="lib" path="libraries/xuggle-xuggler-server-all-5.7.0-20210422.000415-2.jar"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/osp"/>
 	<classpathentry kind="src" path="resources"/>
+	<classpathentry kind="lib" path="/Users/wochristian/J2SProjects/GitHubOSP/tracker/libraries/javacv.jar"/>
+	<classpathentry kind="lib" path="/Users/wochristian/J2SProjects/GitHubOSP/tracker/libraries/javacpp.jar"/>
+	<classpathentry kind="lib" path="/Users/wochristian/J2SProjects/GitHubOSP/tracker/libraries/opencv.jar"/>
+	<classpathentry kind="lib" path="/Users/wochristian/J2SProjects/GitHubOSP/tracker/libraries/opencv-macosx-arm64.jar"/>
+	<classpathentry kind="lib" path="/Users/wochristian/J2SProjects/GitHubOSP/tracker/libraries/ffmpeg-macosx-arm64.jar"/>
+	<classpathentry kind="lib" path="/Users/wochristian/J2SProjects/GitHubOSP/tracker/libraries/ffmpeg.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

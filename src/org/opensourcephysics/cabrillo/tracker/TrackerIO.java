@@ -2107,7 +2107,7 @@ public class TrackerIO extends VideoIO {
 					// remove the empty tab if there is more than 1 tab
 					frame.removeEmptyTabIfTabCountGreaterThan(1);
 				}
-			} else if (!OSPRuntime.isJS) {
+			} else /** @j2sIgnore */ {
 				switch (Tracker.checkMemory(frame, ignoreLowMemory)) {
 				case Tracker.MEMORY_OK:
 					break;
@@ -2427,16 +2427,6 @@ public class TrackerIO extends VideoIO {
 			}
 
 			checkDone(false);
-			// remove empty tab if running in Java
-
-//			if (!OSPRuntime.isJS) {
-//				TToolBar tbar = trackerPanel.getToolBar(false);
-//				SwingUtilities.invokeLater(()->{
-//					if (tbar != null)
-//						tbar.refresh(TToolBar.REFRESH_TFRAME_REFRESH_TRUE);
-//					frame.doTabStateChanged();
-//				});
-//			}
 			control = null;
 			this.libraryBrowser = null;
 			this.loader = null;

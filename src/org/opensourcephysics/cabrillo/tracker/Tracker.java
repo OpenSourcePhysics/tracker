@@ -845,7 +845,7 @@ public class Tracker {
 	 * JavaScript only (but not necessarily)
 	 * 
 	 * Imports a browser-created video or image stack into the current tab.
-	 * Tracker.TrackerCameraImport is created by new _ES6.TrackerCamera() and
+	 * Tracker.TrackerCameraImport is created by new ES6.TrackerCamera() and
 	 * calls back to this method via Tracker.app
 	 * 
 	 * <p>
