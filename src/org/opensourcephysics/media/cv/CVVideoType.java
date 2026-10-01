@@ -154,9 +154,9 @@ public class CVVideoType extends MovieVideoType {
 		return MovieFactory.ENGINE_CV;
 	}
 
-	@Override
+  @Override
 	public String toString() {
-		return _toString();
+		return "[" + getTypeName() + " " + getDescription() + "]";
 	}
 	
 }

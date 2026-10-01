@@ -74,7 +74,7 @@ public class CVVideo extends MovieVideo {
 	// a cache of images for fast recall
 	private BufferedImage[] imageCache;
 	// maximum number of cached images; for debugging use 0
-	private int cacheMax = 10;
+	private int cacheMax = 0;
 
 	private FFmpegFrameGrabber grabber;
 	private Java2DFrameConverter imageConverter;
@@ -174,25 +174,25 @@ public class CVVideo extends MovieVideo {
       	}
       };
       
-			// use AsyncSwingWorker to run the runner in the background
-			new AsyncSwingWorker(null, null, 10, 0, 1) { // 10 ms delay
-
-				@Override
-				public void initAsync() {
-				}
-
-				@Override
-				public int doInBackgroundAsync(int i) {
-					runner.run();
-					return 1;
-				}
-
-				@Override
-				public void doneAsync() {
-//					debugCache();
-				}
-
-			}.execute();
+//			// use AsyncSwingWorker to run the runner in the background
+//			new AsyncSwingWorker(null, null, 10, 0, 1) { // 10 ms delay
+//
+//				@Override
+//				public void initAsync() {
+//				}
+//
+//				@Override
+//				public int doInBackgroundAsync(int i) {
+//					runner.run();
+//					return 1;
+//				}
+//
+//				@Override
+//				public void doneAsync() {
+////					debugCache();
+//				}
+//
+//			}.execute();
       
    } catch (Exception e) {
 			e.printStackTrace();
@@ -227,7 +227,7 @@ public class CVVideo extends MovieVideo {
 			imageList = null;
 		}
 		// recreate startTimes array
-		setStartTimes();
+//		setStartTimes();
 
 //		rawFrameCount = frameCount;
 //		if (control != null) {
