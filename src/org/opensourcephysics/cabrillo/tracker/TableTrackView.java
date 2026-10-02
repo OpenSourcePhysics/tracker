@@ -1383,6 +1383,7 @@ public class TableTrackView extends TrackView {
 		tool.setSaveChangesOnClose(false);
 		DataRefreshTool refresher = DataRefreshTool.getTool(trackDataManager);
 		tool.send(new LocalJob(toSend), refresher);
+        FitDataMetadata.attach(track,tool.getTab(toSend),trackDataManager);
 		tool.setVisible(true);
 	}
 
@@ -2269,6 +2270,11 @@ public class TableTrackView extends TrackView {
 	}
 
 	class TrackDataTable extends DataTable {
+        @Override public String getUnits(String name) {
+            TTrack track=getTrack();
+            String units=track==null || track.tp==null?null:track.tp.getDataUnits(track,name);
+            return units==null || units.trim().length()==0?super.getUnits(name):units;
+        }
 
 		@Override
 		public int findLastAddedModelIndex(StringBuffer names) {
