@@ -1698,7 +1698,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		}
 		if (opening && !OSPRuntime.isJS) {
 			if (frame != null) {
-				System.out.println("TMenuBar mem test " + OSPRuntime.getMemoryStr()); // TEST_BH
+				//System.out.println("TMenuBar mem test " + OSPRuntime.getMemoryStr()); // TEST_BH
 				frame.refreshOpenRecentMenu(file_openRecentMenu);
 			}
 		}
