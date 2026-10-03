@@ -50,7 +50,7 @@ import org.opensourcephysics.display.ResizableIcon;
 import org.opensourcephysics.tools.FontSizer;
 
 /**
- * This is a dialog containing buttons for all user tracks.
+ * This is the floating "Track" dialog containing buttons for all user tracks.
  *
  * @author Douglas Brown
  */
@@ -105,7 +105,7 @@ public class TrackControl extends JDialog implements OSPRuntime.Disposable, Prop
 		super(panel.getTFrame(), false);
 		panelID = panel.getID();
 		frame = panel.getTFrame();
-			
+		getRootPane().putClientProperty("J2S_Z_INDEX", new Object[]{ frame, Integer.valueOf(1)});
 		// create GUI
 		trackBarPanel = new JPanel();
 		setContentPane(trackBarPanel);
