@@ -650,7 +650,7 @@ public class Tracker {
 					startupHintShown = true;
 					panel.setMessage(TrackerRes.getString("Tracker.Startup.Hint")); //$NON-NLS-1$
 				}
-				if (OSPRuntime.isMobile()) // opening on iPad
+				if (OSPRuntime.isMobile())
 					frame.maximizeView(panel, TView.VIEW_MAIN);
 			});
 		}

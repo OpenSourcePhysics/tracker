@@ -413,6 +413,16 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 		fileDropHandler = new FileDropHandler(this);
 		// set transfer handler for CTRL-V paste
 		tabbedPane.setTransferHandler(fileDropHandler);
+		
+		// Force the tab header area to have a height of 0
+		tabbedPane.setUI(new javax.swing.plaf.basic.BasicTabbedPaneUI() {
+	    @Override
+	    protected int calculateTabAreaHeight(int tabPlacement, int horizRunCount, int maxTabHeight) {
+	      if (OSPRuntime.isMobile())
+	      	return 0;
+	      return super.calculateTabAreaHeight(tabPlacement, horizRunCount, maxTabHeight);
+	    }
+		});
 		if (panel != null) {
 			addTab(panel, ADD_NOSELECT | ADD_REFRESH, () -> {
 			});
@@ -1915,6 +1925,27 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 //		TTabPanel tabPanel = (TTabPanel) tabbedPane.getComponentAt(tab);
 //		tabPanel.setToolbarVisible(false);	
 //		tabPanel.revalidate();
+	}
+	
+	void maximizeNextView(TrackerPanel panel) {
+		int nextView = TView.VIEW_MAIN;
+		switch (panel.getMaximizedView()) {
+		case TView.VIEW_UNSET:
+			return;
+		case TView.VIEW_MAIN:
+			nextView = TView.VIEW_PLOT;
+			break;
+		case TView.VIEW_PLOT:
+			nextView = TView.VIEW_TABLE;
+			break;
+		case TView.VIEW_TABLE:
+			nextView = TView.VIEW_WORLD;
+			break;
+		case TView.VIEW_WORLD:
+			nextView = TView.VIEW_PAGE;
+			break;
+		}
+		maximizeView(panel, nextView);		
 	}
 
 	void saveCurrentDividerLocations(TrackerPanel trackerPanel) {

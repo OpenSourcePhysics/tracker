@@ -1299,7 +1299,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		// restoreItem
 		view_restoreItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.Restore")); //$NON-NLS-1$
 		view_restoreItem.addActionListener((e) -> {
-				panel().restoreViews();
+			frame.restoreViews(panel());
 		});
 		// right Pane item
 		view_rightPaneItem = new JCheckBoxMenuItem(TrackerRes.getString("TMenuBar.MenuItem.WindowRight"), false); //$NON-NLS-1$
@@ -1334,7 +1334,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		view_mobileLayoutItem.addActionListener((e) -> {
 			// Capture these before the item is moved between the View menu and the
 			// compact toolbar popup. Let the touch action finish before rebuilding.
-			boolean compact = view_mobileLayoutItem.isSelected();
+			boolean mobile = view_mobileLayoutItem.isSelected();
 			Container popup = view_mobileLayoutItem.getParent();
 			SwingUtilities.invokeLater(() -> {
 				if (frame != null) {
@@ -1344,8 +1344,8 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 					if (popup instanceof JPopupMenu) {
 						((JPopupMenu) popup).setVisible(false);
 					}
-					OSPRuntime.preferMobile = compact;
-					OSPRuntime.neverMobile = !compact;
+					OSPRuntime.preferMobile = mobile;
+					OSPRuntime.neverMobile = !mobile;
 					panel().taintEnabled();
 					TToolBar toolbar = frame.getToolBar(panelID, false);
 					toolbar.refresh(TToolBar.REFRESH__REFRESH_ACTION_TRUE);
@@ -1353,6 +1353,16 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 						frame.currentMenuBar.setMenuTainted(MENU_ALL, true);
 						frame.currentMenuBar.refreshHelpMenu(false);
 						frame.setJMenuBar(frame.currentMenuBar);
+					}
+					panel().getPlayer().refresh();
+					frame.getTrackBar(panelID, true).refresh();
+					TViewChooser[] viewChoosers = frame.getViewChoosers(panel());
+					for (int i = 0; i < viewChoosers.length; i++) {
+						viewChoosers[i].refreshMaximizeButton();
+					}
+					// maximize main view if currently unset
+					if (mobile && panel().getMaximizedView()==TView.VIEW_UNSET) {
+						frame.maximizeView(panel(), TView.VIEW_MAIN);
 					}
 				}
 			});
@@ -2778,13 +2788,20 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 			view_singleViewMenu.add(view_4Item);
 			viewMenu.addSeparator();
 			
+			view_mobileLayoutItem.setSelected(OSPRuntime.isMobile());
+			viewMenu.add(view_mobileLayoutItem);
+			viewMenu.addSeparator();
+			
 			if (panel().getMaximizedView() != TView.VIEW_UNSET) {
-				viewMenu.add(view_restoreItem);
+				if (!OSPRuntime.isMobile()) {
+					viewMenu.add(view_restoreItem);
+					viewMenu.addSeparator();
+				}
 			} else {
 				viewMenu.add(view_rightPaneItem);
 				viewMenu.add(view_bottomPaneItem);
+				viewMenu.addSeparator();
 			}
-			viewMenu.addSeparator();
 			viewMenu.add(view_trackControlItem);
 			viewMenu.add(view_notesItem);
 			if (panel.isEnabled("data.builder") //$NON-NLS-1$
@@ -2797,9 +2814,6 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 					viewMenu.add(view_dataToolItem);
 			}
 			
-			view_mobileLayoutItem.setSelected(OSPRuntime.isMobile());
-			viewMenu.addSeparator();
-			viewMenu.add(view_mobileLayoutItem);
 			
 			view_TabsMenu = new JMenu(TrackerRes.getString("TMenuBar.TabMenu.Text"));
 			viewMenu.addSeparator();

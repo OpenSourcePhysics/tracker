@@ -155,11 +155,12 @@ public class TViewChooser extends JPanel implements PropertyChangeListener, OSPR
 		maximizeButton.setBorder(BorderFactory.createCompoundBorder(etched, empty));
 		maximizeButton.addActionListener(new ActionListener() {
 			@Override
-			public void actionPerformed(ActionEvent e) {			
+			public void actionPerformed(ActionEvent e) {		
 				if (!isMaximized()) {
 					maximize();
-				} 
-				else restore();
+				}
+				else if (!OSPRuntime.isMobile())
+					restore();
 			}
 		});
 		// choose view button
@@ -180,13 +181,18 @@ public class TViewChooser extends JPanel implements PropertyChangeListener, OSPR
 		}; //$NON-NLS-1$
 		chooseViewButton.setBorder(BorderFactory.createCompoundBorder(etched, empty));
 		chooseViewButton.alignPopup = TButton.RIGHT;
+		chooseViewButton.setRunnablesForShortAndLongPress(
+				() -> {frame.maximizeNextView(getTrackerPanel());}, 
+				() -> {chooseViewButton.showPopup(null);});
 		setSelectedViewType(type);
 	}
 	
-	private void refreshMaximizeButton() {
+	protected void refreshMaximizeButton() {
 		boolean maximized = isMaximized();
-		maximizeButton.setIcon(maximized? RESTORE_ICON: MAXIMIZE_ICON);
-		maximizeButton.setToolTipText(maximized ? 
+		boolean small = OSPRuntime.isSmallScreen();
+		boolean mobile = OSPRuntime.isMobile();
+		maximizeButton.setIcon(mobile? null: maximized? RESTORE_ICON: MAXIMIZE_ICON);
+		maximizeButton.setToolTipText(mobile? null: maximized? 
 				TrackerRes.getString("TViewChooser.Restore.Tooltip") : //$NON-NLS-1$
 				TrackerRes.getString("TViewChooser.Maximize.Tooltip")); //$NON-NLS-1$
 		maximizeButton.setText(TrackerRes.getString("TMenuBar.Menu.Window")+" "+maximizeButton.getName());

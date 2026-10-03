@@ -332,7 +332,6 @@ public class TrackerIO extends VideoIO {
 	 * @return the file written to, or null if not written
 	 */
 	public static File save(File file, TrackerPanel trackerPanel) {
-		trackerPanel.restoreViews();
 		getChooser().setAcceptAllFileFilterUsed(false);
 		chooser.addChoosableFileFilter(trkFileFilter);
 		chooser.setAccessory(null);

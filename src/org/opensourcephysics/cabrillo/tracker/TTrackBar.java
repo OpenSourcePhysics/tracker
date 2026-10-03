@@ -302,11 +302,6 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 			public void mousePressed(MouseEvent e) {
 				if (e.getClickCount() == 2) {
 					maximizeButton.doClick(0);
-//					TFrame frame = trackerPanel.getTFrame();
-//					if (frame.getMaximizedView() < 0)
-//						frame.maximizeView(trackerPanel, 4);
-//					else 
-//						frame.restoreViews(trackerPanel);
 				}
 			}
 		});
@@ -365,15 +360,9 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 				boolean maximize = (panel().getMaximizedView() == TView.VIEW_UNSET);
 				if (maximize) {
 					frame.maximizeView(panel(), TView.VIEW_MAIN);
-				} else {
+				} else if (!OSPRuntime.isMobile()) {
 					frame.restoreViews(panel());
 				}
-//				maximizeButton.setSelected(maximize);
-//				if (OSPRuntime.isJS) {
-//					maximizeButton.setIcon(maximize? TViewChooser.RESTORE_ICON: TViewChooser.MAXIMIZE_ICON);
-//				}
-//				maximizeButton.setToolTipText(maximize ? TrackerRes.getString("TViewChooser.Restore.Tooltip") : //$NON-NLS-1$
-//					TrackerRes.getString("TViewChooser.Maximize.Tooltip")); //$NON-NLS-1$				
 				rebuild();
 			}
 		});
@@ -395,6 +384,9 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 		}; //$NON-NLS-1$
 		chooseViewButton.setBorder(BorderFactory.createCompoundBorder(etched, empty));
 		chooseViewButton.alignPopup = TButton.RIGHT;
+		chooseViewButton.setRunnablesForShortAndLongPress(
+				() -> {frame.maximizeNextView(panel());}, 
+				() -> {chooseViewButton.showPopup(null);});
 
 		mainViewIconLabel = new JLabel(TToolBar.pointmassOffIcon);
 		mainViewIconLabel.setBorder(BorderFactory.createEmptyBorder(2, 0, 2, 6));
@@ -594,15 +586,17 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 		maximizeButton.setText(TrackerRes.getString("TFrame.View.Main"));
 		add(mainViewIconLabel);
 		add(maximizeButton);
+		boolean small = OSPRuntime.isSmallScreen();
+		boolean mobile = OSPRuntime.isMobile();
 		if (panel().getMaximizedView() != TView.VIEW_UNSET) {
-			maximizeButton.setIcon(TViewChooser.RESTORE_ICON);
-			maximizeButton.setToolTipText(TrackerRes.getString("TViewChooser.Restore.Tooltip"));//$NON-NLS-1$
+			maximizeButton.setIcon(mobile? null: TViewChooser.RESTORE_ICON);
+			maximizeButton.setToolTipText(mobile? null: TrackerRes.getString("TViewChooser.Restore.Tooltip"));//$NON-NLS-1$
 			chooseViewButton.setToolTipText(TrackerRes.getString("TViewChooser.NextView.Tooltip")); //$NON-NLS-1$
 			add(chooseViewButton);			
 		}
 		else {
-			maximizeButton.setIcon(TViewChooser.MAXIMIZE_ICON);
-			maximizeButton.setToolTipText(TrackerRes.getString("TViewChooser.Maximize.Tooltip"));//$NON-NLS-1$
+			maximizeButton.setIcon(mobile? null: TViewChooser.MAXIMIZE_ICON);
+			maximizeButton.setToolTipText(mobile? null: TrackerRes.getString("TViewChooser.Maximize.Tooltip"));//$NON-NLS-1$
 		}
 
 		FontSizer.setFonts(maximizeButton);

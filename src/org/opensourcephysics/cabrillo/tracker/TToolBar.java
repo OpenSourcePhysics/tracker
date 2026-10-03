@@ -2176,24 +2176,31 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 		frame.currentMenuBar.refreshViewMenu(true);
 		viewPopup.add(frame.currentMenuBar.getMenuItem("view_singleViewMenu"));
 		viewPopup.addSeparator();
-		if (panel().getMaximizedView() != TView.VIEW_UNSET) {
-			viewPopup.add(frame.currentMenuBar.getMenuItem("view_restoreItem"));
-		} else {
-			viewPopup.add(frame.currentMenuBar.getMenuItem("view_rightPaneItem"));
-			viewPopup.add(frame.currentMenuBar.getMenuItem("view_bottomPaneItem"));
+
+		viewPopup.add(frame.currentMenuBar.getMenuItem("view_mobileLayoutItem"));
+		viewPopup.addSeparator();
+
+//		boolean small = OSPRuntime.isSmallScreen();
+		boolean mobile = OSPRuntime.isMobile();
+
+		if (!mobile) {
+			if (panel().getMaximizedView() != TView.VIEW_UNSET) {
+					viewPopup.add(frame.currentMenuBar.getMenuItem("view_restoreItem"));
+			} else {
+				viewPopup.add(frame.currentMenuBar.getMenuItem("view_rightPaneItem"));
+				viewPopup.add(frame.currentMenuBar.getMenuItem("view_bottomPaneItem"));
+			}
 		}
 //		viewPopup.addSeparator();
 //		viewPopup.add(frame.currentMenuBar.getMenuItem("view_notesItem"));
 		if (panel().isEnabled("data.builder") //$NON-NLS-1$
 				|| panel().isEnabled("data.tool")) { //$NON-NLS-1$
-			viewPopup.addSeparator();
+			if (!mobile) viewPopup.addSeparator();
 			if (panel().isEnabled("data.builder")) //$NON-NLS-1$
 				viewPopup.add(frame.currentMenuBar.getMenuItem("view_dataBuilderItem"));
 			if (panel().isEnabled("data.tool")) //$NON-NLS-1$					
 				viewPopup.add(frame.currentMenuBar.getMenuItem("view_dataToolItem"));
 		}
-		viewPopup.addSeparator();
-		viewPopup.add(frame.currentMenuBar.getMenuItem("view_mobileLayoutItem"));
 		viewPopup.addSeparator();
 		viewPopup.add(frame.currentMenuBar.getMenuItem("view_TabsMenu"));
 	}

@@ -1091,7 +1091,6 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 					public void actionPerformed(ActionEvent e) {
 						switch (e.getID()) {
 						case JOptionPane.YES_OPTION:
-							restoreViews();
 							File file = VideoIO.save(getDataFile(), TrackerPanel.this);
 							if (file == null) {
 								if (whenCanceled != null) {
@@ -2466,27 +2465,27 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		return proposed;
 	}
 
-	/**
-	 * Restores the views to a non-maximized state.
-	 */
-	protected void restoreViews() {
-		TFrame frame = getTFrame();
-		if (frame != null) {
-			int n = getMaximizedView();
-			switch (n) {
-			case TView.VIEW_UNSET:
-				return;
-			case TView.VIEW_MAIN:
-				getTrackBar(true).maximizeButton.doClick(0);
-				break;
-			default:
-				TViewChooser viewChooser = frame.getViewChoosers(this)[n];
-				viewChooser.restore();
-				break;
-			}
-		}
-	}
-
+//	/**
+//	 * Restores the views to a non-maximized state.
+//	 */
+//	protected void restoreViews() {
+//		TFrame frame = getTFrame();
+//		if (frame != null) {
+//			int n = getMaximizedView();
+//			switch (n) {
+//			case TView.VIEW_UNSET:
+//				return;
+//			case TView.VIEW_MAIN:
+//				getTrackBar(true).maximizeButton.doClick(0);
+//				break;
+//			default:
+//				TViewChooser viewChooser = frame.getViewChoosers(this)[n];
+//				viewChooser.restore();
+//				break;
+//			}
+//		}
+//	}
+//
 	/**
 	 * Sets the cursor to a crosshair when the selected track is marking and is
 	 * unmarked on the current frame. Also displays hints as a side effect.
@@ -4123,14 +4122,26 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 						trackerPanel.customViewsProperty = prop;
 						n++;
 						break;
-					}
+					}					
 				}
 				trackerPanel.progress = VideoIO.PROGRESS_VIDEO_LOADING;
 				break;
 			default:
 				super.loadObject(control, obj);	// loads video
 			}
-
+			
+			if (trackerPanel.progress == VideoIO.PROGRESS_COMPLETE 
+					&& control.getPropertyNamesRaw().contains("maximized_view")) { //$NON-NLS-1$
+				trackerPanel.setMaximizedView(control.getInt("maximized_view")); //$NON-NLS-1$
+				// set dividerFractions to restore
+				double[] arret = (double[]) control.getObject("divider_fractions");
+				if (arret != null) {
+					for (int i = 0; i < arret.length; i++) {
+						trackerPanel.dividerFractions[i] = arret[i]; 
+					}					
+				}
+			}
+			
 			return trackerPanel;
 		}
 
@@ -4385,6 +4396,11 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			// save custom configurations
 			if (!Tracker.isDefaultConfiguration(trackerPanel.getEnabled()) && trackerPanel.isEnabled("config.saveWithData")) { //$NON-NLS-1$
 				control.setValue("configuration", new Configuration(trackerPanel)); //$NON-NLS-1$
+			}
+			
+			if (trackerPanel.maximizedView != TView.VIEW_UNSET) {
+				control.setValue("maximized_view", trackerPanel.maximizedView); //$NON-NLS-1$
+				control.setValue("divider_fractions", trackerPanel.dividerFractions); //$NON-NLS-1$
 			}
 
 			// save frame-related properties
