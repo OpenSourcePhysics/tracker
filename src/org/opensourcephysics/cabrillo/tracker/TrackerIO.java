@@ -110,7 +110,6 @@ import org.opensourcephysics.tools.FontSizer;
 import org.opensourcephysics.tools.LibraryBrowser;
 import org.opensourcephysics.tools.LibraryCollection;
 import org.opensourcephysics.tools.LibraryResource;
-import org.opensourcephysics.tools.LibraryTreePanel;
 import org.opensourcephysics.tools.Resource;
 import org.opensourcephysics.tools.ResourceLoader;
 
@@ -962,12 +961,7 @@ public class TrackerIO extends VideoIO {
 		run("addToLibrary", () -> {
 
 			frame.getLibraryBrowser().open(path);
-			OSPRuntime.trigger(1000, (e) -> {
-				LibraryTreePanel treePanel = frame.getLibraryBrowser().getSelectedTreePanel();
-				if (treePanel != null) {
-					treePanel.refreshSelectedNode();
-				}
-			});
+			frame.refreshLibraryNode();
 		});
 	}
 

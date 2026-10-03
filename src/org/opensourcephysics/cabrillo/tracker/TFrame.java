@@ -141,7 +141,6 @@ import org.opensourcephysics.tools.Launcher.HTMLPane;
 import org.opensourcephysics.tools.LibraryBrowser;
 import org.opensourcephysics.tools.LibraryComPADRE;
 import org.opensourcephysics.tools.LibraryResource;
-import org.opensourcephysics.tools.LibraryTreePanel;
 import org.opensourcephysics.tools.Resource;
 import org.opensourcephysics.tools.ResourceLoader;
 import org.opensourcephysics.tools.ToolsRes;
@@ -3144,12 +3143,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 			setCursor(Cursor.getDefaultCursor());
 			libraryBrowser.open(path);
 			libraryBrowser.setVisible(true);
-			OSPRuntime.trigger(1000, (e) -> {
-				LibraryTreePanel treePanel = libraryBrowser.getSelectedTreePanel();
-				if (treePanel != null) {
-					treePanel.refreshSelectedNode();
-				}
-			});
+			refreshLibraryNode();
 		});
 	}
 
@@ -4072,6 +4066,10 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 		}
 		maximized = !maximized;
 		getAdaptiveBounds(false);
+	}
+
+	void refreshLibraryNode() {
+		libraryBrowser.refreshSelectedNode();
 	}
 
 }
