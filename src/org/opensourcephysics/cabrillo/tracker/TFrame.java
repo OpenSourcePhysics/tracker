@@ -417,7 +417,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 		tabbedPane.setUI(new javax.swing.plaf.basic.BasicTabbedPaneUI() {
 	    @Override
 	    protected int calculateTabAreaHeight(int tabPlacement, int horizRunCount, int maxTabHeight) {
-	      if (OSPRuntime.isMobile())
+	      if (OSPRuntime.isSmallScreen())
 	      	return 0;
 	      return super.calculateTabAreaHeight(tabPlacement, horizRunCount, maxTabHeight);
 	    }
@@ -1918,6 +1918,16 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 			}
 		}
 		
+		// refresh the maximized view 
+		TViewChooser[] choosers = getViewChoosers(trackerPanel);
+		if (choosers != null && viewIndex >= 0 && viewIndex < choosers.length
+				&& choosers[viewIndex] != null) {
+			int viewType = choosers[viewIndex].getSelectedViewType();
+			if (viewType == TView.VIEW_PLOT || viewType == TView.VIEW_TABLE) {
+				choosers[viewIndex].getSelectedView().refresh();
+			}
+		}
+
 
 //		int tab = getTab(trackerPanel);
 //		if (tab == -1) return;

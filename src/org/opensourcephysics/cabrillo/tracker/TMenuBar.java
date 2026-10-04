@@ -2793,7 +2793,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 			viewMenu.addSeparator();
 			
 			if (panel().getMaximizedView() != TView.VIEW_UNSET) {
-				if (!OSPRuntime.isMobile()) {
+				if (!OSPRuntime.isSmallScreen()) {
 					viewMenu.add(view_restoreItem);
 					viewMenu.addSeparator();
 				}

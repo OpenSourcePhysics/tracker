@@ -902,8 +902,12 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			autoTracker.setTrack(track);
 		}
 		
-		// display default views if not yet visible
-		if (firstTrack && isUserTrack && frame != null && !frame.areViewsVisible(TFrame.DEFAULT_VIEWS, this)) {
+		// display default views if not yet visible unless small screen or maximized view
+		boolean nogo = getMaximizedView() != TView.VIEW_UNSET 
+				|| OSPRuntime.isSmallScreen()
+				|| !firstTrack
+				|| !isUserTrack; 
+		if (!nogo && frame != null && !frame.areViewsVisible(TFrame.DEFAULT_VIEWS, this)) {
 			if (!TFrame.isPortraitOrientation)
 				frame.setDividerLocation(this, TFrame.SPLIT_MAIN_RIGHT, TFrame.DEFAULT_MAIN_DIVIDER); 			
 			else 

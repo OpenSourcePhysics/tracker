@@ -2180,10 +2180,10 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 		viewPopup.add(frame.currentMenuBar.getMenuItem("view_mobileLayoutItem"));
 		viewPopup.addSeparator();
 
-//		boolean small = OSPRuntime.isSmallScreen();
+		boolean small = OSPRuntime.isSmallScreen();
 		boolean mobile = OSPRuntime.isMobile();
 
-		if (!mobile) {
+		if (!small) {
 			if (panel().getMaximizedView() != TView.VIEW_UNSET) {
 					viewPopup.add(frame.currentMenuBar.getMenuItem("view_restoreItem"));
 			} else {
@@ -2195,7 +2195,7 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 //		viewPopup.add(frame.currentMenuBar.getMenuItem("view_notesItem"));
 		if (panel().isEnabled("data.builder") //$NON-NLS-1$
 				|| panel().isEnabled("data.tool")) { //$NON-NLS-1$
-			if (!mobile) viewPopup.addSeparator();
+			if (!small) viewPopup.addSeparator();
 			if (panel().isEnabled("data.builder")) //$NON-NLS-1$
 				viewPopup.add(frame.currentMenuBar.getMenuItem("view_dataBuilderItem"));
 			if (panel().isEnabled("data.tool")) //$NON-NLS-1$					
@@ -3032,7 +3032,7 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 		@Override
 		public Dimension getPreferredSize() {
 			Dimension dim = super.getPreferredSize();
-			if (OSPRuntime.isMobile()) {
+			if (OSPRuntime.isMobile() || OSPRuntime.isSmallScreen()) {
 				Dimension size = OSPRuntime.getHTMLPageSize();
 				dim.width = size.width / 6;
 			}
