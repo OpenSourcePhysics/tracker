@@ -220,7 +220,7 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 	protected JPopupMenu filePopup, videoPopup, coordsPopup, trackPopup, viewPopup; 
 	private final JMenu mobileEditMenu = new JMenu();
 	private final JMenu mobileHelpMenu = new JMenu();
-	protected TButton fileButton, videoButton, coordsButton, trackButton, viewButton;
+	protected TButton fileButton, videoButton, coordsButton, trackButton, viewButton, moreButton;
 	private boolean noButtonIcons = true;	
 
 	static {
@@ -819,7 +819,7 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 
 		
 		overflowPopup = new JPopupMenu();
-		overflowButton = new MobileButton() {
+		overflowButton = new TButton() {
 			@Override
 			protected JPopupMenu getPopup() {
 				refreshOverflowComponents();
@@ -827,10 +827,25 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 				return overflowPopup;
 			}
 		}; //$NON-NLS-1$
-		overflowButton.setText(TrackerRes.getString("TToolBar.Button.More.Text"));
+//		overflowButton.setText(TrackerRes.getString("TToolBar.Button.More.Text"));
 		overflowButton.alwaysShowBorder(true);
+		overflowButton.setIcon(overflowIcon);
+		overflowButton.alignPopup = TButton.RIGHT;
 //		overflowButton.setHorizontalTextPosition(JButton.LEADING);
-		overflowButton.setIconTextGap(3);
+//		overflowButton.setIconTextGap(3);
+		
+		moreButton = new MobileButton() {
+			@Override
+			protected JPopupMenu getPopup() {
+				refreshOverflowComponents();
+				FontSizer.setFonts(overflowPopup);
+				return overflowPopup;
+			}
+		}; 
+		moreButton.setText(TrackerRes.getString("TToolBar.Button.More.Text"));
+		moreButton.alwaysShowBorder(true);
+		moreButton.setIconTextGap(3);
+		moreButton.alignPopup = TButton.RIGHT;
 		
 		// create mobile popups and buttons
 		filePopup = new JPopupMenu();
@@ -1909,6 +1924,7 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 //		add(fontSizeButton);
 //		add(getSeparator());
 		add(index++, toolbarFiller);
+		System.out.println("pig1 ");
 //		add(index++, toolbarFiller);
 		if (Tracker.newerVersion != null) {
 			String s = TrackerRes.getString("TTrackBar.Button.Version"); //$NON-NLS-1$
@@ -1958,7 +1974,7 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 		coordsButton.setIcon(noButtonIcons? null: coordsIcon);
 		trackButton.setIcon(noButtonIcons? null: pointmassOffIcon);
 		viewButton.setIcon(noButtonIcons? null: TableTView.TABLEVIEW_ICON);
-		overflowButton.setIcon(noButtonIcons? null: overflowIcon);
+		moreButton.setIcon(noButtonIcons? null: overflowIcon);
 		
 		removeAll();
 		add(fileButton);
@@ -1966,7 +1982,7 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 		add(coordsButton);
 		add(trackButton);
 		add(viewButton);
-		add(overflowButton);
+		add(moreButton);
 	
 		rebuildMobileFilePopup();
 		rebuildMobileVideoPopup();
@@ -1981,7 +1997,7 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 		}
 		
 		TButton[] buttons = {fileButton, videoButton, coordsButton, 
-				trackButton, viewButton, overflowButton};
+				trackButton, viewButton, moreButton};
 		FontSizer.setFonts(buttons);
 		TFrame.repaintT(this);
 	}
