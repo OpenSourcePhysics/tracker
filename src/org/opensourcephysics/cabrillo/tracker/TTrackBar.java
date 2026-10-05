@@ -506,7 +506,7 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 			track.removeListenerNCF(this);
 		}
 		if (panel.getSelectedTrack() == null) {
-			String name = TrackerRes.getString("TFrame.View.Main.Desc");
+			String name = TrackerRes.getString("TFrame.View.Main.Track");
  			viewLabel.setText(name); //$NON-NLS-1$
  			FontSizer.setFonts(viewLabel);
 			add(viewLabel);
