@@ -24,6 +24,8 @@ import java.net.URL;
 import java.nio.charset.Charset;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+
+import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.tools.Resource;
 
 /**
@@ -40,7 +42,7 @@ public class LaunchCounter {
 
   public static void main(String[] args) throws AWTException {
   	
-  	Toolkit.getDefaultToolkit().beep();
+  	OSPRuntime.beep("LaunchCounter start");
 //  	recordCounts(dataFile);
   	recordCounts6();
 	
@@ -75,7 +77,7 @@ public class LaunchCounter {
 //		// write the new contents to dataFile
 //		write(contents, dataFile);
 //
-  	Toolkit.getDefaultToolkit().beep();
+  	OSPRuntime.beep("LaunchCounter end");
   }
   
   static void recordCounts(String fileName) throws AWTException {

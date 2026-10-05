@@ -909,6 +909,7 @@ public class TrackerIO extends VideoIO {
 
 	public static AsyncLoader openURL(String path, TFrame frame, Runnable whenDone) {
 		// TFrame.doOpenURL
+//		OSPRuntime.beep("TrackerIO loading " + path);
 		if (frame != null)
 			frame.loadedFiles.clear();
 		// OSPLog.debug("TrackerIO open " + path); //$NON-NLS-1$

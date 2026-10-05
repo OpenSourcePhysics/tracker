@@ -247,8 +247,7 @@ public class TMouseHandler implements InteractiveMouseHandler {
 			if (selectedPoint != null) {
 				int dx = 0, dy = 0;
 				if (track != null && track.isLocked() && !(track instanceof VectorSum)) {
-					Toolkit.getDefaultToolkit().beep();
-					OSPLog.finer(track + " is locked");
+					OSPRuntime.beep("TMmouseHandler track " + track + " is locked");
 					return;
 				}
 				// move p to current mouse location

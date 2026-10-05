@@ -145,6 +145,8 @@ import org.opensourcephysics.tools.Resource;
 import org.opensourcephysics.tools.ResourceLoader;
 import org.opensourcephysics.tools.ToolsRes;
 
+import javajs.async.SwingJSUtils.Performance;
+
 /**
  * This is the main frame for Tracker.
  *
@@ -475,6 +477,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 	 */
 	@Override
 	public void repaint(long time, int x, int y, int w, int h) {
+		System.err.println("TFrame repaint " + time + " " + isPaintable());
 		if (!isPaintable())
 			return;
 		super.repaint(time, x, y, w, h);
@@ -494,8 +497,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 			}
 			((TrackerPanel) c).clearTainted();
 		}
-		// OSPLog.debug(Performance.timeCheckStr("TFrame.repaintT " +
-		// c.getClass().getSimpleName(), Performance.TIME_MARK));
+//		OSPLog.debug(Performance.timeCheckStr("TFrame.repaintT " +
+//		c.getClass().getSimpleName(), Performance.TIME_MARK));
 		c.repaint();
 	}
 
@@ -3178,6 +3181,10 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 			TrackerPanel panel = getSelectedPanel();
 			if (panel != null) {
 				panel.setMouseCursor(Cursor.getDefaultCursor());
+				SwingUtilities.invokeLater(() -> {
+					panel.repaint();
+					
+				});
 			}
 		});
 	}

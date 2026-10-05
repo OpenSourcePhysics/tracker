@@ -2115,7 +2115,7 @@ public class Tracker {
 						continue;
 					}
 					if (prefsFile.exists() && prefsFile.canWrite()) {
-						control.write(prefsFile.getAbsolutePath());
+						control.writeNoSearch(prefsFile.getAbsolutePath());
 					}
 				}
 				// update prefs in current directory, if any
@@ -2650,6 +2650,18 @@ public class Tracker {
 	 */
 	protected static void addRecent(String filename, boolean atEnd) {
 		synchronized (recentFiles) {
+			if (!ResourceLoader.isHTTP(filename)) {
+				boolean exists = false;
+				try {
+					exists = new File(filename).exists();
+				} catch (Exception e) {
+					// ignore
+				}
+				if (!exists) {
+					OSPRuntime.beep("Tracker recent file does not exist: " + filename);
+					return;
+				}
+			}
 			while (recentFiles.contains(filename))
 				recentFiles.remove(filename);
 			if (atEnd)
