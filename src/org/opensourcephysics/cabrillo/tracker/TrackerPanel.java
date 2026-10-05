@@ -904,7 +904,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		
 		// display default views if not yet visible unless small screen or maximized view
 		boolean nogo = getMaximizedView() != TView.VIEW_UNSET 
-				|| OSPRuntime.isSmallScreen()
+				|| OSPRuntime.isSmallScreen(frame)
 				|| !firstTrack
 				|| !isUserTrack; 
 		if (!nogo && frame != null && !frame.areViewsVisible(TFrame.DEFAULT_VIEWS, this)) {

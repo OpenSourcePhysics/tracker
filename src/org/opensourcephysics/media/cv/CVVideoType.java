@@ -52,7 +52,6 @@ public class CVVideoType extends MovieVideoType {
 	
 	public static void main(String[] args) {
 		CVVideoType type = new CVVideoType();
-		System.out.println("pig testing "+type);
 	}
 
 	public static void register() {

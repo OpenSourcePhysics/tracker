@@ -1757,6 +1757,14 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 	}
 
 	private void rebuild(int overflow) {
+		
+		int small = OSPRuntime.getSmallScreenThreshold();
+		boolean prev = noButtonIcons;
+		noButtonIcons = frame.getSize().width < small;
+		if (prev != noButtonIcons) {
+			panel().getPlayer().refresh();
+		}
+		
 		if (OSPRuntime.isMobile()) {
 			rebuildForMobile();
 			return;
@@ -1943,7 +1951,7 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 		}
 	}
 
-	private void rebuildForMobile() {
+	private void rebuildForMobile() {	
 		// add and populate mobile buttons
 		fileButton.setIcon(noButtonIcons? null: folderIcon);
 		videoButton.setIcon(noButtonIcons? null: clipOffIcon);
@@ -2178,9 +2186,10 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 		viewPopup.addSeparator();
 
 		viewPopup.add(frame.currentMenuBar.getMenuItem("view_mobileLayoutItem"));
+		viewPopup.add(frame.currentMenuBar.getMenuItem("edit_fontSizeMenu"));
 		viewPopup.addSeparator();
 
-		boolean small = OSPRuntime.isSmallScreen();
+		boolean small = OSPRuntime.isSmallScreen(frame);
 		boolean mobile = OSPRuntime.isMobile();
 
 		if (!small) {
@@ -3032,7 +3041,7 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 		@Override
 		public Dimension getPreferredSize() {
 			Dimension dim = super.getPreferredSize();
-			if (OSPRuntime.isMobile() || OSPRuntime.isSmallScreen()) {
+			if (OSPRuntime.isMobile() || OSPRuntime.isSmallScreen(frame)) {
 				Dimension size = OSPRuntime.getHTMLPageSize();
 				dim.width = size.width / 6;
 			}

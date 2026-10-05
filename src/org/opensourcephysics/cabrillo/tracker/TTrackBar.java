@@ -360,7 +360,7 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 				boolean maximize = (panel().getMaximizedView() == TView.VIEW_UNSET);
 				if (maximize) {
 					frame.maximizeView(panel(), TView.VIEW_MAIN);
-				} else if (!OSPRuntime.isSmallScreen()) {
+				} else if (!OSPRuntime.isSmallScreen(frame)) {
 					frame.restoreViews(panel());
 				}
 				rebuild();
@@ -586,7 +586,7 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 		maximizeButton.setText(TrackerRes.getString("TFrame.View.Main"));
 		add(mainViewIconLabel);
 		add(maximizeButton);
-		boolean small = OSPRuntime.isSmallScreen();
+		boolean small = OSPRuntime.isSmallScreen(frame);
 		boolean mobile = OSPRuntime.isMobile();
 		if (panel().getMaximizedView() != TView.VIEW_UNSET) {
 			maximizeButton.setIcon(small? null: TViewChooser.RESTORE_ICON);

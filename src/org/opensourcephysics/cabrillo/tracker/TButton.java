@@ -204,7 +204,8 @@ public class TButton extends JButton {
 	 * or within the visible viewport.
 	 */
 	private void alignComponentRight(JComponent c, JComponent ref) {
-		OSPRuntime.jsutil.alignComponentRight(c, ref, 0);
+		if (OSPRuntime.jsutil != null)
+			OSPRuntime.jsutil.alignComponentRight(c, ref, 0);
 	}
 
 	/**

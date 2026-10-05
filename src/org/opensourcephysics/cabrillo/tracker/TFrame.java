@@ -417,7 +417,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 		tabbedPane.setUI(new javax.swing.plaf.basic.BasicTabbedPaneUI() {
 	    @Override
 	    protected int calculateTabAreaHeight(int tabPlacement, int horizRunCount, int maxTabHeight) {
-	      if (OSPRuntime.isSmallScreen())
+	      if (OSPRuntime.isSmallScreen(TFrame.this))
 	      	return 0;
 	      return super.calculateTabAreaHeight(tabPlacement, horizRunCount, maxTabHeight);
 	    }

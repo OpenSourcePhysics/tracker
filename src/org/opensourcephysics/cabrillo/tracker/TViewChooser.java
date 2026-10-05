@@ -159,7 +159,7 @@ public class TViewChooser extends JPanel implements PropertyChangeListener, OSPR
 				if (!isMaximized()) {
 					maximize();
 				}
-				else if (!OSPRuntime.isSmallScreen())
+				else if (!OSPRuntime.isSmallScreen(frame))
 					restore();
 			}
 		});
@@ -189,8 +189,7 @@ public class TViewChooser extends JPanel implements PropertyChangeListener, OSPR
 	
 	protected void refreshMaximizeButton() {
 		boolean maximized = isMaximized();
-		boolean small = OSPRuntime.isSmallScreen();
-		boolean mobile = OSPRuntime.isMobile();
+		boolean small = OSPRuntime.isSmallScreen(frame);
 		maximizeButton.setIcon(small? null: maximized? RESTORE_ICON: MAXIMIZE_ICON);
 		maximizeButton.setToolTipText(small? null: maximized? 
 				TrackerRes.getString("TViewChooser.Restore.Tooltip") : //$NON-NLS-1$

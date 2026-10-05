@@ -650,7 +650,7 @@ public class Tracker {
 					startupHintShown = true;
 					panel.setMessage(TrackerRes.getString("Tracker.Startup.Hint")); //$NON-NLS-1$
 				}
-				if (OSPRuntime.isSmallScreen())
+				if (OSPRuntime.isSmallScreen(frame))
 					frame.maximizeView(panel, TView.VIEW_MAIN);
 			});
 		}

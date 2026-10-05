@@ -457,6 +457,8 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 			return file_propertiesItem;
 		case "editMenu":
 			return editMenu;
+		case "edit_fontSizeMenu":
+			return edit_fontSizeMenu;
 		case "coordsMenu":
 			return coordsMenu;
 		case "coords_lockedCoordsItem":
@@ -2106,8 +2108,8 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 				checkAddMenuSep(editMenu);
 				editMenu.add(edit_matSizeMenu);
 			}
-			checkAddMenuSep(editMenu);
-			editMenu.add(edit_fontSizeMenu);
+//			checkAddMenuSep(editMenu);
+//			editMenu.add(edit_fontSizeMenu);
 //			refreshMatSizes(trackerPanel.getVideo());
 			checkAddMenuSep(editMenu);
 			editMenu.add(edit_languageMenu);
@@ -2790,10 +2792,11 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 			
 			view_mobileLayoutItem.setSelected(OSPRuntime.isMobile());
 			viewMenu.add(view_mobileLayoutItem);
+			viewMenu.add(edit_fontSizeMenu);
 			viewMenu.addSeparator();
 			
 			if (panel().getMaximizedView() != TView.VIEW_UNSET) {
-				if (!OSPRuntime.isSmallScreen()) {
+				if (!OSPRuntime.isSmallScreen(frame)) {
 					viewMenu.add(view_restoreItem);
 					viewMenu.addSeparator();
 				}
