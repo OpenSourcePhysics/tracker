@@ -2739,6 +2739,8 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 					null;
 		}
 		
+		view_mainItem = new JMenuItem(TrackerRes.getString("TFrame.View.Main")); //$NON-NLS-1$
+		view_mainItem.setText(TrackerRes.getString("TFrame.View.Main") + " ("+TrackerRes.getString("TrackControl.Name")+")"); //$NON-NLS-1$;
 		view_1Item.setText(TrackerRes.getString("TMenuBar.Menu.Window") + " 1 ("+viewNames[0]+")"); //$NON-NLS-1$;
 		view_2Item.setText(TrackerRes.getString("TMenuBar.Menu.Window") + " 2 ("+viewNames[1]+")"); //$NON-NLS-1$;
 		view_3Item.setText(TrackerRes.getString("TMenuBar.Menu.Window") + " 3 ("+viewNames[2]+")"); //$NON-NLS-1$;
