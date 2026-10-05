@@ -415,15 +415,15 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 		// set transfer handler for CTRL-V paste
 		tabbedPane.setTransferHandler(fileDropHandler);
 		
-		// Force the tab header area to have a height of 0
-		tabbedPane.setUI(new javax.swing.plaf.basic.BasicTabbedPaneUI() {
-	    @Override
-	    protected int calculateTabAreaHeight(int tabPlacement, int horizRunCount, int maxTabHeight) {
-	      if (OSPRuntime.isSmallScreen(TFrame.this))
-	      	return 0;
-	      return super.calculateTabAreaHeight(tabPlacement, horizRunCount, maxTabHeight);
-	    }
-		});
+		// Force the tab header area to have a height of 0 if in a small screen?
+//		tabbedPane.setUI(new javax.swing.plaf.basic.BasicTabbedPaneUI() {
+//	    @Override
+//	    protected int calculateTabAreaHeight(int tabPlacement, int horizRunCount, int maxTabHeight) {
+//	      if (OSPRuntime.isSmallScreen(TFrame.this))
+//	      	return 0;
+//	      return super.calculateTabAreaHeight(tabPlacement, horizRunCount, maxTabHeight);
+//	    }
+//		});
 		if (panel != null) {
 			addTab(panel, ADD_NOSELECT | ADD_REFRESH, () -> {
 			});

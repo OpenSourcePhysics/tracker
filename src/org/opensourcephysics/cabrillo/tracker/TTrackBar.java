@@ -307,7 +307,7 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 		});
 
 		setFloatable(false);
-		viewLabel.setBorder(BorderFactory.createEmptyBorder(2, 6, 2, 0));
+		viewLabel.setBorder(BorderFactory.createEmptyBorder(2, 6, 2, 6));
 		if (OSPRuntime.isJS) {
 		  viewLabel.setEnabled(false); 
 		  // disables touch to select text
@@ -505,6 +505,13 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 		} else {
 			track.removeListenerNCF(this);
 		}
+		if (panel.getSelectedTrack() == null) {
+			String name = TrackerRes.getString("TFrame.View.Main.Desc");
+ 			viewLabel.setText(name); //$NON-NLS-1$
+ 			FontSizer.setFonts(viewLabel);
+			add(viewLabel);
+		}
+
 		add(selectButton);
 		trackButton.context = "track"; //$NON-NLS-1$
 		track = panel.getSelectedTrack();
@@ -567,13 +574,6 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 					frame.setDividerLocation(panel, TFrame.SPLIT_MAIN_BOTTOM, 1.0); 
 			}
 			
-		}
-
-		if (panel.getSelectedTrack() == null) {
-			String name = TrackerRes.getString("TFrame.View.Main");
- 			viewLabel.setText(name); //$NON-NLS-1$
- 			FontSizer.setFonts(viewLabel);
-			add(viewLabel);
 		}
 
 		add(toolbarEnd);
