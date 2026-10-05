@@ -25,6 +25,7 @@ import java.nio.charset.Charset;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 
+import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.tools.Resource;
 
 /**
@@ -39,8 +40,6 @@ public class DownloadCounter {
 	static String NEW_LINE = System.getProperty("line.separator", "\n"); //$NON-NLS-1$ //$NON-NLS-2$
 	
 	public static void main(String[] args) throws AWTException {
-
-		Toolkit.getDefaultToolkit().beep();
 
     Robot robot = new Robot();
     boolean increase = true;
@@ -72,7 +71,7 @@ public class DownloadCounter {
 
 		// write the new contents to dataFile
 		write(contents, dataFile);
-		Toolkit.getDefaultToolkit().beep();
+		OSPRuntime.beep("DownloadCounter complete for " + dataFile);
 	}
   
   /**

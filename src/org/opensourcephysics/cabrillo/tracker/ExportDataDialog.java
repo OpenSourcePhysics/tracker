@@ -222,7 +222,7 @@ public class ExportDataDialog extends JDialog {
 		copyButton.addActionListener((e) -> {
 			String data = getDataString();
 			if (data == null) {
-				Toolkit.getDefaultToolkit().beep();
+				OSPRuntime.beep("ExportDataDialog data is null.");
 				return;
 			}
 			OSPRuntime.copy(data, null);
@@ -250,7 +250,7 @@ public class ExportDataDialog extends JDialog {
 		// update available tracks
 		ArrayList<TTrack> newTracks = panel.getExportableTracks();
 		if (newTracks.isEmpty()) {
-			Toolkit.getDefaultToolkit().beep();
+			OSPRuntime.beep("TrackerPanel newTracks is empty.");
 			return;
 		}
 		allTracks.clear();

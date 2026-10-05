@@ -1895,7 +1895,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 //					setStartFrame(n);
 					setStartStep(n);
 					if (getStartFrame() != n || mustRound)
-						Toolkit.getDefaultToolkit().beep();
+						OSPRuntime.beep("ParticleDataTrack start frame is not " + n);
 				}
 			}
 		});

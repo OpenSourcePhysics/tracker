@@ -469,8 +469,7 @@ public String toString() {
       if (points[i] != null &&
           points[i].getX() == x &&
           points[i].getY() == y) {
-        Toolkit.getDefaultToolkit().beep();
-				OSPLog.finer("calibration points cannot be identical");
+        OSPRuntime.beep("CalibrationStep: calibration points cannot be identical");
         return;
       }
       if (isAdjusting()) {

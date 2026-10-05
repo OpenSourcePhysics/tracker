@@ -960,8 +960,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 									refresh("menuItem.editVideoFrames !edit");
 									TToolBar.refreshMemoryButton(panel());
 								} catch (Exception e1) {
-									Toolkit.getDefaultToolkit().beep();
-									OSPLog.finer("exception occurred: " + e1);
+									OSPRuntime.beep("exception occurred: " + e1);
 								}
 							} else {
 								// estimate memory required to load images
@@ -996,13 +995,11 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 										refresh("memory_issue");
 										TToolBar.refreshMemoryButton(panel());
 									} catch (Exception ex) {
-										Toolkit.getDefaultToolkit().beep();
+										OSPRuntime.beep("TMenuBar exception " + ex);
 										error = true;
-										OSPLog.finer("exception occurred: " + ex);
 									} catch (Error er) {
-										Toolkit.getDefaultToolkit().beep();
+										OSPRuntime.beep("TMenuBar error " + er);
 										error = true;
-										OSPLog.finer("error occurred: " + er);
 										throw (er);
 									} finally {
 										if (error) {

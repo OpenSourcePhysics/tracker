@@ -1102,7 +1102,7 @@ abstract public class ParticleModel extends PointMass {
 					n += clip.getStepSize() * (int) Math.round(timeOffset / dt);
 					setStartFrame(n);
 					if (getStartFrame() != n || mustRound)
-						Toolkit.getDefaultToolkit().beep();
+						OSPRuntime.beep("ParticleModel start frame is not " + n);
 				}
 			}
 		};
