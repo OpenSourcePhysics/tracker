@@ -420,9 +420,10 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 			/**
 			 * @j2sNative
 			 * var ui = this.tabbedPane.getUI$();
+			 * var frame = this;
 			 * var calculateHeight = ui.calculateTabAreaHeight$I$I$I;
 			 * ui.calculateTabAreaHeight$I$I$I = function(tabPlacement, horizRunCount, maxTabHeight) {
-			 *   if (org.opensourcephysics.display.OSPRuntime.isSmallScreen$()) return 0;
+			 *   if (org.opensourcephysics.display.OSPRuntime.isSmallScreen$java_awt_Container(frame)) return 0;
 			 *   return calculateHeight.call(this, tabPlacement, horizRunCount, maxTabHeight);
 			 * };
 			 */
