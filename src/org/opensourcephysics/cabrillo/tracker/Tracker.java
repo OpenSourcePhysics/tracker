@@ -2115,7 +2115,7 @@ public class Tracker {
 						continue;
 					}
 					if (prefsFile.exists() && prefsFile.canWrite()) {
-						control.write(prefsFile.getAbsolutePath());
+						control.writeNoSearch(prefsFile.getAbsolutePath());
 					}
 				}
 				// update prefs in current directory, if any
