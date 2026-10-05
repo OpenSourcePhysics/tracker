@@ -4840,6 +4840,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		return true;
 	}
 
+	private static int test = 0;
 	@Override
 	public void repaint() {
 		if (!isPaintable())
