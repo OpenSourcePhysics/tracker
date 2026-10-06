@@ -158,11 +158,18 @@ public class TMouseHandler implements InteractiveMouseHandler {
 				trackerPanel.setMessage(""); //$NON-NLS-1$
 			}
 			trackerPanel.hidePopup();
+			// Touch input may arrive without a preceding mouse move. Resolve the
+			// selected track and marking state at the press, not from hover state.
+			selectedTrack = trackerPanel.getSelectedTrack();
+			frameNumber = trackerPanel.getFrameNumber();
+			marking = trackerPanel.setCursorForMarking(e.isShiftDown(), e);
+			if (selectedTrack != null && marking != selectedTrack.isMarking) {
+				selectedTrack.setMarking(marking);
+			}
 			// A touch press may not be preceded by MOUSE_MOVED, so the interactive
 			// object saved during the last move can be stale. Hit-test at the press
 			// location to let a touch on empty canvas clear the current selection.
 			iad = trackerPanel.getInteractive();
-			marking = (selectedTrack != null && trackerPanel.cursorType == selectedTrack.getMarkingCursorType(e));
 			if (marking) {
 				markPoint(trackerPanel, e, autoTracker);
 				return;
