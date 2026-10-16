@@ -306,6 +306,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 	private JMenuItem track_newDataTrackFromFileItem;
 	private JMenuItem track_dataTrackHelpItem;
 	private JMenuItem track_emptyTracksItem;
+	private JMenuItem track_trackMarkerItem;
 	// coords menu
 	private JMenu coordsMenu;
 	private JCheckBoxMenuItem coords_lockedCoordsItem;
@@ -491,6 +492,8 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 			return video_captureItem;
 		case "file_saveVideoAsItem":
 			return file_saveVideoAsItem;
+		case "track_trackMarkerItem":
+			return track_trackMarkerItem;
 		case "view_singleViewMenu":
 			return view_singleViewMenu;
 		case "view_mainItem":
@@ -1371,6 +1374,12 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		view_trackControlItem.addActionListener((e) -> {
 				TrackControl tc = TrackControl.getControl(panel());
 				tc.setVisible(!tc.isVisible());
+		});
+		// trackMarkerItem
+		track_trackMarkerItem = new JCheckBoxMenuItem(TrackerRes.getString("TMenuBar.MenuItem.TrackMarker")); //$NON-NLS-1$
+		track_trackMarkerItem.addActionListener((e) -> {
+				TMarker marker = panel().getMarker();
+				marker.setVisible(track_trackMarkerItem.isSelected());
 		});
 		// notesItem
 		view_notesItem = new JCheckBoxMenuItem(TrackerRes.getString("TMenuBar.MenuItem.Description")); //$NON-NLS-1$
@@ -2475,8 +2484,14 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 			enabledNewTrackCount = refreshTracksCreateMenu(track_createMenu, enabledNewTrackCount, false);
 			if (track_createMenu.getItemCount() > 0)
 				trackMenu.add(track_createMenu);
+
 			if (hasTracks && panel().isEnabled("new.clone")) //$NON-NLS-1$
 				trackMenu.add(track_cloneMenu);
+
+			TMarker tm = panel().getMarker();
+			track_trackMarkerItem.setSelected(tm.isVisible());
+			trackMenu.addSeparator();
+			trackMenu.add(track_trackMarkerItem);
 
 			if (hasTracks)
 				checkAddMenuSep(trackMenu);

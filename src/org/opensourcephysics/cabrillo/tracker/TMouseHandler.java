@@ -68,6 +68,7 @@ public class TMouseHandler implements InteractiveMouseHandler {
 	Point mouseLoc = new Point(); // starting screen position of mouse for frame drag
 	Point frameLoc = new Point(); // starting position of frame for frame drag
 	Dimension frameDim = new Dimension(); // starting size of frame for frame resize
+	TMarker marker;
 
 	static {
 		ImageIcon icon = (ImageIcon) Tracker.getResourceIcon("creatept.gif", false); //$NON-NLS-1$
@@ -115,6 +116,7 @@ public class TMouseHandler implements InteractiveMouseHandler {
 		AutoTracker autoTracker = trackerPanel.getAutoTracker(false);
 		if (autoTracker != null && autoTracker.getTrack() == null)
 			autoTracker.setTrack(trackerPanel.getSelectedTrack());
+		marker = null; 
 		switch (trackerPanel.getMouseAction()) {
 
 		// request focus and identify TPoints when moving mouse
@@ -122,10 +124,14 @@ public class TMouseHandler implements InteractiveMouseHandler {
 			selectedTrack = trackerPanel.getSelectedTrack();
 			frameNumber = trackerPanel.getFrameNumber();
 			iad = trackerPanel.getInteractive();
-			boolean invertCursor = e.isShiftDown();
-			marking = trackerPanel.setCursorForMarking(invertCursor, e);
-			if (selectedTrack != null && marking != selectedTrack.isMarking) {
-				selectedTrack.setMarking(marking);
+			if (iad instanceof TMarker.Member) {
+				marker = ((TMarker.Member)iad).getTarget();
+			}
+			
+			marking = trackerPanel.setCursorForMarking(e.isShiftDown(), e);
+			boolean markTrack = marking || (marker!=null && marker.on);
+			if (selectedTrack != null && markTrack != selectedTrack.isMarking) {
+				selectedTrack.setMarking(markTrack);
 			}
 			if (marking) {
 				iad = null;
@@ -158,19 +164,26 @@ public class TMouseHandler implements InteractiveMouseHandler {
 				trackerPanel.setMessage(""); //$NON-NLS-1$
 			}
 			trackerPanel.hidePopup();
-			// Touch input may arrive without a preceding mouse move. Resolve the
-			// selected track and marking state at the press, not from hover state.
+			
+			// Touch input may occur without a preceding mouse move. Set the selected
+			// track, frame number and marking state in mouse pressed, not mouse moved.
 			selectedTrack = trackerPanel.getSelectedTrack();
 			frameNumber = trackerPanel.getFrameNumber();
-			marking = trackerPanel.setCursorForMarking(e.isShiftDown(), e);
-			if (selectedTrack != null && marking != selectedTrack.isMarking) {
-				selectedTrack.setMarking(marking);
-			}
-			// A touch press may not be preceded by MOUSE_MOVED, so the interactive
-			// object saved during the last move can be stale. Hit-test at the press
-			// location to let a touch on empty canvas clear the current selection.
 			iad = trackerPanel.getInteractive();
-			if (marking) {
+			if (iad instanceof TMarker.Member) {
+				marker = ((TMarker.Member)iad).getTarget();
+			}
+
+			marking = marker==null?
+					trackerPanel.setCursorForMarking(e.isShiftDown(), e):
+					marker.isMarking;
+			
+			if (selectedTrack != null && marking != selectedTrack.isMarking) {
+				boolean keepMarking = marker != null && selectedTrack.isMarking;
+				selectedTrack.setMarking(marking || keepMarking);
+			}
+			
+			if (marking && selectedTrack!= null) {
 				markPoint(trackerPanel, e, autoTracker);
 				return;
 			}
@@ -453,6 +466,8 @@ public class TMouseHandler implements InteractiveMouseHandler {
 	}
 
 	private void markPoint(TrackerPanel trackerPanel, MouseEvent e, AutoTracker autoTracker) {
+		double xx = trackerPanel.getMouseX();
+		double yy = trackerPanel.getMouseY();
 		iad = null;
 		boolean autotrackEneabled = trackerPanel.isEnabled("track.autotrack");
 		boolean autotrackTrigger = autotrackEneabled
@@ -468,13 +483,13 @@ public class TMouseHandler implements InteractiveMouseHandler {
 		boolean newStep = (step == null);
 		if (step == null || !autotrackTrigger) {
 			if (autotrackTrigger) {
-				selectedTrack.autoMarkAt(frameNumber, trackerPanel.getMouseX(), trackerPanel.getMouseY());
+				selectedTrack.autoMarkAt(frameNumber, xx, yy);
 				step = selectedTrack.getStep(frameNumber);
 			} else {
 				if (selectedTrack.ttype == TTrack.TYPE_POINTMASS) {
 					selectedTrack.keyFrames.add(frameNumber);
 				}
-				step = selectedTrack.createStep(frameNumber, trackerPanel.getMouseX(), trackerPanel.getMouseY());
+				step = selectedTrack.createStep(frameNumber, xx, yy);
 				if (selectedTrack.ttype == TTrack.TYPE_POINTMASS) {
 					PointMass m = (PointMass) selectedTrack;
 					if (m.isAutofill()) {
@@ -482,6 +497,9 @@ public class TMouseHandler implements InteractiveMouseHandler {
 					}
 				}
 				trackerPanel.newlyMarkedPoint = step.getDefaultPoint();
+				if (marker != null)
+					marker.markedPoint = trackerPanel.newlyMarkedPoint;
+
 				TPoint[] pts = step.getPoints();
 				// increment target index if new step
 				if (newStep && pts.length > index + 1)
@@ -490,9 +508,9 @@ public class TMouseHandler implements InteractiveMouseHandler {
 		} else if (step.getPoints()[index] == null) {
 			if (keyFrameData != null) {
 				TPoint target = keyFrameData.getTarget();
-				target.setXY(trackerPanel.getMouseX(), trackerPanel.getMouseY());
+				target.setXY(xx, yy);
 			}
-			selectedTrack.autoMarkAt(frameNumber, trackerPanel.getMouseX(), trackerPanel.getMouseY());
+			TPoint pt = selectedTrack.autoMarkAt(frameNumber, xx, yy);
 			TPoint[] pts = step.getPoints();
 			// increment target index if possible
 			if (pts.length > index + 1)
@@ -515,12 +533,12 @@ public class TMouseHandler implements InteractiveMouseHandler {
 				case TTrack.TYPE_PERSPECTIVE:
 				case TTrack.TYPE_PROTRACTOR:
 					if (autoTracker.getOrCreateFrameData(frameNumber).getKeyFrameData() == null) {
-							target.setXY(trackerPanel.getMouseX(), trackerPanel.getMouseY());
+							target.setXY(xx, yy);
 						}
 					break;
 				}
 			}
-			if (autoTracker.addKeyFrame(target, trackerPanel.getMouseX(), trackerPanel.getMouseY())) {
+			if (autoTracker.addKeyFrame(target, xx, yy)) {
 				trackerPanel.refreshTrackBar();
 			}
 			else {

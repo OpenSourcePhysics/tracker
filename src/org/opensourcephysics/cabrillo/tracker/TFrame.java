@@ -483,7 +483,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 	 */
 	@Override
 	public void repaint(long time, int x, int y, int w, int h) {
-		System.err.println("TFrame repaint " + time + " " + isPaintable());
+//		System.err.println("TFrame repaint " + time + " " + isPaintable());
 		if (!isPaintable())
 			return;
 		super.repaint(time, x, y, w, h);

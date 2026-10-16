@@ -271,7 +271,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	private int enabledCount;
 	
 	public NumberFormatDialog numberFormatDialog;
-
+	private TMarker marker;
 
 	private ArrayList<TTrack> userTracks, exportableTracks;
 	private Map<String, AbstractAction> actions;
@@ -1577,6 +1577,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				boolean ignore = autoTracker != null && autoTracker.getWizard().isVisible()
 						&& (point instanceof AutoTracker.Corner || point instanceof AutoTracker.Handle
 								|| point instanceof AutoTracker.Target);
+				ignore = ignore || point instanceof TMarker.Member;
 				if (!ignore)
 					setSelectedTrack(null);
 			} else { // TPoint is associated with a step and track
@@ -2410,6 +2411,19 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		}
 		return dataBuilder;
 	}
+	
+	/**
+	 * Gets the TMarker for marking points on this TrackerPanel.
+	 * 
+	 * @return the marker
+	 */
+	protected TMarker getMarker() {
+		if (marker == null) {
+			marker = new TMarker(this);
+			addDrawable(marker);
+		}
+		return marker;
+	}
 
 	/**
 	 * Gets the Algorithms dialog.
@@ -2554,6 +2568,11 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 					setMessage(TrackerRes.getString(msg));
 			} else
 				setMessage(""); //$NON-NLS-1$
+		} else if (iad instanceof TMarker.Member) {
+			setMouseCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+			// display the marker's message
+			TMarker marker = ((TMarker.Member)iad).getTarget();
+			setMessage(marker.getMessage());
 		} else if (iad instanceof TPoint) {
 			setMouseCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 			// identify associated track and display its hint
@@ -2725,9 +2744,24 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			point.setScreenPosition(p.x, p.y, this, e);
 		}
 		if (selectedPoint != null) {
-			Point p = selectedPoint.getScreenPosition(this);
-			p.setLocation(p.x + dx, p.y + dy);
-			selectedPoint.setScreenPosition(p.x, p.y, this, e);
+			if (selectedPoint instanceof TMarker.Handle) {
+				TMarker target = ((TMarker.Handle)selectedPoint).getTarget();
+				
+				Point p = target.getScreenPosition(this);	
+				double xt = target.getX();
+				double yt = target.getY();
+				double z = target.getZoomFactor();
+				p.setLocation(p.x + dx, p.y + dy);
+				target.setScreenPosition(p.x, p.y, this, e);
+				double diffx = target.getX() - xt;
+				double diffy = target.getY() - yt;
+				target.setLocation(xt + diffx/z, yt + diffy/z);
+			}
+			else {
+				Point p = selectedPoint.getScreenPosition(this);
+				p.setLocation(p.x + dx, p.y + dy);
+				selectedPoint.setScreenPosition(p.x, p.y, this, e);
+			}
 		}
 		// check selected point since setting screen position can deselect it!
 		if (selectedPoint != null)
