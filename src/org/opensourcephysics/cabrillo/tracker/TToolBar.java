@@ -834,6 +834,7 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 //		overflowButton.setHorizontalTextPosition(JButton.LEADING);
 //		overflowButton.setIconTextGap(3);
 		
+		int iconTextGap = 10;
 		moreButton = new MobileButton() {
 			@Override
 			protected JPopupMenu getPopup() {
@@ -844,7 +845,8 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 		}; 
 		moreButton.setText(TrackerRes.getString("TToolBar.Button.More.Text"));
 		moreButton.alwaysShowBorder(true);
-		moreButton.setIconTextGap(3);
+		moreButton.setIconTextGap(iconTextGap);
+		moreButton.setHorizontalTextPosition(JButton.LEADING);
 		moreButton.alignPopup = TButton.RIGHT;
 		
 		// create mobile popups and buttons
@@ -866,8 +868,8 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 		if (!noButtonIcons)
 			fileButton.setIcon(folderIcon);
 		fileButton.alwaysShowBorder(true);
-//		tabButton.setHorizontalTextPosition(JButton.LEADING);
-		fileButton.setIconTextGap(3);
+		fileButton.setHorizontalTextPosition(JButton.LEADING);
+		fileButton.setIconTextGap(iconTextGap);
 		
 		videoButton = new MobileButton() {
 			@Override
@@ -882,8 +884,8 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 		if (!noButtonIcons)
 			videoButton.setIcon(clipOffIcon);
 		videoButton.alwaysShowBorder(true);
-//		videoButton.setHorizontalTextPosition(JButton.LEADING);
-		videoButton.setIconTextGap(3);
+		videoButton.setHorizontalTextPosition(JButton.LEADING);
+		videoButton.setIconTextGap(iconTextGap);
 		
 		coordsButton = new MobileButton() {
 			@Override
@@ -902,8 +904,8 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 		if (!noButtonIcons)
 			coordsButton.setIcon(coordsIcon);
 		coordsButton.alwaysShowBorder(true);
-//		coordsButton.setHorizontalTextPosition(JButton.LEADING);
-		coordsButton.setIconTextGap(3);
+		coordsButton.setHorizontalTextPosition(JButton.LEADING);
+		coordsButton.setIconTextGap(iconTextGap);
 		
 		trackButton = new MobileButton() {
 			@Override
@@ -917,8 +919,8 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 		if (!noButtonIcons)
 			trackButton.setIcon(pointmassOffIcon);
 		trackButton.alwaysShowBorder(true);
-//		trackButton.setHorizontalTextPosition(JButton.LEADING);
-		trackButton.setIconTextGap(3);
+		trackButton.setHorizontalTextPosition(JButton.LEADING);
+		trackButton.setIconTextGap(iconTextGap);
 
 		viewButton = new MobileButton() {
 			@Override
@@ -932,9 +934,8 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 		if (!noButtonIcons)
 			viewButton.setIcon(TableTView.TABLEVIEW_ICON);
 		viewButton.alwaysShowBorder(true);
-//		viewButton.setHorizontalTextPosition(JButton.LEADING);
-		viewButton.setIconTextGap(3);
-
+		viewButton.setHorizontalTextPosition(JButton.LEADING);
+		viewButton.setIconTextGap(iconTextGap);
 
 		// create menu items
 		cloneMenu = new JMenu();
@@ -1779,8 +1780,9 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 		if (prev != noButtonIcons) {
 			panel().getPlayer().refresh();
 		}
-		
+
 		if (OSPRuntime.isMobile()) {
+			moreButton.setHorizontalTextPosition(JButton.LEADING);
 			rebuildForMobile();
 			return;
 		}

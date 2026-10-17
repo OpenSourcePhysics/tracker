@@ -277,14 +277,15 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 	private JMenuItem video_aboutVideoItem;
 	private JMenuItem video_checkDurationsItem;
 	private JMenuItem video_emptyVideoItem;
-	// tracks menu
+	private JMenuItem video_captureItem;
+	// track menu
 	private JMenu trackMenu;
 	private JMenu track_createMenu;
 	private JMenu track_cloneMenu;
 	private JMenu popupTracksMenu;
 	private JMenu popupVideoFiltersMenu;
-	private JMenu track_measuringToolsMenu;
 	protected Component[] videoFiltersMenuItems;
+	private JMenu track_measuringToolsMenu;
 	protected Component[] tracksMenuItems;
 	private JMenuItem track_newPointMassItem;
 	private JMenuItem track_newCMItem;
@@ -306,6 +307,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 	private JMenuItem track_newDataTrackFromFileItem;
 	private JMenuItem track_dataTrackHelpItem;
 	private JMenuItem track_emptyTracksItem;
+	private JMenuItem track_trackControlItem;
 	private JMenuItem track_trackMarkerItem;
 	// coords menu
 	private JMenu coordsMenu;
@@ -329,14 +331,12 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 	private JMenuItem view_restoreItem;
 	protected JCheckBoxMenuItem view_rightPaneItem;
 	protected JCheckBoxMenuItem view_bottomPaneItem;
-	private JMenuItem view_trackControlItem;
 	private JMenuItem view_notesItem;
 	private JMenuItem view_dataBuilderItem;
 	private JMenuItem view_dataToolItem;
 	private JMenu view_TabsMenu;
 	private JMenuItem[] tabItems;
 	private JCheckBoxMenuItem view_mobileLayoutItem;
-	private JMenuItem video_captureItem;
 	// help menu
 	private JMenu helpMenu;
 
@@ -1370,8 +1370,8 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 			});
 		});
 		// trackControlItem
-		view_trackControlItem = new JCheckBoxMenuItem(TrackerRes.getString("TMenuBar.MenuItem.TrackControl")); //$NON-NLS-1$
-		view_trackControlItem.addActionListener((e) -> {
+		track_trackControlItem = new JCheckBoxMenuItem(TrackerRes.getString("TMenuBar.MenuItem.TrackControl")); //$NON-NLS-1$
+		track_trackControlItem.addActionListener((e) -> {
 				TrackControl tc = TrackControl.getControl(panel());
 				tc.setVisible(!tc.isVisible());
 		});
@@ -2493,6 +2493,11 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 			trackMenu.addSeparator();
 			trackMenu.add(track_trackMarkerItem);
 
+			TrackControl tc = TrackControl.getControl(panel());
+			track_trackControlItem.setSelected(tc.isVisible());
+			track_trackControlItem.setEnabled(!tc.isEmpty());
+			trackMenu.add(track_trackControlItem);
+			
 			if (hasTracks)
 				checkAddMenuSep(trackMenu);
 
@@ -2754,7 +2759,6 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 					null;
 		}
 		
-		view_mainItem = new JMenuItem(TrackerRes.getString("TFrame.View.Main")); //$NON-NLS-1$
 		view_mainItem.setText(TrackerRes.getString("TFrame.View.Main") + " ("+TrackerRes.getString("TrackControl.Name")+")"); //$NON-NLS-1$;
 		view_1Item.setText(TrackerRes.getString("TMenuBar.Menu.Window") + " 1 ("+viewNames[0]+")"); //$NON-NLS-1$;
 		view_2Item.setText(TrackerRes.getString("TMenuBar.Menu.Window") + " 2 ("+viewNames[1]+")"); //$NON-NLS-1$;
@@ -2781,9 +2785,6 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		String bp = TrackerRes.getString("TMenuBar.MenuItem.WindowBottom");
 		view_bottomPaneItem.setText(bp + " (" + viewNames[3] + ", " + viewNames[2] + ")");
 		
-		TrackControl tc = TrackControl.getControl(panel);
-		view_trackControlItem.setSelected(tc.isVisible());
-		view_trackControlItem.setEnabled(!tc.isEmpty());
 		view_notesItem.setSelected(frame.notesVisible());
 		view_dataBuilderItem.setSelected(panel.dataBuilder != null && panel.dataBuilder.isVisible());
 		DataTool tool = DataTool.getTool(false);
@@ -2804,11 +2805,6 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 			view_singleViewMenu.add(view_4Item);
 			viewMenu.addSeparator();
 			
-			view_mobileLayoutItem.setSelected(OSPRuntime.isMobile());
-			viewMenu.add(view_mobileLayoutItem);
-			viewMenu.add(edit_fontSizeMenu);
-			viewMenu.addSeparator();
-			
 			if (panel().getMaximizedView() != TView.VIEW_UNSET) {
 				if (!OSPRuntime.isSmallScreen(frame)) {
 					viewMenu.add(view_restoreItem);
@@ -2819,7 +2815,12 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 				viewMenu.add(view_bottomPaneItem);
 				viewMenu.addSeparator();
 			}
-			viewMenu.add(view_trackControlItem);
+			
+			view_mobileLayoutItem.setSelected(OSPRuntime.isMobile());
+			viewMenu.add(view_mobileLayoutItem);
+			viewMenu.addSeparator();
+			
+			viewMenu.add(edit_fontSizeMenu);
 			viewMenu.add(view_notesItem);
 			if (panel.isEnabled("data.builder") //$NON-NLS-1$
 					|| panel.isEnabled("data.tool")) { //$NON-NLS-1$
