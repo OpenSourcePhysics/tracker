@@ -27,7 +27,7 @@ import org.opensourcephysics.media.core.TPoint;
 
 public class TMarker extends TPoint implements PropertyChangeListener {
 	
-	private static final Color paleBody, body, paleWhite, white, paleDark, dark;
+	private static final Color paleBody, body, paleWhite, white, paleDark, dark, paleGreen;
 	static {
     paleBody = new Color(160, 160, 255, 40);
     body = new Color(160, 160, 255, 80);
@@ -35,6 +35,7 @@ public class TMarker extends TPoint implements PropertyChangeListener {
     white = new Color(255, 255, 255, 200);
     paleDark = new Color(50, 50, 50, 70);
     dark = new Color(50, 50, 50, 200);		
+    paleGreen = new Color(50, 255, 50, 150);		
 	}
 		
 	private Ellipse2D.Double outerCircle, innerCircle;
@@ -44,6 +45,7 @@ public class TMarker extends TPoint implements PropertyChangeListener {
 	protected Handle handle;
 	protected ZoomControl zoomControl;
 	protected Marker marker;
+	protected Color markerColor = paleDark;
 	protected TPoint markedPoint;
 	protected boolean refreshing, visible, isMarking, wasOn, on;
 	private int outerR = 80, innerR = 30, wedgeWidth = 15;
@@ -243,7 +245,7 @@ public class TMarker extends TPoint implements PropertyChangeListener {
       
   		// draw marking wedge
       refreshWedgePath(markingWedgePath, p, 210, 120, false);
-  		g2d.setColor(paleDark);
+  		g2d.setColor(markerColor);
       g2d.fill(markingWedgePath);
     	g2d.setColor(paleWhite);
       g2d.draw(markingWedgePath);
@@ -328,8 +330,17 @@ public class TMarker extends TPoint implements PropertyChangeListener {
 				&& panel().getSelectedTrack() != null) {
 			refreshing = false;
 			hint = TrackerRes.getString("TMarker.Marker.Hint");
+			if (markerColor != paleGreen) {
+				markerColor = paleGreen;
+				TFrame.repaintT(panel());
+			}
 			return marker;			
 		}
+		if (markerColor != paleDark) {
+			markerColor = paleDark;
+			TFrame.repaintT(panel());
+		}
+		markerColor = paleDark;
 		if (dialWedgePath.contains(xpix, ypix)) {
 			refreshing = true;
 			zoomControl.setScreenPosition(xpix, ypix, panel());
