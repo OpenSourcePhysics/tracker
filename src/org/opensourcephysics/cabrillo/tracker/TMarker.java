@@ -25,17 +25,23 @@ import org.opensourcephysics.display.DrawingPanel;
 import org.opensourcephysics.display.Interactive;
 import org.opensourcephysics.media.core.TPoint;
 
+/**
+ * This is a marking tool that applies mouse or touch track-marking actions to a target
+ * at the center of an adjustable magnifier.
+ *
+ * @author Doug Brown
+ */
 public class TMarker extends TPoint implements PropertyChangeListener {
 	
-	private static final Color paleBody, body, paleWhite, white, paleDark, dark, paleGreen;
+	private static final Color paleBody, body, paleWhite, white, paleBlue, blue, dark;
 	static {
     paleBody = new Color(160, 160, 255, 40);
     body = new Color(160, 160, 255, 80);
     paleWhite = new Color(255, 255, 255, 80);
     white = new Color(255, 255, 255, 200);
-    paleDark = new Color(50, 50, 50, 70);
+    paleBlue = new Color(50, 50, 255, 70);
+    blue = new Color(50, 50, 255, 140);		
     dark = new Color(50, 50, 50, 200);		
-    paleGreen = new Color(50, 255, 50, 150);		
 	}
 		
 	private Ellipse2D.Double outerCircle, innerCircle;
@@ -45,7 +51,7 @@ public class TMarker extends TPoint implements PropertyChangeListener {
 	protected Handle handle;
 	protected ZoomControl zoomControl;
 	protected Marker marker;
-	protected Color markerColor = paleDark;
+	protected Color markerEdgeColor = paleBlue, dialEdgeColor = paleWhite;
 	protected TPoint markedPoint;
 	protected boolean refreshing, visible, isMarking, wasOn, on;
 	private int outerR = 80, innerR = 30, wedgeWidth = 15;
@@ -54,7 +60,7 @@ public class TMarker extends TPoint implements PropertyChangeListener {
 	private Path2D dialWedgePath, ringPath, markingWedgePath;
 	private Stroke width1, width2, width3;
 	private Point2D screenPt2D;
-	private MouseListener myMouseListener;
+	private MyMouseListener myMouseListener;
 	private double zoomFactor = 1, zoomMax = 4, zoomMin = 1;
 	private Timer wasOnTimer;
 	private String hint;
@@ -78,60 +84,14 @@ public class TMarker extends TPoint implements PropertyChangeListener {
     width3 = new BasicStroke(3.0f);
     panel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDPOINT, this);
     panel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_STEPNUMBER, this);
-		createMyMouseListener();
-    setZoomFactor(zoomMin);
+    myMouseListener = new MyMouseListener();
+    setZoomFactor(zoomMin*2);
     wasOnTimer = new Timer(300, e -> { wasOn = false; });
     // center on panel mat
     Rectangle rect = panel.getMat().getBounds();    
     setXY(rect.getWidth() / 2, rect.getHeight() / 2);
 	}
 	
-	private void createMyMouseListener() {
-    myMouseListener = new MouseAdapter() {
-			@Override
-			public void mousePressed(MouseEvent e) {
-        if (isMarking) {
-          return; 
-        }	
-        if (outerCircle.contains(e.getX(), e.getY())
-        		&& panel().getSelectedTrack() != null 
-        		&& !panel().getSelectedTrack().isMarking) {
-        	panel().getSelectedTrack().setMarking(true);
-        }
-				if (dialWedgePath.contains(e.getX(), e.getY())) {
-					zoomControl.setXY(zoomControl.getX(), zoomControl.getY());
-				}
-				else if (panel().getSelectedPoint()==marker
-						&& markingWedgePath.contains(e.getX(), e.getY())) {
-			    Point p = getScreenPosition(panel());
-	        // create a copy of the event with target pixel positions
-	        MouseEvent forwardedEvent = new MouseEvent(
-	                panel(),
-	                e.getID(),
-	                e.getWhen(),
-	                e.getModifiersEx(),
-	                p.x,       // target x position
-	                p.y,       // target y position
-	                e.getClickCount(),
-	                e.isPopupTrigger(),
-	                e.getButton()
-	        );
-
-	        // dispatch the new event to the TrackerPanel's listeners
-          try {
-	          isMarking = true;
-	          markedPoint = null;
-  	        panel().dispatchEvent(forwardedEvent);
-	        } finally {
-	            // reset isMarking in a finally block
-	        	isMarking = false;
-	        	panel().setSelectedPoint(null);
-	        }
-				}
-			}
-		};
-	}
-		
 	@Override
 	public void propertyChange(PropertyChangeEvent e) {
 		if (!isVisible()) return;
@@ -238,20 +198,22 @@ public class TMarker extends TPoint implements PropertyChangeListener {
     g2d.fill(ringPath);
     
     if (on) {
-    	// draw dial
-    	refreshWedgePath(dialWedgePath, p, dialStart, 120, false);   
-    	g2d.setColor(paleWhite);
+    	// draw dial wedge
+    	refreshWedgePath(dialWedgePath, p, dialStart, 120, false); 
+      g2d.setColor(paleBody);
+      g2d.fill(dialWedgePath);
+    	g2d.setColor(dialEdgeColor);
       g2d.draw(dialWedgePath);
       
   		// draw marking wedge
       refreshWedgePath(markingWedgePath, p, 210, 120, false);
-  		g2d.setColor(markerColor);
+  		g2d.setColor(paleBlue);
       g2d.fill(markingWedgePath);
-    	g2d.setColor(paleWhite);
+    	g2d.setColor(markerEdgeColor);
       g2d.draw(markingWedgePath);
       
-      // draw zoom dial indicator
-      g2d.setColor(white);
+      // draw dial indicator
+      g2d.setColor(blue);
       g2d.setStroke(width3);
       int x1 = (int)(p.getX()+(innerR+3)*Math.cos(currentDialAngle));
       int y1 = (int)(p.getY()-(innerR+3)*Math.sin(currentDialAngle));
@@ -330,23 +292,31 @@ public class TMarker extends TPoint implements PropertyChangeListener {
 				&& panel().getSelectedTrack() != null) {
 			refreshing = false;
 			hint = TrackerRes.getString("TMarker.Marker.Hint");
-			if (markerColor != paleGreen) {
-				markerColor = paleGreen;
+			if (markerEdgeColor != white) {
+				markerEdgeColor = white;
 				TFrame.repaintT(panel());
 			}
 			return marker;			
 		}
-		if (markerColor != paleDark) {
-			markerColor = paleDark;
+		if (markerEdgeColor != paleWhite) {
+			markerEdgeColor = paleWhite;
 			TFrame.repaintT(panel());
 		}
-		markerColor = paleDark;
+
 		if (dialWedgePath.contains(xpix, ypix)) {
 			refreshing = true;
 			zoomControl.setScreenPosition(xpix, ypix, panel());
 			refreshing = false;
 			hint = TrackerRes.getString("TMarker.Zoom.Hint");
+			if (dialEdgeColor != white) {
+				dialEdgeColor = white;
+				TFrame.repaintT(panel());
+			}
 			return zoomControl;			
+		}
+		if (dialEdgeColor != paleWhite) {
+			dialEdgeColor = paleWhite;
+			TFrame.repaintT(panel());
 		}
 		if (outerCircle.contains(xpix, ypix)) {
 			refreshing = true;
@@ -365,10 +335,12 @@ public class TMarker extends TPoint implements PropertyChangeListener {
 	
 	public void setVisible(boolean vis) {
 		visible = vis;
-		if (vis)
+		if (vis) {
 			panel().addMouseListener(myMouseListener);
-		else
+		}
+		else {
 			panel().removeMouseListener(myMouseListener);
+		}
 		TFrame.repaintT(panel());
 	}
 	
@@ -389,7 +361,7 @@ public class TMarker extends TPoint implements PropertyChangeListener {
 	class Handle extends Member {
 
 		/**
-		 * Overrides TPoint setXY method to move this marker.
+		 * Overrides TPoint setXY method to move the target.
 		 *
 		 * @param x the x coordinate
 		 * @param y the y coordinate
@@ -399,16 +371,19 @@ public class TMarker extends TPoint implements PropertyChangeListener {
 			double dx = x - getX();
 			double dy = y - getY();
 			setLocation(x, y);
+			TMarker target = TMarker.this; 
 			if (!refreshing) {
 				// move the target
-				TMarker tm = TMarker.this; 
-				tm.setXY(tm.getX()+dx, tm.getY()+dy);
+				target.setXY(target.getX()+dx, target.getY()+dy);
+			}
+			if (isMarking && markedPoint != null) {
+				markedPoint.setXY(target.getX(), target.getY());
 			}
 		}
 		
 		@Override
 		public String toString() {
-			return "handle ";
+			return "handle "+super.toString();
 		}
 		
 	}
@@ -439,7 +414,7 @@ public class TMarker extends TPoint implements PropertyChangeListener {
 		
 		@Override
 		public String toString() {
-			return "zoom ";
+			return "zoom "+super.toString();
 		}
 		
 	}
@@ -448,7 +423,64 @@ public class TMarker extends TPoint implements PropertyChangeListener {
 
 		@Override
 		public String toString() {
-			return "marker ";
+			return "marker "+super.toString();
+		}
+		
+	}
+	
+	private class MyMouseListener extends MouseAdapter {
+				
+		@Override
+		public void mousePressed(MouseEvent e) {
+      if (isMarking) {
+        return; 
+      }	
+      if (outerCircle.contains(e.getX(), e.getY())
+      		&& panel().getSelectedTrack() != null 
+      		&& !panel().getSelectedTrack().isMarking) {
+      	panel().getSelectedTrack().setMarking(true);
+      }
+			if (dialWedgePath.contains(e.getX(), e.getY())) {
+				zoomControl.setXY(zoomControl.getX(), zoomControl.getY());
+			}
+			else if (panel().getSelectedPoint()==marker
+					&& markingWedgePath.contains(e.getX(), e.getY())) {
+        // set marking and dispatch a translated event to TrackerPanel's listeners
+        try {
+          isMarking = true;
+          markedPoint = null;
+	        panel().dispatchEvent(getTranslatedEvent(e));
+        } finally {
+        	// move handle to mouse position and select it
+    			refreshing = true;
+    			handle.setScreenPosition(e.getX(), e.getY(), panel());
+    			refreshing = false;        	
+        	panel().setSelectedPoint(handle);
+        }
+			}
+		}
+		
+		@Override
+		public void mouseReleased(MouseEvent e) {
+        	isMarking = false;
+        	markedPoint = null;
+		}
+		
+		private MouseEvent getTranslatedEvent(MouseEvent e) {
+	    Point p = getScreenPosition(panel());
+      // create a copy of the event with this pixel positions
+      return new MouseEvent(
+              panel(),
+              e.getID(),
+              e.getWhen(),
+              e.getModifiersEx(),
+              p.x,       // target x position
+              p.y,       // target y position
+              e.getClickCount(),
+              e.isPopupTrigger(),
+              e.getButton()
+      );
+			
 		}
 		
 	}
