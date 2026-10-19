@@ -1906,6 +1906,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 		tab = tool.getTab(toSend);
 		if (tab != null) {
 			tab.setWorkingColumns(xColName, yColName);
+            FitDataMetadata.attach(track,tab,datasetManager);
 		}
 		tool.setVisible(true);
 	}
