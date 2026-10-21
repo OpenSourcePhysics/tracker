@@ -271,7 +271,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	private int enabledCount;
 	
 	public NumberFormatDialog numberFormatDialog;
-	private TMarker marker;
+	private Crosshair crosshair;
 
 	private ArrayList<TTrack> userTracks, exportableTracks;
 	private Map<String, AbstractAction> actions;
@@ -1153,6 +1153,11 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			list.add(0, mat);
 		}
 		
+		// put crosshair at the front if on
+		if (crosshair != null && crosshair.isVisible()) {
+			list.remove(crosshair);
+			list.add(crosshair);
+		}
 		return list;
 	}
 
@@ -1577,7 +1582,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				boolean ignore = autoTracker != null && autoTracker.getWizard().isVisible()
 						&& (point instanceof AutoTracker.Corner || point instanceof AutoTracker.Handle
 								|| point instanceof AutoTracker.Target);
-				ignore = ignore || point instanceof TMarker.Member;
+				ignore = ignore || point instanceof Crosshair.Member;
 				if (!ignore)
 					setSelectedTrack(null);
 			} else { // TPoint is associated with a step and track
@@ -2413,16 +2418,15 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	}
 	
 	/**
-	 * Gets the TMarker for marking points on this TrackerPanel.
+	 * Gets the Crosshair for marking points on this TrackerPanel.
 	 * 
-	 * @return the marker
+	 * @return the crosshair
 	 */
-	protected TMarker getMarker() {
-		if (marker == null) {
-			marker = new TMarker(this);
-			addDrawable(marker);
+	protected Crosshair getCrosshair() {
+		if (crosshair == null) {
+			crosshair = new Crosshair(this);
 		}
-		return marker;
+		return crosshair;
 	}
 
 	/**
@@ -2520,8 +2524,10 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		boolean marking = false;
 		selectedTrack = getSelectedTrack();
 		int n = getFrameNumber();
+		boolean markWithCrosshair = false; 
 		if (selectedTrack != null) {
 			if (selectedTrack instanceof MarkingRequired) {
+				markWithCrosshair = getCrosshair().isVisible();
 				MarkingRequired tool = (MarkingRequired)selectedTrack;
 				invert = invert && !tool.requiresMarking();
 			}
@@ -2533,7 +2539,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		}
 		Interactive iad = getTracksTemp().isEmpty() || mouseEvent == null ? null : getInteractive();
 		clearTemp();
-		if (marking) {
+		if (marking && !markWithCrosshair) {
 			Cursor c = selectedTrack.getMarkingCursor(e);
 			if (c == TMouseHandler.autoTrackCursor)
 				cursorType = TMouseHandler.STATE_AUTO;
@@ -2568,10 +2574,10 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 					setMessage(TrackerRes.getString(msg));
 			} else
 				setMessage(""); //$NON-NLS-1$
-		} else if (iad instanceof TMarker.Member) {
+		} else if (iad instanceof Crosshair.Member) {
 			setMouseCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 			// display the marker's message
-			TMarker marker = ((TMarker.Member)iad).getTarget();
+			Crosshair marker = ((Crosshair.Member)iad).getTarget();
 			setMessage(marker.getMessage());
 		} else if (iad instanceof TPoint) {
 			setMouseCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
@@ -2615,7 +2621,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 					setMessage(""); //$NON-NLS-1$
 			}
 		}
-		return marking;
+		return marking && !markWithCrosshair;
 	}
 	
 	private boolean isClipAdjusting() {
@@ -2744,8 +2750,8 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			point.setScreenPosition(p.x, p.y, this, e);
 		}
 		if (selectedPoint != null) {
-			if (selectedPoint instanceof TMarker.Handle) {
-				TMarker target = ((TMarker.Handle)selectedPoint).getTarget();
+			if (selectedPoint instanceof Crosshair.Handle) {
+				Crosshair target = ((Crosshair.Handle)selectedPoint).getTarget();
 				
 				Point p = target.getScreenPosition(this);	
 				double xt = target.getX();

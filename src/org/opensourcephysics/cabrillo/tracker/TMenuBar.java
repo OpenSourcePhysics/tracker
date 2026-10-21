@@ -308,7 +308,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 	private JMenuItem track_dataTrackHelpItem;
 	private JMenuItem track_emptyTracksItem;
 	private JMenuItem track_trackControlItem;
-	private JMenuItem track_trackMarkerItem;
+	private JMenuItem track_crosshairItem;
 	// coords menu
 	private JMenu coordsMenu;
 	private JCheckBoxMenuItem coords_lockedCoordsItem;
@@ -493,7 +493,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		case "file_saveVideoAsItem":
 			return file_saveVideoAsItem;
 		case "track_trackMarkerItem":
-			return track_trackMarkerItem;
+			return track_crosshairItem;
 		case "view_singleViewMenu":
 			return view_singleViewMenu;
 		case "view_mainItem":
@@ -1376,10 +1376,10 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 				tc.setVisible(!tc.isVisible());
 		});
 		// trackMarkerItem
-		track_trackMarkerItem = new JCheckBoxMenuItem(TrackerRes.getString("TMenuBar.MenuItem.TrackMarker")); //$NON-NLS-1$
-		track_trackMarkerItem.addActionListener((e) -> {
-				TMarker marker = panel().getMarker();
-				marker.setVisible(track_trackMarkerItem.isSelected());
+		track_crosshairItem = new JCheckBoxMenuItem(TrackerRes.getString("TMenuBar.MenuItem.Crosshair")); //$NON-NLS-1$
+		track_crosshairItem.addActionListener((e) -> {
+				Crosshair crosshair = panel().getCrosshair();
+				crosshair.setVisible(track_crosshairItem.isSelected());
 		});
 		// notesItem
 		view_notesItem = new JCheckBoxMenuItem(TrackerRes.getString("TMenuBar.MenuItem.Description")); //$NON-NLS-1$
@@ -2488,10 +2488,10 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 			if (hasTracks && panel().isEnabled("new.clone")) //$NON-NLS-1$
 				trackMenu.add(track_cloneMenu);
 
-			TMarker tm = panel().getMarker();
-			track_trackMarkerItem.setSelected(tm.isVisible());
+			Crosshair tm = panel().getCrosshair();
+			track_crosshairItem.setSelected(tm.isVisible());
 			trackMenu.addSeparator();
-			trackMenu.add(track_trackMarkerItem);
+			trackMenu.add(track_crosshairItem);
 
 			TrackControl tc = TrackControl.getControl(panel());
 			track_trackControlItem.setSelected(tc.isVisible());

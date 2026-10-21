@@ -543,8 +543,11 @@ public class TapeMeasure extends InputTrack  implements MarkingRequired {
 			break;
 		case TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDPOINT:
 			TapeStep step = (TapeStep) getStep(tp.getFrameNumber());
-			step.rotatorDrawShapes[0] = null;
-			step.rotatorDrawShapes[1] = null;
+			if (step != null && step.rotatorDrawShapes != null
+					&& step.rotatorDrawShapes.length>1) {
+				step.rotatorDrawShapes[0] = null;
+				step.rotatorDrawShapes[1] = null;
+			}
 		default:
 			super.propertyChange(e);
 		}
@@ -879,7 +882,7 @@ public class TapeMeasure extends InputTrack  implements MarkingRequired {
 	}
 
 	/**
-	 * Returns a list of point-related toolbar components.
+	 * Returns a list of track-related toolbar components.
 	 *
 	 * @param trackerPanel the tracker panel
 	 * @return a list of components
@@ -901,9 +904,9 @@ public class TapeMeasure extends InputTrack  implements MarkingRequired {
 		// look for newly created tapes
 		n = trackerPanel.getFrameNumber();
 		TapeStep step = (TapeStep) getStep(n);
-		if (step != null) {
-			step.getTapeLength(!isStickMode());
-		}
+//		if (step != null) {
+//			step.getTapeLength(isStickMode());
+//		}
 
 		// add world coordinate fields and labels
 		boolean exists = (step != null);

@@ -68,7 +68,7 @@ public class TMouseHandler implements InteractiveMouseHandler {
 	Point mouseLoc = new Point(); // starting screen position of mouse for frame drag
 	Point frameLoc = new Point(); // starting position of frame for frame drag
 	Dimension frameDim = new Dimension(); // starting size of frame for frame resize
-	TMarker marker;
+	Crosshair crosshair;
 
 	static {
 		ImageIcon icon = (ImageIcon) Tracker.getResourceIcon("creatept.gif", false); //$NON-NLS-1$
@@ -116,7 +116,7 @@ public class TMouseHandler implements InteractiveMouseHandler {
 		AutoTracker autoTracker = trackerPanel.getAutoTracker(false);
 		if (autoTracker != null && autoTracker.getTrack() == null)
 			autoTracker.setTrack(trackerPanel.getSelectedTrack());
-		marker = null; 
+		crosshair = null; 
 		switch (trackerPanel.getMouseAction()) {
 
 		// request focus and identify TPoints when moving mouse
@@ -124,14 +124,15 @@ public class TMouseHandler implements InteractiveMouseHandler {
 			selectedTrack = trackerPanel.getSelectedTrack();
 			frameNumber = trackerPanel.getFrameNumber();
 			iad = trackerPanel.getInteractive();
-			if (iad instanceof TMarker.Member) {
-				marker = ((TMarker.Member)iad).getTarget();
+			if (iad instanceof Crosshair.Member) {
+				crosshair = ((Crosshair.Member)iad).getTarget();
 			}
 			
-			marking = trackerPanel.setCursorForMarking(e.isShiftDown(), e);
-			boolean markTrack = marking || (marker!=null && marker.on);
-			if (selectedTrack != null && markTrack != selectedTrack.isMarking) {
-				selectedTrack.setMarking(markTrack);
+			marking = crosshair==null?
+					trackerPanel.setCursorForMarking(e.isShiftDown(), e):
+					crosshair.isMarking;
+			if (selectedTrack != null && marking != selectedTrack.isMarking) {
+				selectedTrack.setMarking(marking);
 			}
 			if (marking) {
 				iad = null;
@@ -170,16 +171,16 @@ public class TMouseHandler implements InteractiveMouseHandler {
 			selectedTrack = trackerPanel.getSelectedTrack();
 			frameNumber = trackerPanel.getFrameNumber();
 			iad = trackerPanel.getInteractive();
-			if (iad instanceof TMarker.Member) {
-				marker = ((TMarker.Member)iad).getTarget();
+			if (iad instanceof Crosshair.Member) {
+				crosshair = ((Crosshair.Member)iad).getTarget();
 			}
 
-			marking = marker==null?
+			marking = crosshair==null?
 					trackerPanel.setCursorForMarking(e.isShiftDown(), e):
-					marker.isMarking;
+					crosshair.isMarking;
 			
 			if (selectedTrack != null && marking != selectedTrack.isMarking) {
-				boolean keepMarking = marker != null && selectedTrack.isMarking;
+				boolean keepMarking = crosshair != null && selectedTrack.isMarking;
 				selectedTrack.setMarking(marking || keepMarking);
 			}
 			
@@ -266,7 +267,9 @@ public class TMouseHandler implements InteractiveMouseHandler {
 			TTrack track = trackerPanel.getSelectedTrack();
 			if (selectedPoint != null) {
 				int dx = 0, dy = 0;
-				if (track != null && track.isLocked() && !(track instanceof VectorSum)) {
+				if (track != null && track.isLocked() 
+						&& !(track instanceof VectorSum)
+						&& !(track instanceof CenterOfMass)) {
 					OSPRuntime.beep("TMmouseHandler track " + track + " is locked");
 					return;
 				}
@@ -497,8 +500,8 @@ public class TMouseHandler implements InteractiveMouseHandler {
 					}
 				}
 				trackerPanel.newlyMarkedPoint = step.getDefaultPoint();
-				if (marker != null)
-					marker.markedPoint = trackerPanel.newlyMarkedPoint;
+				if (crosshair != null)
+					crosshair.markedPoint = trackerPanel.newlyMarkedPoint;
 
 				TPoint[] pts = step.getPoints();
 				// increment target index if new step
