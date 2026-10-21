@@ -132,7 +132,7 @@ public class CVVideoType extends MovieVideoType {
 		try {
 			video = new CVVideo(XML.getResolvedPath(name, basePath), control);
 			video.setProperty("video_type", this); //$NON-NLS-1$
-		} catch (IOException ex) {
+		} catch (Throwable ex) {
 			OSPLog.fine(getDescription() + ": " + ex.getMessage()); //$NON-NLS-1$
 		}
 		return video;
