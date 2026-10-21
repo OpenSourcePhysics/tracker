@@ -1375,7 +1375,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 				TrackControl tc = TrackControl.getControl(panel());
 				tc.setVisible(!tc.isVisible());
 		});
-		// trackMarkerItem
+		// crosshairItem
 		track_crosshairItem = new JCheckBoxMenuItem(TrackerRes.getString("TMenuBar.MenuItem.Crosshair")); //$NON-NLS-1$
 		track_crosshairItem.addActionListener((e) -> {
 				Crosshair crosshair = panel().getCrosshair();
@@ -2496,7 +2496,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 			TrackControl tc = TrackControl.getControl(panel());
 			track_trackControlItem.setSelected(tc.isVisible());
 			track_trackControlItem.setEnabled(!tc.isEmpty());
-			trackMenu.add(track_trackControlItem);
+//			trackMenu.add(track_trackControlItem);
 			
 			if (hasTracks)
 				checkAddMenuSep(trackMenu);
