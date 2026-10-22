@@ -758,6 +758,7 @@ org/opensourcephysics/cabrillo/tracker/ClipboardListener.js
 org/opensourcephysics/cabrillo/tracker/Configuration.js
 org/opensourcephysics/cabrillo/tracker/CoordAxes.js
 org/opensourcephysics/cabrillo/tracker/CoordAxesStep.js
+org/opensourcephysics/cabrillo/tracker/Crosshair.js
 org/opensourcephysics/cabrillo/tracker/DataTrackClipControl.js
 org/opensourcephysics/cabrillo/tracker/DataTrackTimeControl.js
 org/opensourcephysics/cabrillo/tracker/Derivative.js
