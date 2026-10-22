@@ -2576,9 +2576,9 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				setMessage(""); //$NON-NLS-1$
 		} else if (iad instanceof Crosshair.Member) {
 			setMouseCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-			// display the marker's message
+			// display the crosshair message
 			Crosshair marker = ((Crosshair.Member)iad).getTarget();
-			setMessage(marker.getMessage());
+			setMessage(Tracker.showHints? marker.getMessage(): "");
 		} else if (iad instanceof TPoint) {
 			setMouseCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 			// identify associated track and display its hint

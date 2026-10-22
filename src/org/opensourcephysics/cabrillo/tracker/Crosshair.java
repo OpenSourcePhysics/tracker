@@ -50,7 +50,7 @@ public class Crosshair extends TPoint implements PropertyChangeListener {
 	private TFrame frame;
 	protected Handle handle;
 	protected ZoomControl zoomControl;
-	protected Marker marker;
+	protected Member marker;
 	protected Color markerEdgeColor = paleBlue, dialEdgeColor = paleWhite;
 	protected TPoint markedPoint;
 	protected boolean refreshing, visible, isMarking, wasOn, on, drawVideo;
@@ -63,7 +63,7 @@ public class Crosshair extends TPoint implements PropertyChangeListener {
 	private MyMouseListener myMouseListener;
 	private double zoomFactor = 1, zoomMax = 4, zoomMin = 1;
 	private Timer wasOnTimer;
-	private String hint;
+	private String hint, selectedName;
 		
 	public Crosshair(TrackerPanel panel) {
 		panelID = panel.getID();
@@ -74,7 +74,7 @@ public class Crosshair extends TPoint implements PropertyChangeListener {
 		outerArc = new Arc2D.Double();
 		handle = new Handle();
 		zoomControl = new ZoomControl();
-		marker = new Marker();
+		marker = new Member();
 		screenPt2D = new Point2D.Double();
 		ringPath = new Path2D.Double(Path2D.WIND_EVEN_ODD);
 		dialWedgePath = new Path2D.Double(Path2D.WIND_EVEN_ODD);
@@ -112,7 +112,7 @@ public class Crosshair extends TPoint implements PropertyChangeListener {
 					|| (old==markedPoint && old!= null);
 			wasOnTimer.restart();
 			
-			on = (wasOn || isSelected) && !isUnselected && panel().getSelectedTrack()!=null;
+			on = (wasOn || isSelected) && !isUnselected;
 						
 			if (nu != zoomControl) {
 				TFrame.repaintT(panel());
@@ -150,10 +150,9 @@ public class Crosshair extends TPoint implements PropertyChangeListener {
 		return zoomFactor;
 	}
 	
-	protected String getMessage() {
-		if (panel().getSelectedTrack() == null)
-			return TrackerRes.getString("Crosshair.NoSelectedTrack.Hint");
-		return hint;
+	protected String getMessage() {		
+		return TrackerRes.getString("TMenuBar.MenuItem.Crosshair")
+				+ selectedName + " (" + hint + ")";
 	}
 	
 	/**
@@ -165,24 +164,11 @@ public class Crosshair extends TPoint implements PropertyChangeListener {
 	 * @param ang the sweep angle in degrees
 	 * @param roundEnds true to round the wedge ends
 	 */
-	private void refreshWedgePath(Path2D path, Point center, double start, double ang, boolean roundEnds) {
+	private void refreshWedgePath(Path2D path, Point center, double start, double ang) {
 		outerArc.setArcByCenter(center.x, center.y, innerR+wedgeWidth, start, ang, Arc2D.OPEN);
 		innerArc.setArcByCenter(center.x, center.y, innerR, start + ang, -ang, Arc2D.OPEN);		
 		path.reset();
 		path.append(outerArc, true);
-		if (roundEnds) {
-			// pig
-			// at start and end angle of innerArc, find points on inner circle
-	    Point p = getScreenPosition(panel());
-      int x = (int)(p.getX()+(innerR)*Math.cos(start*Math.PI/180));
-      int y = (int)(p.getY()-(innerR)*Math.sin(start*Math.PI/180));
-
-			
-			// use point as the center of an arc with radius wedgeWidth
-			
-			outerArc.setArcByCenter(x, y, wedgeWidth, 0, Math.PI, Arc2D.OPEN);			
-			path.append(outerArc, true);
-		}
 		path.append(innerArc, true);
 		path.closePath();
 	}
@@ -208,18 +194,20 @@ public class Crosshair extends TPoint implements PropertyChangeListener {
     
     if (on) {
     	// draw dial wedge
-    	refreshWedgePath(dialWedgePath, p, dialStart, 120, false); 
+    	refreshWedgePath(dialWedgePath, p, dialStart, 120); 
       g2d.setColor(paleBody);
       g2d.fill(dialWedgePath);
     	g2d.setColor(dialEdgeColor);
       g2d.draw(dialWedgePath);
       
   		// draw marking wedge
-      refreshWedgePath(markingWedgePath, p, 210, 120, false);
-  		g2d.setColor(paleBlue);
-      g2d.fill(markingWedgePath);
-    	g2d.setColor(markerEdgeColor);
-      g2d.draw(markingWedgePath);
+      refreshWedgePath(markingWedgePath, p, 210, 120);
+      if (panel().getSelectedTrack() != null) {
+	  		g2d.setColor(paleBlue);
+	      g2d.fill(markingWedgePath);
+	    	g2d.setColor(markerEdgeColor);
+	      g2d.draw(markingWedgePath);
+      }
       
       // draw dial indicator
       int x1 = (int)(p.getX()+(innerR+3)*Math.cos(currentDialAngle));
@@ -304,6 +292,7 @@ public class Crosshair extends TPoint implements PropertyChangeListener {
 				&& panel().getSelectedTrack() != null) {
 			refreshing = false;
 			hint = TrackerRes.getString("Crosshair.Marker.Hint");
+			selectedName = " "+TrackerRes.getString("Crosshair.Marker.Name");
 			if (markerEdgeColor != Color.white) {
 				markerEdgeColor = Color.white;
 				TFrame.repaintT(panel());
@@ -322,7 +311,9 @@ public class Crosshair extends TPoint implements PropertyChangeListener {
 			refreshing = true;
 			zoomControl.setScreenPosition(xpix, ypix, panel());
 			refreshing = false;
-			hint = TrackerRes.getString("Crosshair.Zoom.Hint");
+			hint = on? TrackerRes.getString("Crosshair.Zoom.Hint"):
+				TrackerRes.getString("Crosshair.Handle.Hint");
+			selectedName = on? " "+TrackerRes.getString("Crosshair.Zoom.Name"): "";
 			if (dialEdgeColor != Color.white) {
 				dialEdgeColor = Color.white;
 				TFrame.repaintT(panel());
@@ -344,7 +335,10 @@ public class Crosshair extends TPoint implements PropertyChangeListener {
 			refreshing = true;
 			handle.setScreenPosition(xpix, ypix, panel());
 			refreshing = false;
-			hint = TrackerRes.getString("Crosshair.Handle.Hint");
+			hint = panel().getSelectedTrack() != null?
+					TrackerRes.getString("Crosshair.Handle.Hint"):
+				TrackerRes.getString("Crosshair.NoSelectedTrack.Hint");
+			selectedName = "";
 			return handle;
 		}
 		return null;
@@ -381,6 +375,14 @@ public class Crosshair extends TPoint implements PropertyChangeListener {
       return Crosshair.this; 
 		}
 
+		@Override
+		public String toString() {
+			String s = this==marker? "marker ":
+				this==handle? "handle ":
+				"zoom ";
+			return s + super.toString();
+		}
+		
 	}
 
 	
@@ -417,11 +419,6 @@ public class Crosshair extends TPoint implements PropertyChangeListener {
 			}
 		}
 		
-		@Override
-		public String toString() {
-			return "handle "+super.toString();
-		}
-		
 	}
 
 	class ZoomControl extends Member {
@@ -447,20 +444,6 @@ public class Crosshair extends TPoint implements PropertyChangeListener {
 				TFrame.repaintT(panel());
 			}
 		}	
-		
-		@Override
-		public String toString() {
-			return "zoom "+super.toString();
-		}
-		
-	}
-	
-	class Marker extends Member {
-
-		@Override
-		public String toString() {
-			return "marker "+super.toString();
-		}
 		
 	}
 	
