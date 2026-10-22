@@ -61,10 +61,34 @@
 			(/Macintosh/i.test(userAgent) && navigator.maxTouchPoints > 1);
 	}
 
+	function setScreenHelpHidden(hidden) {
+		var screenHelp = element("tracker-mp4-screen-capture-help");
+		if (screenHelp) screenHelp.hidden = !!hidden;
+		var status = element("tracker-mp4-status");
+		if (status) {
+			if (hidden && status.textContent === "Camera ready. Keep the phone steady, then start recording.") {
+				status.textContent = "";
+				status.hidden = true;
+			} else if (!hidden && !status.textContent) {
+				status.hidden = false;
+			}
+		}
+		if (global.getComputedStyle) positionCameraDialog();
+	}
+
 	function setStatus(message, isError) {
 		var status = element("tracker-mp4-status");
 		if (!status) return;
-		status.textContent = message;
+		var screenHelp = element("tracker-mp4-screen-capture-help");
+		var screenHelpHidden = screenHelp && screenHelp.hidden;
+		if (screenHelpHidden && message === "Camera ready. Keep the phone steady, then start recording.") {
+			status.textContent = "";
+			status.hidden = true;
+			if (global.getComputedStyle) positionCameraDialog();
+			return;
+		}
+		status.hidden = !message;
+		status.textContent = message || "";
 		status.classList.toggle("tracker-mp4-error", !!isError);
 	}
 
@@ -636,6 +660,7 @@
 		stopTracks();
 		var dialog = element("tracker-mp4-dialog");
 		if (dialog) dialog.hidden = true;
+		setScreenHelpHidden(false);
 		setControls();
 	}
 
@@ -768,6 +793,7 @@
 		trackerApp = app;
 		var dialog = element("tracker-mp4-dialog") || createDialog();
 		dialog.hidden = false;
+		setScreenHelpHidden(false);
 		element("tracker-mp4-body").scrollTop = 0;
 		dialogOffset = { x: 0, y: 0 };
 		dialogDrag = null;
@@ -842,6 +868,7 @@
 			});
 		});
 		element("tracker-mp4-open").addEventListener("click", function () {
+			setScreenHelpHidden(true);
 			openCamera("environment").catch(function (error) {
 				reportError(error);
 				setControls();
@@ -850,6 +877,7 @@
 		var screenOpenButton = element("tracker-mp4-screen-open");
 		if (screenOpenButton) {
 			screenOpenButton.addEventListener("click", function () {
+				setScreenHelpHidden(true);
 				openScreen().catch(function (error) {
 					reportError(error);
 					setControls();
@@ -857,7 +885,10 @@
 			});
 		}
 		element("tracker-mp4-record").addEventListener("click", toggleCapture);
-		element("tracker-mp4-cancel").addEventListener("click", closeDialog);
+		element("tracker-mp4-cancel").addEventListener("click", function () {
+			setScreenHelpHidden(false);
+			closeDialog();
+		});
 		element("tracker-mp4-crop-toggle").addEventListener("change", function (event) {
 			state.cropEnabled = event.currentTarget.checked;
 			updateCropVisual();
@@ -902,6 +933,8 @@
 		style.textContent =
 			"#tracker-mp4-dialog{position:fixed;z-index:1000000;inset:0;box-sizing:border-box;overflow:hidden;display:flex;align-items:center;justify-content:center;padding:16px;padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right));background:#0009}" +
 			"#tracker-mp4-dialog[hidden]{display:none}" +
+			"#tracker-mp4-screen-capture-help[hidden]{display:none}" +
+			"#tracker-mp4-status[hidden]{display:none}" +
 			".tracker-mp4-content{box-sizing:border-box;width:720px;max-width:100%;max-height:100%;display:flex;flex-direction:column;overflow:hidden;padding:16px;border-radius:10px;background:#fff;box-shadow:0 12px 45px #0008;font:15px/1.35 sans-serif;color:#222}" +
 			"#tracker-mp4-header{display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-start;gap:8px 16px;flex:none;margin-bottom:8px;cursor:move;touch-action:none}" +
 			"#tracker-mp4-source{display:flex;gap:12px;align-items:center;font:normal 14px/1.4 sans-serif;white-space:nowrap}" +
