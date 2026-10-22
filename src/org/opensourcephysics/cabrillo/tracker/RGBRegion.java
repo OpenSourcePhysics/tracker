@@ -1245,8 +1245,10 @@ public class RGBRegion extends TTrack implements MarkingRequired {
   	RGBStep step = (RGBStep) steps.getStep(tp.getFrameNumber());
   	if (!step.isPolygonClosed() && step.getPolygonVertexCount() > 2)
 			SwingUtilities.invokeLater(() -> {
-	    	if (tp.getSelectedPoint() != step.position
-	    			&& tp.getSelectedPoint() != vertexHandle) {
+				TPoint pt = tp.getSelectedPoint();
+	    	if (pt != step.position
+	    			&& pt != vertexHandle
+	    			&& !(pt instanceof Crosshair.Handle)) {
 	    		step.polygon.setClosed(true);
 	    		repaint();
     			tp.getTrackBar(false).refresh();

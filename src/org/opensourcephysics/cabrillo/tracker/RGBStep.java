@@ -248,8 +248,10 @@ protected Mark getMark(TrackerPanel trackerPanel) {
           if (rgn != null) {
 	          g.draw(rgn);
 	          if (rgbRegion.shapeType == RGBRegion.SHAPE_POLYGON && !isPolygonClosed()) {
+	          	Composite c = g.getComposite();
 	            g.setComposite(composite);
 	            g.fill(rgn);
+	            g.setComposite(c);
 	          }
           }
           g.setPaint(gpaint);

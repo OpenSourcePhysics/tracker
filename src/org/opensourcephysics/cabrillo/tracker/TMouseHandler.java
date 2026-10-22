@@ -130,11 +130,13 @@ public class TMouseHandler implements InteractiveMouseHandler {
 			
 			// to display hints, call setCursorForMarking even if crosshair is marking
 			marking = trackerPanel.setCursorForMarking(e.isShiftDown(), e);
-			if (crosshair != null) marking = crosshair.isMarking;
 			
 			if (selectedTrack != null && marking != selectedTrack.isMarking) {
 				selectedTrack.setMarking(marking);
 			}
+			
+			if (crosshair != null) marking = crosshair.isMarking;
+			
 			if (marking) {
 				iad = null;
 				if (selectedTrack != null && selectedTrack.ttype == TTrack.TYPE_TAPEMEASURE) {
@@ -178,12 +180,11 @@ public class TMouseHandler implements InteractiveMouseHandler {
 
 			// to display hints, call setCursorForMarking even if crosshair is marking
 			marking = trackerPanel.setCursorForMarking(e.isShiftDown(), e);
-			if (crosshair != null) marking = crosshair.isMarking;
 			
 			if (selectedTrack != null && marking != selectedTrack.isMarking) {
-				boolean keepMarking = crosshair != null && selectedTrack.isMarking;
-				selectedTrack.setMarking(marking || keepMarking);
+				selectedTrack.setMarking(marking);
 			}
+			if (crosshair != null) marking = crosshair.isMarking;
 			
 			if (marking && selectedTrack!= null) {
 				markPoint(trackerPanel, e, autoTracker);

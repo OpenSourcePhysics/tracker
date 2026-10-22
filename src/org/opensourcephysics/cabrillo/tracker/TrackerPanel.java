@@ -3334,6 +3334,9 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		boolean isMarking = (track != null && cursorType == track.getMarkingCursorType(mouseEvent));
 		if (isMarking)
 			return null;
+		Interactive ia = super.getInteractive();
+		if (ia instanceof Crosshair.Member)
+			return ia;
 		if (track != null) {
 			Interactive o = null;
 			// check selected track first unless it's a calibration tool
@@ -3341,12 +3344,12 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 					&& (o = track.findInteractive(this, mouseEvent.getX(), mouseEvent.getY())) != null) {
 				return o;
 			}
-			if ((track.isDependent() || track == getAxes())
+			else if ((track.isDependent() || track == getAxes())
 							&& (o = getAxes().findInteractive(this, mouseEvent.getX(), mouseEvent.getY())) != null) {
 				return o;
 			}
 		}
-		return super.getInteractive();
+		return ia;
 	}
 
 	@Override

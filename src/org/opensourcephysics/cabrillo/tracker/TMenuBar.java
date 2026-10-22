@@ -1353,6 +1353,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 					toolbar.refresh(TToolBar.REFRESH__REFRESH_ACTION_TRUE);
 					if (frame.currentMenuBar != null) {
 						frame.currentMenuBar.setMenuTainted(MENU_ALL, true);
+						frame.currentMenuBar.fileMenuStructure = -1;
 						frame.currentMenuBar.refreshHelpMenu(false);
 						frame.setJMenuBar(frame.currentMenuBar);
 					}
@@ -2467,6 +2468,24 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 			break;
 		}
 	}
+	
+	protected void refreshTrackCloneMenu(ArrayList<TTrack> userTracks) {
+		// add menu item for each track
+		track_cloneMenu.removeAll();
+		for (int i = 0, n = userTracks.size(); i < n; i++) {
+			TTrack track = userTracks.get(i);
+			
+			String trackName = track.getName("track"); //$NON-NLS-1$
+			// add item to clone menu for each track
+			JMenuItem item = new JMenuItem(trackName);
+			item.setName("track");
+			item.setIcon(track.getIcon(21, 16, "track")); //$NON-NLS-1$
+			item.addActionListener(actions.get("cloneTrack")); //$NON-NLS-1$
+			track_cloneMenu.add(item);
+		}
+	}
+
+	
 	protected void refreshTrackMenu(boolean opening, JPopupMenu target) {
 		// long t0 = Performance.now(0);
 
@@ -2485,8 +2504,8 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 			if (track_createMenu.getItemCount() > 0)
 				trackMenu.add(track_createMenu);
 
-			if (hasTracks && panel().isEnabled("new.clone")) //$NON-NLS-1$
-				trackMenu.add(track_cloneMenu);
+//			if (hasTracks && panel().isEnabled("new.clone")) //$NON-NLS-1$
+//				trackMenu.add(track_cloneMenu);
 
 			Crosshair tm = panel().getCrosshair();
 			track_crosshairItem.setSelected(tm.isVisible());
@@ -2498,25 +2517,24 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 			track_trackControlItem.setEnabled(!tc.isEmpty());
 //			trackMenu.add(track_trackControlItem);
 			
-			if (hasTracks)
+			if (hasTracks) {
 				checkAddMenuSep(trackMenu);
-
-			// for each track
-			for (int i = 0, n = userTracks.size(); i < n; i++) {
-				track = userTracks.get(i);
-				
-				String trackName = track.getName("track"); //$NON-NLS-1$
-				// add item to clone menu for each track
-				JMenuItem item = new JMenuItem(trackName);
-				item.setName("track");
-				item.setIcon(track.getIcon(21, 16, "track")); //$NON-NLS-1$
-				item.addActionListener(actions.get("cloneTrack")); //$NON-NLS-1$
-				track_cloneMenu.add(item);
-				track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_LOCKED, this);
-				track.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_LOCKED, this);
-				// add each track's submenu to track menu
-				trackMenu.add(createTrackMenu(track));
+				refreshTrackCloneMenu(userTracks);
+				for (int i = 0, n = userTracks.size(); i < n; i++) {
+					track = userTracks.get(i);
+					track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_LOCKED, this);
+					track.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_LOCKED, this);
+				}
 			}
+
+			
+			JMenu selectMenu = new JMenu(TrackerRes.getString("TToolBar.Menu.Select.Text"));
+			TTrackBar trackbar = frame.getTrackBar(panel().getID(), true);
+			trackbar.getSelectTrackPopup(selectMenu.getPopupMenu());
+			checkAddMenuSep(trackMenu);
+			trackMenu.add(selectMenu);
+
+			
 			// add axes and calibration tools to track menu
 			if (panel().isEnabled("button.axes") //$NON-NLS-1$
 					|| panel().isEnabled("calibration.stick") //$NON-NLS-1$
@@ -2573,8 +2591,8 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 			if (track_createMenu.getParent() != target) {
 				if (track_createMenu.getItemCount() > 0)
 					target.add(track_createMenu, 0);
-				if (hasTracks && panel().isEnabled("new.clone")) //$NON-NLS-1$
-					trackMenu.add(track_cloneMenu, 1);
+//				if (hasTracks && panel().isEnabled("new.clone")) //$NON-NLS-1$
+//					trackMenu.add(track_cloneMenu, 1);
 			}
 
 			// disable newDataTrackPasteItem unless pastable data is on the clipboard
@@ -2691,6 +2709,16 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 					track_newDataTrackMenu.add(track_dataTrackHelpItem);
 				}
 			}
+			
+			checkAddMenuSep(menu);
+			ArrayList<TTrack> userTracks = panel().getUserTracks();
+			userTracks.removeAll(panel().getDrawablesTemp(FilteredPointMass.class));
+			boolean hasTracks = !userTracks.isEmpty();
+			if (hasTracks && p.isEnabled("new.clone")) { //$NON-NLS-1$
+				refreshTrackCloneMenu(userTracks);
+				menu.add(track_cloneMenu);
+			}
+
 			if (!userTracksOnly) {
 				if (p.isEnabled("new.tapeMeasure") || //$NON-NLS-1$
 						p.isEnabled("new.protractor") || //$NON-NLS-1$
