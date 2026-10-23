@@ -492,7 +492,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 			return video_captureItem;
 		case "file_saveVideoAsItem":
 			return file_saveVideoAsItem;
-		case "track_trackMarkerItem":
+		case "track_crosshairItem":
 			return track_crosshairItem;
 		case "view_singleViewMenu":
 			return view_singleViewMenu;
@@ -2507,11 +2507,6 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 //			if (hasTracks && panel().isEnabled("new.clone")) //$NON-NLS-1$
 //				trackMenu.add(track_cloneMenu);
 
-			Crosshair tm = panel().getCrosshair();
-			track_crosshairItem.setSelected(tm.isVisible());
-			trackMenu.addSeparator();
-			trackMenu.add(track_crosshairItem);
-
 			TrackControl tc = TrackControl.getControl(panel());
 			track_trackControlItem.setSelected(tc.isVisible());
 			track_trackControlItem.setEnabled(!tc.isEmpty());
@@ -2573,6 +2568,12 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 //					}
 //				}
 			}
+			
+			Crosshair tm = panel().getCrosshair();
+			track_crosshairItem.setSelected(tm.isVisible());
+			trackMenu.addSeparator();
+			trackMenu.add(track_crosshairItem);
+
 			if (trackMenu.getItemCount() == 0) {
 				trackMenu.add(track_emptyTracksItem);
 			}
@@ -3239,6 +3240,18 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 			}
 		}
 		refreshTrackMenu(true, trackMenu.getPopupMenu());
+		// look for crosshair item 
+		for (int i = 0; i < tracksMenuItems.length; i++) {
+			if (tracksMenuItems[i] == track_crosshairItem) {
+				tracksMenuItems[i] = null;
+				popup.add(track_crosshairItem, 0);
+				if (i > 0 && !(tracksMenuItems[i-1] instanceof JMenuItem)) {
+					popup.add(tracksMenuItems[i-1], 1);
+					tracksMenuItems[i-1] = null;
+				}
+				setMenuTainted(MENU_TRACK, true);
+			}
+		}
 		popupTracksMenu.removeAll();
 		addItems(popupTracksMenu, tracksMenuItems);
 		popup.addSeparator();
@@ -3257,9 +3270,10 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 	}
 
 	private void addItems(JMenu menu, Component[] items) {
-		for (int i = 0; i < items.length; i++)
-			menu.add(items[i]);
+		for (int i = 0; i < items.length; i++) {
+			if (items[i] != null)	menu.add(items[i]);
 		}
+	}
 
 	public void checkMatSize() {
 		TrackerPanel panel = panel();

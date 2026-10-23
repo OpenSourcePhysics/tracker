@@ -124,8 +124,8 @@ public class TMouseHandler implements InteractiveMouseHandler {
 			selectedTrack = trackerPanel.getSelectedTrack();
 			frameNumber = trackerPanel.getFrameNumber();
 			iad = trackerPanel.getInteractive();
-			if (iad instanceof Crosshair.Member) {
-				crosshair = ((Crosshair.Member)iad).getTarget();
+			if (iad instanceof Crosshair.Control) {
+				crosshair = ((Crosshair.Control)iad).getTarget();
 			}
 			
 			// to display hints, call setCursorForMarking even if crosshair is marking
@@ -135,7 +135,7 @@ public class TMouseHandler implements InteractiveMouseHandler {
 				selectedTrack.setMarking(marking);
 			}
 			
-			if (crosshair != null) marking = crosshair.isMarking;
+			if (crosshair != null) marking = crosshair.isMarking();
 			
 			if (marking) {
 				iad = null;
@@ -174,8 +174,8 @@ public class TMouseHandler implements InteractiveMouseHandler {
 			selectedTrack = trackerPanel.getSelectedTrack();
 			frameNumber = trackerPanel.getFrameNumber();
 			iad = trackerPanel.getInteractive();
-			if (iad instanceof Crosshair.Member) {
-				crosshair = ((Crosshair.Member)iad).getTarget();
+			if (iad instanceof Crosshair.Control) {
+				crosshair = ((Crosshair.Control)iad).getTarget();
 			}
 
 			// to display hints, call setCursorForMarking even if crosshair is marking
@@ -184,7 +184,7 @@ public class TMouseHandler implements InteractiveMouseHandler {
 			if (selectedTrack != null && marking != selectedTrack.isMarking) {
 				selectedTrack.setMarking(marking);
 			}
-			if (crosshair != null) marking = crosshair.isMarking;
+			if (crosshair != null) marking = crosshair.isMarking();
 			
 			if (marking && selectedTrack!= null) {
 				markPoint(trackerPanel, e, autoTracker);
@@ -503,7 +503,7 @@ public class TMouseHandler implements InteractiveMouseHandler {
 				}
 				trackerPanel.newlyMarkedPoint = step.getDefaultPoint();
 				if (crosshair != null)
-					crosshair.markedPoint = trackerPanel.newlyMarkedPoint;
+					crosshair.setMarkedPoint(trackerPanel.newlyMarkedPoint);
 
 				TPoint[] pts = step.getPoints();
 				// increment target index if new step

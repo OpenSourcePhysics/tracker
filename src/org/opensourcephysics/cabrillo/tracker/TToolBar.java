@@ -2158,7 +2158,7 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 			FontSizer.setFont(newTrackMenu);
 			trackPopup.add(newTrackMenu);
 			trackPopup.addSeparator();
-			trackPopup.add(frame.currentMenuBar.getMenuItem("track_trackMarkerItem"));
+			trackPopup.add(frame.currentMenuBar.getMenuItem("track_crosshairItem"));
 			add(trackControlButton, trackPopup);
 			trackControlCheckbox.setSelected(trackControlButton.isSelected());
 		}

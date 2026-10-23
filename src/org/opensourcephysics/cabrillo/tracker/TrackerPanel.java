@@ -1582,7 +1582,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				boolean ignore = autoTracker != null && autoTracker.getWizard().isVisible()
 						&& (point instanceof AutoTracker.Corner || point instanceof AutoTracker.Handle
 								|| point instanceof AutoTracker.Target);
-				ignore = ignore || point instanceof Crosshair.Member;
+				ignore = ignore || point instanceof Crosshair.Control;
 				if (!ignore)
 					setSelectedTrack(null);
 			} else { // TPoint is associated with a step and track
@@ -2531,6 +2531,11 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				MarkingRequired tool = (MarkingRequired)selectedTrack;
 				invert = invert && !tool.requiresMarking();
 			}
+			else if (getCrosshair().isVisible() 
+					&& e instanceof MouseEvent 
+					&& getCrosshair().contains((MouseEvent)e)) {
+				markWithCrosshair = true;
+			}
 			markable = !(
 					(selectedTrack.isStepComplete(n) && !invert)
 					|| selectedTrack.isLocked()
@@ -2574,10 +2579,10 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 					setMessage(TrackerRes.getString(msg));
 			} else
 				setMessage(""); //$NON-NLS-1$
-		} else if (iad instanceof Crosshair.Member) {
+		} else if (iad instanceof Crosshair.Control) {
 			setMouseCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 			// display the crosshair message
-			Crosshair marker = ((Crosshair.Member)iad).getTarget();
+			Crosshair marker = ((Crosshair.Control)iad).getTarget();
 			setMessage(Tracker.showHints? marker.getMessage(): "");
 		} else if (iad instanceof TPoint) {
 			setMouseCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
@@ -3335,7 +3340,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		if (isMarking)
 			return null;
 		Interactive ia = super.getInteractive();
-		if (ia instanceof Crosshair.Member)
+		if (ia instanceof Crosshair.Control)
 			return ia;
 		if (track != null) {
 			Interactive o = null;
@@ -4601,9 +4606,13 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	public JPopupMenu updateMainPopup() {
 		JPopupMenu popup = getPopup();
 		try {
-			// see if a track has been clicked
 			Interactive iad = getInteractive();
-			// first look at TPoints
+			// see if crosshair has been clicked
+			if (iad instanceof Crosshair.Control) {
+				Crosshair.Control c = (Crosshair.Control)iad;
+				return c.getTarget().getPopup();
+			}
+			// for TPoints, try to find the track
 			if (iad instanceof TPoint) {
 				TPoint p = (TPoint) iad;
 				TTrack track = null;
@@ -4648,8 +4657,10 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			// video or non-track TPoint was clicked
 			popup.removeAll();
 			// add zoom menus
+			JMenu zoomMenu = new JMenu(TrackerRes.getString("TToolBar.Overflow.Zoom"));
+			popup.add(zoomMenu);
 			JMenuItem item = new JMenuItem(TrackerRes.getString("MainTView.Popup.MenuItem.ZoomIn")); //$NON-NLS-1$
-			popup.add(item);
+			zoomMenu.add(item);
 			item.addActionListener(new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent e) {
@@ -4657,7 +4668,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				}
 			});
 			item = new JMenuItem(TrackerRes.getString("MainTView.Popup.MenuItem.ZoomOut")); //$NON-NLS-1$
-			popup.add(item);
+			zoomMenu.add(item);
 			item.addActionListener(new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent e) {
@@ -4665,7 +4676,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				}
 			});
 			item = new JMenuItem(TrackerRes.getString("MainTView.Popup.MenuItem.ZoomToFit")); //$NON-NLS-1$
-			popup.add(item);
+			zoomMenu.add(item);
 			item.addActionListener(new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent e) {
