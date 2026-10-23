@@ -93,9 +93,7 @@ public class TActions {
 		actions.put("captureVideo", new AbstractAction() { //$NON-NLS-1$
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				if (OSPRuntime.isJS) {
-					new TrackerCamera(frame);
-				}
+				new TrackerCamera(frame);
 			}
 		});
 

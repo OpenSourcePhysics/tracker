@@ -951,8 +951,12 @@ public class Tracker {
 	private TFrame createFrame(Map<String, Object> options) {
 		// create actions
 		createActions();
+		if (options == null)
+			options = new HashMap<>();
+		options.put("-tracker", this);
 		OSPRuntime.setLookAndFeel(true, lookAndFeel);
 		TFrame frame = new TFrame(options);
+		frame.setTracker(this);
 		Diagnostics.setDialogOwner(frame);
 		// set up the Java VM exit mechanism when used as application
 		// if (!OSPRuntime.isApplet) {
@@ -974,6 +978,11 @@ public class Tracker {
 		if (OSPRuntime.isJS) {
 			exit();
 			return; // Necessary for SwingJS
+		}
+
+		/** @j2sIgnore */
+		{
+			org.opensourcephysics.media.TrackerCameraServer.stop();
 		}
 
 		// save preferences, but first clean up autoloadMap

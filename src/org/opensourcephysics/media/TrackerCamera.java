@@ -19,24 +19,31 @@ import javajs.api.js.HTML5Applet;
 public class TrackerCamera {
 	
 	public TrackerCamera(TFrame frame) {
-		 @SuppressWarnings("unused")
-		 HTML5Applet applet = OSPRuntime.jsutil.getAppletForComponent(frame);
-		 Tracker app = null;	
-		 TrackerCamera me = this;
-		// If tracker-mp4-import.js has not been loaded,
-	    // then create it and run openDialog() asynchronously and returrn.
-			/**
-			 * @j2sNative
-			 * 
-			 *  app = applet.app;
-			 *  if (!J2S.TrackerMP4Importer) {
-			 * 	  var path = applet._j2sPath +
-			 *      "/ES6/tracker-mp4-import.js";
-			 *    $.getScript(path, function(){me.openDialog$O(app)});
-			 *    return;
-			 *  }
-			 */
-	    me.openDialog(app);
+		if (OSPRuntime.isJS) {
+			@SuppressWarnings("unused")
+			HTML5Applet applet = OSPRuntime.jsutil.getAppletForComponent(frame);
+			Tracker app = null;	
+			TrackerCamera me = this;
+			// If tracker-mp4-import.js has not been loaded,
+		    // then create it and run openDialog() asynchronously and returrn.
+				/**
+				 * @j2sNative
+				 * 
+				 *  app = applet.app;
+				 *  if (!J2S.TrackerMP4Importer) {
+				 * 	  var path = applet._j2sPath +
+				 *      "/ES6/tracker-mp4-import.js";
+				 *    $.getScript(path, function(){me.openDialog$O(app)});
+				 *    return;
+				 *  }
+				 */
+		    me.openDialog(app);
+		} else {
+			/** @j2sIgnore */
+			{
+				TrackerCameraServer.open(frame);
+			}
+		}
 	}
 	
 	void openDialog(Object app) {

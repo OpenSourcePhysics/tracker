@@ -283,6 +283,26 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 
 	// instance fields
 
+	private Tracker tracker;
+
+	public Tracker getTracker() {
+		return tracker;
+	}
+
+	public void setTracker(Tracker tracker) {
+		this.tracker = tracker;
+	}
+
+	private Object captureTarget;
+
+	public Object getCaptureTarget() {
+		return captureTarget;
+	}
+
+	public void setCaptureTarget(Object target) {
+		this.captureTarget = target;
+	}
+
 	/**
 	 * state of frame maximization
 	 */
@@ -361,6 +381,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 		setTitle("Tracker" + (OSPRuntime.isJS ? " Online" : ""));
 		if (options == null)
 			options = new HashMap<>();
+		tracker = (Tracker) options.get("-tracker");
 //		isLayoutAdaptive = (options.get("-adaptive") != null);
 		isLayoutAdaptive = OSPRuntime.isJS;
 		Dimension dim = (Dimension) options.get("-dim");
@@ -3209,7 +3230,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 	 * @param whenDone optional Runnable
 	 * @param limit    number of frames or -1 if unknown
 	 */
-	void loadVideo(String path, boolean asNewTab, LibraryBrowser libraryBrowser, Runnable whenDone, double frameRate, int limit) {
+	public void loadVideo(String path, boolean asNewTab, LibraryBrowser libraryBrowser, Runnable whenDone, double frameRate, int limit) {
 		// from loadExperimentURL and openLibraryResource actions
 		if (!VideoIO.checkMP4(path, libraryBrowser, getSelectedPanel()))
 			return;
