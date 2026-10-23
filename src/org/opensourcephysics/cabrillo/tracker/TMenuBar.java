@@ -2225,8 +2225,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 //				else
 					video_openVideoItem.setText(TrackerRes.getString("TActions.Action.ImportVideo")); //$NON-NLS-1$
 				videoMenu.add(video_openVideoItem);
-				if (OSPRuntime.isJS)
-					videoMenu.add(video_captureItem);				
+				videoMenu.add(video_captureItem);				
 			}
 			// close video item
 			if (hasVideo) {

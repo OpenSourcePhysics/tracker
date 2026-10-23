@@ -1932,8 +1932,7 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 			TTrackBar.newVersionButton.setText(s + " " + Tracker.newerVersion); //$NON-NLS-1$
 			add(TTrackBar.newVersionButton);
 		}
-		if (OSPRuntime.isJS)
-			add(index++, captureButton);
+		add(index++, captureButton);
 		
 		if (panel().isEnabled("button.drawing")) //$NON-NLS-1$
 			add(index++, drawingButton);
@@ -2060,8 +2059,7 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 			JMenuItem item = frame.currentMenuBar.getMenuItem("video_openVideoItem");
 			item.setIcon(Tracker.getResourceIcon("open.gif", true)); //$NON-NLS-1$
 			videoPopup.add(item);
-			if (OSPRuntime.isJS)
-				videoPopup.add(frame.currentMenuBar.getMenuItem("video_captureItem"));
+			videoPopup.add(frame.currentMenuBar.getMenuItem("video_captureItem"));
 		}
 		if (panel().getVideo() != null)
 			videoPopup.add(frame.currentMenuBar.getMenuItem("video_closeVideoItem"));

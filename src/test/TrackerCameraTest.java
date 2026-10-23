@@ -38,11 +38,8 @@ public class TrackerCameraTest {
 
 		JButton cameraButton = new JButton("Open Camera");
 		cameraButton.addActionListener(e -> {
-			if (OSPRuntime.isJS) {
-				new TrackerCamera(frame);
-			} else {
-				status.setText("Run the transpiled app in a browser to use the camera.");
-			}
+			frame.setCaptureTarget(this);
+			new TrackerCamera(frame);
 		});
 
 		JPanel panel = new JPanel(new BorderLayout(10, 10));

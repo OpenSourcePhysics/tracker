@@ -994,4 +994,4 @@
 		}
 	};
 	mount();
-})(window, J2S);
+})(window, typeof J2S !== "undefined" ? J2S : (window.J2S = window.J2S || {}));

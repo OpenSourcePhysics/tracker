@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tracker Video Capture</title>
+  <style>
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      background: #141619;
+      color: #e5e7eb;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    .container {
+      width: 100%;
+      max-width: 520px;
+      padding: 32px;
+      text-align: center;
+      background: #1f242d;
+      border: 1px solid #323946;
+      border-radius: 14px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+    }
+    .icon {
+      font-size: 48px;
+      margin-bottom: 12px;
+    }
+    h1 {
+      margin: 0 0 8px;
+      font-size: 24px;
+      font-weight: 600;
+      color: #ffffff;
+    }
+    p.subtitle {
+      margin: 0 0 24px;
+      font-size: 14px;
+      color: #9ca3af;
+      line-height: 1.5;
+    }
+    .status-box {
+      background: #11141a;
+      border: 1px solid #282f3c;
+      border-radius: 8px;
+      padding: 14px 16px;
+      font-size: 14px;
+      color: #d1d5db;
+      margin-bottom: 24px;
+      min-height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .status-box.success {
+      background: #0f2d1e;
+      border-color: #10b981;
+      color: #34d399;
+      font-weight: 500;
+    }
+    .status-box.error {
+      background: #341215;
+      border-color: #ef4444;
+      color: #f87171;
+    }
+    .actions {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+    }
+    button.btn {
+      font: inherit;
+      font-size: 14px;
+      font-weight: 500;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      border: none;
+      transition: all 0.15s ease-in-out;
+    }
+    button.btn-primary {
+      background: #2563eb;
+      color: #ffffff;
+    }
+    button.btn-primary:hover {
+      background: #1d4ed8;
+    }
+    button.btn-secondary {
+      background: #374151;
+      color: #e5e7eb;
+    }
+    button.btn-secondary:hover {
+      background: #4b5563;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="icon">🎥</div>
+    <h1>Tracker Video Capture</h1>
+    <p class="subtitle">Use the camera dialog to record video or screen capture. Your recording will be imported automatically into Tracker.</p>
+    <div id="status-box" class="status-box">Starting capture dialog...</div>
+    <div class="actions">
+      <button id="reopen-btn" class="btn btn-primary" onclick="reopenDialog()">Open Capture Dialog</button>
+      <button class="btn btn-secondary" onclick="tryClose()">Close Tab</button>
+    </div>
+  </div>
+
+  <script>
+    window.J2S = window.J2S || {
+      _toBytes: function(buf) { return new Uint8Array(buf); }
+    };
+
+    function updateStatus(message, type) {
+      var box = document.getElementById("status-box");
+      if (!box) return;
+      box.textContent = message;
+      box.className = "status-box" + (type ? " " + type : "");
+    }
+
+    function tryClose() {
+      try {
+        window.close();
+      } catch (e) {}
+    }
+
+    var trackerBridge = {
+      importMP4Capture: function(id, bytes) {
+        updateStatus("Uploading MP4 video to Tracker...", "");
+        fetch('/upload?format=mp4&id=' + encodeURIComponent(id), {
+          method: 'POST',
+          headers: { 'Content-Type': 'video/mp4' },
+          body: bytes
+        }).then(function(res) {
+          if (!res.ok) throw new Error("HTTP " + res.status + " " + res.statusText);
+          updateStatus("Video imported successfully! You can close this tab and return to Tracker.", "success");
+          setTimeout(tryClose, 1200);
+        }).catch(function(err) {
+          updateStatus("Failed to send video to Tracker: " + err.message, "error");
+        });
+      },
+      importVideoCapture: function(id, frames, fps) {
+        updateStatus("Uploading " + frames.length + " frames to Tracker...", "");
+        var totalSize = 4;
+        for (var i = 0; i < frames.length; i++) {
+          totalSize += 4 + frames[i].length;
+        }
+        var buffer = new Uint8Array(totalSize);
+        var view = new DataView(buffer.buffer);
+        view.setUint32(0, frames.length, false);
+        var offset = 4;
+        for (var i = 0; i < frames.length; i++) {
+          view.setUint32(offset, frames[i].length, false);
+          offset += 4;
+          buffer.set(frames[i], offset);
+          offset += frames[i].length;
+        }
+        fetch('/upload?format=images&id=' + encodeURIComponent(id) + '&fps=' + encodeURIComponent(fps), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/octet-stream' },
+          body: buffer
+        }).then(function(res) {
+          if (!res.ok) throw new Error("HTTP " + res.status + " " + res.statusText);
+          updateStatus("Image stack imported successfully! You can close this tab and return to Tracker.", "success");
+          setTimeout(tryClose, 1200);
+        }).catch(function(err) {
+          updateStatus("Failed to send frames to Tracker: " + err.message, "error");
+        });
+      }
+    };
+
+    function reopenDialog() {
+      if (window.J2S && window.J2S.TrackerMP4Importer) {
+        window.J2S.TrackerMP4Importer.createDialog(trackerBridge);
+        updateStatus("Camera dialog active. Record video then press Stop.", "");
+      }
+    }
+  </script>
+  <script src="/tracker-mp4-import.js"></script>
+  <script>
+    // Automatically launch capture dialog on page load
+    if (window.J2S && window.J2S.TrackerMP4Importer) {
+      reopenDialog();
+    } else {
+      updateStatus("Error: Could not load tracker-mp4-import.js", "error");
+    }
+  </script>
+</body>
+</html>
