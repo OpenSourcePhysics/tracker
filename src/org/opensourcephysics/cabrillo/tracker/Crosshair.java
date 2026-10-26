@@ -428,8 +428,8 @@ public class Crosshair extends TPoint implements PropertyChangeListener {
 		zoomFactor = Math.min(zoomFactor, Math.pow(2, zoomPowerMax));	
 		// set dial angle
 		double powerFraction = (Math.log(zoomFactor) / (Math.log(2)) / (zoomPowerMax-zoomPowerMin));
-  	double dialStartDegrees = (180+markerDegreeWidth) / 2;
-  	double dialAngleDegrees = dialStartDegrees - powerFraction * markerDegreeWidth;
+  	double dialStartDegrees = (180+dialDegreeWidth) / 2;
+  	double dialAngleDegrees = dialStartDegrees - powerFraction * dialDegreeWidth;
 		currentDialAngle = dialAngleDegrees*toRadians;
 		TFrame.repaintT(panel());
 	}
@@ -501,9 +501,9 @@ public class Crosshair extends TPoint implements PropertyChangeListener {
 			if (!refreshing) {
 				// change the zoomFactor
 				// get dial angle from TPoints, but subtract from pi to flip y-axis 
-				currentDialAngle = Math.PI - this.angle(getTarget());
-				zoomFactor = getZoomFactor(currentDialAngle);
-				TFrame.repaintT(panel());
+				double ang = Math.PI - this.angle(getTarget());
+				if (ang > 3*Math.PI/2) ang = 0;
+				setZoomFactor(getZoomFactor(ang));
 			}
 		}	
 		
