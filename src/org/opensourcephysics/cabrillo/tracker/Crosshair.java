@@ -27,9 +27,9 @@ import org.opensourcephysics.display.Interactive;
 import org.opensourcephysics.media.core.TPoint;
 
 /**
- * This is a marking tool that applies mouse or touch track-marking actions to a target
- * at the center of an adjustable magnifier.
- *
+ * This is a marking tool that applies mouse or touch track-marking actions 
+ * to a crosshair at the center of an adjustable magnifier.
+ * 
  * @author Doug Brown
  */
 public class Crosshair extends TPoint implements PropertyChangeListener {
@@ -44,6 +44,7 @@ public class Crosshair extends TPoint implements PropertyChangeListener {
     blue = new Color(50, 50, 255, 140);		
     dark = new Color(50, 50, 50, 200);		
 	}
+	private static double toRadians = Math.PI/180;
 		
 	private Ellipse2D.Double outerCircle, innerCircle;
 	private Arc2D.Double innerArc, outerArc;
@@ -56,14 +57,15 @@ public class Crosshair extends TPoint implements PropertyChangeListener {
 	private TPoint markedPoint;
 	private Step markedStep;
 	private boolean refreshing, visible, isMarking, wasOn, isOn;
-	private int outerR = 80, innerR = 30, wedgeWidth = 15;
-	private double dialStart = 30, currentDialAngle;
+	private int outerR = 110, innerR = 40, markerRadialWidth = 30, markerDegreeWidth = 45;
+	private int dialRadialWidth = 20, dialDegreeWidth = 90;
+	private double currentDialAngle; // ccw from +horizontal
 	private int centerR = 3;
-	private Path2D dialWedgePath, ringPath, markingWedgePath;
+	private Path2D dialSector, ringPath, markingSector;
 	private Stroke width1, width2, width3;
 	private Point2D screenPt2D;
 	private MyMouseListener myMouseListener;
-	private double zoomFactor = 1, zoomMax = 4, zoomMin = 1;
+	private double zoomFactor = 1, zoomPowerMax = 2, zoomPowerMin = 0;
 	private Timer wasOnTimer;
 	private String hint, selectedName;
 	private JPopupMenu popup;
@@ -80,8 +82,8 @@ public class Crosshair extends TPoint implements PropertyChangeListener {
 		marker = new Control();
 		screenPt2D = new Point2D.Double();
 		ringPath = new Path2D.Double(Path2D.WIND_EVEN_ODD);
-		dialWedgePath = new Path2D.Double(Path2D.WIND_EVEN_ODD);
-		markingWedgePath = new Path2D.Double(Path2D.WIND_EVEN_ODD);
+		dialSector = new Path2D.Double(Path2D.WIND_EVEN_ODD);
+		markingSector = new Path2D.Double(Path2D.WIND_EVEN_ODD);
     width1 = new BasicStroke(1.0f);
     width2 = new BasicStroke(2.0f);
     width3 = new BasicStroke(3.0f);
@@ -89,7 +91,8 @@ public class Crosshair extends TPoint implements PropertyChangeListener {
     panel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDPOINT, this);
     panel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_STEPNUMBER, this);
     myMouseListener = new MyMouseListener();
-    setZoomFactor(zoomMin*2);
+    setZoomFactor(Math.pow(2, (zoomPowerMax-zoomPowerMin)/2));
+    
     wasOnTimer = new Timer(300, e -> { wasOn = false; });
     popup = new JPopupMenu();
     // center on panel mat
@@ -107,12 +110,12 @@ public class Crosshair extends TPoint implements PropertyChangeListener {
 			Object old = e.getOldValue();
 			boolean isSelected = nu==marker || nu==handle || nu==zoomControl 
 					|| (nu==markedPoint && nu!= null);
-			boolean isUnselected = (old==marker || old==handle || old==zoomControl) 
-					&& nu == null;
+			boolean isUnselected = !isSelected && (old==marker || old==handle || old==zoomControl) 
+					&& (nu == null || nu!=markedPoint);
 			// set wasOn so this can be reselected when stepping quickly to new frame
 			// but start timer to set wasOn false after short time so NOT reselected if not on
 			wasOn = old==marker || old==handle || old==zoomControl 
-					|| (old==markedPoint && old!= null);
+					|| (old==markedPoint && old != null);
 			wasOnTimer.restart();
 			
 			isOn = (wasOn || isSelected) && !isUnselected;
@@ -159,38 +162,31 @@ public class Crosshair extends TPoint implements PropertyChangeListener {
 		// add items
 		TMenuBar menubar = frame.getMenuBar(panelID, false);
 		JMenuItem item = menubar.getMenuItem("track_crosshairItem"); //$NON-NLS-1$
+		item.setSelected(panel().getCrosshair().isVisible());
 		popup.add(item);
 		return popup;
 	}
 	
-	protected double getZoomFactor() {
-		return zoomFactor;
-	}
-
-	protected double setZoomFactor(double zoom) {
-		zoomFactor = Math.max(zoom, zoomMin);
-		zoomFactor = Math.min(zoomFactor, zoomMax);	
-		double power = Math.log(zoomFactor) / Math.log(2);
-		double theta = power * Math.PI / 3;
-		currentDialAngle = (180-dialStart)*Math.PI/180 - theta;
-		return zoomFactor;
-	}
-	
-	protected String getMessage() {		
+	protected String getMessage() {
+		if (!isVisible()) return "";
 		return TrackerRes.getString("TMenuBar.MenuItem.Crosshair")
 				+ selectedName + " (" + hint + ")";
 	}
 	
+	protected TPoint getMarkedPoint() {
+		return markedPoint;
+	}
+	
 	/**
-	 * Refreshes the path for a dial wedge or marking wedge (annular segment).
+	 * Refreshes the path for a dial or marking sector.
 	 *
 	 * @param path the path to refresh
 	 * @param center screen position of center
 	 * @param start the start angle in degrees ccw from horizontal right
 	 * @param ang the sweep angle in degrees
 	 */
-	private void refreshWedgePath(Path2D path, Point center, double start, double ang) {
-		outerArc.setArcByCenter(center.x, center.y, innerR+wedgeWidth, start, ang, Arc2D.OPEN);
+	private void refreshSector(Path2D path, Point center, double start, double ang, int radialW) {
+		outerArc.setArcByCenter(center.x, center.y, innerR+radialW, start, ang, Arc2D.OPEN);
 		innerArc.setArcByCenter(center.x, center.y, innerR, start + ang, -ang, Arc2D.OPEN);		
 		path.reset();
 		path.append(outerArc, true);
@@ -218,27 +214,29 @@ public class Crosshair extends TPoint implements PropertyChangeListener {
     g2d.fill(ringPath);
     
     if (isOn) {
-    	// draw dial wedge
-    	refreshWedgePath(dialWedgePath, p, dialStart, 120); 
+    	// draw dial sector
+    	int ang = (180-dialDegreeWidth)/2;
+    	refreshSector(dialSector, p, ang, dialDegreeWidth, dialRadialWidth); 
       g2d.setColor(paleBody);
-      g2d.fill(dialWedgePath);
+      g2d.fill(dialSector);
     	g2d.setColor(dialEdgeColor);
-      g2d.draw(dialWedgePath);
+      g2d.draw(dialSector);
       
-  		// draw marking wedge
-      refreshWedgePath(markingWedgePath, p, 210, 120);
+  		// draw marking sector
+    	ang = (180-markerDegreeWidth)/2;
+      refreshSector(markingSector, p, 180 + ang, markerDegreeWidth, markerRadialWidth);
       if (panel().getSelectedTrack() != null) {
 	  		g2d.setColor(paleBlue);
-	      g2d.fill(markingWedgePath);
+	      g2d.fill(markingSector);
 	    	g2d.setColor(markerEdgeColor);
-	      g2d.draw(markingWedgePath);
+	      g2d.draw(markingSector);
       }
       
       // draw dial indicator
       int x1 = (int)(p.getX()+(innerR+3)*Math.cos(currentDialAngle));
       int y1 = (int)(p.getY()-(innerR+3)*Math.sin(currentDialAngle));
-      int x2 = (int)(p.getX()+(innerR+wedgeWidth-3)*Math.cos(currentDialAngle));
-      int y2 = (int)(p.getY()-(innerR+wedgeWidth-3)*Math.sin(currentDialAngle));
+      int x2 = (int)(p.getX()+(innerR+dialRadialWidth-3)*Math.cos(currentDialAngle));
+      int y2 = (int)(p.getY()-(innerR+dialRadialWidth-3)*Math.sin(currentDialAngle));
       g2d.setColor(blue);
       g2d.setStroke(width3);
       g2d.drawLine(x1, y1, x2, y2);
@@ -318,7 +316,7 @@ public class Crosshair extends TPoint implements PropertyChangeListener {
 	public Interactive findInteractive(DrawingPanel panel, int xpix, int ypix) {
 		if (!isVisible()) return null;
 		
-		if (isOn && markingWedgePath.contains(xpix, ypix)
+		if (isOn && markingSector.contains(xpix, ypix)
 				&& panel().getSelectedTrack() != null) {
 			refreshing = false;
 			hint = TrackerRes.getString("Crosshair.Marker.Hint");
@@ -334,7 +332,7 @@ public class Crosshair extends TPoint implements PropertyChangeListener {
 			TFrame.repaintT(panel());
 		}
 
-		if (dialWedgePath.contains(xpix, ypix)) {
+		if (dialSector.contains(xpix, ypix)) {
 			refreshing = true;
 			zoomControl.setScreenPosition(xpix, ypix, panel());
 			refreshing = false;
@@ -387,6 +385,11 @@ public class Crosshair extends TPoint implements PropertyChangeListener {
 			panel().removeMouseListener(myMouseListener);
 			panel().removeMouseMotionListener(myMouseListener);
 			panel().removeDrawable(this);
+			panel().setMessage("");
+			isOn = false;
+			TPoint p = panel().getSelectedPoint();
+			if (p==handle || p==marker)
+				panel().setSelectedPoint(null);
 		}
 		TFrame.repaintT(panel());
 	}
@@ -399,16 +402,36 @@ public class Crosshair extends TPoint implements PropertyChangeListener {
 		return isMarking;
 	}
 	
+	public boolean isOn() {
+		return isOn;
+	}
+	
 	protected void setMarkedPoint(TPoint p) {
 		markedPoint = p;
 		markedStep = null;
     if (markedPoint != null) {
+    	panel().setSelectedPoint(markedPoint);
 			TTrack track = panel().getSelectedTrack();
 			if (track != null) {
 				markedStep = track.getStep(markedPoint, panel());
 			}
     }
     TFrame.repaintT(panel());
+	}
+	
+	protected double getZoomFactor() {
+		return zoomFactor;
+	}
+
+	protected void setZoomFactor(double zoom) {
+		zoomFactor = Math.max(zoom, Math.pow(2, zoomPowerMin));
+		zoomFactor = Math.min(zoomFactor, Math.pow(2, zoomPowerMax));	
+		// set dial angle
+		double powerFraction = (Math.log(zoomFactor) / (Math.log(2)) / (zoomPowerMax-zoomPowerMin));
+  	double dialStartDegrees = (180+markerDegreeWidth) / 2;
+  	double dialAngleDegrees = dialStartDegrees - powerFraction * markerDegreeWidth;
+		currentDialAngle = dialAngleDegrees*toRadians;
+		TFrame.repaintT(panel());
 	}
 	
 	class Control extends TPoint {
@@ -477,16 +500,21 @@ public class Crosshair extends TPoint implements PropertyChangeListener {
 			setLocation(x, y);
 			if (!refreshing) {
 				// change the zoomFactor
-				double theta = Crosshair.this.angle(this) + 5*Math.PI/6;
-				currentDialAngle = (180-dialStart)*Math.PI/180 - theta;
-				double power = 3 * theta / Math.PI;
-				zoomFactor = Math.pow(2, power);
-				zoomFactor = Math.max(zoomFactor, zoomMin);
-				zoomFactor = Math.min(zoomFactor, zoomMax);
-				setZoomFactor(zoomFactor);
+				// get dial angle from TPoints, but subtract from pi to flip y-axis 
+				currentDialAngle = Math.PI - this.angle(getTarget());
+				zoomFactor = getZoomFactor(currentDialAngle);
 				TFrame.repaintT(panel());
 			}
 		}	
+		
+		private double getZoomFactor(double dialAngle) {
+			double dialDegrees = dialAngle/toRadians;
+	  	double dialStartDegrees = (180+markerDegreeWidth) / 2;
+			double powerFraction = (dialStartDegrees-dialDegrees) / markerDegreeWidth;
+			double power = powerFraction * (zoomPowerMax - zoomPowerMin);
+			power = Math.max(Math.min(power, zoomPowerMax), zoomPowerMin);
+			return Math.pow(2, power);
+		}
 		
 	}
 	
@@ -495,16 +523,27 @@ public class Crosshair extends TPoint implements PropertyChangeListener {
 		@Override
 		public void mousePressed(MouseEvent e) {
       if (isMarking) {
+      	// this is AFTER TMouseHandler has marked a point
+  			if (markedPoint != null) {
+		      if (panel().getSelectedTrack()!= null
+		      		&& panel().getSelectedTrack().ttype == TTrack.TYPE_TAPEMEASURE) {
+			      if (markedStep != null) {
+		      		markedPoint = ((TapeStep)markedStep).getEnd2();
+		      	}
+		      }
+  				markedPoint.setXY(getX(), getY());
+  				markedPoint.showCoordinates(panel());
+  			}
         return; 
       }	
 
   		// reset markedPoint
       setMarkedPoint(null);
-			if (dialWedgePath.contains(e.getX(), e.getY())) {
+			if (dialSector.contains(e.getX(), e.getY())) {
 				zoomControl.setXY(zoomControl.getX(), zoomControl.getY());
 			}
 			else if (panel().getSelectedPoint()==marker
-					&& markingWedgePath.contains(e.getX(), e.getY())) {
+					&& markingSector.contains(e.getX(), e.getY())) {
         // set marking true and dispatch a new translated event
         try {
           isMarking = true;
@@ -545,7 +584,8 @@ public class Crosshair extends TPoint implements PropertyChangeListener {
 		public void mouseDragged(MouseEvent e) {
 			if (markedPoint != null) {
 				// markedPoint could have been dragged by TMouseHandler
-				markedPoint.setLocation(Crosshair.this);
+				markedPoint.setXY(getX(), getY());
+				markedPoint.showCoordinates(panel());
 			}
 		}
 		

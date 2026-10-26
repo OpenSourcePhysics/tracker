@@ -540,6 +540,9 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 			}
 			// selected point items
 			TPoint p = panel.getSelectedPoint();
+			if (p instanceof Crosshair.Control) {
+				p = ((Crosshair.Control)p).getTarget().getMarkedPoint();
+			}
 			if (p != null) {
 				// a point is selected
 				list = track.getToolbarPointComponents(panel, p);

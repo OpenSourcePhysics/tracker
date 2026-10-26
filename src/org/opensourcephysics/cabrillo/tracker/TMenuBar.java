@@ -1379,8 +1379,8 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		// crosshairItem
 		track_crosshairItem = new JCheckBoxMenuItem(TrackerRes.getString("TMenuBar.MenuItem.Crosshair")); //$NON-NLS-1$
 		track_crosshairItem.addActionListener((e) -> {
-				Crosshair crosshair = panel().getCrosshair();
-				crosshair.setVisible(track_crosshairItem.isSelected());
+			Crosshair crosshair = panel().getCrosshair();
+			crosshair.setVisible(track_crosshairItem.isSelected());
 		});
 		// notesItem
 		view_notesItem = new JCheckBoxMenuItem(TrackerRes.getString("TMenuBar.MenuItem.Description")); //$NON-NLS-1$
@@ -2503,6 +2503,11 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 			if (track_createMenu.getItemCount() > 0)
 				trackMenu.add(track_createMenu);
 
+			Crosshair tm = panel().getCrosshair();
+			track_crosshairItem.setSelected(tm.isVisible());
+			trackMenu.addSeparator();
+			trackMenu.add(track_crosshairItem);
+
 //			if (hasTracks && panel().isEnabled("new.clone")) //$NON-NLS-1$
 //				trackMenu.add(track_cloneMenu);
 
@@ -2568,11 +2573,6 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 //				}
 			}
 			
-			Crosshair tm = panel().getCrosshair();
-			track_crosshairItem.setSelected(tm.isVisible());
-			trackMenu.addSeparator();
-			trackMenu.add(track_crosshairItem);
-
 			if (trackMenu.getItemCount() == 0) {
 				trackMenu.add(track_emptyTracksItem);
 			}

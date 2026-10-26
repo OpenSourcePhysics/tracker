@@ -867,9 +867,10 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			}
 		}
 		if (doAddDrawable) {
-			if (isUserTrack) {
-				boolean automark = track.isMarkByDefault();
-				track.setMarkByDefault(automark || !OSPRuntime.hasKeyboard);
+			if (isUserTrack && !OSPRuntime.hasKeyboard) {
+				getCrosshair().setVisible(true);
+//				boolean automark = track.isMarkByDefault();
+//				track.setMarkByDefault(automark || !OSPRuntime.hasKeyboard);
 			}
 			super.addDrawable(track);
 		}
@@ -1153,10 +1154,17 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			list.add(0, mat);
 		}
 		
-		// put crosshair at the front if on
 		if (crosshair != null && crosshair.isVisible()) {
 			list.remove(crosshair);
-			list.add(crosshair);
+			// put crosshair at the front if on
+			if (crosshair.isOn())
+				list.add(crosshair);
+			// or in front of the mat if no video
+			else if (getVideo() == null)
+				list.add(1, crosshair);
+			// or in front of the video
+			else 
+				list.add(2, crosshair);
 		}
 		return list;
 	}
@@ -3339,9 +3347,20 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		boolean isMarking = (track != null && cursorType == track.getMarkingCursorType(mouseEvent));
 		if (isMarking)
 			return null;
-		Interactive ia = super.getInteractive();
-		if (ia instanceof Crosshair.Control)
-			return ia;
+		int x = mouseEvent.getX();
+		int y = mouseEvent.getY();
+		Interactive ia;
+		// if crosshair is on, check it first
+		if (getCrosshair().isOn()) {
+			ia = getCrosshair().findInteractive(this, x, y);
+			if (ia != null) return ia;
+		}
+		ia = super.getInteractive();
+		if (ia instanceof Crosshair.Control) {
+			Crosshair.Control c = (Crosshair.Control)ia;
+			if (c.getTarget().isOn())
+				return ia;
+		}
 		if (track != null) {
 			Interactive o = null;
 			// check selected track first unless it's a calibration tool
