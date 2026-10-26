@@ -509,8 +509,8 @@ public class Crosshair extends TPoint implements PropertyChangeListener {
 		
 		private double getZoomFactor(double dialAngle) {
 			double dialDegrees = dialAngle/toRadians;
-	  	double dialStartDegrees = (180+markerDegreeWidth) / 2;
-			double powerFraction = (dialStartDegrees-dialDegrees) / markerDegreeWidth;
+	  	double dialStartDegrees = (180+dialDegreeWidth) / 2;
+			double powerFraction = (dialStartDegrees-dialDegrees) / dialDegreeWidth;
 			double power = powerFraction * (zoomPowerMax - zoomPowerMin);
 			power = Math.max(Math.min(power, zoomPowerMax), zoomPowerMin);
 			return Math.pow(2, power);
