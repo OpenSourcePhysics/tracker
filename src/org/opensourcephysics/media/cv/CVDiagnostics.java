@@ -11,6 +11,9 @@ import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.media.core.MediaRes;
 import org.opensourcephysics.tools.Diagnostics;
 import org.bytedeco.javacv.Java2DFrameConverter;
+import org.bytedeco.javacv.FFmpegFrameGrabber;
+import org.bytedeco.javacpp.Loader;
+import org.bytedeco.ffmpeg.global.avutil;
 
 /**
  * Checks to see if CV Video is installed and working.
@@ -55,34 +58,42 @@ public class CVDiagnostics extends Diagnostics {
 	 * If not working, shows a diagnostic message.
 	 */
 	public static void aboutCV() {
-
-		int status = getStatusCode(); // 0=working, -1=unknown error 
-		String message = "";
-		// display appropriate dialog
-		if (status == 0) { // AVP working correctly
-			try {
-				message = MediaRes.getString("CVDiagnostics.Message.Description") + newline;
-				message += MediaRes.getString("CVDiagnostics.Message.Version") + " ";
-				message += getVersion();
-				DateFormat format = DateFormat.getDateInstance(DateFormat.SHORT);
-				Date date = new Date(myJarFile.lastModified());
-				long size = myJarFile.length();
-				message += " (" + format.format(date) + ", " + size + " bytes)"; //$NON-NLS-1$ //$NON-NLS-2$
-				message += newline + MediaRes.getString("CVDiagnostics.Message.Path") + ": ";
-				message += myJarFile.getAbsolutePath();
-			} catch (Exception ex) {}			
-		}
-		else {
-			String[] m = getDiagnosticMessage(status, requester);
-			message = m[0];		
-			for (int i = 1; i < m.length; i++) {
-				message += "/n" + m[i];
-			}
-		}
-
-		JOptionPane.showMessageDialog(dialogOwner, message, 
+		JOptionPane.showMessageDialog(dialogOwner, getAboutMessage(),
 				MediaRes.getString("CVDiagnostics.Dialog.Title"), //$NON-NLS-1$
 				JOptionPane.INFORMATION_MESSAGE);
+	}
+
+	/** Returns the version and runtime details displayed by About JavaCV. */
+	public static String getAboutMessage() {
+		int status = getStatusCode();
+		if (status != 0)
+			return String.join(newline, getDiagnosticMessage(status, requester));
+		StringBuilder message = new StringBuilder(MediaRes.getString("CVDiagnostics.Message.Description")); //$NON-NLS-1$
+		message.append(newline).append("JavaCV: ").append(getVersion()); //$NON-NLS-1$
+		String javaCPPVersion = Loader.class.getPackage().getImplementationVersion();
+		if (javaCPPVersion == null) {
+			try {
+				javaCPPVersion = Loader.getVersion();
+			} catch (java.io.IOException ex) {
+				javaCPPVersion = "unknown"; //$NON-NLS-1$
+			}
+		}
+		message.append(newline).append("JavaCPP: ").append(javaCPPVersion); //$NON-NLS-1$
+		message.append(newline).append("FFmpeg: ").append(avutil.av_version_info().getString()); //$NON-NLS-1$
+		message.append(newline).append(MediaRes.getString("CVDiagnostics.Message.Platform")) //$NON-NLS-1$
+				.append(": ").append(Loader.getPlatform()); //$NON-NLS-1$
+		message.append(newline).append("Java: ").append(System.getProperty("java.version")) //$NON-NLS-1$ //$NON-NLS-2$
+				.append(" (").append(System.getProperty("os.arch")).append(")"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+		if (myJarFile != null) {
+			message.append(newline).append(MediaRes.getString("CVDiagnostics.Message.Path")) //$NON-NLS-1$
+					.append(": ").append(myJarFile.getAbsolutePath()); //$NON-NLS-1$
+			if (myJarFile.isFile()) {
+				DateFormat format = DateFormat.getDateInstance(DateFormat.SHORT);
+				message.append(newline).append(format.format(new Date(myJarFile.lastModified())))
+						.append(", ").append(myJarFile.length()).append(" bytes"); //$NON-NLS-1$ //$NON-NLS-2$
+			}
+		}
+		return message.toString();
 	}
 
 	/**
@@ -106,6 +117,7 @@ public class CVDiagnostics extends Diagnostics {
 	public static int getStatusCode() {
 		
 		try (Java2DFrameConverter imageConverter = new Java2DFrameConverter()) {
+			FFmpegFrameGrabber.tryLoad();
 			return 0;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -144,7 +156,7 @@ public class CVDiagnostics extends Diagnostics {
 	 */
 	public static String getVersion() {
 		String version = org.bytedeco.javacv.JavaCV.class.getPackage().getImplementationVersion();
-		return version;
+		return version == null ? "unknown" : version; //$NON-NLS-1$
 	}
 
 	/**
