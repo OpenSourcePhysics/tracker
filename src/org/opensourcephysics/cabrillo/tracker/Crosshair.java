@@ -115,9 +115,12 @@ public class Crosshair extends TPoint implements PropertyChangeListener {
     
     wasOnTimer = new Timer(300, e -> { wasOn = false; });
     popup = new JPopupMenu();
-    // center on panel mat
-    Rectangle rect = panel.getMat().getBounds();    
-    setXY(rect.getWidth() / 2, rect.getHeight() / 2);
+    // Touch devices can create the crosshair while loading tracks, before
+    // initialize() has added the background mat to the panel.
+    TMat mat = panel.getMat();
+    Rectangle rect = mat == null ? null : mat.getBounds();
+    setXY((rect == null ? panel.getImageWidth() : rect.getWidth()) / 2,
+        (rect == null ? panel.getImageHeight() : rect.getHeight()) / 2);
 	}
 	
 	@Override

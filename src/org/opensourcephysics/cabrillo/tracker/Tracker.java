@@ -1434,25 +1434,22 @@ public class Tracker {
 				}
 			};
 
-			// about CV
-			if (MovieFactory.cvIsPresent) {
-				aboutCVAction = new AbstractAction(TrackerRes.getString("Tracker.Action.AboutCV")) { //$NON-NLS-1$
-					@Override
-					public void actionPerformed(ActionEvent e) {
-						MovieFactory.showAbout(MovieFactory.ENGINE_CV, "Tracker"); //$NON-NLS-1$
-					}
-				};
-			}
+			// Keep both engine diagnostics visible; enable only working engines.
+			aboutCVAction = new AbstractAction(TrackerRes.getString("Tracker.Action.AboutCV")) { //$NON-NLS-1$
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					MovieFactory.showAbout(MovieFactory.ENGINE_CV, "Tracker"); //$NON-NLS-1$
+				}
+			};
+			aboutCVAction.setEnabled(MovieFactory.isVideoEngineAvailable(MovieFactory.ENGINE_CV));
 
-			// about Xuggle--only if xuggle resources present?
-			if (MovieFactory.xuggleIsPresent) {
-				aboutXuggleAction = new AbstractAction(TrackerRes.getString("Tracker.Action.AboutXuggle")) { //$NON-NLS-1$
-					@Override
-					public void actionPerformed(ActionEvent e) {
-						MovieFactory.showAbout(MovieFactory.ENGINE_XUGGLE, "Tracker"); //$NON-NLS-1$
-					}
-				};
-			}
+			aboutXuggleAction = new AbstractAction(TrackerRes.getString("Tracker.Action.AboutXuggle")) { //$NON-NLS-1$
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					MovieFactory.showAbout(MovieFactory.ENGINE_XUGGLE, "Tracker"); //$NON-NLS-1$
+				}
+			};
+			aboutXuggleAction.setEnabled(MovieFactory.isVideoEngineAvailable(MovieFactory.ENGINE_XUGGLE));
 
 			// about threads
 			aboutThreadsAction = new AbstractAction(TrackerRes.getString("Tracker.Action.AboutThreads")) { //$NON-NLS-1$

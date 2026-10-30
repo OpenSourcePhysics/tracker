@@ -778,6 +778,7 @@ org/opensourcephysics/cabrillo/tracker/FirstDerivative.js
 org/opensourcephysics/cabrillo/tracker/Footprint.js
 org/opensourcephysics/cabrillo/tracker/HelpFinder.js
 org/opensourcephysics/cabrillo/tracker/InputTrack.js
+org/opensourcephysics/cabrillo/tracker/LibraryResourceLoader.js
 org/opensourcephysics/cabrillo/tracker/LineFootprint.js
 org/opensourcephysics/cabrillo/tracker/LineProfile.js
 org/opensourcephysics/cabrillo/tracker/LineProfileStep.js

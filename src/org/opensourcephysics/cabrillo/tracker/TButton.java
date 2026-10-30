@@ -206,6 +206,22 @@ public class TButton extends JButton {
 	private void alignComponentRight(JComponent c, JComponent ref) {
 		if (OSPRuntime.jsutil != null)
 			OSPRuntime.jsutil.alignComponentRight(c, ref, 0);
+		// SwingJS menus are rendered outside the frame. Constrain the actual
+		// DOM bounds because Swing popup sizes can differ from the rendered size.
+		/** @j2sNative
+
+var owner=javax.swing.SwingUtilities.getWindowAncestor$java_awt_Component(ref);
+if (owner != null) {
+var node=c.秘getUI$().domNode;
+var bounds=owner.秘getUI$().domNode.getBoundingClientRect();
+var rect=node.getBoundingClientRect();
+var x=Math.max(bounds.left, Math.min(rect.left, bounds.right - rect.width));
+var y=Math.max(bounds.top, Math.min(rect.top, bounds.bottom - rect.height));
+node.style.left=((parseFloat(node.style.left) || 0) + x - rect.left) + "px";
+node.style.top=((parseFloat(node.style.top) || 0) + y - rect.top) + "px";
+}
+		 */
+		{}
 	}
 
 	/**
