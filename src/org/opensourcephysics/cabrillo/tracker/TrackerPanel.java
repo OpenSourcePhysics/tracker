@@ -1590,9 +1590,12 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				boolean ignore = autoTracker != null && autoTracker.getWizard().isVisible()
 						&& (point instanceof AutoTracker.Corner || point instanceof AutoTracker.Handle
 								|| point instanceof AutoTracker.Target);
-				ignore = ignore || point instanceof Crosshair.Control;
-				if (!ignore)
+				boolean isCrosshair = point instanceof Crosshair.Control;
+				if (!ignore && !isCrosshair)
 					setSelectedTrack(null);
+				if (isCrosshair) {
+					selectedSteps.clear();
+				}
 			} else { // TPoint is associated with a step and track
 				setSelectedTrack(track);
 				step.repaint();

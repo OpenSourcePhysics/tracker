@@ -32,7 +32,6 @@ import javax.swing.text.JTextComponent;
 
 import org.opensourcephysics.cabrillo.tracker.AutoTracker.FrameData;
 import org.opensourcephysics.cabrillo.tracker.AutoTracker.KeyFrameData;
-import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.display.*;
 import org.opensourcephysics.js.AIPatch;
 import org.opensourcephysics.media.core.*;
@@ -176,6 +175,7 @@ public class TMouseHandler implements InteractiveMouseHandler {
 			iad = trackerPanel.getInteractive();
 			if (iad instanceof Crosshair.Control) {
 				crosshair = ((Crosshair.Control)iad).getTarget();
+				if (crosshair.isNudging()) return;
 			}
 
 			// to display hints, call setCursorForMarking even if crosshair is marking
@@ -515,7 +515,7 @@ public class TMouseHandler implements InteractiveMouseHandler {
 				TPoint target = keyFrameData.getTarget();
 				target.setXY(xx, yy);
 			}
-			TPoint pt = selectedTrack.autoMarkAt(frameNumber, xx, yy);
+			selectedTrack.autoMarkAt(frameNumber, xx, yy);
 			TPoint[] pts = step.getPoints();
 			// increment target index if possible
 			if (pts.length > index + 1)

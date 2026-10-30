@@ -10,6 +10,7 @@ import java.awt.RenderingHints;
 import java.awt.Stroke;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.geom.AffineTransform;
 import java.awt.geom.Arc2D;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Path2D;
@@ -35,33 +36,48 @@ import org.opensourcephysics.media.core.TPoint;
 public class Crosshair extends TPoint implements PropertyChangeListener {
 	
 	private static final Color paleBody, body, paleWhite, moreWhite, paleBlue, blue, dark;
+	private static int outerR = 110, innerR = 40;
+	private static int dialRadialWidth = 20, dialDegreeWidth = 90;
+	private static int nudgeR = 15, nudgeOffset = 5, centerR = 4, markerR = 20;
+	private static Path2D nudgeV, markerX;
 	static {
-    paleBody = new Color(160, 160, 255, 40);
-    body = new Color(160, 160, 255, 80);
-    paleWhite = new Color(255, 255, 255, 80);
+    paleBody = new Color(200, 200, 255, 40);
+    body = new Color(200, 200, 255, 80);
+    paleWhite = new Color(255, 255, 255, 100);
     moreWhite = new Color(255, 255, 255, 150);
-    paleBlue = new Color(50, 50, 255, 70);
-    blue = new Color(50, 50, 255, 140);		
-    dark = new Color(50, 50, 50, 200);		
+    paleBlue = new Color(150, 150, 255, 90);
+    blue = new Color(150, 150, 255, 150);		
+    dark = new Color(50, 50, 50, 200);	
+    nudgeV = new Path2D.Double();
+    // nudgeV is at origin, points up
+    nudgeV.moveTo(0,  0);
+    nudgeV.lineTo(-nudgeR/2, nudgeR/2);
+    nudgeV.moveTo(0,  0);
+    nudgeV.lineTo(nudgeR/2, nudgeR/2);
+    markerX = new Path2D.Double();
+    // markerX is at origin
+    markerX.moveTo(-nudgeR/2, nudgeR/2);
+    markerX.lineTo(nudgeR/2, -nudgeR/2);
+    markerX.moveTo(-nudgeR/2, -nudgeR/2);
+    markerX.lineTo(nudgeR/2, nudgeR/2);
 	}
-	private static double toRadians = Math.PI/180;
+	private static final double TO_RADIANS = Math.PI/180;
+	private static final int UP=0, RIGHT=1, DOWN=2, LEFT=3, MARK=4, ZOOM=5, NONE=-1;
 		
-	private Ellipse2D.Double outerCircle, innerCircle;
+	private Ellipse2D.Double outerCircle, innerCircle, markerCircle;
 	private Arc2D.Double innerArc, outerArc;
+	private Ellipse2D.Double upCircle, rightCircle, downCircle, leftCircle;
 	private int panelID;
+	private int highlighted = NONE;
 	private TFrame frame;
 	private Handle handle;
 	private ZoomControl zoomControl;
 	private Control marker;
-	private Color markerEdgeColor = paleBlue, dialEdgeColor = paleWhite;
 	private TPoint markedPoint;
 	private Step markedStep;
 	private boolean refreshing, visible, isMarking, wasOn, isOn;
-	private int outerR = 110, innerR = 40, markerRadialWidth = 30, markerDegreeWidth = 45;
-	private int dialRadialWidth = 20, dialDegreeWidth = 90;
 	private double currentDialAngle; // ccw from +horizontal
-	private int centerR = 3;
-	private Path2D dialSector, ringPath, markingSector;
+	private Path2D dialSector, ringPath;
 	private Stroke width1, width2, width3;
 	private Point2D screenPt2D;
 	private MyMouseListener myMouseListener;
@@ -75,15 +91,19 @@ public class Crosshair extends TPoint implements PropertyChangeListener {
 		frame = panel.getTFrame();
 		outerCircle = new Ellipse2D.Double();
 		innerCircle = new Ellipse2D.Double();
+		markerCircle = new Ellipse2D.Double();
 		innerArc = new Arc2D.Double();
 		outerArc = new Arc2D.Double();
+		upCircle = new Ellipse2D.Double();
+		rightCircle = new Ellipse2D.Double();
+		downCircle = new Ellipse2D.Double();
+		leftCircle = new Ellipse2D.Double();
 		handle = new Handle();
 		zoomControl = new ZoomControl();
 		marker = new Control();
 		screenPt2D = new Point2D.Double();
 		ringPath = new Path2D.Double(Path2D.WIND_EVEN_ODD);
 		dialSector = new Path2D.Double(Path2D.WIND_EVEN_ODD);
-		markingSector = new Path2D.Double(Path2D.WIND_EVEN_ODD);
     width1 = new BasicStroke(1.0f);
     width2 = new BasicStroke(2.0f);
     width3 = new BasicStroke(3.0f);
@@ -200,6 +220,7 @@ public class Crosshair extends TPoint implements PropertyChangeListener {
 		
     Graphics2D g2d = (Graphics2D) g;
     g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+    AffineTransform transform = g2d.getTransform();
 		
     Point p = getScreenPosition(panel());
 		
@@ -214,23 +235,29 @@ public class Crosshair extends TPoint implements PropertyChangeListener {
     g2d.fill(ringPath);
     
     if (isOn) {
-    	// draw dial sector
+      // draw marker circle if track is selected
+    	if (panel().getSelectedTrack() != null) {
+	  		markerCircle.setFrameFromCenter(p.x, p.y+innerR+5, p.x-markerR, p.y+innerR+5-markerR);
+	  		g2d.setClip(ringPath);
+	  		g2d.setColor(paleBlue);
+	      g2d.fill(markerCircle);
+	    	g2d.setColor(highlighted==MARK? Color.WHITE: paleWhite);
+	      g2d.draw(markerCircle);
+	  		g2d.setClip(null);
+	    	g2d.setColor(highlighted==MARK? Color.WHITE: paleWhite);
+	    	g2d.translate(markerCircle.getCenterX(), markerCircle.getCenterY()+markerR/3);
+		    g2d.draw(markerX);	    	
+	    	g2d.setTransform(transform);
+	  		g2d.setClip(null);
+    	}
+
+    	// draw dial
     	int ang = (180-dialDegreeWidth)/2;
     	refreshSector(dialSector, p, ang, dialDegreeWidth, dialRadialWidth); 
       g2d.setColor(paleBody);
       g2d.fill(dialSector);
-    	g2d.setColor(dialEdgeColor);
+    	g2d.setColor(highlighted==ZOOM? Color.WHITE: paleWhite);
       g2d.draw(dialSector);
-      
-  		// draw marking sector
-    	ang = (180-markerDegreeWidth)/2;
-      refreshSector(markingSector, p, 180 + ang, markerDegreeWidth, markerRadialWidth);
-      if (panel().getSelectedTrack() != null) {
-	  		g2d.setColor(paleBlue);
-	      g2d.fill(markingSector);
-	    	g2d.setColor(markerEdgeColor);
-	      g2d.draw(markingSector);
-      }
       
       // draw dial indicator
       int x1 = (int)(p.getX()+(innerR+3)*Math.cos(currentDialAngle));
@@ -240,7 +267,7 @@ public class Crosshair extends TPoint implements PropertyChangeListener {
       g2d.setColor(blue);
       g2d.setStroke(width3);
       g2d.drawLine(x1, y1, x2, y2);
-      g2d.setColor(Color.white);
+      g2d.setColor(Color.WHITE);
       g2d.setStroke(width1);
       g2d.drawLine(x1, y1, x2, y2);
  
@@ -280,8 +307,56 @@ public class Crosshair extends TPoint implements PropertyChangeListener {
 	    g2d.drawLine(p.x, p.y-centerR, p.x, p.y-innerR);
     }
 
-    // draw inner/outer edges last
-    g2d.setColor(isOn? Color.white: paleWhite);
+    if (isOn) {
+	    // set and draw nudging circles
+      g2d.setClip(outerCircle);
+			upCircle.setFrameFromCenter(p.x, p.y-outerR+nudgeOffset, p.x-nudgeR, p.y-outerR-nudgeR+nudgeOffset);
+			rightCircle.setFrameFromCenter(p.x+outerR-nudgeOffset, p.y, p.x+outerR-nudgeOffset-nudgeR, p.y-nudgeR);
+			downCircle.setFrameFromCenter(p.x, p.y+outerR-nudgeOffset, p.x-nudgeR, p.y+outerR-nudgeOffset-nudgeR);
+			leftCircle.setFrameFromCenter(p.x-outerR+nudgeOffset, p.y, p.x-outerR+nudgeOffset-nudgeR, p.y-nudgeR);
+	    g2d.setColor(paleBlue);
+	    g2d.fill(upCircle);
+	    g2d.fill(rightCircle);
+	    g2d.fill(downCircle);
+	    g2d.fill(leftCircle);
+    	g2d.setColor(highlighted==UP? Color.WHITE: paleWhite);
+	    g2d.draw(upCircle);
+    	g2d.setColor(highlighted==RIGHT? Color.WHITE: paleWhite);
+	    g2d.draw(rightCircle);
+    	g2d.setColor(highlighted==DOWN? Color.WHITE: paleWhite);
+	    g2d.draw(downCircle);
+    	g2d.setColor(highlighted==LEFT? Color.WHITE: paleWhite);
+	    g2d.draw(leftCircle);
+	    
+    	g2d.setColor(highlighted==UP? Color.WHITE: paleWhite);
+    	g2d.translate(upCircle.getCenterX(), upCircle.getCenterY());
+	    g2d.draw(nudgeV);	 
+	    
+    	g2d.setColor(highlighted==RIGHT? Color.WHITE: paleWhite);
+    	g2d.setTransform(transform);
+    	g2d.translate(rightCircle.getCenterX(), rightCircle.getCenterY());
+    	g2d.rotate(Math.PI/2);
+	    g2d.draw(nudgeV);	    	
+	    
+    	g2d.setColor(highlighted==DOWN? Color.WHITE: paleWhite);
+    	g2d.setTransform(transform);
+    	g2d.translate(downCircle.getCenterX(), downCircle.getCenterY());
+    	g2d.rotate(Math.PI);
+	    g2d.draw(nudgeV);	    	
+	    
+    	g2d.setColor(highlighted==LEFT? Color.WHITE: paleWhite);
+    	g2d.setTransform(transform);
+    	g2d.translate(leftCircle.getCenterX(), leftCircle.getCenterY());
+    	g2d.rotate(1.5*Math.PI);
+	    g2d.draw(nudgeV);	    		    
+    }
+    
+    // restore transform and clip
+    g2d.setTransform(transform);
+    g2d.setClip(null);
+
+    // draw inner/outer edges
+    g2d.setColor(isOn? Color.WHITE: paleWhite);
     g2d.draw(outerCircle);
     g2d.draw(innerCircle);
     
@@ -315,23 +390,16 @@ public class Crosshair extends TPoint implements PropertyChangeListener {
 	@Override
 	public Interactive findInteractive(DrawingPanel panel, int xpix, int ypix) {
 		if (!isVisible()) return null;
-		
-		if (isOn && markingSector.contains(xpix, ypix)
+
+		if (isOn && markerCircle.contains(xpix, ypix)
 				&& panel().getSelectedTrack() != null) {
 			refreshing = false;
 			hint = TrackerRes.getString("Crosshair.Marker.Hint");
 			selectedName = " "+TrackerRes.getString("Crosshair.Marker.Name");
-			if (markerEdgeColor != Color.white) {
-				markerEdgeColor = Color.white;
-				TFrame.repaintT(panel());
-			}
+			setHighlighted(MARK);
 			return marker;			
 		}
-		if (markerEdgeColor != paleWhite) {
-			markerEdgeColor = paleWhite;
-			TFrame.repaintT(panel());
-		}
-
+		
 		if (dialSector.contains(xpix, ypix)) {
 			refreshing = true;
 			zoomControl.setScreenPosition(xpix, ypix, panel());
@@ -339,16 +407,10 @@ public class Crosshair extends TPoint implements PropertyChangeListener {
 			hint = isOn? TrackerRes.getString("Crosshair.Zoom.Hint"):
 				TrackerRes.getString("Crosshair.Handle.Hint");
 			selectedName = isOn? " "+TrackerRes.getString("Crosshair.Zoom.Name"): "";
-			if (dialEdgeColor != Color.white) {
-				dialEdgeColor = Color.white;
-				TFrame.repaintT(panel());
-			}
+			setHighlighted(ZOOM);
 			return zoomControl;			
 		}
-		if (dialEdgeColor != paleWhite) {
-			dialEdgeColor = paleWhite;
-			TFrame.repaintT(panel());
-		}
+
 		boolean isIncompleteTape = panel().getSelectedTrack() != null
 				&& panel().getSelectedTrack().ttype == TTrack.TYPE_TAPEMEASURE;
 		if (isIncompleteTape) {
@@ -356,6 +418,23 @@ public class Crosshair extends TPoint implements PropertyChangeListener {
 			isIncompleteTape = tape.isIncomplete;
 		}
 		
+		if (upCircle.contains(xpix, ypix)
+				|| rightCircle.contains(xpix, ypix)
+				|| downCircle.contains(xpix, ypix)
+				|| leftCircle.contains(xpix, ypix)) {
+			refreshing = true;
+			handle.setScreenPosition(xpix, ypix, panel());
+			refreshing = false;
+			setHighlighted(upCircle.contains(xpix, ypix)? UP:
+				rightCircle.contains(xpix, ypix)? RIGHT:
+				downCircle.contains(xpix, ypix)? DOWN:
+				LEFT);
+			// pig add hint
+			return handle;
+		}
+		
+		setHighlighted(NONE);
+
 		if (outerCircle.contains(xpix, ypix) && !isIncompleteTape) {
 			refreshing = true;
 			handle.setScreenPosition(xpix, ypix, panel());
@@ -372,6 +451,13 @@ public class Crosshair extends TPoint implements PropertyChangeListener {
 	public boolean contains(MouseEvent e) {
 		return outerCircle.contains(e.getX(), e.getY());
 	}
+	
+	private void setHighlighted(int which) {
+		if (which != highlighted) {
+			highlighted = which;
+			TFrame.repaintT(panel());
+		}
+	}
 
 	public void setVisible(boolean vis) {
 		visible = vis;
@@ -380,6 +466,7 @@ public class Crosshair extends TPoint implements PropertyChangeListener {
 			panel().addMouseMotionListener(myMouseListener);
 			panel().addDrawable(this);
 			isOn = true;
+			panel().setSelectedPoint(handle);
 		}
 		else {
 			panel().removeMouseListener(myMouseListener);
@@ -402,8 +489,32 @@ public class Crosshair extends TPoint implements PropertyChangeListener {
 		return isMarking;
 	}
 	
+	public boolean isNudging() {
+		return highlighted==UP
+				|| highlighted==RIGHT
+				|| highlighted==DOWN
+				|| highlighted==LEFT;
+	}
+	
 	public boolean isOn() {
 		return isOn;
+	}
+	
+	public void nudge(TPoint pt, int direction) {
+		double z = getZoomFactor()*panel().getMagnification();	
+		switch(direction) {
+		case UP:
+			pt.setXY(pt.getX(), pt.getY() - 1/z);
+			break;
+		case RIGHT:
+			pt.setXY(pt.getX() + 1/z, pt.getY());
+			break;
+		case DOWN:
+			pt.setXY(pt.getX(), pt.getY() + 1/z);
+			break;
+		case LEFT:
+			pt.setXY(pt.getX() - 1/z, pt.getY());			
+		}
 	}
 	
 	protected void setMarkedPoint(TPoint p) {
@@ -430,7 +541,7 @@ public class Crosshair extends TPoint implements PropertyChangeListener {
 		double powerFraction = (Math.log(zoomFactor) / (Math.log(2)) / (zoomPowerMax-zoomPowerMin));
   	double dialStartDegrees = (180+dialDegreeWidth) / 2;
   	double dialAngleDegrees = dialStartDegrees - powerFraction * dialDegreeWidth;
-		currentDialAngle = dialAngleDegrees*toRadians;
+		currentDialAngle = dialAngleDegrees*TO_RADIANS;
 		TFrame.repaintT(panel());
 	}
 	
@@ -451,7 +562,6 @@ public class Crosshair extends TPoint implements PropertyChangeListener {
 		
 	}
 
-	
 	class Handle extends Control {
 
 		/**
@@ -468,7 +578,7 @@ public class Crosshair extends TPoint implements PropertyChangeListener {
 			setLocation(x, y);
 			// move the target and markedPoint unless refreshing
 			Crosshair target = getTarget(); 
-			if (!refreshing) {
+			if (!refreshing && !isNudging()) {
 				target.setXY(target.getX()+dx, target.getY()+dy);
 				// move the markedPoint if marking
 				if (isMarking && markedPoint != null) {
@@ -508,7 +618,7 @@ public class Crosshair extends TPoint implements PropertyChangeListener {
 		}	
 		
 		private double getZoomFactor(double dialAngle) {
-			double dialDegrees = dialAngle/toRadians;
+			double dialDegrees = dialAngle/TO_RADIANS;
 	  	double dialStartDegrees = (180+dialDegreeWidth) / 2;
 			double powerFraction = (dialStartDegrees-dialDegrees) / dialDegreeWidth;
 			double power = powerFraction * (zoomPowerMax - zoomPowerMin);
@@ -537,13 +647,14 @@ public class Crosshair extends TPoint implements PropertyChangeListener {
         return; 
       }	
 
-  		// reset markedPoint
+			Crosshair target = Crosshair.this; 
+			// reset markedPoint
       setMarkedPoint(null);
 			if (dialSector.contains(e.getX(), e.getY())) {
 				zoomControl.setXY(zoomControl.getX(), zoomControl.getY());
 			}
 			else if (panel().getSelectedPoint()==marker
-					&& markingSector.contains(e.getX(), e.getY())) {
+					&& markerCircle.contains(e.getX(), e.getY())) {
         // set marking true and dispatch a new translated event
         try {
           isMarking = true;
@@ -556,6 +667,23 @@ public class Crosshair extends TPoint implements PropertyChangeListener {
   				panel().setSelectedPoint(handle);
         }
 			}
+			else if (upCircle.contains(e.getX(), e.getY())) {
+        nudge(target, UP);
+			}
+			else if (rightCircle.contains(e.getX(), e.getY())) {
+        nudge(target, RIGHT);
+			}
+			else if (downCircle.contains(e.getX(), e.getY())) {
+        nudge(target, DOWN);
+			}
+			else if (leftCircle.contains(e.getX(), e.getY())) {
+        nudge(target, LEFT);
+			}
+//			else {
+//				isOn = false;
+//				TFrame.repaintT(panel());
+//			}
+
 		}
 		
 		@Override
