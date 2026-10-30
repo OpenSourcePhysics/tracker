@@ -62,38 +62,49 @@ public class CVDiagnostics extends Diagnostics {
 				MediaRes.getString("CVDiagnostics.Dialog.Title"), //$NON-NLS-1$
 				JOptionPane.INFORMATION_MESSAGE);
 	}
-
-	/** Returns the version and runtime details displayed by About JavaCV. */
+	
 	public static String getAboutMessage() {
-		int status = getStatusCode();
-		if (status != 0)
-			return String.join(newline, getDiagnosticMessage(status, requester));
-		StringBuilder message = new StringBuilder(MediaRes.getString("CVDiagnostics.Message.Description")); //$NON-NLS-1$
-		message.append(newline).append("JavaCV: ").append(getVersion()); //$NON-NLS-1$
-		String javaCPPVersion = Loader.class.getPackage().getImplementationVersion();
-		if (javaCPPVersion == null) {
-			try {
-				javaCPPVersion = Loader.getVersion();
-			} catch (java.io.IOException ex) {
-				javaCPPVersion = "unknown"; //$NON-NLS-1$
+			int status = getStatusCode(); // 0=working, -1=unknown error 
+			// display appropriate dialog
+			if (status == 0) { // JavaCV working correctly
+				try {
+					StringBuilder message = new StringBuilder(""); //$NON-NLS-1$
+					String ver = MediaRes.getString("CVDiagnostics.Message.Version")+" ";
+					message.append("JavaCV ").append(ver).append(getVersion());
+					if (myJarFile != null) {
+						DateFormat format = DateFormat.getDateInstance(DateFormat.SHORT);
+						Date date = new Date(myJarFile.lastModified());
+						long size = myJarFile.length();
+						message.append(" (" + format.format(date) + ", " + size + " bytes)"); //$NON-NLS-1$ //$NON-NLS-2$
+					}
+
+					// add JavaCPP version only if known and different from JavaCV version
+					String javaCPPVersion = Loader.class.getPackage().getImplementationVersion();
+					if (javaCPPVersion == null) {
+						try {
+							javaCPPVersion = Loader.getVersion();
+						} catch (java.io.IOException ex) {
+//							javaCPPVersion = "unknown"; //$NON-NLS-1$
+						}
+					}
+					if (javaCPPVersion != null && !javaCPPVersion.equals(getVersion())) {
+						message.append(newline).append("JavaCPP ").append(ver).append(javaCPPVersion);						
+					}
+					message.append(newline).append("FFmpeg ").append(ver).append(avutil.av_version_info().getString()); //$NON-NLS-1$
+
+					if (myJarFile != null) {
+						message.append(newline).append(MediaRes.getString("CVDiagnostics.Message.Path") + ": ");
+						message.append(myJarFile.getAbsolutePath());
+					}
+					return message.toString();
+				} catch (Exception ex) {}			
 			}
-		}
-		message.append(newline).append("JavaCPP: ").append(javaCPPVersion); //$NON-NLS-1$
-		message.append(newline).append("FFmpeg: ").append(avutil.av_version_info().getString()); //$NON-NLS-1$
-		message.append(newline).append(MediaRes.getString("CVDiagnostics.Message.Platform")) //$NON-NLS-1$
-				.append(": ").append(Loader.getPlatform()); //$NON-NLS-1$
-		message.append(newline).append("Java: ").append(System.getProperty("java.version")) //$NON-NLS-1$ //$NON-NLS-2$
-				.append(" (").append(System.getProperty("os.arch")).append(")"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-		if (myJarFile != null) {
-			message.append(newline).append(MediaRes.getString("CVDiagnostics.Message.Path")) //$NON-NLS-1$
-					.append(": ").append(myJarFile.getAbsolutePath()); //$NON-NLS-1$
-			if (myJarFile.isFile()) {
-				DateFormat format = DateFormat.getDateInstance(DateFormat.SHORT);
-				message.append(newline).append(format.format(new Date(myJarFile.lastModified())))
-						.append(", ").append(myJarFile.length()).append(" bytes"); //$NON-NLS-1$ //$NON-NLS-2$
+			String[] m = getDiagnosticMessage(status, requester);
+			String message = m[0];		
+			for (int i = 1; i < m.length; i++) {
+				message += "/n" + m[i];
 			}
-		}
-		return message.toString();
+			return message;
 	}
 
 	/**
@@ -165,7 +176,7 @@ public class CVDiagnostics extends Diagnostics {
 	 * @param args ignored
 	 */
 	public static void main(String[] args) {
-		System.out.println(getVersion());		
+//		System.out.println(getVersion());		
 		aboutCV("Tracker");
 	}
 }
