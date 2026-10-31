@@ -3467,10 +3467,6 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 			setPreferredSize(dim);
 		}
 		
-		String getText() {
-			return textLine.getText();
-		}
-
 		@Override
 		public Font getFont() {
 			if (textLine != null)
