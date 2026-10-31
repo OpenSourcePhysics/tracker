@@ -145,8 +145,6 @@ import org.opensourcephysics.tools.Resource;
 import org.opensourcephysics.tools.ResourceLoader;
 import org.opensourcephysics.tools.ToolsRes;
 
-import javajs.async.SwingJSUtils.Performance;
-
 /**
  * This is the main frame for Tracker.
  *
@@ -3055,7 +3053,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 			// synchronous binary XHR, which is not reliable on iPad browsers.
 			loadFailed = false;
 			libraryBrowser.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-			LibraryResourceLoader.load(target, fileName, (localTarget) -> {
+			ResourceLoader.loadAsync(target, fileName, (localTarget) -> {
 				openLibraryResource(record, localTarget, whenDone);
 				return null;
 			});
