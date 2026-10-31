@@ -201,7 +201,7 @@ public class TMouseHandler implements InteractiveMouseHandler {
 					&& !SwingUtilities.isMiddleMouseButton(e)
 					&& !Tracker.isZoomInCursor(trackerPanel.getCursor())
 					&& !Tracker.isZoomOutCursor(trackerPanel.getCursor())
-					&& !trackerPanel.isPointOnImage(e.getPoint())) {
+					&& !trackerPanel.isPointOnImage(e.getPoint(), false)) {
 				Window frame = trackerPanel.getTFrame();
 				if (frame == null) {
 					frame = SwingUtilities.getWindowAncestor(trackerPanel);

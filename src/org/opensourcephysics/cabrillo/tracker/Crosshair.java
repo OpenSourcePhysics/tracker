@@ -254,28 +254,28 @@ public class Crosshair extends TPoint implements PropertyChangeListener {
 	  		g2d.setClip(null);
     	}
 
-    	// draw dial
-    	int ang = (180-dialDegreeWidth)/2;
-    	refreshSector(dialSector, p, ang, dialDegreeWidth, dialRadialWidth); 
-      g2d.setColor(paleBody);
-      g2d.fill(dialSector);
-    	g2d.setColor(highlighted==ZOOM? Color.WHITE: paleWhite);
-      g2d.draw(dialSector);
-      
-      // draw dial indicator
-      int x1 = (int)(p.getX()+(innerR+3)*Math.cos(currentDialAngle));
-      int y1 = (int)(p.getY()-(innerR+3)*Math.sin(currentDialAngle));
-      int x2 = (int)(p.getX()+(innerR+dialRadialWidth-3)*Math.cos(currentDialAngle));
-      int y2 = (int)(p.getY()-(innerR+dialRadialWidth-3)*Math.sin(currentDialAngle));
-      g2d.setColor(blue);
-      g2d.setStroke(width3);
-      g2d.drawLine(x1, y1, x2, y2);
-      g2d.setColor(Color.WHITE);
-      g2d.setStroke(width1);
-      g2d.drawLine(x1, y1, x2, y2);
- 
-      // draw the magnified video image
+    	// draw dial and video if video is not null
 			if (panel().getVideo() != null) {
+	    	int ang = (180-dialDegreeWidth)/2;
+	    	refreshSector(dialSector, p, ang, dialDegreeWidth, dialRadialWidth); 
+	      g2d.setColor(paleBody);
+	      g2d.fill(dialSector);
+	    	g2d.setColor(highlighted==ZOOM? Color.WHITE: paleWhite);
+	      g2d.draw(dialSector);
+	      
+	      // draw dial indicator
+	      int x1 = (int)(p.getX()+(innerR+3)*Math.cos(currentDialAngle));
+	      int y1 = (int)(p.getY()-(innerR+3)*Math.sin(currentDialAngle));
+	      int x2 = (int)(p.getX()+(innerR+dialRadialWidth-3)*Math.cos(currentDialAngle));
+	      int y2 = (int)(p.getY()-(innerR+dialRadialWidth-3)*Math.sin(currentDialAngle));
+	      g2d.setColor(blue);
+	      g2d.setStroke(width3);
+	      g2d.drawLine(x1, y1, x2, y2);
+	      g2d.setColor(Color.WHITE);
+	      g2d.setStroke(width1);
+	      g2d.drawLine(x1, y1, x2, y2);
+	 
+	      // draw the magnified video image
 				BufferedImage image = panel().getVideo().getImage();
 	      // get a new Graphics2D for the lens
 	      Graphics2D lensG2d = (Graphics2D) g2d.create();
@@ -308,9 +308,7 @@ public class Crosshair extends TPoint implements PropertyChangeListener {
 	    g2d.drawLine(p.x+centerR, p.y, p.x+innerR, p.y);
 	    g2d.drawLine(p.x, p.y+innerR, p.x, p.y+centerR);
 	    g2d.drawLine(p.x, p.y-centerR, p.x, p.y-innerR);
-    }
 
-    if (isOn) {
 	    // set and draw nudging circles
       g2d.setClip(outerCircle);
 			upCircle.setFrameFromCenter(p.x, p.y-outerR+nudgeOffset, p.x-nudgeR, p.y-outerR-nudgeR+nudgeOffset);

@@ -3556,11 +3556,12 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	/**
 	 * Gets the screen bounds of the current video image on this panel.
 	 * 
+	 * @param videoOnly true to require visible video
 	 * @return the bounding rectangle in panel coordinates, or null if no video is visible
 	 */
-	public Rectangle getImageBounds() {
+	public Rectangle getImageBounds(boolean videoOnly) {
 		try {
-			if (getVideo() == null || !getVideo().isVisible()) {
+			if (videoOnly && (getVideo() == null || !getVideo().isVisible())) {
 				return null;
 			}
 			double w = getImageWidth();
@@ -3589,8 +3590,8 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	 * @param p the point in panel coordinates
 	 * @return true if the point is on the visible image
 	 */
-	public boolean isPointOnImage(Point p) {
-		return p != null && isPointOnImage(p.x, p.y);
+	public boolean isPointOnImage(Point p, boolean videoOnly) {
+		return p != null && isPointOnImage(p.x, p.y, videoOnly);
 	}
 
 	/**
@@ -3600,9 +3601,9 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	 * @param y y-coordinate in panel coordinates
 	 * @return true if (x, y) is on the visible image
 	 */
-	public boolean isPointOnImage(int x, int y) {
+	public boolean isPointOnImage(int x, int y, boolean videoOnly) {
 		try {
-			Rectangle bounds = getImageBounds();
+			Rectangle bounds = getImageBounds(videoOnly);
 			return bounds != null && bounds.contains(x, y);
 		} catch (Throwable t) {
 			return false;
