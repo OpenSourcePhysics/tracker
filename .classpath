@@ -19,5 +19,11 @@
 	<classpathentry kind="lib" path="libraries/opencv.jar"/>
 	<classpathentry kind="lib" path="libraries/opencv-macosx-arm64.jar"/>
 	<classpathentry kind="lib" path="libraries/opencv-windows-x86_64.jar"/>
+	<classpathentry kind="lib" path="libraries/openblas.jar"/>
+	<classpathentry kind="lib" path="libraries/openblas-macosx-arm64.jar"/>
+	<classpathentry kind="lib" path="libraries/javacpp-macosx-x86_64.jar"/>
+	<classpathentry kind="lib" path="libraries/ffmpeg-macosx-x86_64.jar"/>
+	<classpathentry kind="lib" path="libraries/opencv-macosx-x86_64.jar"/>
+	<classpathentry kind="lib" path="libraries/openblas-macosx-x86_64.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

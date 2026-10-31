@@ -166,7 +166,7 @@
 			<attribute name="Built-By" value="${author}"/>
 			<attribute name="Build-Date" value="${buildtime.isoformat}"/>
 			<attribute name="Main-Class" value="org.opensourcephysics.cabrillo.tracker.Tracker"/>
-			<attribute name="Class-Path" value=". xuggle-xuggler-server-all.jar"/>
+			<attribute name="Class-Path" value=". javacv.jar javacpp.jar javacpp-macosx-arm64.jar javacpp-macosx-x86_64.jar ffmpeg.jar ffmpeg-macosx-arm64.jar ffmpeg-macosx-x86_64.jar opencv.jar opencv-macosx-arm64.jar opencv-macosx-x86_64.jar openblas.jar openblas-macosx-arm64.jar openblas-macosx-x86_64.jar xuggle-xuggler-server-all.jar"/>
 			<attribute name="permissions" value="all-permissions"/>
 		</manifest >
 		<jar jarfile="${output}/tracker.jar" basedir="${temp}" manifest="${temp}/meta-inf/TRACKER.mf" 
