@@ -11,6 +11,9 @@ import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.media.core.MediaRes;
 import org.opensourcephysics.tools.Diagnostics;
 import org.bytedeco.javacv.Java2DFrameConverter;
+import org.bytedeco.javacv.FFmpegFrameGrabber;
+import org.bytedeco.javacpp.Loader;
+import org.bytedeco.ffmpeg.global.avutil;
 
 /**
  * Checks to see if CV Video is installed and working.
@@ -55,34 +58,53 @@ public class CVDiagnostics extends Diagnostics {
 	 * If not working, shows a diagnostic message.
 	 */
 	public static void aboutCV() {
+		JOptionPane.showMessageDialog(dialogOwner, getAboutMessage(),
+				MediaRes.getString("CVDiagnostics.Dialog.Title"), //$NON-NLS-1$
+				JOptionPane.INFORMATION_MESSAGE);
+	}
+	
+	public static String getAboutMessage() {
+			int status = getStatusCode(); // 0=working, -1=unknown error 
+			// display appropriate dialog
+			if (status == 0) { // JavaCV working correctly
+				try {
+					StringBuilder message = new StringBuilder(""); //$NON-NLS-1$
+					String ver = MediaRes.getString("CVDiagnostics.Message.Version")+" ";
+					message.append("JavaCV ").append(ver).append(getVersion());
+					if (myJarFile != null) {
+						DateFormat format = DateFormat.getDateInstance(DateFormat.SHORT);
+						Date date = new Date(myJarFile.lastModified());
+						long size = myJarFile.length();
+						message.append(" (" + format.format(date) + ", " + size + " bytes)"); //$NON-NLS-1$ //$NON-NLS-2$
+					}
 
-		int status = getStatusCode(); // 0=working, -1=unknown error 
-		String message = "";
-		// display appropriate dialog
-		if (status == 0) { // AVP working correctly
-			try {
-				message = MediaRes.getString("CVDiagnostics.Message.Description") + newline;
-				message += MediaRes.getString("CVDiagnostics.Message.Version") + " ";
-				message += getVersion();
-				DateFormat format = DateFormat.getDateInstance(DateFormat.SHORT);
-				Date date = new Date(myJarFile.lastModified());
-				long size = myJarFile.length();
-				message += " (" + format.format(date) + ", " + size + " bytes)"; //$NON-NLS-1$ //$NON-NLS-2$
-				message += newline + MediaRes.getString("CVDiagnostics.Message.Path") + ": ";
-				message += myJarFile.getAbsolutePath();
-			} catch (Exception ex) {}			
-		}
-		else {
+					// add JavaCPP version only if known and different from JavaCV version
+					String javaCPPVersion = Loader.class.getPackage().getImplementationVersion();
+					if (javaCPPVersion == null) {
+						try {
+							javaCPPVersion = Loader.getVersion();
+						} catch (java.io.IOException ex) {
+//							javaCPPVersion = "unknown"; //$NON-NLS-1$
+						}
+					}
+					if (javaCPPVersion != null && !javaCPPVersion.equals(getVersion())) {
+						message.append(newline).append("JavaCPP ").append(ver).append(javaCPPVersion);						
+					}
+					message.append(newline).append("FFmpeg ").append(ver).append(avutil.av_version_info().getString()); //$NON-NLS-1$
+
+					if (myJarFile != null) {
+						message.append(newline).append(MediaRes.getString("CVDiagnostics.Message.Path") + ": ");
+						message.append(myJarFile.getAbsolutePath());
+					}
+					return message.toString();
+				} catch (Exception ex) {}			
+			}
 			String[] m = getDiagnosticMessage(status, requester);
-			message = m[0];		
+			String message = m[0];		
 			for (int i = 1; i < m.length; i++) {
 				message += "/n" + m[i];
 			}
-		}
-
-		JOptionPane.showMessageDialog(dialogOwner, message, 
-				MediaRes.getString("CVDiagnostics.Dialog.Title"), //$NON-NLS-1$
-				JOptionPane.INFORMATION_MESSAGE);
+			return message;
 	}
 
 	/**
@@ -106,6 +128,7 @@ public class CVDiagnostics extends Diagnostics {
 	public static int getStatusCode() {
 		
 		try (Java2DFrameConverter imageConverter = new Java2DFrameConverter()) {
+			FFmpegFrameGrabber.tryLoad();
 			return 0;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -144,7 +167,7 @@ public class CVDiagnostics extends Diagnostics {
 	 */
 	public static String getVersion() {
 		String version = org.bytedeco.javacv.JavaCV.class.getPackage().getImplementationVersion();
-		return version;
+		return version == null ? "unknown" : version; //$NON-NLS-1$
 	}
 
 	/**
@@ -153,7 +176,7 @@ public class CVDiagnostics extends Diagnostics {
 	 * @param args ignored
 	 */
 	public static void main(String[] args) {
-		System.out.println(getVersion());		
+//		System.out.println(getVersion());		
 		aboutCV("Tracker");
 	}
 }

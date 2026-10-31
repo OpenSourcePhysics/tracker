@@ -3042,15 +3042,34 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 	}
 
 	public void openLibraryResource(LibraryResource record, Runnable whenDone) {
+		String target = record.getAbsoluteTarget();
+		if (target != null && !ResourceLoader.isHTTP(target)) {
+			target = ResourceLoader.getURIPath(XML.getResolvedPath(record.getTarget(), record.getBasePath()));
+		}
+		String fileName = record.getProperty("download_filename"); //$NON-NLS-1$
+		String resourceName = (fileName == null ? target : fileName);
+		if (OSPRuntime.isJS && target != null && ResourceLoader.isHTTP(target)
+				&& resourceName != null && (resourceName.toLowerCase(Locale.ROOT).endsWith(".trk") //$NON-NLS-1$
+						|| ResourceLoader.isJarZipTrz(resourceName.toLowerCase(Locale.ROOT), false))) {
+			// Fetch before resource validation and ZIP inspection. Both otherwise use
+			// synchronous binary XHR, which is not reliable on iPad browsers.
+			loadFailed = false;
+			libraryBrowser.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+			LibraryResourceLoader.load(target, fileName, (localTarget) -> {
+				openLibraryResource(record, localTarget, whenDone);
+				return null;
+			});
+			return;
+		}
+		openLibraryResource(record, target, whenDone);
+	}
+
+	private void openLibraryResource(LibraryResource record, String target, Runnable whenDone) {
 		loadFailed = false;
 		try {
 			libraryBrowser.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-			String target = record.getAbsoluteTarget();
-			if (!ResourceLoader.isHTTP(target)) {
-				target = ResourceLoader.getURIPath(XML.getResolvedPath(record.getTarget(), record.getBasePath()));
-			}
 			// download comPADRE targets to osp cache
-			if (target.indexOf("document/ServeFile.cfm?") >= 0) { //$NON-NLS-1$
+			if (target != null && target.indexOf("document/ServeFile.cfm?") >= 0) { //$NON-NLS-1$
 				String fileName = record.getProperty("download_filename"); //$NON-NLS-1$
 				try {
 					target = ResourceLoader.downloadToOSPCache(target, fileName, false).toURI().toString();
