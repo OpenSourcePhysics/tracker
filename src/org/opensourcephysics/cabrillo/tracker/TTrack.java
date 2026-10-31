@@ -3436,6 +3436,15 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 		}
 
 		/**
+		 * Gets the text including subscript notation if present.
+		 * 
+		 * @return the text
+		 */
+		String getText() {
+			return textLine.getText();
+		}
+
+		/**
 		 * Sets the text to be displayed. Accepts subscript notation eg v_{x}.
 		 * 
 		 * @param text the text
