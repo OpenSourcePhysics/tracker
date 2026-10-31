@@ -351,12 +351,16 @@ public class TrackerCameraServer {
 		if (query == null || query.isEmpty()) return map;
 		for (String param : query.split("&")) {
 			int eq = param.indexOf('=');
+			try {
 			if (eq > 0) {
-				String key = URLDecoder.decode(param.substring(0, eq), StandardCharsets.UTF_8);
-				String val = URLDecoder.decode(param.substring(eq + 1), StandardCharsets.UTF_8);
+				String key = URLDecoder.decode(param.substring(0, eq), "UTF-8");
+				String val = URLDecoder.decode(param.substring(eq + 1), "UTF-8");
 				map.put(key, val);
 			} else {
-				map.put(URLDecoder.decode(param, StandardCharsets.UTF_8), "");
+				map.put(URLDecoder.decode(param, "UTF-8"), "");
+			}
+			} catch (IOException e) {
+				// URLDecoder for Java8 does not accept actual character set, just the name
 			}
 		}
 		return map;
