@@ -3026,6 +3026,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		boolean showDiagnostics = trackerPanel == null ? Tracker.getDefaultConfig().contains("help.diagnostics") : //$NON-NLS-1$
 				trackerPanel.isEnabled("help.diagnostics"); //$NON-NLS-1$
 		if (showDiagnostics) {
+			Tracker.refreshVideoEngineActions();
 			helpMenu.addSeparator();
 			JMenu diagMenu = new JMenu(TrackerRes.getString("TMenuBar.Menu.Diagnostics")); //$NON-NLS-1$
 			helpMenu.add(diagMenu);

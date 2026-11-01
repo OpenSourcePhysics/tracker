@@ -181,6 +181,7 @@ public class TViewChooser extends JPanel implements PropertyChangeListener, OSPR
 		}; //$NON-NLS-1$
 		chooseViewButton.setBorder(BorderFactory.createCompoundBorder(etched, empty));
 		chooseViewButton.alignPopup = TButton.RIGHT;
+		chooseViewButton.keepPopupOpenOnRelease = true;
 		chooseViewButton.setRunnablesForShortAndLongPress(
 				() -> {frame.maximizeNextView(getTrackerPanel());}, 
 				() -> {chooseViewButton.showPopup(null);});

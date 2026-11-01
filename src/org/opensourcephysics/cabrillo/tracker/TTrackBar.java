@@ -384,6 +384,7 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 		}; //$NON-NLS-1$
 		chooseViewButton.setBorder(BorderFactory.createCompoundBorder(etched, empty));
 		chooseViewButton.alignPopup = TButton.RIGHT;
+		chooseViewButton.keepPopupOpenOnRelease = true;
 		chooseViewButton.setRunnablesForShortAndLongPress(
 				() -> {frame.maximizeNextView(panel());}, 
 				() -> {chooseViewButton.showPopup(null);});
