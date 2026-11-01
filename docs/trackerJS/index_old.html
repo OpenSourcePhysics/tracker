@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-5Z064PVGSH"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+    
+      gtag('config', 'G-5Z064PVGSH');
+    </script>
+    
+	<title>Tracker Online</title>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" href="./tracker_online.png">
+    <link href="../css/tracker_home.css" rel="stylesheet" type="text/css">
+	<!-- <link rel="stylesheet" type="text/css" href="physletsJS.css" /> -->
+	<script src="compadre.js"></script>
+	<script src="swingjs/swingjs2.js"></script>
+	<script>
+		let mainFrame = undefined;
+		if (!self.SwingJS) alert('swingjs2.js was not found. It needs to be in swingjs folder in the same directory as ' +
+			document.location.href);
+
+		function initApp() {
+			if (!org.opensourcephysics.cabrillo.tracker.Tracker) {
+				alert("Tracker class not found.");
+				return; //Tracker was not found.
+			}
+			//window.addEventListener('resize', centerApp);
+			//centerApp();
+			setTop();
+			//J2S.addDirectDatabaseCall('physlets.org');
+		}
+		
+		function setTop() {
+			document.getElementById("pagetext").style.top = "76%";
+		}
+
+		function centerApp() {
+			let xloc = window.innerWidth / 2 - Tracker.app.getMainFrameSize()[0] / 2;
+			Tracker.app.getMainFrame().setLocation$I$I(xloc, 60);
+		}
+
+		function loadExperiment(expURL) {
+			Tracker.app.loadExperimentURL(expURL);
+		}
+
+		TrackerInfo = {
+			code: null,
+			main: "org.opensourcephysics.cabrillo.tracker.Tracker",
+			core: "_tracker",
+			resourceZip: "misc-assets.zip",
+			assets: { name: "tracker", zipPath: "tracker-assets.zip", classPaths: ["org/opensourcephysics"] },
+			//width: 850,
+			//height: 550,
+			args: ["-adaptive"],
+			readyFunction: initApp,
+			j2sPath: 'swingjs/j2s',
+			console: 'none'
+		}
+	</script>
+</head>
+
+<body>
+	<p align="center"><img src="tracker_online_logo.png" alt="Tracker icon"></p>		
+
+	<script>
+		SwingJS.getApplet('Tracker', TrackerInfo);
+	</script>
+
+	<div id = "pagetext" style="position:absolute;left:10px;top:800px;">
+	   <h5>Browser Support</h5>
+		<p class="error" style="text-align: left; color:red">JavaScript Tracker is compatible with Chrome, Firefox, Safari, and Edge browsers on Windows, OS X , Chromebook and Unix desktop computers. Compatibility with browsers on mobile devices is limited at this time. We recommend Safari on iPadOS devices.</p>
+	  <h5>What is Tracker Online?</h5>
+	  <p>Tracker Online is a free video analysis and modeling tool from Open Source Physics (OSP) designed for use in physics education and hosted by the <a href="https://www.compadre.org/osp/" target="_blank">AAPT-ComPADRE Digital Library</a>. Tracker has traditionally run only on the destop (Windows, Mac, Linux), but is now available here in your web browser. Tracker Online is identical to Tracker on your desktop, it simply runs in JavaScript rather than in Java.</p>
+	  <p>If you're new to Tracker, please see <a
+				href="https://physlets.org/tracker/help/frameset.html" target="_blank">Help Getting Started</a> for a step-by step beginner's guide or <a
+				href="https://www.youtube.com/watch?v=La3H7JywgX0" target="_blank">Getting Started with Tracker</a> for a video tutorial.  Additional information about Tracker is available on the <a href="https://physlets.org/tracker/" target="_blank">Tracker website</a>.
+      </p>
+      
+      <p>
+        <b>Note:</b> If you are already familiar with Tracker and do not need the narrative or examples shown below, <a href="./index_ff.html" target="_blank"><b>click here to access a full frame implementation.</b></a>. 
+      </p>
+
+	  <h5>Using Tracker Online</h5>
+	  <p>To maximize Tracker within your browser window, click the up arrow at the right end of the toolbar. You can also resize Tracker by dragging its lower right hand corner or reposition it by dragging its title bar.</p>
+		<p>To open a Tracker project or video in Tracker Online do one of the following:</p>
+		<ul>
+		  <li>Drag and drop the file from the desktop onto Tracker Online.</li>
+		  <li>Download or copy the file to the desktop, choose File|Open File... and select the file.</li>
+		  <li>Open the Tracker Library Browser, choose a collection from the Collections menu, browse to a resource of interest in the collection
+		 and double-click the resource. Note that some video files may be encoded in an unsupported format in which case you may download it, convert it to a supported format (see below) and import it back into the tab using Video|Import... .</li>
+	  </ul>
+		<h5>Supported Video Formats</h5>
+		<p>Tracker Online can open the following types of videos:</p>
+		<ul>
+ 		  <li>Image stacks consisting of JPEG or PNG images numbered sequentially.  For example:  car00.jpg, car01.jpg, car02.jpg, ... </li>
+		  <li>Video types supported by the HTML 5 〈video〉 element, such as MP4 with H264 codec.</li>
+		</ul>
+<p>For unsupported videos we recommend converting them to mp4 using the open source application <a href="https://handbrake.fr/" target="_blank">HandBrake</a>, available for Windows, Linux and MacOS platforms at <a href="https://handbrake.fr/" target="_blank">https://handbrake.fr/</a>. Choose the default "Fast 1080p30" preset, then in the Video tab choose "Constant Framerate". </p>
+<p>If you cannot or do not want to install software on your computer, you can use a web-based converter such as <a href="https://cloudconvert.com/mp4-converter" target="_blank">Cloud Convert.</a>  To create image stacks we recomment the <a href="https://www.onlineconverter.com/" target="_blank">Online Converter.</a> website.
+</p>
+<h5>Browser Support</h5>
+                <p>Tracker Online is compatible with Chrome, Safari and Firefox browsers on desktop computers including Chromebooks. Compatibility with browsers on mobile devices is limited at this time. </p>
+                
+		<h5>Tracker Projects</h5>
+<p>A Tracker Project is a special Tracker zip file with extension TRZ that contains everything needed to share the results of an analysis:  Tracker tab files (TRK),  video files,  and optional support documents in HTML or PDF format.
+			Some Tracker Projects may use videos with older formats, such as MOV or AVI. These can be loaded into Tracker Online but they will not display the video.  
+	  To fix this, you can convert the videos into a supported video format as described above.</p>
+
+    <h5>Bug Reporting</h5>
+    <p>Use the  <a href="https://forms.gle/uSA2Q8Ev3bMGFK596">Tracker Online Bug Report</a> form to report bugs you discover in Tracker Online.  Use the <a href="https://www.compadre.org/osp/bulletinboard/ForumDetails.cfm?FID=57">OSP Tracker Discussion</a> forum for all other Tracker related questions or feedback. We welcome questions about how to use Tracker, suggestions for additional Tracker features, and bug reports related to the desktop or online version of Tracker.</p>
+    
+    <h5>Testing</h5>
+    <p>Click these links to load some sample Tracker projects directly into Tracker Online. Note how loading the projects automatically opens accompanying documentation.</p>
+			<ul>
+				<li><a href="javascript:loadExperiment('examples/CarInLoop.trz')">Toy Car in Loop loaded from this server.</a></li>
+				<li><a href="javascript:loadExperiment('examples/FallingToast.trz')">Falling Toast loaded from this server</a></li>
+				<li><a
+					href="javascript:loadExperiment('https://www.compadre.org/osp/document/ServeFile.cfm?ID=15022&DocID=5059&TrackerSet=1')">Toy Car in Loop loaded from ComPADRE.</a></li>
+				<li><a
+				href="javascript:loadExperiment('https://www.compadre.org/osp/document/ServeFile.cfm?ID=15021&DocID=5058&TrackerSet=1')">Falling Toast loaded from ComPADRE		</a></li>
+			</ul>
+
+		<p>Click these links to download some sample files to the desktop and then use File|Open File... to open them in Tracker Online. 
+  </p>
+		<ul>
+			<li><a href="examples/CarInLoop.trz">Toy Car in Loop Tracker project file</a> </li>
+			<li><a href="examples/FallingToast.trz">Falling toast Tracker project file</a> </li>
+			<li><a href="examples/jmoljana.mp4">Molecular dynamics mp4 video file</a> </li>
+		</ul>
+		<h5>Credits</h5>
+		<p>
+			Tracker was written in Java by Douglas Brown at Cabrillo College using portions of the the Open Source
+			Physics code library developed by Wolfgang Christian at Davidson College. Tracker was  optimized and converted from
+			Java to JavaScript by Robert M Hanson, Douglas Brown and Wolfgang Christian using the <a
+				href="https://chemapps.stolaf.edu/swingjs/site/swingjs/examples/about.html">SwingJS </a> system
+			developed by Hanson and his students at St. Olaf College.
+	  </p>
+		</div>
+</body>
+
+</html>
