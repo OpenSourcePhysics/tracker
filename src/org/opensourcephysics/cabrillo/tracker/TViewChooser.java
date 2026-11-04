@@ -48,9 +48,8 @@ import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JToolBar;
-import javax.swing.border.Border;
 
-import org.opensourcephysics.cabrillo.tracker.TButton.TStickyButton;
+import org.opensourcephysics.cabrillo.tracker.TButton.TStickyPopupButton;
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.display.OSPRuntime;
@@ -68,8 +67,6 @@ public class TViewChooser extends JPanel implements PropertyChangeListener, OSPR
 	protected final static Icon MAXIMIZE_ICON = Tracker.getResourceIcon("maximize.gif", true); //$NON-NLS-1$
 	protected final static Icon	RESTORE_ICON = Tracker.getResourceIcon("restore.gif", true); //$NON-NLS-1$
 	protected final static Icon DOWN_ARROW_ICON = Tracker.getResourceIcon("triangle_down.gif", true); //$NON-NLS-1$
-	protected final static Icon RIGHT_ARROW_ICON = Tracker.getResourceIcon("right_arrow.gif", true); //$NON-NLS-1$; //$NON-NLS-1$
-
 	// instance fields
 
 	protected TFrame frame;
@@ -87,7 +84,7 @@ public class TViewChooser extends JPanel implements PropertyChangeListener, OSPR
 	private JToolBar toolbar;
 	private Component toolbarFiller = Box.createHorizontalGlue();
 	private TButton maximizeButton;
-	private TStickyButton viewChooserChooseViewButton;
+	private TStickyPopupButton viewChooserChooseViewButton;
 	private JPanel viewPanel;
 	private JButton chooserButton;
 	
@@ -162,20 +159,10 @@ public class TViewChooser extends JPanel implements PropertyChangeListener, OSPR
 			}
 		});
 		// choose view button
-		viewChooserChooseViewButton = new TStickyButton(RIGHT_ARROW_ICON, //
-				() -> {frame.maximizeNextView(getTrackerPanel());}, //
-				() -> {viewChooserChooseViewButton.showPopup(null);}) {
-			@Override
-			protected JPopupMenu getPopup() {
-				System.err.println("TViewChooser.ChooseViewButton.getPopupMenu-" + getSelectedView().getViewName() + " " + ++test);
-				return (frame.currentMenuBar == null ? null : frame.currentMenuBar.getPanesPopup());
-			}
-		}; //$NON-NLS-1$
+		viewChooserChooseViewButton = new TStickyPopupButton(frame, panelID);
 		setSelectedViewType(type);
 	}
 
-	static int test = 0;
-	
 	protected void refreshMaximizeButton() {
 		boolean maximized = isMaximized();
 		boolean small = OSPRuntime.isSmallScreen(frame);

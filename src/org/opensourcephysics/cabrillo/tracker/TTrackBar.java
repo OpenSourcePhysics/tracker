@@ -51,7 +51,7 @@ import javax.swing.JTextField;
 import javax.swing.JToolBar;
 import javax.swing.Timer;
 
-import org.opensourcephysics.cabrillo.tracker.TButton.TStickyButton;
+import org.opensourcephysics.cabrillo.tracker.TButton.TStickyPopupButton;
 import org.opensourcephysics.cabrillo.tracker.TTrack.TextLineLabel;
 import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.desktop.OSPDesktop;
@@ -95,7 +95,7 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 	protected int toolbarComponentHeight, numberFieldWidth;
 	protected TButton trackButton;
 	protected JButton maximizeButton;
-	protected TStickyButton trackBarChooseViewButton;
+	protected TStickyPopupButton trackBarChooseViewButton;
 	protected JLabel mainViewIconLabel;
 	protected TButton selectButton;
 	protected JLabel emptyLabel = new JLabel();
@@ -365,16 +365,7 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 			}
 		});
 		// choose view button
-		trackBarChooseViewButton = new TButton.TStickyButton(TViewChooser.RIGHT_ARROW_ICON,
-				() -> {frame.maximizeNextView(panel());}, 
-				() -> {trackBarChooseViewButton.showPopup(null);}) {
-			@Override
-			protected JPopupMenu getPopup() {
-				System.err.println("TTrackBar.trackBarChooseViewButton.getPopupMenu" + --test);
-				
-				return (frame.currentMenuBar == null ? null : frame.currentMenuBar.getPanesPopup());
-			}
-		};
+		trackBarChooseViewButton = new TButton.TStickyPopupButton(frame, panelID);
 
 		mainViewIconLabel = new JLabel(TToolBar.pointmassOffIcon);
 		mainViewIconLabel.setBorder(BorderFactory.createEmptyBorder(2, 0, 2, 6));

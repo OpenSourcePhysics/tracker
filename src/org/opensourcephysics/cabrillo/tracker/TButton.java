@@ -65,55 +65,71 @@ public class TButton extends JButton {
 	 * @author hanso
 	 *
 	 */
-	static class TStickyButton extends TButton {
+	static class TStickyPopupButton extends TButton {
 		
 		private static final int LONG_PRESS_DURATION = 750; // millisec
+		private final static Icon RIGHT_ARROW_ICON = Tracker.getResourceIcon("right_arrow.gif", true); //$NON-NLS-1$; 
+		private TFrame frame;
+		private Integer panelID;
 
-		TStickyButton(Icon icon, Runnable shortc, Runnable longp) {
-			super(icon);
-			shortClick = shortc;
-			longPress = longp;
+		TStickyPopupButton(TFrame frame, Integer panelID) {
+			super(RIGHT_ARROW_ICON);
+			this.frame = frame;
+			this.panelID = panelID;
 			alignPopup = TButton.RIGHT;
 			setBorder(BorderFactory.createCompoundBorder(ETCHED, EMPTY));
 			longPressTimer = new Timer(LONG_PRESS_DURATION, e -> {
-				longPress.run();
+				System.out.println("showing long POPUP");
+				showPopup(null);
+				
 			});
 			longPressTimer.setRepeats(false);
 		}
 		
 		private Timer longPressTimer; 
-		private Runnable shortClick, longPress;
 
 		@Override
 		protected boolean checkLongPress(MouseEvent e) {
 			if (e == null) {
-				return true;
-			}
-			System.err.println("checkLongPress " + e 
-					+ "\n" + SwingUtilities.isLeftMouseButton(e) + " " + longPressTimer.isRunning());
-			switch (e.getID()) {
-			case MouseEvent.MOUSE_PRESSED:
-				if (SwingUtilities.isLeftMouseButton(e)) {
-					longPressTimer.restart();
+				// just here because it only relates to this one type of button
+				// Better would be to create a third Runnable
+				AIPatch.keepPopupOpenUntilSelection(this, this.popup);
+			} else {
+				//System.err.println(SwingUtilities.isLeftMouseButton(e) + " " + e.isPopupTrigger() + " " + longPressTimer.isRunning() + " " + e);
+				switch (e.getID()) {
+				case MouseEvent.MOUSE_PRESSED:
+					if (SwingUtilities.isLeftMouseButton(e)) {
+						longPressTimer.restart();
+					}
+					break;
+				case MouseEvent.MOUSE_RELEASED:
+					if (e.isPopupTrigger()) {
+						if (longPressTimer.isRunning())
+							longPressTimer.stop();
+						showPopup(null);
+					} else if (SwingUtilities.isLeftMouseButton(e) && longPressTimer.isRunning()) {
+						// timer is still running so this is a short click
+						longPressTimer.stop();
+						System.out.println("showing next");
+						frame.maximizeNextView(frame.getTrackerPanelForID(panelID));
+					}
+					break;
+				case MouseEvent.MOUSE_CLICKED:
+					break;
 				}
-				break;
-			case MouseEvent.MOUSE_RELEASED:
-				if (SwingUtilities.isLeftMouseButton(e) && longPressTimer.isRunning()) {
-					// timer is still running so this is a short click
-					longPressTimer.stop();
-					shortClick.run();
-				}
-				break;
-			case MouseEvent.MOUSE_CLICKED:
-				break;
 			}
 			return true;
-			// TRemainOpenButton only
 		}
+		
+		@Override
+		protected JPopupMenu getPopup() {
+			return (frame.currentMenuBar == null ? null : frame.currentMenuBar.getPanesPopup());
+		}
+
 	}
 	private int trackID;
-	private boolean hidePopup = false;
-	private JPopupMenu popup;
+	protected boolean hidePopup = false;
+	protected JPopupMenu popup;
 	protected String context = "track"; //$NON-NLS-1$
 	protected boolean alwaysShowBorder;
 	protected int alignPopup = LEFT;
@@ -168,16 +184,15 @@ public class TButton extends JButton {
 
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				if (!TButton.this.isEnabled())
+				if (!isEnabled() || checkLongPress(e))
 					return;
-				if (!checkLongPress(e))
-					showPopup(e);
+				showPopup(e);
 			}
 		});
 	}
 
 	protected boolean checkLongPress(MouseEvent e) {
-		// TRemainOpenButton only
+		// TStickyButton only
 		return false;
 	}
 
@@ -315,8 +330,10 @@ public class TButton extends JButton {
 	 * @param e a MouseEvent, or null
 	 */
 	protected void showPopup(MouseEvent e) {
-		System.err.println("TButton.showPopup " + e);
+		//System.err.println("TButton.showPopup " + e + " " + (e == null ? null : e.getClickCount()) + " " + hidePopup);
 		popup = getPopup();
+		if (e == null)
+			hidePopup = false;
 		if (popup != null) {
 			if (e != null && e.getClickCount() == 2)
 				hidePopup = false;
@@ -331,8 +348,8 @@ public class TButton extends JButton {
 				if (OSPRuntime.isJS && alignPopup == RIGHT) {
 					alignComponentRight(popup, TButton.this);
 				}
-				if (OSPRuntime.isJS && checkLongPress(null))
-					AIPatch.keepPopupOpenUntilSelection(this, this.popup);
+				if (OSPRuntime.isJS)
+					checkLongPress(null);
 			}
 		}
 	}
