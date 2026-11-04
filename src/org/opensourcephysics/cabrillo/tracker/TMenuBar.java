@@ -496,16 +496,6 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 			return track_crosshairItem;
 		case "view_singleViewMenu":
 			return view_singleViewMenu;
-		case "view_mainItem":
-			return view_mainItem;
-		case "view_1Item":
-			return view_1Item;
-		case "view_2Item":
-			return view_2Item;
-		case "view_3Item":
-			return view_3Item;
-		case "view_4Item":
-			return view_4Item;
 		case "view_restoreItem":
 			return view_restoreItem;
 		case "view_rightPaneItem":
@@ -1277,6 +1267,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 
 		// singleViewMenu
 		view_singleViewMenu = new JMenu(TrackerRes.getString("TMenuBar.SingleView.Text")); //$NON-NLS-1$
+		
 		view_mainItem = new JMenuItem(TrackerRes.getString("TFrame.View.Main")); //$NON-NLS-1$
 		view_mainItem.addActionListener((e) -> {
 			maximizeView(TView.VIEW_MAIN);
@@ -3359,7 +3350,22 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		FontSizer.setMenuFonts(menu);
 	}
 
+	private JPopupMenu panesPopup;
 
+	JPopupMenu getPanesPopup() {
+		if (panesPopup == null) {
+			panesPopup = new JPopupMenu();
+		} else {
+			panesPopup.removeAll();		
+		}
+		refreshViewMenu(true);
+		panesPopup.add(view_mainItem);
+		panesPopup.add(view_1Item);
+		panesPopup.add(view_2Item);
+		panesPopup.add(view_3Item);
+		panesPopup.add(view_4Item);
+		return panesPopup;
+	}
 
 	/**
 	 * Add a separator if the menu has items and last item is not already a separator.
@@ -3389,6 +3395,4 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		return "[TMenuBar " + panelID + "]";
 	}
 
-
-	
 }

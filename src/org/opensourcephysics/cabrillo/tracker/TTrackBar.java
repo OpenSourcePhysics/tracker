@@ -50,8 +50,8 @@ import javax.swing.JPopupMenu;
 import javax.swing.JTextField;
 import javax.swing.JToolBar;
 import javax.swing.Timer;
-import javax.swing.border.Border;
 
+import org.opensourcephysics.cabrillo.tracker.TButton.TStickyButton;
 import org.opensourcephysics.cabrillo.tracker.TTrack.TextLineLabel;
 import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.desktop.OSPDesktop;
@@ -95,12 +95,11 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 	protected int toolbarComponentHeight, numberFieldWidth;
 	protected TButton trackButton;
 	protected JButton maximizeButton;
-	protected TButton chooseViewButton;
+	protected TStickyButton trackBarChooseViewButton;
 	protected JLabel mainViewIconLabel;
 	protected TButton selectButton;
 	protected JLabel emptyLabel = new JLabel();
-	protected JPopupMenu selectPopup = new JPopupMenu();
-	protected JPopupMenu panesPopup = new JPopupMenu();
+	protected JPopupMenu selectPopup;
 
 	private TFrame frame;
 	private Integer panelID;
@@ -139,8 +138,7 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 								@Override
 								public void actionPerformed(ActionEvent e) {
 									// test action goes here	
-									TrackerPanel trackerPanel = frame.getSelectedPanel();
-									
+//									TrackerPanel trackerPanel = frame.getSelectedPanel();								
 //									testIndex++;
 //									testButton.setEnabled(true);								
 											
@@ -316,6 +314,8 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 		selectButton = new TButton(selectTrackIcon) {
 			@Override
 			protected JPopupMenu getPopup() {
+				if (selectPopup == null)
+					selectPopup = new JPopupMenu();
 				return getSelectTrackPopup(selectPopup);
 			}
 		};
@@ -348,10 +348,8 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 		emptyLabel.setOpaque(false);
 		
 		// maximize button
-		Border empty = BorderFactory.createEmptyBorder(7, 3, 7, 3);
-		Border etched = BorderFactory.createEtchedBorder();
 		maximizeButton = new TButton(TViewChooser.MAXIMIZE_ICON, TViewChooser.RESTORE_ICON);
-		maximizeButton.setBorder(BorderFactory.createCompoundBorder(etched, empty));
+		maximizeButton.setBorder(BorderFactory.createCompoundBorder(TButton.ETCHED, TButton.EMPTY));
 		maximizeButton.setToolTipText(TrackerRes.getString("TViewChooser.Maximize.Tooltip")); //$NON-NLS-1$
 		maximizeButton.setHorizontalTextPosition(TButton.LEFT);
 		maximizeButton.addActionListener(new ActionListener() {
@@ -367,27 +365,16 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 			}
 		});
 		// choose view button
-		chooseViewButton = new TButton(TViewChooser.RIGHT_ARROW_ICON) {
+		trackBarChooseViewButton = new TButton.TStickyButton(TViewChooser.RIGHT_ARROW_ICON,
+				() -> {frame.maximizeNextView(panel());}, 
+				() -> {trackBarChooseViewButton.showPopup(null);}) {
 			@Override
 			protected JPopupMenu getPopup() {
-				panesPopup.removeAll();
-				if (frame.currentMenuBar == null)
-					return panesPopup;
-				frame.currentMenuBar.refreshViewMenu(true);
-				panesPopup.add(frame.currentMenuBar.getMenuItem("view_mainItem"));
-				panesPopup.add(frame.currentMenuBar.getMenuItem("view_1Item"));
-				panesPopup.add(frame.currentMenuBar.getMenuItem("view_2Item"));
-				panesPopup.add(frame.currentMenuBar.getMenuItem("view_3Item"));
-				panesPopup.add(frame.currentMenuBar.getMenuItem("view_4Item"));
-				return panesPopup;
+				System.err.println("TTrackBar.trackBarChooseViewButton.getPopupMenu" + --test);
+				
+				return (frame.currentMenuBar == null ? null : frame.currentMenuBar.getPanesPopup());
 			}
-		}; //$NON-NLS-1$
-		chooseViewButton.setBorder(BorderFactory.createCompoundBorder(etched, empty));
-		chooseViewButton.alignPopup = TButton.RIGHT;
-		chooseViewButton.keepPopupOpenOnRelease = true;
-		chooseViewButton.setRunnablesForShortAndLongPress(
-				() -> {frame.maximizeNextView(panel());}, 
-				() -> {chooseViewButton.showPopup(null);});
+		};
 
 		mainViewIconLabel = new JLabel(TToolBar.pointmassOffIcon);
 		mainViewIconLabel.setBorder(BorderFactory.createEmptyBorder(2, 0, 2, 6));
@@ -396,6 +383,9 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 //		trackButton.setBorder(BorderFactory.createCompoundBorder(line, space));
 		// create horizontal glue for right end of toolbar
 	}
+	
+	int test = 0;
+
 	
 	/**
 	 * Refreshes and returns the "select track" popup menu.
@@ -595,8 +585,8 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 		if (panel().getMaximizedView() != TView.VIEW_UNSET) {
 			maximizeButton.setIcon(small? null: TViewChooser.RESTORE_ICON);
 			maximizeButton.setToolTipText(small? null: TrackerRes.getString("TViewChooser.Restore.Tooltip"));//$NON-NLS-1$
-			chooseViewButton.setToolTipText(TrackerRes.getString("TViewChooser.NextView.Tooltip")); //$NON-NLS-1$
-			add(chooseViewButton);			
+			trackBarChooseViewButton.setToolTipText(TrackerRes.getString("TViewChooser.NextView.Tooltip")); //$NON-NLS-1$
+			add(trackBarChooseViewButton);			
 		}
 		else {
 			maximizeButton.setIcon(small? null: TViewChooser.MAXIMIZE_ICON);

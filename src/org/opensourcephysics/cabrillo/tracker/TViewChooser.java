@@ -50,6 +50,7 @@ import javax.swing.JPopupMenu;
 import javax.swing.JToolBar;
 import javax.swing.border.Border;
 
+import org.opensourcephysics.cabrillo.tracker.TButton.TStickyButton;
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.display.OSPRuntime;
@@ -86,7 +87,7 @@ public class TViewChooser extends JPanel implements PropertyChangeListener, OSPR
 	private JToolBar toolbar;
 	private Component toolbarFiller = Box.createHorizontalGlue();
 	private TButton maximizeButton;
-	private TButton chooseViewButton;
+	private TStickyButton viewChooserChooseViewButton;
 	private JPanel viewPanel;
 	private JButton chooserButton;
 	
@@ -98,7 +99,6 @@ public class TViewChooser extends JPanel implements PropertyChangeListener, OSPR
 	// popup menu
 	
 	protected JPopupMenu popup = new JPopupMenu();
-	protected JPopupMenu panesPopup = new JPopupMenu();
 	protected boolean ignoreSelectedTrack;
 		
 	/**
@@ -147,12 +147,10 @@ public class TViewChooser extends JPanel implements PropertyChangeListener, OSPR
 			}
 		};
 		// maximize button
-		Border empty = BorderFactory.createEmptyBorder(7, 3, 7, 3);
-		Border etched = BorderFactory.createEtchedBorder();
 		maximizeButton = new TButton(MAXIMIZE_ICON, RESTORE_ICON);
 		maximizeButton.setHorizontalTextPosition(TButton.LEFT);
 		maximizeButton.setName(String.valueOf(type + 1));
-		maximizeButton.setBorder(BorderFactory.createCompoundBorder(etched, empty));
+		maximizeButton.setBorder(BorderFactory.createCompoundBorder(TButton.ETCHED, TButton.EMPTY));
 		maximizeButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {		
@@ -164,29 +162,19 @@ public class TViewChooser extends JPanel implements PropertyChangeListener, OSPR
 			}
 		});
 		// choose view button
-		chooseViewButton = new TButton(RIGHT_ARROW_ICON) {
+		viewChooserChooseViewButton = new TStickyButton(RIGHT_ARROW_ICON, //
+				() -> {frame.maximizeNextView(getTrackerPanel());}, //
+				() -> {viewChooserChooseViewButton.showPopup(null);}) {
 			@Override
 			protected JPopupMenu getPopup() {
-				panesPopup.removeAll();
-				if (frame.currentMenuBar == null)
-					return panesPopup;
-				frame.currentMenuBar.refreshViewMenu(true);
-				panesPopup.add(frame.currentMenuBar.getMenuItem("view_mainItem"));
-				panesPopup.add(frame.currentMenuBar.getMenuItem("view_1Item"));
-				panesPopup.add(frame.currentMenuBar.getMenuItem("view_2Item"));
-				panesPopup.add(frame.currentMenuBar.getMenuItem("view_3Item"));
-				panesPopup.add(frame.currentMenuBar.getMenuItem("view_4Item"));
-				return panesPopup;
+				System.err.println("TViewChooser.ChooseViewButton.getPopupMenu-" + getSelectedView().getViewName() + " " + ++test);
+				return (frame.currentMenuBar == null ? null : frame.currentMenuBar.getPanesPopup());
 			}
 		}; //$NON-NLS-1$
-		chooseViewButton.setBorder(BorderFactory.createCompoundBorder(etched, empty));
-		chooseViewButton.alignPopup = TButton.RIGHT;
-		chooseViewButton.keepPopupOpenOnRelease = true;
-		chooseViewButton.setRunnablesForShortAndLongPress(
-				() -> {frame.maximizeNextView(getTrackerPanel());}, 
-				() -> {chooseViewButton.showPopup(null);});
 		setSelectedViewType(type);
 	}
+
+	static int test = 0;
 	
 	protected void refreshMaximizeButton() {
 		boolean maximized = isMaximized();
@@ -196,7 +184,7 @@ public class TViewChooser extends JPanel implements PropertyChangeListener, OSPR
 				TrackerRes.getString("TViewChooser.Restore.Tooltip") : //$NON-NLS-1$
 				TrackerRes.getString("TViewChooser.Maximize.Tooltip")); //$NON-NLS-1$
 		maximizeButton.setText(TrackerRes.getString("TMenuBar.Menu.Window")+" "+maximizeButton.getName());
-		chooseViewButton.setToolTipText(TrackerRes.getString("TViewChooser.NextView.Tooltip")); //$NON-NLS-1$
+		viewChooserChooseViewButton.setToolTipText(TrackerRes.getString("TViewChooser.NextView.Tooltip")); //$NON-NLS-1$
 	}
 
 	protected void showToolbarPopup(int x, int y) {
@@ -504,7 +492,7 @@ public class TViewChooser extends JPanel implements PropertyChangeListener, OSPR
 		super.setEnabled(enable);
 		chooserButton.setEnabled(enable);
 		maximizeButton.setEnabled(enable);
-		chooseViewButton.setEnabled(enable);
+		viewChooserChooseViewButton.setEnabled(enable);
 		TView view = getSelectedView();
 		ArrayList<Component> comps = view.getToolBarComponents();
 		for (int j = 0; j < comps.size(); j++) {
@@ -567,7 +555,7 @@ public class TViewChooser extends JPanel implements PropertyChangeListener, OSPR
 		toolbar.add(chooserButton);
 		toolbar.add(maximizeButton);
 		if (isMaximized()) {
-			toolbar.add(chooseViewButton);
+			toolbar.add(viewChooserChooseViewButton);
 		}
 //		FontSizer.setFonts(toolbar);
 		toolbar.repaint();

@@ -27,6 +27,7 @@ package org.opensourcephysics.cabrillo.tracker;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
+import javax.swing.BorderFactory;
 import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -34,6 +35,7 @@ import javax.swing.JMenu;
 import javax.swing.JPopupMenu;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
+import javax.swing.border.Border;
 
 import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.js.AIPatch;
@@ -47,17 +49,74 @@ import org.opensourcephysics.tools.FontSizer;
 @SuppressWarnings("serial")
 public class TButton extends JButton {
 
-  private static final int LONG_PRESS_DURATION = 750; // millisec
+	static final Border EMPTY = BorderFactory.createEmptyBorder(7, 3, 7, 3);
+	static final Border ETCHED = BorderFactory.createEtchedBorder();
+
+	/**
+	 * A class to handle popups that need to be "sticky" -- responding to short and
+	 * long presses differently.
+	 * 
+	 * specifically for TViewChooser.viewChooserChooseViewButton and
+	 * TTrackBar.trackBarChooseViewButton
+	 * 
+	 * Consolidates short/long press actions in this single subclass. 
+	 * Standard TButtons do not need this. 
+	 * 
+	 * @author hanso
+	 *
+	 */
+	static class TStickyButton extends TButton {
+		
+		private static final int LONG_PRESS_DURATION = 750; // millisec
+
+		TStickyButton(Icon icon, Runnable shortc, Runnable longp) {
+			super(icon);
+			shortClick = shortc;
+			longPress = longp;
+			alignPopup = TButton.RIGHT;
+			setBorder(BorderFactory.createCompoundBorder(ETCHED, EMPTY));
+			longPressTimer = new Timer(LONG_PRESS_DURATION, e -> {
+				longPress.run();
+			});
+			longPressTimer.setRepeats(false);
+		}
+		
+		private Timer longPressTimer; 
+		private Runnable shortClick, longPress;
+
+		@Override
+		protected boolean checkLongPress(MouseEvent e) {
+			if (e == null) {
+				return true;
+			}
+			System.err.println("checkLongPress " + e 
+					+ "\n" + SwingUtilities.isLeftMouseButton(e) + " " + longPressTimer.isRunning());
+			switch (e.getID()) {
+			case MouseEvent.MOUSE_PRESSED:
+				if (SwingUtilities.isLeftMouseButton(e)) {
+					longPressTimer.restart();
+				}
+				break;
+			case MouseEvent.MOUSE_RELEASED:
+				if (SwingUtilities.isLeftMouseButton(e) && longPressTimer.isRunning()) {
+					// timer is still running so this is a short click
+					longPressTimer.stop();
+					shortClick.run();
+				}
+				break;
+			case MouseEvent.MOUSE_CLICKED:
+				break;
+			}
+			return true;
+			// TRemainOpenButton only
+		}
+	}
 	private int trackID;
 	private boolean hidePopup = false;
 	private JPopupMenu popup;
 	protected String context = "track"; //$NON-NLS-1$
 	protected boolean alwaysShowBorder;
 	protected int alignPopup = LEFT;
-	protected boolean keepPopupOpenOnRelease;
-	private Timer longPressTimer;
-	private Runnable shortClick, longPress;
-
 	/**
 	 * Constructs a TButton.
 	 */
@@ -92,10 +151,7 @@ public class TButton extends JButton {
 
 			@Override
 			public void mousePressed(MouseEvent e) {
-				if (longPress != null || shortClick != null) {
-	        longPressTimer.restart();
-				}
-
+				checkLongPress(e);
 				TTrack track = getTrack();
 				if (track != null && track.tp != null && track != track.tp.getSelectedTrack()) {
 					track.tp.setSelectedTrack(track);
@@ -107,27 +163,25 @@ public class TButton extends JButton {
 
 			@Override
 			public void mouseReleased(MouseEvent e) {
-				if (shortClick != null 
-					&& SwingUtilities.isLeftMouseButton(e) 
-					&& longPressTimer.isRunning()) {
-              // timer is still running so this is a short click
-              longPressTimer.stop();
-              shortClick.run();
-        }
+				checkLongPress(e);
 			}
 
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				if (!TButton.this.isEnabled())
 					return;
-				if (shortClick != null || longPress != null)
-					return;
-				showPopup(e);
+				if (!checkLongPress(e))
+					showPopup(e);
 			}
 		});
 	}
 
-//  /**
+	protected boolean checkLongPress(MouseEvent e) {
+		// TRemainOpenButton only
+		return false;
+	}
+
+	//  /**
 //   * Constructs an icon-only TButton with an AbstractAction.
 //   *
 //   * @param action the AbstractAction
@@ -202,28 +256,31 @@ public class TButton extends JButton {
 	}
 
 	/**
-	 * Align a component's right edge with the reference component 
-	 * or within the visible viewport.
+	 * Align a component's right edge with the reference component or within the
+	 * visible viewport.
 	 */
 	private void alignComponentRight(JComponent c, JComponent ref) {
 		if (OSPRuntime.jsutil != null)
 			OSPRuntime.jsutil.alignComponentRight(c, ref, 0);
 		// SwingJS menus are rendered outside the frame. Constrain the actual
 		// DOM bounds because Swing popup sizes can differ from the rendered size.
-		/** @j2sNative
-
-var owner=javax.swing.SwingUtilities.getWindowAncestor$java_awt_Component(ref);
-if (owner != null) {
-var node=c.秘getUI$().domNode;
-var bounds=owner.秘getUI$().domNode.getBoundingClientRect();
-var rect=node.getBoundingClientRect();
-var x=Math.max(bounds.left, Math.min(rect.left, bounds.right - rect.width));
-var y=Math.max(bounds.top, Math.min(rect.top, bounds.bottom - rect.height));
-node.style.left=((parseFloat(node.style.left) || 0) + x - rect.left) + "px";
-node.style.top=((parseFloat(node.style.top) || 0) + y - rect.top) + "px";
-}
+		/**
+		 * @j2sNative
+		 * 
+		 * 			var
+		 *            owner=javax.swing.SwingUtilities.getWindowAncestor$java_awt_Component(ref);
+		 *            if (owner != null) { var node=c.秘getUI$().domNode; var
+		 *            bounds=owner.秘getUI$().domNode.getBoundingClientRect(); var
+		 *            rect=node.getBoundingClientRect(); var x=Math.max(bounds.left,
+		 *            Math.min(rect.left, bounds.right - rect.width)); var
+		 *            y=Math.max(bounds.top, Math.min(rect.top, bounds.bottom -
+		 *            rect.height)); node.style.left=((parseFloat(node.style.left) || 0)
+		 *            + x - rect.left) + "px";
+		 *            node.style.top=((parseFloat(node.style.top) || 0) + y - rect.top)
+		 *            + "px"; }
 		 */
-		{}
+		{
+		}
 	}
 
 	/**
@@ -251,13 +308,14 @@ node.style.top=((parseFloat(node.style.top) || 0) + y - rect.top) + "px";
 		}
 		return null;
 	}
-	
+
 	/**
 	 * Shows the popup menu, if any.
 	 * 
 	 * @param e a MouseEvent, or null
 	 */
 	protected void showPopup(MouseEvent e) {
+		System.err.println("TButton.showPopup " + e);
 		popup = getPopup();
 		if (popup != null) {
 			if (e != null && e.getClickCount() == 2)
@@ -273,7 +331,7 @@ node.style.top=((parseFloat(node.style.top) || 0) + y - rect.top) + "px";
 				if (OSPRuntime.isJS && alignPopup == RIGHT) {
 					alignComponentRight(popup, TButton.this);
 				}
-				if (OSPRuntime.isJS && keepPopupOpenOnRelease)
+				if (OSPRuntime.isJS && checkLongPress(null))
 					AIPatch.keepPopupOpenUntilSelection(this, this.popup);
 			}
 		}
@@ -283,18 +341,6 @@ node.style.top=((parseFloat(node.style.top) || 0) + y - rect.top) + "px";
 		alwaysShowBorder = showBorder;
 		setOpaque(alwaysShowBorder);
 		setBorderPainted(alwaysShowBorder);
-	}
-	
-	protected void setRunnablesForShortAndLongPress(Runnable shortc, Runnable longp) {
-		shortClick = shortc;
-		longPress = longp;
-		if ((shortClick != null || longPress != null) && longPressTimer == null) {
-			longPressTimer = new Timer(LONG_PRESS_DURATION, e -> {
-        if (longPress != null)
-        	longPress.run();
-	    });
-	    longPressTimer.setRepeats(false);
-		}
 	}
 
 }
