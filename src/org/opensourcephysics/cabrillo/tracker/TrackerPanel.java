@@ -2333,7 +2333,110 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			return AIPatch.haveAnyVisibleMenusInAnyApplication();
 		return false;
 	}
-	
+
+	/**
+	 * Keeps browser context menus open through the release of their opening press.
+	 * Install on the actual menu, since marker menus may belong to a track rather
+	 * than this panel's background popup.
+	 */
+	private void installContextPopupGuard(JPopupMenu menu) {
+		if (!OSPRuntime.isJS || menu == null)
+			return;
+		Runnable onShow = () -> keepContextPopupOpen(menu);
+		/** @j2sNative
+		 // A track can reuse its menu in another panel, so update the owner.
+		 menu._trackerContextPopupOnShow = onShow;
+		 if (menu._trackerContextPopupShowInstalled) return;
+		 menu._trackerContextPopupShowInstalled = true;
+		 var show = menu.show$java_awt_Component$I$I;
+		 menu.show$java_awt_Component$I$I = function(invoker, x, y) {
+		  var result = show.apply(this, arguments);
+		  // Arm after SwingJS has created and displayed the actual menu node.
+		  if (this.$ulTop && this.$ulTop[0].style.display !== "none")
+		   this._trackerContextPopupOnShow.run$();
+		  return result;
+		 };
+		 var setVisible = menu.setVisible$Z;
+		 menu.setVisible$Z = function(visible) {
+		  if (!visible && this._trackerContextPopupCleanup)
+		   this._trackerContextPopupCleanup();
+		  return setVisible.apply(this, arguments);
+		 };
+		 */
+	}
+
+	private void keepContextPopupOpen(JPopupMenu popup) {
+		/** @j2sNative
+		 var panel = this;
+		 if (popup._trackerContextPopupCleanup) popup._trackerContextPopupCleanup();
+		 var openingRelease = true;
+		 var touchReleaseTime = null;
+		 var observer;
+		 var cleanup = function() {
+		  document.removeEventListener("pointerdown", press, true);
+		  document.removeEventListener("mousedown", press, true);
+		  document.removeEventListener("touchstart", press, true);
+		  document.removeEventListener("pointerup", release, true);
+		  document.removeEventListener("pointercancel", release, true);
+		  document.removeEventListener("mouseup", release, true);
+		  document.removeEventListener("touchend", release, true);
+		  document.removeEventListener("touchcancel", release, true);
+		  document.removeEventListener("click", click, true);
+		  if (observer) observer.disconnect();
+		  delete popup._trackerContextPopupCleanup;
+		 };
+		 var press = function(e) {
+		  // Safari can synthesize a mouse press after the opening touch ends.
+		  // A genuine next touch/pointer press disarms this check first.
+		  if (openingRelease && e.type === "mousedown" && touchReleaseTime !== null
+		      && Date.now() - touchReleaseTime < 800) {
+		   if (e.cancelable) e.preventDefault();
+		   e.stopImmediatePropagation();
+		   return;
+		  }
+		  openingRelease = false;
+		  var node = popup.$ulTop && popup.$ulTop[0];
+		  if (!node) node = popup.秘getUI$().domNode;
+		  if (node && node.contains(e.target)) return;
+		  cleanup();
+		  panel.hidePopup$();
+		 };
+		 var release = function(e) {
+		  if (!openingRelease) return;
+		  if (e.type.indexOf("touch") === 0 || e.pointerType === "touch" || e.pointerType === "pen") {
+		   touchReleaseTime = Date.now();
+		  }
+		  // The context action already supplied its Java release. Consume the
+		  // physical release once, before duplicate SwingJS/document listeners.
+		  if (e.cancelable) e.preventDefault();
+		  e.stopImmediatePropagation();
+		 };
+		 var click = function(e) {
+		  if (!openingRelease) return;
+		  if (e.cancelable) e.preventDefault();
+		  e.stopImmediatePropagation();
+		 };
+		 popup._trackerContextPopupCleanup = cleanup;
+		 var capture = {capture:true, passive:false};
+		 document.addEventListener("pointerdown", press, capture);
+		 document.addEventListener("mousedown", press, capture);
+		 document.addEventListener("touchstart", press, capture);
+		 document.addEventListener("pointerup", release, capture);
+		 document.addEventListener("pointercancel", release, capture);
+		 document.addEventListener("mouseup", release, capture);
+		 document.addEventListener("touchend", release, capture);
+		 document.addEventListener("touchcancel", release, capture);
+		 document.addEventListener("click", click, capture);
+		 var node = popup.$ulTop && popup.$ulTop[0];
+		 if (node) {
+		  observer = new MutationObserver(function() {
+		   if (!node.isConnected || node.style.display === "none") cleanup();
+		  });
+		  observer.observe(node, {attributes:true, attributeFilter:["style"]});
+		 }
+		 */
+	}
+
 	/**
 	 * Gets the units dialog.
 	 * 
@@ -3960,7 +4063,9 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		@Override
 		public void mouseClicked(MouseEvent e) {
 			super.mouseClicked(e);
-			if (!OSPRuntime.isPopupTrigger(e)) {
+			// SwingJS may synthesize a click from the release of a long press.
+			// Browser menus are dismissed by the next press, not that release.
+			if (!OSPRuntime.isJS && !OSPRuntime.isPopupTrigger(e)) {
 				hidePopup();
 			}
 		}
@@ -4830,6 +4935,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			return popup;
 		} finally {
 			displayedPopup = popup;
+			installContextPopupGuard(popup);
 			FontSizer.setFonts(popup, FontSizer.getLevel());
 		}
 	}
