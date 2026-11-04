@@ -1,0 +1,353 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<object class="org.opensourcephysics.cabrillo.tracker.TrackerPanel">
+    <property name="semantic_version" type="string">6.3.5.261026</property>
+    <property name="width" type="double">640.0</property>
+    <property name="height" type="double">480.0</property>
+    <property name="magnification" type="double">1.0</property>
+    <property name="center_x" type="int">341</property>
+    <property name="center_y" type="int">225</property>
+    <property name="description" type="string"><![CDATA[This is the spectrum of a green solid state laser with HeNe red (633nm) and green (543 nm) laser spots for calibration. The laser is striking a vertical target at an angle from above.
+
+The last frame of the video is the background only with no gas lamp. Use this as a baseline image for the "Baseline" video filter to negate the background light.]]></property>
+    <property name="author" type="string">Douglas Brown</property>
+    <property name="contact" type="string">dobrown@cabrillo.edu</property>
+    <property name="videoclip" type="object">
+    <object class="org.opensourcephysics.media.core.VideoClip">
+        <property name="video" type="object">
+        <object class="org.opensourcephysics.media.core.ImageVideo">
+            <property name="paths" type="array" class="[Ljava.lang.String;">
+                <property name="[0]" type="string">C:/Users/hanso/AppData/Local/OSP/Cache/osp-opensourcephysics_github_io/resources/CAB/innovative_tpt/green_ss_laser.trz!/videos/green_ss_laser_green_ss_laser00.jpg</property>
+                <property name="[1]" type="string">C:/Users/hanso/AppData/Local/OSP/Cache/osp-opensourcephysics_github_io/resources/CAB/innovative_tpt/green_ss_laser.trz!/videos/green_ss_laser_green_ss_laser01.jpg</property>
+                <property name="[2]" type="string">C:/Users/hanso/AppData/Local/OSP/Cache/osp-opensourcephysics_github_io/resources/CAB/innovative_tpt/green_ss_laser.trz!/videos/green_ss_laser_green_ss_laser02.jpg</property>
+                <property name="[3]" type="string">C:/Users/hanso/AppData/Local/OSP/Cache/osp-opensourcephysics_github_io/resources/CAB/innovative_tpt/green_ss_laser.trz!/videos/green_ss_laser_green_ss_laser03.jpg</property>
+                <property name="[4]" type="string">C:/Users/hanso/AppData/Local/OSP/Cache/osp-opensourcephysics_github_io/resources/CAB/innovative_tpt/green_ss_laser.trz!/videos/green_ss_laser_green_ss_laser04.jpg</property>
+                <property name="[5]" type="string">C:/Users/hanso/AppData/Local/OSP/Cache/osp-opensourcephysics_github_io/resources/CAB/innovative_tpt/green_ss_laser.trz!/videos/green_ss_laser_green_ss_laser05.jpg</property>
+                <property name="[6]" type="string">C:/Users/hanso/AppData/Local/OSP/Cache/osp-opensourcephysics_github_io/resources/CAB/innovative_tpt/green_ss_laser.trz!/videos/green_ss_laser_green_ss_laser06.jpg</property>
+                <property name="[7]" type="string">C:/Users/hanso/AppData/Local/OSP/Cache/osp-opensourcephysics_github_io/resources/CAB/innovative_tpt/green_ss_laser.trz!/videos/green_ss_laser_green_ss_laser07.jpg</property>
+                <property name="[8]" type="string">C:/Users/hanso/AppData/Local/OSP/Cache/osp-opensourcephysics_github_io/resources/CAB/innovative_tpt/green_ss_laser.trz!/videos/green_ss_laser_green_ss_laser08.jpg</property>
+                <property name="[9]" type="string">C:/Users/hanso/AppData/Local/OSP/Cache/osp-opensourcephysics_github_io/resources/CAB/innovative_tpt/green_ss_laser.trz!/videos/green_ss_laser_green_ss_laser09.jpg</property>
+                <property name="[10]" type="string">C:/Users/hanso/AppData/Local/OSP/Cache/osp-opensourcephysics_github_io/resources/CAB/innovative_tpt/green_ss_laser.trz!/videos/green_ss_laser_green_ss_laser10.jpg</property>
+                <property name="[11]" type="string">C:/Users/hanso/AppData/Local/OSP/Cache/osp-opensourcephysics_github_io/resources/CAB/innovative_tpt/green_ss_laser.trz!/videos/green_ss_laser_green_ss_laser11.jpg</property>
+                <property name="[12]" type="string">C:/Users/hanso/AppData/Local/OSP/Cache/osp-opensourcephysics_github_io/resources/CAB/innovative_tpt/green_ss_laser.trz!/videos/green_ss_laser_green_ss_laser12.jpg</property>
+                <property name="[13]" type="string">C:/Users/hanso/AppData/Local/OSP/Cache/osp-opensourcephysics_github_io/resources/CAB/innovative_tpt/green_ss_laser.trz!/videos/green_ss_laser_green_ss_laser13.jpg</property>
+                <property name="[14]" type="string">C:/Users/hanso/AppData/Local/OSP/Cache/osp-opensourcephysics_github_io/resources/CAB/innovative_tpt/green_ss_laser.trz!/videos/green_ss_laser_green_ss_laser14.jpg</property>
+                <property name="[15]" type="string">C:/Users/hanso/AppData/Local/OSP/Cache/osp-opensourcephysics_github_io/resources/CAB/innovative_tpt/green_ss_laser.trz!/videos/green_ss_laser_green_ss_laser15.jpg</property>
+                <property name="[16]" type="string">C:/Users/hanso/AppData/Local/OSP/Cache/osp-opensourcephysics_github_io/resources/CAB/innovative_tpt/green_ss_laser.trz!/videos/green_ss_laser_green_ss_laser16.jpg</property>
+                <property name="[17]" type="string">C:/Users/hanso/AppData/Local/OSP/Cache/osp-opensourcephysics_github_io/resources/CAB/innovative_tpt/green_ss_laser.trz!/videos/green_ss_laser_green_ss_laser17.jpg</property>
+                <property name="[18]" type="string">C:/Users/hanso/AppData/Local/OSP/Cache/osp-opensourcephysics_github_io/resources/CAB/innovative_tpt/green_ss_laser.trz!/videos/green_ss_laser_green_ss_laser18.jpg</property>
+                <property name="[19]" type="string">C:/Users/hanso/AppData/Local/OSP/Cache/osp-opensourcephysics_github_io/resources/CAB/innovative_tpt/green_ss_laser.trz!/videos/green_ss_laser_green_ss_laser19.jpg</property>
+                <property name="[20]" type="string">C:/Users/hanso/AppData/Local/OSP/Cache/osp-opensourcephysics_github_io/resources/CAB/innovative_tpt/green_ss_laser.trz!/videos/green_ss_laser_green_ss_laser20.jpg</property>
+                <property name="[21]" type="string">C:/Users/hanso/AppData/Local/OSP/Cache/osp-opensourcephysics_github_io/resources/CAB/innovative_tpt/green_ss_laser.trz!/videos/green_ss_laser_green_ss_laser21.jpg</property>
+                <property name="[22]" type="string">C:/Users/hanso/AppData/Local/OSP/Cache/osp-opensourcephysics_github_io/resources/CAB/innovative_tpt/green_ss_laser.trz!/videos/green_ss_laser_green_ss_laser22.jpg</property>
+                <property name="[23]" type="string">C:/Users/hanso/AppData/Local/OSP/Cache/osp-opensourcephysics_github_io/resources/CAB/innovative_tpt/green_ss_laser.trz!/videos/green_ss_laser_green_ss_laser23.jpg</property>
+                <property name="[24]" type="string">C:/Users/hanso/AppData/Local/OSP/Cache/osp-opensourcephysics_github_io/resources/CAB/innovative_tpt/green_ss_laser.trz!/videos/green_ss_laser_green_ss_laser24.jpg</property>
+                <property name="[25]" type="string">C:/Users/hanso/AppData/Local/OSP/Cache/osp-opensourcephysics_github_io/resources/CAB/innovative_tpt/green_ss_laser.trz!/videos/green_ss_laser_green_ss_laser25.jpg</property>
+                <property name="[26]" type="string">C:/Users/hanso/AppData/Local/OSP/Cache/osp-opensourcephysics_github_io/resources/CAB/innovative_tpt/green_ss_laser.trz!/videos/green_ss_laser_green_ss_laser26.jpg</property>
+                <property name="[27]" type="string">C:/Users/hanso/AppData/Local/OSP/Cache/osp-opensourcephysics_github_io/resources/CAB/innovative_tpt/green_ss_laser.trz!/videos/green_ss_laser_green_ss_laser27.jpg</property>
+                <property name="[28]" type="string">C:/Users/hanso/AppData/Local/OSP/Cache/osp-opensourcephysics_github_io/resources/CAB/innovative_tpt/green_ss_laser.trz!/videos/green_ss_laser_green_ss_laser28.jpg</property>
+                <property name="[29]" type="string">C:/Users/hanso/AppData/Local/OSP/Cache/osp-opensourcephysics_github_io/resources/CAB/innovative_tpt/green_ss_laser.trz!/videos/green_ss_laser_green_ss_laser29.jpg</property>
+                <property name="[30]" type="string">C:/Users/hanso/AppData/Local/OSP/Cache/osp-opensourcephysics_github_io/resources/CAB/innovative_tpt/green_ss_laser.trz!/videos/green_ss_laser_green_ss_laser30.jpg</property>
+                <property name="[31]" type="string">C:/Users/hanso/AppData/Local/OSP/Cache/osp-opensourcephysics_github_io/resources/CAB/innovative_tpt/green_ss_laser.trz!/videos/green_ss_laser_green_ss_laser31.jpg</property>
+                <property name="[32]" type="string">C:/Users/hanso/AppData/Local/OSP/Cache/osp-opensourcephysics_github_io/resources/CAB/innovative_tpt/green_ss_laser.trz!/videos/green_ss_laser_green_ss_laser32.jpg</property>
+            </property>
+            <property name="path" type="string">C:/Users/hanso/AppData/Local/OSP/Cache/osp-opensourcephysics_github_io/resources/CAB/innovative_tpt/green_ss_laser.trz!/videos/green_ss_laser_green_ss_laser00.jpg</property>
+            <property name="delta_t" type="double">33.0</property>
+        </object>
+        </property>
+        <property name="video_framecount" type="int">33</property>
+        <property name="startframe" type="int">0</property>
+        <property name="stepsize" type="int">1</property>
+        <property name="stepcount" type="int">33</property>
+        <property name="starttime" type="double">0.0</property>
+        <property name="readout" type="string">frame</property>
+        <property name="playallsteps" type="boolean">true</property>
+    </object>
+    </property>
+    <property name="clipcontrol" type="object">
+    <object class="org.opensourcephysics.media.core.StepperClipControl">
+        <property name="rate" type="double">1.0</property>
+        <property name="delta_t" type="double">33.0</property>
+        <property name="frame" type="int">0</property>
+    </object>
+    </property>
+    <property name="coords" type="object">
+    <object class="org.opensourcephysics.media.core.ImageCoordSystem">
+        <property name="fixedorigin" type="boolean">true</property>
+        <property name="fixedangle" type="boolean">true</property>
+        <property name="fixedscale" type="boolean">true</property>
+        <property name="locked" type="boolean">false</property>
+        <property name="framedata" type="array" class="[Lorg.opensourcephysics.media.core.ImageCoordSystem$FrameData;">
+            <property name="[0]" type="object">
+            <object class="org.opensourcephysics.media.core.ImageCoordSystem$FrameData">
+                <property name="xorigin" type="double">-438.98390994283017</property>
+                <property name="yorigin" type="double">283.64773319437205</property>
+                <property name="angle" type="double">-0.0</property>
+                <property name="xscale" type="double">1.392102432969766</property>
+                <property name="yscale" type="double">1.392102432969766</property>
+            </object>
+            </property>
+        </property>
+    </object>
+    </property>
+    <property name="time_unit" type="string">s</property>
+    <property name="length_unit" type="string">m</property>
+    <property name="mass_unit" type="string">kg</property>
+    <property name="radians" type="boolean">false</property>
+    <property name="units_visible" type="boolean">true</property>
+    <property name="tracks" type="collection" class="java.util.ArrayList">
+        <property name="item" type="object">
+        <object class="org.opensourcephysics.cabrillo.tracker.CoordAxes">
+            <property name="name" type="string">axes</property>
+            <property name="color" type="object">
+            <object class="java.awt.Color">
+                <property name="red" type="int">200</property>
+                <property name="green" type="int">0</property>
+                <property name="blue" type="int">200</property>
+                <property name="alpha" type="int">255</property>
+            </object>
+            </property>
+            <property name="footprint" type="string">Footprint.BoldSimpleAxes</property>
+            <property name="visible" type="boolean">false</property>
+            <property name="trail" type="boolean">false</property>
+        </object>
+        </property>
+        <property name="item" type="object">
+        <object class="org.opensourcephysics.cabrillo.tracker.TapeMeasure">
+            <property name="name" type="string">tape measure</property>
+            <property name="color" type="object">
+            <object class="java.awt.Color">
+                <property name="red" type="int">204</property>
+                <property name="green" type="int">0</property>
+                <property name="blue" type="int">0</property>
+                <property name="alpha" type="int">255</property>
+            </object>
+            </property>
+            <property name="footprint" type="string">Footprint.DoubleArrow</property>
+            <property name="visible" type="boolean">false</property>
+            <property name="trail" type="boolean">false</property>
+            <property name="fixedtape" type="boolean">true</property>
+            <property name="fixedlength" type="boolean">true</property>
+            <property name="readonly" type="boolean">false</property>
+            <property name="stickmode" type="boolean">false</property>
+            <property name="framedata" type="array" class="[Lorg.opensourcephysics.cabrillo.tracker.TapeMeasure$FrameData;">
+                <property name="[0]" type="object">
+                <object class="org.opensourcephysics.cabrillo.tracker.TapeMeasure$FrameData">
+                    <property name="x1" type="double">270.0</property>
+                    <property name="y1" type="double">230.0</property>
+                    <property name="x2" type="double">370.0</property>
+                    <property name="y2" type="double">230.0</property>
+                </object>
+                </property>
+            </property>
+            <property name="worldlengths" type="array" class="[Ljava.lang.Double;"/>
+        </object>
+        </property>
+        <property name="item" type="object">
+        <object class="org.opensourcephysics.cabrillo.tracker.LineProfile">
+            <property name="name" type="string">line profile</property>
+            <property name="description" type="string">This is the spectrum of a green solid state laser with HeNe red (633nm) and green (543 nm) laser spots for calibration. 
+
+The laser is striking a vertical target at an angle from above.</property>
+            <property name="color" type="object">
+            <object class="java.awt.Color">
+                <property name="red" type="int">255</property>
+                <property name="green" type="int">153</property>
+                <property name="blue" type="int">51</property>
+                <property name="alpha" type="int">255</property>
+            </object>
+            </property>
+            <property name="footprint" type="string">Footprint.Outline</property>
+            <property name="visible" type="boolean">true</property>
+            <property name="trail" type="boolean">false</property>
+            <property name="data_functions" type="array" class="[Lorg.opensourcephysics.display.DataFunction;">
+                <property name="[0]" type="object">
+                <object class="org.opensourcephysics.display.DataFunction">
+                    <property name="function_name" type="string">wavelength</property>
+                    <property name="function" type="string">x</property>
+                    <property name="points" type="array" class="[[D">
+                        <property name="array" type="string">{{0.0,342.2764723759222},{1.0,342.9948103202548},{2.0,343.7131482645875},{3.0,344.4314862089202},{4.0,345.14982415325284},{5.0,345.8681620975855},{6.0,346.58650004191816},{7.0,347.30483798625085},{8.0,348.0231759305835},{9.0,348.74151387491617},{10.0,349.4598518192488},{11.0,350.1781897635815},{12.0,350.8965277079142},{13.0,351.6148656522468},{14.0,352.3332035965795},{15.0,353.0515415409121},{16.0,353.7698794852448},{17.0,354.48821742957745},{18.0,355.20655537391013},{19.0,355.92489331824277},{20.0,356.64323126257545},{21.0,357.3615692069081},{22.0,358.0799071512408},{23.0,358.7982450955734},{24.0,359.5165830399061},{25.0,360.2349209842388},{26.0,360.9532589285714},{27.0,361.6715968729041},{28.0,362.38993481723674},{29.0,363.1082727615694},{30.0,363.82661070590206},{31.0,364.54494865023474},{32.0,365.2632865945674},{33.0,365.98162453890006},{34.0,366.69996248323275},{35.0,367.4183004275654},{36.0,368.136638371898},{37.0,368.8549763162307},{38.0,369.5733142605634},{39.0,370.291652204896},{40.0,371.0099901492287},{41.0,371.72832809356134},{42.0,372.44666603789403},{43.0,373.16500398222666},{44.0,373.88334192655935},{45.0,374.601679870892},{46.0,375.3200178152247},{47.0,376.03835575955736},{48.0,376.75669370389},{49.0,377.4750316482227},{50.0,378.1933695925553},{51.0,378.911707536888},{52.0,379.63004548122063},{53.0,380.3483834255533},{54.0,381.06672136988595},{55.0,381.78505931421864},{56.0,382.50339725855133},{57.0,383.22173520288396},{58.0,383.9400731472166},{59.0,384.6584110915493},{60.0,385.37674903588197},{61.0,386.0950869802146},{62.0,386.8134249245473},{63.0,387.5317628688799},{64.0,388.2501008132126},{65.0,388.96843875754524},{66.0,389.68677670187793},{67.0,390.40511464621056},{68.0,391.12345259054325},{69.0,391.84179053487594},{70.0,392.5601284792086},{71.0,393.2784664235412},{72.0,393.9968043678739},{73.0,394.7151423122066},{74.0,395.4334802565392},{75.0,396.1518182008719},{76.0,396.87015614520453},{77.0,397.5884940895372},{78.0,398.3068320338699},{79.0,399.02516997820254},{80.0,399.7435079225352},{81.0,400.46184586686786},{82.0,401.18018381120055},{83.0,401.8985217555332},{84.0,402.61685969986587},{85.0,403.3351976441985},{86.0,404.0535355885312},{87.0,404.7718735328638},{88.0,405.4902114771965},{89.0,406.20854942152914},{90.0,406.92688736586183},{91.0,407.6452253101945},{92.0,408.36356325452715},{93.0,409.0819011988598},{94.0,409.80023914319247},{95.0,410.51857708752516},{96.0,411.2369150318578},{97.0,411.9552529761905},{98.0,412.6735909205231},{99.0,413.3919288648558},{100.0,414.1102668091885},{101.0,414.8286047535211},{102.0,415.54694269785375},{103.0,416.26528064218644},{104.0,416.9836185865191},{105.0,417.70195653085176},{106.0,418.42029447518445},{107.0,419.1386324195171},{108.0,419.85697036384977},{109.0,420.5753083081824},{110.0,421.2936462525151},{111.0,422.0119841968477},{112.0,422.7303221411804},{113.0,423.4486600855131},{114.0,424.16699802984573},{115.0,424.88533597417836},{116.0,425.60367391851105},{117.0,426.32201186284374},{118.0,427.04034980717637},{119.0,427.75868775150906},{120.0,428.4770256958417},{121.0,429.1953636401744},{122.0,429.91370158450707},{123.0,430.6320395288397},{124.0,431.35037747317233},{125.0,432.068715417505},{126.0,432.7870533618377},{127.0,433.50539130617034},{128.0,434.223729250503},{129.0,434.94206719483566},{130.0,435.66040513916835},{131.0,436.378743083501},{132.0,437.09708102783367},{133.0,437.8154189721663},{134.0,438.533756916499},{135.0,439.2520948608317},{136.0,439.9704328051643},{137.0,440.68877074949694},{138.0,441.4071086938296},{139.0,442.1254466381623},{140.0,442.84378458249495},{141.0,443.56212252682764},{142.0,444.28046047116027},{143.0,444.99879841549296},{144.0,445.71713635982564},{145.0,446.4354743041583},{146.0,447.1538122484909},{147.0,447.8721501928236},{148.0,448.5904881371563},{149.0,449.3088260814889},{150.0,450.02716402582155},{151.0,450.74550197015424},{152.0,451.4638399144869},{153.0,452.1821778588196},{154.0,452.90051580315225},{155.0,453.6188537474849},{156.0,454.33719169181757},{157.0,455.05552963615025},{158.0,455.7738675804829},{159.0,456.4922055248155},{160.0,457.2105434691482},{161.0,457.9288814134809},{162.0,458.6472193578135},{163.0,459.3655573021462},{164.0,460.08389524647885},{165.0,460.80223319081153},{166.0,461.5205711351442},{167.0,462.23890907947685},{168.0,462.9572470238095},{169.0,463.6755849681422},{170.0,464.39392291247486},{171.0,465.1122608568075},{172.0,465.8305988011401},{173.0,466.5489367454728},{174.0,467.2672746898055},{175.0,467.9856126341382},{176.0,468.7039505784708},{177.0,469.42228852280346},{178.0,470.14062646713614},{179.0,470.85896441146883},{180.0,471.57730235580146},{181.0,472.2956403001341},{182.0,473.0139782444668},{183.0,473.7323161887995},{184.0,474.4506541331321},{185.0,475.16899207746474},{186.0,475.8873300217974},{187.0,476.6056679661301},{188.0,477.3240059104628},{189.0,478.04234385479543},{190.0,478.76068179912806},{191.0,479.47901974346075},{192.0,480.19735768779344},{193.0,480.9156956321261},{194.0,481.6340335764587},{195.0,482.3523715207914},{196.0,483.0707094651241},{197.0,483.78904740945677},{198.0,484.5073853537894},{199.0,485.22572329812203},{200.0,485.9440612424547},{201.0,486.6623991867874},{202.0,487.38073713112004},{203.0,488.0990750754527},{204.0,488.81741301978536},{205.0,489.53575096411805},{206.0,490.2540889084507},{207.0,490.9724268527833},{208.0,491.690764797116},{209.0,492.4091027414487},{210.0,493.1274406857814},{211.0,493.845778630114},{212.0,494.56411657444664},{213.0,495.28245451877933},{214.0,496.000792463112},{215.0,496.71913040744465},{216.0,497.4374683517773},{217.0,498.15580629611},{218.0,498.87414424044266},{219.0,499.59248218477535},{220.0,500.310820129108},{221.0,501.0291580734406},{222.0,501.7474960177733},{223.0,502.465833962106},{224.0,503.1841719064386},{225.0,503.90250985077125},{226.0,504.62084779510394},{227.0,505.33918573943663},{228.0,506.05752368376926},{229.0,506.7758616281019},{230.0,507.4941995724346},{231.0,508.21253751676727},{232.0,508.93087546109996},{233.0,509.6492134054326},{234.0,510.3675513497652},{235.0,511.0858892940979},{236.0,511.8042272384306},{237.0,512.5225651827632},{238.0,513.2409031270959},{239.0,513.9592410714286},{240.0,514.6775790157612},{241.0,515.3959169600939},{242.0,516.1142549044266},{243.0,516.8325928487592},{244.0,517.5509307930919},{245.0,518.2692687374246},{246.0,518.9876066817571},{247.0,519.7059446260898},{248.0,520.4242825704225},{249.0,521.1426205147552},{250.0,521.8609584590879},{251.0,522.5792964034205},{252.0,523.2976343477532},{253.0,524.0159722920858},{254.0,524.7343102364185},{255.0,525.4526481807511},{256.0,526.1709861250838},{257.0,526.8893240694165},{258.0,527.6076620137492},{259.0,528.3259999580819},{260.0,529.0443379024144},{261.0,529.7626758467471},{262.0,530.4810137910798},{263.0,531.1993517354124},{264.0,531.9176896797451},{265.0,532.6360276240778},{266.0,533.3543655684105},{267.0,534.0727035127431},{268.0,534.7910414570758},{269.0,535.5093794014084},{270.0,536.2277173457411},{271.0,536.9460552900738},{272.0,537.6643932344064},{273.0,538.382731178739},{274.0,539.1010691230717},{275.0,539.8194070674044},{276.0,540.5377450117371},{277.0,541.2560829560698},{278.0,541.9744209004024},{279.0,542.6927588447351},{280.0,543.4110967890678},{281.0,544.1294347334003},{282.0,544.847772677733},{283.0,545.5661106220657},{284.0,546.2844485663984},{285.0,547.0027865107311},{286.0,547.7211244550638},{287.0,548.4394623993963},{288.0,549.157800343729},{289.0,549.8761382880617},{290.0,550.5944762323943},{291.0,551.312814176727},{292.0,552.0311521210597},{293.0,552.7494900653924},{294.0,553.467828009725},{295.0,554.1861659540576},{296.0,554.9045038983903},{297.0,555.622841842723},{298.0,556.3411797870557},{299.0,557.0595177313883},{300.0,557.777855675721},{301.0,558.4961936200536},{302.0,559.2145315643863},{303.0,559.932869508719},{304.0,560.6512074530516},{305.0,561.3695453973843},{306.0,562.087883341717},{307.0,562.8062212860495},{308.0,563.5245592303822},{309.0,564.2428971747149},{310.0,564.9612351190476},{311.0,565.6795730633803},{312.0,566.397911007713},{313.0,567.1162489520456},{314.0,567.8345868963783},{315.0,568.552924840711},{316.0,569.2712627850435},{317.0,569.9896007293762},{318.0,570.7079386737089},{319.0,571.4262766180416},{320.0,572.1446145623743},{321.0,572.862952506707},{322.0,573.5812904510395},{323.0,574.2996283953722},{324.0,575.0179663397048},{325.0,575.7363042840375},{326.0,576.4546422283702},{327.0,577.1729801727029},{328.0,577.8913181170356},{329.0,578.6096560613682},{330.0,579.3279940057009},{331.0,580.0463319500335},{332.0,580.7646698943662},{333.0,581.4830078386988},{334.0,582.2013457830315},{335.0,582.9196837273641},{336.0,583.6380216716968},{337.0,584.3563596160295},{338.0,585.0746975603622},{339.0,585.7930355046949},{340.0,586.5113734490275},{341.0,587.2297113933602},{342.0,587.9480493376927},{343.0,588.6663872820254},{344.0,589.3847252263581},{345.0,590.1030631706908},{346.0,590.8214011150235},{347.0,591.5397390593562},{348.0,592.2580770036889},{349.0,592.9764149480214},{350.0,593.6947528923541},{351.0,594.4130908366867},{352.0,595.1314287810194},{353.0,595.8497667253521},{354.0,596.5681046696848},{355.0,597.2864426140175},{356.0,598.0047805583501},{357.0,598.7231185026827},{358.0,599.4414564470154},{359.0,600.1597943913481},{360.0,600.8781323356807},{361.0,601.5964702800134},{362.0,602.314808224346},{363.0,603.0331461686787},{364.0,603.7514841130114},{365.0,604.4698220573441},{366.0,605.1881600016767},{367.0,605.9064979460094},{368.0,606.624835890342},{369.0,607.3431738346746},{370.0,608.0615117790073},{371.0,608.77984972334},{372.0,609.4981876676727},{373.0,610.2165256120054},{374.0,610.9348635563381},{375.0,611.6532015006707},{376.0,612.3715394450034},{377.0,613.0898773893359},{378.0,613.8082153336686},{379.0,614.5265532780013},{380.0,615.244891222334},{381.0,615.9632291666667},{382.0,616.6815671109994},{383.0,617.399905055332},{384.0,618.1182429996646},{385.0,618.8365809439973},{386.0,619.5549188883299},{387.0,620.2732568326626},{388.0,620.9915947769953},{389.0,621.709932721328},{390.0,622.4282706656606},{391.0,623.1466086099933},{392.0,623.864946554326},{393.0,624.5832844986586},{394.0,625.3016224429913},{395.0,626.0199603873239},{396.0,626.7382983316566},{397.0,627.4566362759892},{398.0,628.1749742203219},{399.0,628.8933121646546},{400.0,629.6116501089873},{401.0,630.3299880533199},{402.0,631.0483259976526},{403.0,631.7666639419853},{404.0,632.4850018863178},{405.0,633.2033398306505},{406.0,633.9216777749832},{407.0,634.6400157193159},{408.0,635.3583536636486},{409.0,636.0766916079813},{410.0,636.7950295523138},{411.0,637.5133674966465},{412.0,638.2317054409791},{413.0,638.9500433853118},{414.0,639.6683813296445},{415.0,640.3867192739772},{416.0,641.1050572183099},{417.0,641.8233951626426},{418.0,642.5417331069752},{419.0,643.2600710513078},{420.0,643.9784089956405},{421.0,644.6967469399731},{422.0,645.4150848843058},{423.0,646.1334228286385},{424.0,646.8517607729711},{425.0,647.5700987173038},{426.0,648.2884366616365},{427.0,649.0067746059692},{428.0,649.7251125503018},{429.0,650.4434504946345},{430.0,651.161788438967},{431.0,651.8801263832997},{432.0,652.5984643276324},{433.0,653.3168022719651},{434.0,654.0351402162978},{435.0,654.7534781606305},{436.0,655.4718161049632},{437.0,656.1901540492958},{438.0,656.9084919936284},{439.0,657.626829937961},{440.0,658.3451678822937},{441.0,659.0635058266264},{442.0,659.7818437709591},{443.0,660.5001817152918},{444.0,661.2185196596245},{445.0,661.936857603957},{446.0,662.6551955482897},{447.0,663.3735334926224},{448.0,664.091871436955},{449.0,664.8102093812877},{450.0,665.5285473256204},{451.0,666.246885269953},{452.0,666.9652232142857},{453.0,667.6835611586184},{454.0,668.401899102951},{455.0,669.1202370472837},{456.0,669.8385749916163},{457.0,670.556912935949},{458.0,671.2752508802816},{459.0,671.9935888246143},{460.0,672.711926768947},{461.0,673.4302647132797},{462.0,674.1486026576124},{463.0,674.866940601945},{464.0,675.5852785462777},{465.0,676.3036164906102},{466.0,677.0219544349429},{467.0,677.7402923792756},{468.0,678.4586303236083},{469.0,679.176968267941},{470.0,679.8953062122737},{471.0,680.6136441566064},{472.0,681.331982100939},{473.0,682.0503200452716},{474.0,682.7686579896042},{475.0,683.4869959339369},{476.0,684.2053338782696},{477.0,684.9236718226023},{478.0,685.642009766935},{479.0,686.3603477112677},{480.0,687.0786856556002},{481.0,687.7970235999329},{482.0,688.5153615442656},{483.0,689.2336994885982},{484.0,689.9520374329309},{485.0,690.6703753772636},{486.0,691.3887133215962},{487.0,692.1070512659289},{488.0,692.8253892102616},{489.0,693.5437271545942},{490.0,694.2620650989269},{491.0,694.9804030432595},{492.0,695.6987409875921},{493.0,696.4170789319248},{494.0,697.1354168762575},{495.0,697.8537548205902},{496.0,698.5720927649229},{497.0,699.2904307092556},{498.0,700.0087686535882},{499.0,700.7271065979209},{500.0,701.4454445422534},{501.0,702.1637824865861},{502.0,702.8821204309188},{503.0,703.6004583752515},{504.0,704.3187963195842},{505.0,705.0371342639169},{506.0,705.7554722082496},{507.0,706.4738101525821},{508.0,707.1921480969148},{509.0,707.9104860412474},{510.0,708.6288239855801},{511.0,709.3471619299128},{512.0,710.0654998742455},{513.0,710.7838378185781},{514.0,711.5021757629108},{515.0,712.2205137072435},{516.0,712.9388516515761},{517.0,713.6571895959088},{518.0,714.3755275402414},{519.0,715.093865484574},{520.0,715.8122034289067},{521.0,716.5305413732394},{522.0,717.2488793175721},{523.0,717.9672172619048},{524.0,718.6855552062374},{525.0,719.4038931505701},{526.0,720.1222310949028},{527.0,720.8405690392353},{528.0,721.558906983568},{529.0,722.2772449279007},{530.0,722.9955828722334},{531.0,723.7139208165661},{532.0,724.4322587608988},{533.0,725.1505967052314},{534.0,725.868934649564},{535.0,726.5872725938966},{536.0,727.3056105382293},{537.0,728.023948482562},{538.0,728.7422864268947},{539.0,729.4606243712274},{540.0,730.17896231556},{541.0,730.8973002598927},{542.0,731.6156382042253},{543.0,732.333976148558},{544.0,733.0523140928906},{545.0,733.7706520372233},{546.0,734.488989981556},{547.0,735.2073279258886},{548.0,735.9256658702213},{549.0,736.644003814554},{550.0,737.3623417588867},{551.0,738.0806797032193},{552.0,738.799017647552},{553.0,739.5173555918846},{554.0,740.2356935362172},{555.0,740.9540314805499},{556.0,741.6723694248826},{557.0,742.3907073692153},{558.0,743.109045313548},{559.0,743.8273832578807},{560.0,744.5457212022133},{561.0,745.264059146546}}</property>
+                    </property>
+                    <property name="index" type="int">562</property>
+                    <property name="marker_shape" type="int">2</property>
+                    <property name="marker_size" type="int">2</property>
+                    <property name="sorted" type="boolean">false</property>
+                    <property name="connected" type="boolean">false</property>
+                    <property name="x_name" type="string">n</property>
+                    <property name="y_name" type="string">wavelength</property>
+                    <property name="line_color" type="object">
+                    <object class="java.awt.Color">
+                        <property name="red" type="int">0</property>
+                        <property name="green" type="int">0</property>
+                        <property name="blue" type="int">0</property>
+                        <property name="alpha" type="int">255</property>
+                    </object>
+                    </property>
+                    <property name="fill_color" type="object">
+                    <object class="java.awt.Color">
+                        <property name="red" type="int">0</property>
+                        <property name="green" type="int">0</property>
+                        <property name="blue" type="int">0</property>
+                        <property name="alpha" type="int">255</property>
+                    </object>
+                    </property>
+                    <property name="edge_color" type="object">
+                    <object class="java.awt.Color">
+                        <property name="red" type="int">0</property>
+                        <property name="green" type="int">0</property>
+                        <property name="blue" type="int">0</property>
+                        <property name="alpha" type="int">255</property>
+                    </object>
+                    </property>
+                    <property name="errorbar_color" type="object">
+                    <object class="java.awt.Color">
+                        <property name="red" type="int">0</property>
+                        <property name="green" type="int">0</property>
+                        <property name="blue" type="int">0</property>
+                        <property name="alpha" type="int">255</property>
+                    </object>
+                    </property>
+                    <property name="datasetID" type="int">22563196</property>
+                    <property name="visible" type="array" class="[Z">
+                        <property name="array" type="string">{false,true}</property>
+                    </property>
+                </object>
+                </property>
+            </property>
+            <property name="spread" type="int">2</property>
+            <property name="fixed" type="boolean">true</property>
+            <property name="framedata" type="array" class="[Lorg.opensourcephysics.cabrillo.tracker.LineProfile$FrameData;">
+                <property name="[0]" type="object">
+                <object class="org.opensourcephysics.cabrillo.tracker.LineProfile$FrameData">
+                    <property name="x1" type="double">37.631880733945025</property>
+                    <property name="y1" type="double">282.0</property>
+                    <property name="x2" type="double">599.7918689320388</property>
+                    <property name="y2" type="double">282.0</property>
+                </object>
+                </property>
+            </property>
+            <property name="horizontal" type="boolean">true</property>
+        </object>
+        </property>
+        <property name="item" type="object">
+        <object class="org.opensourcephysics.cabrillo.tracker.Calibration">
+            <property name="name" type="string">calibration</property>
+            <property name="color" type="object">
+            <object class="java.awt.Color">
+                <property name="red" type="int">255</property>
+                <property name="green" type="int">0</property>
+                <property name="blue" type="int">0</property>
+                <property name="alpha" type="int">255</property>
+            </object>
+            </property>
+            <property name="footprint" type="string">Footprint.BoldCrosshair</property>
+            <property name="visible" type="boolean">true</property>
+            <property name="trail" type="boolean">false</property>
+            <property name="fixed_coordinates" type="boolean">true</property>
+            <property name="worldX0" type="double">543.5</property>
+            <property name="worldY0" type="double">0.0</property>
+            <property name="worldX1" type="double">632.8</property>
+            <property name="worldY1" type="double">0.0</property>
+            <property name="world_coordinates" type="array" class="[[D">
+                <property name="array" type="string">{{543.5,0.0,632.8,0.0},null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null}</property>
+            </property>
+            <property name="axes" type="string">XY</property>
+        </object>
+        </property>
+    </property>
+    <property name="selectedtrack" type="string">line profile</property>
+    <property name="dividers" type="array" class="[D">
+        <property name="array" type="string">{0.7115384615384616,0.6259398496240601,1.0,0.0}</property>
+    </property>
+    <property name="views" type="array" class="[[Lorg.opensourcephysics.cabrillo.tracker.TView;">
+        <property name="[0]" type="array" class="[Lorg.opensourcephysics.cabrillo.tracker.TView;">
+            <property name="[0]" type="object">
+            <object class="org.opensourcephysics.cabrillo.tracker.PlotTView">
+                <property name="selected_track" type="string">line profile</property>
+                <property name="track_views" type="collection" class="java.util.ArrayList">
+                    <property name="item" type="object">
+                    <object class="org.opensourcephysics.cabrillo.tracker.PlotTrackView">
+                        <property name="track" type="string">line profile</property>
+                        <property name="plot0" type="object">
+                        <object class="org.opensourcephysics.cabrillo.tracker.TrackPlottingPanel">
+                            <property name="x_var" type="string">wavelength</property>
+                            <property name="y_var" type="string">brightness</property>
+                            <property name="scaled" type="boolean">true</property>
+                            <property name="ymin" type="double">0.0</property>
+                            <property name="ymax" type="double">255.0</property>
+                            <property name="lines" type="boolean">true</property>
+                            <property name="points" type="boolean">false</property>
+                        </object>
+                        </property>
+                        <property name="linked" type="boolean">false</property>
+                    </object>
+                    </property>
+                </property>
+            </object>
+            </property>
+        </property>
+        <property name="[1]" type="array" class="[Lorg.opensourcephysics.cabrillo.tracker.TView;">
+            <property name="[1]" type="object">
+            <object class="org.opensourcephysics.cabrillo.tracker.TableTView">
+                <property name="selected_track" type="string">line profile</property>
+                <property name="track_columns" type="array" class="[[Ljava.lang.String;">
+                    <property name="[0]" type="array" class="[Ljava.lang.String;">
+                        <property name="[0]" type="string">line profile</property>
+                        <property name="[1]" type="string">n</property>
+                    </property>
+                </property>
+                <property name="column_formats" type="array" class="[[[Ljava.lang.String;">
+                    <property name="[0]" type="array" class="[[Ljava.lang.String;">
+                        <property name="[0]" type="array" class="[Ljava.lang.String;">
+                            <property name="[0]" type="string">line profile</property>
+                            <property name="[1]" type="string">B</property>
+                            <property name="[2]" type="string">0.0</property>
+                        </property>
+                        <property name="[1]" type="array" class="[Ljava.lang.String;">
+                            <property name="[0]" type="string">line profile</property>
+                            <property name="[1]" type="string">R</property>
+                            <property name="[2]" type="string">0.0</property>
+                        </property>
+                        <property name="[2]" type="array" class="[Ljava.lang.String;">
+                            <property name="[0]" type="string">line profile</property>
+                            <property name="[1]" type="string">pixels</property>
+                            <property name="[2]" type="string">0</property>
+                        </property>
+                        <property name="[3]" type="array" class="[Ljava.lang.String;">
+                            <property name="[0]" type="string">line profile</property>
+                            <property name="[1]" type="string">G</property>
+                            <property name="[2]" type="string">0.0</property>
+                        </property>
+                        <property name="[4]" type="array" class="[Ljava.lang.String;">
+                            <property name="[0]" type="string">line profile</property>
+                            <property name="[1]" type="string">n</property>
+                            <property name="[2]" type="string">0</property>
+                        </property>
+                        <property name="[5]" type="array" class="[Ljava.lang.String;">
+                            <property name="[0]" type="string">line profile</property>
+                            <property name="[1]" type="string">luma</property>
+                            <property name="[2]" type="string">0.0</property>
+                        </property>
+                    </property>
+                </property>
+            </object>
+            </property>
+        </property>
+    </property>
+    <property name="selected_view_types" type="array" class="[I">
+        <property name="array" type="string">{0,1,2,2}</property>
+    </property>
+    <property name="selected_track_views" type="string">line profile,null;null,line profile;null,null;null,null</property>
+    <property name="toolbar" type="object">
+    <object class="org.opensourcephysics.cabrillo.tracker.TToolBar">
+        <property name="trace" type="boolean">false</property>
+        <property name="position" type="boolean">true</property>
+        <property name="velocity" type="boolean">false</property>
+        <property name="acceleration" type="boolean">false</property>
+        <property name="labels" type="boolean">true</property>
+        <property name="multiply_by_mass" type="boolean">false</property>
+        <property name="trail_length" type="int">15</property>
+        <property name="stretch" type="int">1</property>
+        <property name="stretch_acceleration" type="int">1</property>
+    </object>
+    </property>
+</object>
