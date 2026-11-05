@@ -107,6 +107,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 	static final String POPUPMENU_TFRAME_RIGHT = "TFrame.right";
 	static final String POPUPMENU_MAINTVIEW_POPUP = "MainTView.popup";
 	static final String POPUPMENU_TRACKCONTROL_TRACKS = "TrackControl.tracks";
+	static final String POPUPMENU_MOBILE_TRACKS = "Mobile.tracks";
 
 	/*
 	 * tainting:
@@ -1358,7 +1359,9 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 						frame.setJMenuBar(frame.currentMenuBar);
 					}
 					panel().getPlayer().refresh();
-					frame.getTrackBar(panelID, true).refresh();
+					TTrackBar trackbar = frame.getTrackBar(panelID, true);
+					trackbar.refresh();
+					trackbar.refreshNumberEditors();
 					TViewChooser[] viewChoosers = frame.getViewChoosers(panel());
 					for (int i = 0; i < viewChoosers.length; i++) {
 						viewChoosers[i].refreshMaximizeButton();
@@ -2115,8 +2118,8 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 				checkAddMenuSep(editMenu);
 				editMenu.add(edit_matSizeMenu);
 			}
-//			checkAddMenuSep(editMenu);
-//			editMenu.add(edit_fontSizeMenu);
+			checkAddMenuSep(editMenu);
+			editMenu.add(edit_fontSizeMenu);
 //			refreshMatSizes(trackerPanel.getVideo());
 			checkAddMenuSep(editMenu);
 			editMenu.add(edit_languageMenu);
@@ -2710,16 +2713,17 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 				}
 			}
 			
-			checkAddMenuSep(menu);
 			ArrayList<TTrack> userTracks = panel().getUserTracks();
 			userTracks.removeAll(panel().getDrawablesTemp(FilteredPointMass.class));
-			boolean hasTracks = !userTracks.isEmpty();
+			boolean hasTracks = !userTracks.isEmpty();			
 			if (hasTracks && p.isEnabled("new.clone")) { //$NON-NLS-1$
+				checkAddMenuSep(menu);
 				refreshTrackCloneMenu(userTracks);
 				menu.add(track_cloneMenu);
 			}
 
 			if (!userTracksOnly) {
+				checkAddMenuSep(menu);
 				if (p.isEnabled("new.tapeMeasure") || //$NON-NLS-1$
 						p.isEnabled("new.protractor") || //$NON-NLS-1$
 						p.isEnabled("new.circleFitter")) { //$NON-NLS-1$
@@ -3175,7 +3179,11 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 				menubar.refreshTracksPopup(menu);
 				return;
 			case POPUPMENU_TRACKCONTROL_TRACKS:
-				menubar.refreshTrackControlPopup(menu);
+				menubar.refreshTrackControlPopup(menu, false);
+				menubar.setMenuTainted(MENU_TRACK, true);
+				return;
+			case POPUPMENU_MOBILE_TRACKS:
+				menubar.refreshTrackControlPopup(menu, true);
 				menubar.setMenuTainted(MENU_TRACK, true);
 				return;
 			case POPUPMENU_MAINTVIEW_POPUP:
@@ -3196,9 +3204,8 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 	 *
 	 * @return the popup
 	 */
-	protected JPopupMenu refreshTrackControlPopup(JPopupMenu popup) {
+	protected JPopupMenu refreshTrackControlPopup(JPopupMenu popup, boolean noTools) {
 		JMenu menu = new JMenu();
-		boolean noTools = false; // include measuring and calibration tools
 		refreshTracksCreateMenu(menu, enabledNewTrackCount, noTools);
 		FontSizer.setMenuFonts(menu);
 		int n = menu.getPopupMenu().getComponentCount();

@@ -103,10 +103,13 @@ public class PencilDrawing implements Drawable, Measurable {
   	case STYLE_ARROW:
   		if (arrowhead == null)
   			drawArrow();
-	    Shape s = panel.transformShape(arrowhead[0]);
-      g2.draw(s);
-	    s = panel.transformShape(arrowhead[1]);
-      g2.draw(s);
+  		Shape s = null;
+  		if (arrowhead != null) {
+		    s = panel.transformShape(arrowhead[0]);
+	      g2.draw(s);
+		    s = panel.transformShape(arrowhead[1]);
+	      g2.draw(s);
+  		}
       // drop thru to draw shaft
   	case STYLE_TRAIL:
       s = panel.transformPath(generalPath);

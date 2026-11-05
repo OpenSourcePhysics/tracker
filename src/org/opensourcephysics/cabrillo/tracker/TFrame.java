@@ -1486,6 +1486,24 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 	}
 
 	/**
+	 * Determines whether the main view is visible for the specified trackerPanel.
+	 *
+	 * @param panel the trackerPanel
+	 * @return true if it is visible
+	 */
+	public boolean isMainViewVisible(TrackerPanel panel) {
+		JSplitPane[] panes = getSplitPanes(panel);
+		double[] locs = new double[panes.length];
+		for (int i = 0; i < panes.length; i++) {
+			if (i==SPLIT_PLOT_TABLE || i==SPLIT_WORLD_PAGE)
+				continue;
+			int max = panes[i].getMaximumDividerLocation();
+			locs[i] = 1.0 * panes[i].getDividerLocation() / max;
+		}
+		return locs[SPLIT_MAIN_BOTTOM] > 0.2 && locs[SPLIT_MAIN_RIGHT] > 0.3;
+	}
+
+	/**
 	 * Determines whether a view pane is visible for the specified trackerPanel tab.
 	 *
 	 * @param position the view position index, a number from 0 to 3
@@ -1955,13 +1973,11 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 				choosers[viewIndex].getSelectedView().refresh();
 			}
 		}
-
-
-//		int tab = getTab(trackerPanel);
-//		if (tab == -1) return;
-//		TTabPanel tabPanel = (TTabPanel) tabbedPane.getComponentAt(tab);
-//		tabPanel.setToolbarVisible(false);	
-//		tabPanel.revalidate();
+		
+		// refresh trackbar number editors
+		TTrackBar trackbar = this.getTrackBar(trackerPanel.getID(), false);
+		if (trackbar != null)
+			trackbar.refreshNumberEditors();
 	}
 	
 	void maximizeNextView(TrackerPanel panel) {
@@ -2035,10 +2051,10 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 		if (tbar != null)
 			tbar.rebuild();
 
-//		int tab = getTab(trackerPanel);
-//		if (tab == -1) return;
-//		TTabPanel tabPanel = (TTabPanel) tabbedPane.getComponentAt(tab);
-//		tabPanel.setToolbarVisible(true);	
+		// refresh trackbar number editors
+		TTrackBar trackbar = this.getTrackBar(trackerPanel.getID(), false);
+		if (trackbar != null)
+			trackbar.refreshNumberEditors();
 	}
 
 	/**
@@ -2645,8 +2661,10 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 			}
 			// refresh trackbar
 			TTrackBar tbar = getTrackBar(panelID, true);
-			if (tbar != null)
+			if (tbar != null) {
 				tbar.refresh();
+				tbar.refreshNumberEditors();
+			}
 			// refresh and replace menu bar
 			TMenuBar menubar = getMenuBar(panelID, true);
 			if (menubar != null)
@@ -2713,6 +2731,9 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 			if (vid != null) {
 				vid.getFilterStack().setInspectorsVisible(false);
 			}
+			TTrackBar trackbar = getTrackBar(panelID, false);
+			if (trackbar != null)
+				trackbar.refreshNumberEditors();
 		}
 		return oldPanel;
 	}
