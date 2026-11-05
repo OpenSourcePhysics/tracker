@@ -2273,13 +2273,13 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 				viewPopup.add(frame.currentMenuBar.getMenuItem("view_rightPaneItem"));
 				viewPopup.add(frame.currentMenuBar.getMenuItem("view_bottomPaneItem"));
 			}
+			viewPopup.addSeparator();
+			viewPopup.add(frame.currentMenuBar.getMenuItem("view_mobileLayoutItem"));
+			viewPopup.addSeparator();
 		}
-		viewPopup.addSeparator();
-		viewPopup.add(frame.currentMenuBar.getMenuItem("view_mobileLayoutItem"));
-
+		
 		if (panel().isEnabled("data.builder") //$NON-NLS-1$
 				|| panel().isEnabled("data.tool")) { //$NON-NLS-1$
-			if (!small) viewPopup.addSeparator();
 			if (panel().isEnabled("data.builder")) //$NON-NLS-1$
 				viewPopup.add(frame.currentMenuBar.getMenuItem("view_dataBuilderItem"));
 			if (panel().isEnabled("data.tool")) //$NON-NLS-1$					
