@@ -95,7 +95,7 @@ public class TButton extends JButton {
 				// Better would be to create a third Runnable
 				AIPatch.keepPopupOpenUntilSelection(this, this.popup);
 			} else {
-				//System.err.println(SwingUtilities.isLeftMouseButton(e) + " " + e.isPopupTrigger() + " " + longPressTimer.isRunning() + " " + e);
+				System.err.println("TStickyB " + e.getButton() + " " + SwingUtilities.isLeftMouseButton(e) + " " + e.isPopupTrigger() + " " + longPressTimer.isRunning() + " " + e);
 				switch (e.getID()) {
 				case MouseEvent.MOUSE_PRESSED:
 					if (SwingUtilities.isLeftMouseButton(e)) {
@@ -106,6 +106,7 @@ public class TButton extends JButton {
 					if (e.isPopupTrigger()) {
 						if (longPressTimer.isRunning())
 							longPressTimer.stop();
+						hidePopup = false;
 						showPopup(null);
 					} else if (SwingUtilities.isLeftMouseButton(e) && longPressTimer.isRunning()) {
 						// timer is still running so this is a short click

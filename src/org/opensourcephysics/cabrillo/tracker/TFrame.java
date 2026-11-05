@@ -491,6 +491,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 		} else {
 			setBounds(rect);
 			validate();
+			toFront(); // BH added - not automatic in JavaScript
 			repaint();
 		}
 		return rect;
