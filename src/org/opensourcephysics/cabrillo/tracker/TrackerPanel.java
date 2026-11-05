@@ -276,6 +276,11 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	private ArrayList<TTrack> userTracks, exportableTracks;
 	private Map<String, AbstractAction> actions;
 	protected String title;
+	/**
+	 * Track resizing so that we can 
+	 * do an eraseAll() prior to the included repaint();
+	 */
+	private boolean resized;
 
 	/**
 	 * Constructs a blank TrackerPanel with a player.
@@ -2328,7 +2333,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			return AIPatch.haveAnyVisibleMenusInAnyApplication();
 		return false;
 	}
-	
+
 	/**
 	 * Gets the units dialog.
 	 * 
@@ -3955,7 +3960,9 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		@Override
 		public void mouseClicked(MouseEvent e) {
 			super.mouseClicked(e);
-			if (!OSPRuntime.isPopupTrigger(e)) {
+			// SwingJS may synthesize a click from the release of a long press.
+			// Browser menus are dismissed by the next press, not that release.
+			if (!OSPRuntime.isJS && !OSPRuntime.isPopupTrigger(e)) {
 				hidePopup();
 			}
 		}
@@ -4013,7 +4020,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		}
 
 	}
-
+	
 	/**
 	 * Returns an XML.ObjectLoader to save and load object data.
 	 *
@@ -4825,6 +4832,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			return popup;
 		} finally {
 			displayedPopup = popup;
+			AIPatch.installContextPopupGuard(TrackerPanel.this, popup);
 			FontSizer.setFonts(popup, FontSizer.getLevel());
 		}
 	}
@@ -4917,11 +4925,20 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		return true;
 	}
 
-	private static int test = 0;
+	@Override
+	public void setSize(Dimension d) {
+		resized = true;
+		super.setSize(d);
+	}
+
 	@Override
 	public void repaint() {
 		if (!isPaintable())
 			return;
+		if (resized) {
+			resized = false;
+			eraseAll();
+		}
 		super.repaint();
 	}
 

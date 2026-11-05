@@ -1426,40 +1426,66 @@ public class Tracker {
 				};
 			}
 
-			// about Java
-			aboutJavaAction = new AbstractAction(TrackerRes.getString("Tracker.Action.AboutJava")) { //$NON-NLS-1$
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					Diagnostics.aboutJava();
-				}
-			};
+		}
+		createDiagnosticsActions();
 
-			// Keep both engine diagnostics visible; enable only working engines.
-			aboutCVAction = new AbstractAction(TrackerRes.getString("Tracker.Action.AboutCV")) { //$NON-NLS-1$
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					MovieFactory.showAbout(MovieFactory.ENGINE_CV, "Tracker"); //$NON-NLS-1$
-				}
-			};
-			aboutCVAction.setEnabled(MovieFactory.isVideoEngineAvailable(MovieFactory.ENGINE_CV));
+	}
 
-			aboutXuggleAction = new AbstractAction(TrackerRes.getString("Tracker.Action.AboutXuggle")) { //$NON-NLS-1$
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					MovieFactory.showAbout(MovieFactory.ENGINE_XUGGLE, "Tracker"); //$NON-NLS-1$
-				}
-			};
-			aboutXuggleAction.setEnabled(MovieFactory.isVideoEngineAvailable(MovieFactory.ENGINE_XUGGLE));
 
-			// about threads
-			aboutThreadsAction = new AbstractAction(TrackerRes.getString("Tracker.Action.AboutThreads")) { //$NON-NLS-1$
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					DiagnosticsForThreads.aboutThreads();
-				}
-			};
+	/** Creates diagnostics in both Java and SwingJS builds. */
+	private static void createDiagnosticsActions() {
+		aboutJavaAction = new RuntimeDiagnosticsAction(TrackerRes.getString(OSPRuntime.isJS
+				? "Tracker.Action.AboutBrowser" : "Tracker.Action.AboutJava"), "runtime"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+		aboutCVAction = new RuntimeDiagnosticsAction(TrackerRes.getString("Tracker.Action.AboutCV"), MovieFactory.ENGINE_CV); //$NON-NLS-1$
+		aboutXuggleAction = new RuntimeDiagnosticsAction(TrackerRes.getString("Tracker.Action.AboutXuggle"), MovieFactory.ENGINE_XUGGLE); //$NON-NLS-1$
+		aboutThreadsAction = new RuntimeDiagnosticsAction(TrackerRes.getString("Tracker.Action.AboutThreads"), "threads"); //$NON-NLS-1$ //$NON-NLS-2$
+		aboutThreadsAction.setEnabled(!OSPRuntime.isJS);
+		refreshVideoEngineActions();
+	}
+
+	/** The enabled engine diagnostic identifies the engine actually in use. */
+	static void refreshVideoEngineActions() {
+		String engine = MovieFactory.getMovieEngineName(false);
+		if (aboutCVAction != null)
+			aboutCVAction.setEnabled(!OSPRuntime.isJS && MovieFactory.ENGINE_CV.equals(engine));
+		if (aboutXuggleAction != null)
+			aboutXuggleAction.setEnabled(!OSPRuntime.isJS && MovieFactory.ENGINE_XUGGLE.equals(engine));
+	}
+
+	private static void showAboutOnlineRuntime() {
+		String swingJSVersion = /** @j2sNative J2S._version || */ "unknown"; //$NON-NLS-1$
+		String message = "Tracker Online\nVideo engine: JavaScript / HTML5\nSwingJS: " + swingJSVersion //$NON-NLS-1$
+				+ "\nBrowser: " + OSPRuntime.getUserAgent().replace(") ", ")\n"); //$NON-NLS-1$
+		JOptionPane.showMessageDialog(Diagnostics.getDialogOwner(), message,
+				TrackerRes.getString("Tracker.Action.AboutBrowser"), JOptionPane.INFORMATION_MESSAGE); //$NON-NLS-1$
+	}
+
+	private static class RuntimeDiagnosticsAction extends AbstractAction {
+		private final String kind;
+
+		RuntimeDiagnosticsAction(String name, String kind) {
+			super(name);
+			this.kind = kind;
 		}
 
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			javax.swing.MenuSelectionManager.defaultManager().clearSelectedPath();
+			/** @j2sNative
+			 * swingjs.plaf.JSPopupMenuUI.closeAllMenusNOW$();
+			 */
+			{}
+			if ("runtime".equals(kind)) { //$NON-NLS-1$
+				if (OSPRuntime.isJS)
+					showAboutOnlineRuntime();
+				else
+					Diagnostics.aboutJava();
+			} else if ("threads".equals(kind)) { //$NON-NLS-1$
+				DiagnosticsForThreads.aboutThreads();
+			} else {
+				MovieFactory.showAbout(kind, "Tracker"); //$NON-NLS-1$
+			}
+		}
 	}
 
 //  /**

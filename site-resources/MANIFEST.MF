@@ -2,8 +2,12 @@ Manifest-Version: 1.0
 Ant-Version: Apache Ant 1.10.17
 Created-By: 25.0.3+9-LTS (Eclipse Adoptium)
 Built-By: D Brown, W Christian, R M Hanson
-Build-Date: Oct 23 2026
+Build-Date: Nov 01 2026
 Main-Class: org.opensourcephysics.cabrillo.tracker.Tracker
 permissions: all-permissions
-Class-Path: . xuggle-xuggler-server-all.jar
+Class-Path: . javacv.jar javacpp.jar javacpp-macosx-arm64.jar javacpp-
+ macosx-x86_64.jar ffmpeg.jar ffmpeg-macosx-arm64.jar ffmpeg-macosx-x8
+ 6_64.jar opencv.jar opencv-macosx-arm64.jar opencv-macosx-x86_64.jar 
+ openblas.jar openblas-macosx-arm64.jar openblas-macosx-x86_64.jar xug
+ gle-xuggler-server-all.jar
 
