@@ -142,8 +142,8 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 									OSPRuntime.setCompact(!OSPRuntime.isCompact(frame));									
 									TrackerPanel tp = frame.getSelectedPanel();
 									TTrackBar trackbar = frame.getTrackBar(tp.getID(), false);
-									trackbar.rebuild();
 									javax.swing.SwingUtilities.invokeLater(() -> {
+										trackbar.rebuild();
 										trackbar.refreshNumberEditors();
 									});
 //									
