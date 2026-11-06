@@ -29,6 +29,7 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
+import java.awt.Insets;
 //import java.awt.Frame;
 import java.awt.Point;
 import java.awt.Rectangle;
@@ -114,6 +115,7 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 	final protected static Icon labelsOffIcon, labelsOnIcon;
 	final protected static Icon stretchOffIcon, stretchOnIcon;
 	final protected static Icon xmassOffIcon, xmassOnIcon;
+	final protected static Icon editIcon, helpIcon;
 	final protected static Icon fontSizeIcon;
 	final protected static Icon memoryIcon, redMemoryIcon;
 	final protected static Icon autotrackerOffIcon, autotrackerOnIcon;
@@ -218,10 +220,13 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 	protected ArrayList<JButton> overflowButtons;
 	// mobile buttons and popups
 	protected JPopupMenu filePopup, videoPopup, coordsPopup, trackPopup, viewPopup; 
+	protected JPopupMenu editPopup, helpPopup; 
 	private final JMenu mobileEditMenu = new JMenu();
 	private final JMenu mobileHelpMenu = new JMenu();
-	protected TButton fileButton, videoButton, coordsButton, trackButton, viewButton, moreButton;
-	private boolean noButtonIcons = true;	
+	protected MobileButton fileButton, videoButton, coordsButton, trackButton, viewButton, moreButton;
+	protected MobileButton editButton, helpButton;
+	protected MobileButton[] mobileButtons;
+	private boolean noButtonIcons, noButtonText;	
 
 	static {
 		coordsIcon = Tracker.getResourceIcon("coords.gif", true); //$NON-NLS-1$
@@ -290,6 +295,8 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 		openBrowserIcon = Tracker.getResourceIcon("open_catalog.gif", true); //$NON-NLS-1$
 		overflowIcon = Tracker.getResourceIcon("overflow.gif", true); //$NON-NLS-1$
 		cameraIcon = Tracker.getResourceIcon("camera.gif", true); //$NON-NLS-1$
+		editIcon = Tracker.getResourceIcon("edit.gif", true); //$NON-NLS-1$
+		helpIcon = Tracker.getResourceIcon("help.gif", true); //$NON-NLS-1$
 	}
 
 	protected boolean refreshing; // true when refreshing toolbar
@@ -321,7 +328,7 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 	TToolBar(TrackerPanel panel) {
 		this.frame = panel.getTFrame();
 		this.panelID = panel.getID();
-		System.out.println("Creating toolbar for " + panel);
+//		System.out.println("Creating toolbar for " + panel);
 		panel.addListeners(panelProps, this);
 		setFloatable(false);
 		addComponentListener(new ComponentAdapter() {
@@ -834,7 +841,6 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 //		overflowButton.setHorizontalTextPosition(JButton.LEADING);
 //		overflowButton.setIconTextGap(3);
 		
-		int iconTextGap = 10;
 		moreButton = new MobileButton() {
 			@Override
 			protected JPopupMenu getPopup() {
@@ -843,10 +849,6 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 				return overflowPopup;
 			}
 		}; 
-		moreButton.setText(TrackerRes.getString("TToolBar.Button.More.Text"));
-		moreButton.alwaysShowBorder(true);
-		moreButton.setIconTextGap(iconTextGap);
-		moreButton.setHorizontalTextPosition(JButton.LEADING);
 		moreButton.alignPopup = TButton.RIGHT;
 		
 		// create mobile popups and buttons
@@ -855,6 +857,8 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 		coordsPopup = new JPopupMenu();
 		trackPopup = new JPopupMenu();
 		viewPopup = new JPopupMenu();
+		editPopup = new JPopupMenu();
+		helpPopup = new JPopupMenu();
 		
 		fileButton = new MobileButton() {
 			@Override
@@ -864,12 +868,8 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 				return filePopup;
 			}
 		}; //$NON-NLS-1$
-		fileButton.setText(TrackerRes.getString("TMenuBar.Menu.File"));
 		if (!noButtonIcons)
 			fileButton.setIcon(folderIcon);
-		fileButton.alwaysShowBorder(true);
-		fileButton.setHorizontalTextPosition(JButton.LEADING);
-		fileButton.setIconTextGap(iconTextGap);
 		
 		videoButton = new MobileButton() {
 			@Override
@@ -880,12 +880,8 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 				return videoPopup;
 			}
 		}; //$NON-NLS-1$
-		videoButton.setText(TrackerRes.getString("TMenuBar.Menu.Video"));
 		if (!noButtonIcons)
 			videoButton.setIcon(clipOffIcon);
-		videoButton.alwaysShowBorder(true);
-		videoButton.setHorizontalTextPosition(JButton.LEADING);
-		videoButton.setIconTextGap(iconTextGap);
 		
 		coordsButton = new MobileButton() {
 			@Override
@@ -900,12 +896,8 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 				return coordsPopup;
 			}
 		}; //$NON-NLS-1$
-		coordsButton.setText(TrackerRes.getString("TToolBar.Button.Coords.Text"));
 		if (!noButtonIcons)
 			coordsButton.setIcon(coordsIcon);
-		coordsButton.alwaysShowBorder(true);
-		coordsButton.setHorizontalTextPosition(JButton.LEADING);
-		coordsButton.setIconTextGap(iconTextGap);
 		
 		trackButton = new MobileButton() {
 			@Override
@@ -915,12 +907,8 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 				return trackPopup;
 			}
 		}; //$NON-NLS-1$
-		trackButton.setText(TrackerRes.getString("TMenuBar.Menu.Tracks"));
 		if (!noButtonIcons)
 			trackButton.setIcon(pointmassOffIcon);
-		trackButton.alwaysShowBorder(true);
-		trackButton.setHorizontalTextPosition(JButton.LEADING);
-		trackButton.setIconTextGap(iconTextGap);
 
 		viewButton = new MobileButton() {
 			@Override
@@ -930,12 +918,33 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 				return popup;
 			}
 		}; //$NON-NLS-1$
-		viewButton.setText(TrackerRes.getString("TMenuBar.Menu.Window"));
 		if (!noButtonIcons)
 			viewButton.setIcon(TableTView.TABLEVIEW_ICON);
-		viewButton.alwaysShowBorder(true);
-		viewButton.setHorizontalTextPosition(JButton.LEADING);
-		viewButton.setIconTextGap(iconTextGap);
+		
+		editButton = new MobileButton() {
+			@Override
+			protected JPopupMenu getPopup() {
+				rebuildMobileEditPopup();
+				FontSizer.setFonts(editPopup);
+				return editPopup;
+			}
+		}; //$NON-NLS-1$
+		if (!noButtonIcons)
+			editButton.setIcon(editIcon);
+		
+		helpButton = new MobileButton() {
+			@Override
+			protected JPopupMenu getPopup() {
+				rebuildMobileHelpPopup();
+				FontSizer.setFonts(helpPopup);
+				return helpPopup;
+			}
+		}; //$NON-NLS-1$
+		if (!noButtonIcons)
+			editButton.setIcon(helpIcon);
+		
+		mobileButtons = new MobileButton[] {fileButton, videoButton, 
+				trackButton, coordsButton, viewButton, editButton, helpButton};
 
 		// create menu items
 		cloneMenu = new JMenu();
@@ -1026,10 +1035,10 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 				popup.addSeparator();
 			if (OSPRuntime.isMobile()) {
 				// Touch users must be able to select a tool without opening another
-				// cascading submenu (Coords > Calibration Tools > New on mobile).
-				JMenuItem heading = new JMenuItem(newToolsMenu.getText());
-				heading.setEnabled(false);
-				popup.add(heading);
+				// submenu
+//				JMenuItem heading = new JMenuItem(newToolsMenu.getText());
+//				heading.setEnabled(false);
+//				popup.add(heading);
 				for (Component item : newToolsMenu.getMenuComponents()) {
 					popup.add(item);
 				}
@@ -1431,7 +1440,18 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 		if (newToolsMenu.getItemCount() > 0) {
 			if (!panel().calibrationTools.isEmpty())
 				popup.addSeparator();
-			popup.add(newToolsMenu);
+			if (OSPRuntime.isMobile()) {
+				// Touch users must be able to select a tool without opening another
+				// submenu
+//				JMenuItem heading = new JMenuItem(newToolsMenu.getText());
+//				heading.setEnabled(false);
+//				popup.add(heading);
+				for (Component item : newToolsMenu.getMenuComponents()) {
+					popup.add(item);
+				}
+			} else {
+				popup.add(newToolsMenu);
+			}
 		}
 		FontSizer.setFonts(popup, FontSizer.getLevel());
 		return popup;
@@ -1771,18 +1791,44 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
   	}
   	return n-1;
 	}
+	
+	/**
+	 * Determines if this toolbar is too short to display 
+	 * the specified MobileButton
+	 * 
+	 * @param button the button
+	 * @return true if too short
+	 */
+	private boolean isTooShortFor(MobileButton button) {
+    int totalRequiredSize = 0;
+    for (int i = 0; i < mobileButtons.length; i++) {
+    	MobileButton next = mobileButtons[i];
+      if (next==button) break;
+      Dimension prefSize = next.getPreferredSize();
+      totalRequiredSize += prefSize.width;
+    }
+    Insets insets = getInsets();
+    totalRequiredSize += insets.left + insets.right;
+    return getWidth() < totalRequiredSize;
+}
+	
+
 
 	private void rebuild(int overflow) {
 		
 		int small = OSPRuntime.getSmallScreenThreshold();
-		boolean prev = noButtonIcons;
-		noButtonIcons = frame.getSize().width < small;
-		if (prev != noButtonIcons) {
+//		boolean prev = noButtonIcons;
+//		noButtonIcons = frame.getSize().width < small;
+//		if (prev != noButtonIcons) {
+//			panel().getPlayer().refresh();
+//		}
+		boolean prev = noButtonText;
+		noButtonText = frame.getSize().width < small;
+		if (prev != noButtonText) {
 			panel().getPlayer().refresh();
 		}
 
 		if (OSPRuntime.isMobile()) {
-			moreButton.setHorizontalTextPosition(JButton.LEADING);
 			rebuildForMobile();
 			return;
 		}
@@ -1968,6 +2014,10 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 	}
 
 	private void rebuildForMobile() {	
+		if (!noButtonText) {
+			if (isTooShortFor(helpButton)) 
+				noButtonText = true;
+		}
 		// add and populate mobile buttons
 		fileButton.setIcon(noButtonIcons? null: folderIcon);
 		videoButton.setIcon(noButtonIcons? null: clipOffIcon);
@@ -1975,30 +2025,43 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 		trackButton.setIcon(noButtonIcons? null: pointmassOffIcon);
 		viewButton.setIcon(noButtonIcons? null: TableTView.TABLEVIEW_ICON);
 		moreButton.setIcon(noButtonIcons? null: overflowIcon);
+		editButton.setIcon(noButtonIcons? null: editIcon);
+		helpButton.setIcon(noButtonIcons? null: helpIcon);
 		
-		removeAll();
-		add(fileButton);
-		add(videoButton);
-		add(coordsButton);
-		add(trackButton);
-		add(viewButton);
-		add(moreButton);
-	
+		
+		fileButton.setText(noButtonText? null: TrackerRes.getString("TMenuBar.Menu.File"));
+		videoButton.setText(noButtonText? null: TrackerRes.getString("TMenuBar.Menu.Video"));
+		coordsButton.setText(noButtonText? null: TrackerRes.getString("TToolBar.Button.Coords.Text"));
+		trackButton.setText(noButtonText? null: TrackerRes.getString("TMenuBar.Menu.Tracks"));
+		viewButton.setText(noButtonText? null: TrackerRes.getString("TMenuBar.Menu.Window"));
+		editButton.setText(noButtonText? null: TrackerRes.getString("TMenuBar.Menu.Edit"));
+		helpButton.setText(noButtonText? null: TrackerRes.getString("TMenuBar.Menu.Help"));
+		moreButton.setText(noButtonText? null: TrackerRes.getString("TToolBar.Button.More.Text"));
+
 		rebuildMobileFilePopup();
 		rebuildMobileVideoPopup();
 		rebuildMobileCoordsPopup();
 		rebuildMobileTrackPopup();
 		rebuildMobileViewPopup();
-		rebuildMobileOverflowPopup();
+		rebuildMobileEditPopup();
+		rebuildMobileHelpPopup();
+		int count = rebuildMobileOverflowPopup();
 			
-		add(toolbarFiller);
+		removeAll();
+		add(Box.createHorizontalGlue());
+		for (int i = 0; i < count; i++) {
+			add(mobileButtons[i]);
+		}
+		if (count < mobileButtons.length)
+			add(moreButton);
+		add(Box.createHorizontalGlue());
+	
+//		add(toolbarFiller);
 		if (TFrame.isLayoutAdaptive) {
 			add(maximizeButton);
 		}
 		
-		TButton[] buttons = {fileButton, videoButton, coordsButton, 
-				trackButton, viewButton, moreButton};
-		FontSizer.setFonts(buttons);
+		FontSizer.setFonts(mobileButtons);
 		TFrame.repaintT(this);
 	}
 
@@ -2122,6 +2185,7 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 		coordsPopup.add(frame.currentMenuBar.getMenuItem("coords_lockedCoordsItem"));
 	}
 	
+	
 	private void rebuildMobileTrackPopup() {
 		trackPopup.removeAll();
 		if (frame.currentMenuBar == null) 
@@ -2152,7 +2216,7 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 
 		if (panel().isCreateTracksEnabled()) {
 			JMenu newTrackMenu = new JMenu(TrackerRes.getString("TMenuBar.MenuItem.NewTrack"));
-			TMenuBar.refreshPopup(panel(), TMenuBar.POPUPMENU_TRACKCONTROL_TRACKS, newTrackMenu.getPopupMenu());
+			TMenuBar.refreshPopup(panel(), TMenuBar.POPUPMENU_MOBILE_TRACKS, newTrackMenu.getPopupMenu());
 			FontSizer.setFont(newTrackMenu);
 			trackPopup.add(newTrackMenu);
 			trackPopup.addSeparator();
@@ -2201,13 +2265,7 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 		viewPopup.add(frame.currentMenuBar.getMenuItem("view_singleViewMenu"));
 		viewPopup.addSeparator();
 
-		viewPopup.add(frame.currentMenuBar.getMenuItem("view_mobileLayoutItem"));
-		viewPopup.add(frame.currentMenuBar.getMenuItem("edit_fontSizeMenu"));
-		viewPopup.addSeparator();
-
 		boolean small = OSPRuntime.isSmallScreen(frame);
-		boolean mobile = OSPRuntime.isMobile();
-
 		if (!small) {
 			if (panel().getMaximizedView() != TView.VIEW_UNSET) {
 					viewPopup.add(frame.currentMenuBar.getMenuItem("view_restoreItem"));
@@ -2215,12 +2273,13 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 				viewPopup.add(frame.currentMenuBar.getMenuItem("view_rightPaneItem"));
 				viewPopup.add(frame.currentMenuBar.getMenuItem("view_bottomPaneItem"));
 			}
+			viewPopup.addSeparator();
+			viewPopup.add(frame.currentMenuBar.getMenuItem("view_mobileLayoutItem"));
+			viewPopup.addSeparator();
 		}
-//		viewPopup.addSeparator();
-//		viewPopup.add(frame.currentMenuBar.getMenuItem("view_notesItem"));
+		
 		if (panel().isEnabled("data.builder") //$NON-NLS-1$
 				|| panel().isEnabled("data.tool")) { //$NON-NLS-1$
-			if (!small) viewPopup.addSeparator();
 			if (panel().isEnabled("data.builder")) //$NON-NLS-1$
 				viewPopup.add(frame.currentMenuBar.getMenuItem("view_dataBuilderItem"));
 			if (panel().isEnabled("data.tool")) //$NON-NLS-1$					
@@ -2229,6 +2288,60 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 		viewPopup.addSeparator();
 		viewPopup.add(frame.currentMenuBar.getMenuItem("view_TabsMenu"));
 	}
+	
+	private void rebuildMobileEditPopup() {
+		if (frame.currentMenuBar != null) {
+			editPopup.removeAll();
+
+			if (panel().isEnabled("button.drawing")) { //$NON-NLS-1$
+				drawingButton.drawingVisibleCheckbox.setText(TrackerRes.getString("TTrack.MenuItem.Visible"));				
+				add(drawingButton, editPopup);
+				PencilDrawer drawer = PencilDrawer.getDrawer(panel());
+				drawingButton.drawingVisibleCheckbox.setSelected(drawer.areDrawingsVisible());
+				drawingButton.drawingVisibleCheckbox.setEnabled(
+						PencilDrawer.hasDrawings(panel()) && !PencilDrawer.isDrawing(panel()));
+				drawingControlCheckbox.setText(TrackerRes.getString("TToolBar.Checkbox.DrawingControl"));				
+				drawingControlCheckbox.setSelected(drawingButton.isSelected());
+				drawingMenu.removeAll();
+				if (PencilDrawer.hasDrawings(panel()))
+					drawingMenu.add(drawingButton.drawingVisibleCheckbox);
+				drawingMenu.add(drawingControlCheckbox);
+			}
+			
+			add(notesButton, editPopup);			
+			notesCheckbox.setSelected(notesButton.isSelected());
+			editPopup.addSeparator();
+			add(refreshButton, editPopup);
+			
+			refreshRefreshPopup(refreshMenu.getPopupMenu());
+			Component comp = refreshMenu.getMenuComponent(0);
+			((JMenuItem)comp).setText(TrackerRes.getString("TToolBar.MenuItem.RefreshNow"));
+
+			frame.currentMenuBar.setMenuTainted(TMenuBar.MENU_EDIT, true);
+			frame.currentMenuBar.refreshEditMenu(true);
+			
+			editPopup.addSeparator();
+			JMenu menu = (JMenu)frame.currentMenuBar.getMenuItem("editMenu");
+			for (Component item : menu.getMenuComponents()) {
+				editPopup.add(item);
+			}
+			FontSizer.setFonts(editPopup, FontSizer.getLevel());
+		}
+	}
+	
+	
+	private void rebuildMobileHelpPopup() {
+		if (frame.currentMenuBar != null) {
+			helpPopup.removeAll();
+			frame.currentMenuBar.setMenuTainted(TMenuBar.MENU_HELP, true);
+			frame.currentMenuBar.refreshHelpMenu(true);			
+			JMenu menu = (JMenu)frame.currentMenuBar.getMenuItem("helpMenu");
+			for (Component item : menu.getMenuComponents()) {
+				helpPopup.add(item);
+			}
+		}
+	}
+
 		
 	/**
 	 * Reuse the actions without moving a top-level JMenu into a popup. SwingJS
@@ -2244,46 +2357,53 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 		}
 	}
 
-	private void rebuildMobileOverflowPopup() {
+	private int rebuildMobileOverflowPopup() {
+		int buttonCount = mobileButtons.length;
 		if (frame.currentMenuBar != null) {
 			overflowPopup.removeAll();
-			frame.currentMenuBar.setMenuTainted(TMenuBar.MENU_EDIT, true);
-			frame.currentMenuBar.refreshEditMenu(true);
-			frame.currentMenuBar.setMenuTainted(TMenuBar.MENU_HELP, true);
-			frame.currentMenuBar.refreshHelpMenu(true);
-			populateMobileMenu((JMenu) frame.currentMenuBar.getMenuItem("editMenu"), mobileEditMenu);
-			overflowPopup.add(mobileEditMenu);
-			overflowPopup.addSeparator();
-			populateMobileMenu((JMenu) frame.currentMenuBar.getMenuItem("helpMenu"), mobileHelpMenu);
-			overflowPopup.add(mobileHelpMenu);
-			overflowPopup.addSeparator();
-			
-			if (panel().isEnabled("button.drawing")) { //$NON-NLS-1$
-				drawingButton.drawingVisibleCheckbox.setText(TrackerRes.getString("TTrack.MenuItem.Visible"));				
-				add(drawingButton, overflowPopup);
-				PencilDrawer drawer = PencilDrawer.getDrawer(panel());
-				drawingButton.drawingVisibleCheckbox.setSelected(drawer.areDrawingsVisible());
-				drawingButton.drawingVisibleCheckbox.setEnabled(
-						PencilDrawer.hasDrawings(panel()) && !PencilDrawer.isDrawing(panel()));
-				drawingControlCheckbox.setText(TrackerRes.getString("TToolBar.Checkbox.DrawingControl"));				
-				drawingControlCheckbox.setSelected(drawingButton.isSelected());
-				drawingMenu.removeAll();
-				if (PencilDrawer.hasDrawings(panel()))
-					drawingMenu.add(drawingButton.drawingVisibleCheckbox);
-				drawingMenu.add(drawingControlCheckbox);
+			buttonCount = isTooShortFor(helpButton)? buttonCount-2: buttonCount;
+			if (buttonCount<mobileButtons.length-1) {
+				frame.currentMenuBar.setMenuTainted(TMenuBar.MENU_EDIT, true);
+				frame.currentMenuBar.refreshEditMenu(true);
+				populateMobileMenu((JMenu) frame.currentMenuBar.getMenuItem("editMenu"), mobileEditMenu);
+				overflowPopup.add(mobileEditMenu);
+				if (buttonCount<mobileButtons.length)
+					overflowPopup.addSeparator();
+			}
+			if (buttonCount<mobileButtons.length) {
+				frame.currentMenuBar.setMenuTainted(TMenuBar.MENU_HELP, true);
+				frame.currentMenuBar.refreshHelpMenu(true);
+				populateMobileMenu((JMenu) frame.currentMenuBar.getMenuItem("helpMenu"), mobileHelpMenu);
+				overflowPopup.add(mobileHelpMenu);
 			}
 			
-			add(notesButton, overflowPopup);			
-			notesCheckbox.setSelected(notesButton.isSelected());
-			overflowPopup.addSeparator();
-			add(refreshButton, overflowPopup);
-			
-			refreshRefreshPopup(refreshMenu.getPopupMenu());
-			Component comp = refreshMenu.getMenuComponent(0);
-			((JMenuItem)comp).setText(TrackerRes.getString("TToolBar.MenuItem.RefreshNow"));
+//			if (panel().isEnabled("button.drawing")) { //$NON-NLS-1$
+//				drawingButton.drawingVisibleCheckbox.setText(TrackerRes.getString("TTrack.MenuItem.Visible"));				
+//				add(drawingButton, overflowPopup);
+//				PencilDrawer drawer = PencilDrawer.getDrawer(panel());
+//				drawingButton.drawingVisibleCheckbox.setSelected(drawer.areDrawingsVisible());
+//				drawingButton.drawingVisibleCheckbox.setEnabled(
+//						PencilDrawer.hasDrawings(panel()) && !PencilDrawer.isDrawing(panel()));
+//				drawingControlCheckbox.setText(TrackerRes.getString("TToolBar.Checkbox.DrawingControl"));				
+//				drawingControlCheckbox.setSelected(drawingButton.isSelected());
+//				drawingMenu.removeAll();
+//				if (PencilDrawer.hasDrawings(panel()))
+//					drawingMenu.add(drawingButton.drawingVisibleCheckbox);
+//				drawingMenu.add(drawingControlCheckbox);
+//			}
+//			
+//			add(notesButton, overflowPopup);			
+//			notesCheckbox.setSelected(notesButton.isSelected());
+//			overflowPopup.addSeparator();
+//			add(refreshButton, overflowPopup);
+//			
+//			refreshRefreshPopup(refreshMenu.getPopupMenu());
+//			Component comp = refreshMenu.getMenuComponent(0);
+//			((JMenuItem)comp).setText(TrackerRes.getString("TToolBar.MenuItem.RefreshNow"));
 
 			FontSizer.setFonts(overflowPopup, FontSizer.getLevel());
 		}
+		return buttonCount;
 	}
 		
 	private void checkEnabled(boolean refreshTracks) {
@@ -3054,12 +3174,26 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 	 */
 	protected class MobileButton extends TButton {
 		
+		int iconTextGap = 4;
+		
+		MobileButton() {
+			super();
+//			alwaysShowBorder(true);
+			setIconTextGap(iconTextGap);
+		}
+		
+		@Override
+		public int getHorizontalTextPosition() {
+			return JButton.LEADING;
+		}
+		
 		@Override
 		public Dimension getPreferredSize() {
 			Dimension dim = super.getPreferredSize();
 			if (OSPRuntime.isMobile() || OSPRuntime.isSmallScreen(frame)) {
 				Dimension size = OSPRuntime.getHTMLPageSize();
 				dim.width = size.width / 6;
+				dim.width = Math.min(dim.width, super.getPreferredSize().width+12);
 			}
 			return dim;
 		}

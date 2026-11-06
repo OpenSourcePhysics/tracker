@@ -605,9 +605,12 @@ public class CoordAxes extends TTrack {
 		ArrayList<Component> list = super.getToolbarTrackComponents(trackerPanel);
 		int n = trackerPanel.getFrameNumber();
 		ImageCoordSystem coords = trackerPanel.getCoords();
-		originLabel.setText(TrackerRes.getString("CoordAxes.Origin.Label")); //$NON-NLS-1$
-		xLabel.setText(dataVariables[0]);
-		yLabel.setText(dataVariables[1]);
+		String origin = TrackerRes.getString("CoordAxes.Origin.Name"); //$NON-NLS-1$
+		originLabel.setText(origin);
+//		xLabel.setText(dataVariables[0]);
+//		yLabel.setText(dataVariables[1]);
+		xLabel.setText(origin + " x");
+		yLabel.setText(origin + " y");
 		xField.setToolTipText(TrackerRes.getString("CoordAxes.Origin.Field.Tooltip")); //$NON-NLS-1$
 		yField.setToolTipText(TrackerRes.getString("CoordAxes.Origin.Field.Tooltip")); //$NON-NLS-1$
 		gridCheckbox.setText(TrackerRes.getString("CoordAxes.Checkbox.Grid")); //$NON-NLS-1$
@@ -617,8 +620,6 @@ public class CoordAxes extends TTrack {
 		list.add(gridCheckbox);
 		list.add(gridButton);
 		list.add(magSeparator);
-		list.add(originLabel);
-		list.add(xSeparator);
 		list.add(xLabel);
 		list.add(xField);
 		list.add(ySeparator);
@@ -628,6 +629,7 @@ public class CoordAxes extends TTrack {
 		yField.setValue(coords.getOriginY(n));
 
 		angleLabel.setText(TrackerRes.getString("CoordAxes.Label.Angle")); //$NON-NLS-1$
+//		angleLabel.setText(Tracker.THETA);
 		list.add(stepSeparator);
 		list.add(angleLabel);
 		list.add(angleField);

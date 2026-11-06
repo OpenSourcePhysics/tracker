@@ -360,6 +360,16 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 	protected static JButton closeButton;
 	protected static NameDialog nameDialog;
 	protected static int nextID = 1;
+	protected static Border fieldBorder;
+	
+	static {
+		Border empty = BorderFactory.createEmptyBorder(0, 3, 0, 3);
+		Color grey = new Color(102, 102, 102);
+		Border etch = BorderFactory.createEtchedBorder(Color.white, grey);
+		fieldBorder = BorderFactory.createCompoundBorder(etch, empty);
+	}
+
+	
 	// instance fields
 	protected String name = TrackerRes.getString("TTrack.Name.None"); //$NON-NLS-1$
 	protected String description = ""; //$NON-NLS-1$
@@ -433,7 +443,6 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 	protected NumberField tField, xField, yField, magField;
 	protected DecimalField angleField;
 	protected NumberField[] positionFields;
-	protected Border fieldBorder;
 	protected JSpinner xSpinner, ySpinner;
 
 	protected JMenu footprintMenu;
@@ -588,10 +597,6 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 		magField.addMouseListener(formatMouseListener);
 		angleField = new TrackDecimalField(1);
 		angleField.addMouseListener(formatAngleMouseListener);
-		Border empty = BorderFactory.createEmptyBorder(0, 3, 0, 3);
-		Color grey = new Color(102, 102, 102);
-		Border etch = BorderFactory.createEtchedBorder(Color.white, grey);
-		fieldBorder = BorderFactory.createCompoundBorder(etch, empty);
 		tField.setBorder(fieldBorder);
 		xField.setBorder(fieldBorder);
 		yField.setBorder(fieldBorder);
@@ -627,7 +632,7 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 		item.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				tp.anglesInRadians = !radians;
+				tp.setAnglesInRadians(!radians);
 			}
 		});
 		item.setText(radians ? TrackerRes.getString("TTrack.AngleField.Popup.Degrees") : //$NON-NLS-1$
