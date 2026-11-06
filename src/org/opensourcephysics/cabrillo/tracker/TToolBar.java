@@ -181,52 +181,67 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 
 	final protected WindowListener infoListener;
 //	final protected JButton openButton, openBrowserButton, saveButton, saveZipButton;
-	final protected JButton openButton, saveButton;
-	final protected TButton newTrackButton;
-	final protected JButton trackControlButton, clipSettingsButton;
 	final protected CalibrationButton calibrationButton;
 	final protected MeasureButton measureButton;
 	final protected DrawingButton drawingButton;
+	final protected TButton newTrackButton;
 	final protected TButton axesButton, zoomButton, autotrackerButton;
 	final protected TButton eyeButton;
 	final protected TButton traceVisButton, pVisButton, vVisButton, aVisButton;
 	final protected TButton xMassButton, trailButton, labelsButton, stretchButton;
-	protected JMenuItem pathVisMenuItem, pVisMenuItem, vVisMenuItem, aVisMenuItem;
-	protected JMenuItem xMassMenuItem, labelsMenuItem;
-	protected JMenu trailsMenu, stretchMenu;
-	final protected JButton fontSizeButton;
+	final protected TButton overflowButton;
+	final protected MobileButton[] mobileButtons;
+	final protected MobileButton mobileFileButton, mobileVideoButton;
+	final protected MobileButton mobileCoordsButton, mobileTrackButton;
+	final protected MobileButton mobileViewButton, mobileMoreButton;
+	final protected MobileButton editButton, helpButton;
+	final protected Component toolbarFiller;
 	final protected JPopupMenu newPopup = new JPopupMenu();
 	final protected JPopupMenu selectPopup = new JPopupMenu();
 	final protected JPopupMenu eyePopup = new JPopupMenu();
 	final protected JPopupMenu zoomPopup = new JPopupMenu();
+	final protected JPopupMenu overflowPopup = new JPopupMenu();
 	final protected JMenu vStretchMenu, aStretchMenu;
-	protected ButtonGroup vGroup, aGroup;
 	final protected JMenuItem showTrackControlItem, selectNoneItem, stretchOffItem;
 	final protected JButton notesButton, refreshButton, desktopButton, memoryButton;
 	final protected JButton maximizeButton, captureButton;
-	final protected Component toolbarFiller;
-	final protected JMenu cloneMenu;
+	final protected JButton fontSizeButton;
+	final protected JButton openButton, saveButton;
+	final protected JButton trackControlButton, clipSettingsButton;
 	final protected ArrayList<PageTView.TabData> pageViewTabs = new ArrayList<PageTView.TabData>();
-	protected int overflowIndex = -1;
-	protected JPopupMenu overflowPopup;
-	protected TButton overflowButton;
+	final protected ArrayList<JButton> overflowButtons;
+	// mobile buttons and popups
+	final protected JPopupMenu filePopup, videoPopup, coordsPopup, trackPopup, viewPopup; 
+	final protected JPopupMenu editPopup, helpPopup; 
+	final protected JMenu cloneMenu;
+	private final JMenu mobileEditMenu = new JMenu();
+	private final JMenu mobileHelpMenu = new JMenu();
+
+	protected ButtonGroup vGroup, aGroup;
 	protected JMenu measureMenu, refreshMenu, memoryMenu, desktopMenu;
 	protected JMenu zoomMenu, drawingMenu, calibrationMenu, eyeMenu;
 	protected JMenu openMenu, saveMenu;
+	protected JMenu trailsMenu, stretchMenu;
 	protected JCheckBoxMenuItem trackControlCheckbox, notesCheckbox, maximizeCheckbox;
 	protected JCheckBoxMenuItem axesCheckbox, autotrackerCheckbox, clipCheckbox;
 	protected JCheckBoxMenuItem drawingControlCheckbox;
 	protected JMenuItem captureVideoItem;
-	protected ArrayList<JButton> overflowButtons;
-	// mobile buttons and popups
-	protected JPopupMenu filePopup, videoPopup, coordsPopup, trackPopup, viewPopup; 
-	protected JPopupMenu editPopup, helpPopup; 
-	private final JMenu mobileEditMenu = new JMenu();
-	private final JMenu mobileHelpMenu = new JMenu();
-	protected MobileButton fileButton, videoButton, coordsButton, trackButton, viewButton, moreButton;
-	protected MobileButton editButton, helpButton;
-	protected MobileButton[] mobileButtons;
+	protected JMenuItem pathVisMenuItem, pVisMenuItem, vVisMenuItem, aVisMenuItem;
+	protected JMenuItem xMassMenuItem, labelsMenuItem;
+
+	protected int overflowIndex = -1;
+	protected boolean refreshing; // true when refreshing toolbar
+	protected boolean useEyeButton = true;
+	protected boolean notYetCalibrated = true;
+	protected int vStretch = 1, aStretch = 1;
+	protected int trailLengthIndex = Tracker.preferredTrailLengthIndex;
+	protected int toolbarComponentHeight;
+
 	private boolean noButtonIcons, noButtonText;	
+	private boolean refreshingTracks;
+	private AbstractAction zoomAction;
+	private TFrame frame;
+	private Integer panelID;
 
 	static {
 		coordsIcon = Tracker.getResourceIcon("coords.gif", true); //$NON-NLS-1$
@@ -298,17 +313,6 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 		editIcon = Tracker.getResourceIcon("edit.gif", true); //$NON-NLS-1$
 		helpIcon = Tracker.getResourceIcon("help.gif", true); //$NON-NLS-1$
 	}
-
-	protected boolean refreshing; // true when refreshing toolbar
-	protected boolean useEyeButton = true;
-	private boolean refreshingTracks;
-	protected int vStretch = 1, aStretch = 1;
-	protected int trailLengthIndex = Tracker.preferredTrailLengthIndex;
-	protected boolean notYetCalibrated = true;
-	protected int toolbarComponentHeight;
-	private AbstractAction zoomAction;
-	private TFrame frame;
-	private Integer panelID;
 
 	private static final String[] panelProps = new String[] { 
 			TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDPOINT,
@@ -823,9 +827,7 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 				refreshMaximizeButton(frame);
 			}
 		});
-
 		
-		overflowPopup = new JPopupMenu();
 		overflowButton = new TButton() {
 			@Override
 			protected JPopupMenu getPopup() {
@@ -841,7 +843,7 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 //		overflowButton.setHorizontalTextPosition(JButton.LEADING);
 //		overflowButton.setIconTextGap(3);
 		
-		moreButton = new MobileButton() {
+		mobileMoreButton = new MobileButton() {
 			@Override
 			protected JPopupMenu getPopup() {
 				refreshOverflowComponents();
@@ -849,7 +851,7 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 				return overflowPopup;
 			}
 		}; 
-		moreButton.alignPopup = TButton.RIGHT;
+		mobileMoreButton.alignPopup = TButton.RIGHT;
 		
 		// create mobile popups and buttons
 		filePopup = new JPopupMenu();
@@ -860,7 +862,7 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 		editPopup = new JPopupMenu();
 		helpPopup = new JPopupMenu();
 		
-		fileButton = new MobileButton() {
+		mobileFileButton = new MobileButton() {
 			@Override
 			protected JPopupMenu getPopup() {
 				rebuildMobileFilePopup();
@@ -869,9 +871,9 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 			}
 		}; //$NON-NLS-1$
 		if (!noButtonIcons)
-			fileButton.setIcon(folderIcon);
+			mobileFileButton.setIcon(folderIcon);
 		
-		videoButton = new MobileButton() {
+		mobileVideoButton = new MobileButton() {
 			@Override
 			protected JPopupMenu getPopup() {
 				refreshZoomPopup(zoomMenu.getPopupMenu());
@@ -881,9 +883,9 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 			}
 		}; //$NON-NLS-1$
 		if (!noButtonIcons)
-			videoButton.setIcon(clipOffIcon);
+			mobileVideoButton.setIcon(clipOffIcon);
 		
-		coordsButton = new MobileButton() {
+		mobileCoordsButton = new MobileButton() {
 			@Override
 			protected JPopupMenu getPopup() {
 				axesCheckbox.setSelected(axesButton.isSelected());
@@ -897,9 +899,9 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 			}
 		}; //$NON-NLS-1$
 		if (!noButtonIcons)
-			coordsButton.setIcon(coordsIcon);
+			mobileCoordsButton.setIcon(coordsIcon);
 		
-		trackButton = new MobileButton() {
+		mobileTrackButton = new MobileButton() {
 			@Override
 			protected JPopupMenu getPopup() {
 				rebuildMobileTrackPopup();
@@ -908,9 +910,9 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 			}
 		}; //$NON-NLS-1$
 		if (!noButtonIcons)
-			trackButton.setIcon(pointmassOffIcon);
+			mobileTrackButton.setIcon(pointmassOffIcon);
 
-		viewButton = new MobileButton() {
+		mobileViewButton = new MobileButton() {
 			@Override
 			protected JPopupMenu getPopup() {
 				rebuildMobileViewPopup();
@@ -919,7 +921,7 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 			}
 		}; //$NON-NLS-1$
 		if (!noButtonIcons)
-			viewButton.setIcon(TableTView.TABLEVIEW_ICON);
+			mobileViewButton.setIcon(TableTView.TABLEVIEW_ICON);
 		
 		editButton = new MobileButton() {
 			@Override
@@ -943,8 +945,8 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 		if (!noButtonIcons)
 			editButton.setIcon(helpIcon);
 		
-		mobileButtons = new MobileButton[] {fileButton, videoButton, 
-				trackButton, coordsButton, viewButton, editButton, helpButton};
+		mobileButtons = new MobileButton[] {mobileFileButton, mobileVideoButton, 
+				mobileTrackButton, mobileCoordsButton, mobileViewButton, editButton, helpButton};
 
 		// create menu items
 		cloneMenu = new JMenu();
@@ -2019,24 +2021,24 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 				noButtonText = true;
 		}
 		// add and populate mobile buttons
-		fileButton.setIcon(noButtonIcons? null: folderIcon);
-		videoButton.setIcon(noButtonIcons? null: clipOffIcon);
-		coordsButton.setIcon(noButtonIcons? null: coordsIcon);
-		trackButton.setIcon(noButtonIcons? null: pointmassOffIcon);
-		viewButton.setIcon(noButtonIcons? null: TableTView.TABLEVIEW_ICON);
-		moreButton.setIcon(noButtonIcons? null: overflowIcon);
+		mobileFileButton.setIcon(noButtonIcons? null: folderIcon);
+		mobileVideoButton.setIcon(noButtonIcons? null: clipOffIcon);
+		mobileCoordsButton.setIcon(noButtonIcons? null: coordsIcon);
+		mobileTrackButton.setIcon(noButtonIcons? null: pointmassOffIcon);
+		mobileViewButton.setIcon(noButtonIcons? null: TableTView.TABLEVIEW_ICON);
+		mobileMoreButton.setIcon(noButtonIcons? null: overflowIcon);
 		editButton.setIcon(noButtonIcons? null: editIcon);
 		helpButton.setIcon(noButtonIcons? null: helpIcon);
 		
 		
-		fileButton.setText(noButtonText? null: TrackerRes.getString("TMenuBar.Menu.File"));
-		videoButton.setText(noButtonText? null: TrackerRes.getString("TMenuBar.Menu.Video"));
-		coordsButton.setText(noButtonText? null: TrackerRes.getString("TToolBar.Button.Coords.Text"));
-		trackButton.setText(noButtonText? null: TrackerRes.getString("TMenuBar.Menu.Tracks"));
-		viewButton.setText(noButtonText? null: TrackerRes.getString("TMenuBar.Menu.Window"));
+		mobileFileButton.setText(noButtonText? null: TrackerRes.getString("TMenuBar.Menu.File"));
+		mobileVideoButton.setText(noButtonText? null: TrackerRes.getString("TMenuBar.Menu.Video"));
+		mobileCoordsButton.setText(noButtonText? null: TrackerRes.getString("TToolBar.Button.Coords.Text"));
+		mobileTrackButton.setText(noButtonText? null: TrackerRes.getString("TMenuBar.Menu.Tracks"));
+		mobileViewButton.setText(noButtonText? null: TrackerRes.getString("TMenuBar.Menu.Window"));
 		editButton.setText(noButtonText? null: TrackerRes.getString("TMenuBar.Menu.Edit"));
 		helpButton.setText(noButtonText? null: TrackerRes.getString("TMenuBar.Menu.Help"));
-		moreButton.setText(noButtonText? null: TrackerRes.getString("TToolBar.Button.More.Text"));
+		mobileMoreButton.setText(noButtonText? null: TrackerRes.getString("TToolBar.Button.More.Text"));
 
 		rebuildMobileFilePopup();
 		rebuildMobileVideoPopup();
@@ -2053,7 +2055,7 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 			add(mobileButtons[i]);
 		}
 		if (count < mobileButtons.length)
-			add(moreButton);
+			add(mobileMoreButton);
 		add(Box.createHorizontalGlue());
 	
 //		add(toolbarFiller);

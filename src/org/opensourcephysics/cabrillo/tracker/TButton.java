@@ -116,11 +116,8 @@ public class TButton extends JButton {
 		@Override
 		protected boolean checkLongPress(MouseEvent e) {
 			if (e == null) {
-				// just here because it only relates to this one type of button
-				// Better would be to create a third Runnable
-// unnecessary				AIPatch.keepPopupOpenUntilSelection(this, this.popup);
+				// unnecessary				AIPatch.keepPopupOpenUntilSelection(this, this.popup);
 			} else {
-				System.err.println("TStickyB " + e.getButton() + " " + SwingUtilities.isLeftMouseButton(e) + " " + e.isPopupTrigger() + " " + longPressTimer.isRunning() + " " + e);
 				switch (e.getID()) {
 				case MouseEvent.MOUSE_PRESSED:
 					if (e.isPopupTrigger()) {
@@ -342,7 +339,6 @@ public class TButton extends JButton {
 	 * @param e a MouseEvent, or null
 	 */
 	protected void showPopup(MouseEvent e) {
-		System.err.println("TButton.showPopup " + e + " " + (e == null ? null : e.getClickCount()) + " " + hidePopup);
 		popup = getPopup();
 		if (e == null)
 			hidePopup = false;
@@ -353,12 +349,10 @@ public class TButton extends JButton {
 			if (hidePopup) {
 				hidePopup = false;
 				popup.setVisible(false);
-				System.out.println("TB popup vis false " + e);
 			} else {
 				hidePopup = true;
 				int popupWidth = popup.getPreferredSize().width;
 				int offset = alignPopup == LEFT ? 0 : getWidth() - popupWidth;
-				System.out.println("TB. popup vis true " + e);
 				popup.show(TButton.this, offset, getHeight());
 				if (OSPRuntime.isJS && alignPopup == RIGHT) {
 					AIPatch.alignComponentRight(popup, TButton.this);
