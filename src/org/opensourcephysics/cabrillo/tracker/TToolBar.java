@@ -914,8 +914,8 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 			@Override
 			protected JPopupMenu getPopup() {
 				rebuildMobileViewPopup();
-				FontSizer.setFonts(popup);
-				return popup;
+				FontSizer.setFonts(viewPopup);
+				return viewPopup;
 			}
 		}; //$NON-NLS-1$
 		if (!noButtonIcons)

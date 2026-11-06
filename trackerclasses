@@ -313,6 +313,7 @@ java/util/ComparableTimSort.js
 java/util/Comparator.js
 java/util/Deque.js
 java/util/Dictionary.js
+java/util/DualPivotQuicksort.js
 java/util/Enumeration.js
 java/util/EventListener.js
 java/util/EventListenerProxy.js
@@ -793,6 +794,7 @@ org/opensourcephysics/cabrillo/tracker/MovingAverageFilter.js
 org/opensourcephysics/cabrillo/tracker/MultiLineFootprint.js
 org/opensourcephysics/cabrillo/tracker/MultiPositionStep.js
 org/opensourcephysics/cabrillo/tracker/MultiShape.js
+org/opensourcephysics/cabrillo/tracker/NumberFieldPanel.js
 org/opensourcephysics/cabrillo/tracker/NumberFormatDialog.js
 org/opensourcephysics/cabrillo/tracker/OffsetOrigin.js
 org/opensourcephysics/cabrillo/tracker/OffsetOriginStep.js
