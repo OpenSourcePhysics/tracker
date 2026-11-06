@@ -30,7 +30,6 @@ import java.awt.event.MouseEvent;
 import javax.swing.BorderFactory;
 import javax.swing.Icon;
 import javax.swing.JButton;
-import javax.swing.JComponent;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
@@ -204,7 +203,7 @@ public class TButton extends JButton {
 					setBorderPainted(false);
 					setContentAreaFilled(!hideContentWhenExit);
 				}
-			}
+	}
 
 			@Override
 			public void mousePressed(MouseEvent e) {
@@ -312,34 +311,6 @@ public class TButton extends JButton {
 	}
 
 	/**
-	 * Align a component's right edge with the reference component or within the
-	 * visible viewport.
-	 */
-	private void alignComponentRight(JComponent c, JComponent ref) {
-		if (OSPRuntime.jsutil != null)
-			OSPRuntime.jsutil.alignComponentRight(c, ref, 0);
-		// SwingJS menus are rendered outside the frame. Constrain the actual
-		// DOM bounds because Swing popup sizes can differ from the rendered size.
-		/**
-		 * @j2sNative
-		 * 
-		 * 			var
-		 *            owner=javax.swing.SwingUtilities.getWindowAncestor$java_awt_Component(ref);
-		 *            if (owner != null) { var node=c.秘getUI$().domNode; var
-		 *            bounds=owner.秘getUI$().domNode.getBoundingClientRect(); var
-		 *            rect=node.getBoundingClientRect(); var x=Math.max(bounds.left,
-		 *            Math.min(rect.left, bounds.right - rect.width)); var
-		 *            y=Math.max(bounds.top, Math.min(rect.top, bounds.bottom -
-		 *            rect.height)); node.style.left=((parseFloat(node.style.left) || 0)
-		 *            + x - rect.left) + "px";
-		 *            node.style.top=((parseFloat(node.style.top) || 0) + y - rect.top)
-		 *            + "px"; }
-		 */
-		{
-		}
-	}
-
-	/**
 	 * Gets the track associated with this button.
 	 * 
 	 * @return the track
@@ -371,24 +342,26 @@ public class TButton extends JButton {
 	 * @param e a MouseEvent, or null
 	 */
 	protected void showPopup(MouseEvent e) {
-		//System.err.println("TButton.showPopup " + e + " " + (e == null ? null : e.getClickCount()) + " " + hidePopup);
+		System.err.println("TButton.showPopup " + e + " " + (e == null ? null : e.getClickCount()) + " " + hidePopup);
 		popup = getPopup();
 		if (e == null)
 			hidePopup = false;
 		if (popup != null) {
-			System.out.println("hideP " + hidePopup);
+			System.out.println("BB.show hideP " + hidePopup);
 			if (e != null && e.getClickCount() == 2)
 				hidePopup = false;
 			if (hidePopup) {
 				hidePopup = false;
 				popup.setVisible(false);
+				System.out.println("TB popup vis false " + e);
 			} else {
 				hidePopup = true;
 				int popupWidth = popup.getPreferredSize().width;
 				int offset = alignPopup == LEFT ? 0 : getWidth() - popupWidth;
+				System.out.println("TB. popup vis true " + e);
 				popup.show(TButton.this, offset, getHeight());
 				if (OSPRuntime.isJS && alignPopup == RIGHT) {
-					alignComponentRight(popup, TButton.this);
+					AIPatch.alignComponentRight(popup, TButton.this);
 				}
 				if (OSPRuntime.isJS)
 					checkLongPress(null);
