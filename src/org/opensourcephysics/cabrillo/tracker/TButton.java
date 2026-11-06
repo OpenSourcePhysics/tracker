@@ -32,6 +32,7 @@ import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JMenu;
+import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
@@ -52,6 +53,31 @@ public class TButton extends JButton {
 	static final Border EMPTY = BorderFactory.createEmptyBorder(7, 3, 7, 3);
 	static final Border ETCHED = BorderFactory.createEtchedBorder();
 
+	/**
+	 * A class of TButton that causes the menu to stay open after clicked. 
+	 * Used specifically for the |> TToolBar/TViewChooser bars
+	 */
+	static class TStickyMenuItem extends JMenuItem {
+
+		public TStickyMenuItem(String name, Icon icon) {
+			super(name, icon);
+			putClientProperty("_j2sStickyMenuItem", Boolean.TRUE);
+		}
+		
+		@Override
+		protected void processMouseEvent(MouseEvent e) {
+			// Intercept the mouse release event, which triggers the menu closure
+			if (e.getID() == MouseEvent.MOUSE_RELEASED && contains(e.getPoint())) {
+				// Trigger the action listeners manually
+				doClick();
+				// Prevent the parent MenuSelectionManager from clearing the menu selection path
+				return;
+			}
+			super.processMouseEvent(e);
+		}		
+
+	}
+	
 	/**
 	 * A class to handle popups that need to be "sticky" -- responding to short and
 	 * long presses differently.
@@ -98,21 +124,30 @@ public class TButton extends JButton {
 				System.err.println("TStickyB " + e.getButton() + " " + SwingUtilities.isLeftMouseButton(e) + " " + e.isPopupTrigger() + " " + longPressTimer.isRunning() + " " + e);
 				switch (e.getID()) {
 				case MouseEvent.MOUSE_PRESSED:
-					if (SwingUtilities.isLeftMouseButton(e)) {
+					if (e.isPopupTrigger()) {
+						// this is for MacOS and Linux
+						if (longPressTimer.isRunning())
+							longPressTimer.stop();
+						showPopup(null);
+					} else if (SwingUtilities.isLeftMouseButton(e)) {
 						longPressTimer.restart();
 					}
 					break;
 				case MouseEvent.MOUSE_RELEASED:
 					if (e.isPopupTrigger()) {
+						// this is for Windows 
 						if (longPressTimer.isRunning())
 							longPressTimer.stop();
-						hidePopup = false;
 						showPopup(null);
 					} else if (SwingUtilities.isLeftMouseButton(e) && longPressTimer.isRunning()) {
 						// timer is still running so this is a short click
+						// If the popup is visible, then we just shut it; otherwise we show it.
 						longPressTimer.stop();
-						System.out.println("showing next");
-						frame.maximizeNextView(frame.getTrackerPanelForID(panelID));
+						if (!hidePopup) {
+							System.out.println("showing next");
+							frame.maximizeNextView(frame.getTrackerPanelForID(panelID));
+							hidePopup = true;
+						}
 					}
 					break;
 				case MouseEvent.MOUSE_CLICKED:
@@ -174,13 +209,13 @@ public class TButton extends JButton {
 					track.tp.setSelectedTrack(track);
 					track.tp.setSelectedPoint(null);
 					track.tp.selectedSteps.clear();
-//        	hidePopup = true;
 				}
 			}
 
 			@Override
 			public void mouseReleased(MouseEvent e) {
 				checkLongPress(e);
+//				hidePopup = (popup != null && popup.isVisible());
 			}
 
 			@Override
@@ -336,6 +371,7 @@ public class TButton extends JButton {
 		if (e == null)
 			hidePopup = false;
 		if (popup != null) {
+			System.out.println("hideP " + hidePopup);
 			if (e != null && e.getClickCount() == 2)
 				hidePopup = false;
 			if (hidePopup) {

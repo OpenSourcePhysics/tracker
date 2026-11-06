@@ -926,8 +926,8 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 			@Override
 			protected JPopupMenu getPopup() {
 				rebuildMobileViewPopup();
-				FontSizer.setFonts(viewPopup);
-				return viewPopup;
+				FontSizer.setFonts(popup);
+				return popup;
 			}
 		}; //$NON-NLS-1$
 		viewButton.setText(TrackerRes.getString("TMenuBar.Menu.Window"));
@@ -1213,7 +1213,7 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 		case BUTTON_CLIP:
 			if (clipCheckbox == null) {
 				clipCheckbox = new JCheckBoxMenuItem("", button.getIcon());
-				clipCheckbox.addActionListener((e) -> {
+	 			clipCheckbox.addActionListener((e) -> {
 					button.doClick(0);
 				});
 			}
