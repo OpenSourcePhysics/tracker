@@ -4832,7 +4832,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			return popup;
 		} finally {
 			displayedPopup = popup;
-			AIPatch.installContextPopupGuard(TrackerPanel.this, popup);
+			// unnecessary AIPatch.installContextPopupGuard(TrackerPanel.this, popup);
 			FontSizer.setFonts(popup, FontSizer.getLevel());
 		}
 	}

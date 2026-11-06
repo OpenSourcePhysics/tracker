@@ -118,7 +118,7 @@ public class TButton extends JButton {
 			if (e == null) {
 				// just here because it only relates to this one type of button
 				// Better would be to create a third Runnable
-				AIPatch.keepPopupOpenUntilSelection(this, this.popup);
+// unnecessary				AIPatch.keepPopupOpenUntilSelection(this, this.popup);
 			} else {
 				System.err.println("TStickyB " + e.getButton() + " " + SwingUtilities.isLeftMouseButton(e) + " " + e.isPopupTrigger() + " " + longPressTimer.isRunning() + " " + e);
 				switch (e.getID()) {
