@@ -2392,21 +2392,22 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			// see which item changed and show/hide corresponding tool
-			panel().setSelectedPoint(null);
-			panel().selectedSteps.clear();
+			TrackerPanel p = panel();
+			p.setSelectedPoint(null);
+			p.selectedSteps.clear();
 			AbstractButton source = (AbstractButton) e.getSource();
-			for (TTrack track : panel().calibrationTools) {
+			for (TTrack track : p.calibrationTools) {
 				if (e.getActionCommand().equals(track.getName())) {
 					if (source.isSelected()) {
-						panel().visibleCalibrationTools.add(track);
+						p.visibleCalibrationTools.add(track);
 						// show only tools in visibleTools
-						for (TTrack next : panel().visibleCalibrationTools) {
+						for (TTrack next : p.visibleCalibrationTools) {
 							showCalibrationTool(next);
 						}
-						panel().setSelectedTrack(track);
+						p.setSelectedTrack(track);
 					} else {
 						hideCalibrationTool(track);
-						panel().visibleCalibrationTools.remove(track);
+						p.visibleCalibrationTools.remove(track);
 					}
 				}
 				refresh();
@@ -2418,7 +2419,7 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 		 *
 		 * @param track a calibration tool
 		 */
-		void showCalibrationTool(TTrack track) {
+		private void showCalibrationTool(TTrack track) {
 			track.erase();
 			track.setVisible(true);
 			panel().setSelectedTrack(track);
@@ -2429,7 +2430,7 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 		 *
 		 * @param track a calibration tool
 		 */
-		void hideCalibrationTool(TTrack track) {
+		private void hideCalibrationTool(TTrack track) {
 			track.setVisible(false);
 			if (panel().getSelectedTrack() == track) {
 				panel().setSelectedTrack(null);
@@ -2441,13 +2442,14 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 		 */
 		void refresh() {
 			setToolTipText(TrackerRes.getString("TToolbar.Button.TapeVisible.Tooltip")); //$NON-NLS-1$
-			// add PROPERTY_TTRACK_VISIBLE property change listeners to calibration tools
-			for (TTrack track : panel().calibrationTools) {
+			TrackerPanel p = panel();
+		// add PROPERTY_TTRACK_VISIBLE property change listeners to calibration tools
+			for (TTrack track : p.calibrationTools) {
 				track.updateListenerVisible(TToolBar.this);
 			}
 			// check visibility of tools and state of menu items
 			boolean toolsVisible = false;
-			for (TTrack track : panel().calibrationTools) {
+			for (TTrack track : p.calibrationTools) {
 				toolsVisible = toolsVisible || track.isVisible();
 			}
 			if (notYetCalibrated && toolsVisible) {
@@ -2479,7 +2481,8 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 		protected JPopupMenu getPopup() {
 			JPopupMenu popup = new JPopupMenu();
 			JMenuItem item;
-			for (TTrack track : panel().measuringTools) {
+			TrackerPanel p = panel();
+			for (TTrack track : p.measuringTools) {
 				item = new JCheckBoxMenuItem(track.getName());
 				item.setSelected(track.isVisible());				
 				item.setActionCommand(track.getName());
@@ -2488,9 +2491,9 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 			}
 			// new measuring tools menu
 			JMenu newToolsMenu = new JMenu(TrackerRes.getString("TMenuBar.MenuItem.NewTrack")); //$NON-NLS-1$
-			TMenuBar.refreshMeasuringToolsMenu(panel(), newToolsMenu);
+			TMenuBar.refreshMeasuringToolsMenu(p, newToolsMenu);
 			if (newToolsMenu.getItemCount() > 0) {
-				if (!panel().measuringTools.isEmpty())
+				if (!p.measuringTools.isEmpty())
 					popup.addSeparator();
 				popup.add(newToolsMenu);
 			}
@@ -2507,21 +2510,22 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			// see which item changed and show/hide corresponding tool
-			panel().setSelectedPoint(null);
-			panel().selectedSteps.clear();
+			TrackerPanel p = panel();
+			p.setSelectedPoint(null);
+			p.selectedSteps.clear();
 			AbstractButton source = (AbstractButton) e.getSource();
-			for (TTrack track : panel().measuringTools) {
+			for (TTrack track : p.measuringTools) {
 				if (e.getActionCommand().equals(track.getName())) {
 					if (source.isSelected()) {
-						panel().visibleMeasuringTools.add(track);
+						p.visibleMeasuringTools.add(track);
 						// show only tools in visibleTools
-						for (TTrack next : panel().visibleMeasuringTools) {
+						for (TTrack next : p.visibleMeasuringTools) {
 							showMeasuringTool(next);
 						}
-						panel().setSelectedTrack(track);
+						p.setSelectedTrack(track);
 					} else {
 						hideMeasuringTool(track);
-						panel().visibleMeasuringTools.remove(track);
+						p.visibleMeasuringTools.remove(track);
 					}
 				}
 			}
@@ -2533,7 +2537,7 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 		 *
 		 * @param track a measuring tool
 		 */
-		void showMeasuringTool(TTrack track) {
+		private void showMeasuringTool(TTrack track) {
 			track.erase();
 			track.setVisible(true);
 			panel().setSelectedTrack(track);
@@ -2544,7 +2548,7 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 		 *
 		 * @param track
 		 */
-		void hideMeasuringTool(TTrack track) {
+		private void hideMeasuringTool(TTrack track) {
 			track.setVisible(false);
 			if (panel().getSelectedTrack() == track) {
 				panel().setSelectedTrack(null);
@@ -2557,14 +2561,15 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 		void refresh() {
 			setToolTipText(TrackerRes.getString("TToolbar.Button.RulerVisible.Tooltip")); //$NON-NLS-1$
 			// add PROPERTY_TTRACK_VISIBLE property change listeners to measuring tools
-			for (TTrack track : panel().measuringTools) {
+			TrackerPanel p = panel();
+			for (TTrack track : p.measuringTools) {
 				track.updateListenerVisible(TToolBar.this);
 			}
 			// check visibility of tools
 			boolean toolsVisible = false;
-			for (TTrack track : panel().measuringTools) {
+			for (TTrack track : p.measuringTools) {
 				if (track.isVisible()) {
-					panel().visibleMeasuringTools.add(track);
+					p.visibleMeasuringTools.add(track);
 					toolsVisible = true;
 				}
 			}
@@ -2609,12 +2614,13 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 			drawingVisibleCheckbox = new JCheckBoxMenuItem();
 			drawingVisibleCheckbox.setSelected(true);
 			drawingVisibleCheckbox.addActionListener((e) -> {
-				panel().setSelectedPoint(null);
-				panel().selectedSteps.clear();
-				PencilDrawer drawer = PencilDrawer.getDrawer(panel());
+				TrackerPanel p = panel();
+				p.setSelectedPoint(null);
+				p.selectedSteps.clear();
+				PencilDrawer drawer = PencilDrawer.getDrawer(p);
 				drawer.setDrawingsVisible(!drawer.areDrawingsVisible(), true);
 				drawingVisibleCheckbox.setSelected(drawer.areDrawingsVisible());
-				TFrame.repaintT(panel());
+				TFrame.repaintT(p);
 			});
 			popup = new JPopupMenu();
 		}
@@ -2632,17 +2638,18 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 		public void actionPerformed(ActionEvent e) {
 			if (showPopup)
 				return;
-			panel().setSelectedPoint(null);
-			panel().selectedSteps.clear();
-			panel().hideMouseBox();
+			TrackerPanel p = panel();
+			p.setSelectedPoint(null);
+			p.selectedSteps.clear();
+			p.hideMouseBox();
 			setSelected(!isSelected());
-			PencilDrawer drawer = PencilDrawer.getDrawer(panel());
+			PencilDrawer drawer = PencilDrawer.getDrawer(p);
 			drawer.getDrawingControl().setVisible(isSelected());
 			if (isSelected()) {
 				if (drawer.scenes.isEmpty()) {
 					drawer.addNewScene();
 				} else {	
-					PencilScene scene = drawer.getSceneAtFrame(panel().getFrameNumber());
+					PencilScene scene = drawer.getSceneAtFrame(p.getFrameNumber());
 					drawer.getDrawingControl().setSelectedScene(scene);
 				}
 				drawer.setDrawingsVisible(true, true);
@@ -2665,41 +2672,42 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 	}
 	
 	/**
-	 * A button that adjusts its width for mobile devices.
-	 */
-	protected class MobileButton extends TButton {
-		
-		int iconTextGap = 4;
-		
-		MobileButton() {
-			super();
-//			alwaysShowBorder(true);
-			setIconTextGap(iconTextGap);
-		}
-		
-		@Override
-		public int getHorizontalTextPosition() {
-			return JButton.LEADING;
-		}
-		
-		@Override
-		public Dimension getPreferredSize() {
-			Dimension dim = super.getPreferredSize();
-			if (OSPRuntime.isMobile() || OSPRuntime.isSmallScreen(frame)) {
-				Dimension size = OSPRuntime.getHTMLPageSize();
-				dim.width = size.width / 6;
-				dim.width = Math.min(dim.width, super.getPreferredSize().width+12);
-			}
-			return dim;
-		}
-	}
-	
-	/**
 	 * A private class to consolidate everything mobile about the toolbar.
 	 * 
 	 */
 
 	private class Mobile {
+		
+		/**
+		 * A button that adjusts its width for mobile devices.
+		 */
+		protected class MobileButton extends TButton {
+			
+			int iconTextGap = 4;
+			
+			MobileButton() {
+				super();
+//				alwaysShowBorder(true);
+				setIconTextGap(iconTextGap);
+			}
+			
+			@Override
+			public int getHorizontalTextPosition() {
+				return JButton.LEADING;
+			}
+			
+			@Override
+			public Dimension getPreferredSize() {
+				Dimension dim = super.getPreferredSize();
+				if (OSPRuntime.isMobile() || OSPRuntime.isSmallScreen(frame)) {
+					Dimension size = OSPRuntime.getHTMLPageSize();
+					dim.width = size.width / 6;
+					dim.width = Math.min(dim.width, super.getPreferredSize().width+12);
+				}
+				return dim;
+			}
+		}
+		
 		// mobile buttons and popups
 		final protected JPopupMenu mobileFilePopup, mobileVideoPopup, mobileCoordsPopup, mobileTrackPopup, mobileViewPopup; 
 		final protected JPopupMenu mobileEditPopup, mobileHelpPopup; 
@@ -2883,7 +2891,8 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 			mobileFilePopup.add(frame.currentMenuBar.getMenuItem("file_newTabItem"));
 			mobileFilePopup.addSeparator();
 
-			if (panel().isEnabled("file.open")) { //$NON-NLS-1$
+			TrackerPanel p = panel();
+			if (p.isEnabled("file.open")) { //$NON-NLS-1$
 				add(openButton, mobileFilePopup);
 				refreshOpenPopup(openMenu.getPopupMenu());
 				// move items from openMenu to filePopup
@@ -2899,7 +2908,7 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 			}
 //			filePopup.add(frame.currentMenuBar.getMenuItem("file_closeItem"));
 			mobileFilePopup.addSeparator();
-			if (panel().isEnabled("file.save")) { //$NON-NLS-1$
+			if (p.isEnabled("file.save")) { //$NON-NLS-1$
 				add(saveButton, mobileFilePopup);
 				refreshSavePopup(saveMenu.getPopupMenu());
 				// move items from saveMenu to filePopup
@@ -2923,20 +2932,21 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 			if (frame.currentMenuBar == null) {
 				return;
 			}
-			
-			boolean importEnabled = panel().isEnabled("video.import") //$NON-NLS-1$
-					|| panel().isEnabled("video.open"); //$NON-NLS-1$
+
+			TrackerPanel p = panel();
+			boolean importEnabled = p.isEnabled("video.import") //$NON-NLS-1$
+					|| p.isEnabled("video.open"); //$NON-NLS-1$
 			if (importEnabled) {
 				JMenuItem item = frame.currentMenuBar.getMenuItem("video_openVideoItem");
 				item.setIcon(Tracker.getResourceIcon("open.gif", true)); //$NON-NLS-1$
 				mobileVideoPopup.add(item);
 				mobileVideoPopup.add(frame.currentMenuBar.getMenuItem("video_captureItem"));
 			}
-			if (panel().getVideo() != null)
+			if (p.getVideo() != null)
 				mobileVideoPopup.add(frame.currentMenuBar.getMenuItem("video_closeVideoItem"));
 				
 			mobileVideoPopup.addSeparator();
-			if (panel().isEnabled("button.clipSettings")) {//$NON-NLS-1$
+			if (p.isEnabled("button.clipSettings")) {//$NON-NLS-1$
 //				add(clipSettingsButton, videoPopup);
 				mobileVideoPopup.add(frame.currentMenuBar.getMenuItem("video_clipSettingsItem"));
 				if (frame.currentMenuBar != null) {
@@ -2945,15 +2955,15 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 				mobileVideoPopup.addSeparator();
 			}
 			
-			if (panel().getVideo() != null)
+			if (p.getVideo() != null)
 				mobileVideoPopup.add(frame.currentMenuBar.getMenuItem("video_videoVisibleItem"));
 			
 			JMenuItem item = add(zoomButton, mobileVideoPopup);
 			String text = item.getText();
-			double zoom = panel().getMagnification() * 100;
+			double zoom = p.getMagnification() * 100;
 			item.setText(text + " (" + zoomFormat.format(zoom) + "%)");
-			if (panel().getVideo() != null) { //$NON-NLS-1$
-				if (panel().isEnabled("video.filters")) { //$NON-NLS-1$
+			if (p.getVideo() != null) { //$NON-NLS-1$
+				if (p.isEnabled("video.filters")) { //$NON-NLS-1$
 					mobileVideoPopup.addSeparator();
 					frame.currentMenuBar.refreshVideoMenu(true);
 					mobileVideoPopup.add(frame.currentMenuBar.getMenuItem("video_filtersMenu"));
@@ -2971,14 +2981,15 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 			if (frame.currentMenuBar == null) 
 				return;
 			
-			if (panel().isEnabled("button.axes")) {//$NON-NLS-1$
+			TrackerPanel p = panel();
+			if (p.isEnabled("button.axes")) {//$NON-NLS-1$
 				add(axesButton, mobileCoordsPopup);
 				mobileCoordsPopup.addSeparator();
 			}
-			if (panel().isEnabled("calibration.stick") //$NON-NLS-1$
-					|| panel().isEnabled("calibration.tape") //$NON-NLS-1$
-					|| panel().isEnabled("calibration.points") //$NON-NLS-1$
-					|| panel().isEnabled("calibration.offsetOrigin")) { //$NON-NLS-1$
+			if (p.isEnabled("calibration.stick") //$NON-NLS-1$
+					|| p.isEnabled("calibration.tape") //$NON-NLS-1$
+					|| p.isEnabled("calibration.points") //$NON-NLS-1$
+					|| p.isEnabled("calibration.offsetOrigin")) { //$NON-NLS-1$
 				add(calibrationButton, mobileCoordsPopup);
 			}
 			mobileCoordsPopup.addSeparator();
@@ -3003,9 +3014,10 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 			boolean eyeEnabled = false;
 			String[] fullconfig = Tracker.getFullConfig().toArray(new String[0]);
 			
+			TrackerPanel p = panel();
 			for (int i = 0; i < fullconfig.length; i++) {
 				if (fullconfig[i].startsWith("new.") && !fullconfig[i].endsWith("clone")) {
-					if (panel().isEnabled(fullconfig[i])) {
+					if (p.isEnabled(fullconfig[i])) {
 						if (fullconfig[i].endsWith("tapeMeasure")
 								|| fullconfig[i].endsWith("protractor")
 								|| fullconfig[i].endsWith("circleFitter"))
@@ -3016,15 +3028,15 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 						&& !fullconfig[i].endsWith("clipSettings")
 						&& !fullconfig[i].endsWith("axes")
 						&& !fullconfig[i].endsWith("drawing")) {
-					if (panel().isEnabled(fullconfig[i])) {
+					if (p.isEnabled(fullconfig[i])) {
 						eyeEnabled = true;
 					}
 				}
 			}
 
-			if (panel().isCreateTracksEnabled()) {
+			if (p.isCreateTracksEnabled()) {
 				JMenu newTrackMenu = new JMenu(TrackerRes.getString("TMenuBar.MenuItem.NewTrack"));
-				TMenuBar.refreshPopup(panel(), TMenuBar.POPUPMENU_MOBILE_TRACKS, newTrackMenu.getPopupMenu());
+				TMenuBar.refreshPopup(p, TMenuBar.POPUPMENU_MOBILE_TRACKS, newTrackMenu.getPopupMenu());
 				FontSizer.setFont(newTrackMenu);
 				mobileTrackPopup.add(newTrackMenu);
 				mobileTrackPopup.addSeparator();
@@ -3033,13 +3045,13 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 				trackControlCheckbox.setSelected(trackControlButton.isSelected());
 			}
 
-			if (panel().isEnabled("track.autotrack")) { //$NON-NLS-1$
+			if (p.isEnabled("track.autotrack")) { //$NON-NLS-1$
 				add(autotrackerButton, mobileTrackPopup);
 				autotrackerCheckbox.setSelected(autotrackerButton.isSelected());
 			}
 			else {
 				// if not enabled, close autotracker if visible
-				AutoTracker autoTracker = panel().getAutoTracker(false);
+				AutoTracker autoTracker = p.getAutoTracker(false);
 				if (autoTracker != null)
 					autoTracker.getWizard().setVisible(false);
 			}
@@ -3057,7 +3069,7 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 			}
 			
 			JMenu selectMenu = new JMenu(TrackerRes.getString("TToolBar.Menu.Select.Text"));
-			TTrackBar trackbar = frame.getTrackBar(panel().getID(), true);
+			TTrackBar trackbar = frame.getTrackBar(p.getID(), true);
 			trackbar.getSelectTrackPopup(selectMenu.getPopupMenu());
 			mobileTrackPopup.addSeparator();
 			mobileTrackPopup.add(selectMenu);
@@ -3073,9 +3085,10 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 			mobileViewPopup.add(frame.currentMenuBar.getMenuItem("view_singleViewMenu"));
 			mobileViewPopup.addSeparator();
 
+			TrackerPanel p = panel();
 			boolean small = OSPRuntime.isSmallScreen(frame);
 			if (!small) {
-				if (panel().getMaximizedView() != TView.VIEW_UNSET) {
+				if (p.getMaximizedView() != TView.VIEW_UNSET) {
 						mobileViewPopup.add(frame.currentMenuBar.getMenuItem("view_restoreItem"));
 				} else {
 					mobileViewPopup.add(frame.currentMenuBar.getMenuItem("view_rightPaneItem"));
@@ -3086,11 +3099,11 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 				mobileViewPopup.addSeparator();
 			}
 			
-			if (panel().isEnabled("data.builder") //$NON-NLS-1$
-					|| panel().isEnabled("data.tool")) { //$NON-NLS-1$
-				if (panel().isEnabled("data.builder")) //$NON-NLS-1$
+			if (p.isEnabled("data.builder") //$NON-NLS-1$
+					|| p.isEnabled("data.tool")) { //$NON-NLS-1$
+				if (p.isEnabled("data.builder")) //$NON-NLS-1$
 					mobileViewPopup.add(frame.currentMenuBar.getMenuItem("view_dataBuilderItem"));
-				if (panel().isEnabled("data.tool")) //$NON-NLS-1$					
+				if (p.isEnabled("data.tool")) //$NON-NLS-1$					
 					mobileViewPopup.add(frame.currentMenuBar.getMenuItem("view_dataToolItem"));
 			}
 			mobileViewPopup.addSeparator();
@@ -3101,17 +3114,18 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 			if (frame.currentMenuBar != null) {
 				mobileEditPopup.removeAll();
 
-				if (panel().isEnabled("button.drawing")) { //$NON-NLS-1$
+				TrackerPanel p = panel();
+				if (p.isEnabled("button.drawing")) { //$NON-NLS-1$
 					drawingButton.drawingVisibleCheckbox.setText(TrackerRes.getString("TTrack.MenuItem.Visible"));				
 					add(drawingButton, mobileEditPopup);
-					PencilDrawer drawer = PencilDrawer.getDrawer(panel());
+					PencilDrawer drawer = PencilDrawer.getDrawer(p);
 					drawingButton.drawingVisibleCheckbox.setSelected(drawer.areDrawingsVisible());
 					drawingButton.drawingVisibleCheckbox.setEnabled(
-							PencilDrawer.hasDrawings(panel()) && !PencilDrawer.isDrawing(panel()));
+							PencilDrawer.hasDrawings(p) && !PencilDrawer.isDrawing(p));
 					drawingControlCheckbox.setText(TrackerRes.getString("TToolBar.Checkbox.DrawingControl"));				
 					drawingControlCheckbox.setSelected(drawingButton.isSelected());
 					drawingMenu.removeAll();
-					if (PencilDrawer.hasDrawings(panel()))
+					if (PencilDrawer.hasDrawings(p))
 						drawingMenu.add(drawingButton.drawingVisibleCheckbox);
 					drawingMenu.add(drawingControlCheckbox);
 				}
@@ -3185,17 +3199,17 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 					overflowPopup.add(mobileHelpMenu);
 				}
 				
-//				if (panel().isEnabled("button.drawing")) { //$NON-NLS-1$
+//				if (p.isEnabled("button.drawing")) { //$NON-NLS-1$
 //					drawingButton.drawingVisibleCheckbox.setText(TrackerRes.getString("TTrack.MenuItem.Visible"));				
 //					add(drawingButton, overflowPopup);
-//					PencilDrawer drawer = PencilDrawer.getDrawer(panel());
+//					PencilDrawer drawer = PencilDrawer.getDrawer(p);
 //					drawingButton.drawingVisibleCheckbox.setSelected(drawer.areDrawingsVisible());
 //					drawingButton.drawingVisibleCheckbox.setEnabled(
-//							PencilDrawer.hasDrawings(panel()) && !PencilDrawer.isDrawing(panel()));
+//							PencilDrawer.hasDrawings(p) && !PencilDrawer.isDrawing(p));
 //					drawingControlCheckbox.setText(TrackerRes.getString("TToolBar.Checkbox.DrawingControl"));				
 //					drawingControlCheckbox.setSelected(drawingButton.isSelected());
 //					drawingMenu.removeAll();
-//					if (PencilDrawer.hasDrawings(panel()))
+//					if (PencilDrawer.hasDrawings(p))
 //						drawingMenu.add(drawingButton.drawingVisibleCheckbox);
 //					drawingMenu.add(drawingControlCheckbox);
 //				}

@@ -343,7 +343,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 	private JMenu helpMenu;
 
 	protected int enabledNewTrackCount = 0;
-	private Integer panelID;
+	private /* essentially final */ Integer panelID;
 
 //	/**
 //	 * Returns a TMenuBar for the specified trackerPanel.
@@ -610,6 +610,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 	private static boolean testing = false;
 	
 	private void createFileMenu(int keyMask) {
+		TrackerPanel p = panel();
 		fileMenu = new JMenu(TrackerRes.getString("TMenuBar.Menu.File"));
 		fileMenu.setName("file");
 		fileMenu.addMenuListener(this);
@@ -653,7 +654,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		file_reloadItem = new JMenuItem(new AbstractAction() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				panel().reload();
+				p.reload();
 			}			
 		}); //$NON-NLS-1$
 		file_reloadItem.setAccelerator(KeyStroke.getKeyStroke('R', keyMask));
@@ -669,14 +670,13 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		// export video item
 		file_export_videoItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.VideoClip") + "..."); //$NON-NLS-1$ //$NON-NLS-2$
 		file_export_videoItem.addActionListener((e) -> {
-			TrackerPanel trackerPanel = panel();
 			// Finish dispatching the menu click before opening a modal dialog.
 			// SwingJS can otherwise leave the File popup active behind the dialog.
 			SwingUtilities.invokeLater(() -> {
 				MenuSelectionManager.defaultManager().clearSelectedPath();
 				file_exportMenu.getPopupMenu().setVisible(false);
 				fileMenu.getPopupMenu().setVisible(false);
-				ExportVideoDialog exporter = ExportVideoDialog.getVideoDialog(trackerPanel);
+				ExportVideoDialog exporter = ExportVideoDialog.getVideoDialog(p);
 				exporter.setVisible(true);
 			});
 		});
@@ -686,13 +686,13 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		// export thumbnail item
 		file_export_thumbnailItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.Thumbnail") + "..."); //$NON-NLS-1$ //$NON-NLS-2$
 		file_export_thumbnailItem.addActionListener((e) -> {
-			ThumbnailDialog.getDialog(panel(), true).setVisible(true);
+			ThumbnailDialog.getDialog(p, true).setVisible(true);
 		});
 		file_exportMenu.add(file_export_thumbnailItem);
 		// export data item
 		file_export_dataItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.Data")); //$NON-NLS-1$
 		file_export_dataItem.addActionListener((e) -> {
-			ExportDataDialog exporter = ExportDataDialog.getDialog(panel());
+			ExportDataDialog exporter = ExportDataDialog.getDialog(p);
 			exporter.setVisible(true);
 		});
 		file_exportMenu.add(file_export_dataItem);
@@ -702,7 +702,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		file_saveItem = new JMenuItem(actions.get("save")); //$NON-NLS-1$
 		file_saveItem.setAccelerator(KeyStroke.getKeyStroke('S', keyMask));
 //		file_saveItem.setDisabledIcon(file_saveItem.getIcon());
-		File file = panel().getDataFile();
+		File file = p.getDataFile();
 		String path = file == null? "...": " \"" + file.getName() + "\"";
 		file_saveItem.setText(TrackerRes.getString("TMenuBar.MenuItem.Tab")+path);
 		file_saveMenu.setIcon(file_saveItem.getIcon());
@@ -731,7 +731,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		file_printFrameItem.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				Component c = panel().getTFrame();
+				Component c = p.getTFrame();
 				new TrackerIO.ComponentImage(c).print();
 			}
 		});
@@ -750,6 +750,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 	}
 
 	private void createEditMenu(int keyMask) {
+		TrackerPanel p = panel();
 		editMenu = new JMenu(TrackerRes.getString("TMenuBar.Menu.Edit"));//$NON-NLS-1$
 		editMenu.setName("edit");
 		editMenu.addMenuListener(this);
@@ -757,18 +758,18 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		edit_undoItem = new JMenuItem();
 		edit_undoItem.setAccelerator(KeyStroke.getKeyStroke('Z', keyMask));
 		edit_undoItem.addActionListener((e) -> {
-				panel().setSelectedPoint(null);
-				panel().selectedSteps.clear();
-				if (Undo.canUndo(panel()))
-					Undo.undo(panel());
+				p.setSelectedPoint(null);
+				p.selectedSteps.clear();
+				if (Undo.canUndo(p))
+					Undo.undo(p);
 		});
 		edit_redoItem = new JMenuItem();
 		edit_redoItem.setAccelerator(KeyStroke.getKeyStroke('Y', keyMask));
 		edit_redoItem.addActionListener((e) -> {
-				if (Undo.canRedo(panel()))
-					Undo.redo(panel());
-				panel().setSelectedPoint(null);
-				panel().selectedSteps.clear();
+				if (Undo.canRedo(p))
+					Undo.redo(p);
+				p.setSelectedPoint(null);
+				p.selectedSteps.clear();
 		});
 		// paste items
 		edit_pasteItem = editMenu.add(actions.get("paste")); //$NON-NLS-1$
@@ -833,6 +834,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 	}
 
 	private void createCoordsMenu(int keyMask) {
+		TrackerPanel p = panel();
 		coordsMenu = new JMenu(TrackerRes.getString("TMenuBar.Menu.Coords")); //$NON-NLS-1$
 		coordsMenu.setName("coords");
 		coordsMenu.addMenuListener(this);
@@ -859,36 +861,36 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		coords_fixedOriginItem.setSelected(true);
 		coordsMenu.add(coords_fixedOriginItem);
 		coords_fixedOriginItem.addItemListener((e) -> {
-				int n = panel().getFrameNumber();
-				ImageCoordSystem coords = panel().getCoords();
-				XMLControl currentState = new XMLControlElement(panel().getCoords());
+				int n = p.getFrameNumber();
+				ImageCoordSystem coords = p.getCoords();
+				XMLControl currentState = new XMLControlElement(p.getCoords());
 				coords.setFixedOrigin(coords_fixedOriginItem.isSelected(), n);
 				if (!refreshing)
-					Undo.postCoordsEdit(panel(), currentState);
+					Undo.postCoordsEdit(p, currentState);
 		});
 		// fixed angle item
 		coords_fixedAngleItem = new JCheckBoxMenuItem(TrackerRes.getString("TMenuBar.MenuItem.CoordsFixedAngle")); //$NON-NLS-1$
 		coords_fixedAngleItem.setSelected(true);
 		coordsMenu.add(coords_fixedAngleItem);
 		coords_fixedAngleItem.addItemListener((e) -> {
-				int n = panel().getFrameNumber();
-				ImageCoordSystem coords = panel().getCoords();
-				XMLControl currentState = new XMLControlElement(panel().getCoords());
+				int n = p.getFrameNumber();
+				ImageCoordSystem coords = p.getCoords();
+				XMLControl currentState = new XMLControlElement(p.getCoords());
 				coords.setFixedAngle(coords_fixedAngleItem.isSelected(), n);
 				if (!refreshing)
-					Undo.postCoordsEdit(panel(), currentState);
+					Undo.postCoordsEdit(p, currentState);
 		});
 		// fixed scale item
 		coords_fixedScaleItem = new JCheckBoxMenuItem(TrackerRes.getString("TMenuBar.MenuItem.CoordsFixedScale")); //$NON-NLS-1$
 		coords_fixedScaleItem.setSelected(true);
 		coordsMenu.add(coords_fixedScaleItem);
 		coords_fixedScaleItem.addItemListener((e) -> {
-				int n = panel().getFrameNumber();
-				ImageCoordSystem coords = panel().getCoords();
-				XMLControl currentState = new XMLControlElement(panel().getCoords());
+				int n = p.getFrameNumber();
+				ImageCoordSystem coords = p.getCoords();
+				XMLControl currentState = new XMLControlElement(p.getCoords());
 				coords.setFixedScale(coords_fixedScaleItem.isSelected(), n);
 				if (!refreshing)
-					Undo.postCoordsEdit(panel(), currentState);
+					Undo.postCoordsEdit(p, currentState);
 		});
 		coordsMenu.addSeparator();
 //		    applyCurrentFrameToAllItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.AllFramesLikeCurrent")); //$NON-NLS-1$
@@ -915,6 +917,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 	}
 
 	private void createVideoMenu(int keyMask) {
+		TrackerPanel p = panel();
 		videoMenu = new JMenu(TrackerRes.getString("TMenuBar.Menu.Video")); //$NON-NLS-1$
 		videoMenu.setName("video");
 		videoMenu.addMenuListener(this);
@@ -929,10 +932,10 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 				Image image = TrackerIO.getClipboardImage();
 				if (image != null) {
 					Video video = new ImageVideo(image);
-					panel().setVideo(video);
+					p.setVideo(video);
 					// set step number to show image in all frames
-					int n = panel().getPlayer().getVideoClip().getStepCount();
-					panel().getPlayer().getVideoClip().setStepCount(n);
+					int n = p.getPlayer().getVideoClip().getStepCount();
+					p.getPlayer().getVideoClip().setStepCount(n);
 				}
 			}
 		};
@@ -943,19 +946,19 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 				new AbstractAction(TrackerRes.getString("TMenuBar.MenuItem.EditVideoFrames")) { //$NON-NLS-1$
 					@Override
 					public void actionPerformed(ActionEvent e) {
-						Video video = panel().getVideo();
+						Video video = p.getVideo();
 						if (video != null && video instanceof ImageVideo) {
 							boolean edit = video_editVideoItem.isSelected();
 							ImageVideo iVideo = (ImageVideo) video;
 							if (!edit) {
 								// convert video to non-editable?
 								try {
-									int n = panel().getFrameNumber();
+									int n = p.getFrameNumber();
 									iVideo.setEditable(false);
 									iVideo.setFrameNumber(n);
-//									panel().getPlayer().setStepNumber(n);
+//									p.getPlayer().setStepNumber(n);
 									refresh("menuItem.editVideoFrames !edit");
-									TToolBar.refreshMemoryButton(panel());
+									TToolBar.refreshMemoryButton(p);
 								} catch (Exception e1) {
 									OSPRuntime.beep("exception occurred: " + e1);
 								}
@@ -985,12 +988,12 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 									boolean error = false;
 									// convert video to editable
 									try {
-										int n = panel().getFrameNumber();
+										int n = p.getFrameNumber();
 										iVideo.setEditable(true);
 										iVideo.setFrameNumber(n);
-//									panel().getPlayer().setStepNumber(n);
+//									p.getPlayer().setStepNumber(n);
 										refresh("memory_issue");
-										TToolBar.refreshMemoryButton(panel());
+										TToolBar.refreshMemoryButton(p);
 									} catch (Exception ex) {
 										OSPRuntime.beep("TMenuBar exception " + ex);
 										error = true;
@@ -1002,16 +1005,16 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 										if (error) {
 											// try to revert to non-editable
 											try {
-												int n = panel().getFrameNumber();
+												int n = p.getFrameNumber();
 												iVideo.setEditable(false);
 												iVideo.setFrameNumber(n);
-//											panel().getPlayer().setStepNumber(n);
+//											p.getPlayer().setStepNumber(n);
 											} catch (Exception ex) {
 											} catch (Error er) {
 											}
 											System.gc();
 											refresh("memory error");
-											TToolBar.refreshMemoryButton(panel());
+											TToolBar.refreshMemoryButton(p);
 										}
 									}
 								} else { // user canceled
@@ -1032,12 +1035,12 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 					public void actionPerformed(ActionEvent e) {
 						Image image = TrackerIO.getClipboardImage();
 						if (image != null) {
-							int n = panel().getFrameNumber();
-							ImageVideo imageVid = (ImageVideo) panel().getVideo();
+							int n = p.getFrameNumber();
+							ImageVideo imageVid = (ImageVideo) p.getVideo();
 							imageVid.insert(image, n + 1);
-							VideoClip clip = panel().getPlayer().getVideoClip();
+							VideoClip clip = p.getPlayer().getVideoClip();
 							clip.setStepCount(imageVid.getFrameCount());
-							panel().getPlayer().setStepNumber(clip.frameToStep(n + 1));
+							p.getPlayer().setStepNumber(clip.frameToStep(n + 1));
 							refresh("menuItem.pageInsertAfter");
 							checkMatSize();
 						}
@@ -1050,12 +1053,12 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 					public void actionPerformed(ActionEvent e) {
 						Image image = TrackerIO.getClipboardImage();
 						if (image != null) {
-							int n = panel().getFrameNumber();
-							ImageVideo imageVid = (ImageVideo) panel().getVideo();
+							int n = p.getFrameNumber();
+							ImageVideo imageVid = (ImageVideo) p.getVideo();
 							imageVid.insert(image, n);
-							VideoClip clip = panel().getPlayer().getVideoClip();
+							VideoClip clip = p.getPlayer().getVideoClip();
 							clip.setStepCount(imageVid.getFrameCount());
-							panel().getPlayer().setStepNumber(clip.frameToStep(n));
+							p.getPlayer().setStepNumber(clip.frameToStep(n));
 							refresh("menuItem.pastImageBefore");
 							checkMatSize();
 						}
@@ -1071,14 +1074,14 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		// clip settings item
 		video_clipSettingsItem = new JMenuItem(MediaRes.getString("ClipInspector.Title") + "..."); //$NON-NLS-1$ //$NON-NLS-2$
 		video_clipSettingsItem.addActionListener((e) -> {
-			panel().setClipSettingsVisible(true);
+			p.setClipSettingsVisible(true);
 		});
 		video_clipSettingsItem.setIcon(TToolBar.clipOffIcon);
 		// goTo item
 		video_goToItem = new JMenuItem(MediaRes.getString("VideoPlayer.Readout.Menu.GoTo") + "..."); //$NON-NLS-1$ //$NON-NLS-2$
 		video_goToItem.setAccelerator(KeyStroke.getKeyStroke('G', keyMask));
 		video_goToItem.addActionListener((e) -> {
-				VideoPlayer player = panel().getPlayer();
+				VideoPlayer player = p.getPlayer();
 				player.showGoToDialog();
 		});
 
@@ -1086,13 +1089,13 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		video_importImageMenu = new JMenu(TrackerRes.getString("TMenuBar.Menu.AddImage")); //$NON-NLS-1$
 		addImageAfterItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.AddAfter")); //$NON-NLS-1$
 		addImageAfterItem.addActionListener((e) -> {
-				TrackerIO.insertImagesIntoVideo(panel(),  panel().getFrameNumber() + 1);
+				TrackerIO.insertImagesIntoVideo(p,  p.getFrameNumber() + 1);
 				checkMatSize();
 //				refresh("menuItem.addAfter");
 		});
 		addImageBeforeItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.AddBefore")); //$NON-NLS-1$
 		addImageBeforeItem.addActionListener((e) -> {
-				TrackerIO.insertImagesIntoVideo(panel(), panel().getFrameNumber());
+				TrackerIO.insertImagesIntoVideo(p, p.getFrameNumber());
 				checkMatSize();
 //				refresh("menuItem.addBefore");
 		});
@@ -1101,26 +1104,26 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		video_removeImageItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.RemoveImage")); //$NON-NLS-1$
 		video_removeImageItem.setAccelerator(KeyStroke.getKeyStroke('R', keyMask));
 		video_removeImageItem.addActionListener((e) -> {
-				ImageVideo imageVid = (ImageVideo) panel().getVideo();
-				int n = panel().getFrameNumber();
+				ImageVideo imageVid = (ImageVideo) p.getVideo();
+				int n = p.getFrameNumber();
 				String path = imageVid.remove(n);
 				int len = imageVid.getFrameCount();
-				VideoClip clip = panel().getPlayer().getVideoClip();
+				VideoClip clip = p.getPlayer().getVideoClip();
 				clip.setStepCount(len);
 				int step = Math.min(n, len - 1);
 				step = clip.frameToStep(step);
-				panel().getPlayer().setStepNumber(step);
+				p.getPlayer().setStepNumber(step);
 				if (path != null && !path.equals("")) //$NON-NLS-1$
-					Undo.postImageVideoEdit(panel(), new String[] { path }, n, step, false);
+					Undo.postImageVideoEdit(p, new String[] { path }, n, step, false);
 				refresh("menuItem.removeImage");
 		});
 		// play all steps item
 		video_playAllStepsItem = new JCheckBoxMenuItem(TrackerRes.getString("TMenuBar.MenuItem.PlayAllSteps"), //$NON-NLS-1$
 				true);
-		VideoClip clip = panel().getPlayer().getVideoClip();
+		VideoClip clip = p.getPlayer().getVideoClip();
 		video_playAllStepsItem.setSelected(clip.isPlayAllSteps());
 		video_playAllStepsItem.addActionListener((e) -> {
-				VideoPlayer player = panel().getPlayer();
+				VideoPlayer player = p.getPlayer();
 				VideoClip c = player.getVideoClip();
 				c.setPlayAllSteps(video_playAllStepsItem.isSelected());
 				player.setVideoClip(c);
@@ -1129,17 +1132,17 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		video_videoVisibleItem = new JCheckBoxMenuItem(TrackerRes.getString("TMenuBar.MenuItem.VideoVisible")); //$NON-NLS-1$
 		video_videoVisibleItem.setSelected(true);
 		video_videoVisibleItem.addItemListener((e) -> {
-				Video video = panel().getVideo();
+				Video video = p.getVideo();
 				if (e.getStateChange() != ItemEvent.SELECTED && e.getStateChange() != ItemEvent.DESELECTED
 						|| video == null)
 					return;
 				boolean visible = video_videoVisibleItem.isSelected();
-				panel().setVideoVisible(visible);
+				p.setVideoVisible(visible);
 		});
 		// play xuggle smoothly item
 		video_playXuggleSmoothlyItem = new JCheckBoxMenuItem(TrackerRes.getString("XuggleVideo.MenuItem.SmoothPlay")); //$NON-NLS-1$
 		video_playXuggleSmoothlyItem.addItemListener((e) -> {
-				Video video = panel().getVideo();
+				Video video = p.getVideo();
 				if (video instanceof SmoothPlayable) {
 					if (e.getStateChange() == ItemEvent.SELECTED || e.getStateChange() == ItemEvent.DESELECTED) {
 						((SmoothPlayable) video).setSmoothPlay(video_playXuggleSmoothlyItem.isSelected());
@@ -1150,7 +1153,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		video_checkDurationsItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.CheckFrameDurations") + "..."); //$NON-NLS-1$ //$NON-NLS-2$
 		video_checkDurationsItem.addActionListener((e) -> {
 				// show dialog always but with no "don't show again" button
-				TrackerIO.findBadVideoFrames(panel(), TrackerIO.defaultBadFrameTolerance, true, false, false);
+				TrackerIO.findBadVideoFrames(p, TrackerIO.defaultBadFrameTolerance, true, false, false);
 		});
 		// about video item
 		video_aboutVideoItem = videoMenu.add(actions.get("aboutVideo")); //$NON-NLS-1$
@@ -1164,15 +1167,15 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		video_pasteFilterItem = new JMenuItem(TrackerRes.getString("TActions.Action.Paste")); //$NON-NLS-1$
 		video_pasteFilterItem.addActionListener((e) -> {
 				OSPRuntime.paste((s) -> {
-					if (s != null && panel().getVideo() != null) {
+					if (s != null && p.getVideo() != null) {
 						XMLControlElement control = new XMLControlElement(s);
 						Class<?> type = control.getObjectClass();
 						if (control.failedToRead() || type == null || !Filter.class.isAssignableFrom(type))
 							return;
 						Filter filter = (Filter) control.loadObject(null);
 						if (filter == null) return;
-						panel().getVideo().getFilterStack().addFilter(filter);
-						filter.setVideoPanel(panel());
+						p.getVideo().getFilterStack().addFilter(filter);
+						filter.setVideoPanel(p);
 					}
 				});
 		});
@@ -1263,6 +1266,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 	}
 
 	private void createViewMenu(int keyMask) {
+		TrackerPanel p = panel();
 		viewMenu = new JMenu(TrackerRes.getString("TMenuBar.Menu.Window")); //$NON-NLS-1$
 		viewMenu.setName("window");
 		viewMenu.addMenuListener(this);
@@ -1294,14 +1298,14 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		// restoreItem
 		view_restoreItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.Restore")); //$NON-NLS-1$
 		view_restoreItem.addActionListener((e) -> {
-			frame.restoreViews(panel());
+			frame.restoreViews(p);
 		});
 		// right Pane item
 		view_rightPaneItem = new JCheckBoxMenuItem(TrackerRes.getString("TMenuBar.MenuItem.WindowRight"), false); //$NON-NLS-1$
 		view_rightPaneItem.setAccelerator(KeyStroke.getKeyStroke('R', keyMask));
 		view_rightPaneItem.addActionListener((e) -> {
 				if (frame != null) {
-					JSplitPane pane = frame.getSplitPane(panel(), 0);
+					JSplitPane pane = frame.getSplitPane(p, 0);
 					if (view_rightPaneItem.isSelected()) {
 						pane.setDividerLocation(TFrame.DEFAULT_MAIN_DIVIDER);
 					} else {
@@ -1315,7 +1319,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		view_bottomPaneItem.setAccelerator(KeyStroke.getKeyStroke('B', keyMask));
 		view_bottomPaneItem.addActionListener((e) -> {
 				if (frame != null) {
-					JSplitPane pane = frame.getSplitPane(panel(), 2);
+					JSplitPane pane = frame.getSplitPane(p, 2);
 					if (view_bottomPaneItem.isSelected()) {
 						pane.setDividerLocation(TFrame.DEFAULT_LEFT_DIVIDER);
 					} else {
@@ -1339,9 +1343,8 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 					if (popup instanceof JPopupMenu) {
 						((JPopupMenu) popup).setVisible(false);
 					}
-					OSPRuntime.preferMobile = mobile;
-					OSPRuntime.neverMobile = !mobile;
-					panel().taintEnabled();
+					OSPRuntime.setMobile(mobile);
+					p.taintEnabled();
 					TToolBar toolbar = frame.getToolBar(panelID, false);
 					toolbar.refresh(TToolBar.REFRESH__REFRESH_ACTION_TRUE);
 					if (frame.currentMenuBar != null) {
@@ -1350,17 +1353,17 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 						frame.currentMenuBar.refreshHelpMenu(false);
 						frame.setJMenuBar(frame.currentMenuBar);
 					}
-					panel().getPlayer().refresh();
+					p.getPlayer().refresh();
 					TTrackBar trackbar = frame.getTrackBar(panelID, true);
 					trackbar.refresh();
 					trackbar.refreshNumberEditors();
-					TViewChooser[] viewChoosers = frame.getViewChoosers(panel());
+					TViewChooser[] viewChoosers = frame.getViewChoosers(p);
 					for (int i = 0; i < viewChoosers.length; i++) {
 						viewChoosers[i].refreshMaximizeButton();
 					}
 					// maximize main view if currently unset
-					if (mobile && panel().getMaximizedView()==TView.VIEW_UNSET) {
-						frame.maximizeView(panel(), TView.VIEW_MAIN);
+					if (mobile && p.getMaximizedView()==TView.VIEW_UNSET) {
+						frame.maximizeView(p, TView.VIEW_MAIN);
 					}
 				}
 			});
@@ -1368,13 +1371,13 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		// trackControlItem
 		track_trackControlItem = new JCheckBoxMenuItem(TrackerRes.getString("TMenuBar.MenuItem.TrackControl")); //$NON-NLS-1$
 		track_trackControlItem.addActionListener((e) -> {
-				TrackControl tc = TrackControl.getControl(panel());
+				TrackControl tc = TrackControl.getControl(p);
 				tc.setVisible(!tc.isVisible());
 		});
 		// crosshairItem
 		track_crosshairItem = new JCheckBoxMenuItem(TrackerRes.getString("TMenuBar.MenuItem.Crosshair")); //$NON-NLS-1$
 		track_crosshairItem.addActionListener((e) -> {
-			Crosshair crosshair = panel().getCrosshair();
+			Crosshair crosshair = p.getCrosshair();
 			crosshair.setVisible(track_crosshairItem.isSelected());
 		});
 		// notesItem
@@ -1384,7 +1387,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 					if (frame.notesVisible()) {
 						frame.getNotesDialog().setVisible(false);
 					} else
-						panel().getToolBar(true).doNotesAction();
+						p.getToolBar(true).doNotesAction();
 				}
 		});
 		// dataBuilder item
@@ -1392,11 +1395,11 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		s += " (" + TrackerRes.getString("TView.Menuitem.Define") + ")"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 		view_dataBuilderItem = new JCheckBoxMenuItem(s);
 		view_dataBuilderItem.addActionListener((e) -> {
-				FunctionTool builder = panel().getDataBuilder();
+				FunctionTool builder = p.getDataBuilder();
 				if (builder.isVisible())
 					builder.setVisible(false);
 				else {
-					TTrack track = panel().getSelectedTrack();
+					TTrack track = p.getSelectedTrack();
 					if (track != null)
 						builder.setSelectedPanel(track.getName());
 					builder.setVisible(true);
@@ -1447,10 +1450,10 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 
 
 	protected void setupVideoMenu() {
+		TrackerPanel p = panel();
 		if (video_filtersMenu.getComponentCount() == 0) {
 			addItems(video_filtersMenu, videoFiltersMenuItems);
 		}
-
 		if (OSPRuntime.isJS) {
 			// Opening a menu must not request browser clipboard permission.
 			// Read and validate the clipboard only in the explicit Paste actions.
@@ -1490,13 +1493,13 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		}
 
 		// refresh video filters menu
-		Video video = panel().getVideo();
+		Video video = p.getVideo();
 		if (video != null) {
-			boolean vis = panel().getPlayer().getClipControl().videoVisible;
+			boolean vis = p.getPlayer().getClipControl().videoVisible;
 			video_videoVisibleItem.setSelected(video.isVisible() || vis);
 			// replace filters menu if used in popup
 			// DB maybe using same menu in popup is not good idea??
-			boolean showFiltersMenu = panel().isEnabled("video.filters"); //$NON-NLS-1$
+			boolean showFiltersMenu = p.isEnabled("video.filters"); //$NON-NLS-1$
 			boolean hasNoFiltersMenu = true;
 			for (int i = 0; i < videoMenu.getItemCount(); i++) {
 				JMenuItem item = videoMenu.getItem(i);
@@ -1555,10 +1558,11 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 	 * @return the track's menu
 	 */
 	protected JMenu createTrackMenu(TTrack track) {
-		JMenu menu = track.getMenu(panel(), null);
+		TrackerPanel p = panel();
+		JMenu menu = track.getMenu(p, null);
 		menu.setName("track");
 
-		ImageCoordSystem coords = panel().getCoords();
+		ImageCoordSystem coords = p.getCoords();
 		if (coords.isLocked() && coords instanceof ReferenceFrame
 				&& track == ((ReferenceFrame) coords).getOriginTrack()) {
 			for (int i = 0; i < menu.getItemCount(); i++) {
@@ -1569,7 +1573,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 				}
 			}
 		}
-		if (track == panel().getAxes()) {
+		if (track == p.getAxes()) {
 			int i = 0;
 			for (; i < menu.getItemCount(); i++) {
 				JMenuItem item = menu.getItem(i);
@@ -1587,16 +1591,17 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 
 	protected void refreshFileMenu(boolean opening) {
 		
-		boolean newtabEnabled = panel().isEnabled("file.new"); //$NON-NLS-1$
-		boolean openEnabled = panel().isEnabled("file.open"); //$NON-NLS-1$
-		boolean closeEnabled = panel().isEnabled("file.close"); //$NON-NLS-1$
-		boolean importEnabled = panel().isEnabled("file.import"); //$NON-NLS-1$
-		boolean exportEnabled = panel().isEnabled("file.export"); //$NON-NLS-1$
-		boolean showLib = (panel().isEnabled("file.library") //$NON-NLS-1$
+		TrackerPanel p = panel();
+		boolean newtabEnabled = p.isEnabled("file.new"); //$NON-NLS-1$
+		boolean openEnabled = p.isEnabled("file.open"); //$NON-NLS-1$
+		boolean closeEnabled = p.isEnabled("file.close"); //$NON-NLS-1$
+		boolean importEnabled = p.isEnabled("file.import"); //$NON-NLS-1$
+		boolean exportEnabled = p.isEnabled("file.export"); //$NON-NLS-1$
+		boolean showLib = (p.isEnabled("file.library") //$NON-NLS-1$
 				&& (openEnabled || exportEnabled));
-		boolean saveEnabled = (panel().isEnabled("file.save")); //$NON-NLS-1$
-		boolean saveAsEnabled = panel().isEnabled("file.saveAs"); //$NON-NLS-1$
-		boolean printEnabled = panel().isEnabled("file.print"); //$NON-NLS-1$
+		boolean saveEnabled = (p.isEnabled("file.save")); //$NON-NLS-1$
+		boolean saveAsEnabled = p.isEnabled("file.saveAs"); //$NON-NLS-1$
+		boolean printEnabled = p.isEnabled("file.print"); //$NON-NLS-1$
 
 		// Keep existing popup components when only labels or enabled states change.
 		// Removing and reattaching submenus during menuSelected invalidates the
@@ -1605,8 +1610,8 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 				| (closeEnabled ? 4 : 0) | (importEnabled ? 8 : 0)
 				| (exportEnabled ? 16 : 0) | (showLib ? 32 : 0)
 				| (saveEnabled ? 64 : 0) | (saveAsEnabled ? 128 : 0)
-				| (printEnabled ? 256 : 0) | (panel().getDataFile() != null ? 512 : 0)
-				| (panel().getVideo() != null ? 1024 : 0)
+				| (printEnabled ? 256 : 0) | (p.getDataFile() != null ? 512 : 0)
+				| (p.getVideo() != null ? 1024 : 0)
 				| (frame != null && frame.getTabCount() > 1 ? 2048 : 0);
 		if (!opening || structure != fileMenuStructure) {
 			fileMenuStructure = structure;
@@ -1632,7 +1637,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 			}
 //			fileMenu.addSeparator();
 //			fileMenu.add(file_openBrowserItem);
-			if (openEnabled && panel().getDataFile() != null) {
+			if (openEnabled && p.getDataFile() != null) {
 				checkAddMenuSep(fileMenu);
 				fileMenu.add(file_reloadItem);
 			}
@@ -1650,9 +1655,9 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 			if (saveAsEnabled) {
 				file_saveMenu.add(file_saveItem);
 				fileMenu.add(file_saveTabAsItem);
-//				if (panel().getVideo() != null) {
+//				if (p.getVideo() != null) {
 //					if (OSPRuntime.isMobile()) {
-//						boolean canCopy = panel().getVideo().getTypeName().equals(MovieFactory.ENGINE_JS);
+//						boolean canCopy = p.getVideo().getTypeName().equals(MovieFactory.ENGINE_JS);
 //						file_saveVideoAsItem.setEnabled(canCopy);
 //					}
 //					fileMenu.add(file_saveVideoAsItem);
@@ -1690,7 +1695,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 			checkShowMenuSep(fileMenu, file_saveItem, saveEnabled || saveAsEnabled);
 			file_saveItem.setEnabled(saveEnabled);
 			file_saveTabAsItem.setEnabled(saveAsEnabled);
-			file_saveVideoAsItem.setEnabled(saveAsEnabled && panel().getVideo() != null);
+			file_saveVideoAsItem.setEnabled(saveAsEnabled && p.getVideo() != null);
 			file_saveProjectAsItem.setEnabled(saveAsEnabled);
 			file_saveTabsetAsItem.setEnabled(saveAsEnabled && frame != null && frame.getTabCount() > 1);
 			checkShowMenuSep(fileMenu, file_importMenu, importEnabled || exportEnabled);
@@ -1700,12 +1705,12 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 			file_printFrameItem.setEnabled(printEnabled);
 
 			// set close and saveAs names
-			String name = " \"" + panel().getTitle() + "\""; //$NON-NLS-1$ //$NON-NLS-2$
+			String name = " \"" + p.getTitle() + "\""; //$NON-NLS-1$ //$NON-NLS-2$
 			file_closeItem.setText(TrackerRes.getString("TActions.Action.Close") + name); //$NON-NLS-1$
 			file_reloadItem.setText(TrackerRes.getString("TMenuBar.MenuItem.Reload") + name); //$NON-NLS-1$
 //			file_saveItem.setText(TrackerRes.getString("TMenuBar.MenuItem.Tab")+"..."); //$NON-NLS-1$
 			// disable export data menu if no tracks to export
-			file_export_dataItem.setEnabled(!panel().getExportableTracks().isEmpty());
+			file_export_dataItem.setEnabled(!p.getExportableTracks().isEmpty());
 			
 			FontSizer.setMenuFonts(fileMenu);
 			setMenuTainted(MENU_FILE, false);
@@ -1745,6 +1750,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 	
 	protected void rebuildEditMatSizeMenu() {
 
+		TrackerPanel p = panel();
 		if (matSizeAction == null) {
 			matSizeAction = new AbstractAction() {
 				@Override
@@ -1753,7 +1759,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 					String[] size = c.split("x");
 					double w = Double.parseDouble(size[0]);
 					double h = Double.parseDouble(size[1]);
-					panel().setImageSize(w, h);
+					p.setImageSize(w, h);
 				}
 			};
 			matSizeGroup = new ButtonGroup();
@@ -1782,9 +1788,8 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		int vidHeight = 1;
 
 		// if has video, set up videoSizeItem and add extended size items if needed
-		TrackerPanel panel = panel();
-		Video video = panel.getVideo();
-		Rectangle mat = panel.getMatBounds();
+		Video video = p.getVideo();
+		Rectangle mat = p.getMatBounds();
 		String dimensionString = mat.width + "x" + mat.height;
 		edit_matsize_matSizeItem.setText(dimensionString);
 		edit_matsize_matSizeItem.setActionCommand(dimensionString);
@@ -1846,8 +1851,8 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 			edit_matsize_videoSizeItem.setActionCommand("0x0"); //$NON-NLS-1$
 		}
 
-		int imageWidth = (int) panel().getImageWidth();
-		int imageHeight = (int) panel().getImageHeight();
+		int imageWidth = (int) p.getImageWidth();
+		int imageHeight = (int) p.getImageHeight();
 
 		// add appropriate items to menu
 		int matIndex = 0;
@@ -1906,6 +1911,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 	}
 	
 	protected void rebuildEditCopyMenu(String type) {
+		TrackerPanel p = panel();
 		switch (type) {
 		case "data":
 			edit_copyDataMenu.removeAll();
@@ -1932,7 +1938,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 			break;
 
 		case "image":
-			TViewChooser[] choosers = frame.getViewChoosers(panel());
+			TViewChooser[] choosers = frame.getViewChoosers(p);
 			if (edit_copyFrameImageItem == null) {
 				edit_copyFrameImageItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.CopyFrame")); //$NON-NLS-1$
 				edit_copyFrameImageItem.addActionListener((e) -> {
@@ -1942,7 +1948,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 				edit_copyMainViewImageItem = new JMenuItem(
 						TrackerRes.getString("TMenuBar.MenuItem.CopyMainView") + " (0)"); //$NON-NLS-1$ //$NON-NLS-2$
 				edit_copyMainViewImageItem.addActionListener((e) -> {
-					new TrackerIO.ComponentImage(panel()).copyToClipboard();
+					new TrackerIO.ComponentImage(p).copyToClipboard();
 				});
 				Action copyView = new AbstractAction() {
 					@Override
@@ -1962,7 +1968,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 			// add menu item for main view
 			edit_copyImageMenu.add(edit_copyMainViewImageItem);
 			// add menu items for open views
-			TViewChooser[] vchoosers = frame.getVisibleChoosers(panel().getID());
+			TViewChooser[] vchoosers = frame.getVisibleChoosers(p.getID());
 			for (int i = 0; i < choosers.length; i++) {
 				if (vchoosers[i] != null) {
 					String viewname = null;
@@ -2008,8 +2014,8 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 			item.addActionListener(copyObjectAction);
 			edit_copyObjectMenu.add(item);
 			// copy track items
-			for (TTrack next : panel().getTracksTemp()) {
-				if (next == panel().getAxes() || next instanceof PerspectiveTrack
+			for (TTrack next : p.getTracksTemp()) {
+				if (next == p.getAxes() || next instanceof PerspectiveTrack
 						|| next instanceof FilteredPointMass)
 					continue;
 				item = new JMenuItem(next.getName());
@@ -2017,7 +2023,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 				item.addActionListener(copyObjectAction);
 				edit_copyObjectMenu.add(item);
 			}
-			panel().clearTemp();
+			p.clearTemp();
 			FontSizer.setMenuFonts(edit_copyObjectMenu);
 			break;
 		}
@@ -2025,29 +2031,30 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 
 	protected void refreshEditMenu(boolean opening) {
 		if (isTainted(MENU_EDIT)) {
-			ArrayList<TTrack> tracks = panel().getUserTracks();
-			tracks.removeAll(panel().getDrawablesTemp(FilteredPointMass.class));
+			TrackerPanel p = panel();
+			ArrayList<TTrack> tracks = p.getUserTracks();
+			tracks.removeAll(p.getDrawablesTemp(FilteredPointMass.class));
 			boolean hasTracks = !tracks.isEmpty();
-			boolean undoEnabled = panel().isEnabled("edit.undoRedo");
-			boolean copyDataEnabled = panel().isEnabled("edit.copyData"); //$NON-NLS-1$
-			boolean copyImageEnabled = panel().isEnabled("edit.copyImage"); //$NON-NLS-1$
-			boolean copyObjectEnabled = panel().isEnabled("edit.copyObject"); //$NON-NLS-1$
-			boolean pasteEnabled = panel().isEnabled("edit.paste");
-			boolean deleteEnabled = panel().isEnabled("track.delete");
-			boolean formatsEnabled = panel().isEnabled("number.formats");
-			boolean unitsEnabled = panel().isEnabled("number.units");
-			boolean matSizeEnabled = panel().isEnabled("edit.matSize");
+			boolean undoEnabled = p.isEnabled("edit.undoRedo");
+			boolean copyDataEnabled = p.isEnabled("edit.copyData"); //$NON-NLS-1$
+			boolean copyImageEnabled = p.isEnabled("edit.copyImage"); //$NON-NLS-1$
+			boolean copyObjectEnabled = p.isEnabled("edit.copyObject"); //$NON-NLS-1$
+			boolean pasteEnabled = p.isEnabled("edit.paste");
+			boolean deleteEnabled = p.isEnabled("track.delete");
+			boolean formatsEnabled = p.isEnabled("number.formats");
+			boolean unitsEnabled = p.isEnabled("number.units");
+			boolean matSizeEnabled = p.isEnabled("edit.matSize");
 
 			editMenu.removeAll();
 			if (undoEnabled) { // $NON-NLS-1$
 				edit_undoItem.setText(TrackerRes.getString("TMenuBar.MenuItem.Undo")); //$NON-NLS-1$
-				edit_undoItem.setText(Undo.getUndoDescription(panel()));
+				edit_undoItem.setText(Undo.getUndoDescription(p));
 				editMenu.add(edit_undoItem);
-				edit_undoItem.setEnabled(Undo.canUndo(panel()));
+				edit_undoItem.setEnabled(Undo.canUndo(p));
 				edit_redoItem.setText(TrackerRes.getString("TMenuBar.MenuItem.Redo")); //$NON-NLS-1$
-				edit_redoItem.setText(Undo.getRedoDescription(panel()));
+				edit_redoItem.setText(Undo.getRedoDescription(p));
 				editMenu.add(edit_redoItem);
-				edit_redoItem.setEnabled(Undo.canRedo(panel()));
+				edit_redoItem.setEnabled(Undo.canRedo(p));
 			}
 			// refresh copyData, copyImage and copyObject menus
 			if (copyImageEnabled || copyDataEnabled || copyObjectEnabled) {
@@ -2133,28 +2140,29 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 
 		// long t0 = Performance.now(0);
 
+		TrackerPanel p = panel();
 		if (isTainted(MENU_COORDS)) {
 			// refresh coords menu
 			coordsMenu.removeAll();
-			if (panel().isEnabled("number.units")) //$NON-NLS-1$
+			if (p.isEnabled("number.units")) //$NON-NLS-1$
 				coordsMenu.add(coords_showUnitDialogItem);
-			if (panel().isEnabled("coords.locked")) { //$NON-NLS-1$
+			if (p.isEnabled("coords.locked")) { //$NON-NLS-1$
 				checkAddMenuSep(coordsMenu);
 				coordsMenu.add(coords_lockedCoordsItem);
 			}
-			if (panel().isEnabled("coords.origin") || //$NON-NLS-1$
-					panel().isEnabled("coords.angle") || //$NON-NLS-1$
-					panel().isEnabled("coords.scale")) { //$NON-NLS-1$
+			if (p.isEnabled("coords.origin") || //$NON-NLS-1$
+					p.isEnabled("coords.angle") || //$NON-NLS-1$
+					p.isEnabled("coords.scale")) { //$NON-NLS-1$
 				checkAddMenuSep(coordsMenu);
-				if (panel().isEnabled("coords.origin")) //$NON-NLS-1$
+				if (p.isEnabled("coords.origin")) //$NON-NLS-1$
 					coordsMenu.add(coords_fixedOriginItem);
-				if (panel().isEnabled("coords.angle")) //$NON-NLS-1$
+				if (p.isEnabled("coords.angle")) //$NON-NLS-1$
 					coordsMenu.add(coords_fixedAngleItem);
-				if (panel().isEnabled("coords.scale")) //$NON-NLS-1$
+				if (p.isEnabled("coords.scale")) //$NON-NLS-1$
 					coordsMenu.add(coords_fixedScaleItem);
 				// coordsMenu.add(applyCurrentFrameToAllItem);
 			}
-			if (panel().isEnabled("coords.refFrame")) { //$NON-NLS-1$
+			if (p.isEnabled("coords.refFrame")) { //$NON-NLS-1$
 				checkAddMenuSep(coordsMenu);
 				coordsMenu.add(coords_refFrameMenu);
 			}
@@ -2169,7 +2177,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		if (opening) {
 			refreshTrackNames(MENU_COORDS);
 			// update coords menu items
-			ImageCoordSystem coords = panel().getCoords();
+			ImageCoordSystem coords = p.getCoords();
 			boolean defaultCoords = !(coords instanceof ReferenceFrame);
 			coords_lockedCoordsItem.setSelected(coords.isLocked());
 			coords_fixedOriginItem.setSelected(coords.isFixedOrigin());
@@ -2178,7 +2186,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 			coords_fixedOriginItem.setEnabled(defaultCoords && !coords.isLocked());
 			coords_fixedAngleItem.setEnabled(defaultCoords && !coords.isLocked());
 			boolean stickAttached = false;
-			ArrayList<TapeMeasure> tapes = panel().getDrawablesTemp(TapeMeasure.class);
+			ArrayList<TapeMeasure> tapes = p.getDrawablesTemp(TapeMeasure.class);
 			for (int i = 0, n = tapes.size(); i < n; i++) {
 				TapeMeasure tape = tapes.get(i);
 				if (tape.isStickMode() && tape.isAttached()) {
@@ -2207,13 +2215,14 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 	protected void refreshVideoMenu(boolean opening) {
 
 		// long t0 = Performance.now(0);
+		TrackerPanel p = panel();
 		if (isTainted(MENU_VIDEO)) {
-			Video video = panel().getVideo();
+			Video video = p.getVideo();
 			boolean hasVideo = (video != null);
 			videoMenu.removeAll();
 			// import video item at top
-			boolean importEnabled = panel().isEnabled("video.import") //$NON-NLS-1$
-					|| panel().isEnabled("video.open"); //$NON-NLS-1$
+			boolean importEnabled = p.isEnabled("video.import") //$NON-NLS-1$
+					|| p.isEnabled("video.open"); //$NON-NLS-1$
 			if (importEnabled) {// && !OSPRuntime.isApplet) {
 //				if (hasVideo)
 //					video_openVideoItem.setText(TrackerRes.getString("TMenuBar.MenuItem.Replace")); //$NON-NLS-1$
@@ -2224,12 +2233,12 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 			}
 			// close video item
 			if (hasVideo) {
-				if (panel().isEnabled("video.close")) //$NON-NLS-1$
+				if (p.isEnabled("video.close")) //$NON-NLS-1$
 					videoMenu.add(video_closeVideoItem);
 			}
 			checkAddMenuSep(videoMenu);
 			
-			if (panel().isEnabled("button.clipSettings")) {//$NON-NLS-1$
+			if (p.isEnabled("button.clipSettings")) {//$NON-NLS-1$
 				videoMenu.add(video_clipSettingsItem);
 			}
 			videoMenu.add(video_goToItem);
@@ -2263,11 +2272,11 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 					video_pasteImageMenu.remove(video_pasteImageAfterItem);
 				}
 				// video visible and playAllSteps items
-				if (panel().isEnabled("video.visible")) { //$NON-NLS-1$
+				if (p.isEnabled("video.visible")) { //$NON-NLS-1$
 					checkAddMenuSep(videoMenu);
 					videoMenu.add(video_videoVisibleItem);
 				}
-				VideoClip clip = panel().getPlayer().getVideoClip();
+				VideoClip clip = p.getPlayer().getVideoClip();
 				video_playAllStepsItem.setSelected(clip.isPlayAllSteps());
 				videoMenu.add(video_playAllStepsItem);
 				// smooth play item for xuggle videos
@@ -2277,15 +2286,15 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 					videoMenu.add(video_playXuggleSmoothlyItem);
 				}
 				// video filters menu
-				if (panel().isEnabled("video.filters")) { //$NON-NLS-1$
+				if (p.isEnabled("video.filters")) { //$NON-NLS-1$
 					// clear filters menu
 					video_filtersMenu.removeAll();
 					// add newFilter menu
 					video_filtersMenu.add(video_filter_newFilterMenu);
 					// add filter items to the newFilter menu
 					video_filter_newFilterMenu.removeAll();
-					synchronized (panel().getFilters()) {
-						for (String name : panel().getFilters().keySet()) {
+					synchronized (p.getFilters()) {
+						for (String name : p.getFilters().keySet()) {
 							String shortName = name;
 							int i = shortName.lastIndexOf('.');
 							if (i > 0 && i < shortName.length() - 1) {
@@ -2483,14 +2492,15 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 	protected void refreshTrackMenu(boolean opening, JPopupMenu target) {
 		// long t0 = Performance.now(0);
 
-		ArrayList<TTrack> userTracks = panel().getUserTracks();
-		userTracks.removeAll(panel().getDrawablesTemp(FilteredPointMass.class));
+		TrackerPanel p = panel();
+		ArrayList<TTrack> userTracks = p.getUserTracks();
+		userTracks.removeAll(p.getDrawablesTemp(FilteredPointMass.class));
 
 		boolean hasTracks = !userTracks.isEmpty();
 
 		if (isTainted(MENU_TRACK)) {
-			CoordAxes axes = panel().getAxes();
-			TTrack track = panel().getSelectedTrack();
+			CoordAxes axes = p.getAxes();
+			TTrack track = p.getSelectedTrack();
 			// refresh track menu
 			trackMenu.removeAll();
 			track_cloneMenu.removeAll();
@@ -2498,15 +2508,15 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 			if (track_createMenu.getItemCount() > 0)
 				trackMenu.add(track_createMenu);
 
-			Crosshair tm = panel().getCrosshair();
+			Crosshair tm = p.getCrosshair();
 			track_crosshairItem.setSelected(tm.isVisible());
 			trackMenu.addSeparator();
 			trackMenu.add(track_crosshairItem);
 
-//			if (hasTracks && panel().isEnabled("new.clone")) //$NON-NLS-1$
+//			if (hasTracks && p.isEnabled("new.clone")) //$NON-NLS-1$
 //				trackMenu.add(track_cloneMenu);
 
-			TrackControl tc = TrackControl.getControl(panel());
+			TrackControl tc = TrackControl.getControl(p);
 			track_trackControlItem.setSelected(tc.isVisible());
 			track_trackControlItem.setEnabled(!tc.isEmpty());
 //			trackMenu.add(track_trackControlItem);
@@ -2523,20 +2533,20 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 
 			
 			JMenu selectMenu = new JMenu(TrackerRes.getString("TToolBar.Menu.Select.Text"));
-			TTrackBar trackbar = frame.getTrackBar(panel().getID(), true);
+			TTrackBar trackbar = frame.getTrackBar(p.getID(), true);
 			trackbar.getSelectTrackPopup(selectMenu.getPopupMenu());
 			checkAddMenuSep(trackMenu);
 			trackMenu.add(selectMenu);
 
 			
 			// add axes and calibration tools to track menu
-			if (panel().isEnabled("button.axes") //$NON-NLS-1$
-					|| panel().isEnabled("calibration.stick") //$NON-NLS-1$
-					|| panel().isEnabled("calibration.tape") //$NON-NLS-1$
-					|| panel().isEnabled("calibration.points") //$NON-NLS-1$
-					|| panel().isEnabled("calibration.offsetOrigin")) { //$NON-NLS-1$
+			if (p.isEnabled("button.axes") //$NON-NLS-1$
+					|| p.isEnabled("calibration.stick") //$NON-NLS-1$
+					|| p.isEnabled("calibration.tape") //$NON-NLS-1$
+					|| p.isEnabled("calibration.points") //$NON-NLS-1$
+					|| p.isEnabled("calibration.offsetOrigin")) { //$NON-NLS-1$
 //				boolean needsSeparator = trackMenu.getItemCount() > 0;
-				if (axes != null && panel().isEnabled("button.axes")) { //$NON-NLS-1$
+				if (axes != null && p.isEnabled("button.axes")) { //$NON-NLS-1$
 					track = axes;
 					track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_LOCKED, this);
 					track.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_LOCKED, this);
@@ -2586,7 +2596,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 			if (track_createMenu.getParent() != target) {
 				if (track_createMenu.getItemCount() > 0)
 					target.add(track_createMenu, 0);
-//				if (hasTracks && panel().isEnabled("new.clone")) //$NON-NLS-1$
+//				if (hasTracks && p.isEnabled("new.clone")) //$NON-NLS-1$
 //					trackMenu.add(track_cloneMenu, 1);
 			}
 
@@ -2747,7 +2757,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 	 * @param opening      TODO
 	 */
 	public void refreshViewMenu(boolean opening) {
-		TrackerPanel panel = panel();
+		TrackerPanel p = panel();
 //		boolean builderEnabled = panel.isEnabled("data.builder"); //$NON-NLS-1$
 //		boolean toolEnabled = panel.isEnabled("data.tool");  //$NON-NLS-1$
 
@@ -2791,7 +2801,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 				
 		// long t0 = Performance.now(0);
 		// determine if right pane is open or closed
-		JSplitPane pane = frame.getSplitPane(panel(), 0);
+		JSplitPane pane = frame.getSplitPane(p, 0);
 		int max = pane.getMaximumDividerLocation();
 		int cur = pane.getDividerLocation();
 		double loc = 1.0 * cur / max;
@@ -2801,7 +2811,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		view_rightPaneItem.setText(rp + " (" + viewNames[0] + ", " + viewNames[1] + ")");
 		
 		// determine if bottom pane is open or closed
-		pane = frame.getSplitPane(panel, 2);
+		pane = frame.getSplitPane(p, 2);
 		max = pane.getMaximumDividerLocation();
 		cur = pane.getDividerLocation();
 		loc = 1.0 * cur / max;
@@ -2810,7 +2820,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		view_bottomPaneItem.setText(bp + " (" + viewNames[3] + ", " + viewNames[2] + ")");
 		
 		view_notesItem.setSelected(frame.notesVisible());
-		view_dataBuilderItem.setSelected(panel.dataBuilder != null && panel.dataBuilder.isVisible());
+		view_dataBuilderItem.setSelected(p.dataBuilder != null && p.dataBuilder.isVisible());
 		DataTool tool = DataTool.getTool(false);
 		view_dataToolItem.setSelected(tool != null && tool.isVisible());
 
@@ -2829,7 +2839,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 			view_singleViewMenu.add(view_4Item);
 			viewMenu.addSeparator();
 			
-			if (panel().getMaximizedView() != TView.VIEW_UNSET) {
+			if (p.getMaximizedView() != TView.VIEW_UNSET) {
 				if (!OSPRuntime.isSmallScreen(frame)) {
 					viewMenu.add(view_restoreItem);
 					viewMenu.addSeparator();
@@ -2846,12 +2856,12 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 			
 			viewMenu.add(edit_fontSizeMenu);
 			viewMenu.add(view_notesItem);
-			if (panel.isEnabled("data.builder") //$NON-NLS-1$
-					|| panel.isEnabled("data.tool")) { //$NON-NLS-1$
+			if (p.isEnabled("data.builder") //$NON-NLS-1$
+					|| p.isEnabled("data.tool")) { //$NON-NLS-1$
 				viewMenu.addSeparator();
-				if (panel.isEnabled("data.builder")) //$NON-NLS-1$
+				if (p.isEnabled("data.builder")) //$NON-NLS-1$
 					viewMenu.add(view_dataBuilderItem);
-				if (panel.isEnabled("data.tool")) //$NON-NLS-1$
+				if (p.isEnabled("data.tool")) //$NON-NLS-1$
 					
 					viewMenu.add(view_dataToolItem);
 			}
@@ -3276,16 +3286,16 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 	}
 
 	public void checkMatSize() {
-		TrackerPanel panel = panel();
+		TrackerPanel p = panel();
 		// if a video exists but edit_matSizeMenu has no items, assume mat is video size
-		boolean isVideoSize = panel.getVideo() != null && edit_matSizeMenu.getMenuComponents().length == 0;
+		boolean isVideoSize = p.getVideo() != null && edit_matSizeMenu.getMenuComponents().length == 0;
 		if (!isVideoSize) {
 			for (Component c : edit_matSizeMenu.getMenuComponents()) {
 				if (c == edit_matsize_videoSizeItem && edit_matsize_videoSizeItem.isSelected())
 					isVideoSize = true;
 			}
 		}
-		Rectangle mat = panel.getMatBounds();
+		Rectangle mat = p.getMatBounds();
 		if (mat != null) {
 			if (isVideoSize) {
 				Dimension dim = mat.getSize();
@@ -3294,17 +3304,17 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 	//			Dimension d = panel.getVideo().getImageSize(true);
 	//			int vidWidth = d.width;
 	//			int vidHeight = d.height;
-	      int vidWidth = panel.getVideo().getImage().getWidth();
-	      int vidHeight = panel.getVideo().getImage().getHeight();
+	      int vidWidth = p.getVideo().getImage().getWidth();
+	      int vidHeight = p.getVideo().getImage().getHeight();
 	      
 				if (vidWidth != dim.width || vidHeight != dim.height) {
-					panel.setImageSize(vidWidth, vidHeight);
+					p.setImageSize(vidWidth, vidHeight);
 				}
 			}
 			else {
-				panel().setImageSize(mat.width, mat.height);
+				p.setImageSize(mat.width, mat.height);
 			}
-			TToolBar toolbar = panel.getToolBar(false);
+			TToolBar toolbar = p.getToolBar(false);
 			if (toolbar != null)
 				toolbar.refreshZoomButton();
 		}
