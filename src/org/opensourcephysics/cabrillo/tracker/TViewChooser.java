@@ -220,7 +220,7 @@ public class TViewChooser extends JPanel implements PropertyChangeListener, OSPR
 		JMenuItem item;
 		for (int i = 0; i<TView.VIEW_NAMES.length; i++) {
 			String name = TrackerRes.getString(TView.VIEW_NAMES[i]);
-			item = new JMenuItem(name, TView.VIEW_ICONS[i]);
+			item = new TButton.TStickyMenuItem(name, TView.VIEW_ICONS[i]);
 			item.setActionCommand("" + i);
 			item.addActionListener(listener);
 			popup.add(item);

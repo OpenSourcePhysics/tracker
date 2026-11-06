@@ -71,6 +71,7 @@ import javax.swing.WindowConstants;
 import javax.swing.event.MenuEvent;
 import javax.swing.event.MenuListener;
 
+import org.opensourcephysics.cabrillo.tracker.TButton.TStickyMenuItem;
 //import org.opensourcephysics.media.mov.MovieVideoI;
 import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.controls.XML;
@@ -324,11 +325,11 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 	// view menu
 	private JMenu viewMenu;
 	private JMenu view_singleViewMenu;
-	private JMenuItem view_mainItem;
-	private JMenuItem view_1Item;
-	private JMenuItem view_2Item;
-	private JMenuItem view_3Item;
-	private JMenuItem view_4Item;
+	private TStickyMenuItem view_mainItem;
+	private TStickyMenuItem view_1Item;
+	private TStickyMenuItem view_2Item;
+	private TStickyMenuItem view_3Item;
+	private TStickyMenuItem view_4Item;
 	private JMenuItem view_restoreItem;
 	protected JCheckBoxMenuItem view_rightPaneItem;
 	protected JCheckBoxMenuItem view_bottomPaneItem;
@@ -1269,24 +1270,24 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		// singleViewMenu
 		view_singleViewMenu = new JMenu(TrackerRes.getString("TMenuBar.SingleView.Text")); //$NON-NLS-1$
 		
-		view_mainItem = new JMenuItem(TrackerRes.getString("TFrame.View.Main")); //$NON-NLS-1$
+		view_mainItem = new TStickyMenuItem(TrackerRes.getString("TFrame.View.Main"), null); //$NON-NLS-1$
 		view_mainItem.addActionListener((e) -> {
 			maximizeView(TView.VIEW_MAIN);
 		});
 		
-		view_1Item = new JMenuItem(); //$NON-NLS-1$
+		view_1Item = new TStickyMenuItem(null, null); //$NON-NLS-1$
 		view_1Item.addActionListener((e) -> {
 			maximizeView(TView.VIEW_PLOT);
 		});
-		view_2Item = new JMenuItem(); //$NON-NLS-1$
+		view_2Item = new TStickyMenuItem(null, null); //$NON-NLS-1$
 		view_2Item.addActionListener((e) -> {
 			maximizeView(TView.VIEW_TABLE);
 		});
-		view_3Item = new JMenuItem(); //$NON-NLS-1$
+		view_3Item = new TStickyMenuItem(null, null); //$NON-NLS-1$
 		view_3Item.addActionListener((e) -> {
 			maximizeView(TView.VIEW_WORLD);
 		});
-		view_4Item = new JMenuItem(); //$NON-NLS-1$
+		view_4Item = new TStickyMenuItem(null, null); //$NON-NLS-1$
 		view_4Item.addActionListener((e) -> {
 			maximizeView(TView.VIEW_PAGE);
 		});
@@ -2706,7 +2707,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 			
 			ArrayList<TTrack> userTracks = panel().getUserTracks();
 			userTracks.removeAll(panel().getDrawablesTemp(FilteredPointMass.class));
-			boolean hasTracks = !userTracks.isEmpty();			
+			boolean hasTracks = !userTracks.isEmpty();
 			if (hasTracks && p.isEnabled("new.clone")) { //$NON-NLS-1$
 				checkAddMenuSep(menu);
 				refreshTrackCloneMenu(userTracks);

@@ -1222,7 +1222,7 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 		case BUTTON_CLIP:
 			if (clipCheckbox == null) {
 				clipCheckbox = new JCheckBoxMenuItem("", button.getIcon());
-				clipCheckbox.addActionListener((e) -> {
+	 			clipCheckbox.addActionListener((e) -> {
 					button.doClick(0);
 				});
 			}
