@@ -190,17 +190,14 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 	final protected TButton traceVisButton, pVisButton, vVisButton, aVisButton;
 	final protected TButton xMassButton, trailButton, labelsButton, stretchButton;
 	final protected TButton overflowButton;
-	final protected MobileButton[] mobileButtons;
-	final protected MobileButton mobileFileButton, mobileVideoButton;
-	final protected MobileButton mobileCoordsButton, mobileTrackButton;
-	final protected MobileButton mobileViewButton, mobileMoreButton;
-	final protected MobileButton editButton, helpButton;
+	
 	final protected Component toolbarFiller;
 	final protected JPopupMenu newPopup = new JPopupMenu();
 	final protected JPopupMenu selectPopup = new JPopupMenu();
 	final protected JPopupMenu eyePopup = new JPopupMenu();
 	final protected JPopupMenu zoomPopup = new JPopupMenu();
 	final protected JPopupMenu overflowPopup = new JPopupMenu();
+	final protected JMenu cloneMenu;
 	final protected JMenu vStretchMenu, aStretchMenu;
 	final protected JMenuItem showTrackControlItem, selectNoneItem, stretchOffItem;
 	final protected JButton notesButton, refreshButton, desktopButton, memoryButton;
@@ -210,12 +207,6 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 	final protected JButton trackControlButton, clipSettingsButton;
 	final protected ArrayList<PageTView.TabData> pageViewTabs = new ArrayList<PageTView.TabData>();
 	final protected ArrayList<JButton> overflowButtons;
-	// mobile buttons and popups
-	final protected JPopupMenu filePopup, videoPopup, coordsPopup, trackPopup, viewPopup; 
-	final protected JPopupMenu editPopup, helpPopup; 
-	final protected JMenu cloneMenu;
-	private final JMenu mobileEditMenu = new JMenu();
-	private final JMenu mobileHelpMenu = new JMenu();
 
 	protected ButtonGroup vGroup, aGroup;
 	protected JMenu measureMenu, refreshMenu, memoryMenu, desktopMenu;
@@ -229,6 +220,7 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 	protected JMenuItem pathVisMenuItem, pVisMenuItem, vVisMenuItem, aVisMenuItem;
 	protected JMenuItem xMassMenuItem, labelsMenuItem;
 
+	
 	protected int overflowIndex = -1;
 	protected boolean refreshing; // true when refreshing toolbar
 	protected boolean useEyeButton = true;
@@ -242,6 +234,7 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 	private AbstractAction zoomAction;
 	private TFrame frame;
 	private Integer panelID;
+	private Mobile mobile;
 
 	static {
 		coordsIcon = Tracker.getResourceIcon("coords.gif", true); //$NON-NLS-1$
@@ -843,111 +836,9 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 //		overflowButton.setHorizontalTextPosition(JButton.LEADING);
 //		overflowButton.setIconTextGap(3);
 		
-		mobileMoreButton = new MobileButton() {
-			@Override
-			protected JPopupMenu getPopup() {
-				refreshOverflowComponents();
-				FontSizer.setFonts(overflowPopup);
-				return overflowPopup;
-			}
-		}; 
-		mobileMoreButton.alignPopup = TButton.RIGHT;
-		
-		// create mobile popups and buttons
-		filePopup = new JPopupMenu();
-		videoPopup = new JPopupMenu();
-		coordsPopup = new JPopupMenu();
-		trackPopup = new JPopupMenu();
-		viewPopup = new JPopupMenu();
-		editPopup = new JPopupMenu();
-		helpPopup = new JPopupMenu();
-		
-		mobileFileButton = new MobileButton() {
-			@Override
-			protected JPopupMenu getPopup() {
-				rebuildMobileFilePopup();
-				FontSizer.setFonts(filePopup);
-				return filePopup;
-			}
-		}; //$NON-NLS-1$
-		if (!noButtonIcons)
-			mobileFileButton.setIcon(folderIcon);
-		
-		mobileVideoButton = new MobileButton() {
-			@Override
-			protected JPopupMenu getPopup() {
-				refreshZoomPopup(zoomMenu.getPopupMenu());
-				rebuildMobileVideoPopup();
-				FontSizer.setFonts(videoPopup);
-				return videoPopup;
-			}
-		}; //$NON-NLS-1$
-		if (!noButtonIcons)
-			mobileVideoButton.setIcon(clipOffIcon);
-		
-		mobileCoordsButton = new MobileButton() {
-			@Override
-			protected JPopupMenu getPopup() {
-				axesCheckbox.setSelected(axesButton.isSelected());
-				refreshCalibrationPopup(calibrationMenu.getPopupMenu());
-				if (frame.currentMenuBar != null) {
-					frame.currentMenuBar.refreshCoordsMenu(true);
-				}
-				rebuildMobileCoordsPopup();
-				FontSizer.setFonts(coordsPopup);
-				return coordsPopup;
-			}
-		}; //$NON-NLS-1$
-		if (!noButtonIcons)
-			mobileCoordsButton.setIcon(coordsIcon);
-		
-		mobileTrackButton = new MobileButton() {
-			@Override
-			protected JPopupMenu getPopup() {
-				rebuildMobileTrackPopup();
-				FontSizer.setFonts(trackPopup);
-				return trackPopup;
-			}
-		}; //$NON-NLS-1$
-		if (!noButtonIcons)
-			mobileTrackButton.setIcon(pointmassOffIcon);
-
-		mobileViewButton = new MobileButton() {
-			@Override
-			protected JPopupMenu getPopup() {
-				rebuildMobileViewPopup();
-				FontSizer.setFonts(viewPopup);
-				return viewPopup;
-			}
-		}; //$NON-NLS-1$
-		if (!noButtonIcons)
-			mobileViewButton.setIcon(TableTView.TABLEVIEW_ICON);
-		
-		editButton = new MobileButton() {
-			@Override
-			protected JPopupMenu getPopup() {
-				rebuildMobileEditPopup();
-				FontSizer.setFonts(editPopup);
-				return editPopup;
-			}
-		}; //$NON-NLS-1$
-		if (!noButtonIcons)
-			editButton.setIcon(editIcon);
-		
-		helpButton = new MobileButton() {
-			@Override
-			protected JPopupMenu getPopup() {
-				rebuildMobileHelpPopup();
-				FontSizer.setFonts(helpPopup);
-				return helpPopup;
-			}
-		}; //$NON-NLS-1$
-		if (!noButtonIcons)
-			editButton.setIcon(helpIcon);
-		
-		mobileButtons = new MobileButton[] {mobileFileButton, mobileVideoButton, 
-				mobileTrackButton, mobileCoordsButton, mobileViewButton, editButton, helpButton};
-
+		if (OSPRuntime.isMobile()) {
+			mobile = new Mobile();
+		}
 		// create menu items
 		cloneMenu = new JMenu();
 		showTrackControlItem = new JCheckBoxMenuItem();
@@ -1355,7 +1246,7 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 	
 	protected void refreshOverflowComponents() {
 		if (OSPRuntime.isMobile()) {
-			rebuildMobileOverflowPopup();
+			mobile.rebuildMobileOverflowPopup();
 			return;
 		}
 		
@@ -1794,26 +1685,6 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
   	return n-1;
 	}
 	
-	/**
-	 * Determines if this toolbar is too short to display 
-	 * the specified MobileButton
-	 * 
-	 * @param button the button
-	 * @return true if too short
-	 */
-	private boolean isTooShortFor(MobileButton button) {
-    int totalRequiredSize = 0;
-    for (int i = 0; i < mobileButtons.length; i++) {
-    	MobileButton next = mobileButtons[i];
-      if (next==button) break;
-      Dimension prefSize = next.getPreferredSize();
-      totalRequiredSize += prefSize.width;
-    }
-    Insets insets = getInsets();
-    totalRequiredSize += insets.left + insets.right;
-    return getWidth() < totalRequiredSize;
-}
-	
 
 
 	private void rebuild(int overflow) {
@@ -1831,7 +1702,9 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 		}
 
 		if (OSPRuntime.isMobile()) {
-			rebuildForMobile();
+			if (mobile == null)
+				mobile = new Mobile();
+			mobile.rebuildForMobile();
 			return;
 		}
 		
@@ -2015,399 +1888,6 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 		}
 	}
 
-	private void rebuildForMobile() {	
-		if (!noButtonText) {
-			if (isTooShortFor(helpButton)) 
-				noButtonText = true;
-		}
-		// add and populate mobile buttons
-		mobileFileButton.setIcon(noButtonIcons? null: folderIcon);
-		mobileVideoButton.setIcon(noButtonIcons? null: clipOffIcon);
-		mobileCoordsButton.setIcon(noButtonIcons? null: coordsIcon);
-		mobileTrackButton.setIcon(noButtonIcons? null: pointmassOffIcon);
-		mobileViewButton.setIcon(noButtonIcons? null: TableTView.TABLEVIEW_ICON);
-		mobileMoreButton.setIcon(noButtonIcons? null: overflowIcon);
-		editButton.setIcon(noButtonIcons? null: editIcon);
-		helpButton.setIcon(noButtonIcons? null: helpIcon);
-		
-		
-		mobileFileButton.setText(noButtonText? null: TrackerRes.getString("TMenuBar.Menu.File"));
-		mobileVideoButton.setText(noButtonText? null: TrackerRes.getString("TMenuBar.Menu.Video"));
-		mobileCoordsButton.setText(noButtonText? null: TrackerRes.getString("TToolBar.Button.Coords.Text"));
-		mobileTrackButton.setText(noButtonText? null: TrackerRes.getString("TMenuBar.Menu.Tracks"));
-		mobileViewButton.setText(noButtonText? null: TrackerRes.getString("TMenuBar.Menu.Window"));
-		editButton.setText(noButtonText? null: TrackerRes.getString("TMenuBar.Menu.Edit"));
-		helpButton.setText(noButtonText? null: TrackerRes.getString("TMenuBar.Menu.Help"));
-		mobileMoreButton.setText(noButtonText? null: TrackerRes.getString("TToolBar.Button.More.Text"));
-
-		rebuildMobileFilePopup();
-		rebuildMobileVideoPopup();
-		rebuildMobileCoordsPopup();
-		rebuildMobileTrackPopup();
-		rebuildMobileViewPopup();
-		rebuildMobileEditPopup();
-		rebuildMobileHelpPopup();
-		int count = rebuildMobileOverflowPopup();
-			
-		removeAll();
-		add(Box.createHorizontalGlue());
-		for (int i = 0; i < count; i++) {
-			add(mobileButtons[i]);
-		}
-		if (count < mobileButtons.length)
-			add(mobileMoreButton);
-		add(Box.createHorizontalGlue());
-	
-//		add(toolbarFiller);
-		if (TFrame.isLayoutAdaptive) {
-			add(maximizeButton);
-		}
-		
-		FontSizer.setFonts(mobileButtons);
-		TFrame.repaintT(this);
-	}
-
-	private void rebuildMobileFilePopup() {
-		filePopup.removeAll();
-		if (frame.currentMenuBar == null) 
-			return;
-		
-		frame.currentMenuBar.setMenuTainted(TMenuBar.MENU_VIEW, true);
-		frame.currentMenuBar.refreshViewMenu(true);
-		filePopup.add(frame.currentMenuBar.getMenuItem("file_newTabItem"));
-		filePopup.addSeparator();
-
-		if (panel().isEnabled("file.open")) { //$NON-NLS-1$
-			add(openButton, filePopup);
-			refreshOpenPopup(openMenu.getPopupMenu());
-			// move items from openMenu to filePopup
-			filePopup.add(openMenu.getPopupMenu().getComponent(0));
-			filePopup.add(openMenu.getPopupMenu().getComponent(0));
-			filePopup.remove(openMenu);
-//			filePopup.addSeparator();
-			if (!OSPRuntime.isJS) {
-				JMenu file_openRecentMenu = (JMenu)frame.currentMenuBar.getMenuItem("file_openRecentMenu");
-				frame.refreshOpenRecentMenu(file_openRecentMenu);
-				filePopup.add(file_openRecentMenu);
-			}
-		}
-//		filePopup.add(frame.currentMenuBar.getMenuItem("file_closeItem"));
-		filePopup.addSeparator();
-		if (panel().isEnabled("file.save")) { //$NON-NLS-1$
-			add(saveButton, filePopup);
-			refreshSavePopup(saveMenu.getPopupMenu());
-			// move items from saveMenu to filePopup
-			filePopup.add(saveMenu.getPopupMenu().getComponent(0));
-			filePopup.add(saveMenu.getPopupMenu().getComponent(0));
-			filePopup.remove(saveMenu);
-//			filePopup.addSeparator();
-			filePopup.add(frame.currentMenuBar.getMenuItem("file_saveTabAsItem"));
-		}								
-		filePopup.addSeparator();
-		filePopup.add(frame.currentMenuBar.getMenuItem("file_importMenu"));
-		filePopup.add(frame.currentMenuBar.getMenuItem("file_exportMenu"));
-		filePopup.addSeparator();
-		filePopup.add(frame.currentMenuBar.getMenuItem("file_printFrameItem"));
-		filePopup.addSeparator();
-		filePopup.add(frame.currentMenuBar.getMenuItem("file_propertiesItem"));
-	}
-	
-	private void rebuildMobileVideoPopup() {
-		videoPopup.removeAll();
-		if (frame.currentMenuBar == null) {
-			return;
-		}
-		
-		boolean importEnabled = panel().isEnabled("video.import") //$NON-NLS-1$
-				|| panel().isEnabled("video.open"); //$NON-NLS-1$
-		if (importEnabled) {
-			JMenuItem item = frame.currentMenuBar.getMenuItem("video_openVideoItem");
-			item.setIcon(Tracker.getResourceIcon("open.gif", true)); //$NON-NLS-1$
-			videoPopup.add(item);
-			videoPopup.add(frame.currentMenuBar.getMenuItem("video_captureItem"));
-		}
-		if (panel().getVideo() != null)
-			videoPopup.add(frame.currentMenuBar.getMenuItem("video_closeVideoItem"));
-			
-		videoPopup.addSeparator();
-		if (panel().isEnabled("button.clipSettings")) {//$NON-NLS-1$
-//			add(clipSettingsButton, videoPopup);
-			videoPopup.add(frame.currentMenuBar.getMenuItem("video_clipSettingsItem"));
-			if (frame.currentMenuBar != null) {
-				videoPopup.add(frame.currentMenuBar.getMenuItem("video_goToItem"));
-			}
-			videoPopup.addSeparator();
-		}
-		
-		if (panel().getVideo() != null)
-			videoPopup.add(frame.currentMenuBar.getMenuItem("video_videoVisibleItem"));
-		
-		JMenuItem item = add(zoomButton, videoPopup);
-		String text = item.getText();
-		double zoom = panel().getMagnification() * 100;
-		item.setText(text + " (" + zoomFormat.format(zoom) + "%)");
-		if (panel().getVideo() != null) { //$NON-NLS-1$
-			if (panel().isEnabled("video.filters")) { //$NON-NLS-1$
-				videoPopup.addSeparator();
-				frame.currentMenuBar.refreshVideoMenu(true);
-				videoPopup.add(frame.currentMenuBar.getMenuItem("video_filtersMenu"));
-			}
-			videoPopup.addSeparator();
-			videoPopup.add(frame.currentMenuBar.getMenuItem("video_aboutVideoItem"));
-			
-			videoPopup.addSeparator();
-			videoPopup.add(frame.currentMenuBar.getMenuItem("file_saveVideoAsItem"));			
-		}		
-	}
-	
-	private void rebuildMobileCoordsPopup() {
-		coordsPopup.removeAll();
-		if (frame.currentMenuBar == null) 
-			return;
-		
-		if (panel().isEnabled("button.axes")) {//$NON-NLS-1$
-			add(axesButton, coordsPopup);
-			coordsPopup.addSeparator();
-		}
-		if (panel().isEnabled("calibration.stick") //$NON-NLS-1$
-				|| panel().isEnabled("calibration.tape") //$NON-NLS-1$
-				|| panel().isEnabled("calibration.points") //$NON-NLS-1$
-				|| panel().isEnabled("calibration.offsetOrigin")) { //$NON-NLS-1$
-			add(calibrationButton, coordsPopup);
-		}
-		coordsPopup.addSeparator();
-		coordsPopup.add(frame.currentMenuBar.getMenuItem("coords_fixedOriginItem"));
-		coordsPopup.add(frame.currentMenuBar.getMenuItem("coords_fixedAngleItem"));
-		coordsPopup.add(frame.currentMenuBar.getMenuItem("coords_fixedScaleItem"));
-		coordsPopup.addSeparator();
-		coordsPopup.add(frame.currentMenuBar.getMenuItem("coords_refFrameMenu"));
-		coordsPopup.addSeparator();
-		coordsPopup.add(frame.currentMenuBar.getMenuItem("coords_showUnitDialogItem"));
-		coordsPopup.addSeparator();
-		coordsPopup.add(frame.currentMenuBar.getMenuItem("coords_lockedCoordsItem"));
-	}
-	
-	
-	private void rebuildMobileTrackPopup() {
-		trackPopup.removeAll();
-		if (frame.currentMenuBar == null) 
-			return;
-		
-		boolean measuringToolsEnabled = false;
-		boolean eyeEnabled = false;
-		String[] fullconfig = Tracker.getFullConfig().toArray(new String[0]);
-		
-		for (int i = 0; i < fullconfig.length; i++) {
-			if (fullconfig[i].startsWith("new.") && !fullconfig[i].endsWith("clone")) {
-				if (panel().isEnabled(fullconfig[i])) {
-					if (fullconfig[i].endsWith("tapeMeasure")
-							|| fullconfig[i].endsWith("protractor")
-							|| fullconfig[i].endsWith("circleFitter"))
-						measuringToolsEnabled = true;
-				}
-			}
-			else if (fullconfig[i].startsWith("button.")
-					&& !fullconfig[i].endsWith("clipSettings")
-					&& !fullconfig[i].endsWith("axes")
-					&& !fullconfig[i].endsWith("drawing")) {
-				if (panel().isEnabled(fullconfig[i])) {
-					eyeEnabled = true;
-				}
-			}
-		}
-
-		if (panel().isCreateTracksEnabled()) {
-			JMenu newTrackMenu = new JMenu(TrackerRes.getString("TMenuBar.MenuItem.NewTrack"));
-			TMenuBar.refreshPopup(panel(), TMenuBar.POPUPMENU_MOBILE_TRACKS, newTrackMenu.getPopupMenu());
-			FontSizer.setFont(newTrackMenu);
-			trackPopup.add(newTrackMenu);
-			trackPopup.addSeparator();
-			trackPopup.add(frame.currentMenuBar.getMenuItem("track_crosshairItem"));
-			add(trackControlButton, trackPopup);
-			trackControlCheckbox.setSelected(trackControlButton.isSelected());
-		}
-
-		if (panel().isEnabled("track.autotrack")) { //$NON-NLS-1$
-			add(autotrackerButton, trackPopup);
-			autotrackerCheckbox.setSelected(autotrackerButton.isSelected());
-		}
-		else {
-			// if not enabled, close autotracker if visible
-			AutoTracker autoTracker = panel().getAutoTracker(false);
-			if (autoTracker != null)
-				autoTracker.getWizard().setVisible(false);
-		}
-		trackPopup.addSeparator();
-		
-		if (measuringToolsEnabled) {
-			add(measureButton, trackPopup);
-			refreshMeasurePopup(measureMenu.getPopupMenu());
-		}	
-		if (useEyeButton) {
-			if (eyeEnabled) {
-				add(eyeButton, trackPopup);
-				refreshEyePopup(eyeMenu.getPopupMenu());
-			}
-		}
-		
-		JMenu selectMenu = new JMenu(TrackerRes.getString("TToolBar.Menu.Select.Text"));
-		TTrackBar trackbar = frame.getTrackBar(panel().getID(), true);
-		trackbar.getSelectTrackPopup(selectMenu.getPopupMenu());
-		trackPopup.addSeparator();
-		trackPopup.add(selectMenu);
-	}
-	
-	private void rebuildMobileViewPopup() {
-		viewPopup.removeAll();
-		if (frame.currentMenuBar == null) 
-			return;
-		
-		frame.currentMenuBar.setMenuTainted(TMenuBar.MENU_VIEW, true);
-		frame.currentMenuBar.refreshViewMenu(true);
-		viewPopup.add(frame.currentMenuBar.getMenuItem("view_singleViewMenu"));
-		viewPopup.addSeparator();
-
-		boolean small = OSPRuntime.isSmallScreen(frame);
-		if (!small) {
-			if (panel().getMaximizedView() != TView.VIEW_UNSET) {
-					viewPopup.add(frame.currentMenuBar.getMenuItem("view_restoreItem"));
-			} else {
-				viewPopup.add(frame.currentMenuBar.getMenuItem("view_rightPaneItem"));
-				viewPopup.add(frame.currentMenuBar.getMenuItem("view_bottomPaneItem"));
-			}
-			viewPopup.addSeparator();
-			viewPopup.add(frame.currentMenuBar.getMenuItem("view_mobileLayoutItem"));
-			viewPopup.addSeparator();
-		}
-		
-		if (panel().isEnabled("data.builder") //$NON-NLS-1$
-				|| panel().isEnabled("data.tool")) { //$NON-NLS-1$
-			if (panel().isEnabled("data.builder")) //$NON-NLS-1$
-				viewPopup.add(frame.currentMenuBar.getMenuItem("view_dataBuilderItem"));
-			if (panel().isEnabled("data.tool")) //$NON-NLS-1$					
-				viewPopup.add(frame.currentMenuBar.getMenuItem("view_dataToolItem"));
-		}
-		viewPopup.addSeparator();
-		viewPopup.add(frame.currentMenuBar.getMenuItem("view_TabsMenu"));
-	}
-	
-	private void rebuildMobileEditPopup() {
-		if (frame.currentMenuBar != null) {
-			editPopup.removeAll();
-
-			if (panel().isEnabled("button.drawing")) { //$NON-NLS-1$
-				drawingButton.drawingVisibleCheckbox.setText(TrackerRes.getString("TTrack.MenuItem.Visible"));				
-				add(drawingButton, editPopup);
-				PencilDrawer drawer = PencilDrawer.getDrawer(panel());
-				drawingButton.drawingVisibleCheckbox.setSelected(drawer.areDrawingsVisible());
-				drawingButton.drawingVisibleCheckbox.setEnabled(
-						PencilDrawer.hasDrawings(panel()) && !PencilDrawer.isDrawing(panel()));
-				drawingControlCheckbox.setText(TrackerRes.getString("TToolBar.Checkbox.DrawingControl"));				
-				drawingControlCheckbox.setSelected(drawingButton.isSelected());
-				drawingMenu.removeAll();
-				if (PencilDrawer.hasDrawings(panel()))
-					drawingMenu.add(drawingButton.drawingVisibleCheckbox);
-				drawingMenu.add(drawingControlCheckbox);
-			}
-			
-			add(notesButton, editPopup);			
-			notesCheckbox.setSelected(notesButton.isSelected());
-			editPopup.addSeparator();
-			add(refreshButton, editPopup);
-			
-			refreshRefreshPopup(refreshMenu.getPopupMenu());
-			Component comp = refreshMenu.getMenuComponent(0);
-			((JMenuItem)comp).setText(TrackerRes.getString("TToolBar.MenuItem.RefreshNow"));
-
-			frame.currentMenuBar.setMenuTainted(TMenuBar.MENU_EDIT, true);
-			frame.currentMenuBar.refreshEditMenu(true);
-			
-			editPopup.addSeparator();
-			JMenu menu = (JMenu)frame.currentMenuBar.getMenuItem("editMenu");
-			for (Component item : menu.getMenuComponents()) {
-				editPopup.add(item);
-			}
-			FontSizer.setFonts(editPopup, FontSizer.getLevel());
-		}
-	}
-	
-	
-	private void rebuildMobileHelpPopup() {
-		if (frame.currentMenuBar != null) {
-			helpPopup.removeAll();
-			frame.currentMenuBar.setMenuTainted(TMenuBar.MENU_HELP, true);
-			frame.currentMenuBar.refreshHelpMenu(true);			
-			JMenu menu = (JMenu)frame.currentMenuBar.getMenuItem("helpMenu");
-			for (Component item : menu.getMenuComponents()) {
-				helpPopup.add(item);
-			}
-		}
-	}
-
-		
-	/**
-	 * Reuse the actions without moving a top-level JMenu into a popup. SwingJS
-	 * gives top-level menus and submenus different DOM structures; changing that
-	 * role during a layout switch can leave the menu UI without an outer node.
-	 */
-	private static void populateMobileMenu(JMenu source, JMenu target) {
-		target.removeAll();
-		target.setText(source.getText());
-		target.setEnabled(source.isEnabled());
-		for (Component item : source.getMenuComponents()) {
-			target.add(item);
-		}
-	}
-
-	private int rebuildMobileOverflowPopup() {
-		int buttonCount = mobileButtons.length;
-		if (frame.currentMenuBar != null) {
-			overflowPopup.removeAll();
-			buttonCount = isTooShortFor(helpButton)? buttonCount-2: buttonCount;
-			if (buttonCount<mobileButtons.length-1) {
-				frame.currentMenuBar.setMenuTainted(TMenuBar.MENU_EDIT, true);
-				frame.currentMenuBar.refreshEditMenu(true);
-				populateMobileMenu((JMenu) frame.currentMenuBar.getMenuItem("editMenu"), mobileEditMenu);
-				overflowPopup.add(mobileEditMenu);
-				if (buttonCount<mobileButtons.length)
-					overflowPopup.addSeparator();
-			}
-			if (buttonCount<mobileButtons.length) {
-				frame.currentMenuBar.setMenuTainted(TMenuBar.MENU_HELP, true);
-				frame.currentMenuBar.refreshHelpMenu(true);
-				populateMobileMenu((JMenu) frame.currentMenuBar.getMenuItem("helpMenu"), mobileHelpMenu);
-				overflowPopup.add(mobileHelpMenu);
-			}
-			
-//			if (panel().isEnabled("button.drawing")) { //$NON-NLS-1$
-//				drawingButton.drawingVisibleCheckbox.setText(TrackerRes.getString("TTrack.MenuItem.Visible"));				
-//				add(drawingButton, overflowPopup);
-//				PencilDrawer drawer = PencilDrawer.getDrawer(panel());
-//				drawingButton.drawingVisibleCheckbox.setSelected(drawer.areDrawingsVisible());
-//				drawingButton.drawingVisibleCheckbox.setEnabled(
-//						PencilDrawer.hasDrawings(panel()) && !PencilDrawer.isDrawing(panel()));
-//				drawingControlCheckbox.setText(TrackerRes.getString("TToolBar.Checkbox.DrawingControl"));				
-//				drawingControlCheckbox.setSelected(drawingButton.isSelected());
-//				drawingMenu.removeAll();
-//				if (PencilDrawer.hasDrawings(panel()))
-//					drawingMenu.add(drawingButton.drawingVisibleCheckbox);
-//				drawingMenu.add(drawingControlCheckbox);
-//			}
-//			
-//			add(notesButton, overflowPopup);			
-//			notesCheckbox.setSelected(notesButton.isSelected());
-//			overflowPopup.addSeparator();
-//			add(refreshButton, overflowPopup);
-//			
-//			refreshRefreshPopup(refreshMenu.getPopupMenu());
-//			Component comp = refreshMenu.getMenuComponent(0);
-//			((JMenuItem)comp).setText(TrackerRes.getString("TToolBar.MenuItem.RefreshNow"));
-
-			FontSizer.setFonts(overflowPopup, FontSizer.getLevel());
-		}
-		return buttonCount;
-	}
-		
 	private void checkEnabled(boolean refreshTracks) {
 		refreshZoomButton();
 		calibrationButton.refresh();
@@ -2695,6 +2175,18 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 		});
 	}
 	
+	protected TrackerPanel panel() {
+		return (frame == null ? null : frame.getTrackerPanelForID(panelID));
+	}
+
+	@Override
+	public String toString() {
+		return "[TToolBar " + panelID + "]";
+	}
+
+
+	////////////// subclasses //////////////
+	
 	/**
 	 * Returns an XML.ObjectLoader to save and load object data.
 	 *
@@ -2767,6 +2259,7 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 				toolbar.aStretch = toolbar.vStretch;
 			return obj;
 		}
+		
 	}
 	
 	private void setTrailLength(int length) {
@@ -3200,15 +2693,547 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 			return dim;
 		}
 	}
-
 	
-	protected TrackerPanel panel() {
-		return (frame == null ? null : frame.getTrackerPanelForID(panelID));
-	}
+	/**
+	 * A private class to consolidate everything mobile about the toolbar.
+	 * 
+	 */
 
-	@Override
-	public String toString() {
-		return "[TToolBar " + panelID + "]";
+	private class Mobile {
+		// mobile buttons and popups
+		final protected JPopupMenu mobileFilePopup, mobileVideoPopup, mobileCoordsPopup, mobileTrackPopup, mobileViewPopup; 
+		final protected JPopupMenu mobileEditPopup, mobileHelpPopup; 
+		private final JMenu mobileEditMenu = new JMenu();
+		private final JMenu mobileHelpMenu = new JMenu();
+
+		final protected MobileButton[] mobileButtons;
+		final protected MobileButton mobileFileButton, mobileVideoButton;
+		final protected MobileButton mobileCoordsButton, mobileTrackButton;
+		final protected MobileButton mobileViewButton, mobileMoreButton;
+		final protected MobileButton mobileEditButton, mobileHelpButton;
+
+		Mobile() {
+			mobileMoreButton = new MobileButton() {
+				@Override
+				protected JPopupMenu getPopup() {
+					refreshOverflowComponents();
+					FontSizer.setFonts(overflowPopup);
+					return overflowPopup;
+				}
+			}; 
+			mobileMoreButton.alignPopup = TButton.RIGHT;
+			
+			// create mobile popups and buttons
+			mobileFilePopup = new JPopupMenu();
+			mobileVideoPopup = new JPopupMenu();
+			mobileCoordsPopup = new JPopupMenu();
+			mobileTrackPopup = new JPopupMenu();
+			mobileViewPopup = new JPopupMenu();
+			mobileEditPopup = new JPopupMenu();
+			mobileHelpPopup = new JPopupMenu();
+			
+			mobileFileButton = new MobileButton() {
+				@Override
+				protected JPopupMenu getPopup() {
+					rebuildMobileFilePopup();
+					FontSizer.setFonts(mobileFilePopup);
+					return mobileFilePopup;
+				}
+			}; //$NON-NLS-1$
+			if (!noButtonIcons)
+				mobileFileButton.setIcon(folderIcon);
+			
+			mobileVideoButton = new MobileButton() {
+				@Override
+				protected JPopupMenu getPopup() {
+					refreshZoomPopup(zoomMenu.getPopupMenu());
+					rebuildMobileVideoPopup();
+					FontSizer.setFonts(mobileVideoPopup);
+					return mobileVideoPopup;
+				}
+			}; //$NON-NLS-1$
+			if (!noButtonIcons)
+				mobileVideoButton.setIcon(clipOffIcon);
+			
+			mobileCoordsButton = new MobileButton() {
+				@Override
+				protected JPopupMenu getPopup() {
+					axesCheckbox.setSelected(axesButton.isSelected());
+					refreshCalibrationPopup(calibrationMenu.getPopupMenu());
+					if (frame.currentMenuBar != null) {
+						frame.currentMenuBar.refreshCoordsMenu(true);
+					}
+					rebuildMobileCoordsPopup();
+					FontSizer.setFonts(mobileCoordsPopup);
+					return mobileCoordsPopup;
+				}
+			}; //$NON-NLS-1$
+			if (!noButtonIcons)
+				mobileCoordsButton.setIcon(coordsIcon);
+			
+			mobileTrackButton = new MobileButton() {
+				@Override
+				protected JPopupMenu getPopup() {
+					rebuildMobileTrackPopup();
+					FontSizer.setFonts(mobileTrackPopup);
+					return mobileTrackPopup;
+				}
+			}; //$NON-NLS-1$
+			if (!noButtonIcons)
+				mobileTrackButton.setIcon(pointmassOffIcon);
+
+			mobileViewButton = new MobileButton() {
+				@Override
+				protected JPopupMenu getPopup() {
+					rebuildMobileViewPopup();
+					FontSizer.setFonts(mobileViewPopup);
+					return mobileViewPopup;
+				}
+			}; //$NON-NLS-1$
+			if (!noButtonIcons)
+				mobileViewButton.setIcon(TableTView.TABLEVIEW_ICON);
+			
+			mobileEditButton = new MobileButton() {
+				@Override
+				protected JPopupMenu getPopup() {
+					rebuildMobileEditPopup();
+					FontSizer.setFonts(mobileEditPopup);
+					return mobileEditPopup;
+				}
+			}; //$NON-NLS-1$
+			if (!noButtonIcons)
+				mobileEditButton.setIcon(editIcon);
+			
+			mobileHelpButton = new MobileButton() {
+				@Override
+				protected JPopupMenu getPopup() {
+					rebuildMobileHelpPopup();
+					FontSizer.setFonts(mobileHelpPopup);
+					return mobileHelpPopup;
+				}
+			}; //$NON-NLS-1$
+			if (!noButtonIcons)
+				mobileEditButton.setIcon(helpIcon);
+			
+			mobileButtons = new MobileButton[] {mobileFileButton, mobileVideoButton, 
+					mobileTrackButton, mobileCoordsButton, mobileViewButton, mobileEditButton, mobileHelpButton};
+
+
+		}
+
+		private void rebuildForMobile() {	
+			if (!noButtonText) {
+				if (isTooShortFor(mobileHelpButton)) 
+					noButtonText = true;
+			}
+			mobileEditButton.setIcon(noButtonIcons? null: editIcon);
+			mobileHelpButton.setIcon(noButtonIcons? null: helpIcon);
+
+			mobileEditButton.setText(noButtonText? null: TrackerRes.getString("TMenuBar.Menu.Edit"));
+			mobileHelpButton.setText(noButtonText? null: TrackerRes.getString("TMenuBar.Menu.Help"));
+					
+			// add and populate mobile buttons
+			mobileFileButton.setIcon(noButtonIcons? null: folderIcon);
+			mobileVideoButton.setIcon(noButtonIcons? null: clipOffIcon);
+			mobileCoordsButton.setIcon(noButtonIcons? null: coordsIcon);
+			mobileTrackButton.setIcon(noButtonIcons? null: pointmassOffIcon);
+			mobileViewButton.setIcon(noButtonIcons? null: TableTView.TABLEVIEW_ICON);
+			mobileMoreButton.setIcon(noButtonIcons? null: overflowIcon);
+
+			mobileFileButton.setText(noButtonText? null: TrackerRes.getString("TMenuBar.Menu.File"));
+			mobileVideoButton.setText(noButtonText? null: TrackerRes.getString("TMenuBar.Menu.Video"));
+			mobileCoordsButton.setText(noButtonText? null: TrackerRes.getString("TToolBar.Button.Coords.Text"));
+			mobileTrackButton.setText(noButtonText? null: TrackerRes.getString("TMenuBar.Menu.Tracks"));
+			mobileViewButton.setText(noButtonText? null: TrackerRes.getString("TMenuBar.Menu.Window"));
+			mobileMoreButton.setText(noButtonText? null: TrackerRes.getString("TToolBar.Button.More.Text"));
+
+			rebuildMobileFilePopup();
+			rebuildMobileVideoPopup();
+			rebuildMobileCoordsPopup();
+			rebuildMobileTrackPopup();
+			rebuildMobileViewPopup();
+			rebuildMobileEditPopup();
+			rebuildMobileHelpPopup();
+			int count = rebuildMobileOverflowPopup();
+				
+			removeAll();
+			add(Box.createHorizontalGlue());
+			for (int i = 0; i < count; i++) {
+				add(mobileButtons[i]);
+			}
+			if (count < mobileButtons.length)
+				add(mobileMoreButton);
+			add(Box.createHorizontalGlue());
+		
+			if (TFrame.isLayoutAdaptive) {
+				add(maximizeButton);
+			}
+			
+			FontSizer.setFonts(mobileButtons);
+			TFrame.repaintT(TToolBar.this);
+		}
+
+		private void rebuildMobileFilePopup() {
+			mobileFilePopup.removeAll();
+			if (frame.currentMenuBar == null) 
+				return;
+			
+			frame.currentMenuBar.setMenuTainted(TMenuBar.MENU_VIEW, true);
+			frame.currentMenuBar.refreshViewMenu(true);
+			mobileFilePopup.add(frame.currentMenuBar.getMenuItem("file_newTabItem"));
+			mobileFilePopup.addSeparator();
+
+			if (panel().isEnabled("file.open")) { //$NON-NLS-1$
+				add(openButton, mobileFilePopup);
+				refreshOpenPopup(openMenu.getPopupMenu());
+				// move items from openMenu to filePopup
+				mobileFilePopup.add(openMenu.getPopupMenu().getComponent(0));
+				mobileFilePopup.add(openMenu.getPopupMenu().getComponent(0));
+				mobileFilePopup.remove(openMenu);
+//				filePopup.addSeparator();
+				if (!OSPRuntime.isJS) {
+					JMenu file_openRecentMenu = (JMenu)frame.currentMenuBar.getMenuItem("file_openRecentMenu");
+					frame.refreshOpenRecentMenu(file_openRecentMenu);
+					mobileFilePopup.add(file_openRecentMenu);
+				}
+			}
+//			filePopup.add(frame.currentMenuBar.getMenuItem("file_closeItem"));
+			mobileFilePopup.addSeparator();
+			if (panel().isEnabled("file.save")) { //$NON-NLS-1$
+				add(saveButton, mobileFilePopup);
+				refreshSavePopup(saveMenu.getPopupMenu());
+				// move items from saveMenu to filePopup
+				mobileFilePopup.add(saveMenu.getPopupMenu().getComponent(0));
+				mobileFilePopup.add(saveMenu.getPopupMenu().getComponent(0));
+				mobileFilePopup.remove(saveMenu);
+//				filePopup.addSeparator();
+				mobileFilePopup.add(frame.currentMenuBar.getMenuItem("file_saveTabAsItem"));
+			}								
+			mobileFilePopup.addSeparator();
+			mobileFilePopup.add(frame.currentMenuBar.getMenuItem("file_importMenu"));
+			mobileFilePopup.add(frame.currentMenuBar.getMenuItem("file_exportMenu"));
+			mobileFilePopup.addSeparator();
+			mobileFilePopup.add(frame.currentMenuBar.getMenuItem("file_printFrameItem"));
+			mobileFilePopup.addSeparator();
+			mobileFilePopup.add(frame.currentMenuBar.getMenuItem("file_propertiesItem"));
+		}
+		
+		private void rebuildMobileVideoPopup() {
+			mobileVideoPopup.removeAll();
+			if (frame.currentMenuBar == null) {
+				return;
+			}
+			
+			boolean importEnabled = panel().isEnabled("video.import") //$NON-NLS-1$
+					|| panel().isEnabled("video.open"); //$NON-NLS-1$
+			if (importEnabled) {
+				JMenuItem item = frame.currentMenuBar.getMenuItem("video_openVideoItem");
+				item.setIcon(Tracker.getResourceIcon("open.gif", true)); //$NON-NLS-1$
+				mobileVideoPopup.add(item);
+				mobileVideoPopup.add(frame.currentMenuBar.getMenuItem("video_captureItem"));
+			}
+			if (panel().getVideo() != null)
+				mobileVideoPopup.add(frame.currentMenuBar.getMenuItem("video_closeVideoItem"));
+				
+			mobileVideoPopup.addSeparator();
+			if (panel().isEnabled("button.clipSettings")) {//$NON-NLS-1$
+//				add(clipSettingsButton, videoPopup);
+				mobileVideoPopup.add(frame.currentMenuBar.getMenuItem("video_clipSettingsItem"));
+				if (frame.currentMenuBar != null) {
+					mobileVideoPopup.add(frame.currentMenuBar.getMenuItem("video_goToItem"));
+				}
+				mobileVideoPopup.addSeparator();
+			}
+			
+			if (panel().getVideo() != null)
+				mobileVideoPopup.add(frame.currentMenuBar.getMenuItem("video_videoVisibleItem"));
+			
+			JMenuItem item = add(zoomButton, mobileVideoPopup);
+			String text = item.getText();
+			double zoom = panel().getMagnification() * 100;
+			item.setText(text + " (" + zoomFormat.format(zoom) + "%)");
+			if (panel().getVideo() != null) { //$NON-NLS-1$
+				if (panel().isEnabled("video.filters")) { //$NON-NLS-1$
+					mobileVideoPopup.addSeparator();
+					frame.currentMenuBar.refreshVideoMenu(true);
+					mobileVideoPopup.add(frame.currentMenuBar.getMenuItem("video_filtersMenu"));
+				}
+				mobileVideoPopup.addSeparator();
+				mobileVideoPopup.add(frame.currentMenuBar.getMenuItem("video_aboutVideoItem"));
+				
+				mobileVideoPopup.addSeparator();
+				mobileVideoPopup.add(frame.currentMenuBar.getMenuItem("file_saveVideoAsItem"));			
+			}		
+		}
+		
+		private void rebuildMobileCoordsPopup() {
+			mobileCoordsPopup.removeAll();
+			if (frame.currentMenuBar == null) 
+				return;
+			
+			if (panel().isEnabled("button.axes")) {//$NON-NLS-1$
+				add(axesButton, mobileCoordsPopup);
+				mobileCoordsPopup.addSeparator();
+			}
+			if (panel().isEnabled("calibration.stick") //$NON-NLS-1$
+					|| panel().isEnabled("calibration.tape") //$NON-NLS-1$
+					|| panel().isEnabled("calibration.points") //$NON-NLS-1$
+					|| panel().isEnabled("calibration.offsetOrigin")) { //$NON-NLS-1$
+				add(calibrationButton, mobileCoordsPopup);
+			}
+			mobileCoordsPopup.addSeparator();
+			mobileCoordsPopup.add(frame.currentMenuBar.getMenuItem("coords_fixedOriginItem"));
+			mobileCoordsPopup.add(frame.currentMenuBar.getMenuItem("coords_fixedAngleItem"));
+			mobileCoordsPopup.add(frame.currentMenuBar.getMenuItem("coords_fixedScaleItem"));
+			mobileCoordsPopup.addSeparator();
+			mobileCoordsPopup.add(frame.currentMenuBar.getMenuItem("coords_refFrameMenu"));
+			mobileCoordsPopup.addSeparator();
+			mobileCoordsPopup.add(frame.currentMenuBar.getMenuItem("coords_showUnitDialogItem"));
+			mobileCoordsPopup.addSeparator();
+			mobileCoordsPopup.add(frame.currentMenuBar.getMenuItem("coords_lockedCoordsItem"));
+		}
+		
+		
+		private void rebuildMobileTrackPopup() {
+			mobileTrackPopup.removeAll();
+			if (frame.currentMenuBar == null) 
+				return;
+			
+			boolean measuringToolsEnabled = false;
+			boolean eyeEnabled = false;
+			String[] fullconfig = Tracker.getFullConfig().toArray(new String[0]);
+			
+			for (int i = 0; i < fullconfig.length; i++) {
+				if (fullconfig[i].startsWith("new.") && !fullconfig[i].endsWith("clone")) {
+					if (panel().isEnabled(fullconfig[i])) {
+						if (fullconfig[i].endsWith("tapeMeasure")
+								|| fullconfig[i].endsWith("protractor")
+								|| fullconfig[i].endsWith("circleFitter"))
+							measuringToolsEnabled = true;
+					}
+				}
+				else if (fullconfig[i].startsWith("button.")
+						&& !fullconfig[i].endsWith("clipSettings")
+						&& !fullconfig[i].endsWith("axes")
+						&& !fullconfig[i].endsWith("drawing")) {
+					if (panel().isEnabled(fullconfig[i])) {
+						eyeEnabled = true;
+					}
+				}
+			}
+
+			if (panel().isCreateTracksEnabled()) {
+				JMenu newTrackMenu = new JMenu(TrackerRes.getString("TMenuBar.MenuItem.NewTrack"));
+				TMenuBar.refreshPopup(panel(), TMenuBar.POPUPMENU_MOBILE_TRACKS, newTrackMenu.getPopupMenu());
+				FontSizer.setFont(newTrackMenu);
+				mobileTrackPopup.add(newTrackMenu);
+				mobileTrackPopup.addSeparator();
+				mobileTrackPopup.add(frame.currentMenuBar.getMenuItem("track_crosshairItem"));
+				add(trackControlButton, mobileTrackPopup);
+				trackControlCheckbox.setSelected(trackControlButton.isSelected());
+			}
+
+			if (panel().isEnabled("track.autotrack")) { //$NON-NLS-1$
+				add(autotrackerButton, mobileTrackPopup);
+				autotrackerCheckbox.setSelected(autotrackerButton.isSelected());
+			}
+			else {
+				// if not enabled, close autotracker if visible
+				AutoTracker autoTracker = panel().getAutoTracker(false);
+				if (autoTracker != null)
+					autoTracker.getWizard().setVisible(false);
+			}
+			mobileTrackPopup.addSeparator();
+			
+			if (measuringToolsEnabled) {
+				add(measureButton, mobileTrackPopup);
+				refreshMeasurePopup(measureMenu.getPopupMenu());
+			}	
+			if (useEyeButton) {
+				if (eyeEnabled) {
+					add(eyeButton, mobileTrackPopup);
+					refreshEyePopup(eyeMenu.getPopupMenu());
+				}
+			}
+			
+			JMenu selectMenu = new JMenu(TrackerRes.getString("TToolBar.Menu.Select.Text"));
+			TTrackBar trackbar = frame.getTrackBar(panel().getID(), true);
+			trackbar.getSelectTrackPopup(selectMenu.getPopupMenu());
+			mobileTrackPopup.addSeparator();
+			mobileTrackPopup.add(selectMenu);
+		}
+		
+		private void rebuildMobileViewPopup() {
+			mobileViewPopup.removeAll();
+			if (frame.currentMenuBar == null) 
+				return;
+			
+			frame.currentMenuBar.setMenuTainted(TMenuBar.MENU_VIEW, true);
+			frame.currentMenuBar.refreshViewMenu(true);
+			mobileViewPopup.add(frame.currentMenuBar.getMenuItem("view_singleViewMenu"));
+			mobileViewPopup.addSeparator();
+
+			boolean small = OSPRuntime.isSmallScreen(frame);
+			if (!small) {
+				if (panel().getMaximizedView() != TView.VIEW_UNSET) {
+						mobileViewPopup.add(frame.currentMenuBar.getMenuItem("view_restoreItem"));
+				} else {
+					mobileViewPopup.add(frame.currentMenuBar.getMenuItem("view_rightPaneItem"));
+					mobileViewPopup.add(frame.currentMenuBar.getMenuItem("view_bottomPaneItem"));
+				}
+				mobileViewPopup.addSeparator();
+				mobileViewPopup.add(frame.currentMenuBar.getMenuItem("view_mobileLayoutItem"));
+				mobileViewPopup.addSeparator();
+			}
+			
+			if (panel().isEnabled("data.builder") //$NON-NLS-1$
+					|| panel().isEnabled("data.tool")) { //$NON-NLS-1$
+				if (panel().isEnabled("data.builder")) //$NON-NLS-1$
+					mobileViewPopup.add(frame.currentMenuBar.getMenuItem("view_dataBuilderItem"));
+				if (panel().isEnabled("data.tool")) //$NON-NLS-1$					
+					mobileViewPopup.add(frame.currentMenuBar.getMenuItem("view_dataToolItem"));
+			}
+			mobileViewPopup.addSeparator();
+			mobileViewPopup.add(frame.currentMenuBar.getMenuItem("view_TabsMenu"));
+		}
+		
+		private void rebuildMobileEditPopup() {
+			if (frame.currentMenuBar != null) {
+				mobileEditPopup.removeAll();
+
+				if (panel().isEnabled("button.drawing")) { //$NON-NLS-1$
+					drawingButton.drawingVisibleCheckbox.setText(TrackerRes.getString("TTrack.MenuItem.Visible"));				
+					add(drawingButton, mobileEditPopup);
+					PencilDrawer drawer = PencilDrawer.getDrawer(panel());
+					drawingButton.drawingVisibleCheckbox.setSelected(drawer.areDrawingsVisible());
+					drawingButton.drawingVisibleCheckbox.setEnabled(
+							PencilDrawer.hasDrawings(panel()) && !PencilDrawer.isDrawing(panel()));
+					drawingControlCheckbox.setText(TrackerRes.getString("TToolBar.Checkbox.DrawingControl"));				
+					drawingControlCheckbox.setSelected(drawingButton.isSelected());
+					drawingMenu.removeAll();
+					if (PencilDrawer.hasDrawings(panel()))
+						drawingMenu.add(drawingButton.drawingVisibleCheckbox);
+					drawingMenu.add(drawingControlCheckbox);
+				}
+				
+				add(notesButton, mobileEditPopup);			
+				notesCheckbox.setSelected(notesButton.isSelected());
+				mobileEditPopup.addSeparator();
+				add(refreshButton, mobileEditPopup);
+				
+				refreshRefreshPopup(refreshMenu.getPopupMenu());
+				Component comp = refreshMenu.getMenuComponent(0);
+				((JMenuItem)comp).setText(TrackerRes.getString("TToolBar.MenuItem.RefreshNow"));
+
+				frame.currentMenuBar.setMenuTainted(TMenuBar.MENU_EDIT, true);
+				frame.currentMenuBar.refreshEditMenu(true);
+				
+				mobileEditPopup.addSeparator();
+				JMenu menu = (JMenu)frame.currentMenuBar.getMenuItem("editMenu");
+				for (Component item : menu.getMenuComponents()) {
+					mobileEditPopup.add(item);
+				}
+				FontSizer.setFonts(mobileEditPopup, FontSizer.getLevel());
+			}
+		}
+		
+		
+		private void rebuildMobileHelpPopup() {
+			if (frame.currentMenuBar != null) {
+				mobileHelpPopup.removeAll();
+				frame.currentMenuBar.setMenuTainted(TMenuBar.MENU_HELP, true);
+				frame.currentMenuBar.refreshHelpMenu(true);			
+				JMenu menu = (JMenu)frame.currentMenuBar.getMenuItem("helpMenu");
+				for (Component item : menu.getMenuComponents()) {
+					mobileHelpPopup.add(item);
+				}
+			}
+		}
+
+			
+		/**
+		 * Reuse the actions without moving a top-level JMenu into a popup. SwingJS
+		 * gives top-level menus and submenus different DOM structures; changing that
+		 * role during a layout switch can leave the menu UI without an outer node.
+		 */
+		private void populateMobileMenu(JMenu source, JMenu target) {
+			target.removeAll();
+			target.setText(source.getText());
+			target.setEnabled(source.isEnabled());
+			for (Component item : source.getMenuComponents()) {
+				target.add(item);
+			}
+		}
+
+		private int rebuildMobileOverflowPopup() {
+			int buttonCount = mobileButtons.length;
+			if (frame.currentMenuBar != null) {
+				overflowPopup.removeAll();
+				buttonCount = isTooShortFor(mobileHelpButton)? buttonCount-2: buttonCount;
+				if (buttonCount<mobileButtons.length-1) {
+					frame.currentMenuBar.setMenuTainted(TMenuBar.MENU_EDIT, true);
+					frame.currentMenuBar.refreshEditMenu(true);
+					populateMobileMenu((JMenu) frame.currentMenuBar.getMenuItem("editMenu"), mobileEditMenu);
+					overflowPopup.add(mobileEditMenu);
+					if (buttonCount<mobileButtons.length)
+						overflowPopup.addSeparator();
+				}
+				if (buttonCount<mobileButtons.length) {
+					frame.currentMenuBar.setMenuTainted(TMenuBar.MENU_HELP, true);
+					frame.currentMenuBar.refreshHelpMenu(true);
+					populateMobileMenu((JMenu) frame.currentMenuBar.getMenuItem("helpMenu"), mobileHelpMenu);
+					overflowPopup.add(mobileHelpMenu);
+				}
+				
+//				if (panel().isEnabled("button.drawing")) { //$NON-NLS-1$
+//					drawingButton.drawingVisibleCheckbox.setText(TrackerRes.getString("TTrack.MenuItem.Visible"));				
+//					add(drawingButton, overflowPopup);
+//					PencilDrawer drawer = PencilDrawer.getDrawer(panel());
+//					drawingButton.drawingVisibleCheckbox.setSelected(drawer.areDrawingsVisible());
+//					drawingButton.drawingVisibleCheckbox.setEnabled(
+//							PencilDrawer.hasDrawings(panel()) && !PencilDrawer.isDrawing(panel()));
+//					drawingControlCheckbox.setText(TrackerRes.getString("TToolBar.Checkbox.DrawingControl"));				
+//					drawingControlCheckbox.setSelected(drawingButton.isSelected());
+//					drawingMenu.removeAll();
+//					if (PencilDrawer.hasDrawings(panel()))
+//						drawingMenu.add(drawingButton.drawingVisibleCheckbox);
+//					drawingMenu.add(drawingControlCheckbox);
+//				}
+//				
+//				add(notesButton, overflowPopup);			
+//				notesCheckbox.setSelected(notesButton.isSelected());
+//				overflowPopup.addSeparator();
+//				add(refreshButton, overflowPopup);
+//				
+//				refreshRefreshPopup(refreshMenu.getPopupMenu());
+//				Component comp = refreshMenu.getMenuComponent(0);
+//				((JMenuItem)comp).setText(TrackerRes.getString("TToolBar.MenuItem.RefreshNow"));
+
+				FontSizer.setFonts(overflowPopup, FontSizer.getLevel());
+			}
+			return buttonCount;
+		}
+			
+		/**
+		 * Determines if this toolbar is too short to display the specified MobileButton
+		 * 
+		 * @param button the button
+		 * @return true if too short
+		 */
+		private boolean isTooShortFor(MobileButton button) {
+			int totalRequiredSize = 0;
+			for (int i = 0; i < mobileButtons.length; i++) {
+				MobileButton next = mobileButtons[i];
+				if (next == button)
+					break;
+				Dimension prefSize = next.getPreferredSize();
+				totalRequiredSize += prefSize.width;
+			}
+			Insets insets = getInsets();
+			totalRequiredSize += insets.left + insets.right;
+			return getWidth() < totalRequiredSize;
+		}
+		
 	}
 
 }
