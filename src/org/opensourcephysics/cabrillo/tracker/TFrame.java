@@ -433,22 +433,15 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 		fileDropHandler = new FileDropHandler(this);
 		// set transfer handler for CTRL-V paste
 		tabbedPane.setTransferHandler(fileDropHandler);
-		
-		// Use the existing SwingJS delegate and collapse the tab header area on small screens.
-		if (OSPRuntime.isJS) {
-			/**
-			 * @j2sNative
-			 * var ui = this.tabbedPane.getUI$();
-			 * var frame = this;
-			 * var calculateHeight = ui.calculateTabAreaHeight$I$I$I;
-			 * ui.calculateTabAreaHeight$I$I$I = function(tabPlacement, horizRunCount, maxTabHeight) {
-			 *   if (org.opensourcephysics.display.OSPRuntime.isSmallScreen$java_awt_Container(frame)) return 0;
-			 *   return calculateHeight.call(this, tabPlacement, horizRunCount, maxTabHeight);
-			 * };
-			 */
-			{}
-		}
-		
+		tabbedPane.putClientProperty("_j2sTabbedAreaHeightFunction", new Function<JComponent, Integer>() {
+
+			@Override
+			public Integer apply(JComponent tabbedPane) {
+				return (OSPRuntime.isSmallScreen(TFrame.this) ? Integer.valueOf(0) : null);
+			}
+			
+		});
+				
 		if (panel != null) {
 			addTab(panel, ADD_NOSELECT | ADD_REFRESH, () -> {
 			});
