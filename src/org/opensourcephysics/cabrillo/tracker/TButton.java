@@ -104,7 +104,6 @@ public class TButton extends JButton {
 			alignPopup = TButton.RIGHT;
 			setBorder(BorderFactory.createCompoundBorder(ETCHED, EMPTY));
 			longPressTimer = new Timer(LONG_PRESS_DURATION, e -> {
-				System.out.println("showing long POPUP");
 				showPopup(null);
 				
 			});
@@ -140,7 +139,6 @@ public class TButton extends JButton {
 						// If the popup is visible, then we just shut it; otherwise we show it.
 						longPressTimer.stop();
 						if (!hidePopup) {
-							System.out.println("showing next");
 							frame.maximizeNextView(frame.getTrackerPanelForID(panelID));
 							hidePopup = true;
 						}
@@ -343,7 +341,6 @@ public class TButton extends JButton {
 		if (e == null)
 			hidePopup = false;
 		if (popup != null) {
-			System.out.println("BB.show hideP " + hidePopup);
 			if (e != null && e.getClickCount() == 2)
 				hidePopup = false;
 			if (hidePopup) {
