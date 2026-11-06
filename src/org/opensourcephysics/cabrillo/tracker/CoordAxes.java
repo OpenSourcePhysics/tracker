@@ -24,9 +24,11 @@
  */
 package org.opensourcephysics.cabrillo.tracker;
 
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusAdapter;
@@ -46,6 +48,7 @@ import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JSlider;
 import javax.swing.event.ChangeEvent;
@@ -133,6 +136,7 @@ public class CoordAxes extends TTrack {
 	protected WorldGrid grid;
 	protected JCheckBox gridCheckbox;
 	protected TButton gridButton;
+	protected Box gridBox;
 	protected Component gridSeparator;
 	protected boolean gridVisible;
 
@@ -257,7 +261,8 @@ public class CoordAxes extends TTrack {
 
 			@Override
 			public Dimension getMaximumSize() {
-				Dimension dim = super.getMaximumSize();
+				Dimension dim = new Dimension(getIcon().getIconWidth(), getIcon().getIconHeight());
+				dim.width += 10;
 				dim.height = tp.getTrackBar(true).toolbarComponentHeight;
 				return dim;
 			}
@@ -326,6 +331,15 @@ public class CoordAxes extends TTrack {
 			}
 
 		};
+		gridButton.hideContentWhenExit = true;
+		gridButton.setMargin(new Insets(0, 0, 0, 0));
+
+		gridBox = Box.createHorizontalBox();
+		gridBox.setOpaque(false);
+		gridBox.add(Box.createHorizontalGlue());
+		gridBox.add(gridCheckbox);
+		gridBox.add(gridButton);
+		gridBox.add(Box.createHorizontalGlue());
 	}
 
 	/**
@@ -617,8 +631,10 @@ public class CoordAxes extends TTrack {
 		gridCheckbox.setToolTipText(TrackerRes.getString("CoordAxes.Checkbox.Grid.Tooltip")); //$NON-NLS-1$
 		gridButton.setToolTipText(TrackerRes.getString("CoordAxes.Button.Grid.Tooltip")); //$NON-NLS-1$
 		list.add(gridSeparator);
-		list.add(gridCheckbox);
-		list.add(gridButton);
+		gridButton.setContentAreaFilled(false);
+		list.add(gridBox);
+//		list.add(gridCheckbox);
+//		list.add(gridButton);
 		list.add(magSeparator);
 		list.add(xLabel);
 		list.add(xField);

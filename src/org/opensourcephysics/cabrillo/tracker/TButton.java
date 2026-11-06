@@ -134,6 +134,8 @@ public class TButton extends JButton {
 	protected String context = "track"; //$NON-NLS-1$
 	protected boolean alwaysShowBorder;
 	protected int alignPopup = LEFT;
+	protected boolean hideContentWhenExit = false;
+
 	/**
 	 * Constructs a TButton.
 	 */
@@ -146,6 +148,7 @@ public class TButton extends JButton {
 				if (!TButton.this.isEnabled())
 					return;
 				setBorderPainted(true);
+				setContentAreaFilled(true);
 				hidePopup = popup != null && popup.isVisible();
 				TTrack track = getTrack();
 				if (Tracker.showHints && track != null && track.tp != null) {
@@ -162,8 +165,10 @@ public class TButton extends JButton {
 
 			@Override
 			public void mouseExited(MouseEvent e) {
-				if (!alwaysShowBorder)
+				if (!alwaysShowBorder) {
 					setBorderPainted(false);
+					setContentAreaFilled(!hideContentWhenExit);
+				}
 			}
 
 			@Override

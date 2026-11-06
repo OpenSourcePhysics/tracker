@@ -610,6 +610,14 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 								toolbarComps.add(lp.unmarkedLabel);	
 							}
 						}
+						else if (track instanceof CoordAxes) {
+							CoordAxes axes = (CoordAxes)track;
+							if (list.get(j) == axes.gridBox) {
+								TextLineLabel label = new TextLineLabel(axes.gridCheckbox.getText());
+								numberEditors[0].addRow(label, axes.gridBox);
+//								toolbarComps.add(axes.gridBox);	
+							}
+						}
 					}
 				}
 				if (!empty) {

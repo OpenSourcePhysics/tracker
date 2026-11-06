@@ -107,24 +107,33 @@ public class NumberFieldPanel extends JPanel implements PropertyChangeListener {
 		});
 	}
 
-	public void addRow(JComponent label, NumberField field) {
+//	public void addRow(JComponent label, NumberField field) {
+//		if (JLabel.class.isInstance(label)) {
+//			String text = ((JLabel)label).getText();
+//			label = new TextLineLabel(text);
+//		}
+//		if (label instanceof TextLineLabel) {
+//			field.setBorder(emptyBorder);
+//			rowObjects.add(new Object[] {label, field});
+//			model.fireTableRowsInserted(rowObjects.size()-1, rowObjects.size()-1);
+//		}
+//	}
+//	
+//	public void addRow(JComponent label, JCheckBox box) {
+//		if (JLabel.class.isInstance(label)) {
+//			String text = ((JLabel)label).getText();
+//			label = new TextLineLabel(text);
+//		}
+//		rowObjects.add(new Object[] {label, box});
+//		model.fireTableRowsInserted(rowObjects.size()-1, rowObjects.size()-1);
+//	}
+//	
+	public void addRow(JComponent label, JComponent comp) {
 		if (JLabel.class.isInstance(label)) {
 			String text = ((JLabel)label).getText();
 			label = new TextLineLabel(text);
 		}
-		if (label instanceof TextLineLabel) {
-			field.setBorder(emptyBorder);
-			rowObjects.add(new Object[] {label, field});
-			model.fireTableRowsInserted(rowObjects.size()-1, rowObjects.size()-1);
-		}
-	}
-	
-	public void addRow(JComponent label, JCheckBox box) {
-		if (JLabel.class.isInstance(label)) {
-			String text = ((JLabel)label).getText();
-			label = new TextLineLabel(text);
-		}
-		rowObjects.add(new Object[] {label, box});
+		rowObjects.add(new Object[] {label, comp});
 		model.fireTableRowsInserted(rowObjects.size()-1, rowObjects.size()-1);
 	}
 	
@@ -237,24 +246,12 @@ public class NumberFieldPanel extends JPanel implements PropertyChangeListener {
 	   
 	class NFTableCell extends AbstractCellEditor implements TableCellRenderer, TableCellEditor {
 
-		NumberField editingField;
-		JCheckBox editingCheckbox;
-		
 		@Override
 	  public Component getTableCellRendererComponent(JTable table, Object value, 
 	          boolean isSelected, boolean hasFocus, int row, int column) {
 	  	if (column == 1) {
-	  		if (rowObjects.get(row)[1] instanceof NumberField) {
-		  		NumberField field = (NumberField)rowObjects.get(row)[1];
-					FontSizer.setFonts(field, FontSizer.getLevel());
-		      return field;
-	  		}
-	  		else if (rowObjects.get(row)[1] instanceof JCheckBox) {
-	  			JCheckBox box = (JCheckBox)rowObjects.get(row)[1];
-	  			box.setHorizontalAlignment(JCheckBox.CENTER);
-	  			box.setText(null);
-	  			return box;
-	  		}
+	  		return getTableCellEditorComponent(table, value, 
+	          isSelected, row, column);
 	  	}
 	  	JComponent label = (JComponent)rowObjects.get(row)[0];
 			FontSizer.setFonts(label, FontSizer.getLevel());
@@ -265,36 +262,40 @@ public class NumberFieldPanel extends JPanel implements PropertyChangeListener {
 	  public Component getTableCellEditorComponent(JTable table, Object value, 
 	          boolean isSelected, int row, int column) {
 	  	if (column == 1) {
-	  		if (rowObjects.get(row)[1] instanceof NumberField) {
-		  		NumberField field = (NumberField)rowObjects.get(row)[1];
-					FontSizer.setFonts(field, FontSizer.getLevel());
-					editingField = field;
-	  			model.fireTableRowsInserted(model.getRowCount()==0? -1: 0, model.getRowCount() - 1);	
-		      return editingField;
+	  		JComponent comp = (JComponent)rowObjects.get(row)[1];
+	  		if (comp instanceof NumberField) {
+					((NumberField)comp).setBorder(emptyBorder);
 	  		}
-	  		else if (rowObjects.get(row)[1] instanceof JCheckBox) {
-	  			JCheckBox box = (JCheckBox)rowObjects.get(row)[1];
-					editingCheckbox = box;
-	  			model.fireTableRowsInserted(model.getRowCount()==0? -1: 0, model.getRowCount() - 1);	
-	  			editingCheckbox.setText(null);
-		      return editingCheckbox;
+	  		else if (comp instanceof JCheckBox) {
+	  			((JCheckBox)comp).setText(null);
 	  		}
+	  		else {
+	  			for (int i = 0; i < comp.getComponentCount(); i++) {
+	  				Component c = comp.getComponent(i);
+	  				if (c instanceof JCheckBox) {
+			  			((JCheckBox)c).setText(null);	  					
+	  				}
+	  			}
+	  		}
+				FontSizer.setFonts(comp, FontSizer.getLevel());
+  			model.fireTableRowsInserted(model.getRowCount()==0? -1: 0, model.getRowCount() - 1);
+  			return comp;
 	  	}
 	  	return null;
 	  }
 
 	  @Override
 	  public Object getCellEditorValue() {
-	  	if (editingField != null) {
-	  		double val = editingField.getValue();
-				editingField = null;
-	      return val;
-	  	}
-	  	if (editingCheckbox != null) {
-	  		boolean checked = editingCheckbox.isSelected();
-				editingCheckbox = null;
-	      return checked;
-	  	}
+//	  	if (editingField != null) {
+//	  		double val = editingField.getValue();
+//				editingField = null;
+//	      return val;
+//	  	}
+//	  	if (editingCheckbox != null) {
+//	  		boolean checked = editingCheckbox.isSelected();
+//				editingCheckbox = null;
+//	      return checked;
+//	  	}
 	  	return null;
 	  }
 	}
@@ -323,7 +324,7 @@ public class NumberFieldPanel extends JPanel implements PropertyChangeListener {
     public Object getValueAt(int row, int col) {
       return (col == 0) ? getName(row) : 
       	rowObjects.get(row)[1] instanceof NumberField? getValue(row) :
-      		isChecked(row);
+      		rowObjects.get(row)[1] instanceof JCheckBox? isChecked(row): null;
     }
 
     @Override
@@ -334,10 +335,10 @@ public class NumberFieldPanel extends JPanel implements PropertyChangeListener {
     @Override
     public void setValueAt(Object value, int row, int col) {
         if (col == 1) {
-        	if (rowObjects.get(row)[1] instanceof NumberField) {
-	        	NumberField field = (NumberField)rowObjects.get(row)[1];
-	        	field.setValue((double)value);
-        	}
+//        	if (rowObjects.get(row)[1] instanceof NumberField) {
+//	        	NumberField field = (NumberField)rowObjects.get(row)[1];
+//	        	field.setValue((double)value);
+//        	}
 //        	else if (rowObjects.get(row)[1] instanceof JCheckBox) {
 //        		JCheckBox checkbox = (JCheckBox)rowObjects.get(row)[1];
 //        		checkbox.setSelected((boolean) value);
