@@ -3193,11 +3193,13 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 	}
 	
 	/**
-	 * Refreshes and returns the TrackControl New button popup menu.
+	 * Refreshes the TrackControl New button popup menu.
 	 *
 	 * @return the popup
 	 */
-	protected JPopupMenu refreshTrackControlPopup(JPopupMenu popup, boolean noTools) {
+	protected void refreshTrackControlPopup(JPopupMenu popup, boolean noTools) {
+		if (popup == null)
+			return;
 		JMenu menu = new JMenu();
 		refreshTracksCreateMenu(menu, enabledNewTrackCount, noTools);
 		FontSizer.setMenuFonts(menu);
@@ -3209,22 +3211,21 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 			if (item != null)
 				popup.add(item);			
 		}
-		return popup;
 	}
 
 	/**
-	 * Refreshes and returns the toolbar Create button popup menu.
+	 * Refreshes the toolbar Create button popup menu.
 	 *
-	 * @return the popup
 	 */
-	protected JPopupMenu refreshTracksPopup(JPopupMenu newPopup) {
+	protected void refreshTracksPopup(JPopupMenu newPopup) {
+		if (newPopup == null)
+			return;
 		refreshTrackMenu(true, newPopup);
 		newPopup.removeAll();
 		// this will remove these menus from trackMenu
 		newPopup.add(track_createMenu);
 		if (track_cloneMenu.getItemCount() > 0)
 			newPopup.add(track_cloneMenu);
-		return newPopup;
 	}
 
 	private void refreshMainTViewPopup(JPopupMenu popup) {
