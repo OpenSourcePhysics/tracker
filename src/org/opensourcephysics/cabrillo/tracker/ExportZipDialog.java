@@ -95,7 +95,6 @@ import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.controls.XMLControlElement;
 import org.opensourcephysics.controls.XMLProperty;
 import org.opensourcephysics.display.OSPRuntime;
-import org.opensourcephysics.media.BrowserZipExport;
 import org.opensourcephysics.media.core.ImageCoordSystem;
 import org.opensourcephysics.media.core.ImageVideo;
 import org.opensourcephysics.media.core.ImageVideoType;
@@ -2309,7 +2308,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 	private void saveZip(ArrayList<File> zipList) {
 		// define zip target and compress with JarTool
 		File target = new File(getZIPTarget());
-		if (BrowserZipExport.compress(zipList, target)) {
+		if (TrackerIO.BrowserZipExport.compress(zipList, target)) {
 			ResourceLoader.removeFromZipCache(target.getPath());
 			// offer to open the newly created zip file
 //			if (!isOpenInTracker)

@@ -93,6 +93,7 @@ import org.opensourcephysics.desktop.OSPDesktop;
 import org.opensourcephysics.display.DataTable;
 import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.display.Renderable;
+import org.opensourcephysics.js.AIPatch;
 import org.opensourcephysics.media.core.AsyncVideoI;
 import org.opensourcephysics.media.core.ImageCoordSystem;
 import org.opensourcephysics.media.core.ImageVideo;
@@ -105,8 +106,10 @@ import org.opensourcephysics.media.core.VideoAdapter;
 import org.opensourcephysics.media.core.VideoClip;
 import org.opensourcephysics.media.core.VideoFileFilter;
 import org.opensourcephysics.media.core.VideoIO;
+import org.opensourcephysics.media.core.VideoRecorder;
 import org.opensourcephysics.media.core.VideoType;
 import org.opensourcephysics.tools.FontSizer;
+import org.opensourcephysics.tools.JarTool;
 import org.opensourcephysics.tools.LibraryBrowser;
 import org.opensourcephysics.tools.LibraryCollection;
 import org.opensourcephysics.tools.LibraryResource;
@@ -1695,6 +1698,123 @@ public class TrackerIO extends VideoIO {
 			customDelimiters.remove(selected);
 	}
 
+	static void closeMonitor(String fileName) {
+		// THIS MAY NOT WORK -- TESTED? fileName may change with TRZ loading
+		for (TrackerMonitor monitor : monitors) {
+			if (fileName == null) {
+				monitor.close();
+			} else if (XML.forwardSlash(monitor.getName()).endsWith(XML.forwardSlash(fileName))) {
+				monitor.close();
+				monitors.remove(monitor);
+				return;
+			}
+		}
+		monitors.clear();
+	}
+
+	static void setProgress(String name, String string, int framesLoaded) {
+		for (TrackerMonitor monitor : monitors) {
+			String monitorName = XML.forwardSlash(monitor.getName());
+			if (monitorName.endsWith(name)) {
+				int progress;
+				if (monitor.getFrameCount() > 0) {
+					progress = 20 + (int) (framesLoaded * 60.0 / monitor.getFrameCount());
+				} else {
+					progress = 20 + ((framesLoaded / 20) % 60);
+				}
+
+				monitor.setProgressAsync(progress);
+				monitor.setTitle(
+						TrackerRes.getString("TFrame.ProgressDialog.Title.FramesLoaded") + ": " + framesLoaded); //$NON-NLS-1$ //$NON-NLS-2$
+				break;
+			}
+		}
+	}
+
+	protected static Object[] getVideoFormats() {
+		return videoFormatDescriptions.toArray();
+	}
+
+	/**
+	 * Refreshes the format set.
+	 */
+	public static void refreshVideoFormats() {
+		videoFormats.clear();
+		videoFormatDescriptions.clear();
+		// eliminate xuggle types if VideoIO engine is NONE
+		for (VideoType next : getVideoTypes(true)) {
+			String desc = next.getDescription();
+			videoFormats.put(desc, next);
+			videoFormatDescriptions.add(desc);
+		}
+	}
+
+	public static String getVideoFormat(String preferredExtension) {
+		String[] extensions = preferredExtension.split(" ");
+		String selected = selectedVideoFormat;
+		boolean hasSelected = false;
+		String preferred = null;
+		for (String format : videoFormatDescriptions) {
+			if (format.equals(selected))
+				hasSelected = true;
+			if (preferred == null && format.contains("." + extensions[0])) { //$NON-NLS-1$
+				if (extensions.length > 1) { // these are zipped images
+					VideoIO.ZipImageVideoType type = (VideoIO.ZipImageVideoType) videoFormats.get(format);
+					if (!type.getImageExtension().equals(extensions[1]))
+						continue;
+				}
+				preferred = format;
+			}
+		}
+		return (preferred == null && hasSelected ? selected : preferred);
+	}
+
+	private static FileFilter[] imageFilters;
+
+	private static FileFilter videoFilter;
+
+//	public static boolean haveVideo(List<File> files) {
+//		return (files != null && files.size() == 1 && isVideo(files.get(0)));
+//	}
+
+	/**
+	 * Returns true if the specified file is an image.
+	 * 
+	 * @param file the File
+	 * @return true if an image
+	 */
+	public static boolean isImageFile(File file) {
+		if (imageFilters == null)
+			imageFilters = new ImageVideoType().getFileFilters();
+		for (int i = 0; i < imageFilters.length; i++) {
+			if (imageFilters[i].accept(file))
+				return true;
+		}
+		return false;
+	}
+
+	public static boolean isVideo(File f) {
+		if (videoFilter == null)
+			videoFilter = new VideoFileFilter();
+		return videoFilter.accept(f);
+	}
+
+	public static void exportVideoImages(TrackerPanel panel, String exportVideoName) {
+		if (panel != null)
+			saveVideo(new File(exportVideoName), panel, true, false);
+	}
+
+	public static byte[] getImageBytes(TrackerPanel panel, int i) throws IOException {
+		VideoAdapter video = (VideoAdapter) panel.getVideo();
+		video.setNotify(false);
+		video.setFrameNumber(i);
+		video.setNotify(true);
+		BufferedImage img = video.getRawBufferedImage();
+		ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		ImageIO.write(img, "png", bos);
+		return bos.toByteArray();
+	}
+	
 	/**
 	 * Finds page view file paths in an XMLControl and maps the page view path to
 	 * the URL path of the file. If the page view path refers to a file inside a
@@ -2726,121 +2846,41 @@ public class TrackerIO extends VideoIO {
 		}
 	}
 
-	static void closeMonitor(String fileName) {
-		// THIS MAY NOT WORK -- TESTED? fileName may change with TRZ loading
-		for (TrackerMonitor monitor : monitors) {
-			if (fileName == null) {
-				monitor.close();
-			} else if (XML.forwardSlash(monitor.getName()).endsWith(XML.forwardSlash(fileName))) {
-				monitor.close();
-				monitors.remove(monitor);
-				return;
-			}
-		}
-		monitors.clear();
-	}
-
-	static void setProgress(String name, String string, int framesLoaded) {
-		for (TrackerMonitor monitor : monitors) {
-			String monitorName = XML.forwardSlash(monitor.getName());
-			if (monitorName.endsWith(name)) {
-				int progress;
-				if (monitor.getFrameCount() > 0) {
-					progress = 20 + (int) (framesLoaded * 60.0 / monitor.getFrameCount());
-				} else {
-					progress = 20 + ((framesLoaded / 20) % 60);
-				}
-
-				monitor.setProgressAsync(progress);
-				monitor.setTitle(
-						TrackerRes.getString("TFrame.ProgressDialog.Title.FramesLoaded") + ": " + framesLoaded); //$NON-NLS-1$ //$NON-NLS-2$
-				break;
-			}
-		}
-	}
-
-	protected static Object[] getVideoFormats() {
-		return videoFormatDescriptions.toArray();
-	}
-
 	/**
-	 * Refreshes the format set.
-	 */
-	public static void refreshVideoFormats() {
-		videoFormats.clear();
-		videoFormatDescriptions.clear();
-		// eliminate xuggle types if VideoIO engine is NONE
-		for (VideoType next : getVideoTypes(true)) {
-			String desc = next.getDescription();
-			videoFormats.put(desc, next);
-			videoFormatDescriptions.add(desc);
-		}
-	}
-
-	public static String getVideoFormat(String preferredExtension) {
-		String[] extensions = preferredExtension.split(" ");
-		String selected = selectedVideoFormat;
-		boolean hasSelected = false;
-		String preferred = null;
-		for (String format : videoFormatDescriptions) {
-			if (format.equals(selected))
-				hasSelected = true;
-			if (preferred == null && format.contains("." + extensions[0])) { //$NON-NLS-1$
-				if (extensions.length > 1) { // these are zipped images
-					VideoIO.ZipImageVideoType type = (VideoIO.ZipImageVideoType) videoFormats.get(format);
-					if (!type.getImageExtension().equals(extensions[1]))
-						continue;
-				}
-				preferred = format;
-			}
-		}
-		return (preferred == null && hasSelected ? selected : preferred);
-	}
-
-	private static FileFilter[] imageFilters;
-
-	private static FileFilter videoFilter;
-
-//	public static boolean haveVideo(List<File> files) {
-//		return (files != null && files.size() == 1 && isVideo(files.get(0)));
-//	}
-
-	/**
-	 * Returns true if the specified file is an image.
+	 * Browser download handling for completed ZIP and TRZ archives.
 	 * 
-	 * @param file the File
-	 * @return true if an image
-	 */
-	public static boolean isImageFile(File file) {
-		if (imageFilters == null)
-			imageFilters = new ImageVideoType().getFileFilters();
-		for (int i = 0; i < imageFilters.length; i++) {
-			if (imageFilters[i].accept(file))
-				return true;
+	 * No install is necessary in Java.
+	 * 
+	 **/
+	public static class BrowserZipExport {
+
+		public static boolean compress(ArrayList<File> files, File target) {
+			// Java returns null here
+			Runnable cleanup = install(target.getPath());
+			try {
+				return JarTool.compress(files, target, null);
+			} finally {
+				if (cleanup != null)
+					cleanup.run();
+			}
 		}
-		return false;
+
+		public static String saveVideo(VideoRecorder recorder) throws IOException {
+			// Java returns null here
+			Runnable cleanup = install(recorder.getFileName());
+			try {
+				return recorder.saveVideo();
+			} finally {
+				if (cleanup != null)
+					cleanup.run();
+			}
+		}
+
+		private static Runnable install(String targetPath) {
+			return (!OSPRuntime.isJS || !ResourceLoader.isJarZipTrz(targetPath, false) ? null
+					: AIPatch.installJ2SFileSaveDialog(targetPath, "application/zip"));
+		}
+
 	}
 
-	public static boolean isVideo(File f) {
-		if (videoFilter == null)
-			videoFilter = new VideoFileFilter();
-		return videoFilter.accept(f);
-	}
-
-	public static void exportVideoImages(TrackerPanel panel, String exportVideoName) {
-		if (panel != null)
-			saveVideo(new File(exportVideoName), panel, true, false);
-	}
-
-	public static byte[] getImageBytes(TrackerPanel panel, int i) throws IOException {
-		VideoAdapter video = (VideoAdapter) panel.getVideo();
-		video.setNotify(false);
-		video.setFrameNumber(i);
-		video.setNotify(true);
-		BufferedImage img = video.getRawBufferedImage();
-		ByteArrayOutputStream bos = new ByteArrayOutputStream();
-		ImageIO.write(img, "png", bos);
-		return bos.toByteArray();
-	}
-	
 }

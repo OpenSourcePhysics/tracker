@@ -12,7 +12,7 @@ import java.util.zip.ZipFile;
 
 import javax.imageio.ImageIO;
 
-import org.opensourcephysics.media.BrowserZipExport;
+import org.opensourcephysics.cabrillo.tracker.TrackerIO;
 import org.opensourcephysics.media.core.ImageVideoRecorder;
 import org.opensourcephysics.media.core.ImageVideoType;
 import org.opensourcephysics.media.core.VideoFileFilter;
@@ -43,7 +43,7 @@ public class ImageVideoZipTest {
         recorder.addFrame(frame(0));
         recorder.removeFirstFrame();
         try {
-            BrowserZipExport.saveVideo(recorder);
+            TrackerIO.BrowserZipExport.saveVideo(recorder);
             throw new AssertionError("Missing frame was not reported");
         } catch (IOException expected) {
             if (failed.exists()) throw new AssertionError("Failed export produced a download");
@@ -69,7 +69,7 @@ public class ImageVideoZipTest {
         Recorder recorder = new Recorder(extension);
         recorder.createVideo(target.getAbsolutePath());
         for (int i = 0; i < count; i++) recorder.addFrame(frame(i));
-        String saved = BrowserZipExport.saveVideo(recorder);
+        String saved = TrackerIO.BrowserZipExport.saveVideo(recorder);
         if (!target.getAbsolutePath().equals(saved)) throw new AssertionError("Wrong saved path: " + saved);
         if (directory.list().length != 1) throw new AssertionError("Loose files beside archive");
         try (ZipFile archive = new ZipFile(target)) {

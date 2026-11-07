@@ -953,7 +953,6 @@ org/opensourcephysics/ejs/EjsRes.js
 org/opensourcephysics/frames/ImageFrame.js
 org/opensourcephysics/js/AIPatch.js
 org/opensourcephysics/js/JSUtil.js
-org/opensourcephysics/media/BrowserZipExport.js
 org/opensourcephysics/media/TrackerCamera.js
 org/opensourcephysics/media/TrackerCameraServer.js
 org/opensourcephysics/media/core/AsyncVideoI.js

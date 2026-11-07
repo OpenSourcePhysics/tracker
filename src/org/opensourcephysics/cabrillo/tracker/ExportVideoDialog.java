@@ -72,7 +72,6 @@ import org.opensourcephysics.media.core.Video;
 import org.opensourcephysics.media.core.VideoClip;
 import org.opensourcephysics.media.core.VideoIO;
 import org.opensourcephysics.media.core.VideoPlayer;
-import org.opensourcephysics.media.BrowserZipExport;
 import org.opensourcephysics.media.core.VideoRecorder;
 import org.opensourcephysics.media.core.VideoType;
 import org.opensourcephysics.tools.FontSizer;
@@ -741,7 +740,7 @@ public class ExportVideoDialog extends JDialog {
 				for (BufferedImage image : getNextImages(size)) {
 					recorder.addFrame(image);
 				}
-				savedFilePath = BrowserZipExport.saveVideo(recorder);
+				savedFilePath = TrackerIO.BrowserZipExport.saveVideo(recorder);
 				if (savedFilePath == null) {
 					recorder.reset();
 				}
@@ -842,7 +841,7 @@ public class ExportVideoDialog extends JDialog {
 			System.gc();
 			// if done, save video
 			if (done) {
-				savedFilePath = BrowserZipExport.saveVideo(recorder);
+				savedFilePath = TrackerIO.BrowserZipExport.saveVideo(recorder);
 				recorder.reset();
 				// restore original magnification and video visibility
 				trackerPanel.setMagnification(magnification);
