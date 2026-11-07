@@ -1471,10 +1471,6 @@ public class Tracker {
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			javax.swing.MenuSelectionManager.defaultManager().clearSelectedPath();
-			/** @j2sNative
-			 * swingjs.plaf.JSPopupMenuUI.closeAllMenusNOW$();
-			 */
-			{}
 			if ("runtime".equals(kind)) { //$NON-NLS-1$
 				if (OSPRuntime.isJS)
 					showAboutOnlineRuntime();
