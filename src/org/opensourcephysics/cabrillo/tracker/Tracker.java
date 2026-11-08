@@ -1119,10 +1119,12 @@ public class Tracker {
 		} catch (Exception ex) {
 		}
 
-		String[] v1 = ver1.trim().split("\\."); //$NON-NLS-1$
-		String[] v2 = ver2.trim().split("\\."); //$NON-NLS-1$
+		// split on period OR dash
+		String[] v1 = ver1.trim().split("[.-]"); //$NON-NLS-1$
+		String[] v2 = ver2.trim().split("[.-]"); //$NON-NLS-1$
+		
 		// newer beta version arrays have length 4
-		// newer semantic version arrays have length 3
+		// most version arrays have length 3
 		// older version arrays have length 2
 		// older beta arrays may have length 3--truncate last number string to one digit
 
