@@ -68,7 +68,7 @@ public class TrackControl extends JDialog implements OSPRuntime.Disposable, Prop
 	protected TFrame frame;
 	protected Integer panelID;
 
-	protected JPopupMenu popup;
+	protected JPopupMenu trackButtonPopup;
 	protected JPanel trackBarPanel;
 	protected JToolBar[] trackBars = new JToolBar[0];
 	protected boolean positioned = false;
@@ -129,13 +129,13 @@ public class TrackControl extends JDialog implements OSPRuntime.Disposable, Prop
 
 			@Override
 			protected JPopupMenu getPopup() {
-				TMenuBar.refreshPopup(panel, TMenuBar.POPUPMENU_TRACKCONTROL_TRACKS, popup);
-				return popup;
+				TMenuBar.refreshPopup(panel, TMenuBar.POPUPMENU_TRACKCONTROL_TRACKS, trackButtonPopup);
+				return trackButtonPopup;
 			}
 		};
 		setResizable(false);
 		pack();
-		popup = new JPopupMenu();
+		trackButtonPopup = new JPopupMenu();
 		panel.addListeners(panelProps, this);
 		myFollower = frame.addFollower(this, null);
 	}

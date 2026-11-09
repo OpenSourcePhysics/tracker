@@ -2304,8 +2304,8 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		}
 		try {
 			TrackControl tc = TrackControl.getControl(this);
-			if (tc != null && tc.popup != null && tc.popup.isVisible()) {
-				tc.popup.setVisible(false);
+			if (tc != null && tc.trackButtonPopup != null && tc.trackButtonPopup.isVisible()) {
+				tc.trackButtonPopup.setVisible(false);
 			}
 		} catch (Throwable t) {}
 		try {

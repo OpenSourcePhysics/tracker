@@ -2891,14 +2891,15 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 				mobileFilePopup.add(openMenu.getPopupMenu().getComponent(0));
 				mobileFilePopup.add(openMenu.getPopupMenu().getComponent(0));
 				mobileFilePopup.remove(openMenu);
-//				filePopup.addSeparator();
+
 				if (!OSPRuntime.isJS) {
 					JMenu file_openRecentMenu = (JMenu)frame.currentMenuBar.getMenuItem("file_openRecentMenu");
 					frame.refreshOpenRecentMenu(file_openRecentMenu);
 					mobileFilePopup.add(file_openRecentMenu);
 				}
 			}
-//			filePopup.add(frame.currentMenuBar.getMenuItem("file_closeItem"));
+			mobileFilePopup.addSeparator();
+			mobileFilePopup.add(frame.currentMenuBar.getMenuItem("file_closeItem"));
 			mobileFilePopup.addSeparator();
 			if (p.isEnabled("file.save")) { //$NON-NLS-1$
 				add(saveButton, mobileFilePopup);
@@ -2907,7 +2908,6 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 				mobileFilePopup.add(saveMenu.getPopupMenu().getComponent(0));
 				mobileFilePopup.add(saveMenu.getPopupMenu().getComponent(0));
 				mobileFilePopup.remove(saveMenu);
-//				filePopup.addSeparator();
 				mobileFilePopup.add(frame.currentMenuBar.getMenuItem("file_saveTabAsItem"));
 			}								
 			mobileFilePopup.addSeparator();
