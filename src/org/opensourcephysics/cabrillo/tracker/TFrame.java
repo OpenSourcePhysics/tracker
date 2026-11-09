@@ -432,16 +432,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 		// set transfer handler on tabbedPane
 		fileDropHandler = new FileDropHandler(this);
 		// set transfer handler for CTRL-V paste
-		tabbedPane.setTransferHandler(fileDropHandler);
-		tabbedPane.putClientProperty("_j2sTabbedAreaHeightFunction", new Function<JComponent, Integer>() {
-
-			@Override
-			public Integer apply(JComponent tabbedPane) {
-				return (OSPRuntime.isSmallScreen(TFrame.this) ? Integer.valueOf(0) : null);
-			}
-			
-		});
-				
+		tabbedPane.setTransferHandler(fileDropHandler);				
 		if (panel != null) {
 			addTab(panel, ADD_NOSELECT | ADD_REFRESH, () -> {
 			});
@@ -2574,6 +2565,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 
 		// create the tabbed pane
 		tabbedPane = new JTabbedPane(SwingConstants.BOTTOM);
+		
 		frameContentPane = new JPanel(new BorderLayout());
 		setContentPane(frameContentPane);
 		getContentPane().add(tabbedPane, BorderLayout.CENTER);
@@ -2729,6 +2721,19 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 				trackbar.refreshNumberEditors(false);
 		}
 		return oldPanel;
+	}
+	
+	@Override
+	public void setBounds(int x, int y, int w, int h) {
+		super.setBounds(x, y, w, h);
+		if (isLayoutAdaptive)
+			checkHideTabs();
+	}
+
+	private void checkHideTabs() {
+		if (tabbedPane != null) {
+			tabbedPane.putClientProperty("_j2sHideTabs", Boolean.valueOf(OSPRuntime.isSmallScreen(this)));
+		}	
 	}
 
 	protected void frameResized() {
