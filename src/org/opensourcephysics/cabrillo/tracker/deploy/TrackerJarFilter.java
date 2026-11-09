@@ -49,7 +49,8 @@ public boolean accept(File dir, String name) {
   			version = version.substring(0, n);
   		}
 
-      String[] intArray = version.split("\\."); //$NON-NLS-1$
+			// split on period OR dash
+      String[] intArray = version.split("[.-]"); //$NON-NLS-1$
       if (intArray.length<=4) {
       	try {
       		for (int i=0; i<intArray.length; i++) {
