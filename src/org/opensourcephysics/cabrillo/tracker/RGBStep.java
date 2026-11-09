@@ -562,7 +562,7 @@ public Object clone() {
   	}
   	
     protected void remove(int vertex) {
-    	if (vertices.size() < 2 || vertices.size() < vertex + 1)
+    	if (vertices.size() < 2 || vertices.size() < vertex + 2)
     		return;
   		reset();
   		vertices.remove(vertex + 1);

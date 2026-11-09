@@ -49,6 +49,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.JTextField;
 import javax.swing.JToolBar;
+import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 
 import org.opensourcephysics.cabrillo.tracker.TButton.TStickyPopupButton;
@@ -77,6 +78,7 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 	protected static boolean showOutOfMemoryDialog = true;
 	private final static JTextField sizingField = new JTextField("1234567");
 	private JLabel viewLabel = new JLabel();
+	private Compact compact;
 
 	static int testIndex;
 
@@ -93,15 +95,13 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 	// instance fields
 	protected final Component toolbarEnd = Box.createGlue();
 	protected int toolbarComponentHeight, numberFieldWidth;
-	protected TButton trackButton, trackNumberEditorButton, pointNumberEditorButton;
+	protected TButton trackButton;
 	protected JButton maximizeButton;
 	protected TStickyPopupButton trackBarChooseViewButton;
 	protected JLabel mainViewIconLabel;
 	protected TButton selectButton;
 	protected JLabel emptyLabel = new JLabel();
 	protected JPopupMenu selectPopup;
-	protected NumberFieldPanel[] numberEditors;
-
 	private TFrame frame;
 	private Integer panelID;
 
@@ -144,7 +144,7 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 									TTrackBar trackbar = frame.getTrackBar(tp.getID(), false);
 									javax.swing.SwingUtilities.invokeLater(() -> {
 										trackbar.rebuild();
-										trackbar.refreshNumberEditors();
+										trackbar.refreshNumberEditors(false);
 									});
 //									
 //									testIndex++;
@@ -266,12 +266,10 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 		// it filters null entries.
 		Object[] objectsToSize = new Object[] 
 				{ sizingField, newVersionButton, trackButton, testButton, 
-						maximizeButton, numberEditors[0], numberEditors[1]};
+						maximizeButton};
 		FontSizer.setFonts(objectsToSize, level);
 		numberFieldWidth = sizingField.getPreferredSize().width;
-		javax.swing.SwingUtilities.invokeLater(() -> {
-			refreshNumberEditors();
-		});
+		getCompact().setFontLevel(level);
 	}
 
 	@Override
@@ -332,25 +330,7 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 			}
 		};
 		
-		numberEditors = new NumberFieldPanel[] {
-				new NumberFieldPanel(panel()),
-				new NumberFieldPanel(panel())};
-		numberEditors[0].setUp(true);
-		numberEditors[1].setUp(true);
-
 		
-		// number editor buttons
-		trackNumberEditorButton = new TButton(TViewChooser.RESTORE_ICON, TViewChooser.MAXIMIZE_ICON);
-		trackNumberEditorButton.addActionListener((e)-> {
-			trackNumberEditorButton.setSelected(!trackNumberEditorButton.isSelected());
-			refreshNumberEditor(0);
-		});
-		pointNumberEditorButton = new TButton(TViewChooser.RESTORE_ICON, TViewChooser.MAXIMIZE_ICON);
-		pointNumberEditorButton.addActionListener((e)-> {
-			pointNumberEditorButton.setSelected(!pointNumberEditorButton.isSelected());
-			refreshNumberEditor(1);
-		});
-
 		trackButton = new TButton() {
 			@Override
 			protected JPopupMenu getPopup() {
@@ -500,47 +480,19 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 
 	}
 	
+	private Compact getCompact() {
+		if (compact == null) {
+			compact = new Compact();
+		}
+		return compact;
+	}
+	
+	protected void refreshNumberEditors(boolean later) {
+		getCompact().refreshNumberEditors(later);
+	}
+	
 	private boolean buildRequested;
 
-	protected void refreshNumberEditor(int i) {
-		if (trackNumberEditorButton==null) return;
-		
-		if (i==0) {
-			if (OSPRuntime.isCompact(frame)
-					&& trackNumberEditorButton.isSelected() 
-					&& panel().getSelectedTrack() != null 
-					&& numberEditors[0].getRowCount() > 0
-					&& frame.isMainViewVisible(panel())
-					&& frame.getSelectedPanel() == panel()) {
-				numberEditors[0].setVisible(true);		
-				numberEditors[0].setPositionComponent(trackButton);
-			}
-			else {
-				numberEditors[0].setVisible(false);
-			}
-		}
-		else {
-			if (OSPRuntime.isCompact(frame)
-					&& pointNumberEditorButton.isSelected() 
-					&& panel().getSelectedPoint() != null 
-					&& numberEditors[1].getRowCount() > 0
-					&& frame.isMainViewVisible(panel())
-					&& frame.getSelectedPanel() == panel()) {
-				Component c = numberEditors[1].getPositionComponent();
-				numberEditors[1].setVisible(true);
-				numberEditors[1].setPositionComponent(c != null? c: pointNumberEditorButton);
-			}
-			else {
-				numberEditors[1].setVisible(false);
-			}
-		}
-	}
-	
-	protected void refreshNumberEditors() {
-		refreshNumberEditor(0);
-		refreshNumberEditor(1);
-	}
-	
 	protected void rebuild() {
 		if (selectButton == null)
 			createGUI();
@@ -558,12 +510,6 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 		} else {
 			track.removeListenerNCF(this);
 		}
-//		if (panel.getSelectedTrack() == null) {
-//			String name = TrackerRes.getString("TFrame.View.Main.Track");
-// 			viewLabel.setText(name); //$NON-NLS-1$
-// 			FontSizer.setFonts(viewLabel);
-//			add(viewLabel);
-//		}
 
 		add(selectButton);
 		trackButton.context = "track"; //$NON-NLS-1$
@@ -584,63 +530,22 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 			add(trackButton);
 			
 			toolbarComponentHeight = selectButton.getPreferredSize().height;
-			ArrayList<Component> list = track.getToolbarTrackComponents(panel);
+			
 			if (OSPRuntime.isCompact(frame)) {
-				numberEditors[0].clear();
-				boolean empty = true;
-				ArrayList<Component> toolbarComps = new ArrayList<Component>();
-				for (int j = 0; j < list.size(); j++) {
-					if (list.get(j) instanceof NumberField && list.get(j-1) instanceof JComponent) {
-							NumberField field = (NumberField)list.get(j);
-							JComponent label = (JComponent)list.get(j-1);
-							numberEditors[0].addRow(label, field);
-							empty = false;
-					}
-					else if (list.get(j) instanceof JCheckBox) {
-						JCheckBox checkbox = (JCheckBox)list.get(j);
-						TextLineLabel label = new TextLineLabel(checkbox.getText());
-						numberEditors[0].addRow(label, checkbox);
-						empty = false;
-					}
-					else {
-						if (track instanceof LineProfile) {
-							LineProfile lp = (LineProfile)track;
-							if (list.get(j) == lp.unmarkedLabel) {
-								toolbarComps.add(lp.stepSeparator);	
-								toolbarComps.add(lp.unmarkedLabel);	
-							}
-						}
-						else if (track instanceof CoordAxes) {
-							CoordAxes axes = (CoordAxes)track;
-							if (list.get(j) == axes.gridBox) {
-								TextLineLabel label = new TextLineLabel(axes.gridCheckbox.getText());
-								numberEditors[0].addRow(label, axes.gridBox);
-//								toolbarComps.add(axes.gridBox);	
-							}
-						}
-					}
-				}
-				if (!empty) {
-					numberEditors[0].updateTableLayout();
-					add(trackNumberEditorButton);
-				}
-				if (!toolbarComps.isEmpty()) {
-					for (int j = 0; j < toolbarComps.size(); j++) {
-						add(toolbarComps.get(j));
-					}
-				}
+				getCompact().rebuild(panel);
+				return;
 			}
-			else {
-				for (Component c : list) {
-					if (c instanceof JComponent && !(c instanceof JButton) && !(c instanceof JCheckBox)) {
-						updateSize((JComponent) c);
-						if (c instanceof NumberField) {
-							NumberField field = (NumberField)c;
-							field.setBorder(TTrack.fieldBorder);
-						}
+			
+			ArrayList<Component> list = track.getToolbarTrackComponents(panel);
+			for (Component c : list) {
+				if (c instanceof JComponent && !(c instanceof JButton) && !(c instanceof JCheckBox)) {
+					updateSize((JComponent) c);
+					if (c instanceof NumberField) {
+						NumberField field = (NumberField)c;
+						field.setBorder(TTrack.fieldBorder);
 					}
-					add(c);
 				}
+				add(c);
 			}
 			// selected point items
 			TPoint p = panel.getSelectedPoint();
@@ -650,55 +555,23 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 			if (p != null) {
 				// a point is selected
 				list = track.getToolbarPointComponents(panel, p);
-				Component stepLabel = null;
-				if (OSPRuntime.isCompact(frame)) {
-					numberEditors[1].clear();
-					boolean empty = true;
-					for (int j = 0; j < list.size(); j++) {
-						Component c = list.get(j);
-						if (c == track.stepLabel) {
-							updateSize((JComponent) c);
-							add(c);
-							stepLabel = c;
-						}
-						else if (c == track.stepValueLabel) {
-							updateSize((JComponent) c);
-							add(c);
-						}
-						else if (c instanceof NumberField && list.get(j-1) instanceof JComponent) {
-								NumberField field = (NumberField)c;
-								JComponent label = (JComponent)list.get(j-1);
-								numberEditors[1].addRow(label, field);
-								empty = false;
-						}
-						else if (list.get(j) instanceof JCheckBox && list.get(j-1) instanceof JComponent) {
-							JCheckBox checkbox = (JCheckBox)list.get(j);
-							JComponent label = (JComponent)list.get(j-1);
-							numberEditors[0].addRow(label, checkbox);
-							empty = false;
+				for (Component c : list) {
+					if (c instanceof JComponent && !(c instanceof JButton)) {
+						updateSize((JComponent) c);
+						if (c instanceof NumberField) {
+							NumberField field = (NumberField)c;
+							field.setBorder(TTrack.fieldBorder);
 						}
 					}
-					if (!empty) {
-						numberEditors[1].updateTableLayout();
-						numberEditors[1].setPositionComponent(stepLabel);
-						add(pointNumberEditorButton);
-					}
-				}
-				else {	
-					for (Component c : list) {
-						if (c instanceof JComponent && !(c instanceof JButton)) {
-							updateSize((JComponent) c);
-							if (c instanceof NumberField) {
-								NumberField field = (NumberField)c;
-								field.setBorder(TTrack.fieldBorder);
-							}
-						}
-						add(c);
-					}
+					add(c);
 				}
 			}
 		}
-
+		
+		finishRebuilding(panel);
+	}
+	
+	protected void finishRebuilding(TrackerPanel panel) {
 		ArrayList<TTrack> userTracks = panel.getUserTracks();
 		TFrame frame = panel.getTFrame();
 		if ((userTracks == null || userTracks.isEmpty())
@@ -747,9 +620,10 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 		}
 
 		FontSizer.setFonts(maximizeButton);
+		refreshNumberEditors(true);
 		revalidate();
 		TFrame.repaintT(this);
-//		toolbarComponentHeight = selectButton.getPreferredSize().height;
+		
 	}
 
 	@Override
@@ -809,19 +683,10 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 	public void propertyChange(PropertyChangeEvent e) {
 		switch (e.getPropertyName()) {
 		case TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDTRACK:
-			refresh();
-			refreshNumberEditors();
-			break;
+		case TTrack.PROPERTY_TTRACK_FOOTPRINT:
 		case TTrack.PROPERTY_TTRACK_NAME:
 		case TTrack.PROPERTY_TTRACK_COLOR:
-		case TTrack.PROPERTY_TTRACK_FOOTPRINT:
-			refresh();
-			break;
 		case TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDPOINT:
-			// selected point has changed 
-			refresh();
-			refreshNumberEditors();
-			break;
 		case TrackerPanel.PROPERTY_TRACKERPANEL_TRACK:
 			// tracks have been added or removed
 			refresh();
@@ -865,6 +730,229 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 	@Override
 	public String toString() {
 		return "[TTrackBar " + panelID + "]";
+	}
+	
+	/**
+	 * A private class to consolidate everything compact about the trackbar.
+	 * 
+	 */
+
+	private class Compact {
+		
+		protected NumberFieldPanel[] numberEditors;
+		protected TButton trackNumberEditorButton, pointNumberEditorButton;
+
+		Compact() {
+			numberEditors = NumberFieldPanel.getNFPanelArray(panel());
+			numberEditors[0].setUp(true);
+			numberEditors[1].setUp(true);
+
+			// number editor buttons
+			trackNumberEditorButton = new TButton(TViewChooser.RESTORE_ICON, TViewChooser.MAXIMIZE_ICON);
+			trackNumberEditorButton.addActionListener((e)-> {
+				trackNumberEditorButton.setSelected(!trackNumberEditorButton.isSelected());
+				refreshNumberEditor(0);
+			});
+			pointNumberEditorButton = new TButton(TViewChooser.RESTORE_ICON, TViewChooser.MAXIMIZE_ICON);
+			pointNumberEditorButton.addActionListener((e)-> {
+				pointNumberEditorButton.setSelected(!pointNumberEditorButton.isSelected());
+				refreshNumberEditor(1);
+			});		
+		}
+		
+		/**
+		 * Sets the font level.
+		 *
+		 * @param level the desired font level
+		 */
+		public void setFontLevel(int level) {
+			// sizingField is always present. The desktop-only newVersionButton is null
+			// in Tracker Online, and FontSizer examines the first array element before
+			// it filters null entries.
+			Object[] objectsToSize = new Object[] 
+					{numberEditors[0], numberEditors[1]};
+			FontSizer.setFonts(objectsToSize, level);
+			refreshNumberEditors(true);
+		}
+		
+		protected void rebuild(TrackerPanel panel) {
+			TTrack track = trackButton.getTrack();
+			ArrayList<Component> list = track.getToolbarTrackComponents(panel);
+			ArrayList<Component> toolbarComps = new ArrayList<Component>();
+			numberEditors[0].clear();
+			boolean empty = true;
+			for (int j = 0; j < list.size(); j++) {
+				if (list.get(j) instanceof NumberField && list.get(j-1) instanceof JComponent) {
+						NumberField field = (NumberField)list.get(j);
+						JComponent label = (JComponent)list.get(j-1);
+						numberEditors[0].addRow(label, field);
+						empty = false;
+				}
+				else if (list.get(j) instanceof JCheckBox) {
+					JCheckBox checkbox = (JCheckBox)list.get(j);
+					TextLineLabel label = new TextLineLabel(checkbox.getText());
+					numberEditors[0].addRow(label, checkbox);
+					empty = false;
+				}
+				else {
+					if (track instanceof LineProfile) {
+						LineProfile lp = (LineProfile)track;
+						if (list.get(j) == lp.unmarkedLabel) {
+							toolbarComps.add(lp.stepSeparator);	
+							toolbarComps.add(lp.unmarkedLabel);	
+						}
+					}
+					else if (track instanceof CoordAxes) {
+						CoordAxes axes = (CoordAxes)track;
+						if (list.get(j) == axes.gridBox) {
+							TextLineLabel label = new TextLineLabel(axes.gridCheckbox.getText());
+							numberEditors[0].addRow(label, axes.gridBox);
+						}
+					}
+					else if (track instanceof RGBRegion) {
+						RGBRegion rgn = (RGBRegion)track;
+						if (list.get(j) == rgn.shapeTypeDropdown) {
+							TextLineLabel label = new TextLineLabel(TrackerRes.getString("AutoTracker.Label.Shape"));
+							numberEditors[0].addRow(label, rgn.shapeTypeDropdown);
+							empty = false;
+						}
+						if (list.get(j) == rgn.unmarkedLabel) {
+							toolbarComps.add(rgn.stepSeparator);	
+							toolbarComps.add(rgn.unmarkedLabel);	
+						}
+						else if (list.get(j) == rgn.editPolygonButton) {
+							toolbarComps.add(rgn.editPolygonButton);	
+						}
+						else if (list.get(j) == rgn.helpLabel) {
+							toolbarComps.add(rgn.stepSeparator);	
+							toolbarComps.add(rgn.helpLabel);	
+						}
+					}
+				}
+			}
+			if (!empty) {
+				numberEditors[0].updateTableLayout();
+				add(trackNumberEditorButton);
+			}
+			if (!toolbarComps.isEmpty()) {
+				for (int j = 0; j < toolbarComps.size(); j++) {
+					add(toolbarComps.get(j));
+				}
+			}
+
+			// selected point items
+			TPoint p = panel.getSelectedPoint();
+			if (p instanceof Crosshair.Control) {
+				p = ((Crosshair.Control)p).getTarget().getMarkedPoint();
+			}
+			if (p != null) {
+				// a point is selected
+				list = track.getToolbarPointComponents(panel, p);
+				toolbarComps.clear();
+				Component stepLabel = null;
+				numberEditors[1].clear();
+				empty = true;
+				for (int j = 0; j < list.size(); j++) {
+					Component c = list.get(j);
+					if (c == track.stepLabel) {
+						updateSize((JComponent) c);
+						add(c);
+						stepLabel = c;
+					}
+					else if (c == track.stepValueLabel) {
+						updateSize((JComponent) c);
+						add(c);
+					}
+					else if (c instanceof NumberField && list.get(j-1) instanceof JComponent) {
+							NumberField field = (NumberField)c;
+							JComponent label = (JComponent)list.get(j-1);
+							numberEditors[1].addRow(label, field);
+							empty = false;
+					}
+					else if (list.get(j) instanceof JCheckBox && list.get(j-1) instanceof JComponent) {
+						JCheckBox checkbox = (JCheckBox)list.get(j);
+						JComponent label = (JComponent)list.get(j-1);
+						numberEditors[0].addRow(label, checkbox);
+						empty = false;
+					}
+					else if (track instanceof RGBRegion) {
+						RGBRegion rgn = (RGBRegion)track;
+						if (list.get(j) == rgn.editPolygonButton) {
+							toolbarComps.add(rgn.editPolygonButton);	
+						}
+						else if (list.get(j) == rgn.helpLabel) {
+							toolbarComps.add(rgn.stepSeparator);	
+							toolbarComps.add(rgn.helpLabel);	
+						}
+					}
+				}
+				if (!empty) {
+					numberEditors[1].updateTableLayout();
+					numberEditors[1].setPositionComponent(stepLabel);
+					add(pointNumberEditorButton);
+				}
+				if (!toolbarComps.isEmpty()) {
+					for (int j = 0; j < toolbarComps.size(); j++) {
+						add(toolbarComps.get(j));
+					}
+				}
+			}
+			
+			finishRebuilding(panel);			
+		}
+				
+		protected void refreshNumberEditor(int i) {
+			if (trackNumberEditorButton==null) return;
+			
+			if (i==0) {
+				if (OSPRuntime.isCompact(frame)
+						&& trackNumberEditorButton.isSelected() 
+						&& panel().getSelectedTrack() != null 
+						&& numberEditors[0].getRowCount() > 0
+						&& frame.isMainViewVisible(panel())
+						&& frame.getSelectedPanel() == panel()) {
+					numberEditors[0].updateTableLayout();
+					numberEditors[0].setVisible(true);		
+					numberEditors[0].setPositionComponent(trackButton);
+				}
+				else {
+					numberEditors[0].setVisible(false);
+				}
+			}
+			else {
+				if (OSPRuntime.isCompact(frame)
+						&& pointNumberEditorButton.isSelected() 
+						&& panel().getSelectedPoint() != null 
+						&& numberEditors[1].getRowCount() > 0
+						&& frame.isMainViewVisible(panel())
+						&& frame.getSelectedPanel() == panel()) {
+					Component c = numberEditors[1].getPositionComponent();
+					numberEditors[1].updateTableLayout();
+					numberEditors[1].setVisible(true);
+					numberEditors[1].setPositionComponent(c != null? c: pointNumberEditorButton);
+				}
+				else {
+					numberEditors[1].setVisible(false);
+				}
+			}
+		}
+		
+		protected void refreshNumberEditors(boolean later) {
+			Runnable runner = new Runnable() {
+				@Override
+				public void run() {
+					refreshNumberEditor(0);
+					refreshNumberEditor(1);
+				}
+			};
+			if (later)
+				SwingUtilities.invokeLater(runner);
+			else
+				runner.run();
+		}
+		
+
+		
 	}
 
 }

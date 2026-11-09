@@ -1971,7 +1971,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 		// refresh trackbar number editors
 		TTrackBar trackbar = this.getTrackBar(trackerPanel.getID(), false);
 		if (trackbar != null)
-			trackbar.refreshNumberEditors();
+			trackbar.refreshNumberEditors(true);
 	}
 	
 	void maximizeNextView(TrackerPanel panel) {
@@ -2048,7 +2048,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 		// refresh trackbar number editors
 		TTrackBar trackbar = this.getTrackBar(trackerPanel.getID(), false);
 		if (trackbar != null)
-			trackbar.refreshNumberEditors();
+			trackbar.refreshNumberEditors(true);
 	}
 
 	/**
@@ -2657,7 +2657,6 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 			TTrackBar tbar = getTrackBar(panelID, true);
 			if (tbar != null) {
 				tbar.refresh();
-				tbar.refreshNumberEditors();
 			}
 			// refresh and replace menu bar
 			TMenuBar menubar = getMenuBar(panelID, true);
@@ -2727,7 +2726,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 			}
 			TTrackBar trackbar = getTrackBar(panelID, false);
 			if (trackbar != null)
-				trackbar.refreshNumberEditors();
+				trackbar.refreshNumberEditors(false);
 		}
 		return oldPanel;
 	}

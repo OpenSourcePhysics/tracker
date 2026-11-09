@@ -225,7 +225,9 @@ public class RGBRegion extends TTrack implements MarkingRequired {
 				step.rgbShape = step.polygon = step.polygon.copy();
 			}
 			step.polygon.setClosed(false);
-//			tp.setSelectedPoint(step.position);
+			prepareVertexHandle(step, step.polygon.vertices.size() - 2);
+
+			tp.setSelectedPoint(vertexHandle);
 			step.repaint();
 			tp.getTrackBar(false).refresh();
 		});
@@ -691,9 +693,9 @@ public class RGBRegion extends TTrack implements MarkingRequired {
 				step.rgbShape = step.polygon = step.polygon.copy();
 			}
 			step.polygon.remove(vertexHandle.vertex);
-			tp.setSelectedPoint(step.position);
 			if (step.polygon.vertices.size() > vertexHandle.vertex)
-				prepareVertexHandle(step, vertexHandle.vertex);
+				prepareVertexHandle(step, vertexHandle.vertex-1);
+			tp.setSelectedPoint(vertexHandle);
 			step.repaint();			
 		}
 		return null;
@@ -927,6 +929,7 @@ public class RGBRegion extends TTrack implements MarkingRequired {
 		ArrayList<Component> list = super.getToolbarTrackComponents(trackerPanel);
 		
 		if (!isLocked() ) {
+			shapeTypeDropdown.setBorder(BorderFactory.createEmptyBorder(0, 4, 0, 4));
 			shapeTypeDropdown.setSelectedIndex(shapeType);
 			FontSizer.setFonts(shapeTypeDropdown, FontSizer.getLevel());
 			list.add(shapeTypeDropdown);
@@ -936,7 +939,7 @@ public class RGBRegion extends TTrack implements MarkingRequired {
 		RGBStep step = (RGBStep) getStep(n);
 		
 		if (shapeType == SHAPE_POLYGON) {
-			if (!isLocked()) {
+			if (!isLocked() && trackerPanel.getSelectedPoint() == null) {
 				editPolygonButton.setText(TrackerRes.getString("RGBRegion.Button.Edit.Text"));
 				FontSizer.setFonts(editPolygonButton, FontSizer.getLevel());
 				if (step == null || !step.isPolygonClosed()) {
@@ -975,31 +978,31 @@ public class RGBRegion extends TTrack implements MarkingRequired {
 			return list;
 		}
 
-		stepLabel.setText(TrackerRes.getString("TTrack.Label.Step")); //$NON-NLS-1$
-		xLabel.setText(dataVariables[1]);
-		yLabel.setText(dataVariables[2]);
-		xField.setUnits(trackerPanel.getUnits(this, dataVariables[1]));
-		yField.setUnits(trackerPanel.getUnits(this, dataVariables[2]));
-
-		xField.setEnabled(!isLocked());
-		yField.setEnabled(!isLocked());
-
-		// put step number into label
-		stepLabel.setText(TrackerRes.getString("TTrack.Label.Step")); //$NON-NLS-1$
-		VideoClip clip = trackerPanel.getPlayer().getVideoClip();
-		n = clip.frameToStep(n);
-		stepValueLabel.setText(n + ":"); //$NON-NLS-1$
-
-		list.add(stepSeparator);
-		list.add(stepLabel);
-		list.add(stepValueLabel);
-		list.add(tSeparator);
-		list.add(xLabel);
-		list.add(xField);
-		list.add(xSeparator);
-		list.add(yLabel);
-		list.add(yField);
-		list.add(ySeparator);
+//		stepLabel.setText(TrackerRes.getString("TTrack.Label.Step")); //$NON-NLS-1$
+//		xLabel.setText(dataVariables[1]);
+//		yLabel.setText(dataVariables[2]);
+//		xField.setUnits(trackerPanel.getUnits(this, dataVariables[1]));
+//		yField.setUnits(trackerPanel.getUnits(this, dataVariables[2]));
+//
+//		xField.setEnabled(!isLocked());
+//		yField.setEnabled(!isLocked());
+//
+//		// put step number into label
+//		stepLabel.setText(TrackerRes.getString("TTrack.Label.Step")); //$NON-NLS-1$
+//		VideoClip clip = trackerPanel.getPlayer().getVideoClip();
+//		n = clip.frameToStep(n);
+//		stepValueLabel.setText(n + ":"); //$NON-NLS-1$
+//
+//		list.add(stepSeparator);
+//		list.add(stepLabel);
+//		list.add(stepValueLabel);
+//		list.add(tSeparator);
+//		list.add(xLabel);
+//		list.add(xField);
+//		list.add(xSeparator);
+//		list.add(yLabel);
+//		list.add(yField);
+//		list.add(ySeparator);
 
 		return list;
 	}
@@ -1015,25 +1018,48 @@ public class RGBRegion extends TTrack implements MarkingRequired {
 	public ArrayList<Component> getToolbarPointComponents(TrackerPanel trackerPanel, TPoint point) {
 
 		ArrayList<Component> list = super.getToolbarPointComponents(trackerPanel, point);
-//    if (getStep(point, trackerPanel)==null) return list;
-//
-//  	xLabel.setText(dataVariables[1]); 
-//  	yLabel.setText(dataVariables[2]); 
-//    xField.setUnits(trackerPanel.getUnits(this, dataVariables[1]));
-//    yField.setUnits(trackerPanel.getUnits(this, dataVariables[2]));
-//
-//    xField.setEnabled(!isLocked());
-//    yField.setEnabled(!isLocked());
-//    list.add(stepSeparator);
-//    list.add(stepLabel);
-//    list.add(stepValueLabel);
+		int n = trackerPanel.getFrameNumber();
+		RGBStep step = (RGBStep) getStep(n);
+		if (step == null) {			
+			return list;
+		}
+		if (shapeType == SHAPE_POLYGON && !isLocked() && !step.isPolygonClosed()) {
+			helpLabel.setText(TrackerRes.getString("RGBRegion.Label.MarkPolygon.Text")); //$NON-NLS-1$
+			FontSizer.setFonts(helpLabel, FontSizer.getLevel());
+			list.add(helpLabel);
+			return list;
+		}
+		
+		// put step number into label
+		stepLabel.setText(TrackerRes.getString("TTrack.Label.Step")); //$NON-NLS-1$
+		VideoClip clip = trackerPanel.getPlayer().getVideoClip();
+		n = clip.frameToStep(n);
+		stepValueLabel.setText(n + ":"); //$NON-NLS-1$
+		
+  	xLabel.setText(dataVariables[1]); 
+  	yLabel.setText(dataVariables[2]); 
+    xField.setUnits(trackerPanel.getUnits(this, dataVariables[1]));
+    yField.setUnits(trackerPanel.getUnits(this, dataVariables[2]));
+
+    xField.setEnabled(!isLocked());
+    yField.setEnabled(!isLocked());
+    list.add(stepSeparator);
+    list.add(stepLabel);
+    list.add(stepValueLabel);
 //    list.add(tSeparator);
-//    list.add(xLabel);
-//    list.add(xField);
-//    list.add(xSeparator);
-//    list.add(yLabel);
-//    list.add(yField);
-//    list.add(ySeparator);
+    list.add(xLabel);
+    list.add(xField);
+    list.add(xSeparator);
+    list.add(yLabel);
+    list.add(yField);
+    list.add(ySeparator);
+    
+		if (shapeType == SHAPE_POLYGON && !isLocked()) {
+			editPolygonButton.setText(TrackerRes.getString("RGBRegion.Button.Edit.Text"));
+			FontSizer.setFonts(editPolygonButton, FontSizer.getLevel());
+			list.add(editPolygonButton);					
+		}
+
 		return list;
 	}
 

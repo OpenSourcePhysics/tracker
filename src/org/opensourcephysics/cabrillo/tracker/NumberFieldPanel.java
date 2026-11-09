@@ -8,6 +8,7 @@ import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.MouseAdapter;
@@ -15,9 +16,12 @@ import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
+import java.util.HashMap;
+
 import javax.swing.AbstractCellEditor;
 import javax.swing.BorderFactory;
 import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JLayeredPane;
@@ -36,32 +40,42 @@ import org.opensourcephysics.display.TeXParser;
 import org.opensourcephysics.media.core.NumberField;
 import org.opensourcephysics.tools.FontSizer;
 
-public class NumberFieldPanel extends JPanel implements PropertyChangeListener {
+public class NumberFieldPanel extends JPanel {
 	
+	private static HashMap<TrackerPanel, NumberFieldPanel[]> npPanelArrays;
 	private static Border emptyBorder;
 	static {
+		npPanelArrays = new HashMap<TrackerPanel, NumberFieldPanel[]>();
 		emptyBorder = BorderFactory.createEmptyBorder(0, 4, 0, 0);
 	}
 	
+	public static NumberFieldPanel[] getNFPanelArray(TrackerPanel tp) {
+		NumberFieldPanel[] array = npPanelArrays.get(tp);
+		if (array == null) {
+			array = new NumberFieldPanel[] 
+				{new NumberFieldPanel(tp), new NumberFieldPanel(tp)};
+			npPanelArrays.put(tp, array);
+		}
+		return array;
+	}
+	
 	private ArrayList<Object[]> rowObjects = new ArrayList<Object[]>();
-	private int panelID; // trackerpanel
+	private int trackerPanelID; // trackerpanel
 	private TFrame frame;
 	private NFTableModel model;
 	private NFTable table;
 	private Component positionComp;
 	
-	public NumberFieldPanel(TrackerPanel tp) {
+	private NumberFieldPanel(TrackerPanel tp) {
 		super(new BorderLayout());
-		panelID = tp.getID();
+		trackerPanelID = tp.getID();
 		frame = tp.getTFrame();
 		createGUI();
-//		tp.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDTRACK, this);
-//		tp.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDPOINT, this);
 
 		frame.addComponentListener(new ComponentAdapter() {
 	    @Override
 	    public void componentResized(ComponentEvent e) {
-	      if (isVisible()) updateFloatingBounds();
+	      if (isVisible()) refreshFloatingBounds();
 	    }
 		});
 		super.setVisible(false);
@@ -128,7 +142,7 @@ public class NumberFieldPanel extends JPanel implements PropertyChangeListener {
 //		model.fireTableRowsInserted(rowObjects.size()-1, rowObjects.size()-1);
 //	}
 //	
-	public void addRow(JComponent label, JComponent comp) {
+	public void addRow(JComponent label, Component comp) {
 		if (JLabel.class.isInstance(label)) {
 			String text = ((JLabel)label).getText();
 			label = new TextLineLabel(text);
@@ -138,7 +152,7 @@ public class NumberFieldPanel extends JPanel implements PropertyChangeListener {
 	}
 	
 	private TrackerPanel panel() {
-		return frame.getTrackerPanelForID(panelID);
+		return frame.getTrackerPanelForID(trackerPanelID);
 	}
 	
 	public void clear() {
@@ -157,10 +171,10 @@ public class NumberFieldPanel extends JPanel implements PropertyChangeListener {
 	
 	public void setPositionComponent(Component c) {
 		positionComp = c;
-		updateFloatingBounds();
+		refreshFloatingBounds();
 	}
 	
-	public void updateFloatingBounds() {
+	public void refreshFloatingBounds() {
     if (positionComp == null || !positionComp.isShowing() || getParent() == null) {
        return;
     }
@@ -173,6 +187,13 @@ public class NumberFieldPanel extends JPanel implements PropertyChangeListener {
     Point pt = SwingUtilities.convertPoint(positionComp, p, layeredPane);
     Dimension dim = getPreferredSize();
     
+    // make sure second panel stays to the right of first
+    NumberFieldPanel nfp = getNFPanelArray(panel())[0];
+    if (this != nfp) {
+    	Rectangle rect = nfp.getBounds();
+    	pt.x = Math.max(pt.x, rect.x + rect.width + 2);
+    }
+
     // set the location boundaries
     setBounds(pt.x, pt.y + 6, dim.width, dim.height);
     
@@ -222,6 +243,10 @@ public class NumberFieldPanel extends JPanel implements PropertyChangeListener {
 	       else if (cellValue instanceof NumberField) {
 	      	 NumberField field = (NumberField)cellValue;
 					 cellWidth = fm.stringWidth(field.getText());            	 
+	       }
+	       else if (cellValue instanceof JComboBox) {
+					 JComboBox box = (JComboBox)cellValue;
+					 cellWidth = box.getMinimumSize().width-10;            	 
 	       }
 	       maxWidth = Math.max(maxWidth, cellWidth);
 	    }
@@ -383,11 +408,5 @@ public class NumberFieldPanel extends JPanel implements PropertyChangeListener {
 		 }
    
 	}
-
-	@Override
-	public void propertyChange(PropertyChangeEvent e) {
-//		if (!isVisible()) return;
-	}
-
 	
 }

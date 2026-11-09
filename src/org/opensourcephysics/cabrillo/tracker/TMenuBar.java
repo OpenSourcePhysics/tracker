@@ -1356,7 +1356,6 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 					p.getPlayer().refresh();
 					TTrackBar trackbar = frame.getTrackBar(panelID, true);
 					trackbar.refresh();
-					trackbar.refreshNumberEditors();
 					TViewChooser[] viewChoosers = frame.getViewChoosers(p);
 					for (int i = 0; i < viewChoosers.length; i++) {
 						viewChoosers[i].refreshMaximizeButton();
