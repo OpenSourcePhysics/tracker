@@ -2613,7 +2613,6 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 	}
 
 	protected void doTabStateChanged() {
-		checkHideTabs();
 		Object[] objects = getObjects(tabbedPane.getSelectedIndex());
 		MainTView mainView = (objects == null ? null : (MainTView) objects[TFRAME_MAINVIEW]);
 		TrackerPanel newPanel = (mainView == null ? null : mainView.getTrackerPanel());
@@ -2732,6 +2731,12 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 			checkHideTabs();
 	}
 
+	private void checkHideTabs() {
+		if (tabbedPane != null) {
+			tabbedPane.putClientProperty("_j2sHideTabs", Boolean.valueOf(OSPRuntime.isSmallScreen(this)));
+		}	
+	}
+
 	protected void frameResized() {
 		TrackerPanel trackerPanel = getSelectedPanel();
 		if (trackerPanel == null)
@@ -2758,12 +2763,6 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 			}
 			isLayoutChanged = false;
 		}
-	}
-
-	private void checkHideTabs() {
-		if (tabbedPane != null) {
-			tabbedPane.putClientProperty("_j2sHideTabs", Boolean.valueOf(OSPRuntime.isSmallScreen(this)));
-		}	
 	}
 
 	DataDropHandler getDataDropHandler() {
