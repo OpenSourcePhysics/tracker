@@ -1689,18 +1689,11 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 
 	private void rebuild(int overflow) {
 		
-		int small = OSPRuntime.getSmallScreenThreshold();
 //		boolean prev = noButtonIcons;
 //		noButtonIcons = frame.getSize().width < small;
 //		if (prev != noButtonIcons) {
 //			panel().getPlayer().refresh();
 //		}
-		boolean prev = noButtonText;
-		noButtonText = frame.getSize().width < small;
-		if (prev != noButtonText) {
-			panel().getPlayer().refresh();
-		}
-
 		if (OSPRuntime.isMobile()) {
 			if (mobile == null)
 				mobile = new Mobile();
@@ -2830,10 +2823,9 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 		}
 
 		private void rebuildForMobile() {	
-			if (!noButtonText) {
-				if (isTooShortFor(mobileHelpButton)) 
-					noButtonText = true;
-			}
+			int small = OSPRuntime.getSmallScreenThreshold();
+			noButtonText = frame.getSize().width < small || isTooShortFor(mobileHelpButton);
+
 			mobileEditButton.setIcon(noButtonIcons? null: editIcon);
 			mobileHelpButton.setIcon(noButtonIcons? null: helpIcon);
 
