@@ -3368,14 +3368,8 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		FontSizer.setMenuFonts(menu);
 	}
 
-	private JPopupMenu panesPopup;
-
-	JPopupMenu getPanesPopup() {
-		if (panesPopup == null) {
-			panesPopup = new JPopupMenu();
-		} else {
-			panesPopup.removeAll();		
-		}
+	JPopupMenu refreshPanesPopup() {
+		JPopupMenu panesPopup = frame.getTabPanesPopup();
 		refreshViewMenu(true);
 		panesPopup.add(view_mainItem);
 		panesPopup.add(view_1Item);

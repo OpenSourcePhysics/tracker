@@ -66,7 +66,7 @@ public class TButton extends JButton {
 		@Override
 		protected void processMouseEvent(MouseEvent e) {
 			// Intercept the mouse release event, which triggers the menu closure
-			if (e.getID() == MouseEvent.MOUSE_RELEASED && contains(e.getPoint())) {
+			if (!OSPRuntime.isJS && e.getID() == MouseEvent.MOUSE_RELEASED && contains(e.getPoint())) {
 				// Trigger the action listeners manually
 				doClick();
 				// Prevent the parent MenuSelectionManager from clearing the menu selection path
@@ -76,6 +76,8 @@ public class TButton extends JButton {
 		}		
 
 	}
+	
+	
 	
 	/**
 	 * A class to handle popups that need to be "sticky" -- responding to short and
@@ -97,8 +99,9 @@ public class TButton extends JButton {
 		private TFrame frame;
 		private Integer panelID;
 
-		TStickyPopupButton(TFrame frame, Integer panelID) {
+		TStickyPopupButton(TFrame frame, Integer panelID, String name) {
 			super(RIGHT_ARROW_ICON);
+			setName(name);
 			this.frame = frame;
 			this.panelID = panelID;
 			alignPopup = TButton.RIGHT;
@@ -117,6 +120,8 @@ public class TButton extends JButton {
 			if (e == null) {
 				// unnecessary				AIPatch.keepPopupOpenUntilSelection(this, this.popup);
 			} else {
+				if (popup == null)
+					popup = getPopup();
 				switch (e.getID()) {
 				case MouseEvent.MOUSE_PRESSED:
 					if (e.isPopupTrigger()) {
@@ -138,7 +143,9 @@ public class TButton extends JButton {
 						// timer is still running so this is a short click
 						// If the popup is visible, then we just shut it; otherwise we show it.
 						longPressTimer.stop();
-						if (!hidePopup) {
+						if (hidePopup) {
+							showPopup(e);
+						} else {
 							frame.maximizeNextView(frame.getTrackerPanelForID(panelID));
 							hidePopup = true;
 						}
@@ -153,7 +160,7 @@ public class TButton extends JButton {
 		
 		@Override
 		protected JPopupMenu getPopup() {
-			return (frame.currentMenuBar == null ? null : frame.currentMenuBar.getPanesPopup());
+			return (frame.currentMenuBar == null ? null : frame.currentMenuBar.refreshPanesPopup());
 		}
 
 	}
@@ -176,9 +183,9 @@ public class TButton extends JButton {
 			public void mouseEntered(MouseEvent e) {
 				if (!TButton.this.isEnabled())
 					return;
+				hidePopup = (popup != null && popup.isVisible());
 				setBorderPainted(true);
 				setContentAreaFilled(true);
-				hidePopup = popup != null && popup.isVisible();
 				TTrack track = getTrack();
 				if (Tracker.showHints && track != null && track.tp != null) {
 					if (track.tp.getSelectedTrack() == track)
@@ -214,7 +221,6 @@ public class TButton extends JButton {
 			@Override
 			public void mouseReleased(MouseEvent e) {
 				checkLongPress(e);
-//				hidePopup = (popup != null && popup.isVisible());
 			}
 
 			@Override
@@ -227,7 +233,7 @@ public class TButton extends JButton {
 	}
 
 	protected boolean checkLongPress(MouseEvent e) {
-		// TStickyButton only
+		// TStickyPopupButton only
 		return false;
 	}
 
@@ -337,12 +343,15 @@ public class TButton extends JButton {
 	 * @param e a MouseEvent, or null
 	 */
 	protected void showPopup(MouseEvent e) {
-		popup = getPopup();
-		if (e == null)
+		if (e == null) {
 			hidePopup = false;
+		}
+		if (popup == null)
+			popup = getPopup();
 		if (popup != null) {
-			if (e != null && e.getClickCount() == 2)
+			if (e != null && e.getClickCount() == 2) {
 				hidePopup = false;
+			}
 			if (hidePopup) {
 				hidePopup = false;
 				popup.setVisible(false);

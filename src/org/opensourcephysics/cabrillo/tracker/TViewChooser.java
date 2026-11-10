@@ -159,7 +159,7 @@ public class TViewChooser extends JPanel implements PropertyChangeListener, OSPR
 			}
 		});
 		// choose view button
-		viewChooserChooseViewButton = new TStickyPopupButton(frame, panelID);
+		viewChooserChooseViewButton = new TStickyPopupButton(frame, panelID, "view" + (type + 1));
 		setSelectedViewType(type);
 	}
 
