@@ -2312,9 +2312,9 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			MenuSelectionManager.defaultManager().clearSelectedPath();
 		} catch (Throwable t) {}
 		
-		if (OSPRuntime.isJS) {
-			AIPatch.closeAllMenus();
-		}
+//		if (OSPRuntime.isJS) {
+//			AIPatch.closeAllMenus();
+//		}
 	}
 
 	/**
@@ -2329,8 +2329,8 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		if (popup != null && popup.isVisible()) {
 			return true;
 		}
-		if (OSPRuntime.isJS)
-			return AIPatch.haveAnyVisibleMenusInAnyApplication();
+//		if (OSPRuntime.isJS)
+//			return AIPatch.haveAnyVisibleMenusInAnyApplication();
 		return false;
 	}
 

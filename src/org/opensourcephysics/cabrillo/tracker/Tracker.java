@@ -2229,13 +2229,9 @@ public class Tracker {
 		} finally {
 			// The launcher HTML displays the splash before SwingJS loads.
 			if (OSPRuntime.isJS) {
-				hideOnlineSplash();
+				AIPatch.disposeElement("tracker-online-splash");
 			}
 		}
-	}
-
-	private static void hideOnlineSplash() {
-		AIPatch.disposeElement("tracker-online-splash");
 	}
 
 	private static void initializeApplication(String[] args) {
