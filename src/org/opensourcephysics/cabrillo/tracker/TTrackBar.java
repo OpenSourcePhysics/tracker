@@ -329,7 +329,7 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 			}
 		};
 		
-		
+
 		trackButton = new TButton() {
 			@Override
 			protected JPopupMenu getPopup() {
@@ -376,7 +376,7 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 			}
 		});
 		// choose view button
-		trackBarChooseViewButton = new TButton.TStickyPopupButton(frame, panelID);
+		trackBarChooseViewButton = new TButton.TStickyPopupButton(frame, panelID, "TrackBar");
 
 		mainViewIconLabel = new JLabel(TToolBar.pointmassOffIcon);
 		mainViewIconLabel.setBorder(BorderFactory.createEmptyBorder(2, 0, 2, 6));
@@ -482,16 +482,16 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 	private Compact getCompact() {
 		if (compact == null) {
 			compact = new Compact();
-		}
+			}
 		return compact;
-	}
+			}
 	
 	protected void refreshNumberEditors(boolean later) {
 		getCompact().refreshNumberEditors(later);
-	}
+		}
 	
 	private boolean buildRequested;
-
+	
 	protected void rebuild() {
 		if (selectButton == null)
 			createGUI();
@@ -533,29 +533,11 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 			if (OSPRuntime.isCompact(frame)) {
 				getCompact().buildCompact(panel);
 				return;
-			}
+					}
 			
 			ArrayList<Component> list = track.getToolbarTrackComponents(panel);
-			for (Component c : list) {
-				if (c instanceof JComponent && !(c instanceof JButton) && !(c instanceof JCheckBox)) {
-					updateSize((JComponent) c);
-					if (c instanceof NumberField) {
-						NumberField field = (NumberField)c;
-						field.setBorder(TTrack.fieldBorder);
-					}
-				}
-				add(c);
-			}
-			// selected point items
-			TPoint p = panel.getSelectedPoint();
-			if (p instanceof Crosshair.Control) {
-				p = ((Crosshair.Control)p).getTarget().getMarkedPoint();
-			}
-			if (p != null) {
-				// a point is selected
-				list = track.getToolbarPointComponents(panel, p);
 				for (Component c : list) {
-					if (c instanceof JComponent && !(c instanceof JButton)) {
+					if (c instanceof JComponent && !(c instanceof JButton) && !(c instanceof JCheckBox)) {
 						updateSize((JComponent) c);
 						if (c instanceof NumberField) {
 							NumberField field = (NumberField)c;
@@ -564,12 +546,30 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 					}
 					add(c);
 				}
+			// selected point items
+			TPoint p = panel.getSelectedPoint();
+			if (p instanceof Crosshair.Control) {
+				p = ((Crosshair.Control)p).getTarget().getMarkedPoint();
 			}
-		}
+			if (p != null) {
+				// a point is selected
+				list = track.getToolbarPointComponents(panel, p);
+					for (Component c : list) {
+						if (c instanceof JComponent && !(c instanceof JButton)) {
+							updateSize((JComponent) c);
+							if (c instanceof NumberField) {
+								NumberField field = (NumberField)c;
+								field.setBorder(TTrack.fieldBorder);
+							}
+						}
+						add(c);
+					}
+				}
+			}
 		
 		finishRebuilding(panel);
-	}
-	
+		}
+
 	protected void finishRebuilding(TrackerPanel panel) {
 		ArrayList<TTrack> userTracks = panel.getUserTracks();
 		TFrame frame = panel.getTFrame();
@@ -730,7 +730,7 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 	public String toString() {
 		return "[TTrackBar " + panelID + "]";
 	}
-	
+
 	/**
 	 * A private class to consolidate everything compact about the trackbar.
 	 * 

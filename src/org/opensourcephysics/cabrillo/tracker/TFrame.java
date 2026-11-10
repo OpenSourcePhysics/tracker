@@ -1930,7 +1930,6 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 		}
 		TMenuBar menubar = getMenuBar(trackerPanel.getID(), true);
 		menubar.setMenuTainted(TMenuBar.MENU_VIEW, true);
-		
 		// add player bar to maximized view
 		JToolBar player = getMainView(trackerPanel).getPlayerBar();
 		if (trackerPanel.getMaximizedView() == TView.VIEW_MAIN) {
@@ -3555,7 +3554,11 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 		if (bar != null) {
 			bar.setEnabled(frameBlocker == null);			
 		}
-		currentMenuBar = bar == defaultMenuBar? null: (TMenuBar)bar;
+		currentMenuBar = (bar == defaultMenuBar? null: (TMenuBar)bar);
+		if (currentMenuBar != null)
+			currentMenuBar.refreshPanesPopup();
+
+
 	}
 
 	static class DeactivatingMenuBar extends JMenuBar {
@@ -4150,6 +4153,16 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 
 	void refreshLibraryNode() {
 		libraryBrowser.refreshSelectedNode();
+	}
+
+	private JPopupMenu panesPopup;
+	public JPopupMenu getTabPanesPopup() {
+		if (panesPopup == null) {
+			panesPopup = new JPopupMenu();
+		} else {
+			panesPopup.removeAll();		
+		}
+		return panesPopup;
 	}
 
 }
