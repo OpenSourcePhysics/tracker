@@ -95,7 +95,7 @@ public abstract class InputTrack extends TTrack {
 			}
 		};
 		rulerCheckbox = new JCheckBox();
-		rulerCheckbox.setBorder(BorderFactory.createEmptyBorder());
+//		rulerCheckbox.setBorder(BorderFactory.createEmptyBorder());
 		rulerCheckbox.setOpaque(false);
 		rulerCheckbox.addActionListener(new ActionListener() {
 			@Override
