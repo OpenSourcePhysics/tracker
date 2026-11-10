@@ -53,34 +53,37 @@ public class TButton extends JButton {
 	static final Border ETCHED = BorderFactory.createEtchedBorder();
 
 	/**
-	 * A class of TButton that causes the menu to stay open after clicked. 
-	 * Used specifically for the |> TToolBar/TViewChooser bars
+	 * A subclass of JMenuItem that causes the menu to stay open after clicked
+	 * by bypassing the MenuSelectionManager and informing JSMenuItemUI that 
+	 * clicking this item should not close the menu.
+	 * 
+	 * Used specifically for the [|>] button in TToolBar and TViewChooser
 	 */
 	static class TStickyMenuItem extends JMenuItem {
 
 		public TStickyMenuItem(String name, Icon icon) {
 			super(name, icon);
+			// for JavaScript, we are telling JSMenuItemUI that 
+			// we need special handling so that the HTML menu is not
+			// to be closed upon release
 			putClientProperty("_j2sStickyMenuItem", Boolean.TRUE);
 		}
 		
 		@Override
 		protected void processMouseEvent(MouseEvent e) {
-			// Intercept the mouse release event, which triggers the menu closure
-			if (!OSPRuntime.isJS && e.getID() == MouseEvent.MOUSE_RELEASED && contains(e.getPoint())) {
-				// Trigger the action listeners manually
-				doClick();
+			// for Java and JavaScript, no need to signal release except to actuate the click
+			if (e.getID() == MouseEvent.MOUSE_RELEASED) {
 				// Prevent the parent MenuSelectionManager from clearing the menu selection path
-				return;
+				doClick(0); // snappier; no thread delay - doClick() gives 68-ms hold time; MSM uses doClick(0)
+			} else {
+				super.processMouseEvent(e);
 			}
-			super.processMouseEvent(e);
 		}		
 
 	}
 	
-	
-	
 	/**
-	 * A class to handle popups that need to be "sticky" -- responding to short and
+	 * A button class to handle popups that need to be "sticky" -- responding to short and
 	 * long presses differently.
 	 * 
 	 * specifically for TViewChooser.viewChooserChooseViewButton and
