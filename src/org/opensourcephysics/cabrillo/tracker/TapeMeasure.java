@@ -893,6 +893,10 @@ public class TapeMeasure extends InputTrack  implements MarkingRequired {
 		magLabel.setText(TrackerRes.getString("TapeMeasure.Label.Length")); //$NON-NLS-1$
 		magField.setToolTipText(TrackerRes.getString("TapeMeasure.Field.Magnitude.Tooltip")); //$NON-NLS-1$
 		magField.setUnits(trackerPanel.getUnits(this, dataVariables[1]));
+		pixelLengthField.setUnits(trackerPanel.getUnits(this, dataVariables[1]));
+		pixelLengthLabel.setText(TrackerRes.getString("TapeMeasure.Label.PixelLength")); //$NON-NLS-1$
+		pixelLengthLabel.setToolTipText(TrackerRes.getString("TapeMeasure.Description.PixelLength")); //$NON-NLS-1$
+		pixelLengthField.setToolTipText(TrackerRes.getString("TapeMeasure.Field.PixelLength.Tooltip")); //$NON-NLS-1$
 
 		// put step number into label and add to list
 		stepLabel.setText(TrackerRes.getString("TTrack.Label.Step")); //$NON-NLS-1$
@@ -908,6 +912,11 @@ public class TapeMeasure extends InputTrack  implements MarkingRequired {
 //			step.getTapeLength(isStickMode());
 //		}
 
+		rulerCheckbox.setText(TrackerRes.getString("InputTrack.Checkbox.Ruler")); //$NON-NLS-1$
+		rulerCheckbox.setToolTipText(TrackerRes.getString("InputTrack.Checkbox.Ruler.Tooltip")); //$NON-NLS-1$
+		rulerCheckbox.setSelected(ruler != null && ruler.isVisible());
+		angleLabel.setText(TrackerRes.getString("TapeMeasure.Label.TapeAngle")); //$NON-NLS-1$
+		angleField.setToolTipText(TrackerRes.getString("TapeMeasure.Field.TapeAngle.Tooltip")); //$NON-NLS-1$
 		// add world coordinate fields and labels
 		boolean exists = (step != null);
 		boolean complete = (step != null && step.worldLength > 0);
@@ -922,9 +931,6 @@ public class TapeMeasure extends InputTrack  implements MarkingRequired {
 			end1Label.setForeground(Color.red.darker());
 			list.add(end1Label);
 		} else {
-			rulerCheckbox.setText(TrackerRes.getString("InputTrack.Checkbox.Ruler")); //$NON-NLS-1$
-			rulerCheckbox.setToolTipText(TrackerRes.getString("InputTrack.Checkbox.Ruler.Tooltip")); //$NON-NLS-1$
-			rulerCheckbox.setSelected(ruler != null && ruler.isVisible());
 			list.add(rulerCheckbox);
 
 			list.add(stepLabel);
@@ -932,17 +938,11 @@ public class TapeMeasure extends InputTrack  implements MarkingRequired {
 			list.add(tSeparator);
 			list.add(magLabel);
 			list.add(magField);
-			angleLabel.setText(TrackerRes.getString("TapeMeasure.Label.TapeAngle")); //$NON-NLS-1$
-			angleField.setToolTipText(TrackerRes.getString("TapeMeasure.Field.TapeAngle.Tooltip")); //$NON-NLS-1$
 			list.add(magSeparator);
 			list.add(angleLabel);
 			list.add(angleField);
 			
 			if (this.isCalibrator) {
-				pixelLengthField.setUnits(trackerPanel.getUnits(this, dataVariables[1]));
-				pixelLengthLabel.setText(TrackerRes.getString("TapeMeasure.Label.PixelLength")); //$NON-NLS-1$
-				pixelLengthLabel.setToolTipText(TrackerRes.getString("TapeMeasure.Description.PixelLength")); //$NON-NLS-1$
-				pixelLengthField.setToolTipText(TrackerRes.getString("TapeMeasure.Field.PixelLength.Tooltip")); //$NON-NLS-1$
 				list.add(pixelLengthSeparator);
 				list.add(pixelLengthLabel);
 				list.add(pixelLengthField);

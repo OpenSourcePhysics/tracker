@@ -28,7 +28,6 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.geom.AffineTransform;
@@ -103,7 +102,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 	protected Footprint[] modelFootprints = new Footprint[0];
 	protected boolean modelFootprintVisible = false;
 	private JCheckBoxMenuItem linesVisibleCheckbox, linesClosedCheckbox, linesBoldCheckbox;
-	private JCheckBox autoPasteCheckbox;
+	protected JCheckBox autoPasteCheckbox;
 	private ActionListener allFootprintsListener, allCircleFootprintsListener;
 	private boolean autoPasteEnabled = false;
 	private int startStep = -1, startFrameTemp = -1;
@@ -583,41 +582,15 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 		// create reload button here to insure that TFrame is defined
 		if (getLeader().reloadButton == null) {
 			tframe.checkClipboardListener();
-			final int h = trackerPanel.getTrackBar(true).toolbarComponentHeight;
 			getLeader().reloadButton = new JButton() {
 				@Override
 				public Dimension getMaximumSize() {
 					Dimension dim = super.getMaximumSize();
-					dim.height = h;
+					dim.height = trackerPanel.getTrackBar(true).toolbarComponentHeight;
 					return dim;
 				}
 			};
 
-//			getLeader().reloadButton.setEnabled(false);
-//			getLeader().reloadButton.setOpaque(false);
-//			Border space = BorderFactory.createEmptyBorder(1, 4, 1, 4);
-//			Border line = BorderFactory.createLineBorder(Color.GRAY);
-//			getLeader().reloadButton.setBorder(BorderFactory.createCompoundBorder(line, space));
-//
-//			getLeader().reloadButton.addActionListener(new ActionListener() {
-//				@Override
-//				public void actionPerformed(ActionEvent e) {
-//					TrackerPanel panel = frame.getSelectedPanel();
-//					if (panel != null) {
-//						Runnable whenDone = () -> {
-//							getLeader().prevDataString = getLeader().pendingDataString;
-//							getLeader().reloadButton.setEnabled(false);
-//							TTrackBar.getTrackbar(panel).refresh();
-//						};
-//						if (getLeader().dataSource == null) { // data is pasted
-//							TActions.getAction("paste", panel).actionPerformed(null); //$NON-NLS-1$
-//							whenDone.run();
-//						} else if (getLeader().dataSource instanceof String) { // data is from a file
-//							panel.importDataAsync(getLeader().dataSource.toString(), null, whenDone);
-//						}
-//					}
-//				}
-//			});
 			tframe.addPropertyChangeListener(TFrame.PROPERTY_TFRAME_WINDOWFOCUS, getLeader()); // $NON-NLS-1$
 		}
 		if (autoPasteCheckbox == null && OSPRuntime.allowAutopaste) {
@@ -633,9 +606,6 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 				}
 			});
 		}
-//		getLeader().reloadButton
-//				.setText(getLeader().dataSource == null ? TrackerRes.getString("ParticleDataTrack.Button.Paste.Text") : //$NON-NLS-1$
-//						TrackerRes.getString("ParticleDataTrack.Button.Reload.Text")); //$NON-NLS-1$
 
 		ArrayList<Component> list = super.getToolbarTrackComponents(trackerPanel);
 		if (trackerPanel.getSelectedPoint() == null) {

@@ -262,6 +262,7 @@ public class DynamicSystem extends DynamicParticlePolar {
 	@Override
 	public ArrayList<Component> getToolbarTrackComponents(TrackerPanel trackerPanel) {
 		ArrayList<Component> list = super.getToolbarTrackComponents(trackerPanel);
+		massField.setValue(getMass());
 		massField.setEnabled(false);
 		return list;
 	}

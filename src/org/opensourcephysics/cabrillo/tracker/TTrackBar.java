@@ -756,7 +756,9 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 			pointNumberEditorButton.addActionListener((e)-> {
 				pointNumberEditorButton.setSelected(!pointNumberEditorButton.isSelected());
 				refreshNumberEditor(1);
-			});		
+			});	
+			trackNumberEditorButton.setSelected(true);
+			pointNumberEditorButton.setSelected(true);
 		}
 		
 		/**
@@ -775,37 +777,55 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 		}
 		
 		protected void buildCompact(TrackerPanel panel) {
+			numberEditors[0].clear();
+			numberEditors[1].clear();
 			TTrack track = trackButton.getTrack();
 			TPoint p = panel.getSelectedPoint();
-			if (p instanceof Crosshair.Control) {
+			if (p != null && p instanceof Crosshair.Control) {
 				p = ((Crosshair.Control)p).getTarget().getMarkedPoint();
 			}
 			ArrayList<Component> trackComps = track.getToolbarTrackComponents(panel);
 			ArrayList<Component> pointComps = track.getToolbarPointComponents(panel, p);
 			track.stepLabel.setText(TrackerRes.getString("TTrack.Label.Step")); //$NON-NLS-1$
-			track.stepValueLabel.setText(panel.getStepNumber() + ":"); //$NON-NLS-1$
+			int n = p==null? panel.getStepNumber(): p.getFrameNumber(panel);
+			track.stepValueLabel.setText(n + ":"); //$NON-NLS-1$
 			updateSize(track.stepLabel);
 			updateSize(track.stepValueLabel);
-		
-			if (track instanceof PointMass) {
+			
+			switch(track.ttype) {
+			case TTrack.TYPE_POINTMASS:
 				buildCompactForPointMass((PointMass)track, panel);
 				return;
-			}
-			else if (track instanceof RGBRegion) {
+			case TTrack.TYPE_RGBREGION:
 				buildCompactForRGB((RGBRegion)track, panel, trackComps, pointComps);
 				return;
-			}
-			else if (track instanceof LineProfile) {
+			case TTrack.TYPE_LINEPROFILE:
 				buildCompactForLineProfile((LineProfile)track, panel, trackComps);
 				return;
-			}
-			else if (track instanceof CoordAxes) {
+			case TTrack.TYPE_COORDAXES:
 				buildCompactForCoordAxes((CoordAxes)track, panel, trackComps);
 				return;
+			case TTrack.TYPE_TAPEMEASURE:
+				buildCompactForTape((TapeMeasure)track, panel, trackComps);
+				return;
+			case TTrack.TYPE_PROTRACTOR:
+				buildCompactForProtractor((Protractor)track, panel, trackComps);
+				return;				
+			case TTrack.TYPE_OFFSETORIGIN:
+				buildCompactForOffset((OffsetOrigin)track, panel, trackComps);
+				return;				
+			case TTrack.TYPE_CALIBRATION:
+				buildCompactForCalibration((Calibration)track, panel, trackComps);
+				return;				
+			case TTrack.TYPE_VECTOR:
+				buildCompactForVector((Vector)track, panel);
+				return;				
+			case TTrack.TYPE_CIRCLEFITTER:
+				buildCompactForCircle((CircleFitter)track, panel, trackComps, pointComps);
+				return;				
 			}
-			
+			System.out.println("pig what's this? "+track.getClass().getSimpleName());
 			ArrayList<Component> toolbarComps = new ArrayList<Component>();
-			numberEditors[0].clear();
 			boolean empty = true;
 			for (int j = 0; j < trackComps.size(); j++) {
 				if (trackComps.get(j) instanceof NumberField && trackComps.get(j-1) instanceof JComponent) {
@@ -837,12 +857,10 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 				trackComps = track.getToolbarPointComponents(panel, p);
 				toolbarComps.clear();
 				Component stepLabel = null;
-				numberEditors[1].clear();
 				empty = true;
 				for (int j = 0; j < trackComps.size(); j++) {
 					Component c = trackComps.get(j);
 					if (c == track.stepLabel) {
-						updateSize((JComponent) c);
 						add(c);
 						stepLabel = c;
 					}
@@ -882,11 +900,14 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 			// add track items to toolbar
 			add(trackNumberEditorButton);
 			// add track items to NumberFieldPanel
-			numberEditors[0].clear();		
+			if (pm instanceof ParticleDataTrack) {
+				ParticleDataTrack pdt = (ParticleDataTrack)pm;
+				TextLineLabel label = new TextLineLabel(pdt.autoPasteCheckbox.getText());
+				numberEditors[0].addRow(label, pdt.autoPasteCheckbox);				
+			}
 			numberEditors[0].addRow(pm.massLabel, pm.massField);
 			numberEditors[0].updateTableLayout();			
 			
-			numberEditors[1].clear();	
 			if (panel.getSelectedPoint() != null) {
 				// add items to toolbar
 				add(pm.stepLabel);
@@ -904,10 +925,47 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 			finishRebuilding(panel);			
 		}
 				
+		protected void buildCompactForVector(Vector vec, TrackerPanel panel) {
+			if (panel.getSelectedPoint() != null) {
+				// add items to toolbar
+				add(vec.stepLabel);
+				add(vec.stepValueLabel);
+				add(pointNumberEditorButton);
+				// add items to NumberFieldPanel
+				numberEditors[1].addRow(vec.xLabel, vec.xField);
+				numberEditors[1].addRow(vec.yLabel, vec.yField);
+				numberEditors[1].addRow(vec.magLabel, vec.magField);
+				numberEditors[1].addRow(vec.angleLabel, vec.angleField);
+				numberEditors[1].updateTableLayout();				
+				numberEditors[1].setPositionComponent(vec.stepLabel);
+			}
+			
+			finishRebuilding(panel);			
+		}
+				
+		protected void buildCompactForOffset(OffsetOrigin off, TrackerPanel panel,
+				ArrayList<Component> trackComps) {
+			
+			if (trackComps.contains(off.unmarkedLabel)) {
+				add(off.unmarkedLabel);				
+			}
+			else {
+				add(off.stepLabel);
+				add(off.stepValueLabel);
+				add(pointNumberEditorButton);
+				// add items to NumberFieldPanel
+				numberEditors[1].addRow(off.xLabel, off.xField);
+				numberEditors[1].addRow(off.yLabel, off.yField);
+				numberEditors[1].updateTableLayout();				
+				numberEditors[1].setPositionComponent(off.stepLabel);
+			}
+			
+			finishRebuilding(panel);			
+		}
+				
 		protected void buildCompactForRGB(RGBRegion rgn, TrackerPanel panel,
 				ArrayList<Component> trackComps, ArrayList<Component> pointComps) {
 			// add track items to NumberFieldPanel
-			numberEditors[0].clear();		
 			TextLineLabel label = new TextLineLabel(TrackerRes.getString("AutoTracker.Label.Shape"));
 			numberEditors[0].addRow(label, rgn.shapeTypeDropdown);			
 			if (rgn.shapeType != RGBRegion.SHAPE_POLYGON) {
@@ -930,7 +988,6 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 				add(rgn.helpLabel);	
 			}
 			
-			numberEditors[1].clear();	
 			if (panel.getSelectedPoint() != null
 					&& panel.getSelectedPoint() instanceof RGBStep.Position) {
 				// add items to toolbar
@@ -950,13 +1007,85 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 			finishRebuilding(panel);			
 		}
 				
+		protected void buildCompactForCalibration(Calibration cal, TrackerPanel panel,
+				ArrayList<Component> trackComps) {
+			// add track items to NumberFieldPanel
+			numberEditors[0].addRow(cal.axisLabel, cal.axisDropdown);			
+			numberEditors[0].updateTableLayout();	
+						
+			// add track items to toolbar
+			add(trackNumberEditorButton);
+			if (trackComps.contains(cal.point1MissingLabel)) {
+				add(cal.stepSeparator);	
+				add(cal.point1MissingLabel);	
+			}
+			else {
+				// add items to toolbar
+				add(cal.stepLabel);
+				add(cal.stepValueLabel);
+				add(pointNumberEditorButton);
+				// add items to NumberFieldPanel
+				if (cal.axes == Calibration.X_AXIS || cal.axes == Calibration.XY_AXES)
+					numberEditors[1].addRow(cal.xLabel, cal.xField);
+				if (cal.axes == Calibration.Y_AXIS || cal.axes == Calibration.XY_AXES)
+				numberEditors[1].addRow(cal.yLabel, cal.yField);
+				if (trackComps.contains(cal.point2MissingLabel)) {
+					add(cal.stepSeparator);	
+					add(cal.point2MissingLabel);	
+				}
+				else {
+					if (cal.axes == Calibration.X_AXIS || cal.axes == Calibration.XY_AXES)
+						numberEditors[1].addRow(cal.x1Label, cal.x1Field);
+					if (cal.axes == Calibration.Y_AXIS || cal.axes == Calibration.XY_AXES)
+						numberEditors[1].addRow(cal.y1Label, cal.y1Field);
+				}
+
+				numberEditors[1].updateTableLayout();				
+				numberEditors[1].setPositionComponent(cal.stepLabel);
+			}
+			
+			finishRebuilding(panel);			
+		}
+				
+		protected void buildCompactForCircle(CircleFitter cal, TrackerPanel panel,
+				ArrayList<Component> trackComps, ArrayList<Component> pointComps) {
+
+			if (trackComps.contains(cal.xLabel)) {
+				numberEditors[0].addRow(cal.magLabel, cal.magField);
+				numberEditors[0].addRow(cal.xLabel, cal.xField);
+				numberEditors[0].addRow(cal.yLabel, cal.yField);
+				add(trackNumberEditorButton);
+			}
+			numberEditors[0].updateTableLayout();
+			
+			add(cal.stepLabel);
+			add(cal.stepValueLabel);
+			if (pointComps.contains(cal.xDataPointLabel)) {
+				numberEditors[1].addRow(cal.xDataPointLabel, cal.xDataField);
+				numberEditors[1].addRow(cal.yDataPointLabel, cal.yDataField);
+				add(pointNumberEditorButton);
+			}
+			numberEditors[1].updateTableLayout();		
+			
+			add(cal.stepSeparator);	
+			if (trackComps.contains(cal.clickToMarkLabel)
+					|| pointComps.contains(cal.clickToMarkLabel)) {
+				add(cal.clickToMarkLabel);	
+			}
+			else {
+				add(cal.pointCountButton);
+			}
+			
+			numberEditors[1].setPositionComponent(cal.stepLabel);
+			
+			finishRebuilding(panel);			
+		}
+				
 		protected void buildCompactForLineProfile(LineProfile profile, TrackerPanel panel,
 				ArrayList<Component> trackComps) {
 			// add track items to NumberFieldPanel
-			numberEditors[0].clear();		
 			numberEditors[0].addRow(profile.spreadLabel, profile.spreadField);			
 			numberEditors[0].updateTableLayout();	
-			numberEditors[1].clear();	
 						
 			// add track items to toolbar
 			add(trackNumberEditorButton);
@@ -977,12 +1106,10 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 			add(pointNumberEditorButton);
 			
 			// add track items to NumberFieldPanels
-			numberEditors[0].clear();			
 			TextLineLabel label = new TextLineLabel(axes.gridCheckbox.getText());
 			numberEditors[0].addRow(label, axes.gridBox);
 			numberEditors[0].updateTableLayout();	
 			
-			numberEditors[1].clear();	
 			numberEditors[1].addRow(axes.xLabel, axes.xField);
 			numberEditors[1].addRow(axes.yLabel, axes.yField);
 			numberEditors[1].addRow(axes.angleLabel, axes.angleField);
@@ -992,7 +1119,67 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 			finishRebuilding(panel);			
 		}
 		
+		protected void buildCompactForTape(TapeMeasure tape, TrackerPanel panel,
+				ArrayList<Component> trackComps) {
+			// add items to toolbar
+			add(trackNumberEditorButton);
+			add(tape.stepLabel);
+			add(tape.stepValueLabel);
+			add(pointNumberEditorButton);
+			if (trackComps.contains(tape.end1Label)) {
+				add(tape.stepSeparator);	
+				add(tape.end1Label);	
+			}
+			else if (trackComps.contains(tape.end2Label)) {
+				add(tape.stepSeparator);	
+				add(tape.end2Label);	
+			}
 
+			// add items to NumberFieldPanels
+			TextLineLabel label = new TextLineLabel(tape.rulerCheckbox.getText());
+			
+			numberEditors[0].addRow(label, tape.rulerCheckbox);
+			numberEditors[0].updateTableLayout();	
+			
+			TapeStep step = (TapeStep)tape.getStep(panel.getFrameNumber());
+			if (tape.calibrationLength != null 
+					|| (step != null && step.worldLength > 0)) {
+				numberEditors[1].addRow(tape.magLabel, tape.magField);
+				numberEditors[1].addRow(tape.angleLabel, tape.angleField);
+				
+				if (tape.isCalibrator) {
+					numberEditors[1].addRow(tape.pixelLengthLabel, tape.pixelLengthField);
+				}
+				numberEditors[1].updateTableLayout();	
+				numberEditors[1].setPositionComponent(tape.stepLabel);
+			}
+						
+			finishRebuilding(panel);			
+		}
+		
+		protected void buildCompactForProtractor(Protractor pro, TrackerPanel panel,
+				ArrayList<Component> trackComps) {
+			// add items to toolbar
+			add(trackNumberEditorButton);
+			add(pro.stepLabel);
+			add(pro.stepValueLabel);
+			add(pointNumberEditorButton);
+
+			// add items to NumberFieldPanels
+			TextLineLabel label = new TextLineLabel(pro.rulerCheckbox.getText());
+			
+			numberEditors[0].addRow(label, pro.rulerCheckbox);
+			numberEditors[0].updateTableLayout();	
+			
+			numberEditors[1].addRow(pro.angleLabel, pro.angleField);
+			numberEditors[1].addRow(pro.xLabel, pro.xField);
+			numberEditors[1].addRow(pro.yLabel, pro.yField);
+			numberEditors[1].updateTableLayout();	
+			numberEditors[1].setPositionComponent(pro.stepLabel);
+						
+			finishRebuilding(panel);			
+		}
+		
 		protected void refreshNumberEditor(int i) {
 			if (trackNumberEditorButton==null) return;
 			

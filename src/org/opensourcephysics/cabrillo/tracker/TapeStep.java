@@ -461,7 +461,11 @@ public class TapeStep extends Step {
 			}
 		}
 		if (tape.magField != null && !tape.magField.hasFocus()) {
-			tape.magField.setValue(length);
+			tape.magField.setValue(tape.calibrationLength != null? tape.calibrationLength: length);
+		}
+		
+		if (tape.calibrationLength != null) {
+			scaleX = Math.sqrt(dx * dx + dy * dy) / tape.calibrationLength;			
 		}
 		tape.pixelLengthField.setValue(1/scaleX);
 		return length;

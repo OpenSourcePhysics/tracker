@@ -772,9 +772,11 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 			Undo.postTrackDelete(this); // posts undoable edit
 		}
 		erase();
-		for (int j = 0; j < tp.andWorld.size(); j++) {
-			TrackerPanel panel = panel(tp.andWorld.get(j));
-			panel.removeTrack(this);
+		if (tp != null) {
+			for (int j = 0; j < tp.andWorld.size(); j++) {
+				TrackerPanel panel = panel(tp.andWorld.get(j));
+				panel.removeTrack(this);
+			}
 		}
 		dispose();
 	}

@@ -499,8 +499,8 @@ public class Calibration extends TTrack implements MarkingRequired {
 		ArrayList<Component> list = super.getToolbarTrackComponents(trackerPanel);
 
 		// rebuild axisDropdown
-		axisDropdown = new JComboBox<>();
-		axisDropdown.setEditable(false);
+		axisDropdown.removeActionListener(axisDropdownAction);
+		axisDropdown.removeAllItems();
 		axisDropdown.addItem(TrackerRes.getString("Calibration.Axes.XY")); //$NON-NLS-1$
 		axisDropdown.addItem(TrackerRes.getString("Calibration.Axes.XOnly")); //$NON-NLS-1$
 		axisDropdown.addItem(TrackerRes.getString("Calibration.Axes.YOnly")); //$NON-NLS-1$
@@ -895,6 +895,8 @@ public class Calibration extends TTrack implements MarkingRequired {
 				}
 			}
 		};
+		axisDropdown = new JComboBox<>();
+		axisDropdown.setEditable(false);
 	}
 
 	/**

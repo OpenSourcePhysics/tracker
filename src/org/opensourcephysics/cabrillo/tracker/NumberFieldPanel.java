@@ -118,29 +118,8 @@ public class NumberFieldPanel extends JPanel {
 		});
 	}
 
-//	public void addRow(JComponent label, NumberField field) {
-//		if (JLabel.class.isInstance(label)) {
-//			String text = ((JLabel)label).getText();
-//			label = new TextLineLabel(text);
-//		}
-//		if (label instanceof TextLineLabel) {
-//			field.setBorder(emptyBorder);
-//			rowObjects.add(new Object[] {label, field});
-//			model.fireTableRowsInserted(rowObjects.size()-1, rowObjects.size()-1);
-//		}
-//	}
-//	
-//	public void addRow(JComponent label, JCheckBox box) {
-//		if (JLabel.class.isInstance(label)) {
-//			String text = ((JLabel)label).getText();
-//			label = new TextLineLabel(text);
-//		}
-//		rowObjects.add(new Object[] {label, box});
-//		model.fireTableRowsInserted(rowObjects.size()-1, rowObjects.size()-1);
-//	}
-//	
 	public void addRow(JComponent label, Component comp) {
-		if (JLabel.class.isInstance(label)) {
+		if (label instanceof JLabel) {
 			String text = ((JLabel)label).getText();
 			label = new TextLineLabel(text);
 		}

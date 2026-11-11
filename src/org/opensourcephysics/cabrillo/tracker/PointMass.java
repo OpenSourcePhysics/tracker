@@ -2809,7 +2809,7 @@ public class PointMass extends TTrack {
 		list.add(angleSeparator);
 		return list;
 	}
-
+	
 	@Override
 	public Map<String, NumberField[]> getNumberFields() {
 		if (numberFields.isEmpty()) {

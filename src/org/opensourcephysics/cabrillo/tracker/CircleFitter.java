@@ -381,7 +381,9 @@ public class CircleFitter extends TTrack {
 					public void actionPerformed(ActionEvent e) {
 						int i = Integer.parseInt(e.getActionCommand());
 						DataPoint p = pts.get(i);
+						p.setStepEditTrigger(false);
 						tp.setSelectedPoint(p);
+						p.setStepEditTrigger(true);
 					}
 				};
 				// create string buffer to copy data point positions to clipboard
