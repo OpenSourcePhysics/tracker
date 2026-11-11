@@ -207,7 +207,7 @@ public class TMouseHandler implements InteractiveMouseHandler {
 					frame = SwingUtilities.getWindowAncestor(trackerPanel);
 				}
 				if (frame != null) {
-					Point startMouse = getScreenLocation(e, trackerPanel);
+					Point startMouse = e.getLocationOnScreen();
 					if (startMouse != null) {
 						Point ptInFrame = SwingUtilities.convertPoint(trackerPanel, e.getPoint(), frame);
 						int cornerSize = 20;
@@ -233,7 +233,7 @@ public class TMouseHandler implements InteractiveMouseHandler {
 					frame = SwingUtilities.getWindowAncestor(trackerPanel);
 				}
 				if (frame != null) {
-					Point curMouse = getScreenLocation(e, trackerPanel);
+					Point curMouse = e.getLocationOnScreen();
 					if (curMouse != null) {
 						int dx = curMouse.x - mouseLoc.x;
 						int dy = curMouse.y - mouseLoc.y;
@@ -253,7 +253,7 @@ public class TMouseHandler implements InteractiveMouseHandler {
 					frame = SwingUtilities.getWindowAncestor(trackerPanel);
 				}
 				if (frame != null) {
-					Point curMouse = getScreenLocation(e, trackerPanel);
+					Point curMouse = e.getLocationOnScreen();
 					if (curMouse != null) {
 						int dx = curMouse.x - mouseLoc.x;
 						int dy = curMouse.y - mouseLoc.y;
@@ -576,20 +576,6 @@ public class TMouseHandler implements InteractiveMouseHandler {
 				&& autoTracker.getWizard().isVisible() 
 				&& (frameData = autoTracker.getOrCreateFrameData(frameNumber)).getKeyFrameData()
 						== frameData ? (KeyFrameData) frameData : null);
-	}
-
-	/**
-	 * Gets the screen/page coordinates of a mouse or touch event.
-	 * In standard Java desktop, delegates to getLocationOnScreen().
-	 * In SwingJS / JavaScript on iPad or desktop browser, extracts pageX/pageY
-	 * directly from the underlying DOM/touch event.
-	 *
-	 * @param e the mouse event
-	 * @param trackerPanel the source tracker panel
-	 * @return the point in screen/page coordinates
-	 */
-	private Point getScreenLocation(MouseEvent e, TrackerPanel trackerPanel) {
-		return AIPatch.getScreenLocation(e, trackerPanel, "TMouseHandler " + e);
 	}
 
 }
