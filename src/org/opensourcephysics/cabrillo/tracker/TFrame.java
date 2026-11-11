@@ -438,7 +438,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 			});
 		}
 		AIPatch.installResizeHandler(this);
-		AIPatch.installGestureHandler(this);
+		if (OSPRuntime.isJS)
+			AIPatch.installGestureHandler(this);
 	}
 	
 	protected Rectangle getAdaptiveBounds(boolean isInit) {
