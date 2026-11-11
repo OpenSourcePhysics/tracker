@@ -41,3 +41,9 @@
   left: 50%;
   transform: translateX(-50%);
 }
+
+/* Make the SwingJS slider thumb easy to see against the track. */
+.swingjs .ui-j2sslider-horizontal[id*="_SliderUI_"] > .ui-j2sslider-handle {
+  background: #0066cc;
+  border-color: #004a99;
+}
