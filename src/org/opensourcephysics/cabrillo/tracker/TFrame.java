@@ -495,6 +495,10 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 		int height = Math.min(bounds.height, viewport.height);
 		int x = Math.max(viewport.x, Math.min(bounds.x, viewport.x + viewport.width - width));
 		int y = Math.max(viewport.y, Math.min(bounds.y, viewport.y + viewport.height - height));
+		if (window instanceof TrackDataBuilder) {
+			x = viewport.x + (viewport.width - width) / 2;
+			y = viewport.y + (viewport.height - height) / 2;
+		}
 		if (bounds.x != x || bounds.y != y || bounds.width != width || bounds.height != height) {
 			window.setBounds(x, y, width, height);
 			window.validate();
@@ -505,8 +509,17 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 	protected Rectangle getAdaptiveBounds(boolean isInit) {
 		// "maximized" here means "maximizing"
 		Rectangle rect;
-		if (OSPRuntime.isJS && maximized) {
-			rect = OSPRuntime.jsutil.getMaximumViewport(2, 2);
+		if (OSPRuntime.isJS) {
+			Rectangle viewport = OSPRuntime.jsutil.getMaximumViewport(2, 2);
+			rect = viewport;
+			if (!maximized) {
+				int top = Math.min(DEFAULT_FRAME_CEILING, viewport.height / 4);
+				int width = Math.max(1, (int) (viewport.width * DEFAULT_FRAME_WIDTH));
+				int height = Math.max(1, (int) ((viewport.height - top) * DEFAULT_FRAME_HEIGHT));
+				Rectangle restored = new Rectangle(viewport.x + (viewport.width - width) / 2,
+						viewport.y + top, width, height);
+				rect = prevFrameSize != null && viewport.contains(prevFrameSize) ? prevFrameSize : restored;
+			}
 		} else if (prevFrameSize != null && !maximized) {
 			rect = prevFrameSize;
 		} else {
@@ -539,7 +552,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 			};
 			// startup
 			GUIUtils.addWindowOrientationChangeListener(onOrient);
-		} else {
+		} else if (!OSPRuntime.isJS || !rect.equals(getBounds())) {
 			setBounds(rect);
 			validate();
 			toFront(); // BH added - not automatic in JavaScript
@@ -2605,8 +2618,16 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 	 */
 	private void createGUI() {
 		this.addComponentListener(new ComponentAdapter() {
+			private Dimension lastSize;
+
 			@Override
 			public void componentResized(ComponentEvent e) {
+				if (OSPRuntime.isJS) {
+					Dimension size = getSize();
+					if (size.equals(lastSize))
+						return;
+					lastSize = size;
+				}
 				checkMaximizedSizeChanged();
 				frameResized();
 				GUIUtils.setupResizer(TFrame.this);

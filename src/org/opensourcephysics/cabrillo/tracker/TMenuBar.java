@@ -1428,6 +1428,15 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		s += " (" + TrackerRes.getString("TView.Menuitem.Define") + ")"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 		view_dataBuilderItem = new JCheckBoxMenuItem(s);
 		view_dataBuilderItem.addActionListener((e) -> {
+			Container popup = view_dataBuilderItem.getParent();
+			Runnable toggleBuilder = () -> {
+				if (OSPRuntime.isJS) {
+					if (frame == null || frame.getSelectedPanel() != p)
+						return;
+					MenuSelectionManager.defaultManager().clearSelectedPath();
+					if (popup instanceof JPopupMenu)
+						((JPopupMenu) popup).setVisible(false);
+				}
 				FunctionTool builder = p.getDataBuilder();
 				if (builder.isVisible()) {
 					if (OSPRuntime.isJS)
@@ -1441,6 +1450,11 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 						builder.setSelectedPanel(track.getName());
 					builder.setVisible(true);
 				}
+			};
+			if (OSPRuntime.isJS)
+				SwingUtilities.invokeLater(toggleBuilder);
+			else
+				toggleBuilder.run();
 		});
 		// dataTool item
 		s = TrackerRes.getString("TMenuBar.MenuItem.DatasetTool"); //$NON-NLS-1$
@@ -2818,7 +2832,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		TViewChooser[] choosers = frame.getViewChoosers(panelID);
 		String[] viewNames = new String[4];
 		for (int i = 0; i < choosers.length; i++) {
-			if (choosers[i] == null || i > viewNames.length)
+			if (choosers[i] == null || i >= viewNames.length)
 				continue;
 			int viewType = choosers[i].getSelectedViewType();
 			viewNames[i] = 
