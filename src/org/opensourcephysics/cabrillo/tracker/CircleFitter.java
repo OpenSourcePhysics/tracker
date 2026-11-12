@@ -168,7 +168,7 @@ public class CircleFitter extends TTrack {
 	protected JMenuItem originToCenterItem, originToCenterAllItem;
 	protected JMenu originToCenterMenu, setRadiusMenu;
 	protected JMenuItem attachmentItem;
-	protected JButton pointCountButton;
+	protected TButton pointCountButton;
 	protected boolean attachToSteps = false, isRelativeFrameNumbers = false;
 	protected int absoluteStart = 0, relativeStart = -2, attachmentFrameCount = 5;
 	protected TTrack[] attachmentForSteps;
@@ -568,6 +568,7 @@ public class CircleFitter extends TTrack {
 	 */
 	@Override
 	public Step createStep(int n, double x, double y) {
+		pointCountButton.popup = null;		
 		if (!isFixed()) {
 			keyFrames.add(n);
 			CircleFitterStep step = (CircleFitterStep) steps.getStep(n);
@@ -595,6 +596,7 @@ public class CircleFitter extends TTrack {
 		TPoint p = tp.getSelectedPoint();
 		if (p != null && !(p instanceof DataPoint))
 			return null;
+		pointCountButton.popup = null;		
 
 		DataPoint data = (DataPoint) p; // may be null?
 		CircleFitterStep step = (CircleFitterStep) steps.getStep(n);

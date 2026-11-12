@@ -696,8 +696,8 @@ public class TrackerStarter {
 			return true;
 
 		String prev = curVersion.toString();
-		String[] v1 = OSPRuntime.VERSION.split("\\."); //$NON-NLS-1$
-		String[] v2 = prev.split("\\."); //$NON-NLS-1$
+		String[] v1 = OSPRuntime.VERSION.split("[.-]"); //$NON-NLS-1$
+		String[] v2 = prev.split("[.-]"); //$NON-NLS-1$
 		for (int i = 0; i < 3; i++) {
 			int current = Integer.parseInt(v1[i]);
 			int old = Integer.parseInt(v2[i]);

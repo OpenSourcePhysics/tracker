@@ -49,6 +49,7 @@ import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.display.DatasetManager;
 import org.opensourcephysics.display.DrawingPanel;
 import org.opensourcephysics.display.Interactive;
+import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.display.TeXParser;
 import org.opensourcephysics.media.core.NumberField;
 import org.opensourcephysics.media.core.TPoint;
@@ -681,7 +682,8 @@ public class Protractor extends InputTrack {
 
 		angleField.setEnabled(!isFullyAttached() && !isLocked());
 
-		rulerCheckbox.setText(TrackerRes.getString("InputTrack.Checkbox.Ruler")); //$NON-NLS-1$
+		if (!OSPRuntime.isCompact(trackerPanel.getTFrame()))
+			rulerCheckbox.setText(TrackerRes.getString("InputTrack.Checkbox.Ruler")); //$NON-NLS-1$
 		rulerCheckbox.setToolTipText(TrackerRes.getString("InputTrack.Checkbox.Ruler.Tooltip")); //$NON-NLS-1$
 		rulerCheckbox.setSelected(ruler != null && ruler.isVisible());
 		list.add(rulerCheckbox);

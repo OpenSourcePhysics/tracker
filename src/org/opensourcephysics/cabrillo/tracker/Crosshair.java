@@ -430,7 +430,9 @@ public class Crosshair extends TPoint implements PropertyChangeListener {
 				rightCircle.contains(xpix, ypix)? RIGHT:
 				downCircle.contains(xpix, ypix)? DOWN:
 				LEFT);
-			// pig add hint
+			hint = isOn? TrackerRes.getString("Crosshair.Nudge.Hint"):
+				TrackerRes.getString("Crosshair.Handle.Hint");
+			selectedName = isOn? " "+TrackerRes.getString("Crosshair.Nudge.Name"): "";
 			return handle;
 		}
 		
@@ -516,9 +518,13 @@ public class Crosshair extends TPoint implements PropertyChangeListener {
 		case LEFT:
 			pt.setXY(pt.getX() - 1/z, pt.getY());			
 		}
+		setMarkedPoint(null);
+		TFrame.repaintT(panel());
 	}
 	
 	protected void setMarkedPoint(TPoint p) {
+		if (p == markedPoint)
+			return;
 		markedPoint = p;
 		markedStep = null;
     if (markedPoint != null) {
@@ -528,6 +534,7 @@ public class Crosshair extends TPoint implements PropertyChangeListener {
 				markedStep = track.getStep(markedPoint, panel());
 			}
     }
+		frame.getTrackBar(panelID, true).refresh();
     TFrame.repaintT(panel());
 	}
 	
@@ -592,6 +599,9 @@ public class Crosshair extends TPoint implements PropertyChangeListener {
 		      	}
 		      }
 					markedPoint.setLocation(target);
+				}
+				if (!isMarking) {
+					setMarkedPoint(null);
 				}
 			}
 		}

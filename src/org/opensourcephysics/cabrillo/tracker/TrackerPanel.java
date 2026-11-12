@@ -880,6 +880,11 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			super.addDrawable(track);
 		}
 		
+		if (isUserTrack && OSPRuntime.isCompact(getTFrame())) {
+			TTrackBar trackbar = frame.getTrackBar(getID(), true);
+			trackbar.getCompact().trackNumberEditorButton.setSelected(true);
+		}
+		
 		// update track control and dataBuilder
 		if (trackControl != null && trackControl.isVisible())
 			trackControl.refresh();

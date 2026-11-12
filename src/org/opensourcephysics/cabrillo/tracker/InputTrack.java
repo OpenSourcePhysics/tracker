@@ -101,7 +101,6 @@ public abstract class InputTrack extends TTrack {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				getRuler().setVisible(rulerCheckbox.isSelected());
-				System.out.println("pig rulerCheckbox "+rulerCheckbox.hashCode());
 				repaint();
 			}
 		});

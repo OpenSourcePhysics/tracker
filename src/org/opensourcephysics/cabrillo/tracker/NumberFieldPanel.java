@@ -134,7 +134,7 @@ public class NumberFieldPanel extends JPanel {
 	public void clear() {
 		rowObjects.clear();
 		setPositionComponent(null);
-		
+		model.fireTableStructureChanged();
 	}
 	
 	public void setUp(boolean show) {

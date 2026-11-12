@@ -912,7 +912,8 @@ public class TapeMeasure extends InputTrack  implements MarkingRequired {
 //			step.getTapeLength(isStickMode());
 //		}
 
-		rulerCheckbox.setText(TrackerRes.getString("InputTrack.Checkbox.Ruler")); //$NON-NLS-1$
+		if (!OSPRuntime.isCompact(trackerPanel.getTFrame()))
+			rulerCheckbox.setText(TrackerRes.getString("InputTrack.Checkbox.Ruler")); //$NON-NLS-1$
 		rulerCheckbox.setToolTipText(TrackerRes.getString("InputTrack.Checkbox.Ruler.Tooltip")); //$NON-NLS-1$
 		rulerCheckbox.setSelected(ruler != null && ruler.isVisible());
 		angleLabel.setText(TrackerRes.getString("TapeMeasure.Label.TapeAngle")); //$NON-NLS-1$

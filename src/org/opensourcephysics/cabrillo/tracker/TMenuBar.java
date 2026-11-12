@@ -339,6 +339,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 	private JMenu view_TabsMenu;
 	private JMenuItem[] tabItems;
 	private JCheckBoxMenuItem view_mobileLayoutItem;
+	private JCheckBoxMenuItem view_compactItem;
 	// help menu
 	private JMenu helpMenu;
 
@@ -514,6 +515,8 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 			return view_TabsMenu;
 		case "view_mobileLayoutItem":
 			return view_mobileLayoutItem;
+		case "view_compactItem":
+			return view_compactItem;
 		case "helpMenu":
 			return helpMenu;
 		}
@@ -1364,6 +1367,28 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 					if (mobile && p.getMaximizedView()==TView.VIEW_UNSET) {
 						frame.maximizeView(p, TView.VIEW_MAIN);
 					}
+				}
+			});
+		});
+		//	view_compactItem
+		view_compactItem = new JCheckBoxMenuItem(TrackerRes.getString("TMenuBar.MenuItem.Compact"), false); //$NON-NLS-1$
+		view_compactItem.addActionListener((e) -> {
+			// Capture these before the item is moved between the View menu and the
+			// compact toolbar popup. Let the touch action finish before rebuilding.
+			boolean compact = view_compactItem.isSelected();
+			Container popup = view_compactItem.getParent();
+			SwingUtilities.invokeLater(() -> {
+				if (frame != null) {
+					// SwingJS touch menus may still be open after the action fires.
+					// Close the original popup before detaching its items or menubar.
+					MenuSelectionManager.defaultManager().clearSelectedPath();
+					if (popup instanceof JPopupMenu) {
+						((JPopupMenu) popup).setVisible(false);
+					}
+					OSPRuntime.setCompact(compact);
+					p.taintEnabled();
+					TTrackBar trackbar = frame.getTrackBar(panelID, true);
+					trackbar.refresh();
 				}
 			});
 		});
@@ -2851,6 +2876,8 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 			
 			view_mobileLayoutItem.setSelected(OSPRuntime.isMobile());
 			viewMenu.add(view_mobileLayoutItem);
+			view_compactItem.setSelected(OSPRuntime.isCompact(p.getTFrame()));
+			viewMenu.add(view_compactItem);
 			viewMenu.addSeparator();
 			
 			viewMenu.add(edit_fontSizeMenu);
@@ -3052,9 +3079,9 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 			diagMenu.addSeparator();
 			if (Tracker.aboutJavaAction != null)
 				diagMenu.add(Tracker.aboutJavaAction);
-			if (Tracker.aboutCVAction != null)
+			if (Tracker.aboutCVAction != null && Tracker.aboutCVAction.isEnabled())
 				diagMenu.add(Tracker.aboutCVAction);
-			if (Tracker.aboutXuggleAction != null)
+			if (Tracker.aboutXuggleAction != null && Tracker.aboutXuggleAction.isEnabled())
 				diagMenu.add(Tracker.aboutXuggleAction);
 			if (Tracker.aboutThreadsAction != null)
 				diagMenu.add(Tracker.aboutThreadsAction);

@@ -627,7 +627,8 @@ public class CoordAxes extends TTrack {
 		yLabel.setText(origin + " y");
 		xField.setToolTipText(TrackerRes.getString("CoordAxes.Origin.Field.Tooltip")); //$NON-NLS-1$
 		yField.setToolTipText(TrackerRes.getString("CoordAxes.Origin.Field.Tooltip")); //$NON-NLS-1$
-		gridCheckbox.setText(TrackerRes.getString("CoordAxes.Checkbox.Grid")); //$NON-NLS-1$
+		if (!OSPRuntime.isCompact(trackerPanel.getTFrame()))
+			gridCheckbox.setText(TrackerRes.getString("CoordAxes.Checkbox.Grid")); //$NON-NLS-1$
 		gridCheckbox.setToolTipText(TrackerRes.getString("CoordAxes.Checkbox.Grid.Tooltip")); //$NON-NLS-1$
 		gridButton.setToolTipText(TrackerRes.getString("CoordAxes.Button.Grid.Tooltip")); //$NON-NLS-1$
 		list.add(gridSeparator);

@@ -3088,6 +3088,7 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 				}
 				mobileViewPopup.addSeparator();
 				mobileViewPopup.add(frame.currentMenuBar.getMenuItem("view_mobileLayoutItem"));
+				mobileViewPopup.add(frame.currentMenuBar.getMenuItem("view_compactItem"));
 				mobileViewPopup.addSeparator();
 			}
 			

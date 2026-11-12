@@ -615,7 +615,9 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 			if (autoloadable && OSPRuntime.allowAutopaste) { // data was pasted
 				// ParticleDataTrack.Checkbox.Autoload.Text
 
-				autoPasteCheckbox.setText(getSource() == null?
+				
+				if (!OSPRuntime.isCompact(trackerPanel.getTFrame()))
+					autoPasteCheckbox.setText(getSource() == null?
 						TrackerRes.getString("TMenuBar.MenuItem.AutoPasteData.Text"): //$NON-NLS-1$
 						TrackerRes.getString("ParticleDataTrack.Checkbox.Autoload.Text")); //$NON-NLS-1$
 				autoPasteCheckbox.setSelected(isAutoPasteEnabled());
