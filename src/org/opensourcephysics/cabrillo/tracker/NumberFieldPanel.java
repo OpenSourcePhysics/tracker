@@ -62,6 +62,7 @@ public class NumberFieldPanel extends JPanel {
 	private NFTableModel model;
 	private NFTable table;
 	private Component positionComp;
+	private JLabel sizingLabel = new JLabel();
 	
 	private NumberFieldPanel(TrackerPanel tp) {
 		super(new BorderLayout());
@@ -123,8 +124,10 @@ public class NumberFieldPanel extends JPanel {
 			String text = ((JLabel)label).getText();
 			label = new TextLineLabel(text);
 		}
-		rowObjects.add(new Object[] {label, comp});
-		model.fireTableRowsInserted(rowObjects.size()-1, rowObjects.size()-1);
+		if (label instanceof TextLineLabel) {
+			rowObjects.add(new Object[] {label, comp});
+			model.fireTableRowsInserted(rowObjects.size()-1, rowObjects.size()-1);
+		}
 	}
 	
 	private TrackerPanel panel() {
@@ -190,17 +193,17 @@ public class NumberFieldPanel extends JPanel {
   	if (table==null) return;
     Font font = table.getFont();
     
-    // adjust row height based
+    // adjust row height based on font metrics
     FontMetrics fm = table.getFontMetrics(font);
     int newRowHeight = fm.getHeight() + 8; // add padding
     table.setRowHeight(newRowHeight);
     
-    // adjust column widths
+    // adjust column widths based on preferred sizes
     TableColumnModel columnModel = table.getColumnModel();
 	  for (int col = 0; col < 2; col++) {
-	    int maxWidth = 0;
 	    TableColumn tableColumn = columnModel.getColumn(col);         
 	    // find the widest string in a column
+	    int maxWidth = 0;
 	    for (int row = 0; row < rowObjects.size(); row++) {
 	       Object cellValue = rowObjects.get(row)[col];
 	       int cellWidth = 0;
@@ -210,25 +213,31 @@ public class NumberFieldPanel extends JPanel {
 	      	 if (text.contains("_{")) { //$NON-NLS-1$
 	     			 text = TeXParser.removeSubscripting(text);
 	     		 }
-           cellWidth = fm.stringWidth(text);            	 
-	       }
-	       else if (cellValue instanceof JLabel) {
-	      	 JLabel label = (JLabel)cellValue;
-					 cellWidth = fm.stringWidth(label.getText());            	 
+	         sizingLabel.setFont(label.getFont());
+	      	 sizingLabel.setText(text);
+           cellWidth = sizingLabel.getPreferredSize().width;            	 
 	       }
 	       else if (cellValue instanceof NumberField) {
+	         sizingLabel.setFont(font);
 	      	 NumberField field = (NumberField)cellValue;
-					 cellWidth = fm.stringWidth(field.getText());            	 
+	      	 sizingLabel.setText(field.getText());
+           cellWidth = sizingLabel.getPreferredSize().width;            	 
+	       }
+	       else if (cellValue instanceof JCheckBox) {
+	         sizingLabel.setFont(font);
+	         JCheckBox box = (JCheckBox)cellValue;
+           cellWidth = box.getPreferredSize().width;            	 
 	       }
 	       else if (cellValue instanceof JComboBox) {
-					 JComboBox box = (JComboBox)cellValue;
-					 cellWidth = box.getMinimumSize().width-10;            	 
+	         sizingLabel.setFont(font);
+					 JComboBox<?> box = (JComboBox<?>)cellValue;
+					 cellWidth = box.getPreferredSize().width;            	 
 	       }
 	       maxWidth = Math.max(maxWidth, cellWidth);
 	    }
-	    maxWidth = Math.max(maxWidth, 30);
+	    maxWidth = Math.max(maxWidth, 20); // minimum size
 	    // set the new preferred width with padding
-		  tableColumn.setPreferredWidth(maxWidth + (col==0? 8: 15)); 
+		  tableColumn.setPreferredWidth(maxWidth + 8); 
     }
     table.revalidate();
     table.repaint();
