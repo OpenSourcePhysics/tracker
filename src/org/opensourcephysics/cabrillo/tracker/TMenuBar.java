@@ -188,6 +188,15 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 
 	// instance fields
 	
+	void refreshDataWindowChecks() {
+		if (view_dataBuilderItem == null || view_dataToolItem == null)
+			return;
+		TrackerPanel panel = panel();
+		view_dataBuilderItem.setSelected(panel != null && panel.dataBuilder != null && panel.dataBuilder.isVisible());
+		DataTool tool = DataTool.getTool(false);
+		view_dataToolItem.setSelected(tool != null && tool.isVisible());
+	}
+
 	TrackerPanel panel() {
 		return frame.getTrackerPanelForID(panelID);
 	}
@@ -1420,8 +1429,12 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		view_dataBuilderItem = new JCheckBoxMenuItem(s);
 		view_dataBuilderItem.addActionListener((e) -> {
 				FunctionTool builder = p.getDataBuilder();
-				if (builder.isVisible())
-					builder.setVisible(false);
+				if (builder.isVisible()) {
+					if (OSPRuntime.isJS)
+						frame.selectDataWindow(null);
+					else
+						builder.setVisible(false);
+				}
 				else {
 					TTrack track = p.getSelectedTrack();
 					if (track != null)
@@ -1436,7 +1449,10 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		view_dataToolItem.addActionListener((e) -> {
 				DataTool tool = DataTool.getTool(true);
 				if (tool.isVisible()) {
-					tool.setVisible(false);
+					if (OSPRuntime.isJS)
+						frame.selectDataWindow(null);
+					else
+						tool.setVisible(false);
 					return;
 				}
 				// send some data to the tool
@@ -2844,9 +2860,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		view_bottomPaneItem.setText(bp + " (" + viewNames[3] + ", " + viewNames[2] + ")");
 		
 		view_notesItem.setSelected(frame.notesVisible());
-		view_dataBuilderItem.setSelected(p.dataBuilder != null && p.dataBuilder.isVisible());
-		DataTool tool = DataTool.getTool(false);
-		view_dataToolItem.setSelected(tool != null && tool.isVisible());
+		refreshDataWindowChecks();
 
 		if (isTainted(MENU_VIEW)) {
 			// OSPLog.debug("TMenuBar window menu rebuild");

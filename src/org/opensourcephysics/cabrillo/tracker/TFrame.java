@@ -442,21 +442,50 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 			GUIUtils.installGestureHandler(this);
 	}
 	
-	void showDataTool(DataTool tool) {
-		if (OSPRuntime.isJS) {
-			for (int tab = 0; tab < getTabCount(); tab++) {
-				TrackerPanel panel = getTrackerPanelForTab(tab);
-				if (panel == null || panel.dataBuilder == null)
-					continue;
-				// Switching tabs must not reopen a builder while Data Tool is active.
-				panel.dataToolVisible = false;
-				if (panel.dataBuilder.isVisible())
-					panel.dataBuilder.setVisible(false);
-			}
+	private Window activeDataWindow;
+	private final ComponentAdapter dataWindowVisibility = new ComponentAdapter() {
+		@Override
+		public void componentHidden(ComponentEvent e) {
+			// A hide event from switching tools can arrive after the new window opens.
+			if (e.getComponent() == activeDataWindow && !activeDataWindow.isVisible())
+				selectDataWindow(null);
 		}
-		tool.setVisible(true);
+	};
+
+	void selectDataWindow(Window selected) {
+		activeDataWindow = selected;
+		if (selected != null) {
+			selected.removeComponentListener(dataWindowVisibility);
+			selected.addComponentListener(dataWindowVisibility);
+		}
+		DataTool tool = DataTool.getTool(false);
+		if (tool != null && tool != selected && tool.isVisible())
+			tool.setVisible(false);
+		for (int tab = 0; tab < getTabCount(); tab++) {
+			TrackerPanel panel = getTrackerPanelForTab(tab);
+			if (panel == null || panel.dataBuilder == null || panel.dataBuilder == selected)
+				continue;
+			panel.dataToolVisible = false;
+			if (panel.dataBuilder.isVisible())
+				panel.dataBuilder.setVisible(false);
+		}
+		if (selected == null)
+			refreshDataWindowChecks();
+	}
+
+	void refreshDataWindowChecks() {
+		if (currentMenuBar != null)
+			currentMenuBar.refreshDataWindowChecks();
+	}
+
+	void showDataTool(DataTool tool) {
 		if (OSPRuntime.isJS)
+			selectDataWindow(tool);
+		tool.setVisible(true);
+		if (OSPRuntime.isJS) {
 			fitDataWindow(tool);
+			refreshDataWindowChecks();
+		}
 	}
 
 	static void fitDataWindow(Window window) {

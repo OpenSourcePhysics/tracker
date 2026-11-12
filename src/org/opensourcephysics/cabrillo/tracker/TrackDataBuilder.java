@@ -28,7 +28,6 @@ import org.opensourcephysics.controls.XMLControlElement;
 import org.opensourcephysics.controls.XMLProperty;
 import org.opensourcephysics.display.Drawable;
 import org.opensourcephysics.display.OSPRuntime;
-import org.opensourcephysics.tools.DataTool;
 import org.opensourcephysics.tools.AbstractAutoloadManager;
 import org.opensourcephysics.tools.DataFunctionPanel;
 import org.opensourcephysics.tools.FontSizer;
@@ -80,14 +79,13 @@ public class TrackDataBuilder extends FunctionTool {
 
 	@Override
 	public void setVisible(boolean visible) {
-		if (visible && OSPRuntime.isJS) {
-			DataTool tool = DataTool.getTool(false);
-			if (tool != null && tool.isVisible())
-				tool.setVisible(false);
-		}
+		if (visible && OSPRuntime.isJS)
+			frame.selectDataWindow(this);
 		super.setVisible(visible);
-		if (visible && OSPRuntime.isJS && isVisible())
+		if (visible && OSPRuntime.isJS && isVisible()) {
 			TFrame.fitDataWindow(this);
+			frame.refreshDataWindowChecks();
+		}
 	}
 
 	@Override
