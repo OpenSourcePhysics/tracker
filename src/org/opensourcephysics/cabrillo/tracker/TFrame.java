@@ -118,7 +118,6 @@ import org.opensourcephysics.display.GUIUtils;
 import org.opensourcephysics.display.OSPFrame;
 import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.display.OSPRuntime.Disposable;
-import org.opensourcephysics.js.AIPatch;
 import org.opensourcephysics.media.core.ClipInspector;
 import org.opensourcephysics.media.core.DataTrack;
 import org.opensourcephysics.media.core.ImageVideo;
@@ -437,9 +436,9 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 			addTab(panel, ADD_NOSELECT | ADD_REFRESH, () -> {
 			});
 		}
-		AIPatch.installResizeHandler(this);
+		GUIUtils.installResizeHandler(this);
 		if (OSPRuntime.isJS)
-			AIPatch.installGestureHandler(this);
+			GUIUtils.installGestureHandler(this);
 	}
 	
 	protected Rectangle getAdaptiveBounds(boolean isInit) {
@@ -472,7 +471,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 
 			};
 			// startup
-			AIPatch.addWindowOrientationChangeListener(onOrient);
+			GUIUtils.addWindowOrientationChangeListener(onOrient);
 		} else {
 			setBounds(rect);
 			validate();
@@ -2543,7 +2542,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 			public void componentResized(ComponentEvent e) {
 				checkMaximizedSizeChanged();
 				frameResized();
-				AIPatch.setupResizer(TFrame.this);
+				GUIUtils.setupResizer(TFrame.this);
 			}
 		});
 		// add focus listener to notify ParticleDataTracks and other listeners

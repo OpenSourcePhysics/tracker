@@ -37,8 +37,8 @@ import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 import javax.swing.border.Border;
 
+import org.opensourcephysics.display.GUIUtils;
 import org.opensourcephysics.display.OSPRuntime;
-import org.opensourcephysics.js.AIPatch;
 import org.opensourcephysics.tools.FontSizer;
 
 /**
@@ -364,7 +364,7 @@ public class TButton extends JButton {
 				int offset = alignPopup == LEFT ? 0 : getWidth() - popupWidth;
 				popup.show(TButton.this, offset, getHeight());
 				if (OSPRuntime.isJS && alignPopup == RIGHT) {
-					AIPatch.alignComponentRight(popup, TButton.this);
+					GUIUtils.alignComponentRight(popup, TButton.this);
 				}
 				if (OSPRuntime.isJS)
 					checkLongPress(null);
