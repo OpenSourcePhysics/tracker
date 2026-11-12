@@ -2299,7 +2299,6 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 				LibraryComPADRE.desiredOSPType = "Tracker"; //$NON-NLS-1$
 
 				libraryBrowser = LibraryBrowser.getBrowser();
-				AIPatch.FullFrameDragHandler.installFullFrameDragHandler(libraryBrowser, true);
 
 				libraryBrowser.addOSPLibrary(LibraryBrowser.TRACKER_LIBRARY);
 				libraryBrowser.addOSPLibrary(LibraryBrowser.SHARED_LIBRARY);
