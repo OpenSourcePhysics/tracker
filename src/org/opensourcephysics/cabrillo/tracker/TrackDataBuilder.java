@@ -28,6 +28,7 @@ import org.opensourcephysics.controls.XMLControlElement;
 import org.opensourcephysics.controls.XMLProperty;
 import org.opensourcephysics.display.Drawable;
 import org.opensourcephysics.display.OSPRuntime;
+import org.opensourcephysics.tools.DataTool;
 import org.opensourcephysics.tools.AbstractAutoloadManager;
 import org.opensourcephysics.tools.DataFunctionPanel;
 import org.opensourcephysics.tools.FontSizer;
@@ -75,6 +76,18 @@ public class TrackDataBuilder extends FunctionTool {
 		}
 		trackerPanel.clearTemp();
 		setHelpPath("data_builder_help.html"); //$NON-NLS-1$
+	}
+
+	@Override
+	public void setVisible(boolean visible) {
+		if (visible && OSPRuntime.isJS) {
+			DataTool tool = DataTool.getTool(false);
+			if (tool != null && tool.isVisible())
+				tool.setVisible(false);
+		}
+		super.setVisible(visible);
+		if (visible && OSPRuntime.isJS && isVisible())
+			TFrame.fitDataWindow(this);
 	}
 
 	@Override

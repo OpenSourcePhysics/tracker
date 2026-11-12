@@ -36,6 +36,7 @@ import java.awt.Graphics;
 import java.awt.GraphicsEnvironment;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.Window;
 import java.awt.Toolkit;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
@@ -441,6 +442,37 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 			GUIUtils.installGestureHandler(this);
 	}
 	
+	void showDataTool(DataTool tool) {
+		if (OSPRuntime.isJS) {
+			for (int tab = 0; tab < getTabCount(); tab++) {
+				TrackerPanel panel = getTrackerPanelForTab(tab);
+				if (panel == null || panel.dataBuilder == null)
+					continue;
+				// Switching tabs must not reopen a builder while Data Tool is active.
+				panel.dataToolVisible = false;
+				if (panel.dataBuilder.isVisible())
+					panel.dataBuilder.setVisible(false);
+			}
+		}
+		tool.setVisible(true);
+		if (OSPRuntime.isJS)
+			fitDataWindow(tool);
+	}
+
+	static void fitDataWindow(Window window) {
+		Rectangle viewport = OSPRuntime.jsutil.getMaximumViewport(2, 2);
+		Rectangle bounds = window.getBounds();
+		int width = Math.min(bounds.width, viewport.width);
+		int height = Math.min(bounds.height, viewport.height);
+		int x = Math.max(viewport.x, Math.min(bounds.x, viewport.x + viewport.width - width));
+		int y = Math.max(viewport.y, Math.min(bounds.y, viewport.y + viewport.height - height));
+		if (bounds.x != x || bounds.y != y || bounds.width != width || bounds.height != height) {
+			window.setBounds(x, y, width, height);
+			window.validate();
+		}
+		window.toFront();
+	}
+
 	protected Rectangle getAdaptiveBounds(boolean isInit) {
 		// "maximized" here means "maximizing"
 		Rectangle rect;
@@ -467,6 +499,12 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 				@Override
 				public void run() {
 					getAdaptiveBounds(false);
+					DataTool tool = DataTool.getTool(false);
+					TrackerPanel panel = getSelectedPanel();
+					if (tool != null && tool.isVisible())
+						fitDataWindow(tool);
+					else if (panel != null && panel.dataBuilder != null && panel.dataBuilder.isVisible())
+						fitDataWindow(panel.dataBuilder);
 				}
 
 			};
@@ -3132,7 +3170,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 								ArrayList<DataToolTab> tabs = tool.createTabs(data[i]);
 								for (int j = 0; j < tabs.size(); j++) {
 									tool.addTab(tabs.get(j));
-									tool.setVisible(true);
+									showDataTool(tool);
 									loadFailed = true; // so Tracker will not take focus, datatool stays on top
 								}
 							}	

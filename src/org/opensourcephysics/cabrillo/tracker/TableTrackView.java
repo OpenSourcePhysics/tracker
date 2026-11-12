@@ -1383,7 +1383,7 @@ public class TableTrackView extends TrackView {
 		tool.setSaveChangesOnClose(false);
 		DataRefreshTool refresher = DataRefreshTool.getTool(trackDataManager);
 		tool.send(new LocalJob(toSend), refresher);
-		tool.setVisible(true);
+		frame.showDataTool(tool);
 	}
 
 	protected void tableMousePressed(MouseEvent e) {

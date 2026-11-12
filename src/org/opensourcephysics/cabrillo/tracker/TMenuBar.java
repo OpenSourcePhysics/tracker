@@ -1465,7 +1465,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 					}
 				}
 				tool.setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
-				tool.setVisible(true);
+				frame.showDataTool(tool);
 		});
 		viewMenu.addSeparator();
 		refreshViewMenu(false);
