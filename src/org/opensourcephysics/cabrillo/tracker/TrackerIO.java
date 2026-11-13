@@ -66,6 +66,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -2863,36 +2864,39 @@ public class TrackerIO extends VideoIO {
 	/**
 	 * Browser download handling for completed ZIP and TRZ archives.
 	 * 
-	 * No install is necessary in Java.
 	 * 
 	 **/
 	public static class BrowserZipExport {
 
-		public static boolean compress(ArrayList<File> files, File target) {
-			// Java returns null here
-			Runnable cleanup = install(target.getPath());
-			try {
-				return JarTool.compress(files, target, null);
-			} finally {
-				if (cleanup != null)
-					cleanup.run();
-			}
+		public static Object compress(ArrayList<File> files, File target) {
+			String path = target.getPath();
+			return OSPRuntime.saveFileSafely(path, "application/zip", new Supplier<Object>() {
+
+				@Override
+				public Object get() {
+					try {
+					return (JarTool.compress(files, target, null) ? path : null);
+					} catch (Exception e) {
+						return e;
+					}
+				}
+				
+			});
 		}
 
-		public static String saveVideo(VideoRecorder recorder) throws IOException {
-			// Java returns null here
-			Runnable cleanup = install(recorder.getFileName());
-			try {
-				return recorder.saveVideo();
-			} finally {
-				if (cleanup != null)
-					cleanup.run();
-			}
-		}
+		public static Object saveVideo(VideoRecorder recorder) {
+			return OSPRuntime.saveFileSafely(recorder.getFileName(), "application/zip", new Supplier<Object>() {
 
-		private static Runnable install(String targetPath) {
-			return (!OSPRuntime.isJS || !ResourceLoader.isJarZipTrz(targetPath, false) ? null
-					: AIPatch.installJ2SFileSaveDialog(targetPath, "application/zip"));
+				@Override
+				public Object get() {
+					try {
+					  return recorder.saveVideo();
+					} catch (Exception e) {
+						return e;
+					}
+				}
+				
+			});
 		}
 
 	}

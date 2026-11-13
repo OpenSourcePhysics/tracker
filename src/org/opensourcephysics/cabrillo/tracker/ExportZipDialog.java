@@ -2308,7 +2308,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 	private void saveZip(ArrayList<File> zipList) {
 		// define zip target and compress with JarTool
 		File target = new File(getZIPTarget());
-		if (TrackerIO.BrowserZipExport.compress(zipList, target)) {
+		if (TrackerIO.BrowserZipExport.compress(zipList, target) != null) {
 			ResourceLoader.removeFromZipCache(target.getPath());
 			// offer to open the newly created zip file
 //			if (!isOpenInTracker)
