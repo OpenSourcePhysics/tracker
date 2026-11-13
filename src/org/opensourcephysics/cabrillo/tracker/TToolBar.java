@@ -329,8 +329,18 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 		panel.addListeners(panelProps, this);
 		setFloatable(false);
 		addComponentListener(new ComponentAdapter() {
+			private int lastMobileWidth = -1;
+
 	    @Override
 			public void componentResized(ComponentEvent componentEvent) {
+				if (OSPRuntime.isJS && OSPRuntime.isMobile()) {
+					int width = getWidth();
+					if (width == lastMobileWidth)
+						return;
+					lastMobileWidth = width;
+				} else {
+					lastMobileWidth = -1;
+				}
   			rebuild(-1);
 	    }
 		});
@@ -814,10 +824,24 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 		maximizeButton.setToolTipText(TrackerRes.getString("TFrame.Maximize.Tooltip")); //$NON-NLS-1$
 		refreshMaximizeButton(frame);
 		maximizeButton.addActionListener(new ActionListener() {
+			private boolean togglePending;
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				frame.toggleMaximized();
-				refreshMaximizeButton(frame);
+				if (!OSPRuntime.isJS) {
+					frame.toggleMaximized();
+					refreshMaximizeButton(frame);
+				} else if (!togglePending) {
+					togglePending = true;
+					SwingUtilities.invokeLater(() -> {
+						try {
+							frame.toggleMaximized();
+							refreshMaximizeButton(frame);
+						} finally {
+							togglePending = false;
+						}
+					});
+				}
 			}
 		});
 		
@@ -1686,6 +1710,13 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 	}
 	
 
+
+	@Override
+	public void addNotify() {
+		super.addNotify();
+		if (OSPRuntime.isJS)
+			frame.installWindowDrag(this);
+	}
 
 	private void rebuild(int overflow) {
 		
@@ -2881,7 +2912,7 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 				add(mobileMoreButton);
 			add(Box.createHorizontalGlue());
 		
-			if (TFrame.isLayoutAdaptive && !OSPRuntime.isSmallScreen(panel().getTFrame())) {
+			if (TFrame.isLayoutAdaptive) {
 				add(maximizeButton);
 			}
 			

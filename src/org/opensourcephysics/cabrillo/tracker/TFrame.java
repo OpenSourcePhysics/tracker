@@ -456,6 +456,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 	void selectDataWindow(Window selected) {
 		activeDataWindow = selected;
 		if (selected != null) {
+			closeLibraryBrowser();
 			selected.removeComponentListener(dataWindowVisibility);
 			selected.addComponentListener(dataWindowVisibility);
 		}
@@ -472,6 +473,11 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 		}
 		if (selected == null)
 			refreshDataWindowChecks();
+	}
+
+	void closeLibraryBrowser() {
+		if (OSPRuntime.isJS && libraryBrowser != null && libraryBrowser.isVisible())
+			libraryBrowser.setVisible(false);
 	}
 
 	void refreshDataWindowChecks() {
@@ -2361,11 +2367,17 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 		try {
 			LibraryBrowser browser = getLibraryBrowser();
 			if (browser != null) {
-				browser.setVisible(true);
+				showLibraryBrowser(browser);
 				//ensuerWelcomeScreen(browser, "open");
 			}
 		} catch (Throwable t) {
 		}
+	}
+
+	void showLibraryBrowser(LibraryBrowser browser) {
+		if (OSPRuntime.isJS)
+			selectDataWindow(null);
+		browser.setVisible(true);
 	}
 
 	/**
@@ -3246,7 +3258,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 						JOptionPane.showMessageDialog(libraryBrowser, s + " \"" + XML.getName(target) + "\"", //$NON-NLS-1$ //$NON-NLS-2$
 								TrackerRes.getString("TFrame.Dialog.LibraryError.FileNotFound.Title"), //$NON-NLS-1$
 								JOptionPane.WARNING_MESSAGE);
-						libraryBrowser.setVisible(true);
+						showLibraryBrowser(libraryBrowser);
 						loadFailed = true;
 						return;
 					}
@@ -3305,7 +3317,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 			// open the TR Z in the Library Browser
 			setCursor(Cursor.getDefaultCursor());
 			libraryBrowser.open(path);
-			libraryBrowser.setVisible(true);
+			showLibraryBrowser(libraryBrowser);
 			refreshLibraryNode();
 		});
 	}
@@ -3641,12 +3653,57 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 		super.setJMenuBar(OSPRuntime.isMobile() && !empty? null:  bar);
 		if (bar != null) {
 			bar.setEnabled(frameBlocker == null);			
+			if (OSPRuntime.isJS && getJMenuBar() == bar)
+				installWindowDrag(bar);
 		}
 		currentMenuBar = (bar == defaultMenuBar? null: (TMenuBar)bar);
 		if (currentMenuBar != null)
 			currentMenuBar.refreshPanesPopup();
 
 
+	}
+
+	void installWindowDrag(JComponent bar) {
+		/**
+		 * @j2sNative
+		 * var frame = this, node = bar.getUI$().getDOMNode$();
+		 * if (!node || node._trackerWindowDrag) return;
+		 * node._trackerWindowDrag = true;
+		 * node.style.touchAction = "none";
+		 * var pointer = null, startX, startY, frameX, frameY;
+		 * node.addEventListener("pointerdown", function(e) {
+		 *   if (!e.isPrimary || e.button !== 0 || !bar.isEnabled$() || frame.maximized) return;
+		 *   // SwingJS menu labels can be plain DOM nodes with no button role.
+		 *   // Capture gestures only on the bar background.
+		 *   if (e.target !== node) return;
+		 *   pointer = e.pointerId;
+		 *   startX = e.clientX;
+		 *   startY = e.clientY;
+		 *   frameX = frame.getX$();
+		 *   frameY = frame.getY$();
+		 *   node.setPointerCapture(pointer);
+		 *   e.preventDefault();
+		 *   e.stopPropagation();
+		 * }, true);
+		 * node.addEventListener("pointermove", function(e) {
+		 *   if (e.pointerId !== pointer) return;
+		 *   var dx = e.clientX - startX, dy = e.clientY - startY;
+		 *   if (Math.abs(dx) + Math.abs(dy) >= 4)
+		 *     frame.moveFromMenuBar$I$I(Math.round(frameX + dx), Math.round(frameY + dy));
+		 *   e.stopPropagation();
+		 * }, true);
+		 * node.addEventListener("lostpointercapture", function(e) {
+		 *   if (e.pointerId === pointer) pointer = null;
+		 * });
+		 */
+	}
+
+	public void moveFromMenuBar(int x, int y) {
+		Rectangle viewport = OSPRuntime.jsutil.getMaximumViewport(2, 2);
+		int minX = viewport.x + Math.min(48, getWidth()) - getWidth();
+		int maxX = viewport.x + viewport.width - Math.min(48, getWidth());
+		int maxY = viewport.y + Math.max(0, viewport.height - 30);
+		setLocation(Math.max(minX, Math.min(x, maxX)), Math.max(viewport.y, Math.min(y, maxY)));
 	}
 
 	static class DeactivatingMenuBar extends JMenuBar {

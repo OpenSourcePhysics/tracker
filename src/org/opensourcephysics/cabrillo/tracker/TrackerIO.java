@@ -845,6 +845,11 @@ public class TrackerIO extends VideoIO {
 	 */
 	private static AsyncLoader startLoading(List<String> paths, TrackerPanel existingPanel, TFrame frame,
 			LibraryBrowser libraryBrowser, Runnable whenDone) {
+		return startLoading(paths, existingPanel, frame, libraryBrowser, whenDone, false);
+	}
+
+	private static AsyncLoader startLoading(List<String> paths, TrackerPanel existingPanel, TFrame frame,
+			LibraryBrowser libraryBrowser, Runnable whenDone, boolean fromLibrary) {
 		// importVideo
 		// openFromLibary
 		// ..TFrame.openLibraryResource
@@ -857,6 +862,7 @@ public class TrackerIO extends VideoIO {
 		// OSPLog.debug("TrackerIO openTabPathAsync " + paths); //$NON-NLS-1$
 		loadIncrementally = true;
 		AsyncLoader loader = new AsyncLoader(paths, existingPanel, frame, libraryBrowser, whenDone);
+		loader.fromLibrary = fromLibrary;
 		if (frame == null)
 			loader.executeSynchronously();
 		else
@@ -950,7 +956,7 @@ public class TrackerIO extends VideoIO {
 
 		// open in separate background thread if flagged
 		// from TFrame.openLibaryResource
-		return startLoading(uriPaths, null, frame, frame.libraryBrowser, whenDone);
+		return startLoading(uriPaths, null, frame, frame.libraryBrowser, whenDone, true);
 	}
 
 	private static void addToLibrary(TFrame frame, String path) {
@@ -1985,6 +1991,8 @@ public class TrackerIO extends VideoIO {
 //		private String title; // BH TODO
 		private String xmlPath, xmlPath0;
 		private Runnable whenDone;
+		private boolean fromLibrary;
+		private boolean openedLibraryProject;
 		private Set<Integer> panelList = new HashSet<>();
 
 		private LibraryBrowser libraryBrowser;
@@ -2538,6 +2546,8 @@ public class TrackerIO extends VideoIO {
 						TrackerRes.getString("TrackerIO.Dialog.ReadFailed.Message"), //$NON-NLS-1$
 						TrackerRes.getString("TrackerIO.Dialog.ReadFailed.Title"), //$NON-NLS-1$
 						JOptionPane.WARNING_MESSAGE);
+			} else if (fromLibrary && ResourceLoader.isJarZipTrz(xmlPath, true)) {
+				openedLibraryProject = true;
 			}
 
 			checkDone(false);
@@ -2553,7 +2563,7 @@ public class TrackerIO extends VideoIO {
 		private int loadCollection(int progress) {
 			if (frame != null) {
 				LibraryBrowser browser = frame.getLibraryBrowser();
-				browser.setVisible(true);
+				frame.showLibraryBrowser(browser);
 				browser.open(path);
 			}
 			return PROGRESS_COMPLETE;
@@ -2690,6 +2700,10 @@ public class TrackerIO extends VideoIO {
 
 		private void doneLoading() {
 			if (frame != null) {
+				if (openedLibraryProject && !isCanceled()) {
+					openedLibraryProject = false;
+					frame.closeLibraryBrowser();
+				}
 				TrackerPanel trackerPanel = panel();
 				frame.setFrameBlocker(false, trackerPanel);
 				if (xmlPath0 != null && !ResourceLoader.isJarZipTrz(xmlPath0, true)) { // $NON-NLS-1$
