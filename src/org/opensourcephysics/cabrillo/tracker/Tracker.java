@@ -103,7 +103,6 @@ import org.opensourcephysics.display.OSPFrame;
 import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.display.ResizableIcon;
 import org.opensourcephysics.display.TeXParser;
-import org.opensourcephysics.js.AIPatch;
 import org.opensourcephysics.media.core.Video;
 import org.opensourcephysics.media.core.VideoIO;
 import org.opensourcephysics.media.mov.MovieFactory;
@@ -2229,7 +2228,7 @@ public class Tracker {
 		} finally {
 			// The launcher HTML displays the splash before SwingJS loads.
 			if (OSPRuntime.isJS) {
-				AIPatch.disposeElement("tracker-online-splash");
+				GUIUtils.disposeElement("tracker-online-splash");
 			}
 		}
 	}

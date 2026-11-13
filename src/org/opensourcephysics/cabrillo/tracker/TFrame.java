@@ -36,6 +36,7 @@ import java.awt.Graphics;
 import java.awt.GraphicsEnvironment;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.Window;
 import java.awt.Toolkit;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
@@ -118,7 +119,6 @@ import org.opensourcephysics.display.GUIUtils;
 import org.opensourcephysics.display.OSPFrame;
 import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.display.OSPRuntime.Disposable;
-import org.opensourcephysics.js.AIPatch;
 import org.opensourcephysics.media.core.ClipInspector;
 import org.opensourcephysics.media.core.DataTrack;
 import org.opensourcephysics.media.core.ImageVideo;
@@ -438,16 +438,89 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 			addTab(panel, ADD_NOSELECT | ADD_REFRESH, () -> {
 			});
 		}
-		AIPatch.installResizeHandler(this);
+		GUIUtils.installResizeHandler(this);
 		if (OSPRuntime.isJS)
-			AIPatch.installGestureHandler(this);
+			GUIUtils.installGestureHandler(this);
 	}
 	
+	private Window activeDataWindow;
+	private final ComponentAdapter dataWindowVisibility = new ComponentAdapter() {
+		@Override
+		public void componentHidden(ComponentEvent e) {
+			// A hide event from switching tools can arrive after the new window opens.
+			if (e.getComponent() == activeDataWindow && !activeDataWindow.isVisible())
+				selectDataWindow(null);
+		}
+	};
+
+	void selectDataWindow(Window selected) {
+		activeDataWindow = selected;
+		if (selected != null) {
+			selected.removeComponentListener(dataWindowVisibility);
+			selected.addComponentListener(dataWindowVisibility);
+		}
+		DataTool tool = DataTool.getTool(false);
+		if (tool != null && tool != selected && tool.isVisible())
+			tool.setVisible(false);
+		for (int tab = 0; tab < getTabCount(); tab++) {
+			TrackerPanel panel = getTrackerPanelForTab(tab);
+			if (panel == null || panel.dataBuilder == null || panel.dataBuilder == selected)
+				continue;
+			panel.dataToolVisible = false;
+			if (panel.dataBuilder.isVisible())
+				panel.dataBuilder.setVisible(false);
+		}
+		if (selected == null)
+			refreshDataWindowChecks();
+	}
+
+	void refreshDataWindowChecks() {
+		if (currentMenuBar != null)
+			currentMenuBar.refreshDataWindowChecks();
+	}
+
+	void showDataTool(DataTool tool) {
+		if (OSPRuntime.isJS)
+			selectDataWindow(tool);
+		tool.setVisible(true);
+		if (OSPRuntime.isJS) {
+			fitDataWindow(tool);
+			refreshDataWindowChecks();
+		}
+	}
+
+	static void fitDataWindow(Window window) {
+		Rectangle viewport = OSPRuntime.jsutil.getMaximumViewport(2, 2);
+		Rectangle bounds = window.getBounds();
+		int width = Math.min(bounds.width, viewport.width);
+		int height = Math.min(bounds.height, viewport.height);
+		int x = Math.max(viewport.x, Math.min(bounds.x, viewport.x + viewport.width - width));
+		int y = Math.max(viewport.y, Math.min(bounds.y, viewport.y + viewport.height - height));
+		if (window instanceof TrackDataBuilder) {
+			x = viewport.x + (viewport.width - width) / 2;
+			y = viewport.y + (viewport.height - height) / 2;
+		}
+		if (bounds.x != x || bounds.y != y || bounds.width != width || bounds.height != height) {
+			window.setBounds(x, y, width, height);
+			window.validate();
+		}
+		window.toFront();
+	}
+
 	protected Rectangle getAdaptiveBounds(boolean isInit) {
 		// "maximized" here means "maximizing"
 		Rectangle rect;
-		if (OSPRuntime.isJS && maximized) {
-			rect = OSPRuntime.jsutil.getMaximumViewport(2, 2);
+		if (OSPRuntime.isJS) {
+			Rectangle viewport = OSPRuntime.jsutil.getMaximumViewport(2, 2);
+			rect = viewport;
+			if (!maximized) {
+				int top = Math.min(DEFAULT_FRAME_CEILING, viewport.height / 4);
+				int width = Math.max(1, (int) (viewport.width * DEFAULT_FRAME_WIDTH));
+				int height = Math.max(1, (int) ((viewport.height - top) * DEFAULT_FRAME_HEIGHT));
+				Rectangle restored = new Rectangle(viewport.x + (viewport.width - width) / 2,
+						viewport.y + top, width, height);
+				rect = prevFrameSize != null && viewport.contains(prevFrameSize) ? prevFrameSize : restored;
+			}
 		} else if (prevFrameSize != null && !maximized) {
 			rect = prevFrameSize;
 		} else {
@@ -469,12 +542,18 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 				@Override
 				public void run() {
 					getAdaptiveBounds(false);
+					DataTool tool = DataTool.getTool(false);
+					TrackerPanel panel = getSelectedPanel();
+					if (tool != null && tool.isVisible())
+						fitDataWindow(tool);
+					else if (panel != null && panel.dataBuilder != null && panel.dataBuilder.isVisible())
+						fitDataWindow(panel.dataBuilder);
 				}
 
 			};
 			// startup
-			AIPatch.addWindowOrientationChangeListener(onOrient);
-		} else {
+			GUIUtils.addWindowOrientationChangeListener(onOrient);
+		} else if (!OSPRuntime.isJS || !rect.equals(getBounds())) {
 			setBounds(rect);
 			validate();
 			toFront(); // BH added - not automatic in JavaScript
@@ -2300,7 +2379,6 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 				LibraryComPADRE.desiredOSPType = "Tracker"; //$NON-NLS-1$
 
 				libraryBrowser = LibraryBrowser.getBrowser();
-				AIPatch.FullFrameDragHandler.installFullFrameDragHandler(libraryBrowser, true);
 
 				libraryBrowser.addOSPLibrary(LibraryBrowser.TRACKER_LIBRARY);
 				libraryBrowser.addOSPLibrary(LibraryBrowser.SHARED_LIBRARY);
@@ -2541,11 +2619,19 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 	 */
 	private void createGUI() {
 		this.addComponentListener(new ComponentAdapter() {
+			private Dimension lastSize;
+
 			@Override
 			public void componentResized(ComponentEvent e) {
+				if (OSPRuntime.isJS) {
+					Dimension size = getSize();
+					if (size.equals(lastSize))
+						return;
+					lastSize = size;
+				}
 				checkMaximizedSizeChanged();
 				frameResized();
-				AIPatch.setupResizer(TFrame.this);
+				GUIUtils.setupResizer(TFrame.this);
 			}
 		});
 		// add focus listener to notify ParticleDataTracks and other listeners
@@ -3135,7 +3221,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 								ArrayList<DataToolTab> tabs = tool.createTabs(data[i]);
 								for (int j = 0; j < tabs.size(); j++) {
 									tool.addTab(tabs.get(j));
-									tool.setVisible(true);
+									showDataTool(tool);
 									loadFailed = true; // so Tracker will not take focus, datatool stays on top
 								}
 							}	

@@ -92,6 +92,7 @@ java/awt/event/AdjustmentListener.js
 java/awt/event/ComponentAdapter.js
 java/awt/event/ComponentEvent.js
 java/awt/event/ComponentListener.js
+java/awt/event/ContainerAdapter.js
 java/awt/event/ContainerEvent.js
 java/awt/event/ContainerListener.js
 java/awt/event/FocusAdapter.js

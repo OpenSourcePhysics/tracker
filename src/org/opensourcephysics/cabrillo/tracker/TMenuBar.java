@@ -188,6 +188,15 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 
 	// instance fields
 	
+	void refreshDataWindowChecks() {
+		if (view_dataBuilderItem == null || view_dataToolItem == null)
+			return;
+		TrackerPanel panel = panel();
+		view_dataBuilderItem.setSelected(panel != null && panel.dataBuilder != null && panel.dataBuilder.isVisible());
+		DataTool tool = DataTool.getTool(false);
+		view_dataToolItem.setSelected(tool != null && tool.isVisible());
+	}
+
 	TrackerPanel panel() {
 		return frame.getTrackerPanelForID(panelID);
 	}
@@ -1419,15 +1428,33 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		s += " (" + TrackerRes.getString("TView.Menuitem.Define") + ")"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 		view_dataBuilderItem = new JCheckBoxMenuItem(s);
 		view_dataBuilderItem.addActionListener((e) -> {
+			Container popup = view_dataBuilderItem.getParent();
+			Runnable toggleBuilder = () -> {
+				if (OSPRuntime.isJS) {
+					if (frame == null || frame.getSelectedPanel() != p)
+						return;
+					MenuSelectionManager.defaultManager().clearSelectedPath();
+					if (popup instanceof JPopupMenu)
+						((JPopupMenu) popup).setVisible(false);
+				}
 				FunctionTool builder = p.getDataBuilder();
-				if (builder.isVisible())
-					builder.setVisible(false);
+				if (builder.isVisible()) {
+					if (OSPRuntime.isJS)
+						frame.selectDataWindow(null);
+					else
+						builder.setVisible(false);
+				}
 				else {
 					TTrack track = p.getSelectedTrack();
 					if (track != null)
 						builder.setSelectedPanel(track.getName());
 					builder.setVisible(true);
 				}
+			};
+			if (OSPRuntime.isJS)
+				SwingUtilities.invokeLater(toggleBuilder);
+			else
+				toggleBuilder.run();
 		});
 		// dataTool item
 		s = TrackerRes.getString("TMenuBar.MenuItem.DatasetTool"); //$NON-NLS-1$
@@ -1436,7 +1463,10 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		view_dataToolItem.addActionListener((e) -> {
 				DataTool tool = DataTool.getTool(true);
 				if (tool.isVisible()) {
-					tool.setVisible(false);
+					if (OSPRuntime.isJS)
+						frame.selectDataWindow(null);
+					else
+						tool.setVisible(false);
 					return;
 				}
 				// send some data to the tool
@@ -1465,7 +1495,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 					}
 				}
 				tool.setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
-				tool.setVisible(true);
+				frame.showDataTool(tool);
 		});
 		viewMenu.addSeparator();
 		refreshViewMenu(false);
@@ -2802,7 +2832,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		TViewChooser[] choosers = frame.getViewChoosers(panelID);
 		String[] viewNames = new String[4];
 		for (int i = 0; i < choosers.length; i++) {
-			if (choosers[i] == null || i > viewNames.length)
+			if (choosers[i] == null || i >= viewNames.length)
 				continue;
 			int viewType = choosers[i].getSelectedViewType();
 			viewNames[i] = 
@@ -2844,9 +2874,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		view_bottomPaneItem.setText(bp + " (" + viewNames[3] + ", " + viewNames[2] + ")");
 		
 		view_notesItem.setSelected(frame.notesVisible());
-		view_dataBuilderItem.setSelected(p.dataBuilder != null && p.dataBuilder.isVisible());
-		DataTool tool = DataTool.getTool(false);
-		view_dataToolItem.setSelected(tool != null && tool.isVisible());
+		refreshDataWindowChecks();
 
 		if (isTainted(MENU_VIEW)) {
 			// OSPLog.debug("TMenuBar window menu rebuild");

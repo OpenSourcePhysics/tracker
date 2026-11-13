@@ -2785,12 +2785,28 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 
 			mobileViewButton = new MobileButton() {
 				@Override
+				protected boolean checkLongPress(MouseEvent e) {
+					// In SwingJS the button action handles taps and keyboard activation.
+					return OSPRuntime.isJS;
+				}
+
+				@Override
 				protected JPopupMenu getPopup() {
 					rebuildMobileViewPopup();
 					FontSizer.setFonts(mobileViewPopup);
 					return mobileViewPopup;
 				}
 			}; //$NON-NLS-1$
+			if (OSPRuntime.isJS) {
+				mobileViewButton.addActionListener(e -> {
+					if (mobileViewPopup.isVisible()) {
+						mobileViewPopup.setVisible(false);
+					} else if (frame.currentMenuBar != null) {
+						mobileViewButton.popup = null;
+						mobileViewButton.showPopup(null);
+					}
+				});
+			}
 			if (!noButtonIcons)
 				mobileViewButton.setIcon(TableTView.TABLEVIEW_ICON);
 			
