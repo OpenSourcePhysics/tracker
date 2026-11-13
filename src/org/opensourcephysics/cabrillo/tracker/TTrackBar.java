@@ -510,9 +510,11 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 			track.removeListenerNCF(this);
 		}
 
+		track = panel.getSelectedTrack();
+		selectButton.setText(track != null? null:
+				TrackerRes.getString("TToolBar.Menu.Select.Text"));
 		add(selectButton);
 		trackButton.context = "track"; //$NON-NLS-1$
-		track = panel.getSelectedTrack();
 		if (track != null && track.ttype != TTrack.TYPE_PERSPECTIVE) {
 			if (track instanceof ParticleDataTrack) {
 				TPoint p = panel.getSelectedPoint();
