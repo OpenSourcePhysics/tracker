@@ -741,8 +741,8 @@ public class ExportVideoDialog extends JDialog {
 					recorder.addFrame(image);
 				}
 				Object o = TrackerIO.BrowserZipExport.saveVideo(recorder);
-				if (o instanceof IOException) {
-					throw new IOException((IOException) o);
+				if (o instanceof Throwable) {
+					throw new IOException((Throwable) o);
 				}
 				savedFilePath = (String) o;
 				if (savedFilePath == null) {
@@ -846,8 +846,8 @@ public class ExportVideoDialog extends JDialog {
 			// if done, save video
 			if (done) {
 				Object o = TrackerIO.BrowserZipExport.saveVideo(recorder);
-				if (o instanceof IOException) {
-					throw new IOException((IOException) o);
+				if (o instanceof Throwable) {
+					throw new IOException((Throwable) o);
 				}
 				savedFilePath = (String) o;
 				recorder.reset();
