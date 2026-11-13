@@ -66,6 +66,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -845,6 +846,11 @@ public class TrackerIO extends VideoIO {
 	 */
 	private static AsyncLoader startLoading(List<String> paths, TrackerPanel existingPanel, TFrame frame,
 			LibraryBrowser libraryBrowser, Runnable whenDone) {
+		return startLoading(paths, existingPanel, frame, libraryBrowser, whenDone, false);
+	}
+
+	private static AsyncLoader startLoading(List<String> paths, TrackerPanel existingPanel, TFrame frame,
+			LibraryBrowser libraryBrowser, Runnable whenDone, boolean fromLibrary) {
 		// importVideo
 		// openFromLibary
 		// ..TFrame.openLibraryResource
@@ -857,6 +863,7 @@ public class TrackerIO extends VideoIO {
 		// OSPLog.debug("TrackerIO openTabPathAsync " + paths); //$NON-NLS-1$
 		loadIncrementally = true;
 		AsyncLoader loader = new AsyncLoader(paths, existingPanel, frame, libraryBrowser, whenDone);
+		loader.fromLibrary = fromLibrary;
 		if (frame == null)
 			loader.executeSynchronously();
 		else
@@ -950,7 +957,7 @@ public class TrackerIO extends VideoIO {
 
 		// open in separate background thread if flagged
 		// from TFrame.openLibaryResource
-		return startLoading(uriPaths, null, frame, frame.libraryBrowser, whenDone);
+		return startLoading(uriPaths, null, frame, frame.libraryBrowser, whenDone, true);
 	}
 
 	private static void addToLibrary(TFrame frame, String path) {
@@ -1985,6 +1992,8 @@ public class TrackerIO extends VideoIO {
 //		private String title; // BH TODO
 		private String xmlPath, xmlPath0;
 		private Runnable whenDone;
+		private boolean fromLibrary;
+		private boolean openedLibraryProject;
 		private Set<Integer> panelList = new HashSet<>();
 
 		private LibraryBrowser libraryBrowser;
@@ -2538,6 +2547,8 @@ public class TrackerIO extends VideoIO {
 						TrackerRes.getString("TrackerIO.Dialog.ReadFailed.Message"), //$NON-NLS-1$
 						TrackerRes.getString("TrackerIO.Dialog.ReadFailed.Title"), //$NON-NLS-1$
 						JOptionPane.WARNING_MESSAGE);
+			} else if (fromLibrary && ResourceLoader.isJarZipTrz(xmlPath, true)) {
+				openedLibraryProject = true;
 			}
 
 			checkDone(false);
@@ -2553,7 +2564,7 @@ public class TrackerIO extends VideoIO {
 		private int loadCollection(int progress) {
 			if (frame != null) {
 				LibraryBrowser browser = frame.getLibraryBrowser();
-				browser.setVisible(true);
+				frame.showLibraryBrowser(browser);
 				browser.open(path);
 			}
 			return PROGRESS_COMPLETE;
@@ -2690,6 +2701,10 @@ public class TrackerIO extends VideoIO {
 
 		private void doneLoading() {
 			if (frame != null) {
+				if (openedLibraryProject && !isCanceled()) {
+					openedLibraryProject = false;
+					frame.closeLibraryBrowser();
+				}
 				TrackerPanel trackerPanel = panel();
 				frame.setFrameBlocker(false, trackerPanel);
 				if (xmlPath0 != null && !ResourceLoader.isJarZipTrz(xmlPath0, true)) { // $NON-NLS-1$
@@ -2849,36 +2864,39 @@ public class TrackerIO extends VideoIO {
 	/**
 	 * Browser download handling for completed ZIP and TRZ archives.
 	 * 
-	 * No install is necessary in Java.
 	 * 
 	 **/
 	public static class BrowserZipExport {
 
-		public static boolean compress(ArrayList<File> files, File target) {
-			// Java returns null here
-			Runnable cleanup = install(target.getPath());
-			try {
-				return JarTool.compress(files, target, null);
-			} finally {
-				if (cleanup != null)
-					cleanup.run();
-			}
+		public static Object compress(ArrayList<File> files, File target) {
+			String path = target.getPath();
+			return OSPRuntime.saveFileSafely(path, "application/zip", new Supplier<Object>() {
+
+				@Override
+				public Object get() {
+					try {
+					return (JarTool.compress(files, target, null) ? path : null);
+					} catch (Exception e) {
+						return e;
+					}
+				}
+				
+			});
 		}
 
-		public static String saveVideo(VideoRecorder recorder) throws IOException {
-			// Java returns null here
-			Runnable cleanup = install(recorder.getFileName());
-			try {
-				return recorder.saveVideo();
-			} finally {
-				if (cleanup != null)
-					cleanup.run();
-			}
-		}
+		public static Object saveVideo(VideoRecorder recorder) {
+			return OSPRuntime.saveFileSafely(recorder.getFileName(), "application/zip", new Supplier<Object>() {
 
-		private static Runnable install(String targetPath) {
-			return (!OSPRuntime.isJS || !ResourceLoader.isJarZipTrz(targetPath, false) ? null
-					: AIPatch.installJ2SFileSaveDialog(targetPath, "application/zip"));
+				@Override
+				public Object get() {
+					try {
+					  return recorder.saveVideo();
+					} catch (Exception e) {
+						return e;
+					}
+				}
+				
+			});
 		}
 
 	}

@@ -379,6 +379,7 @@ java/util/concurrent/locks/Lock.js
 java/util/concurrent/locks/ReentrantLock.js
 java/util/function/Consumer.js
 java/util/function/Function.js
+java/util/function/Supplier.js
 java/util/logging/ConsoleHandler.js
 java/util/logging/ErrorManager.js
 java/util/logging/Formatter.js

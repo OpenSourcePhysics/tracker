@@ -740,12 +740,16 @@ public class ExportVideoDialog extends JDialog {
 				for (BufferedImage image : getNextImages(size)) {
 					recorder.addFrame(image);
 				}
-				savedFilePath = TrackerIO.BrowserZipExport.saveVideo(recorder);
+				Object o = TrackerIO.BrowserZipExport.saveVideo(recorder);
+				if (o instanceof Throwable) {
+					throw new IOException((Throwable) o);
+				}
+				savedFilePath = (String) o;
 				if (savedFilePath == null) {
 					recorder.reset();
 				}
 			} catch (IOException ex) {
-				JOptionPane.showMessageDialog(panel, ex, "Exception error ading frame", //$NON-NLS-1$
+				JOptionPane.showMessageDialog(panel, ex, "Exception error adding frame", //$NON-NLS-1$
 						JOptionPane.WARNING_MESSAGE);
 			}
 		}
@@ -841,7 +845,11 @@ public class ExportVideoDialog extends JDialog {
 			System.gc();
 			// if done, save video
 			if (done) {
-				savedFilePath = TrackerIO.BrowserZipExport.saveVideo(recorder);
+				Object o = TrackerIO.BrowserZipExport.saveVideo(recorder);
+				if (o instanceof Throwable) {
+					throw new IOException((Throwable) o);
+				}
+				savedFilePath = (String) o;
 				recorder.reset();
 				// restore original magnification and video visibility
 				trackerPanel.setMagnification(magnification);
