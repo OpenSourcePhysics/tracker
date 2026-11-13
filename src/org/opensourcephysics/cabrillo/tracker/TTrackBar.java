@@ -1198,7 +1198,7 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 		}
 		
 		protected void refreshNumberEditor(int i) {
-			if (trackNumberEditorButton==null) return;
+			if (trackNumberEditorButton==null || panel()==null) return;
 			
 			if (i==0) {
 				if (OSPRuntime.isCompact(frame)
