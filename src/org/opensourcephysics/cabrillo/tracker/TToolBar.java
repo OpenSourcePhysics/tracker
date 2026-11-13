@@ -1862,7 +1862,7 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 		}
 		add(index++, refreshButton);
 		
-		if (TFrame.isLayoutAdaptive)
+		if (TFrame.isLayoutAdaptive && !OSPRuntime.isSmallScreen(panel().getTFrame()))
 			add(index++, maximizeButton);
 
 //		if (TTrackBar.testButton != null)
@@ -2865,7 +2865,7 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 				add(mobileMoreButton);
 			add(Box.createHorizontalGlue());
 		
-			if (TFrame.isLayoutAdaptive) {
+			if (TFrame.isLayoutAdaptive && !OSPRuntime.isSmallScreen(panel().getTFrame())) {
 				add(maximizeButton);
 			}
 			
@@ -3033,8 +3033,8 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 				mobileTrackPopup.add(newTrackMenu);
 				mobileTrackPopup.addSeparator();
 				mobileTrackPopup.add(frame.currentMenuBar.getMenuItem("track_crosshairItem"));
-				add(trackControlButton, mobileTrackPopup);
-				trackControlCheckbox.setSelected(trackControlButton.isSelected());
+//				add(trackControlButton, mobileTrackPopup);
+//				trackControlCheckbox.setSelected(trackControlButton.isSelected());
 			}
 
 			if (p.isEnabled("track.autotrack")) { //$NON-NLS-1$

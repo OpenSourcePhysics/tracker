@@ -382,6 +382,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 		tracker = (Tracker) options.get("-tracker");
 //		isLayoutAdaptive = (options.get("-adaptive") != null);
 		isLayoutAdaptive = OSPRuntime.isJS;
+		setUndecorated(OSPRuntime.isJS);
 		Dimension dim = (Dimension) options.get("-dim");
 		Rectangle bounds = (Rectangle) options.get("-bounds");
 		Video video = (Video) options.get("-video");
@@ -400,7 +401,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 			setMaximizedBounds(screenRect);
 			// process -bounds or -dim option
 		}
-		if (isLayoutAdaptive) {
+		if (OSPRuntime.isJS) {
 			if (OSPRuntime.cssCursor) { 
 				// running on iPad/iPhone
 				maximized = true;
