@@ -34,6 +34,8 @@
       	<include name="**"/>
   	</fileset>
     </copy>
+		<!-- OSP is the source for the staged SwingJS runtime, regardless of timestamps. -->
+		<copy file="${osp.swingjs.dir}/swingjs2.js" todir="${swingjs.dir}" overwrite="true" />
 
  	<!-- assets to bin/ -->
 
