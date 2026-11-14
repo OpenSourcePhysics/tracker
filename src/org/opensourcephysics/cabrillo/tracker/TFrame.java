@@ -456,9 +456,38 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 			}
 			// A hide event from switching tools can arrive after the new window opens.
 			if (e.getComponent() == activeDataWindow && !activeDataWindow.isVisible())
-				selectDataWindow(null);
+				finishDataWindowClose(activeDataWindow);
 		}
 	};
+
+	private void finishDataWindowClose(Window closedWindow) {
+		/**
+		 * @j2sNative
+		 * var ui = closedWindow.秘getUI$(), node = ui.outerNode || ui.getDOMNode$();
+		 * if (node) {
+		 *   if (node.contains(J2S._mouseOwner) || node.contains(J2S._mouseTarget))
+		 *     J2S.setMouseOwner(null);
+		 *   var owner = J2S._dmouseOwner;
+		 *   if (owner && node.contains(owner)) {
+		 *     owner.isDragging = false;
+		 *     J2S._dmouseOwner = J2S._dmouseDrag = J2S._dmouseUp = null;
+		 *   }
+		 * }
+		 */
+		selectDataWindow(null);
+		SwingUtilities.invokeLater(() -> {
+			if (activeDataWindow != null || !isShowing())
+				return;
+			javax.swing.MenuSelectionManager.defaultManager().clearSelectedPath();
+			invalidate();
+			validate();
+			frameResized();
+			GUIUtils.setupResizer(this);
+			toFront();
+			requestFocus();
+			repaint();
+		});
+	}
 
 	void watchDataWindowVisibility(Window window) {
 		window.removeComponentListener(dataWindowVisibility);
@@ -466,6 +495,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 	}
 
 	void selectDataWindow(Window selected) {
+		if (activeDataWindow != selected)
+			stopDataBuilderStacking();
 		activeDataWindow = selected;
 		if (selected != null) {
 			closeLibraryBrowser();
@@ -484,6 +515,48 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 		}
 		if (selected == null)
 			refreshDataWindowChecks();
+	}
+
+	private void stopDataBuilderStacking() {
+		/**
+		 * @j2sNative
+		 * if (this._dataBuilderStacking) {
+		 *   this._dataBuilderStacking();
+		 *   this._dataBuilderStacking = null;
+		 * }
+		 */
+	}
+
+	void keepDataBuilderAboveTracker(TrackDataBuilder builder) {
+		if (builder != activeDataWindow || !builder.isVisible())
+			return;
+		stopDataBuilderStacking();
+		builder.toFront();
+		/**
+		 * @j2sNative
+		 * var trackerUI = this.秘getUI$(), builderUI = builder.秘getUI$();
+		 * var closer = builderUI.closerNode;
+		 * if (closer && !closer._trackerBuilderClose) {
+		 *   closer._trackerBuilderClose = true;
+		 *   // The close control sits inside the draggable title bar.
+		 *   ["pointerdown", "mousedown", "touchstart"].forEach(function(type) {
+		 *     closer.addEventListener(type, function(event) {
+		 *       event.stopImmediatePropagation();
+		 *     }, true);
+		 *   });
+		 *   closer.addEventListener("click", function(event) {
+		 *     event.stopImmediatePropagation();
+		 *     setTimeout(function() { builder.setVisible$Z(false); }, 0);
+		 *   }, true);
+		 * }
+		 * var trackerNode = trackerUI.outerNode || trackerUI.getDOMNode$();
+		 * var builderNode = builderUI.outerNode || builderUI.getDOMNode$();
+		 * if (!trackerNode || !builderNode || trackerNode === builderNode) return;
+		 * var rule = document.createElement("style");
+		 * rule.textContent = "#" + CSS.escape(builderNode.id) + " { z-index: 19000 !important; }";
+		 * document.head.appendChild(rule);
+		 * this._dataBuilderStacking = function() { rule.remove(); };
+		 */
 	}
 
 	void closeLibraryBrowser() {
