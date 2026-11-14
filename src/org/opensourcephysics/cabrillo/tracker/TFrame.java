@@ -644,7 +644,6 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 				tabbedPane.setToolTipTextAt(tab, trackerPanel.getToolTipPath());
 			}
 			tabPanel = getTabPanel(trackerPanel);
-			GUIUtils.FullFrameDragHandler.installFullFrameDragHandler(this, tabPanel);
 			
 		} else {
 			setIgnoreRepaint(true);
@@ -654,6 +653,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 
 			Object[] objects = new Object[3];
 			tabPanel = new TTabPanel(trackerPanel, objects);
+			GUIUtils.FullFrameDragHandler.installFullFrameDragHandler(this, tabPanel);
 
 			trackerPanel.addPropertyChangeListener(VideoPanel.PROPERTY_VIDEOPANEL_DATAFILE, this); // $NON-NLS-1$
 			trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_VIDEO, this); // $NON-NLS-1$
@@ -1733,7 +1733,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 			Tracker.createActions();
 			// create new default menubar
 			checkLocale();
-			setJMenuBar(defaultMenuBar = new DefaultMenuBar());
+			setJMenuBar(newDefaultMenuBar());
 			FontSizer.setFonts(defaultMenuBar, FontSizer.getLevel());
 			// replace and refresh the stored menubars and toolbars
 			for (int i = getTabCount(); --i >= 0;) {
@@ -1836,6 +1836,12 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 //			}
 			break;
 		}
+	}
+
+	private DefaultMenuBar newDefaultMenuBar() {
+		DefaultMenuBar bar = new DefaultMenuBar();
+		GUIUtils.FullFrameDragHandler.installFullFrameDragHandler(this, bar);
+		return (defaultMenuBar = bar);
 	}
 
 	@Override
@@ -2199,6 +2205,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 		TMenuBar bar = _amenubars[i];
 		if (bar == null && forceNew) {
 			bar = _amenubars[i] = new TMenuBar(panel);
+			GUIUtils.FullFrameDragHandler.installFullFrameDragHandler(this, bar);
 			FontSizer.setFonts(bar);
 		}
 		return bar;
@@ -2682,7 +2689,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 		// create the default menubar
 //		TrackerRes.locale = Locale.forLanguageTag("es");
 		checkLocale();
-		setJMenuBar(defaultMenuBar = new DefaultMenuBar());
+		setJMenuBar(newDefaultMenuBar());
 		FontSizer.setFonts(defaultMenuBar, FontSizer.getLevel());
 		// add listener to change menubar, toolbar, track control when tab changes
 		tabbedPane.addChangeListener(new ChangeListener() {
@@ -3664,7 +3671,6 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 		super.setJMenuBar(OSPRuntime.isMobile() && !empty? null:  bar);
 		if (bar != null) {
 			bar.setEnabled(frameBlocker == null);			
-			GUIUtils.FullFrameDragHandler.installFullFrameDragHandler(this, bar);
 			if (OSPRuntime.isJS && getJMenuBar() == bar)
 				AIPatch.installWindowDrag(this, bar);
 		}
