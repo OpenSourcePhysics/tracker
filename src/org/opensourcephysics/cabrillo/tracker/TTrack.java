@@ -243,7 +243,7 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 			tp = null;
 			tframe = null;
 		} else {
-			tp = panel.ref(this);
+			tp = panel;
 			tframe = panel.getTFrame();
 			addPanelEvents(panelEventsTTrack);
 		}
