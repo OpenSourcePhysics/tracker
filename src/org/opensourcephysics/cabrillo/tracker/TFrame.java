@@ -450,18 +450,26 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 	private final ComponentAdapter dataWindowVisibility = new ComponentAdapter() {
 		@Override
 		public void componentHidden(ComponentEvent e) {
+			if (!OSPRuntime.isJS) {
+				refreshDataWindowChecks();
+				return;
+			}
 			// A hide event from switching tools can arrive after the new window opens.
 			if (e.getComponent() == activeDataWindow && !activeDataWindow.isVisible())
 				selectDataWindow(null);
 		}
 	};
 
+	void watchDataWindowVisibility(Window window) {
+		window.removeComponentListener(dataWindowVisibility);
+		window.addComponentListener(dataWindowVisibility);
+	}
+
 	void selectDataWindow(Window selected) {
 		activeDataWindow = selected;
 		if (selected != null) {
 			closeLibraryBrowser();
-			selected.removeComponentListener(dataWindowVisibility);
-			selected.addComponentListener(dataWindowVisibility);
+			watchDataWindowVisibility(selected);
 		}
 		DataTool tool = DataTool.getTool(false);
 		if (tool != null && tool != selected && tool.isVisible())
@@ -491,11 +499,13 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 	void showDataTool(DataTool tool) {
 		if (OSPRuntime.isJS)
 			selectDataWindow(tool);
+		else
+			watchDataWindowVisibility(tool);
 		tool.setVisible(true);
 		if (OSPRuntime.isJS) {
 			fitDataWindow(tool);
-			refreshDataWindowChecks();
 		}
+		refreshDataWindowChecks();
 	}
 
 	static void fitDataWindow(Window window) {

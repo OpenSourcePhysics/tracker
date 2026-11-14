@@ -79,13 +79,18 @@ public class TrackDataBuilder extends FunctionTool {
 
 	@Override
 	public void setVisible(boolean visible) {
-		if (visible && OSPRuntime.isJS)
-			frame.selectDataWindow(this);
+		if (visible) {
+			if (OSPRuntime.isJS)
+				frame.selectDataWindow(this);
+			else
+				frame.watchDataWindowVisibility(this);
+		}
 		super.setVisible(visible);
 		if (visible && OSPRuntime.isJS && isVisible()) {
 			TFrame.fitDataWindow(this);
-			frame.refreshDataWindowChecks();
 		}
+		if (visible)
+			frame.refreshDataWindowChecks();
 	}
 
 	@Override
