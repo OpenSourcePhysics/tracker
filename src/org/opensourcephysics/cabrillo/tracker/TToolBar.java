@@ -117,7 +117,9 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 	final protected static Icon labelsOffIcon, labelsOnIcon;
 	final protected static Icon stretchOffIcon, stretchOnIcon;
 	final protected static Icon xmassOffIcon, xmassOnIcon;
-	final protected static Icon editIcon, helpIcon;
+	final protected static ResizableIcon mobileEditIcon, mobileHelpIcon, mobileTrackIcon;
+	final protected static ResizableIcon mobileFolderIcon, mobileCoordsIcon, mobileVideoIcon;
+	final protected static ResizableIcon mobileViewIcon, mobileMoreIcon;
 	final protected static Icon fontSizeIcon;
 	final protected static Icon memoryIcon, redMemoryIcon;
 	final protected static Icon autotrackerOffIcon, autotrackerOnIcon;
@@ -125,7 +127,6 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 	final protected static Icon[] trailIcons = new Icon[4];
 	final protected static int[] stretchValues = new int[] { 1, 2, 3, 4, 6, 8, 12, 16, 24, 32 };
 	final protected static Icon separatorIcon;
-	final protected static Icon folderIcon, coordsIcon;
 //	final protected static Icon checkboxOffIcon, checkboxOnIcon;
 //	final protected static Icon checkboxOnDisabledIcon;
 	final protected static Icon pencilOffIcon, pencilOnIcon, pencilOffRolloverIcon, pencilOnRolloverIcon;
@@ -239,8 +240,14 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 	private Mobile mobile;
 
 	static {
-		coordsIcon = Tracker.getResourceIcon("coords.gif", true); //$NON-NLS-1$
-		folderIcon = Tracker.getResourceIcon("whitefolder.gif", true); //$NON-NLS-1$
+		mobileCoordsIcon = (ResizableIcon)Tracker.getResourceIcon("coords.gif", true); //$NON-NLS-1$
+		mobileFolderIcon = (ResizableIcon)Tracker.getResourceIcon("whitefolder.gif", true); //$NON-NLS-1$
+		mobileEditIcon = (ResizableIcon)Tracker.getResourceIcon("edit.gif", true); //$NON-NLS-1$
+		mobileHelpIcon = (ResizableIcon)Tracker.getResourceIcon("help.gif", true); //$NON-NLS-1$
+		mobileTrackIcon = (ResizableIcon)Tracker.getResourceIcon("track_off.gif", true); //$NON-NLS-1$
+		mobileVideoIcon = (ResizableIcon)Tracker.getResourceIcon("clip_off.gif", true); //$NON-NLS-1$
+		mobileViewIcon = (ResizableIcon)Tracker.getResourceIcon("datatable.gif", true); //$NON-NLS-1$ ;
+		mobileMoreIcon = (ResizableIcon)Tracker.getResourceIcon("overflow.gif", true); //$NON-NLS-1$ ;
 		newTrackIcon = Tracker.getResourceIcon("poof.gif", true); //$NON-NLS-1$
 		pointmassOffIcon = Tracker.getResourceIcon("track_off.gif", true); //$NON-NLS-1$
 		pointmassOnIcon = Tracker.getResourceIcon("track_on.gif", true); //$NON-NLS-1$
@@ -305,8 +312,6 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 		openBrowserIcon = Tracker.getResourceIcon("open_catalog.gif", true); //$NON-NLS-1$
 		overflowIcon = Tracker.getResourceIcon("overflow.gif", true); //$NON-NLS-1$
 		cameraIcon = Tracker.getResourceIcon("camera.gif", true); //$NON-NLS-1$
-		editIcon = Tracker.getResourceIcon("edit.gif", true); //$NON-NLS-1$
-		helpIcon = Tracker.getResourceIcon("help.gif", true); //$NON-NLS-1$
 	}
 
 	private static final String[] panelProps = new String[] { 
@@ -2732,6 +2737,29 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 				}
 				return dim;
 			}
+			
+			@Override
+			protected void placeAndShowPopup(int alignment) {
+				if (alignment == CENTER && !(getParent() instanceof TToolBar))
+					alignment = LEFT;
+				if (alignment != CENTER) {
+					super.placeAndShowPopup(alignment);
+					return;
+				}
+				
+				TToolBar toolbar = (TToolBar)getParent();
+				int x = this.getLocation().x;
+				int popupWidth = popup.getPreferredSize().width;
+				int toolbarWidth = toolbar.getSize().width;
+				int offset = (toolbarWidth - popupWidth) / 2 - x;
+				
+				popup.show(this, offset, getHeight());
+//				if (OSPRuntime.isJS && alignment == RIGHT) {
+//					GUIUtils.alignComponentRight(popup, this);
+//				}		
+			}
+
+
 		}
 		
 		// mobile buttons and popups
@@ -2745,7 +2773,10 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 		final protected MobileButton mobileCoordsButton, mobileTrackButton;
 		final protected MobileButton mobileViewButton, mobileMoreButton;
 		final protected MobileButton mobileEditButton, mobileHelpButton;
-
+		
+		/**
+		 * A Class to handle mobile fields and layout.
+		 */
 		Mobile() {
 			mobileMoreButton = new MobileButton() {
 				@Override
@@ -2773,9 +2804,7 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 					FontSizer.setFonts(mobileFilePopup);
 					return mobileFilePopup;
 				}
-			}; //$NON-NLS-1$
-			if (!noButtonIcons)
-				mobileFileButton.setIcon(folderIcon);
+			};
 			
 			mobileVideoButton = new MobileButton() {
 				@Override
@@ -2785,9 +2814,7 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 					FontSizer.setFonts(mobileVideoPopup);
 					return mobileVideoPopup;
 				}
-			}; //$NON-NLS-1$
-			if (!noButtonIcons)
-				mobileVideoButton.setIcon(clipOffIcon);
+			};
 			
 			mobileCoordsButton = new MobileButton() {
 				@Override
@@ -2801,9 +2828,7 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 					FontSizer.setFonts(mobileCoordsPopup);
 					return mobileCoordsPopup;
 				}
-			}; //$NON-NLS-1$
-			if (!noButtonIcons)
-				mobileCoordsButton.setIcon(coordsIcon);
+			};
 			
 			mobileTrackButton = new MobileButton() {
 				@Override
@@ -2812,24 +2837,17 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 					FontSizer.setFonts(mobileTrackPopup);
 					return mobileTrackPopup;
 				}
-			}; //$NON-NLS-1$
-			if (!noButtonIcons)
-				mobileTrackButton.setIcon(pointmassOffIcon);
+			};
 
 			mobileViewButton = new MobileButton() {
-				@Override
-				protected boolean checkLongPress(MouseEvent e) {
-					// In SwingJS the button action handles taps and keyboard activation.
-					return OSPRuntime.isJS;
-				}
-
 				@Override
 				protected JPopupMenu getPopup() {
 					rebuildMobileViewPopup();
 					FontSizer.setFonts(mobileViewPopup);
 					return mobileViewPopup;
 				}
-			}; //$NON-NLS-1$
+			};
+			
 			if (OSPRuntime.isJS) {
 				mobileViewButton.addActionListener(e -> {
 					if (mobileViewPopup.isVisible()) {
@@ -2840,8 +2858,6 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 					}
 				});
 			}
-			if (!noButtonIcons)
-				mobileViewButton.setIcon(TableTView.TABLEVIEW_ICON);
 			
 			mobileEditButton = new MobileButton() {
 				@Override
@@ -2851,8 +2867,6 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 					return mobileEditPopup;
 				}
 			}; //$NON-NLS-1$
-			if (!noButtonIcons)
-				mobileEditButton.setIcon(editIcon);
 			
 			mobileHelpButton = new MobileButton() {
 				@Override
@@ -2862,40 +2876,64 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 					return mobileHelpPopup;
 				}
 			}; //$NON-NLS-1$
-			if (!noButtonIcons)
-				mobileEditButton.setIcon(helpIcon);
 			
 			mobileButtons = new MobileButton[] {mobileFileButton, mobileVideoButton, 
 					mobileTrackButton, mobileCoordsButton, mobileViewButton, mobileEditButton, mobileHelpButton};
 
+			double boost = 1.5;
+			mobileCoordsIcon.setSizeBoost(boost);
+			mobileFolderIcon.setSizeBoost(boost);
+			mobileEditIcon.setSizeBoost(boost);
+			mobileHelpIcon.setSizeBoost(boost);
+			mobileTrackIcon.setSizeBoost(boost);
+			mobileVideoIcon.setSizeBoost(boost);
+			mobileViewIcon.setSizeBoost(boost);
+			mobileMoreIcon.setSizeBoost(boost);
 
 		}
 
 		private void rebuildForMobile() {	
 			int small = OSPRuntime.getSmallScreenThreshold();
 			noButtonText = frame.getSize().width < small || isTooShortFor(mobileHelpButton);
-
-			mobileEditButton.setIcon(noButtonIcons? null: editIcon);
-			mobileHelpButton.setIcon(noButtonIcons? null: helpIcon);
-
-			mobileEditButton.setText(noButtonText? null: TrackerRes.getString("TMenuBar.Menu.Edit"));
-			mobileHelpButton.setText(noButtonText? null: TrackerRes.getString("TMenuBar.Menu.Help"));
-					
+				
 			// add and populate mobile buttons
-			mobileFileButton.setIcon(noButtonIcons? null: folderIcon);
-			mobileVideoButton.setIcon(noButtonIcons? null: clipOffIcon);
-			mobileCoordsButton.setIcon(noButtonIcons? null: coordsIcon);
-			mobileTrackButton.setIcon(noButtonIcons? null: pointmassOffIcon);
-			mobileViewButton.setIcon(noButtonIcons? null: TableTView.TABLEVIEW_ICON);
-			mobileMoreButton.setIcon(noButtonIcons? null: overflowIcon);
+			mobileFileButton.setIcon(noButtonIcons? null: mobileFolderIcon);
+			mobileVideoButton.setIcon(noButtonIcons? null: mobileVideoIcon);
+			mobileCoordsButton.setIcon(noButtonIcons? null: mobileCoordsIcon);
+			mobileTrackButton.setIcon(noButtonIcons? null: mobileTrackIcon);
+			mobileViewButton.setIcon(noButtonIcons? null: mobileViewIcon);
+			mobileEditButton.setIcon(noButtonIcons? null: mobileEditIcon);
+			mobileHelpButton.setIcon(noButtonIcons? null: mobileHelpIcon);
+			mobileMoreButton.setIcon(noButtonIcons? null: mobileMoreIcon);
 
 			mobileFileButton.setText(noButtonText? null: TrackerRes.getString("TMenuBar.Menu.File"));
 			mobileVideoButton.setText(noButtonText? null: TrackerRes.getString("TMenuBar.Menu.Video"));
 			mobileCoordsButton.setText(noButtonText? null: TrackerRes.getString("TToolBar.Button.Coords.Text"));
 			mobileTrackButton.setText(noButtonText? null: TrackerRes.getString("TMenuBar.Menu.Tracks"));
 			mobileViewButton.setText(noButtonText? null: TrackerRes.getString("TMenuBar.Menu.Window"));
+			mobileEditButton.setText(noButtonText? null: TrackerRes.getString("TMenuBar.Menu.Edit"));
+			mobileHelpButton.setText(noButtonText? null: TrackerRes.getString("TMenuBar.Menu.Help"));
 			mobileMoreButton.setText(noButtonText? null: TrackerRes.getString("TToolBar.Button.More.Text"));
 
+			mobileFileButton.setToolTipText(TrackerRes.getString("TToolBar.MobileButton.File.Tooltip"));
+			mobileVideoButton.setToolTipText(TrackerRes.getString("TToolBar.MobileButton.Video.Tooltip"));
+			mobileCoordsButton.setToolTipText(TrackerRes.getString("TToolBar.MobileButton.Coords.Tooltip"));
+			mobileTrackButton.setToolTipText(TrackerRes.getString("TToolBar.MobileButton.Track.Tooltip"));
+			mobileViewButton.setToolTipText(TrackerRes.getString("TToolBar.MobileButton.View.Tooltip"));
+			mobileEditButton.setToolTipText(TrackerRes.getString("TToolBar.MobileButton.Edit.Tooltip"));
+			mobileHelpButton.setToolTipText(TrackerRes.getString("TToolBar.MobileButton.Help.Tooltip"));
+			mobileMoreButton.setToolTipText(TrackerRes.getString("TToolBar.MobileButton.More.Tooltip"));
+
+			
+			mobileFileButton.alignPopup = noButtonText? TButton.CENTER: TButton.LEFT;
+			mobileVideoButton.alignPopup = noButtonText? TButton.CENTER: TButton.LEFT;
+			mobileCoordsButton.alignPopup = noButtonText? TButton.CENTER: TButton.LEFT;
+			mobileTrackButton.alignPopup = noButtonText? TButton.CENTER: TButton.LEFT;
+			mobileViewButton.alignPopup = noButtonText? TButton.CENTER: TButton.RIGHT;
+			mobileEditButton.alignPopup = noButtonText? TButton.CENTER: TButton.RIGHT;
+			mobileHelpButton.alignPopup = noButtonText? TButton.CENTER: TButton.RIGHT;
+			mobileMoreButton.alignPopup = noButtonText? TButton.CENTER: TButton.RIGHT;
+			
 			rebuildMobileFilePopup();
 			rebuildMobileVideoPopup();
 			rebuildMobileCoordsPopup();
@@ -2904,7 +2942,7 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 			rebuildMobileEditPopup();
 			rebuildMobileHelpPopup();
 			int count = rebuildMobileOverflowPopup();
-				
+
 			removeAll();
 			add(Box.createHorizontalGlue());
 			for (int i = 0; i < count; i++) {

@@ -393,16 +393,26 @@ public class TButton extends JButton {
 				popup.setVisible(false);
 			} else {
 				hidePopup = true;
-				int popupWidth = popup.getPreferredSize().width;
-				int offset = alignPopup == LEFT ? 0 : getWidth() - popupWidth;
-				popup.show(TButton.this, offset, getHeight());
-				if (OSPRuntime.isJS && alignPopup == RIGHT) {
-					GUIUtils.alignComponentRight(popup, TButton.this);
-				}
+				placeAndShowPopup(alignPopup);
+//				int popupWidth = popup.getPreferredSize().width;
+//				int offset = alignPopup == LEFT ? 0 : getWidth() - popupWidth;
+//				popup.show(TButton.this, offset, getHeight());
+//				if (OSPRuntime.isJS && alignPopup == RIGHT) {
+//					GUIUtils.alignComponentRight(popup, TButton.this);
+//				}
 				if (OSPRuntime.isJS)
 					checkLongPress(null);
 			}
 		}
+	}
+	
+	protected void placeAndShowPopup(int alignment) {
+		int popupWidth = popup.getPreferredSize().width;
+		int offset = alignment == LEFT ? 0 : getWidth() - popupWidth;
+		popup.show(TButton.this, offset, getHeight());
+		if (OSPRuntime.isJS && alignment == RIGHT) {
+			GUIUtils.alignComponentRight(popup, TButton.this);
+		}		
 	}
 
 	protected void alwaysShowBorder(boolean showBorder) {
