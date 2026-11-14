@@ -254,9 +254,9 @@ public class TMouseHandler implements InteractiveMouseHandler {
 				if (frame != null) {
 					Point curMouse = e.getLocationOnScreen();
 					if (curMouse != null) {
-						int dx = curMouse.x - mouseLoc.x;
-						int dy = curMouse.y - mouseLoc.y;
-						frame.setLocation(frameLoc.x + dx, frameLoc.y + dy);
+//						int dx = curMouse.x - mouseLoc.x;
+//						int dy = curMouse.y - mouseLoc.y;
+//						frame.setLocation(frameLoc.x + dx, frameLoc.y + dy);
 						trackerPanel.setMouseCursor(Tracker.grabCursor);
 					}
 				}

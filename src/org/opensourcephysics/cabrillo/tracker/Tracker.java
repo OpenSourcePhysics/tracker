@@ -2217,22 +2217,6 @@ public class Tracker {
 		return cursor == zoomOutCursor && zoomOutCursor != Cursor.getDefaultCursor();
 	}
 
-	/**
-	 * Main entry point when used as application.
-	 *
-	 * @param args array of tracker or video file names
-	 */
-	public static void main(String[] args) {
-		try {
-			initializeApplication(args);
-		} finally {
-			// The launcher HTML displays the splash before SwingJS loads.
-			if (OSPRuntime.isJS) {
-				GUIUtils.disposeElement("tracker-online-splash");
-			}
-		}
-	}
-
 	private static void initializeApplication(String[] args) {
 		OSPLog.debug(Performance.timeCheckStr("Tracker.main start", Performance.TIME_RESET));
 
@@ -3045,6 +3029,8 @@ public class Tracker {
 	}
 
 	/**
+	 * From TrackerDataBuilder.getAutoloadManager() only
+	 * 
 	 * @j2sIgnore
 	 * 
 	 * @param reload
@@ -3067,7 +3053,7 @@ public class Tracker {
 						JOptionPane.YES_NO_OPTION);
 				if (response == JOptionPane.YES_OPTION) {
 					// this panel will not have a frame or 
-					TrackDataBuilder builder = new TrackDataBuilder(new TrackerPanel());
+					TrackDataBuilder builder = new TrackDataBuilder(TrackerPanel.createNewPanelWithFrame());
 					int i = 0;
 					for (String next : dataFunctionControlStrings) {
 						XMLControl panelControl = new XMLControlElement(next);
@@ -3272,6 +3258,22 @@ public class Tracker {
 
 	static boolean isDefaultConfiguration(Set<String> panelConfig) {
 		return areEqual(panelConfig, defaultConfig);
+	}
+
+	/**
+	 * Main entry point when used as application.
+	 *
+	 * @param args array of tracker or video file names
+	 */
+	public static void main(String[] args) {
+		try {
+			initializeApplication(args);
+		} finally {
+			// The launcher HTML displays the splash before SwingJS loads.
+			if (OSPRuntime.isJS) {
+				GUIUtils.disposeElement("tracker-online-splash");
+			}
+		}
 	}
 
 }
