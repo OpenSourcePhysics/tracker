@@ -51,6 +51,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+
 import javax.swing.AbstractAction;
 import javax.swing.AbstractButton;
 import javax.swing.Action;
@@ -81,6 +82,7 @@ import org.opensourcephysics.display.DataTable;
 import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.display.OSPRuntime.Disposable;
 import org.opensourcephysics.display.ResizableIcon;
+import org.opensourcephysics.js.AIPatch;
 import org.opensourcephysics.media.core.ClipInspector;
 import org.opensourcephysics.media.core.MediaRes;
 import org.opensourcephysics.media.core.TPoint;
@@ -1715,7 +1717,7 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 	public void addNotify() {
 		super.addNotify();
 		if (OSPRuntime.isJS)
-			frame.installWindowDrag(this);
+			AIPatch.installWindowDrag(frame, this);
 	}
 
 	private void rebuild(int overflow) {

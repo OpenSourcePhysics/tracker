@@ -119,6 +119,7 @@ import org.opensourcephysics.display.GUIUtils;
 import org.opensourcephysics.display.OSPFrame;
 import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.display.OSPRuntime.Disposable;
+import org.opensourcephysics.js.AIPatch;
 import org.opensourcephysics.media.core.ClipInspector;
 import org.opensourcephysics.media.core.DataTrack;
 import org.opensourcephysics.media.core.ImageVideo;
@@ -382,7 +383,12 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 		tracker = (Tracker) options.get("-tracker");
 //		isLayoutAdaptive = (options.get("-adaptive") != null);
 		isLayoutAdaptive = OSPRuntime.isJS;
-		setUndecorated(OSPRuntime.isJS);
+		if (OSPRuntime.isJS) {
+			this.setOpacity(1);
+			getRootPane().setOpaque(true);
+			getRootPane().setBackground(Color.LIGHT_GRAY); // very thin line observable 
+			setUndecorated(true);
+		}
 		Dimension dim = (Dimension) options.get("-dim");
 		Rectangle bounds = (Rectangle) options.get("-bounds");
 		Video video = (Video) options.get("-video");
@@ -638,6 +644,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 				tabbedPane.setToolTipTextAt(tab, trackerPanel.getToolTipPath());
 			}
 			tabPanel = getTabPanel(trackerPanel);
+			GUIUtils.FullFrameDragHandler.installFullFrameDragHandler(this, tabPanel);
+			
 		} else {
 			setIgnoreRepaint(true);
 
@@ -1289,6 +1297,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 
 	public void addTrackerPanel(boolean changedState, Runnable whenDone) {
 		TrackerPanel newPanel = new TrackerPanel(this);
+		GUIUtils.FullFrameDragHandler.installFullFrameDragHandler(this, newPanel);
 		Integer panelID = newPanel.getID();
 		addTab(newPanel, ADD_SELECT | ADD_NOREFRESH, () -> {
 			if (!changedState)
@@ -2140,6 +2149,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 		TTrackBar bar = _atrackbars[i];
 		if (bar == null && forceNew) {
 			_atrackbars[i] = bar = new TTrackBar(_apanels[i]);
+			GUIUtils.FullFrameDragHandler.installFullFrameDragHandler(this, bar);
 		}
 		return bar;
 	}
@@ -2155,7 +2165,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 		int i = panelID.intValue();
 		TToolBar bar = _atoolbars[i];
 		if (bar == null && forceNew) {
-			_atoolbars[i] = new TToolBar(_apanels[i]);
+			bar = _atoolbars[i] = new TToolBar(_apanels[i]);
+			GUIUtils.FullFrameDragHandler.installFullFrameDragHandler(this, bar);
 		}
 		return bar;
 	}
@@ -3653,57 +3664,15 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 		super.setJMenuBar(OSPRuntime.isMobile() && !empty? null:  bar);
 		if (bar != null) {
 			bar.setEnabled(frameBlocker == null);			
+			GUIUtils.FullFrameDragHandler.installFullFrameDragHandler(this, bar);
 			if (OSPRuntime.isJS && getJMenuBar() == bar)
-				installWindowDrag(bar);
+				AIPatch.installWindowDrag(this, bar);
 		}
 		currentMenuBar = (bar == defaultMenuBar? null: (TMenuBar)bar);
 		if (currentMenuBar != null)
 			currentMenuBar.refreshPanesPopup();
 
 
-	}
-
-	void installWindowDrag(JComponent bar) {
-		/**
-		 * @j2sNative
-		 * var frame = this, node = bar.getUI$().getDOMNode$();
-		 * if (!node || node._trackerWindowDrag) return;
-		 * node._trackerWindowDrag = true;
-		 * node.style.touchAction = "none";
-		 * var pointer = null, startX, startY, frameX, frameY;
-		 * node.addEventListener("pointerdown", function(e) {
-		 *   if (!e.isPrimary || e.button !== 0 || !bar.isEnabled$() || frame.maximized) return;
-		 *   // SwingJS menu labels can be plain DOM nodes with no button role.
-		 *   // Capture gestures only on the bar background.
-		 *   if (e.target !== node) return;
-		 *   pointer = e.pointerId;
-		 *   startX = e.clientX;
-		 *   startY = e.clientY;
-		 *   frameX = frame.getX$();
-		 *   frameY = frame.getY$();
-		 *   node.setPointerCapture(pointer);
-		 *   e.preventDefault();
-		 *   e.stopPropagation();
-		 * }, true);
-		 * node.addEventListener("pointermove", function(e) {
-		 *   if (e.pointerId !== pointer) return;
-		 *   var dx = e.clientX - startX, dy = e.clientY - startY;
-		 *   if (Math.abs(dx) + Math.abs(dy) >= 4)
-		 *     frame.moveFromMenuBar$I$I(Math.round(frameX + dx), Math.round(frameY + dy));
-		 *   e.stopPropagation();
-		 * }, true);
-		 * node.addEventListener("lostpointercapture", function(e) {
-		 *   if (e.pointerId === pointer) pointer = null;
-		 * });
-		 */
-	}
-
-	public void moveFromMenuBar(int x, int y) {
-		Rectangle viewport = OSPRuntime.jsutil.getMaximumViewport(2, 2);
-		int minX = viewport.x + Math.min(48, getWidth()) - getWidth();
-		int maxX = viewport.x + viewport.width - Math.min(48, getWidth());
-		int maxY = viewport.y + Math.max(0, viewport.height - 30);
-		setLocation(Math.max(minX, Math.min(x, maxX)), Math.max(viewport.y, Math.min(y, maxY)));
 	}
 
 	static class DeactivatingMenuBar extends JMenuBar {

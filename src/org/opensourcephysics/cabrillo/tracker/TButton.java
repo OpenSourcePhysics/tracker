@@ -39,6 +39,7 @@ import javax.swing.border.Border;
 
 import org.opensourcephysics.display.GUIUtils;
 import org.opensourcephysics.display.OSPRuntime;
+import org.opensourcephysics.js.AIPatch;
 import org.opensourcephysics.tools.FontSizer;
 
 /**
@@ -122,82 +123,34 @@ public class TButton extends JButton {
 		public void addNotify() {
 			super.addNotify();
 			if (OSPRuntime.isJS) {
-				/**
-				 * @j2sNative
-				 * var button = this;
-				 * var node = this.getUI$().getDOMNode$();
-				 * if (!node || node._trackerViewTouch) return;
-				 * node._trackerViewTouch = true;
-				 * node.style.touchAction = "none";
-				 * node.style.webkitTouchCallout = "none";
-				 * var pointer = null, startX, startY, suppressClickUntil = 0;
-				 * function consume(event) {
-				 *   event.preventDefault();
-				 *   event.stopImmediatePropagation();
-				 * }
-				 * node.addEventListener("pointerdown", function(event) {
-				 *   if (event.pointerType !== "touch" && event.pointerType !== "pen") {
-				 *     suppressClickUntil = 0;
-				 *     return;
-				 *   }
-				 *   if (!event.isPrimary || !button.isEnabled$()) return;
-				 *   pointer = event.pointerId;
-				 *   startX = event.clientX;
-				 *   startY = event.clientY;
-				 *   if (event.isTrusted) node.setPointerCapture(pointer);
-				 *   consume(event);
-				 *   button.beginViewTouch$();
-				 * }, true);
-				 * node.addEventListener("pointermove", function(event) {
-				 *   if (event.pointerId !== pointer) return;
-				 *   var dx = event.clientX - startX, dy = event.clientY - startY;
-				 *   if (dx * dx + dy * dy > 144) button.endViewTouch$Z(false);
-				 *   consume(event);
-				 * }, true);
-				 * function end(event) {
-				 *   if (event.pointerId !== pointer) return;
-				 *   pointer = null;
-				 *   suppressClickUntil = Date.now() + 500;
-				 *   consume(event);
-				 *   button.endViewTouch$Z(event.type === "pointerup");
-				 * }
-				 * node.addEventListener("pointerup", end, true);
-				 * node.addEventListener("pointercancel", end, true);
-				 * ["touchstart", "touchmove", "touchend", "touchcancel", "contextmenu"].forEach(function(type) {
-				 *   node.addEventListener(type, function(event) {
-				 *     if (pointer !== null || Date.now() < suppressClickUntil) consume(event);
-				 *   }, {capture: true, passive: false});
-				 * });
-				 * node.addEventListener("click", function(event) {
-				 *   if (event.detail && Date.now() < suppressClickUntil) consume(event);
-				 * }, true);
-				 */
-				{
-					// SwingJS handles touch pointers on the browser button.
-				}
+				TStickyPopupButton me = this;
+				Runnable onBegin = () -> {
+					me.hidePopup = me.popup != null && me.popup.isVisible();
+					me.longPressTimer.restart();
+				};
+				Runnable onEnd = () -> {
+					if (!me.longPressTimer.isRunning())
+						return; // A completed hold already opened the menu.
+					me.longPressTimer.stop();
+					if (!isEnabled())
+						return;
+					if (me.hidePopup) {
+						me.hidePopup = false;
+						me.popup.setVisible(false);
+					} else {
+						me.frame.maximizeNextView(me.frame.getTrackerPanelForID(me.panelID));
+						me.hidePopup = true;
+					}
+				};
+				Runnable onCancel = () -> {
+					if (!me.longPressTimer.isRunning())
+						return; // A completed hold already opened the menu.
+					me.longPressTimer.stop();
+				};
+
+				AIPatch.addButtonTouchListeners((JButton) this, onBegin, onEnd, onCancel);
 			}
 		}
-
-		void beginViewTouch() {
-			hidePopup = popup != null && popup.isVisible();
-			longPressTimer.restart();
-		}
-
-		void endViewTouch(boolean activate) {
-			if (!longPressTimer.isRunning())
-				return; // A completed hold already opened the menu.
-			longPressTimer.stop();
-			if (!activate || !isEnabled())
-				return;
-			if (hidePopup) {
-				hidePopup = false;
-				popup.setVisible(false);
-			} else {
-				frame.maximizeNextView(frame.getTrackerPanelForID(panelID));
-				hidePopup = true;
-			}
-		}
-
 		@Override
 		protected boolean checkLongPress(MouseEvent e) {
 			if (e == null) {

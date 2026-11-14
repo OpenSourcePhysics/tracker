@@ -1454,7 +1454,7 @@ public class Tracker {
 	}
 
 	private static void showAboutOnlineRuntime() {
-		String swingJSVersion = /** @j2sNative J2S._version || */ "unknown"; //$NON-NLS-1$
+		String swingJSVersion = OSPRuntime.getSwingJSVersion();
 		String message = "Tracker Online\nVideo engine: JavaScript / HTML5\nSwingJS: " + swingJSVersion //$NON-NLS-1$
 				+ "\nBrowser: " + OSPRuntime.getUserAgent().replace(") ", ")\n"); //$NON-NLS-1$
 		JOptionPane.showMessageDialog(Diagnostics.getDialogOwner(), message,
