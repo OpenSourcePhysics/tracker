@@ -88,6 +88,7 @@ public class TrackDataBuilder extends FunctionTool {
 		super.setVisible(visible);
 		if (visible && OSPRuntime.isJS && isVisible()) {
 			TFrame.fitDataWindow(this);
+			javax.swing.SwingUtilities.invokeLater(() -> frame.keepDataBuilderAboveTracker(this));
 		}
 		if (visible)
 			frame.refreshDataWindowChecks();
@@ -98,6 +99,8 @@ public class TrackDataBuilder extends FunctionTool {
 		super.createGUI();
 		createButtons();
 		setToolbarComponents(new Component[] { loadButton, saveButton, Box.createHorizontalGlue(), autoloadButton });
+		if (OSPRuntime.isJS)
+			pack();
 		setHelpAction((e)-> {
 			frame.showHelp("datatable#databuilder", 0);			
 		});
