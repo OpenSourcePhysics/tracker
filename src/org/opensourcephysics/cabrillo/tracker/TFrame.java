@@ -2761,7 +2761,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 
 		// create the tabbed pane
 		tabbedPane = new JTabbedPane(SwingConstants.BOTTOM);
-		
+		GUIUtils.FullFrameDragHandler.addComponent(tabbedPane, this);
+
 		frameContentPane = new JPanel(new BorderLayout());
 		setContentPane(frameContentPane);
 		getContentPane().add(tabbedPane, BorderLayout.CENTER);
