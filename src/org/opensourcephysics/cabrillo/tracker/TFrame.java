@@ -733,7 +733,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 
 			Object[] objects = new Object[3];
 			tabPanel = new TTabPanel(trackerPanel, objects);
-			GUIUtils.FullFrameDragHandler.addComponent(tabPanel, this);
+			GUIUtils.FullFrameDragHandler.installFullFrameDragHandler(this, tabPanel);
 
 			trackerPanel.addPropertyChangeListener(VideoPanel.PROPERTY_VIDEOPANEL_DATAFILE, this); // $NON-NLS-1$
 			trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_VIDEO, this); // $NON-NLS-1$
@@ -1919,7 +1919,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 
 	private DefaultMenuBar newDefaultMenuBar() {
 		DefaultMenuBar bar = new DefaultMenuBar();
-		GUIUtils.FullFrameDragHandler.addComponent(bar, this);
+		GUIUtils.FullFrameDragHandler.installFullFrameDragHandler(this, bar);
 		return (defaultMenuBar = bar);
 	}
 
@@ -2234,7 +2234,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 		TTrackBar bar = _atrackbars[i];
 		if (bar == null && forceNew) {
 			_atrackbars[i] = bar = new TTrackBar(_apanels[i]);
-			GUIUtils.FullFrameDragHandler.addComponent(bar, this);
+			GUIUtils.FullFrameDragHandler.installFullFrameDragHandler(this, bar);
 		}
 		return bar;
 	}
@@ -2251,7 +2251,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 		TToolBar bar = _atoolbars[i];
 		if (bar == null && forceNew) {
 			bar = _atoolbars[i] = new TToolBar(_apanels[i]);
-			GUIUtils.FullFrameDragHandler.addComponent(bar, this);
+			GUIUtils.FullFrameDragHandler.installFullFrameDragHandler(this, bar);
 		}
 		return bar;
 	}
@@ -2284,7 +2284,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 		TMenuBar bar = _amenubars[i];
 		if (bar == null && forceNew) {
 			bar = _amenubars[i] = new TMenuBar(panel);
-			GUIUtils.FullFrameDragHandler.addComponent(bar, this);
+			GUIUtils.FullFrameDragHandler.installFullFrameDragHandler(this, bar);
 			FontSizer.setFonts(bar);
 		}
 		return bar;
