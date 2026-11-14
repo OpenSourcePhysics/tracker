@@ -384,9 +384,6 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 //		isLayoutAdaptive = (options.get("-adaptive") != null);
 		isLayoutAdaptive = OSPRuntime.isJS;
 		if (OSPRuntime.isJS) {
-			this.setOpacity(1);
-			getRootPane().setOpaque(true);
-			getRootPane().setBackground(Color.LIGHT_GRAY); // very thin line observable 
 			setUndecorated(true);
 		}
 		Dimension dim = (Dimension) options.get("-dim");
