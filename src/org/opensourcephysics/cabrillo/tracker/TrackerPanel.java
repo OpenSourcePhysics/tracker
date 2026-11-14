@@ -5498,4 +5498,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 
 	}
 
+	public static void main(String[] args) {	
+		Tracker.main(args);
+	}
 }
