@@ -446,73 +446,6 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 			GUIUtils.installGestureHandler(this);
 	}
 	
-	private Window activeDataWindow;
-	private final ComponentAdapter dataWindowVisibility = new ComponentAdapter() {
-		@Override
-		public void componentHidden(ComponentEvent e) {
-			if (!OSPRuntime.isJS) {
-				refreshDataWindowChecks();
-				return;
-			}
-			// A hide event from switching tools can arrive after the new window opens.
-			if (e.getComponent() == activeDataWindow && !activeDataWindow.isVisible())
-				finishDataWindowClose(activeDataWindow);
-		}
-	};
-
-	private void finishDataWindowClose(Window closedWindow) {
-		AIPatch.finishDataWindowClose(closedWindow);
-		selectDataWindow(null);
-		SwingUtilities.invokeLater(() -> {
-			if (activeDataWindow != null || !isShowing())
-				return;
-			javax.swing.MenuSelectionManager.defaultManager().clearSelectedPath();
-			invalidate();
-			validate();
-			frameResized();
-			GUIUtils.setupResizer(this);
-			toFront();
-			requestFocus();
-			repaint();
-		});
-	}
-
-	void watchDataWindowVisibility(Window window) {
-		window.removeComponentListener(dataWindowVisibility);
-		window.addComponentListener(dataWindowVisibility);
-	}
-
-	void selectDataWindow(Window selected) {
-		if (activeDataWindow != selected)
-			stopDataBuilderStacking();
-		activeDataWindow = selected;
-		if (selected != null) {
-			closeLibraryBrowser();
-			watchDataWindowVisibility(selected);
-		}
-		DataTool tool = DataTool.getTool(false);
-		if (tool != null && tool != selected && tool.isVisible())
-			tool.setVisible(false);
-		for (int tab = 0; tab < getTabCount(); tab++) {
-			TrackerPanel panel = getTrackerPanelForTab(tab);
-			if (panel == null || panel.dataBuilder == null || panel.dataBuilder == selected)
-				continue;
-			panel.dataToolVisible = false;
-			if (panel.dataBuilder.isVisible())
-				panel.dataBuilder.setVisible(false);
-		}
-		if (selected == null)
-			refreshDataWindowChecks();
-	}
-
-	private void stopDataBuilderStacking() {
-	}
-
-	public void keepDataBuilderAboveTracker(JDialog builder) {
-		if (builder == activeDataWindow && builder.isVisible())
-			AIPatch.keepDialogAboveFrame((JFrame) this, builder);
-	}
-
 	void closeLibraryBrowser() {
 		if (OSPRuntime.isJS && libraryBrowser != null && libraryBrowser.isVisible())
 			libraryBrowser.setVisible(false);
@@ -527,7 +460,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 		if (OSPRuntime.isJS)
 			selectDataWindow(tool);
 		else
-			watchDataWindowVisibility(tool);
+			resetDataWindowVisibility(tool);
 		tool.setVisible(true);
 		if (OSPRuntime.isJS) {
 			fitDataWindow(tool);
@@ -3371,7 +3304,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 		TrackerIO.openFileFromDialog(null, this, () -> {
 			setCursor(Cursor.getDefaultCursor());
 		});
-		if (!OSPRuntime.isJS)
+		/** @j2sIgnore */
 			setCursor(Cursor.getDefaultCursor());
 	}
 
@@ -3763,7 +3696,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 			openMenu.add(openBrowserItem);
 			// open recent menu
 			recentMenu = new JMenu();
-			if (!OSPRuntime.isJS)
+			/** @j2sIgnore */
 				fileMenu.add(recentMenu);
 			fileMenu.addMenuListener(new MenuListener() {
 
@@ -4309,6 +4242,118 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 			panesPopup.removeAll();		
 		}
 		return panesPopup;
+	}
+	
+	
+	/** data window visibility business
+	 * 
+	 * @author hanso
+	 *
+	 */
+	private class AIDataWindowTest{
+		/**
+		 * AI-generated.
+		 * 
+		 * @param closedWindow
+		 */
+		protected void finishDataWindowClose(Component c, Window closedWindow) {
+			if (OSPRuntime.isJS) {
+				jsFinishDataWindowClose(c, closedWindow);
+				return;
+			}
+			refreshDataWindowChecks();
+		}
+
+		private void jsFinishDataWindowClose(Component c, Window closedWindow) {
+			if (c == activeDataWindow && !activeDataWindow.isVisible()) {
+				/**
+				 * @j2sNative
+				 * var ui = closedWindow.秘getUI$(), node = ui.outerNode || ui.getDOMNode$();
+				 * if (node) {
+				 *   if (node.contains(J2S._mouseOwner) || node.contains(J2S._mouseTarget))
+				 *     J2S.setMouseOwner(null);
+				 *   var owner = J2S._dmouseOwner;
+				 *   if (owner && node.contains(owner)) {
+				 *     owner.isDragging = false;
+				 *     J2S._dmouseOwner = J2S._dmouseDrag = J2S._dmouseUp = null;
+				 *   }
+				 * }
+				 */
+			}
+			selectDataWindow(null);
+			SwingUtilities.invokeLater(() -> {
+				if (activeDataWindow != null || !isShowing())
+					return;
+				javax.swing.MenuSelectionManager.defaultManager().clearSelectedPath();
+				invalidate();
+				validate();
+				frameResized();
+				GUIUtils.setupResizer(TFrame.this);
+				toFront();
+				requestFocus();
+				repaint();
+			});
+		}
+
+		public void onDataBuilderVisible(TrackDataBuilder trackDataBuilder) {
+			// TODO Auto-generated method stub
+			
+		}
+	}
+	
+
+	private AIDataWindowTest aitest;
+	private AIDataWindowTest getAITest() {
+		return (aitest == null ? aitest = new AIDataWindowTest() : aitest);
+	}
+	
+	private Window activeDataWindow;
+	private final ComponentAdapter dataWindowVisibility = new ComponentAdapter() {
+		@Override
+		public void componentHidden(ComponentEvent e) {
+			// A hide event from switching tools can arrive after the new window opens.
+			getAITest().finishDataWindowClose(e.getComponent(), activeDataWindow); 
+		}
+	};
+
+	private void resetDataWindowVisibility(Window window) {
+		window.removeComponentListener(dataWindowVisibility);
+		window.addComponentListener(dataWindowVisibility);
+	}
+
+	void selectDataWindow(Window selected) {
+		if (activeDataWindow != selected)
+			stopDataBuilderStacking();
+		activeDataWindow = selected;
+		if (selected != null) {
+			closeLibraryBrowser();
+			resetDataWindowVisibility(selected);
+		}
+		DataTool tool = DataTool.getTool(false);
+		if (tool != null && tool != selected && tool.isVisible())
+			tool.setVisible(false);
+		for (int tab = 0; tab < getTabCount(); tab++) {
+			TrackerPanel panel = getTrackerPanelForTab(tab);
+			if (panel == null || panel.dataBuilder == null || panel.dataBuilder == selected)
+				continue;
+			panel.dataToolVisible = false;
+			if (panel.dataBuilder.isVisible())
+				panel.dataBuilder.setVisible(false);
+		}
+		if (selected == null)
+			refreshDataWindowChecks();
+	}
+
+	private void stopDataBuilderStacking() {
+	}
+
+	public void keepDataBuilderAboveTracker(JDialog builder) {
+		if (builder == activeDataWindow && builder.isVisible())
+			AIPatch.keepDialogAboveFrame((JFrame) this, builder);
+	}
+
+	public void onDataBuilderVisible(TrackDataBuilder trackDataBuilder) {
+		getAITest().onDataBuilderVisible(trackDataBuilder);
 	}
 
 }
