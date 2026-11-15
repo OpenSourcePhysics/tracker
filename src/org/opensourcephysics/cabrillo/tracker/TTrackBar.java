@@ -244,8 +244,10 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 			@Override
 			public JPopupMenu getPopup() {
 				JPopupMenu popup = new JPopupMenu();
-				if (!OSPRuntime.isJS)
+				/** @j2sIgnore */
+				{
 					buildUpgradePopup(popup);
+				}
 				return popup;
 			}
 		};

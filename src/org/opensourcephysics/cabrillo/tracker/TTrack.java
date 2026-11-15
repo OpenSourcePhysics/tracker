@@ -2485,7 +2485,7 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 	 */
 	public ArrayList<Component> getToolbarTrackComponents(TrackerPanel trackerPanel) {
 		String tooltip = TrackerRes.getString("TTrack.NumberField.Format.Tooltip"); //$NON-NLS-1$
-		if (OSPRuntime.isMac()) {
+		if (OSPRuntime.isMac) {
 			tooltip = TrackerRes.getString("TTrack.NumberField.Format.Tooltip.OSX"); //$NON-NLS-1$
 		}
 		for (NumberField[] fields : getNumberFields().values()) {
@@ -4221,6 +4221,14 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 				menu.remove(n - 1);
 			}
 		}
+	}
+
+	void setPositionFields(Point2D p) {
+		xField.setValue(p.getX());
+		yField.setValue(p.getY());
+		magField.setValue(p.distance(0, 0));
+		double theta = Math.atan2(p.getY(), p.getX());
+		angleField.setValue(theta);
 	}
 
 }

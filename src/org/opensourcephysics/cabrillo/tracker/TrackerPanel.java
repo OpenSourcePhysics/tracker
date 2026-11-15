@@ -2080,8 +2080,13 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	@Override
 	public void setMessage(String msg) {
 		// BH 2020.04.06 this is a VERY expensive operation.
-		if (!OSPRuntime.isJS && !OSPRuntime.isMac())
-			super.setMessage(msg);
+		/** @j2sIgnore */
+		{
+			// BH?? Java and not Mac?? 
+			if (!OSPRuntime.isMac) {
+				super.setMessage(msg);
+			}
+		}
 	}
 
 	/**
@@ -3969,9 +3974,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		@Override
 		public void mouseClicked(MouseEvent e) {
 			super.mouseClicked(e);
-			// SwingJS may synthesize a click from the release of a long press.
-			// Browser menus are dismissed by the next press, not that release.
-			if (!OSPRuntime.isJS && !OSPRuntime.isPopupTrigger(e)) {
+			if (AIPatch.strangeJavaClickRequest(e)) {
 				hidePopup();
 			}
 		}
@@ -4987,14 +4990,14 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		@Override
 		public Object loadObject(XMLControl control, Object obj) {
 			// load the video clip
-			TrackerPanel trackerPanel = (TrackerPanel) obj;	
+			TrackerPanel trackerPanel = (TrackerPanel) obj;
 			asyncloader = (AsyncLoader) ((XMLControlElement) control).getData();
 			asyncloader.setLoader(this);
 			this.control = (XMLControlElement) control;
 			switch (trackerPanel.progress) {
 			case VideoIO.PROGRESS_LOAD_INIT:
 				// immediately set the frame
-					trackerPanel.frame = asyncloader.getFrame();
+				trackerPanel.frame = asyncloader.getFrame();
 				if (trackerPanel.frame != null) {
 					trackerPanel.frame.holdPainting(true);
 				}
@@ -5022,8 +5025,10 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				}
 				// load and check if a newer Tracker version created this file
 				String fileVersion = control.getString("semantic_version"); //$NON-NLS-1$
-				// if ver is null then must be an older version
-				if (fileVersion != null && !OSPRuntime.isJS) {
+			// if ver is null then must be an older version
+			/** @j2sIgnore */
+			{
+				if (fileVersion != null) {
 					int result = 0;
 					try {
 						result = Tracker.compareVersions(fileVersion, OSPRuntime.VERSION);
@@ -5042,6 +5047,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 								JOptionPane.INFORMATION_MESSAGE);
 					}
 				}
+			}
 				trackerPanel.progress = TrackerIO.PROGRESS_PANEL_READY;
 				break;
 			case TrackerIO.PROGRESS_PANEL_READY:
@@ -5098,13 +5104,14 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				// load the selected_& custom views properties
 				List<XMLProperty> props = control.getPropsRaw();
 				trackerPanel.selectedViewsProperty = null;
-				
+
 				trackerPanel.customViewsProperty = null;
-				for (int n = 0, i = props.size(); --i >= 0 && n < 3;) { 
-					// n < 3, not 4, since "selected_views" & "selected_view_types" should never BOTH exist
+				for (int n = 0, i = props.size(); --i >= 0 && n < 3;) {
+					// n < 3, not 4, since "selected_views" & "selected_view_types" should never
+					// BOTH exist
 					XMLProperty prop = props.get(i);
 					switch (prop.getPropertyName()) {
-					case "selected_views": 
+					case "selected_views":
 						trackerPanel.selectedViewsProperty = prop;
 						n++;
 						break;
@@ -5120,26 +5127,26 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 						trackerPanel.customViewsProperty = prop;
 						n++;
 						break;
-					}					
+					}
 				}
 				trackerPanel.progress = VideoIO.PROGRESS_VIDEO_LOADING;
 				break;
 			default:
-				super.loadObject(control, obj);	// loads video
+				super.loadObject(control, obj); // loads video
 			}
-			
-			if (trackerPanel.progress == VideoIO.PROGRESS_COMPLETE 
+
+			if (trackerPanel.progress == VideoIO.PROGRESS_COMPLETE
 					&& control.getPropertyNamesRaw().contains("maximized_view")) { //$NON-NLS-1$
 				trackerPanel.setMaximizedView(control.getInt("maximized_view")); //$NON-NLS-1$
 				// set dividerFractions to restore
 				double[] arret = (double[]) control.getObject("divider_fractions");
 				if (arret != null) {
 					for (int i = 0; i < arret.length; i++) {
-						trackerPanel.dividerFractions[i] = arret[i]; 
-					}					
+						trackerPanel.dividerFractions[i] = arret[i];
+					}
 				}
 			}
-			
+
 			return trackerPanel;
 		}
 

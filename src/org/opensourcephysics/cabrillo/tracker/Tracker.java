@@ -592,16 +592,19 @@ public class Tracker {
 //		helper.next(STATE_INIT);
 
 		if (!headless) {
-			if (showSplash && !OSPRuntime.isJS) {
-				getSplash();
-				// set font level resize and center splash frame
-				FontSizer.setFonts(splash);
-				splash.pack();
-				Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
-				int x = (dim.width - splash.getBounds().width) / 2;
-				int y = (dim.height - splash.getBounds().height) / 2;
-				splash.setLocation(x, y);
-				splash.setVisible(true);
+			/** @j2sIgnore */
+			{
+				if (showSplash) {
+					getSplash();
+					// set font level resize and center splash frame
+					FontSizer.setFonts(splash);
+					splash.pack();
+					Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
+					int x = (dim.width - splash.getBounds().width) / 2;
+					int y = (dim.height - splash.getBounds().height) / 2;
+					splash.setLocation(x, y);
+					splash.setVisible(true);
+				}
 			}
 			frame = createFrame(options);
 		}
@@ -1353,7 +1356,7 @@ public class Tracker {
 					if (readmeDialog == null && trackerHome != null) {
 						String slash = System.getProperty("file.separator", "/"); //$NON-NLS-1$//$NON-NLS-2$
 						String path = trackerHome + slash + readmeFileName;
-						if (OSPRuntime.isMac()) {
+						if (OSPRuntime.isMac) {
 							// OSX trackerHome=/Applications/Tracker.app/Contents/Java
 							// but we want /usr/local/tracker
 							path = "/usr/local/tracker/" + readmeFileName; //$NON-NLS-1$
@@ -1523,7 +1526,7 @@ public class Tracker {
 //	    cmd.add("-Xms32m"); //$NON-NLS-1$
 //	    cmd.add("-Xmx"+newSize+"m"); //$NON-NLS-1$ //$NON-NLS-2$
 //    }
-//    if (OSPRuntime.isMac()) {
+//    if (OSPRuntime.isMac) {
 //	    cmd.add(use32BitMode? "-d32": "-d64"); //$NON-NLS-1$ //$NON-NLS-2$
 //    	cmd.add("-Xdock:name=Tracker"); //$NON-NLS-1$
 //    }
@@ -2100,7 +2103,7 @@ public class Tracker {
 		if (trackerHome == null)
 			return;
 		File f = new File(trackerHome);
-		if (OSPRuntime.isMac()) {
+		if (OSPRuntime.isMac) {
 			f = new File(f.getParent(), "Resources/"+DEFAULT_TRACKER_PREFS);
 		}
 		else {
@@ -2438,7 +2441,7 @@ public class Tracker {
 		// to use Xuggle to create an image video set
 		Tracker tracker = new Tracker(args, true, true, null);
 		OSPRuntime.setAppClass(tracker);
-		if (OSPRuntime.isMac()) {
+		if (OSPRuntime.isMac) {
 			// instantiate the OSXServices class by reflection
 			System.setProperty("com.apple.mrj.application.apple.menu.about.name", "Tracker"); //$NON-NLS-1$ //$NON-NLS-2$
 			String className = "org.opensourcephysics.cabrillo.tracker.deploy.OSXServices"; //$NON-NLS-1$
@@ -2454,7 +2457,8 @@ public class Tracker {
 		final TFrame frame = tracker.getFrame();
 		if (frame == null)
 			return;
-		if (!OSPRuntime.isJS) {
+		/** @j2sIgnore */
+		{
 			frame.setVisible(true);
 		}
 
@@ -2465,22 +2469,23 @@ public class Tracker {
 			frame.setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
 		}
 
-		
 		TrackerPanel trackerPanel = frame.getSelectedPanel();
-		
+
 		TToolBar.refreshMemoryButton(trackerPanel);
 
 		// inform user if memory size was reduced
-		if (!OSPRuntime.isJS && originalMemoryRequest > requestedMemorySize) {
-			JOptionPane.showMessageDialog(frame, TrackerRes.getString("Tracker.Dialog.MemoryReduced.Message1") + " " //$NON-NLS-1$ //$NON-NLS-2$
-					+ originalMemoryRequest + "MB\n" + //$NON-NLS-1$
-					TrackerRes.getString("Tracker.Dialog.MemoryReduced.Message2") + " " + requestedMemorySize //$NON-NLS-1$ //$NON-NLS-2$
-					+ "MB.\n\n" + //$NON-NLS-1$
-					TrackerRes.getString("Tracker.Dialog.MemoryReduced.Message3"), //$NON-NLS-1$
-					TrackerRes.getString("Tracker.Dialog.MemoryReduced.Title"), //$NON-NLS-1$
-					JOptionPane.INFORMATION_MESSAGE);
+		/** @j2sIgnore */
+		{
+			if (originalMemoryRequest > requestedMemorySize) {
+				JOptionPane.showMessageDialog(frame, TrackerRes.getString("Tracker.Dialog.MemoryReduced.Message1") + " " //$NON-NLS-1$ //$NON-NLS-2$
+						+ originalMemoryRequest + "MB\n" + //$NON-NLS-1$
+						TrackerRes.getString("Tracker.Dialog.MemoryReduced.Message2") + " " + requestedMemorySize //$NON-NLS-1$ //$NON-NLS-2$
+						+ "MB.\n\n" + //$NON-NLS-1$
+						TrackerRes.getString("Tracker.Dialog.MemoryReduced.Message3"), //$NON-NLS-1$
+						TrackerRes.getString("Tracker.Dialog.MemoryReduced.Title"), //$NON-NLS-1$
+						JOptionPane.INFORMATION_MESSAGE);
+			}
 		}
-
 		if (warnNoVideoEngine && !MovieFactory.hasVideoEngine()) {
 			warnNoVideo(frame, trackerPanel);
 		}
@@ -2494,8 +2499,7 @@ public class Tracker {
 			if (OSPRuntime.isMobile()) { // running on iPad
 				new AsyncDialog().showConfirmDialog(frame,
 						TrackerRes.getString("Tracker.Dialog.MobileKeyboard.Message"),
-						TrackerRes.getString("Tracker.Dialog.MobileKeyboard.Title"),
-						JOptionPane.YES_NO_OPTION,
+						TrackerRes.getString("Tracker.Dialog.MobileKeyboard.Title"), JOptionPane.YES_NO_OPTION,
 						new ActionListener() {
 							@Override
 							public void actionPerformed(ActionEvent e) {

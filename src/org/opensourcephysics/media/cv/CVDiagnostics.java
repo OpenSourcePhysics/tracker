@@ -36,17 +36,14 @@ public class CVDiagnostics extends Diagnostics {
 	static File myJarFile;
 	
 	static {
-		if (!OSPRuntime.isJS) {
-			vmBitness = OSPRuntime.getVMBitness();
+		vmBitness = OSPRuntime.getVMBitness();
 
-			// get code base
-			try {
-				URL url = org.bytedeco.javacv.JavaCV.class.getProtectionDomain().getCodeSource().getLocation();				
-				myJarFile = new File(url.toURI());
-				codeBase = myJarFile.getParent();
-			} catch (Exception e) {
-			}
-
+		// get code base
+		try {
+			URL url = org.bytedeco.javacv.JavaCV.class.getProtectionDomain().getCodeSource().getLocation();				
+			myJarFile = new File(url.toURI());
+			codeBase = myJarFile.getParent();
+		} catch (Exception e) {
 		}
 	}
 

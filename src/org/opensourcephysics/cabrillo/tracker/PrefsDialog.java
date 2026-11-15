@@ -252,7 +252,7 @@ public class PrefsDialog extends JDialog {
 		if (Tracker.trackerHome == null || codeBaseDir == null) {
 			return;
 		}
-		String jarHome = OSPRuntime.isMac() ? codeBaseDir.getAbsolutePath() : Tracker.trackerHome;
+		String jarHome = OSPRuntime.isMac ? codeBaseDir.getAbsolutePath() : Tracker.trackerHome;
 		File dir = new File(jarHome);
 		String[] fileNames = dir.list(trackerJarFilter);
 		if (fileNames != null && fileNames.length > 0) {
@@ -629,7 +629,7 @@ public class PrefsDialog extends JDialog {
 					}
 					// determine if preferred tracker will use Xuggle 3.4 or Xuggle server
 					String jarName = jar == null ? "tracker.jar" : jar;
-					String jarHome = OSPRuntime.isMac() ? codeBaseDir.getAbsolutePath() : Tracker.trackerHome;
+					String jarHome = OSPRuntime.isMac ? codeBaseDir.getAbsolutePath() : Tracker.trackerHome;
 					String jarPath = XML.forwardSlash(new File(jarHome, jarName).getPath());
 					boolean usesServer = TrackerStarter.usesXuggleServer(jarPath);
 					int bitness = usesServer ? 64 : OSPRuntime.isWindows() ? 32 : 64;
@@ -1437,13 +1437,13 @@ public class PrefsDialog extends JDialog {
 		}
 
 		// add tabs
-		if (!OSPRuntime.isJS) {
+		/** @j2sIgnore */ {
 			tabbedPane.addTab(null, runtimePanel);
 		}
 		tabbedPane.addTab(null, displayPanel);
 		tabbedPane.addTab(null, videoPanel);
 		tabbedPane.addTab(null, actionsPanel);
-		if (!OSPRuntime.isJS) {
+		/** @j2sIgnore */ {
 			tabbedPane.addTab(null, generalPanel);
 			tabbedPane.addTab(null, configPanel);
 		}
@@ -1499,7 +1499,7 @@ public class PrefsDialog extends JDialog {
 				int bitness = OSPRuntime.getVMBitness();
 				vm32Button.setEnabled(bitness == 32);
 				vm64Button.setEnabled(bitness == 64);
-			} else if (OSPRuntime.isMac()) {
+			} else if (OSPRuntime.isMac) {
 				vm32Button.setEnabled(false);
 				vm64Button.setEnabled(true);
 			}
@@ -1728,7 +1728,7 @@ public class PrefsDialog extends JDialog {
 						Set<File> availableJREs = jreFinder.getJREs(vmBitness);
 						ArrayList<String> availableJREPaths = new ArrayList<String>();
 						String path = Tracker.trackerHome;
-						if (OSPRuntime.isMac()) {
+						if (OSPRuntime.isMac) {
 							path = new File(Tracker.trackerHome).getParent() + "/runtime"; //$NON-NLS-1$
 						}
 						String[] bundledVMs = TrackerStarter.findBundledVMs();
@@ -2136,7 +2136,7 @@ public class PrefsDialog extends JDialog {
 					return TrackerRes.getString("PrefsDialog.FileFilter.JRE"); //$NON-NLS-1$
 				}
 			};
-			if (OSPRuntime.isMac())
+			if (OSPRuntime.isMac)
 				chooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
 			else
 				chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);

@@ -1081,8 +1081,7 @@ public class TrackerIO extends VideoIO {
 		boolean isZipSource = source.endsWith(".zip");
 		if (!isZipSource && (isImageVideo || asZipFile)) {
 			String targetDir = XML.forwardSlash(file.getParent());
-			String[] paths = (isImageVideo ? ((ImageVideo) video).getValidPaths()
-					: new String[video.getFrameCount()]);
+			String[] paths = (isImageVideo ? ((ImageVideo) video).getValidPaths() : new String[video.getFrameCount()]);
 			// check for zipped image video
 			// BH -- I don't think we do this anymore; these are saved as resources instead
 //			if (paths.length > 0 && paths[0] != null && paths[0].contains("!")) {
@@ -1090,16 +1089,17 @@ public class TrackerIO extends VideoIO {
 //				paths = new String[] { zipPath };
 //			}
 			name = file.getName();
-			String[] targets = ImageVideoRecorder.getFileNames(name, paths.length, isImageVideo ? XML.getExtension(name) : "png");
+			String[] targets = ImageVideoRecorder.getFileNames(name, paths.length,
+					isImageVideo ? XML.getExtension(name) : "png");
 			String[] jarURLParts = ResourceLoader.getJarURLParts(source); // null if not a zip/jar/trz file
 			String srcDir;
 			if (jarURLParts == null) {
 				srcDir = (XML.forwardSlash(source).contains(":/") ? "" : XML.getDirectoryPath(source) + "/");
 			} else {
 				// could have images in subdirectories
-				srcDir =  XML.getDirectoryPath(source) + "/";
+				srcDir = XML.getDirectoryPath(source) + "/";
 			}
-			
+
 			ZipOutputStream zos = null;
 			if (asZipFile) {
 				try {
@@ -1115,7 +1115,7 @@ public class TrackerIO extends VideoIO {
 					if (zos == null) {
 						success = false;
 						break;
-					}						
+					}
 					try {
 						zos.putNextEntry(new ZipEntry(targets[i]));
 						zos.write(getImageBytes(trackerPanel, i));
@@ -1135,12 +1135,15 @@ public class TrackerIO extends VideoIO {
 				} catch (IOException e) {
 				}
 			}
-			if (success && !OSPRuntime.isJS) {
-				String msg = targets.length + " files were saved in " + (asZipFile ? file : targetDir);
-				if (notify)
-					JOptionPane.showMessageDialog(null, msg, "", JOptionPane.INFORMATION_MESSAGE);
-				else
-					System.out.println(msg);
+			/** @j2sIgnore */
+			{
+				if (success) {
+					String msg = targets.length + " files were saved in " + (asZipFile ? file : targetDir);
+					if (notify)
+						JOptionPane.showMessageDialog(null, msg, "", JOptionPane.INFORMATION_MESSAGE);
+					else
+						System.out.println(msg);
+				}
 			}
 
 		} else {
@@ -1149,9 +1152,12 @@ public class TrackerIO extends VideoIO {
 		}
 		if (!success)
 			return null;
-		if (notify && !OSPRuntime.isJS) {
-			Tracker.addRecent(XML.getAbsolutePath(file), false); // add at beginning
-			trackerPanel.getTFrame().refreshMenus(trackerPanel, TMenuBar.REFRESH_TRACKERIO_SAVEVIDEO);
+		/** @j2sIgnore */
+		{
+			if (notify) {
+				Tracker.addRecent(XML.getAbsolutePath(file), false); // add at beginning
+				trackerPanel.getTFrame().refreshMenus(trackerPanel, TMenuBar.REFRESH_TRACKERIO_SAVEVIDEO);
+			}
 		}
 		return file;
 	}
@@ -2774,8 +2780,9 @@ public class TrackerIO extends VideoIO {
 			}
 			frame.removeEmptyTabIfTabCountGreaterThan(1);
 			setCanceled(true);
-			if (!OSPRuntime.isJS)
+			/** @j2sIgnore */ {
 				frame.doTabStateChanged();
+			}
 		}
 
 		@Override
