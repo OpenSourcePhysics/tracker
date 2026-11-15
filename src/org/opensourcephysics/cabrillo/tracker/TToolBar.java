@@ -2172,6 +2172,8 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 				}
 			}
 			refresh(REFRESH__PROPERTY_TRACK_TRUE);
+			measureButton.popup = null;
+			calibrationButton.popup = null;
 			break;
 		case TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR:
 			for (TTrack track : TTrack.getValues()) {
@@ -2607,7 +2609,7 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 			setSelected(toolsVisible);
 		}
 
-	} // end ruler button
+	} // end measuring button
 
 	
 	/**
