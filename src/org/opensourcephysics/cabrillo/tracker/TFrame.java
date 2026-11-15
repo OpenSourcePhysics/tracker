@@ -461,19 +461,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 	};
 
 	private void finishDataWindowClose(Window closedWindow) {
-		/**
-		 * @j2sNative
-		 * var ui = closedWindow.秘getUI$(), node = ui.outerNode || ui.getDOMNode$();
-		 * if (node) {
-		 *   if (node.contains(J2S._mouseOwner) || node.contains(J2S._mouseTarget))
-		 *     J2S.setMouseOwner(null);
-		 *   var owner = J2S._dmouseOwner;
-		 *   if (owner && node.contains(owner)) {
-		 *     owner.isDragging = false;
-		 *     J2S._dmouseOwner = J2S._dmouseDrag = J2S._dmouseUp = null;
-		 *   }
-		 * }
-		 */
+		AIPatch.finishDataWindowClose(closedWindow);
 		selectDataWindow(null);
 		SwingUtilities.invokeLater(() -> {
 			if (activeDataWindow != null || !isShowing())
@@ -518,45 +506,11 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 	}
 
 	private void stopDataBuilderStacking() {
-		/**
-		 * @j2sNative
-		 * if (this._dataBuilderStacking) {
-		 *   this._dataBuilderStacking();
-		 *   this._dataBuilderStacking = null;
-		 * }
-		 */
 	}
 
-	void keepDataBuilderAboveTracker(TrackDataBuilder builder) {
-		if (builder != activeDataWindow || !builder.isVisible())
-			return;
-		stopDataBuilderStacking();
-		builder.toFront();
-		/**
-		 * @j2sNative
-		 * var trackerUI = this.秘getUI$(), builderUI = builder.秘getUI$();
-		 * var closer = builderUI.closerNode;
-		 * if (closer && !closer._trackerBuilderClose) {
-		 *   closer._trackerBuilderClose = true;
-		 *   // The close control sits inside the draggable title bar.
-		 *   ["pointerdown", "mousedown", "touchstart"].forEach(function(type) {
-		 *     closer.addEventListener(type, function(event) {
-		 *       event.stopImmediatePropagation();
-		 *     }, true);
-		 *   });
-		 *   closer.addEventListener("click", function(event) {
-		 *     event.stopImmediatePropagation();
-		 *     setTimeout(function() { builder.setVisible$Z(false); }, 0);
-		 *   }, true);
-		 * }
-		 * var trackerNode = trackerUI.outerNode || trackerUI.getDOMNode$();
-		 * var builderNode = builderUI.outerNode || builderUI.getDOMNode$();
-		 * if (!trackerNode || !builderNode || trackerNode === builderNode) return;
-		 * var rule = document.createElement("style");
-		 * rule.textContent = "#" + CSS.escape(builderNode.id) + " { z-index: 19000 !important; }";
-		 * document.head.appendChild(rule);
-		 * this._dataBuilderStacking = function() { rule.remove(); };
-		 */
+	public void keepDataBuilderAboveTracker(JDialog builder) {
+		if (builder == activeDataWindow && builder.isVisible())
+			AIPatch.keepDialogAboveFrame((JFrame) this, builder);
 	}
 
 	void closeLibraryBrowser() {
