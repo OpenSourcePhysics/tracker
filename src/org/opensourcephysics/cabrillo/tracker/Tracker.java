@@ -725,7 +725,7 @@ public class Tracker {
 		String a = args[i];
 		args[i] = null;
 		/**
-		 * @j2sNative return a|0;
+		 *@j2sNative return a|0;
 		 */
 		{
 			return Integer.parseInt(a);
