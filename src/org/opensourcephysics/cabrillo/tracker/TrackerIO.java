@@ -94,7 +94,6 @@ import org.opensourcephysics.desktop.OSPDesktop;
 import org.opensourcephysics.display.DataTable;
 import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.display.Renderable;
-import org.opensourcephysics.js.AIPatch;
 import org.opensourcephysics.media.core.AsyncVideoI;
 import org.opensourcephysics.media.core.ImageCoordSystem;
 import org.opensourcephysics.media.core.ImageVideo;
@@ -2143,7 +2142,7 @@ public class TrackerIO extends VideoIO {
 			if (TrackerPanel.class.isAssignableFrom(ctype)) {
 				type = TYPE_TRK;
 				if (panelID == null)
-					panelID = (frame == null ? (panel = new TrackerPanel(false)).getID()
+					panelID = (frame == null ? (panel = TrackerPanel.createNewPanelWithNoFrame()).getID()
 							: frame.getCleanTrackerPanel().getID());
 				return true;
 			}
@@ -2479,6 +2478,7 @@ public class TrackerIO extends VideoIO {
 		}
 
 		private int loadTRK(int progress) {
+			System.out.println("TrackerIO progress " + progress + " " + panelID + " " + control);
 			panelList.add(panelID);
 			TrackerPanel trackerPanel = panel();
 			if (loader != null && loader.control == control) {

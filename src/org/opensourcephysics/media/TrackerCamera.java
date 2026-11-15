@@ -27,7 +27,7 @@ public class TrackerCamera {
 			// If tracker-mp4-import.js has not been loaded,
 		    // then create it and run openDialog() asynchronously and returrn.
 				/**
-				 * @j2sNative
+				 *@j2sNative
 				 * 
 				 *  app = applet.app;
 				 *  if (!J2S.TrackerMP4Importer) {
@@ -48,7 +48,7 @@ public class TrackerCamera {
 	
 	void openDialog(Object app) {
 		/**
-		 * @j2sNative
+		 *@j2sNative
 		 * 
 		 * 			J2S.TrackerMP4Importer.createDialog(app);
 		 */

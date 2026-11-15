@@ -1438,6 +1438,10 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 						((JPopupMenu) popup).setVisible(false);
 				}
 				FunctionTool builder = p.getDataBuilder();
+				if (OSPRuntime.isJS && !builder.isVisible() && builder.getPanelNames().isEmpty()) {
+					view_dataBuilderItem.setSelected(false);
+					return;
+				}
 				if (builder.isVisible()) {
 					if (OSPRuntime.isJS)
 						frame.selectDataWindow(null);

@@ -174,7 +174,7 @@ public class TMouseHandler implements InteractiveMouseHandler {
 			iad = trackerPanel.getInteractive();
 			if (iad instanceof Crosshair.Control) {
 				crosshair = ((Crosshair.Control)iad).getTarget();
-				if (crosshair.isNudging()) return;
+				if (crosshair != null && crosshair.isNudging()) return;
 			}
 
 			// to display hints, call setCursorForMarking even if crosshair is marking
@@ -196,7 +196,7 @@ public class TMouseHandler implements InteractiveMouseHandler {
 			clearInteractive(trackerPanel, e);
 			isDraggingFrame = false;
 			isResizingFrame = false;
-			if (!SwingUtilities.isRightMouseButton(e)
+			if (crosshair == null && !marking && !SwingUtilities.isRightMouseButton(e)
 					&& !SwingUtilities.isMiddleMouseButton(e)
 					&& !Tracker.isZoomInCursor(trackerPanel.getCursor())
 					&& !Tracker.isZoomOutCursor(trackerPanel.getCursor())

@@ -389,7 +389,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 		Dimension dim = (Dimension) options.get("-dim");
 		Rectangle bounds = (Rectangle) options.get("-bounds");
 		Video video = (Video) options.get("-video");
-		TrackerPanel panel = (video != null ? new TrackerPanel(this, video) : (TrackerPanel) options.get("-panel"));
+		TrackerPanel panel = (video != null ? TrackerPanel.createNewPanelForVideo(this, video) : (TrackerPanel) options.get("-panel"));
 		setName("Tracker"); //$NON-NLS-1$
 		if (Tracker.TRACKER_ICON != null)
 			setIconImage(Tracker.TRACKER_ICON.getImage());
@@ -456,9 +456,26 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 			}
 			// A hide event from switching tools can arrive after the new window opens.
 			if (e.getComponent() == activeDataWindow && !activeDataWindow.isVisible())
-				selectDataWindow(null);
+				finishDataWindowClose(activeDataWindow);
 		}
 	};
+
+	private void finishDataWindowClose(Window closedWindow) {
+		AIPatch.finishDataWindowClose(closedWindow);
+		selectDataWindow(null);
+		SwingUtilities.invokeLater(() -> {
+			if (activeDataWindow != null || !isShowing())
+				return;
+			javax.swing.MenuSelectionManager.defaultManager().clearSelectedPath();
+			invalidate();
+			validate();
+			frameResized();
+			GUIUtils.setupResizer(this);
+			toFront();
+			requestFocus();
+			repaint();
+		});
+	}
 
 	void watchDataWindowVisibility(Window window) {
 		window.removeComponentListener(dataWindowVisibility);
@@ -466,6 +483,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 	}
 
 	void selectDataWindow(Window selected) {
+		if (activeDataWindow != selected)
+			stopDataBuilderStacking();
 		activeDataWindow = selected;
 		if (selected != null) {
 			closeLibraryBrowser();
@@ -484,6 +503,14 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 		}
 		if (selected == null)
 			refreshDataWindowChecks();
+	}
+
+	private void stopDataBuilderStacking() {
+	}
+
+	public void keepDataBuilderAboveTracker(JDialog builder) {
+		if (builder == activeDataWindow && builder.isVisible())
+			AIPatch.keepDialogAboveFrame((JFrame) this, builder);
 	}
 
 	void closeLibraryBrowser() {
@@ -660,7 +687,6 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 
 			Object[] objects = new Object[3];
 			tabPanel = new TTabPanel(trackerPanel, objects);
-			GUIUtils.FullFrameDragHandler.installFullFrameDragHandler(this, tabPanel);
 
 			trackerPanel.addPropertyChangeListener(VideoPanel.PROPERTY_VIDEOPANEL_DATAFILE, this); // $NON-NLS-1$
 			trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_VIDEO, this); // $NON-NLS-1$
@@ -1303,8 +1329,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 	}
 
 	public void addTrackerPanel(boolean changedState, Runnable whenDone) {
-		TrackerPanel newPanel = new TrackerPanel(this);
-		GUIUtils.FullFrameDragHandler.installFullFrameDragHandler(this, newPanel);
+		TrackerPanel newPanel = getCleanTrackerPanel();
 		Integer panelID = newPanel.getID();
 		addTab(newPanel, ADD_SELECT | ADD_NOREFRESH, () -> {
 			if (!changedState)
@@ -1847,7 +1872,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 
 	private DefaultMenuBar newDefaultMenuBar() {
 		DefaultMenuBar bar = new DefaultMenuBar();
-		GUIUtils.FullFrameDragHandler.installFullFrameDragHandler(this, bar);
+		//GUIUtils.FullFrameDragHandler.installFullFrameDragHandler(this, bar);
+		GUIUtils.FullFrameDragHandler.addComponent(bar,this);
 		return (defaultMenuBar = bar);
 	}
 
@@ -2162,7 +2188,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 		TTrackBar bar = _atrackbars[i];
 		if (bar == null && forceNew) {
 			_atrackbars[i] = bar = new TTrackBar(_apanels[i]);
-			GUIUtils.FullFrameDragHandler.installFullFrameDragHandler(this, bar);
+			//GUIUtils.FullFrameDragHandler.installFullFrameDragHandler(this, bar);
+			GUIUtils.FullFrameDragHandler.addComponent(bar,this);
 		}
 		return bar;
 	}
@@ -2179,7 +2206,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 		TToolBar bar = _atoolbars[i];
 		if (bar == null && forceNew) {
 			bar = _atoolbars[i] = new TToolBar(_apanels[i]);
-			GUIUtils.FullFrameDragHandler.installFullFrameDragHandler(this, bar);
+			//GUIUtils.FullFrameDragHandler.installFullFrameDragHandler(this, bar);
+			GUIUtils.FullFrameDragHandler.addComponent(bar,this);
 		}
 		return bar;
 	}
@@ -2212,7 +2240,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 		TMenuBar bar = _amenubars[i];
 		if (bar == null && forceNew) {
 			bar = _amenubars[i] = new TMenuBar(panel);
-			GUIUtils.FullFrameDragHandler.installFullFrameDragHandler(this, bar);
+			//GUIUtils.FullFrameDragHandler.installFullFrameDragHandler(this, bar);
+			GUIUtils.FullFrameDragHandler.addComponent(bar,this);
 			FontSizer.setFonts(bar);
 		}
 		return bar;
@@ -2689,7 +2718,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 
 		// create the tabbed pane
 		tabbedPane = new JTabbedPane(SwingConstants.BOTTOM);
-		
+
 		frameContentPane = new JPanel(new BorderLayout());
 		setContentPane(frameContentPane);
 		getContentPane().add(tabbedPane, BorderLayout.CENTER);
@@ -3088,21 +3117,11 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 	}
 
 	/**
-	 * Returns a clean TrackerPanel.
 	 *
-	 * @return a clean TrackerPanel.
+	 * @return new TrackerPanel(this)
 	 */
 	synchronized TrackerPanel getCleanTrackerPanel() {
-		TrackerPanel panel;
-// BH bad idea -- tab is flushed; no need for this.
-//		if (getTabCount() == 0 || haveContent() || !OSPRuntime.isJS) {
-		panel = new TrackerPanel(this);
-//		} else {
-//			panel = getTrackerPanelForTab(0);
-//			JSplitPane[] panes = getSplitPanes(panel);
-//			setDefaultWeights(panes);
-//		}
-		return panel;
+		return TrackerPanel.createNewPanelForTFrame(this);
 	}
 
 	/**
