@@ -393,7 +393,7 @@ public class TButton extends JButton {
 				popup.setVisible(false);
 			} else {
 				hidePopup = true;
-				placeAndShowPopup(alignPopup);
+				placeAndShowPopup(popup, alignPopup);
 //				int popupWidth = popup.getPreferredSize().width;
 //				int offset = alignPopup == LEFT ? 0 : getWidth() - popupWidth;
 //				popup.show(TButton.this, offset, getHeight());
@@ -406,10 +406,15 @@ public class TButton extends JButton {
 		}
 	}
 	
-	protected void placeAndShowPopup(int alignment) {
+	/**
+	 * Position and show the specified popup based on alignment.
+	 * 
+	 * @param e a MouseEvent, or null
+	 */
+	protected void placeAndShowPopup(JPopupMenu popup, int alignment) {
 		int popupWidth = popup.getPreferredSize().width;
 		int offset = alignment == LEFT ? 0 : getWidth() - popupWidth;
-		popup.show(TButton.this, offset, getHeight());
+		popup.show(this, offset, getHeight());
 		if (OSPRuntime.isJS && alignment == RIGHT) {
 			GUIUtils.alignComponentRight(popup, TButton.this);
 		}		

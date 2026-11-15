@@ -2739,11 +2739,11 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 			}
 			
 			@Override
-			protected void placeAndShowPopup(int alignment) {
+			protected void placeAndShowPopup(JPopupMenu popup, int alignment) {
 				if (alignment == CENTER && !(getParent() instanceof TToolBar))
 					alignment = LEFT;
 				if (alignment != CENTER) {
-					super.placeAndShowPopup(alignment);
+					super.placeAndShowPopup(popup, alignment);
 					return;
 				}
 				
@@ -2754,19 +2754,16 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 				int offset = (toolbarWidth - popupWidth) / 2 - x;
 				
 				popup.show(this, offset, getHeight());
-//				if (OSPRuntime.isJS && alignment == RIGHT) {
-//					GUIUtils.alignComponentRight(popup, this);
-//				}		
 			}
 
 
 		}
 		
 		// mobile buttons and popups
-		final protected JPopupMenu mobileFilePopup, mobileVideoPopup, mobileCoordsPopup, mobileTrackPopup, mobileViewPopup; 
-		final protected JPopupMenu mobileEditPopup, mobileHelpPopup; 
-		private final JMenu mobileEditMenu = new JMenu();
-		private final JMenu mobileHelpMenu = new JMenu();
+		final protected JPopupMenu mobileFilePopup, mobileEditPopup, mobileVideoPopup, mobileCoordsPopup; 
+		final protected JPopupMenu mobileTrackPopup, mobileViewPopup, mobileHelpPopup; 
+//		private final JMenu mobileEditMenu = new JMenu();
+//		private final JMenu mobileHelpMenu = new JMenu();
 
 		final protected MobileButton[] mobileButtons;
 		final protected MobileButton mobileFileButton, mobileVideoButton;
@@ -2877,8 +2874,8 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 				}
 			}; //$NON-NLS-1$
 			
-			mobileButtons = new MobileButton[] {mobileFileButton, mobileVideoButton, 
-					mobileTrackButton, mobileCoordsButton, mobileViewButton, mobileEditButton, mobileHelpButton};
+			mobileButtons = new MobileButton[] {mobileFileButton, mobileEditButton, mobileVideoButton, 
+					mobileTrackButton, mobileCoordsButton, mobileViewButton, mobileHelpButton};
 
 			double boost = 1.5;
 			mobileCoordsIcon.setSizeBoost(boost);
@@ -2940,11 +2937,11 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 			rebuildMobileTrackPopup();
 			rebuildMobileViewPopup();
 			rebuildMobileEditPopup();
-			rebuildMobileHelpPopup();
-			int count = rebuildMobileOverflowPopup();
-
+			rebuildMobileHelpPopup();			
+			
 			removeAll();
 			add(Box.createHorizontalGlue());
+			int count = rebuildMobileOverflowPopup();
 			for (int i = 0; i < count; i++) {
 				add(mobileButtons[i]);
 			}
@@ -2952,7 +2949,7 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 				add(mobileMoreButton);
 			add(Box.createHorizontalGlue());
 		
-			if (TFrame.isLayoutAdaptive) {
+			if (TFrame.isLayoutAdaptive && !OSPRuntime.isSmallScreen(frame)) {
 				add(maximizeButton);
 			}
 			
@@ -3262,48 +3259,24 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 		private int rebuildMobileOverflowPopup() {
 			int buttonCount = mobileButtons.length;
 			if (frame.currentMenuBar != null) {
-				overflowPopup.removeAll();
-				buttonCount = isTooShortFor(mobileHelpButton)? buttonCount-2: buttonCount;
-				if (buttonCount<mobileButtons.length-1) {
-					frame.currentMenuBar.setMenuTainted(TMenuBar.MENU_EDIT, true);
-					frame.currentMenuBar.refreshEditMenu(true);
-					populateMobileMenu((JMenu) frame.currentMenuBar.getMenuItem("editMenu"), mobileEditMenu);
-					overflowPopup.add(mobileEditMenu);
-					if (buttonCount<mobileButtons.length)
-						overflowPopup.addSeparator();
-				}
-				if (buttonCount<mobileButtons.length) {
-					frame.currentMenuBar.setMenuTainted(TMenuBar.MENU_HELP, true);
-					frame.currentMenuBar.refreshHelpMenu(true);
-					populateMobileMenu((JMenu) frame.currentMenuBar.getMenuItem("helpMenu"), mobileHelpMenu);
-					overflowPopup.add(mobileHelpMenu);
-				}
-				
-//				if (p.isEnabled("button.drawing")) { //$NON-NLS-1$
-//					drawingButton.drawingVisibleCheckbox.setText(TrackerRes.getString("TTrack.MenuItem.Visible"));				
-//					add(drawingButton, overflowPopup);
-//					PencilDrawer drawer = PencilDrawer.getDrawer(p);
-//					drawingButton.drawingVisibleCheckbox.setSelected(drawer.areDrawingsVisible());
-//					drawingButton.drawingVisibleCheckbox.setEnabled(
-//							PencilDrawer.hasDrawings(p) && !PencilDrawer.isDrawing(p));
-//					drawingControlCheckbox.setText(TrackerRes.getString("TToolBar.Checkbox.DrawingControl"));				
-//					drawingControlCheckbox.setSelected(drawingButton.isSelected());
-//					drawingMenu.removeAll();
-//					if (PencilDrawer.hasDrawings(p))
-//						drawingMenu.add(drawingButton.drawingVisibleCheckbox);
-//					drawingMenu.add(drawingControlCheckbox);
+//				overflowPopup.removeAll();
+//				buttonCount = isTooShortFor(mobileHelpButton)? buttonCount-2: buttonCount;
+//				if (buttonCount<mobileButtons.length-1) {
+//					frame.currentMenuBar.setMenuTainted(TMenuBar.MENU_EDIT, true);
+//					frame.currentMenuBar.refreshEditMenu(true);
+//					populateMobileMenu((JMenu) frame.currentMenuBar.getMenuItem("editMenu"), mobileEditMenu);
+//					overflowPopup.add(mobileEditMenu);
+//					if (buttonCount<mobileButtons.length)
+//						overflowPopup.addSeparator();
+//				}
+//				if (buttonCount<mobileButtons.length) {
+//					frame.currentMenuBar.setMenuTainted(TMenuBar.MENU_HELP, true);
+//					frame.currentMenuBar.refreshHelpMenu(true);
+//					populateMobileMenu((JMenu) frame.currentMenuBar.getMenuItem("helpMenu"), mobileHelpMenu);
+//					overflowPopup.add(mobileHelpMenu);
 //				}
 //				
-//				add(notesButton, overflowPopup);			
-//				notesCheckbox.setSelected(notesButton.isSelected());
-//				overflowPopup.addSeparator();
-//				add(refreshButton, overflowPopup);
-//				
-//				refreshRefreshPopup(refreshMenu.getPopupMenu());
-//				Component comp = refreshMenu.getMenuComponent(0);
-//				((JMenuItem)comp).setText(TrackerRes.getString("TToolBar.MenuItem.RefreshNow"));
-
-				FontSizer.setFonts(overflowPopup, FontSizer.getLevel());
+//				FontSizer.setFonts(overflowPopup, FontSizer.getLevel());
 			}
 			return buttonCount;
 		}
