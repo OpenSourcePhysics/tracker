@@ -245,8 +245,8 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 		mobileEditIcon = (ResizableIcon)Tracker.getResourceIcon("edit.gif", true); //$NON-NLS-1$
 		mobileHelpIcon = (ResizableIcon)Tracker.getResourceIcon("help.gif", true); //$NON-NLS-1$
 		mobileTrackIcon = (ResizableIcon)Tracker.getResourceIcon("track_off.gif", true); //$NON-NLS-1$
-		mobileVideoIcon = (ResizableIcon)Tracker.getResourceIcon("clip_off.gif", true); //$NON-NLS-1$
-		mobileViewIcon = (ResizableIcon)Tracker.getResourceIcon("datatable.gif", true); //$NON-NLS-1$ ;
+		mobileVideoIcon = (ResizableIcon)Tracker.getResourceIcon("video_film.gif", true); //$NON-NLS-1$
+		mobileViewIcon = (ResizableIcon)Tracker.getResourceIcon("views.gif", true); //$NON-NLS-1$ ;
 		mobileMoreIcon = (ResizableIcon)Tracker.getResourceIcon("overflow.gif", true); //$NON-NLS-1$ ;
 		newTrackIcon = Tracker.getResourceIcon("poof.gif", true); //$NON-NLS-1$
 		pointmassOffIcon = Tracker.getResourceIcon("track_off.gif", true); //$NON-NLS-1$
