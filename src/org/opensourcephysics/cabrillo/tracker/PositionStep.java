@@ -377,7 +377,7 @@ public class PositionStep extends Step {
 		@Override
 		public void showCoordinates(VideoPanel vidPanel) {
 			// put values into pointmass x and y fields
-			getTrack().setPositionFields(getWorldPosition(vidPanel));
+			getTrack().setPositionFieldsIfChanged(getWorldPosition(vidPanel));
 			super.showCoordinates(vidPanel);
 		}
 

@@ -4223,12 +4223,17 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 		}
 	}
 
-	void setPositionFields(Point2D p) {
-		xField.setValue(p.getX());
-		yField.setValue(p.getY());
-		magField.setValue(p.distance(0, 0));
-		double theta = Math.atan2(p.getY(), p.getX());
-		angleField.setValue(theta);
+	void setPositionFieldsIfChanged(Point2D p) {
+		setValueIfChanged(xField, p.getX());
+		setValueIfChanged(yField, p.getY());
+		setValueIfChanged(magField, p.distance(0, 0));
+		setValueIfChanged(angleField, Math.atan2(p.getY(), p.getX()));
+	}
+
+	private static void setValueIfChanged(NumberField nf, double v) {
+		if (nf.getValue() == v)
+			return;
+		nf.setValue(v);		
 	}
 
 }
