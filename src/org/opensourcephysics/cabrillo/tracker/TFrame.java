@@ -4154,18 +4154,6 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 			return maximized;
 		}
 
-//		private ComponentAdapter dataWindowVisibility = new ComponentAdapter() {
-//			@Override
-//			public void componentHidden(ComponentEvent e) {
-//				// A hide event from switching tools can arrive after the new window opens.
-//				if (OSPRuntime.isJS) {
-//					jsFinishDataWindowClose(e.getComponent(), activeDataWindow);
-//					return;
-//				}
-////				refreshDataWindowChecks();
-//			}
-//		};
-//
 		private void refreshDataWindowChecks() {
 			if (currentMenuBar != null)
 				currentMenuBar.refreshDataWindowChecks();
@@ -4335,44 +4323,6 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 //			window.toFront();
 		}
 
-//		private void setDataWindowListener(Window window) {
-//			window.removeComponentListener(dataWindowVisibility);
-//			window.addComponentListener(dataWindowVisibility);
-//		}
-//
-//		private void stopDataBuilderStacking() {
-//			// ??
-//		}
-//
-//		@Deprecated
-//		private void jsFinishDataWindowClose(Component c, Window closedWindow) {
-//			if (true)
-//				return;
-//			if (c == activeDataWindow && !activeDataWindow.isVisible()) {
-//				/**
-//				 * @j2sNative var ui = closedWindow.秘getUI$(), node = ui.outerNode ||
-//				 *            ui.getDOMNode$(); if (node) { if (node.contains(J2S._mouseOwner)
-//				 *            || node.contains(J2S._mouseTarget)) J2S.setMouseOwner(null); var
-//				 *            owner = J2S._dmouseOwner; if (owner && node.contains(owner)) {
-//				 *            owner.isDragging = false; J2S._dmouseOwner = J2S._dmouseDrag =
-//				 *            J2S._dmouseUp = null; } }
-//				 */
-//			}
-//			selectDataWindow(null);
-//			SwingUtilities.invokeLater(() -> {
-//				if (activeDataWindow != null || !isShowing())
-//					return;
-//				MenuSelectionManager.defaultManager().clearSelectedPath();
-//				invalidate();
-//				validate();
-//				frameResized();
-//				GUIUtils.setupResizer(TFrame.this);
-//				toFront();
-//				requestFocus();
-//				repaint();
-//			});
-//		}
-
 		protected void onDataBuilderVisible(TrackDataBuilder builder, boolean visible, Runnable setVisible) {
 			if (visible) {
 				if (allowOnlyOneTool) {
@@ -4428,7 +4378,57 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 //			 * frame._dataBuilderStacking = function() { rule.remove(); };
 //			 */
 //		}
+//		private void setDataWindowListener(Window window) {
+//		window.removeComponentListener(dataWindowVisibility);
+//		window.addComponentListener(dataWindowVisibility);
+//	}
+//
+//	private void stopDataBuilderStacking() {
+//		// ??
+//	}
+//
+//	@Deprecated
+//	private void jsFinishDataWindowClose(Component c, Window closedWindow) {
+//		if (true)
+//			return;
+//		if (c == activeDataWindow && !activeDataWindow.isVisible()) {
+//			/**
+//			 * @j2sNative var ui = closedWindow.秘getUI$(), node = ui.outerNode ||
+//			 *            ui.getDOMNode$(); if (node) { if (node.contains(J2S._mouseOwner)
+//			 *            || node.contains(J2S._mouseTarget)) J2S.setMouseOwner(null); var
+//			 *            owner = J2S._dmouseOwner; if (owner && node.contains(owner)) {
+//			 *            owner.isDragging = false; J2S._dmouseOwner = J2S._dmouseDrag =
+//			 *            J2S._dmouseUp = null; } }
+//			 */
+//		}
+//		selectDataWindow(null);
+//		SwingUtilities.invokeLater(() -> {
+//			if (activeDataWindow != null || !isShowing())
+//				return;
+//			MenuSelectionManager.defaultManager().clearSelectedPath();
+//			invalidate();
+//			validate();
+//			frameResized();
+//			GUIUtils.setupResizer(TFrame.this);
+//			toFront();
+//			requestFocus();
+//			repaint();
+//		});
+//		private ComponentAdapter dataWindowVisibility = new ComponentAdapter() {
+//		@Override
+//		public void componentHidden(ComponentEvent e) {
+//			// A hide event from switching tools can arrive after the new window opens.
+//			if (OSPRuntime.isJS) {
+//				jsFinishDataWindowClose(e.getComponent(), activeDataWindow);
+//				return;
+//			}
+////			refreshDataWindowChecks();
+//		}
+//};
+//	}
+
 
 	}
+
 
 }
