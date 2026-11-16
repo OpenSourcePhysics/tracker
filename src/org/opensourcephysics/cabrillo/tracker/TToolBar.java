@@ -1706,12 +1706,12 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 	
 
 
-	@Override
-	public void addNotify() {
-		super.addNotify();
-		if (OSPRuntime.isJS)
-			AIPatch.installWindowDrag(frame, this);
-	}
+//	@Override
+//	public void addNotify() {
+//		super.addNotify();
+//		if (OSPRuntime.isJS)
+//			AIPatch.installWindowDrag(frame, this);
+//	}
 
 	private void rebuild(int overflow) {
 		

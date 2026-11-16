@@ -119,38 +119,39 @@ public class TButton extends JButton {
 		
 		private Timer longPressTimer; 
 
-		@Override
-		public void addNotify() {
-			super.addNotify();
-			if (OSPRuntime.isJS) {
-				TStickyPopupButton me = this;
-				Runnable onBegin = () -> {
-					me.hidePopup = me.popup != null && me.popup.isVisible();
-					me.longPressTimer.restart();
-				};
-				Runnable onEnd = () -> {
-					if (!me.longPressTimer.isRunning())
-						return; // A completed hold already opened the menu.
-					me.longPressTimer.stop();
-					if (!isEnabled())
-						return;
-					if (me.hidePopup) {
-						me.hidePopup = false;
-						me.popup.setVisible(false);
-					} else {
-						me.frame.maximizeNextView(me.frame.getTrackerPanelForID(me.panelID));
-						me.hidePopup = true;
-					}
-				};
-				Runnable onCancel = () -> {
-					if (!me.longPressTimer.isRunning())
-						return; // A completed hold already opened the menu.
-					me.longPressTimer.stop();
-				};
+//		@Override
+//		public void addNotify() {
+//			super.addNotify();
+//			if (OSPRuntime.isJS) {
+//				TStickyPopupButton me = this;
+//				Runnable onBegin = () -> {
+//					me.hidePopup = me.popup != null && me.popup.isVisible();
+//					me.longPressTimer.restart();
+//				};
+//				Runnable onEnd = () -> {
+//					if (!me.longPressTimer.isRunning())
+//						return; // A completed hold already opened the menu.
+//					me.longPressTimer.stop();
+//					if (!isEnabled())
+//						return;
+//					if (me.hidePopup) {
+//						me.hidePopup = false;
+//						me.popup.setVisible(false);
+//					} else {
+//						me.frame.maximizeNextView(me.frame.getTrackerPanelForID(me.panelID));
+//						me.hidePopup = true;
+//					}
+//				};
+//				Runnable onCancel = () -> {
+//					if (!me.longPressTimer.isRunning())
+//						return; // A completed hold already opened the menu.
+//					me.longPressTimer.stop();
+//				};
+//
+//				AIPatch.addButtonTouchListeners((JButton) this, onBegin, onEnd, onCancel);
+//			}
+//		}
 
-				AIPatch.addButtonTouchListeners((JButton) this, onBegin, onEnd, onCancel);
-			}
-		}
 		@Override
 		protected boolean checkLongPress(MouseEvent e) {
 			if (e == null) {

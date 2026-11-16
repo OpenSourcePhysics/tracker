@@ -3971,13 +3971,13 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			}
 		}
 
-		@Override
-		public void mouseClicked(MouseEvent e) {
-			super.mouseClicked(e);
-			if (AIPatch.strangeJavaClickRequest(e)) {
-				hidePopup();
-			}
-		}
+////		@Override
+//		public void mouseClicked(MouseEvent e) {
+//			super.mouseClicked(e);
+//			if (AIPatch.strangeJavaClickRequest(e)) {
+//				hidePopup();
+//			}
+//		}
 
 		/**
 		 * Handle the mouse released event.
