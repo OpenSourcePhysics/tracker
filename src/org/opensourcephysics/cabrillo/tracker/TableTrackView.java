@@ -1383,7 +1383,7 @@ public class TableTrackView extends TrackView {
 		tool.setSaveChangesOnClose(false);
 		DataRefreshTool refresher = DataRefreshTool.getTool(trackDataManager);
 		tool.send(new LocalJob(toSend), refresher);
-		frame.showDataTool(tool);
+		frame.setToolVisibility(tool, true);
 	}
 
 	protected void tableMousePressed(MouseEvent e) {
@@ -2369,11 +2369,11 @@ public class TableTrackView extends TrackView {
 				String units = track.tp.getUnits(track, varName);
 				
 				if (units.length() > 0) {// !"".equals(units)) { //$NON-NLS-1$
-//					if (OSPRuntime.isMac()) {
+//					if (OSPRuntime.isMac) {
 //						var = TeXParser.removeSubscripting(var);
 //					}
 					value = var + " (" + units.trim() + ")"; //$NON-NLS-1$ //$NON-NLS-2$
-//					if (OSPRuntime.isMac()) {
+//					if (OSPRuntime.isMac) {
 					// if (c instanceof JLabel) {
 					// ((JLabel) c).setText(var);
 					// }

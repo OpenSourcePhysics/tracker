@@ -98,7 +98,7 @@ public class Upgrader {
 			failed[0] = true;
 		} else if (OSPRuntime.isWindows()) {
 			upgradeWindows(failed);
-		} else if (OSPRuntime.isMac()) { // OSX
+		} else if (OSPRuntime.isMac) { // OSX
 			upgradeOSX(failed);
 		} else if (OSPRuntime.isLinux()) {
 			upgradeLinux(failed);
@@ -640,7 +640,7 @@ public class Upgrader {
 		chooser.addChoosableFileFilter(folderFilter);
 		chooser.setCurrentDirectory(new File(likely.getParent()));
 		chooser.setSelectedFile(likely);
-		if (OSPRuntime.isMac()) {
+		if (OSPRuntime.isMac) {
 			chooser.updateUI();
 		}
 		FontSizer.setFonts(chooser, FontSizer.getLevel());

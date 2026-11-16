@@ -2111,17 +2111,20 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 				while (fileVersion == null && parent.getParentProperty() != null) {
 					parent = parent.getParentProperty();
 					if (parent instanceof XMLControl) {
-						fileVersion = ((XMLControl)parent).getString("semantic_version"); //$NON-NLS-1$
+						fileVersion = ((XMLControl) parent).getString("semantic_version"); //$NON-NLS-1$
 					}
 				}
-				if (fileVersion != null && !OSPRuntime.isJS) {
-					int result = 0;
-					try {
-						result = Tracker.compareVersions(fileVersion, "6.0.9");
-					} catch (Exception e) {
-					}
-					if (result < 0) { // file version is pre-vers 6.0.9
-						dataTrack.requiresConversion = true;
+				if (fileVersion != null) {
+					/** @j2sIgnore */
+					{
+						int result = 0;
+						try {
+							result = Tracker.compareVersions(fileVersion, "6.0.9");
+						} catch (Exception e) {
+						}
+						if (result < 0) { // file version is pre-vers 6.0.9
+							dataTrack.requiresConversion = true;
+						}
 					}
 				}
 			}

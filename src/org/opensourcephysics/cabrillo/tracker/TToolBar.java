@@ -831,24 +831,10 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 		maximizeButton.setToolTipText(TrackerRes.getString("TFrame.Maximize.Tooltip")); //$NON-NLS-1$
 		refreshMaximizeButton(frame);
 		maximizeButton.addActionListener(new ActionListener() {
-			private boolean togglePending;
-
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				if (!OSPRuntime.isJS) {
-					frame.toggleMaximized();
-					refreshMaximizeButton(frame);
-				} else if (!togglePending) {
-					togglePending = true;
-					SwingUtilities.invokeLater(() -> {
-						try {
-							frame.toggleMaximized();
-							refreshMaximizeButton(frame);
-						} finally {
-							togglePending = false;
-						}
-					});
-				}
+				frame.toggleMaximized();
+				refreshMaximizeButton(frame);
 			}
 		});
 		
@@ -1383,13 +1369,14 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 
 	/** Synchronizes the maximize arrow, tooltip, and overflow item with the frame. */
 	void refreshMaximizeButton(TFrame frame) {
-		maximizeButton.setSelected(frame.maximized);
+		boolean isMaximized = frame.isMaximized();
+		maximizeButton.setSelected(isMaximized);
 		if (OSPRuntime.isJS) {
-			maximizeButton.setIcon(frame.maximized ? TViewChooser.RESTORE_ICON : TViewChooser.MAXIMIZE_ICON);
+			maximizeButton.setIcon(isMaximized ? TViewChooser.RESTORE_ICON : TViewChooser.MAXIMIZE_ICON);
 		}
-		maximizeButton.setToolTipText(TrackerRes.getString(frame.maximized
+		maximizeButton.setToolTipText(TrackerRes.getString(isMaximized
 				? "TFrame.Restore.Tooltip" : "TFrame.Maximize.Tooltip")); //$NON-NLS-1$ //$NON-NLS-2$
-		if (maximizeCheckbox != null) maximizeCheckbox.setSelected(frame.maximized);
+		if (maximizeCheckbox != null) maximizeCheckbox.setSelected(isMaximized);
 	}
 
 	protected void refreshZoomButton() {
@@ -1583,9 +1570,10 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 
 	@Override
 	protected void paintChildren(Graphics g) {
-		if (!OSPRuntime.isJS)
+		/** @j2sIgnore */
+		{
 			super.paintChildren(g);
-
+		}
 	}
 
 	/**
@@ -1894,7 +1882,8 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 		}
 		
 		add(index++, notesButton);
-		if (!OSPRuntime.isJS) {
+		/** @j2sIgnore */
+		{
 			add(index++, getSeparator());
 			add(index++, memoryButton);
 		}
@@ -2978,7 +2967,8 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 				mobileFilePopup.add(openMenu.getPopupMenu().getComponent(0));
 				mobileFilePopup.remove(openMenu);
 
-				if (!OSPRuntime.isJS) {
+				/** @j2sIgnore */
+				{
 					JMenu file_openRecentMenu = (JMenu)frame.currentMenuBar.getMenuItem("file_openRecentMenu");
 					frame.refreshOpenRecentMenu(file_openRecentMenu);
 					mobileFilePopup.add(file_openRecentMenu);

@@ -36,8 +36,8 @@ import java.awt.Graphics;
 import java.awt.GraphicsEnvironment;
 import java.awt.Point;
 import java.awt.Rectangle;
-import java.awt.Window;
 import java.awt.Toolkit;
+import java.awt.Window;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.event.ActionEvent;
@@ -302,16 +302,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 		this.captureTarget = target;
 	}
 
-	/**
-	 * state of frame maximization
-	 */
-	public boolean maximized;
-	/**
-	 * current frame size if maximized; null otherwise
-	 */
-	private Dimension maximizedFrameSize;
 
-	private Rectangle prevFrameSize;
 	protected ClipboardListener clipboardListener;
 	protected LibraryBrowser libraryBrowser;
 	protected Launcher helpLauncher;
@@ -382,14 +373,11 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 			options = new HashMap<>();
 		tracker = (Tracker) options.get("-tracker");
 //		isLayoutAdaptive = (options.get("-adaptive") != null);
-		isLayoutAdaptive = OSPRuntime.isJS;
-		if (OSPRuntime.isJS) {
-			setUndecorated(true);
-		}
 		Dimension dim = (Dimension) options.get("-dim");
 		Rectangle bounds = (Rectangle) options.get("-bounds");
 		Video video = (Video) options.get("-video");
-		TrackerPanel panel = (video != null ? TrackerPanel.createNewPanelForVideo(this, video) : (TrackerPanel) options.get("-panel"));
+		TrackerPanel panel = (video != null ? TrackerPanel.createNewPanelForVideo(this, video)
+				: (TrackerPanel) options.get("-panel"));
 		setName("Tracker"); //$NON-NLS-1$
 		if (Tracker.TRACKER_ICON != null)
 			setIconImage(Tracker.TRACKER_ICON.getImage());
@@ -400,16 +388,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 		// set size and limit maximized size so taskbar not covered
 		Rectangle screenRect = GraphicsEnvironment.getLocalGraphicsEnvironment().getMaximumWindowBounds();
 		if (OSPRuntime.isJS) {
-			// DB when this is set in Java the frame doesn't maximize fully!
-			setMaximizedBounds(screenRect);
-			// process -bounds or -dim option
-		}
-		if (OSPRuntime.isJS) {
-			if (OSPRuntime.cssCursor) { 
-				// running on iPad/iPhone
-				maximized = true;
-			}
-			bounds = getAdaptiveBounds(true);
+			bounds = getWindowManager().jsInitAdaptive(screenRect);
 		}
 		if (bounds == null) {
 			if (dim == null) {
@@ -436,7 +415,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 		// set transfer handler on tabbedPane
 		fileDropHandler = new FileDropHandler(this);
 		// set transfer handler for CTRL-V paste
-		tabbedPane.setTransferHandler(fileDropHandler);				
+		tabbedPane.setTransferHandler(fileDropHandler);
 		if (panel != null) {
 			addTab(panel, ADD_NOSELECT | ADD_REFRESH, () -> {
 			});
@@ -445,167 +424,10 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 		if (OSPRuntime.isJS)
 			GUIUtils.installGestureHandler(this);
 	}
-	
-	private Window activeDataWindow;
-	private final ComponentAdapter dataWindowVisibility = new ComponentAdapter() {
-		@Override
-		public void componentHidden(ComponentEvent e) {
-			if (!OSPRuntime.isJS) {
-				refreshDataWindowChecks();
-				return;
-			}
-			// A hide event from switching tools can arrive after the new window opens.
-			if (e.getComponent() == activeDataWindow && !activeDataWindow.isVisible())
-				finishDataWindowClose(activeDataWindow);
-		}
-	};
-
-	private void finishDataWindowClose(Window closedWindow) {
-		AIPatch.finishDataWindowClose(closedWindow);
-		selectDataWindow(null);
-		SwingUtilities.invokeLater(() -> {
-			if (activeDataWindow != null || !isShowing())
-				return;
-			javax.swing.MenuSelectionManager.defaultManager().clearSelectedPath();
-			invalidate();
-			validate();
-			frameResized();
-			GUIUtils.setupResizer(this);
-			toFront();
-			requestFocus();
-			repaint();
-		});
-	}
-
-	void watchDataWindowVisibility(Window window) {
-		window.removeComponentListener(dataWindowVisibility);
-		window.addComponentListener(dataWindowVisibility);
-	}
-
-	void selectDataWindow(Window selected) {
-		if (activeDataWindow != selected)
-			stopDataBuilderStacking();
-		activeDataWindow = selected;
-		if (selected != null) {
-			closeLibraryBrowser();
-			watchDataWindowVisibility(selected);
-		}
-		DataTool tool = DataTool.getTool(false);
-		if (tool != null && tool != selected && tool.isVisible())
-			tool.setVisible(false);
-		for (int tab = 0; tab < getTabCount(); tab++) {
-			TrackerPanel panel = getTrackerPanelForTab(tab);
-			if (panel == null || panel.dataBuilder == null || panel.dataBuilder == selected)
-				continue;
-			panel.dataToolVisible = false;
-			if (panel.dataBuilder.isVisible())
-				panel.dataBuilder.setVisible(false);
-		}
-		if (selected == null)
-			refreshDataWindowChecks();
-	}
-
-	private void stopDataBuilderStacking() {
-	}
-
-	public void keepDataBuilderAboveTracker(JDialog builder) {
-		if (builder == activeDataWindow && builder.isVisible())
-			AIPatch.keepDialogAboveFrame((JFrame) this, builder);
-	}
 
 	void closeLibraryBrowser() {
 		if (OSPRuntime.isJS && libraryBrowser != null && libraryBrowser.isVisible())
 			libraryBrowser.setVisible(false);
-	}
-
-	void refreshDataWindowChecks() {
-		if (currentMenuBar != null)
-			currentMenuBar.refreshDataWindowChecks();
-	}
-
-	void showDataTool(DataTool tool) {
-		if (OSPRuntime.isJS)
-			selectDataWindow(tool);
-		else
-			watchDataWindowVisibility(tool);
-		tool.setVisible(true);
-		if (OSPRuntime.isJS) {
-			fitDataWindow(tool);
-		}
-		refreshDataWindowChecks();
-	}
-
-	static void fitDataWindow(Window window) {
-		Rectangle viewport = OSPRuntime.jsutil.getMaximumViewport(2, 2);
-		Rectangle bounds = window.getBounds();
-		int width = Math.min(bounds.width, viewport.width);
-		int height = Math.min(bounds.height, viewport.height);
-		int x = Math.max(viewport.x, Math.min(bounds.x, viewport.x + viewport.width - width));
-		int y = Math.max(viewport.y, Math.min(bounds.y, viewport.y + viewport.height - height));
-		if (window instanceof TrackDataBuilder) {
-			x = viewport.x + (viewport.width - width) / 2;
-			y = viewport.y + (viewport.height - height) / 2;
-		}
-		if (bounds.x != x || bounds.y != y || bounds.width != width || bounds.height != height) {
-			window.setBounds(x, y, width, height);
-			window.validate();
-		}
-		window.toFront();
-	}
-
-	protected Rectangle getAdaptiveBounds(boolean isInit) {
-		// "maximized" here means "maximizing"
-		Rectangle rect;
-		if (OSPRuntime.isJS) {
-			Rectangle viewport = OSPRuntime.jsutil.getMaximumViewport(2, 2);
-			rect = viewport;
-			if (!maximized) {
-				int top = Math.min(DEFAULT_FRAME_CEILING, viewport.height / 4);
-				int width = Math.max(1, (int) (viewport.width * DEFAULT_FRAME_WIDTH));
-				int height = Math.max(1, (int) ((viewport.height - top) * DEFAULT_FRAME_HEIGHT));
-				Rectangle restored = new Rectangle(viewport.x + (viewport.width - width) / 2,
-						viewport.y + top, width, height);
-				rect = prevFrameSize != null && viewport.contains(prevFrameSize) ? prevFrameSize : restored;
-			}
-		} else if (prevFrameSize != null && !maximized) {
-			rect = prevFrameSize;
-		} else {
-			Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
-			double wid = maximized ? MAXIMIZED_FRAME_WIDTH : DEFAULT_FRAME_WIDTH;
-			double ht = maximized ? MAXIMIZED_FRAME_HEIGHT : DEFAULT_FRAME_HEIGHT;
-			int ceil = maximized ? MAXIMIZED_FRAME_CEILING : DEFAULT_FRAME_CEILING;
-			int w = (int) (wid * dim.width);
-			int margin = (int) ((1 - wid) * dim.width / 2);
-			int h = (int) (ht * (dim.height - ceil));
-			rect = new Rectangle(margin, ceil, w, h);
-			// A maximized browser frame must fit the visible viewport, including its border.
-		}
-		maximizedFrameSize = (maximized ? new Dimension(rect.width, rect.height) : null);
-		if (isInit) {
-			// JS only
-			Runnable onOrient = new Runnable() {
-
-				@Override
-				public void run() {
-					getAdaptiveBounds(false);
-					DataTool tool = DataTool.getTool(false);
-					TrackerPanel panel = getSelectedPanel();
-					if (tool != null && tool.isVisible())
-						fitDataWindow(tool);
-					else if (panel != null && panel.dataBuilder != null && panel.dataBuilder.isVisible())
-						fitDataWindow(panel.dataBuilder);
-				}
-
-			};
-			// startup
-			GUIUtils.addWindowOrientationChangeListener(onOrient);
-		} else if (!OSPRuntime.isJS || !rect.equals(getBounds())) {
-			setBounds(rect);
-			validate();
-			toFront(); // BH added - not automatic in JavaScript
-			repaint();
-		}
-		return rect;
 	}
 
 	/**
@@ -678,7 +500,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 				tabbedPane.setToolTipTextAt(tab, trackerPanel.getToolTipPath());
 			}
 			tabPanel = getTabPanel(trackerPanel);
-			
+
 		} else {
 			setIgnoreRepaint(true);
 
@@ -714,7 +536,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 
 		setupAddedPanel(tabPanel, tab, trackerPanel, doSelect, doRefresh, whenDone);
 		doTabStateChanged();
-		
+
 	}
 
 	private void setupAddedPanel(TTabPanel tabPanel, int tab, TrackerPanel trackerPanel, boolean doSelect,
@@ -988,7 +810,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 	}
 
 	private void checkMemTest() {
-		/** @j2sIgnore */ { // TEST_BH
+		/** @j2sIgnore */
+		{ // TEST_BH
 			System.gc();
 			System.gc();
 			try {
@@ -1608,7 +1431,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 		JSplitPane[] panes = getSplitPanes(panel);
 		double[] locs = new double[panes.length];
 		for (int i = 0; i < panes.length; i++) {
-			if (i==SPLIT_PLOT_TABLE || i==SPLIT_WORLD_PAGE)
+			if (i == SPLIT_PLOT_TABLE || i == SPLIT_WORLD_PAGE)
 				continue;
 			int max = panes[i].getMaximumDividerLocation();
 			locs[i] = 1.0 * panes[i].getDividerLocation() / max;
@@ -1872,8 +1695,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 
 	private DefaultMenuBar newDefaultMenuBar() {
 		DefaultMenuBar bar = new DefaultMenuBar();
-		//GUIUtils.FullFrameDragHandler.installFullFrameDragHandler(this, bar);
-		GUIUtils.FullFrameDragHandler.addComponent(bar,this);
+		// GUIUtils.FullFrameDragHandler.installFullFrameDragHandler(this, bar);
+		GUIUtils.FullFrameDragHandler.addComponent(bar, this);
 		return (defaultMenuBar = bar);
 	}
 
@@ -2025,7 +1848,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 	}
 
 	void maximizeView(TrackerPanel trackerPanel, int viewIndex) {
-		saveCurrentDividerLocations(trackerPanel);		
+		saveCurrentDividerLocations(trackerPanel);
 		trackerPanel.setMaximizedView(viewIndex);
 		JSplitPane[] panes = getSplitPanes(trackerPanel);
 		for (int i = 0; i < panes.length; i++) {
@@ -2068,37 +1891,35 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 		// add player bar to maximized view
 		JToolBar player = getMainView(trackerPanel).getPlayerBar();
 		if (trackerPanel.getMaximizedView() == TView.VIEW_MAIN) {
-			getMainView(trackerPanel).add(player, BorderLayout.SOUTH);							
+			getMainView(trackerPanel).add(player, BorderLayout.SOUTH);
 			TTrackBar tbar = getTrackBar(trackerPanel.getID(), false);
 			if (tbar != null)
 				tbar.rebuild();
-		}
-		else {
+		} else {
 			TViewChooser[] choosers = getViewChoosers(trackerPanel);
 			for (int i = 0; i < choosers.length; i++) {
 				choosers[i].refreshToolbar();
 				if (trackerPanel.getMaximizedView() == i) {
-					choosers[i].add(player, BorderLayout.SOUTH);			
+					choosers[i].add(player, BorderLayout.SOUTH);
 				}
 			}
 		}
-		
-		// refresh the maximized view 
+
+		// refresh the maximized view
 		TViewChooser[] choosers = getViewChoosers(trackerPanel);
-		if (choosers != null && viewIndex >= 0 && viewIndex < choosers.length
-				&& choosers[viewIndex] != null) {
+		if (choosers != null && viewIndex >= 0 && viewIndex < choosers.length && choosers[viewIndex] != null) {
 			int viewType = choosers[viewIndex].getSelectedViewType();
 			if (viewType == TView.VIEW_PLOT || viewType == TView.VIEW_TABLE) {
 				choosers[viewIndex].getSelectedView().refresh();
 			}
 		}
-		
+
 		// refresh trackbar number editors
 		TTrackBar trackbar = this.getTrackBar(trackerPanel.getID(), false);
 		if (trackbar != null)
 			trackbar.refreshNumberEditors(true);
 	}
-	
+
 	void maximizeNextView(TrackerPanel panel) {
 		int nextView = TView.VIEW_MAIN;
 		switch (panel.getMaximizedView()) {
@@ -2117,7 +1938,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 			nextView = TView.VIEW_PAGE;
 			break;
 		}
-		maximizeView(panel, nextView);		
+		maximizeView(panel, nextView);
 	}
 
 	void saveCurrentDividerLocations(TrackerPanel trackerPanel) {
@@ -2140,11 +1961,10 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 	void restoreViews(TrackerPanel trackerPanel) {
 		if (trackerPanel.getMaximizedView() == TView.VIEW_UNSET)
 			return;
-		
+
 		// first determine if both right and bottom views are closed
-		boolean closedViews = trackerPanel.dividerFractions[0] > 0.95
-				&& trackerPanel.dividerFractions[2] > 0.95;
-		
+		boolean closedViews = trackerPanel.dividerFractions[0] > 0.95 && trackerPanel.dividerFractions[2] > 0.95;
+
 		for (int i = 0; i < trackerPanel.dividerFractions.length; i++) {
 			if (closedViews && i == 0)
 				setDividerLocation(trackerPanel, i, TFrame.DEFAULT_MAIN_DIVIDER);
@@ -2188,8 +2008,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 		TTrackBar bar = _atrackbars[i];
 		if (bar == null && forceNew) {
 			_atrackbars[i] = bar = new TTrackBar(_apanels[i]);
-			//GUIUtils.FullFrameDragHandler.installFullFrameDragHandler(this, bar);
-			GUIUtils.FullFrameDragHandler.addComponent(bar,this);
+			// GUIUtils.FullFrameDragHandler.installFullFrameDragHandler(this, bar);
+			GUIUtils.FullFrameDragHandler.addComponent(bar, this);
 		}
 		return bar;
 	}
@@ -2206,8 +2026,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 		TToolBar bar = _atoolbars[i];
 		if (bar == null && forceNew) {
 			bar = _atoolbars[i] = new TToolBar(_apanels[i]);
-			//GUIUtils.FullFrameDragHandler.installFullFrameDragHandler(this, bar);
-			GUIUtils.FullFrameDragHandler.addComponent(bar,this);
+			// GUIUtils.FullFrameDragHandler.installFullFrameDragHandler(this, bar);
+			GUIUtils.FullFrameDragHandler.addComponent(bar, this);
 		}
 		return bar;
 	}
@@ -2240,8 +2060,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 		TMenuBar bar = _amenubars[i];
 		if (bar == null && forceNew) {
 			bar = _amenubars[i] = new TMenuBar(panel);
-			//GUIUtils.FullFrameDragHandler.installFullFrameDragHandler(this, bar);
-			GUIUtils.FullFrameDragHandler.addComponent(bar,this);
+			// GUIUtils.FullFrameDragHandler.installFullFrameDragHandler(this, bar);
+			GUIUtils.FullFrameDragHandler.addComponent(bar, this);
 			FontSizer.setFonts(bar);
 		}
 		return bar;
@@ -2414,7 +2234,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 	}
 
 	/**
-	 * Opens the Library Browser dialog and guarantees the Welcome screen is displayed.
+	 * Opens the Library Browser dialog and guarantees the Welcome screen is
+	 * displayed.
 	 * 
 	 */
 	public void openLibraryBrowser() {
@@ -2422,16 +2243,10 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 			LibraryBrowser browser = getLibraryBrowser();
 			if (browser != null) {
 				showLibraryBrowser(browser);
-				//ensuerWelcomeScreen(browser, "open");
+				// ensuerWelcomeScreen(browser, "open");
 			}
 		} catch (Throwable t) {
 		}
-	}
-
-	void showLibraryBrowser(LibraryBrowser browser) {
-		if (OSPRuntime.isJS)
-			selectDataWindow(null);
-		browser.setVisible(true);
 	}
 
 	/**
@@ -2685,19 +2500,12 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 	 */
 	private void createGUI() {
 		this.addComponentListener(new ComponentAdapter() {
-			private Dimension lastSize;
-
 			@Override
 			public void componentResized(ComponentEvent e) {
-				if (OSPRuntime.isJS) {
-					Dimension size = getSize();
-					if (size.equals(lastSize))
-						return;
-					lastSize = size;
+				if (getWindowManager().checkMaximizedSizeChanged()) {
+					frameResized();
+					GUIUtils.setupResizer(TFrame.this);
 				}
-				checkMaximizedSizeChanged();
-				frameResized();
-				GUIUtils.setupResizer(TFrame.this);
 			}
 		});
 		// add focus listener to notify ParticleDataTracks and other listeners
@@ -2875,7 +2683,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 		}
 		return oldPanel;
 	}
-	
+
 	@Override
 	public void setBounds(int x, int y, int w, int h) {
 		super.setBounds(x, y, w, h);
@@ -2886,7 +2694,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 	private void checkHideTabs() {
 		if (tabbedPane != null) {
 			tabbedPane.putClientProperty("_j2sHideTabs", Boolean.valueOf(OSPRuntime.isSmallScreen(this)));
-		}	
+		}
 	}
 
 	protected void frameResized() {
@@ -2903,7 +2711,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 			return;
 		Rectangle rect = getBounds();
 		isLayoutChanged = isPortraitOrientation != (rect.height > rect.width);
-		
+
 		if (isLayoutChanged) {
 			// determine if dimensions are portrait or landscape and arrange views
 			isPortraitOrientation = !isPortraitOrientation;
@@ -3208,8 +3016,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 		}
 		String fileName = record.getProperty("download_filename"); //$NON-NLS-1$
 		String resourceName = (fileName == null ? target : fileName);
-		if (OSPRuntime.isJS && target != null && ResourceLoader.isHTTP(target)
-				&& resourceName != null && (resourceName.toLowerCase(Locale.ROOT).endsWith(".trk") //$NON-NLS-1$
+		if (OSPRuntime.isJS && target != null && ResourceLoader.isHTTP(target) && resourceName != null
+				&& (resourceName.toLowerCase(Locale.ROOT).endsWith(".trk") //$NON-NLS-1$
 						|| ResourceLoader.isJarZipTrz(resourceName.toLowerCase(Locale.ROOT), false))) {
 			// Fetch before resource validation and ZIP inspection. Both otherwise use
 			// synchronous binary XHR, which is not reliable on iPad browsers.
@@ -3277,10 +3085,10 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 								ArrayList<DataToolTab> tabs = tool.createTabs(data[i]);
 								for (int j = 0; j < tabs.size(); j++) {
 									tool.addTab(tabs.get(j));
-									showDataTool(tool);
+									setToolVisibility(tool, true);
 									loadFailed = true; // so Tracker will not take focus, datatool stays on top
 								}
-							}	
+							}
 						}
 					}
 				}
@@ -3371,8 +3179,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 		TrackerIO.openFileFromDialog(null, this, () -> {
 			setCursor(Cursor.getDefaultCursor());
 		});
-		if (!OSPRuntime.isJS)
-			setCursor(Cursor.getDefaultCursor());
+		/** @j2sIgnore */
+		setCursor(Cursor.getDefaultCursor());
 	}
 
 	public void doOpenURL(String url) {
@@ -3389,7 +3197,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 				panel.setMouseCursor(Cursor.getDefaultCursor());
 				SwingUtilities.invokeLater(() -> {
 					panel.repaint();
-					
+
 				});
 			}
 		});
@@ -3409,7 +3217,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 	 * @param whenDone optional Runnable
 	 * @param limit    number of frames or -1 if unknown
 	 */
-	public void loadVideo(String path, boolean asNewTab, LibraryBrowser libraryBrowser, Runnable whenDone, double frameRate, int limit) {
+	public void loadVideo(String path, boolean asNewTab, LibraryBrowser libraryBrowser, Runnable whenDone,
+			double frameRate, int limit) {
 		// from loadExperimentURL and openLibraryResource actions
 		if (!VideoIO.checkMP4(path, libraryBrowser, getSelectedPanel()))
 			return;
@@ -3545,7 +3354,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 						JOptionPane.showMessageDialog(frame, "\"" + next[1] + "\" " //$NON-NLS-1$ //$NON-NLS-2$
 								+ MediaRes.getString("VideoClip.Dialog.VideoNotFound.Message")); //$NON-NLS-1$
 						continue;
-					} 
+					}
 					/** @j2sIgnore */
 					{
 						int i = JOptionPane.showConfirmDialog(frame, "\"" + next[1] + "\" " //$NON-NLS-1$ //$NON-NLS-2$
@@ -3559,7 +3368,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 						@SuppressWarnings("deprecation")
 						java.io.File[] a = TrackerIO.getChooserFiles("open"); //$NON-NLS-1$
 						if (a == null) {
-							continue;								
+							continue;
 						}
 						file = a[0];
 					}
@@ -3639,7 +3448,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 		}
 //		tabbedPane.setEnabled(!blocking);
 //		getContentPane().setVisible(!blocking);
-						
+
 		state = (blocking ? STATE_BLOCKED : STATE_ACTIVE);
 		if (blocking) {
 			frameBlocker = new FrameBlocker();
@@ -3663,27 +3472,27 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 			}
 		}
 	}
-	
+
 	/**
 	 * A class to draw an image of the content pane during frame blocking
 	 */
 	private class FrameBlocker extends JPanel {
-		
-    private BufferedImage image;
 
-    public FrameBlocker() {
-			image = new BufferedImage(frameContentPane.getWidth(), frameContentPane.getHeight(), 
+		private BufferedImage image;
+
+		public FrameBlocker() {
+			image = new BufferedImage(frameContentPane.getWidth(), frameContentPane.getHeight(),
 					BufferedImage.TYPE_3BYTE_BGR);
 			java.awt.Graphics g = image.getGraphics();
 			frameContentPane.paint(g);
 			g.dispose();
-    }
+		}
 
-    @Override
-    protected void paintComponent(Graphics g) {
-      super.paintComponent(g);
-      g.drawImage(image, 0, 0, this);
-    }
+		@Override
+		protected void paintComponent(Graphics g) {
+			super.paintComponent(g);
+			g.drawImage(image, 0, 0, this);
+		}
 
 	}
 
@@ -3693,17 +3502,16 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 
 	@Override
 	public void setJMenuBar(JMenuBar bar) {
-		boolean empty = getTabCount()==0;
-		super.setJMenuBar(OSPRuntime.isMobile() && !empty? null:  bar);
+		boolean empty = getTabCount() == 0;
+		super.setJMenuBar(OSPRuntime.isMobile() && !empty ? null : bar);
 		if (bar != null) {
-			bar.setEnabled(frameBlocker == null);			
+			bar.setEnabled(frameBlocker == null);
 			if (OSPRuntime.isJS && getJMenuBar() == bar)
 				AIPatch.installWindowDrag(this, bar);
 		}
-		currentMenuBar = (bar == defaultMenuBar? null: (TMenuBar)bar);
+		currentMenuBar = (bar == defaultMenuBar ? null : (TMenuBar) bar);
 		if (currentMenuBar != null)
 			currentMenuBar.refreshPanesPopup();
-
 
 	}
 
@@ -3763,8 +3571,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 			openMenu.add(openBrowserItem);
 			// open recent menu
 			recentMenu = new JMenu();
-			if (!OSPRuntime.isJS)
-				fileMenu.add(recentMenu);
+			/** @j2sIgnore */
+			fileMenu.add(recentMenu);
 			fileMenu.addMenuListener(new MenuListener() {
 
 				@Override
@@ -4239,7 +4047,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 	}
 
 	public static void main(String[] args) {
-		
+
 		Tracker.main(args);
 
 		// The TFrame is necessary for providing access to the panel via a panelID.
@@ -4272,43 +4080,348 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 		return false;
 	}
 
-	/**
-	 * JavaScript only, from device rotation
-	 * Keep the restore arrow only for the size requested by Maximize. Comparing
-	 * sizes also handles resize events delivered after setBounds.
-	 * 
-	 */
-	protected void checkMaximizedSizeChanged() {
-		if (OSPRuntime.isJS && maximized && maximizedFrameSize != null
-				&& !getSize().equals(maximizedFrameSize)) {
-			maximized = false;
-			maximizedFrameSize = null;
-			for (TToolBar bar : _atoolbars) {
-				if (bar != null) bar.refreshMaximizeButton(this);
-			}
-		}
-	}
-
-	public void toggleMaximized() {
-		if (!maximized) {
-			prevFrameSize = getBounds();
-		}
-		maximized = !maximized;
-		getAdaptiveBounds(false);
-	}
-
 	void refreshLibraryNode() {
 		libraryBrowser.refreshSelectedNode();
 	}
 
 	private JPopupMenu panesPopup;
+
 	public JPopupMenu getTabPanesPopup() {
 		if (panesPopup == null) {
 			panesPopup = new JPopupMenu();
 		} else {
-			panesPopup.removeAll();		
+			panesPopup.removeAll();
 		}
 		return panesPopup;
+	}
+
+	private AdaptiveWindowManager aitest;
+
+	private AdaptiveWindowManager getWindowManager() {
+		return (aitest == null ? aitest = new AdaptiveWindowManager() : aitest);
+	}
+
+	boolean isMaximized() {
+		return getWindowManager().isMaximized();
+	}
+
+	void showLibraryBrowser(LibraryBrowser browser) {
+		getWindowManager().setDataToolVisibility(null, false);
+		SwingUtilities.invokeLater(() -> {
+			// give the tool a chance to hide
+			browser.setVisible(true);			
+		});
+	}
+
+	void setToolVisibility(Window tool, boolean toolVisible) {
+		getWindowManager().setDataToolVisibility(tool, toolVisible);
+	}
+
+	public void toggleMaximized() {
+		getWindowManager().toggleMaximized();
+	}
+
+	public void onDataBuilderVisible(TrackDataBuilder builder, boolean visible, Runnable setVisible) {
+		getWindowManager().onDataBuilderVisible(builder, visible, setVisible);
+	}
+
+	/**
+	 * data window visibility business and adaptive window management
+	 * 
+	 * TODO  check AI
+	 *
+	 */
+	private class AdaptiveWindowManager {
+
+		private Dimension lastSize;
+		private Rectangle prevFrameSize;
+		private Window activeDataWindow;
+		/**
+		 * current frame size if maximized; null otherwise
+		 */
+		private Dimension maximizedFrameSize;
+
+		/**
+		 * state of frame maximization
+		 */
+		private boolean maximized;
+
+		public boolean isMaximized() {
+			return maximized;
+		}
+
+		private ComponentAdapter dataWindowVisibility = new ComponentAdapter() {
+			@Override
+			public void componentHidden(ComponentEvent e) {
+				// A hide event from switching tools can arrive after the new window opens.
+				if (OSPRuntime.isJS) {
+					jsFinishDataWindowClose(e.getComponent(), activeDataWindow);
+					return;
+				}
+				refreshDataWindowChecks();
+			}
+		};
+
+		private void refreshDataWindowChecks() {
+			if (currentMenuBar != null)
+				currentMenuBar.refreshDataWindowChecks();
+		}
+
+		private Rectangle jsInitAdaptive(Rectangle screenRect) {
+			isLayoutAdaptive = true;
+			setUndecorated(true);
+				// DB when this is set in Java the frame doesn't maximize fully!
+				setMaximizedBounds(screenRect);
+				// process -bounds or -dim option
+				return getAdaptiveBounds(true, OSPRuntime.cssCursor);
+		}
+
+		private void setDataToolVisibility(Window tool, boolean toolVisible) {
+			
+			if (OSPRuntime.isJS) {
+				jsSelectDataWindow(toolVisible ? tool : null);
+			} else if (toolVisible) {
+				setDataWindowListener(tool);				
+			} else if (tool != null) {
+				tool.setVisible(false);
+			}
+			if (tool == null || !toolVisible)
+				return;
+			tool.setVisible(true);
+			if (OSPRuntime.isJS) {
+				fitDataWindow(tool);
+			}
+			refreshDataWindowChecks();
+		}
+
+		/**
+		 * JavaScript only, from device rotation Keep the restore arrow only for the
+		 * size requested by Maximize. Comparing sizes also handles resize events
+		 * delivered after setBounds.
+		 * @return 
+		 * 
+		 */
+		private boolean checkMaximizedSizeChanged() {
+			if (OSPRuntime.isJS) {
+				Dimension size = getSize();
+				if (size.equals(lastSize))
+					return false;
+				lastSize = size;
+			}
+
+			if (OSPRuntime.isJS && maximized && maximizedFrameSize != null && !getSize().equals(maximizedFrameSize)) {
+				maximized = false;
+				maximizedFrameSize = null;
+				for (TToolBar bar : _atoolbars) {
+					if (bar != null)
+						bar.refreshMaximizeButton(TFrame.this);
+				}
+			}
+			return true;
+		}
+
+		private void toggleMaximized() {
+			if (!maximized) {
+				prevFrameSize = getBounds();
+			}
+			maximized = !maximized;
+			getAdaptiveBounds(false, false);
+		}
+
+		private Rectangle getAdaptiveBounds(boolean isInit, boolean doMaximize) {
+			
+			if (doMaximize) {
+				// running on iPad/iPhone
+				maximized = true;
+			}
+
+			// "maximized" here means "maximizing"
+			Rectangle rect;
+			if (OSPRuntime.isJS) {
+				Rectangle viewport = OSPRuntime.jsutil.getMaximumViewport(2, 2);
+				rect = viewport;
+				if (!maximized) {
+					int top = Math.min(DEFAULT_FRAME_CEILING, viewport.height / 4);
+					int width = Math.max(1, (int) (viewport.width * DEFAULT_FRAME_WIDTH));
+					int height = Math.max(1, (int) ((viewport.height - top) * DEFAULT_FRAME_HEIGHT));
+					Rectangle restored = new Rectangle(viewport.x + (viewport.width - width) / 2, viewport.y + top,
+							width, height);
+					rect = prevFrameSize != null && viewport.contains(prevFrameSize) ? prevFrameSize : restored;
+				}
+			} else if (prevFrameSize != null && !maximized) {
+				rect = prevFrameSize;
+			} else {
+				Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
+				double wid = maximized ? MAXIMIZED_FRAME_WIDTH : DEFAULT_FRAME_WIDTH;
+				double ht = maximized ? MAXIMIZED_FRAME_HEIGHT : DEFAULT_FRAME_HEIGHT;
+				int ceil = maximized ? MAXIMIZED_FRAME_CEILING : DEFAULT_FRAME_CEILING;
+				int w = (int) (wid * dim.width);
+				int margin = (int) ((1 - wid) * dim.width / 2);
+				int h = (int) (ht * (dim.height - ceil));
+				rect = new Rectangle(margin, ceil, w, h);
+				// A maximized browser frame must fit the visible viewport, including its
+				// border.
+			}
+			maximizedFrameSize = (maximized ? new Dimension(rect.width, rect.height) : null);
+			if (isInit) {
+				// JS only
+				Runnable onOrient = new Runnable() {
+
+					@Override
+					public void run() {
+						getAdaptiveBounds(false, false);
+						DataTool tool = DataTool.getTool(false);
+						TrackerPanel panel = getSelectedPanel();
+						if (tool != null && tool.isVisible())
+							fitDataWindow(tool);
+						else if (panel != null && panel.dataBuilder != null && panel.dataBuilder.isVisible())
+							fitDataWindow(panel.dataBuilder);
+					}
+
+				};
+				// startup
+				GUIUtils.addWindowOrientationChangeListener(onOrient);
+			} else if (!OSPRuntime.isJS || !rect.equals(getBounds())) {
+				setBounds(rect);
+				validate();
+				toFront(); // BH added - not automatic in JavaScript
+				repaint();
+			}
+			return rect;
+		}
+
+		private void jsSelectDataWindow(Window selected) {
+			if (activeDataWindow != selected)
+				stopDataBuilderStacking();
+			activeDataWindow = selected;
+			if (selected != null) {
+				closeLibraryBrowser();
+				setDataWindowListener(selected);
+			}
+			DataTool tool = DataTool.getTool(false);
+			if (tool != null && tool != selected && tool.isVisible())
+				tool.setVisible(false);
+			for (int tab = 0; tab < getTabCount(); tab++) {
+				TrackerPanel panel = getTrackerPanelForTab(tab);
+				if (panel == null || panel.dataBuilder == null || panel.dataBuilder == selected)
+					continue;
+				panel.dataToolVisible = false;
+				if (panel.dataBuilder.isVisible())
+					panel.dataBuilder.setVisible(false);
+			}
+			if (selected == null)
+				refreshDataWindowChecks();
+		}
+
+		private void fitDataWindow(Window window) {
+			Rectangle viewport = OSPRuntime.jsutil.getMaximumViewport(2, 2);
+			Rectangle bounds = window.getBounds();
+			int width = Math.min(bounds.width, viewport.width);
+			int height = Math.min(bounds.height, viewport.height);
+			int x = Math.max(viewport.x, Math.min(bounds.x, viewport.x + viewport.width - width));
+			int y = Math.max(viewport.y, Math.min(bounds.y, viewport.y + viewport.height - height));
+			if (window instanceof TrackDataBuilder) {
+				x = viewport.x + (viewport.width - width) / 2;
+				y = viewport.y + (viewport.height - height) / 2;
+			}
+			if (bounds.x != x || bounds.y != y || bounds.width != width || bounds.height != height) {
+				window.setBounds(x, y, width, height);
+				window.validate();
+			}
+			window.toFront();
+		}
+
+		private void setDataWindowListener(Window window) {
+			window.removeComponentListener(dataWindowVisibility);
+			window.addComponentListener(dataWindowVisibility);
+		}
+
+		private void stopDataBuilderStacking() {
+			// ??
+		}
+
+		private void jsFinishDataWindowClose(Component c, Window closedWindow) {
+			if (c == activeDataWindow && !activeDataWindow.isVisible()) {
+				/**
+				 * @j2sNative var ui = closedWindow.秘getUI$(), node = ui.outerNode ||
+				 *            ui.getDOMNode$(); if (node) { if (node.contains(J2S._mouseOwner)
+				 *            || node.contains(J2S._mouseTarget)) J2S.setMouseOwner(null); var
+				 *            owner = J2S._dmouseOwner; if (owner && node.contains(owner)) {
+				 *            owner.isDragging = false; J2S._dmouseOwner = J2S._dmouseDrag =
+				 *            J2S._dmouseUp = null; } }
+				 */
+			}
+			jsSelectDataWindow(null);
+			SwingUtilities.invokeLater(() -> {
+				if (activeDataWindow != null || !isShowing())
+					return;
+				javax.swing.MenuSelectionManager.defaultManager().clearSelectedPath();
+				invalidate();
+				validate();
+				frameResized();
+				GUIUtils.setupResizer(TFrame.this);
+				toFront();
+				requestFocus();
+				repaint();
+			});
+		}
+
+		protected void onDataBuilderVisible(TrackDataBuilder builder, boolean visible, Runnable setVisible) {
+			if (visible) {
+				if (OSPRuntime.isJS) {
+					jsSelectDataWindow(builder);
+				} else {
+					builder.removeComponentListener(dataWindowVisibility);
+					builder.addComponentListener(dataWindowVisibility);
+				}
+			}
+			setVisible.run();
+			if (visible && OSPRuntime.isJS && isVisible()) {
+				fitDataWindow(builder);
+				SwingUtilities.invokeLater(() -> keepDataBuilderAboveTracker(TFrame.this, builder));
+			}
+			if (visible)
+				refreshDataWindowChecks();
+		}
+
+		private void keepDataBuilderAboveTracker(TFrame frame, JDialog builder) {
+
+			/**
+			 * @j2sNative
+			 * if (frame._dataBuilderStacking) {
+			 *   frame._dataBuilderStacking();
+			 *   frame._dataBuilderStacking = null;
+			 * }
+			 */
+
+			builder.toFront();
+			
+			/** @j2sNative
+			 * var trackerUI = frame.秘getUI$(), builderUI = builder.秘getUI$();
+			 * var closer = builderUI.closerNode;
+			 * if (closer && !closer._trackerBuilderClose) {
+			 *   closer._trackerBuilderClose = true;
+			 *   // The close control sits inside the draggable title bar.
+			 *   ["pointerdown", "mousedown", "touchstart"].forEach(function(type) {
+			 *     closer.addEventListener(type, function(event) {
+			 *       event.stopImmediatePropagation();
+			 *     }, true);
+			 *   });
+			 *   closer.addEventListener("click", function(event) {
+			 *     event.stopImmediatePropagation();
+			 *     setTimeout(function() { builder.setVisible$Z(false); }, 0);
+			 *   }, true);
+			 * }
+			 * var trackerNode = trackerUI.outerNode || trackerUI.getDOMNode$();
+			 * var builderNode = builderUI.outerNode || builderUI.getDOMNode$();
+			 * if (!trackerNode || !builderNode || trackerNode === builderNode) return;
+			 * var rule = document.createElement("style");
+			 * rule.textContent = "#" + CSS.escape(builderNode.id) + " { z-index: 19000 !important; }";
+			 * document.head.appendChild(rule);
+			 * frame._dataBuilderStacking = function() { rule.remove(); };
+			 */
+		}
+
 	}
 
 }

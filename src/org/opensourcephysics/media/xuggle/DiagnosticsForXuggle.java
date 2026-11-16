@@ -224,7 +224,7 @@ public class DiagnosticsForXuggle extends Diagnostics {
 				if (OSPRuntime.isWindows()) {
 					Collection<File> jreDirs = JREFinder.getFinder().getJREs(32);
 					showPrefsQuestionForTracker = !jreDirs.isEmpty();
-				} else if (OSPRuntime.isMac()) {
+				} else if (OSPRuntime.isMac) {
 					showPrefsQuestionForTracker = true;
 				}
 			}
@@ -326,7 +326,7 @@ public class DiagnosticsForXuggle extends Diagnostics {
 		
 		codeBaseJars = getXuggleJarFiles(codeBase);
 		pathEnvironment = OSPRuntime.isWindows() ? "Path" //$NON-NLS-1$
-				: OSPRuntime.isMac() ? "DYLD_LIBRARY_PATH" : "LD_LIBRARY_PATH"; //$NON-NLS-1$ //$NON-NLS-2$
+				: OSPRuntime.isMac ? "DYLD_LIBRARY_PATH" : "LD_LIBRARY_PATH"; //$NON-NLS-1$ //$NON-NLS-2$
 		pathValue = System.getenv(pathEnvironment);
 
 		// return 0 if xuggle classes available

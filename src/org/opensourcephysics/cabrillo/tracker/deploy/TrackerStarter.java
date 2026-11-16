@@ -183,7 +183,7 @@ public class TrackerStarter {
 		logText = ""; //$NON-NLS-1$
 		logMessage("launch initiated by user"); //$NON-NLS-1$
 		
-  	if (OSPRuntime.isMac()) {
+  	if (OSPRuntime.isMac) {
   		// create launchThread to instantiate OSXServices and launch Tracker
 		  launchThread = new Thread(new Runnable() {
 				@Override
@@ -528,7 +528,7 @@ public class TrackerStarter {
 			if (!f.exists() || !f.isDirectory()) {
 				f = new File(trackerHomeDir.getParentFile(), "Xuggle"); //$NON-NLS-1$
 			}
-			if ((!f.exists()||!f.isDirectory()) && OSPRuntime.isMac()) {
+			if ((!f.exists()||!f.isDirectory()) && OSPRuntime.isMac) {
 				f = new File("/usr/local/xuggler"); //$NON-NLS-1$
 			}
 			if (f.exists() && f.isDirectory()) {
@@ -594,7 +594,7 @@ public class TrackerStarter {
 			String jre32path = jre32 == null? null: jre32.getPath();
 			return new String[] {jrepath, jre32path};
 		}
-		else if (OSPRuntime.isMac()) {
+		else if (OSPRuntime.isMac) {
 			File home = new File(trackerHome);
 			String path = home.getParent()+"/runtime"; //$NON-NLS-1$
 			File jre = JREFinder.getFinder().getDefaultJRE(64, path, false, null);
@@ -665,7 +665,7 @@ public class TrackerStarter {
 									JOptionPane.ERROR_MESSAGE);
 				}
 			} else {
-				String jarHome = OSPRuntime.isMac() ? codeBaseDir.getAbsolutePath()
+				String jarHome = OSPRuntime.isMac ? codeBaseDir.getAbsolutePath()
 						: trackerHome;
 				JOptionPane
 						.showMessageDialog(
@@ -798,7 +798,7 @@ public class TrackerStarter {
 			
 			// determine if preferred tracker will use Xuggle 3.4 or Xuggle server
 			String jarName = useDefaultTrackerJar? "tracker.jar": jar;
-			String jarHome = OSPRuntime.isMac() ? codeBaseDir.getAbsolutePath() : trackerHome;
+			String jarHome = OSPRuntime.isMac ? codeBaseDir.getAbsolutePath() : trackerHome;
 			String jarPath = new File(jarHome, jarName).getAbsolutePath();			
 			boolean requestXuggleServer = usesXuggleServer(jarPath);
 			logMessage("preferred xuggle version: "+ (requestXuggleServer? "5.7 server": "3.4")); //$NON-NLS-1$				
@@ -972,8 +972,8 @@ public class TrackerStarter {
 		 * @j2sIgnore
 		 */
 		{
-			String jarHome = OSPRuntime.isMac() ? codeBaseDir.getAbsolutePath() : trackerHome;
-			if (OSPRuntime.isMac()) {
+			String jarHome = OSPRuntime.isMac ? codeBaseDir.getAbsolutePath() : trackerHome;
+			if (OSPRuntime.isMac) {
 				logMessage("Mac OSX: looking for tracker jars in " + jarHome); //$NON-NLS-1$
 			} else if (OSPRuntime.isWindows()) {
 				logMessage("Windows: looking for tracker jars in " + jarHome); //$NON-NLS-1$
@@ -1123,7 +1123,7 @@ public class TrackerStarter {
 		}
 		// code below not functional for dock name in newer MacOS
 		// but may still work for menu listings
-		if (OSPRuntime.isMac()) {
+		if (OSPRuntime.isMac) {
 			cmd.add("-Xdock:name=Tracker"); //$NON-NLS-1$
 		}
 		
@@ -1179,7 +1179,7 @@ public class TrackerStarter {
 //			if (xuggleJar.exists() && new File(xuggleHome).exists()) {
 //
 //				String pathEnvironment = OSPRuntime.isWindows()? "Path":  //$NON-NLS-1$
-//					OSPRuntime.isMac()? "DYLD_LIBRARY_PATH": "LD_LIBRARY_PATH"; //$NON-NLS-1$ //$NON-NLS-2$
+//					OSPRuntime.isMac? "DYLD_LIBRARY_PATH": "LD_LIBRARY_PATH"; //$NON-NLS-1$ //$NON-NLS-2$
 //				
 //				// get current PATH
 //				String pathValue = env.get(pathEnvironment);
@@ -1198,7 +1198,7 @@ public class TrackerStarter {
 			if (xuggleJar.exists() && new File(xuggleHome, subdir).exists()) {
 	
 				String pathEnvironment = OSPRuntime.isWindows()? "Path":  //$NON-NLS-1$
-					OSPRuntime.isMac()? "DYLD_LIBRARY_PATH": "LD_LIBRARY_PATH"; //$NON-NLS-1$ //$NON-NLS-2$
+					OSPRuntime.isMac? "DYLD_LIBRARY_PATH": "LD_LIBRARY_PATH"; //$NON-NLS-1$ //$NON-NLS-2$
 				
 				String xugglePath = xuggleHome+File.separator+subdir;
 				// get current PATH

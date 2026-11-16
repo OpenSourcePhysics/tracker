@@ -785,7 +785,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		});
 		// paste items
 		edit_pasteItem = editMenu.add(actions.get("paste")); //$NON-NLS-1$
-		if (!OSPRuntime.isJS) {
+		/** @j2sIgnore */ {
 			// FireFox must handle CTRL-V specially for JPanel div
 			edit_pasteItem.setAccelerator(KeyStroke.getKeyStroke('V', keyMask));
 		}
@@ -1443,12 +1443,12 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 					return;
 				}
 				if (builder.isVisible()) {
-					if (OSPRuntime.isJS)
-						frame.selectDataWindow(null);
-					else
-						builder.setVisible(false);
-				}
-				else {
+					frame.setToolVisibility(builder, false);
+//					if (OSPRuntime.isJS)
+//						frame.selectDataWindow(null);
+//					else
+//						builder.setVisible(false);
+				} else {
 					TTrack track = p.getSelectedTrack();
 					if (track != null)
 						builder.setSelectedPanel(track.getName());
@@ -1467,10 +1467,11 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		view_dataToolItem.addActionListener((e) -> {
 				DataTool tool = DataTool.getTool(true);
 				if (tool.isVisible()) {
-					if (OSPRuntime.isJS)
-						frame.selectDataWindow(null);
-					else
-						tool.setVisible(false);
+					frame.setToolVisibility(tool, false);
+//					if (OSPRuntime.isJS)
+//						frame.selectDataWindow(null);
+//					else
+//						tool.setVisible(false);
 					return;
 				}
 				// send some data to the tool
@@ -1499,7 +1500,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 					}
 				}
 				tool.setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
-				frame.showDataTool(tool);
+				frame.setToolVisibility(tool, true);
 		});
 		viewMenu.addSeparator();
 		refreshViewMenu(false);
@@ -1648,7 +1649,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 	}
 
 	protected void refreshFileMenu(boolean opening) {
-		
+
 		TrackerPanel p = panel();
 		boolean newtabEnabled = p.isEnabled("file.new"); //$NON-NLS-1$
 		boolean openEnabled = p.isEnabled("file.open"); //$NON-NLS-1$
@@ -1664,13 +1665,10 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		// Keep existing popup components when only labels or enabled states change.
 		// Removing and reattaching submenus during menuSelected invalidates the
 		// SwingJS popup's event targets on subsequent menu openings.
-		int structure = (newtabEnabled ? 1 : 0) | (openEnabled ? 2 : 0)
-				| (closeEnabled ? 4 : 0) | (importEnabled ? 8 : 0)
-				| (exportEnabled ? 16 : 0) | (showLib ? 32 : 0)
-				| (saveEnabled ? 64 : 0) | (saveAsEnabled ? 128 : 0)
-				| (printEnabled ? 256 : 0) | (p.getDataFile() != null ? 512 : 0)
-				| (p.getVideo() != null ? 1024 : 0)
-				| (frame != null && frame.getTabCount() > 1 ? 2048 : 0);
+		int structure = (newtabEnabled ? 1 : 0) | (openEnabled ? 2 : 0) | (closeEnabled ? 4 : 0)
+				| (importEnabled ? 8 : 0) | (exportEnabled ? 16 : 0) | (showLib ? 32 : 0) | (saveEnabled ? 64 : 0)
+				| (saveAsEnabled ? 128 : 0) | (printEnabled ? 256 : 0) | (p.getDataFile() != null ? 512 : 0)
+				| (p.getVideo() != null ? 1024 : 0) | (frame != null && frame.getTabCount() > 1 ? 2048 : 0);
 		if (!opening || structure != fileMenuStructure) {
 			fileMenuStructure = structure;
 			setMenuTainted(MENU_FILE, true);
@@ -1686,12 +1684,15 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 			file_openMenu.removeAll();
 			if (openEnabled) {
 				file_openMenu.add(file_openItem);
-				if (showLib)				
+				if (showLib)
 					file_openMenu.add(file_openBrowserItem);
 				fileMenu.add(file_openMenu);
 			}
-			if (openEnabled && !OSPRuntime.isJS) {
-				fileMenu.add(file_openRecentMenu);
+			/** @j2sIgnore */
+			{
+				if (openEnabled) {
+					fileMenu.add(file_openRecentMenu);
+				}
 			}
 //			fileMenu.addSeparator();
 //			fileMenu.add(file_openBrowserItem);
@@ -1738,11 +1739,11 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 				fileMenu.add(file_printFrameItem);
 			fileMenu.add(file_exitItem);
 		}
-			
+
 		// opening
 		if (opening && isTainted(MENU_FILE)) {
 			// refresh file menu
-			file_newTabItem.setEnabled(newtabEnabled);			
+			file_newTabItem.setEnabled(newtabEnabled);
 			checkShowMenuSep(fileMenu, file_openItem, openEnabled);
 			file_openItem.setEnabled(openEnabled);
 			checkShowMenuSep(fileMenu, file_openBrowserItem, showLib);
@@ -1769,13 +1770,14 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 //			file_saveItem.setText(TrackerRes.getString("TMenuBar.MenuItem.Tab")+"..."); //$NON-NLS-1$
 			// disable export data menu if no tracks to export
 			file_export_dataItem.setEnabled(!p.getExportableTracks().isEmpty());
-			
+
 			FontSizer.setMenuFonts(fileMenu);
 			setMenuTainted(MENU_FILE, false);
 		}
-		if (opening && !OSPRuntime.isJS) {
-			if (frame != null) {
-				//System.out.println("TMenuBar mem test " + OSPRuntime.getMemoryStr()); // TEST_BH
+		/** @j2sIgnore */ {
+			if (opening && frame != null) {
+				// System.out.println("TMenuBar mem test " + OSPRuntime.getMemoryStr()); //
+				// TEST_BH
 				frame.refreshOpenRecentMenu(file_openRecentMenu);
 			}
 		}
@@ -2180,7 +2182,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 //			refreshMatSizes(trackerPanel.getVideo());
 			checkAddMenuSep(editMenu);
 			editMenu.add(edit_languageMenu);
-			if (!OSPRuntime.isJS) {
+			/** @j2sIgnore */ {
 				checkAddMenuSep(editMenu);
 				editMenu.add(edit_configItem);
 			}
@@ -2660,7 +2662,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 
 			// disable newDataTrackPasteItem unless pastable data is on the clipboard
 			track_newDataTrackPasteItem.setEnabled(OSPRuntime.isJS);
-			if (!OSPRuntime.isJS) {
+			/** @j2sIgnore */ {
 				String s = OSPRuntime.paste(null);
 				if (s != null) 
 					track_newDataTrackPasteItem.setEnabled(ParticleDataTrack.getImportableDataName(s) != null);
@@ -3035,9 +3037,10 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		});
 		helpMenu.add(discussionHelpItem);
 		
-
-		if (!OSPRuntime.isJS && Tracker.trackerHome != null && Tracker.readmeAction != null)
-			helpMenu.add(Tracker.readmeAction);
+		/** @j2sIgnore */ {
+			if (Tracker.trackerHome != null && Tracker.readmeAction != null)
+				helpMenu.add(Tracker.readmeAction);
+		}
 
 		// hints item
 		final JMenuItem hintsItem = new JCheckBoxMenuItem(TrackerRes.getString("Tracker.MenuItem.Hints")); //$NON-NLS-1$
@@ -3063,7 +3066,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 				}
 			}
 		});
-		if (!org.opensourcephysics.display.OSPRuntime.isMac()) {
+		if (!org.opensourcephysics.display.OSPRuntime.isMac) {
 			helpMenu.addSeparator();
 			helpMenu.add(hintsItem);
 		}
@@ -3396,8 +3399,12 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 			// special handling for portuguese BR and PT
 			if (co != null && co != "") {
 				lang += " (" + co + ")"; //$NON-NLS-1$ //$NON-NLS-2$
-			} else if (!OSPRuntime.isJS && loc.getLanguage().equals("ko")) {
-				lang = "Korean";// BH characters not working in Java
+			} else {
+				/** @j2sIgnore */ {
+					if (loc.getLanguage().equals("ko")) {
+						lang = "Korean";// BH characters not working in Java
+					}
+				}
 			}
 			JMenuItem item = new JRadioButtonMenuItem(lang);
 			item.setActionCommand(loc.toString());

@@ -1907,7 +1907,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 		if (tab != null) {
 			tab.setWorkingColumns(xColName, yColName);
 		}
-		frame.showDataTool(tool);
+		frame.setToolVisibility(tool, true);
 	}
 
 	public void clearPopup() {

@@ -253,8 +253,12 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 		panel.addDrawable(this);
 		panel.addListeners(panelProps, this);
 		try {
-			if (!OSPRuntime.isJS)
+			/**
+			 * @j2sIgnore
+			 */
+			{
 				robot = new Robot();
+			}
 		} catch (AWTException e) {
 		}
 
@@ -1364,7 +1368,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 	 */
 	protected static boolean isAutoTrackTrigger(InputEvent e) {
 		// meta is command key on Mac
-		return (e.isControlDown() || OSPRuntime.isMac() && e.isMetaDown());
+		return (e.isControlDown() || OSPRuntime.isMac && e.isMetaDown());
 	}
 
 	/**

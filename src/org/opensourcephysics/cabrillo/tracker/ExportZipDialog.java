@@ -2314,7 +2314,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 //			if (!isOpenInTracker)
 				openNewZip(target.getAbsolutePath());
 			// delete temp directory after short delay
-			if (!OSPRuntime.isJS) {
+			/** @j2sIgnore */ {
 				OSPRuntime.trigger(1000, (e) -> {
 					ResourceLoader.deleteFile(new File(getTempDirectory()));
 				});
@@ -2436,29 +2436,37 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 	private boolean addHTMLInfo(String thumbPath, ArrayList<File> zipList) {
 		// see if HTML info resource is defined in htmlField
 		Resource res = ResourceLoader.getResource(htmlField.getText().trim());
-		if (res == null && !OSPRuntime.isJS) {
-			// look for HTML info resource in target directory
-			File[] files = new File(targetDirectory).listFiles();
-			boolean added = false;
-			for (File next : files) {
-				String name = XML.stripExtension(next.getName());
-				String ext = XML.getExtension(next.getName());
-				if ("html".equals(ext) || "htm".equals(ext)) { //$NON-NLS-1$ //$NON-NLS-2$
-					if (name.equals(targetName) || name.equals(targetName + "_info")) { //$NON-NLS-1$
-						// look first in added files
-						for (File file : addedFiles) {
-							added = added || file.getName().equals(next.getName());
-						}
-						if (!added) {
-							// offer to add HTML to zip
-							int response = javax.swing.JOptionPane.showConfirmDialog(frame,
-									TrackerRes.getString("ZipResourceDialog.AddHTMLInfo.Message1") //$NON-NLS-1$
-											+ " \"" + next.getName() + "\"\n" //$NON-NLS-1$ //$NON-NLS-2$
-											+ TrackerRes.getString("ZipResourceDialog.AddHTMLInfo.Message2"), //$NON-NLS-1$
-									TrackerRes.getString("ZipResourceDialog.AddHTMLInfo.Title"), //$NON-NLS-1$
-									javax.swing.JOptionPane.YES_NO_OPTION, javax.swing.JOptionPane.QUESTION_MESSAGE);
-							if (response == javax.swing.JOptionPane.YES_OPTION) {
-								res = ResourceLoader.getResource(next.getAbsolutePath());
+		if (res == null) {
+			/**
+			 * @j2sIgnore
+			 */
+			{
+				// look for HTML info resource in target directory
+				File[] files = new File(targetDirectory).listFiles();
+				boolean added = false;
+				for (File next : files) {
+					String name = XML.stripExtension(next.getName());
+					String ext = XML.getExtension(next.getName());
+					if ("html".equals(ext) || "htm".equals(ext)) { //$NON-NLS-1$ //$NON-NLS-2$
+						if (name.equals(targetName) || name.equals(targetName + "_info")) { //$NON-NLS-1$
+							// look first in added files
+							for (File file : addedFiles) {
+								added = added || file.getName().equals(next.getName());
+							}
+							if (!added) {
+								// offer to add HTML to zip
+								int response = javax.swing.JOptionPane
+										.showConfirmDialog(
+												frame, TrackerRes.getString("ZipResourceDialog.AddHTMLInfo.Message1") //$NON-NLS-1$
+														+ " \"" + next.getName() + "\"\n" //$NON-NLS-1$ //$NON-NLS-2$
+														+ TrackerRes
+																.getString("ZipResourceDialog.AddHTMLInfo.Message2"), //$NON-NLS-1$
+												TrackerRes.getString("ZipResourceDialog.AddHTMLInfo.Title"), //$NON-NLS-1$
+												javax.swing.JOptionPane.YES_NO_OPTION,
+												javax.swing.JOptionPane.QUESTION_MESSAGE);
+								if (response == javax.swing.JOptionPane.YES_OPTION) {
+									res = ResourceLoader.getResource(next.getAbsolutePath());
+								}
 							}
 						}
 					}
@@ -2769,13 +2777,11 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 			String title = titleField.getText().trim();
 			if (!"".equals(title)) {
 				lastTRZ = new File(title);
-			}
-			else {
-				String tabtitle = frame.getTabTitle(frame.getSelectedTab());			
+			} else {
+				String tabtitle = frame.getTabTitle(frame.getSelectedTab());
 				if (!"".equals(tabtitle)) {
 					lastTRZ = new File(tabtitle);
-				}
-				else
+				} else
 					lastTRZ = new File("");
 			}
 		}
@@ -2802,16 +2808,19 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 		// DB Sep 23 2021 now we CAN overwrite TRZ files since not caching streams
 		// check that target is not currently open in Tracker--can't overwrite open TRZ
 		isOpenInTracker = false;
-		if (!OSPRuntime.isJS && chooserFile.exists()) {
-			for (int i = 0; i < frame.getTabCount(); i++) {
-				String path = frame.getTrackerPanelForTab(i).openedFromPath;
-				if (path != null && path.equals(XML.forwardSlash(chooserFile.getPath()))) {
-					isOpenInTracker = true;
+		/** @j2sIgnore */
+		{
+			if (chooserFile.exists()) {
+				for (int i = 0; i < frame.getTabCount(); i++) {
+					String path = frame.getTrackerPanelForTab(i).openedFromPath;
+					if (path != null && path.equals(XML.forwardSlash(chooserFile.getPath()))) {
+						isOpenInTracker = true;
 //					javax.swing.JOptionPane.showMessageDialog(frame,
 //							TrackerRes.getString("ExportZipDialog.Dialog.CannotOverwrite.Message"), //$NON-NLS-1$
 //							TrackerRes.getString("ExportZipDialog.Dialog.CannotOverwrite.Title"), //$NON-NLS-1$
 //							javax.swing.JOptionPane.WARNING_MESSAGE);
 //					return defineTarget();
+					}
 				}
 			}
 		}

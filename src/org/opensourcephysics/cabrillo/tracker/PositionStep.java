@@ -377,13 +377,7 @@ public class PositionStep extends Step {
 		@Override
 		public void showCoordinates(VideoPanel vidPanel) {
 			// put values into pointmass x and y fields
-			TTrack track = getTrack();
-			Point2D p = getWorldPosition(vidPanel);
-			track.xField.setValue(p.getX());
-			track.yField.setValue(p.getY());
-			track.magField.setValue(p.distance(0, 0));
-			double theta = Math.atan2(p.getY(), p.getX());
-			track.angleField.setValue(theta);
+			getTrack().setPositionFieldsIfChanged(getWorldPosition(vidPanel));
 			super.showCoordinates(vidPanel);
 		}
 
