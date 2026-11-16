@@ -1443,12 +1443,12 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 					return;
 				}
 				if (builder.isVisible()) {
-					if (OSPRuntime.isJS)
-						frame.selectDataWindow(null);
-					else
-						builder.setVisible(false);
-				}
-				else {
+					frame.setToolVisibility(builder, false);
+//					if (OSPRuntime.isJS)
+//						frame.selectDataWindow(null);
+//					else
+//						builder.setVisible(false);
+				} else {
 					TTrack track = p.getSelectedTrack();
 					if (track != null)
 						builder.setSelectedPanel(track.getName());
@@ -1467,10 +1467,11 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		view_dataToolItem.addActionListener((e) -> {
 				DataTool tool = DataTool.getTool(true);
 				if (tool.isVisible()) {
-					if (OSPRuntime.isJS)
-						frame.selectDataWindow(null);
-					else
-						tool.setVisible(false);
+					frame.setToolVisibility(tool, false);
+//					if (OSPRuntime.isJS)
+//						frame.selectDataWindow(null);
+//					else
+//						tool.setVisible(false);
 					return;
 				}
 				// send some data to the tool
@@ -1499,7 +1500,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 					}
 				}
 				tool.setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
-				frame.showDataTool(tool);
+				frame.setToolVisibility(tool, true);
 		});
 		viewMenu.addSeparator();
 		refreshViewMenu(false);

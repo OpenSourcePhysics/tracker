@@ -1369,13 +1369,14 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 
 	/** Synchronizes the maximize arrow, tooltip, and overflow item with the frame. */
 	void refreshMaximizeButton(TFrame frame) {
-		maximizeButton.setSelected(frame.maximized);
+		boolean isMaximized = frame.isMaximized();
+		maximizeButton.setSelected(isMaximized);
 		if (OSPRuntime.isJS) {
-			maximizeButton.setIcon(frame.maximized ? TViewChooser.RESTORE_ICON : TViewChooser.MAXIMIZE_ICON);
+			maximizeButton.setIcon(isMaximized ? TViewChooser.RESTORE_ICON : TViewChooser.MAXIMIZE_ICON);
 		}
-		maximizeButton.setToolTipText(TrackerRes.getString(frame.maximized
+		maximizeButton.setToolTipText(TrackerRes.getString(isMaximized
 				? "TFrame.Restore.Tooltip" : "TFrame.Maximize.Tooltip")); //$NON-NLS-1$ //$NON-NLS-2$
-		if (maximizeCheckbox != null) maximizeCheckbox.setSelected(frame.maximized);
+		if (maximizeCheckbox != null) maximizeCheckbox.setSelected(isMaximized);
 	}
 
 	protected void refreshZoomButton() {

@@ -79,17 +79,13 @@ public class TrackDataBuilder extends FunctionTool {
 
 	@Override
 	public void setVisible(boolean visible) {
-		if (visible) {
-			frame.onDataBuilderVisible(this);
-		}
-		super.setVisible(visible);
-		if (visible) {
-			if (OSPRuntime.isJS && isVisible()) {
-				TFrame.fitDataWindow(this);
-				javax.swing.SwingUtilities.invokeLater(() -> frame.keepDataBuilderAboveTracker(this));
+		frame.onDataBuilderVisible(this, visible, new Runnable() {
+
+			@Override
+			public void run() {
+				TrackDataBuilder.super.setVisible(visible);			
 			}
-			frame.refreshDataWindowChecks();
-		}
+		});
 	}
 
 	@Override
