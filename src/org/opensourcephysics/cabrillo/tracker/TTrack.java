@@ -1614,7 +1614,7 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 				((DataFunction) datasets.get(i)).refreshFunctionData();
 			}
 		}
-		DataTool tool = DataTool.getTool(false);
+		DataTool tool = DataTool.getToolIfExists();
 		if (panel != null && tool != null && tool.isVisible() && tool.getSelectedTab() != null
 				&& tool.getSelectedTab().isInterestedIn(datasetManager)) {
 			tool.getSelectedTab().refreshData();

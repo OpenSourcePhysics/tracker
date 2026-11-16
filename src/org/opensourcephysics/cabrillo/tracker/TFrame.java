@@ -693,7 +693,6 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 			TrackerPanel tp = getTrackerPanelForID(panelID);
 			if (doRefresh)
 				tp.refreshTrackBar();
-			// TTrackBar.getTrackbar(trackerPanel).refresh();
 			// DB following line needed to autoload data functions from external files
 			tp.getDataBuilder();
 			tp.changed = false;
@@ -3080,12 +3079,12 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 						// attempt to import data and add tab
 						Data[] data = DataTool.parseData(s, target);
 						if (data != null && data.length > 0) {
-							DataTool tool = DataTool.getTool(true);
+							DataTool dataTool = DataTool.getTool();
 							for (int i = 0; i < data.length; i++) {
-								ArrayList<DataToolTab> tabs = tool.createTabs(data[i]);
+								ArrayList<DataToolTab> tabs = dataTool.createTabs(data[i]);
 								for (int j = 0; j < tabs.size(); j++) {
-									tool.addTab(tabs.get(j));
-									setToolVisibility(tool, true);
+									dataTool.addTab(tabs.get(j));
+									setToolVisibility(dataTool, true);
 									loadFailed = true; // so Tracker will not take focus, datatool stays on top
 								}
 							}
@@ -4106,7 +4105,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 	}
 
 	void showLibraryBrowser(LibraryBrowser browser) {
-		getWindowManager().setDataToolVisibility(null, false);
+		setToolVisibility(null, false);
 		SwingUtilities.invokeLater(() -> {
 			// give the tool a chance to hide
 			browser.setVisible(true);			
@@ -4270,7 +4269,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 					@Override
 					public void run() {
 						getAdaptiveBounds(false, false);
-						DataTool tool = DataTool.getTool(false);
+						DataTool tool = DataTool.getToolIfExists();
 						TrackerPanel panel = getSelectedPanel();
 						if (tool != null && tool.isVisible())
 							fitDataWindow(tool);
@@ -4298,7 +4297,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 				closeLibraryBrowser();
 				setDataWindowListener(selected);
 			}
-			DataTool tool = DataTool.getTool(false);
+			DataTool tool = DataTool.getToolIfExists();
 			if (tool != null && tool != selected && tool.isVisible())
 				tool.setVisible(false);
 			for (int tab = 0; tab < getTabCount(); tab++) {

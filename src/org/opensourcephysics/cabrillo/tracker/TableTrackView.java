@@ -1378,12 +1378,12 @@ public class TableTrackView extends TrackView {
 			next.setXColumnVisible(false);
 
 		}
-		DataTool tool = DataTool.getTool(true);
-		tool.setUseChooser(false);
-		tool.setSaveChangesOnClose(false);
+		DataTool dataTool = DataTool.getTool();
+		dataTool.setUseChooser(false);
+		dataTool.setSaveChangesOnClose(false);
 		DataRefreshTool refresher = DataRefreshTool.getTool(trackDataManager);
-		tool.send(new LocalJob(toSend), refresher);
-		frame.setToolVisibility(tool, true);
+		dataTool.send(new LocalJob(toSend), refresher);
+		frame.setToolVisibility(dataTool, true);
 	}
 
 	protected void tableMousePressed(MouseEvent e) {

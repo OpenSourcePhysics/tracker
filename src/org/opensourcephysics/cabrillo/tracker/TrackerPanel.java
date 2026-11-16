@@ -2242,7 +2242,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		}
 		// refresh DataTool
 		
-		DataTool tool = DataTool.getTool(false);
+		DataTool tool = DataTool.getToolIfExists();
 		if (tool != null && getTFrame() != null && frame.getSelectedPanel() == this) {
 			tool.refreshDecimalSeparators();
 		}
@@ -5421,7 +5421,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			}
 
 			// save DataTool tabs
-			DataTool tool = DataTool.getTool(false);
+			DataTool tool = DataTool.getToolIfExists();
 			if (tool != null) {
 				ArrayList<DataToolTab> tabs = new ArrayList<DataToolTab>();
 				List<DataToolTab> tools = tool.getTabs();
@@ -5508,4 +5508,5 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	public static void main(String[] args) {	
 		Tracker.main(args);
 	}
+
 }
