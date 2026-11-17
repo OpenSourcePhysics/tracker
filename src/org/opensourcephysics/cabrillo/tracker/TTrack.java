@@ -4243,13 +4243,14 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 	 * Could implement this to synchronize NumberField and mark?
 	 * 
 	 * @param tableTrackView 
+	 * @param rowIndex
+	 * @param colIndex
+	 * @param t  independent variable value
+	 * @param v  may be Number or String
 	 * 
-	 * @param i
-	 * @param t (or whatever the independent variable value is)
 	 */
-	public void notifyTableRowValSelected(TableTrackView tableTrackView, int rowIndex, double t) {
-		System.err.println("TTrack.notifyTableRowSelected " + this + " row " + rowIndex + " selected for t=" + t);
-		// TODO Auto-generated method stub
+	public void notifyTableCellSelected(TableTrackView tableTrackView, int rowIndex, int colIndex, double t, Object v) {
+		System.err.println("TTrack.notifyTableRowSelected " + this + " row " + rowIndex + " selected for t=" + t + " v=" + v);
 	}
 
 }
