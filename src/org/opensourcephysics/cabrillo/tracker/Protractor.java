@@ -280,6 +280,16 @@ public class Protractor extends InputTrack {
 	 */
 	@Override
 	public void propertyChange(PropertyChangeEvent e) {
+		if (e.getSource() instanceof NumberField) {
+			NumberField nf = (NumberField)e.getSource();
+			if (nf == angleField)
+				angleField.postActionEvent();
+			else if (nf == xField)
+				xField.postActionEvent();
+			else if (nf == yField)
+				yField.postActionEvent();
+			return;
+		}
 		boolean isSelectedTrack = (tp.getSelectedTrack() == this);
 		switch (e.getPropertyName()) {
 		case TrackerPanel.PROPERTY_TRACKERPANEL_STEPNUMBER:

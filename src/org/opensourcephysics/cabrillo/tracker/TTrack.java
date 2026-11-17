@@ -32,6 +32,7 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
@@ -97,6 +98,7 @@ import org.opensourcephysics.display.TeXParser;
 import org.opensourcephysics.display.TextLine;
 import org.opensourcephysics.media.core.DecimalField;
 import org.opensourcephysics.media.core.ImageCoordSystem;
+import org.opensourcephysics.media.core.IntegerField;
 import org.opensourcephysics.media.core.NumberField;
 import org.opensourcephysics.media.core.TPoint;
 import org.opensourcephysics.media.core.Trackable;
@@ -219,7 +221,7 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 				break;
 			}
 		} else {
-			System.out.println("??? TTRack " + e);
+			System.out.println("??? TTrack " + e);
 		}
 
 	}
@@ -568,7 +570,7 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				if (OSPRuntime.isPopupTrigger(e)) {
-					showFormatPopup((NumberField) e.getSource());
+					showFormatPopup((NumberField) e.getSource(), null, null);
 				}
 			}
 		};
@@ -657,7 +659,7 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 		popup.show(field, 0, angleField.getHeight());
 	}
 
-	protected void showFormatPopup(NumberField field) {
+	protected void showFormatPopup(NumberField field, Component component, Rectangle where) {
 		String[] fieldName = null;
 		boolean hasUnits = false;
 		String name = getNumberFieldName0(field);
@@ -715,7 +717,12 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 		}
 
 		FontSizer.setFonts(popup, FontSizer.getLevel());
-		popup.show(field, 0, field.getHeight());
+		if (component == null) 
+			component = field;
+		if (where != null) {
+			popup.show(component, where.x, where.y + where.height);			
+		}
+		else popup.show(component, 0, component.getHeight());
 	}
 
 	private String getNumberFieldName0(NumberField field) {
@@ -3372,14 +3379,33 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 			}
 		}
 	} // end StepArray class
+	
+	interface hasTrack {
+		
+		public void fireValueChanged();
+		
+		public TTrack getTrack();
+
+	}
 
 	/**
 	 * A NumberField that resizes itself for display on a TTrackBar.
 	 */
-	protected class TrackNumberField extends NumberField {
+	protected class TrackNumberField extends NumberField implements hasTrack {
 
 		TrackNumberField() {
 			super(0);
+		}
+		
+		@Override
+		public void fireValueChanged() {
+			TTrack track = TTrack.this;
+			track.propertyChange(new PropertyChangeEvent(this, "value", null, null));
+		}
+		
+		@Override
+		public TTrack getTrack() {
+			return TTrack.this;
 		}
 
 		@Override
@@ -3395,10 +3421,21 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 	/**
 	 * A DecimalField that resizes itself for display on a TTrackBar.
 	 */
-	protected class TrackDecimalField extends DecimalField {
+	protected class TrackDecimalField extends DecimalField implements hasTrack {
 
 		TrackDecimalField(int places) {
 			super(0, places);
+		}
+
+		@Override
+		public void fireValueChanged() {
+			TTrack track = TTrack.this;
+			track.propertyChange(new PropertyChangeEvent(this, "value", null, null));
+		}
+		
+		@Override
+		public TTrack getTrack() {
+			return TTrack.this;
 		}
 
 		@Override
@@ -3412,6 +3449,40 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 		}
 
 	}
+	
+	/**
+	 * A DecimalField that resizes itself for display on a TTrackBar.
+	 */
+	protected class TrackIntegerField extends IntegerField implements hasTrack {
+
+		TrackIntegerField(int columns) {
+			super(columns);
+		}
+
+		@Override
+		public void fireValueChanged() {
+			TTrack track = TTrack.this;
+			track.propertyChange(new PropertyChangeEvent(this, "value", null, null));
+		}
+		
+		@Override
+		public TTrack getTrack() {
+			return TTrack.this;
+		}
+
+		@Override
+		public void setText(String t) {
+			super.setText(t);
+			if (tp != null) {
+				TTrackBar tbar = tp.getTrackBar(false);
+				if (tbar != null)
+					tbar.resizeField(this);
+			}
+		}
+
+	}
+
+
 
 	/**
 	 * A DrawingPanel that mimics the look of a JLabel but can display subscripts.

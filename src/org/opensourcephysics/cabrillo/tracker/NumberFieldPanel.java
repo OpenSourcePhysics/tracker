@@ -15,8 +15,8 @@ import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import javax.swing.AbstractCellEditor;
 import javax.swing.BorderFactory;
+import javax.swing.DefaultCellEditor;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
@@ -24,26 +24,26 @@ import javax.swing.JLabel;
 import javax.swing.JLayeredPane;
 import javax.swing.JPanel;
 import javax.swing.JTable;
+import javax.swing.JTextField;
+import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.border.Border;
 import javax.swing.table.AbstractTableModel;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
-
 import org.opensourcephysics.cabrillo.tracker.TTrack.TextLineLabel;
+import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.display.TeXParser;
 import org.opensourcephysics.media.core.NumberField;
-import org.opensourcephysics.tools.FontSizer;
 
 public class NumberFieldPanel extends JPanel {
 	
 	private static HashMap<TrackerPanel, NumberFieldPanel[]> npPanelArrays;
-	private static Border emptyBorder;
 	static {
 		npPanelArrays = new HashMap<TrackerPanel, NumberFieldPanel[]>();
-		emptyBorder = BorderFactory.createEmptyBorder(0, 4, 0, 0);
 	}
 	
 	public static NumberFieldPanel[] getNFPanelArray(TrackerPanel tp) {
@@ -57,10 +57,10 @@ public class NumberFieldPanel extends JPanel {
 	}
 	
 	private ArrayList<Object[]> rowObjects = new ArrayList<Object[]>();
-	private int trackerPanelID; // trackerpanel
+	private int trackerPanelID;
 	private TFrame frame;
 	private NFTableModel model;
-	private NFTable table;
+	private JTable table;
 	private Component positionComp;
 	private JLabel sizingLabel = new JLabel();
 	
@@ -82,7 +82,10 @@ public class NumberFieldPanel extends JPanel {
 	public void createGUI() {
 		model = new NFTableModel();
 		table = new NFTable(model);
+    table.putClientProperty("terminateEditOnFocusLost", Boolean.TRUE);
 		table.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+		table.setSelectionBackground(table.getBackground());
+		table.setSelectionForeground(table.getForeground());
 		add(table, BorderLayout.CENTER);
 		
 		table.addMouseListener(new MouseAdapter() {
@@ -90,32 +93,18 @@ public class NumberFieldPanel extends JPanel {
 	    public void mouseClicked(MouseEvent e) {
         int row = table.rowAtPoint(e.getPoint());
         int col = table.columnAtPoint(e.getPoint());
-        if (row >= 0 && col == 1) {
-            if (SwingUtilities.isRightMouseButton(e) || e.isPopupTrigger()) {
-            	Object obj = rowObjects.get(row)[1];
-            	NumberField field = obj instanceof NumberField? (NumberField)obj: null;
-              boolean startedEditing = table.editCellAt(row, col, e);
-              
-              if (startedEditing && field != null) {
-                // translate the table coords to field coords
-                Point editorPoint = SwingUtilities.convertPoint(table, e.getPoint(), field);                 
-                // create a cloned MouseEvent
-                MouseEvent newEvent = new MouseEvent(
-                		field,
-                    e.getID(),
-                    e.getWhen(),
-                    e.getModifiersEx(),
-                    editorPoint.x,
-                    editorPoint.y,
-                    e.getClickCount(),
-                    true,
-                    e.getButton()
-                );
-                field.dispatchEvent(newEvent);
-              }
-            }
+				if (OSPRuntime.isPopupTrigger(e) && col == 1) {
+        	if (rowObjects.get(row)[col] instanceof NumberField) {
+	        	NumberField field = (NumberField)rowObjects.get(row)[1];
+	        	if (field instanceof TTrack.hasTrack) {
+	        		TTrack.hasTrack tnf = (TTrack.hasTrack)field;
+	        		TTrack track = tnf.getTrack();        		
+	        		Rectangle cellRect = table.getCellRect(row, col, true);
+	        		track.showFormatPopup(field, table, cellRect);
+	        	}
         	}
-  			}
+				}				
+  		}
 		});
 	}
 
@@ -134,13 +123,13 @@ public class NumberFieldPanel extends JPanel {
 		return frame.getTrackerPanelForID(trackerPanelID);
 	}
 	
-	public void clear() {
+	protected void clear() {
 		rowObjects.clear();
 		setPositionComponent(null);
 		model.fireTableStructureChanged();
 	}
 	
-	public void setUp(boolean show) {
+	protected void setUp(boolean show) {
 		if (show && getParent() == null) {			
 			frame.getLayeredPane().add(this, JLayeredPane.PALETTE_LAYER);
 		} else if (!show) {
@@ -252,64 +241,6 @@ public class NumberFieldPanel extends JPanel {
   	}
   }
  
-
-	   
-	class NFTableCell extends AbstractCellEditor implements TableCellRenderer, TableCellEditor {
-
-		@Override
-	  public Component getTableCellRendererComponent(JTable table, Object value, 
-	          boolean isSelected, boolean hasFocus, int row, int column) {
-	  	if (column == 1) {
-	  		return getTableCellEditorComponent(table, value, 
-	          isSelected, row, column);
-	  	}
-	  	JComponent label = (JComponent)rowObjects.get(row)[0];
-			FontSizer.setFonts(label, FontSizer.getLevel());
-			return label;
-	  }
-
-	  @Override
-	  public Component getTableCellEditorComponent(JTable table, Object value, 
-	          boolean isSelected, int row, int column) {
-	  	if (column == 1) {
-	  		JComponent comp = (JComponent)rowObjects.get(row)[1];
-	  		if (comp instanceof NumberField) {
-					((NumberField)comp).setBorder(emptyBorder);
-	  		}
-	  		else if (comp instanceof JCheckBox) {
-	  			((JCheckBox)comp).setText(null);
-	  		}
-	  		else {
-	  			for (int i = 0; i < comp.getComponentCount(); i++) {
-	  				Component c = comp.getComponent(i);
-	  				if (c instanceof JCheckBox) {
-			  			((JCheckBox)c).setText(null);	  					
-	  				}
-	  			}
-	  		}
-				FontSizer.setFonts(comp, FontSizer.getLevel());
-  			model.fireTableRowsInserted(model.getRowCount()==0? -1: 0, model.getRowCount() - 1);
-  			return comp;
-	  	}
-	  	return null;
-	  }
-
-	  @Override
-	  public Object getCellEditorValue() {
-//	  	if (editingField != null) {
-//	  		double val = editingField.getValue();
-//				editingField = null;
-//	      return val;
-//	  	}
-//	  	if (editingCheckbox != null) {
-//	  		boolean checked = editingCheckbox.isSelected();
-//				editingCheckbox = null;
-//	      return checked;
-//	  	}
-	  	return null;
-	  }
-	}
-
   class NFTableModel extends AbstractTableModel {
 
     private final String[] columnNames = {"Name", "Value"};
@@ -325,58 +256,77 @@ public class NumberFieldPanel extends JPanel {
     	return columnNames[col]; 
     }
 
-//    @Override
-//    public Class<?> getColumnClass(int col) { 
-//    	return col==1? double.class: String.class; 
-//    }
-
     @Override
     public Object getValueAt(int row, int col) {
-      return (col == 0) ? getName(row) : 
-      	rowObjects.get(row)[1] instanceof NumberField? getValue(row) :
+    	if (col < 0) return null;
+      return (col == 0) ? getLabelText(row) : 
+      	rowObjects.get(row)[1] instanceof NumberField? getFieldText(row) :
       		rowObjects.get(row)[1] instanceof JCheckBox? isChecked(row): null;
     }
 
     @Override
     public boolean isCellEditable(int row, int col) {
-        return col == 1; // only the value column is editable
+    	if (col == 1) {
+      	if (rowObjects.get(row)[1] instanceof NumberField) {
+      		NumberField nf = (NumberField)rowObjects.get(row)[1];
+      		return nf.isEnabled();
+      	}    		
+    	}
+      return col == 1; // only the value column is editable
     }
 
     @Override
     public void setValueAt(Object value, int row, int col) {
         if (col == 1) {
-//        	if (rowObjects.get(row)[1] instanceof NumberField) {
-//	        	NumberField field = (NumberField)rowObjects.get(row)[1];
-//	        	field.setValue((double)value);
-//        	}
-//        	else if (rowObjects.get(row)[1] instanceof JCheckBox) {
-//        		JCheckBox checkbox = (JCheckBox)rowObjects.get(row)[1];
-//        		checkbox.setSelected((boolean) value);
-//        	}
+        	if (rowObjects.get(row)[1] instanceof NumberField) {
+	        	NumberField field = (NumberField)rowObjects.get(row)[1];
+	        	// set yellow background to take action
+	        	field.setBackground(Color.YELLOW);
+	        	field.setValue((double)value);
+	        	if (field instanceof TTrack.hasTrack) {
+	        		((TTrack.hasTrack)field).fireValueChanged();
+	        	}
+	        	field.setBackground(Color.WHITE);
+        	}
+        	else if (rowObjects.get(row)[1] instanceof JCheckBox) {
+        		JCheckBox checkbox = (JCheckBox)rowObjects.get(row)[1];
+        		if (checkbox.isSelected() != (Boolean) value)
+        			checkbox.doClick(0);
+        	}
           fireTableCellUpdated(row, col);
         }
     }
     
-    private Object getName(int row) {
-    	JComponent label = (JComponent)rowObjects.get(row)[0];
-    	return label;
+    private Object getLabelText(int row) {
+    	TextLineLabel label = (TextLineLabel)rowObjects.get(row)[0];
+    	String text = label.getText();    
+    	// deal with subscripts
+    	if (text.contains("_{")) {
+				return "<html><b>"+TeXParser.removeSubscript(text)
+					+"<sub style=\"font-size: 80%;\">"
+					+TeXParser.getSubscript(text)
+					+ "</b></sub></html>";
+    	}
+    	return "<html><b>"+text + "</b></html>";
+    	
     }
     
-    private double getValue(int row) {
+    private String getFieldText(int row) {
     	NumberField field = (NumberField)rowObjects.get(row)[1];
-	    return field.getValue();
+	    return field.getText();
     }
 
     private boolean isChecked(int row) {
-    	JCheckBox field = (JCheckBox)rowObjects.get(row)[1];
-	    return field.isSelected();
+    	JCheckBox box = (JCheckBox)rowObjects.get(row)[1];
+	    return box.isSelected();
     }
 
   }
   
   class NFTable extends JTable {
   	
-	   private final NFTableCell nfCell = new NFTableCell();
+	   private final NFCellEditor nfCellEditor = new NFCellEditor();
+	   private final NFCellRenderer nfCellRenderer = new NFCellRenderer();
 	   
 	   public NFTable(NFTableModel model) {
 	      super(model);
@@ -384,14 +334,105 @@ public class NumberFieldPanel extends JPanel {
 	
 	   @Override
 	   public TableCellEditor getCellEditor(int row, int column) {
-	       return nfCell;
+     	 if (column==1 && rowObjects.get(row)[1] instanceof JCheckBox) {
+    		 return table.getDefaultEditor(Boolean.class);
+    	 }    		
+	     return nfCellEditor;
 	   }
 	   
 	   @Override
 		 public TableCellRenderer getCellRenderer(int row, int column) {
-		     return nfCell;   	
+       if (column==1 && rowObjects.get(row)[1] instanceof JCheckBox) {
+      	 return table.getDefaultRenderer(Boolean.class);
+       }    		
+       else if (column==1 && rowObjects.get(row)[1] instanceof NumberField) {
+      		NumberField nf = (NumberField)rowObjects.get(row)[1];
+      		nfCellRenderer.setForeground(nf.isEnabled()? Color.BLACK: Color.GRAY);
+      	  return nfCellRenderer;
+       }    		
+	  	 
+	     TableCellRenderer renderer = super.getCellRenderer(row, column);
+	     if (renderer instanceof DefaultTableCellRenderer) {
+	    	 ((DefaultTableCellRenderer)renderer).setHorizontalAlignment(
+	    			 column==0? SwingConstants.CENTER: SwingConstants.LEFT);
+	     }
+	     return renderer;
 		 }
    
+	   @Override
+	   public void changeSelection(int row, int column, boolean toggle, boolean extend) {
+        // block selection on non-editable cells
+        if (!isCellEditable(row, column)) {
+            return;
+        }
+        super.changeSelection(row, column, toggle, extend);
+	   }
 	}
-	
+  
+  
+  /**
+   * An editor for the NumberFields.
+   */
+  class NFCellEditor extends DefaultCellEditor {
+
+    private final JTextField textField;
+    private NumberField nf;
+    private Color textColor;
+
+    public NFCellEditor() {
+        super(new JTextField());
+        textField = (JTextField) getComponent();
+        textField.setBorder(BorderFactory.createLineBorder(new Color(0, 120, 215), 2));
+        textColor = textField.getForeground();
+         // single-click activation
+        setClickCountToStart(1);
+    }
+
+    @Override
+    public Component getTableCellEditorComponent(JTable table, Object value,
+                                                 boolean isSelected, int row, int column) {
+	  	if (column == 1) {
+	  		JComponent comp = (JComponent)rowObjects.get(row)[1];
+	  		if (comp instanceof NumberField) {
+	  			nf = (NumberField)comp;
+	  			String text = nf.getText();
+          if (nf.getUnits() != null && text.endsWith(nf.getUnits())) {
+            text = text.substring(0, text.length() - nf.getUnits().length()).trim();
+          }
+          textField.setText(text);
+          textField.setForeground(nf.isEnabled()? textColor: Color.GRAY);
+//	          textField.selectAll(); // highlight the number so typing replaces it immediately
+          return textField;
+	  		}
+	  	}
+      textField.setText(null);
+      return textField;
+    }
+
+    // called when the user finishes editing
+    @Override
+    public Object getCellEditorValue() {
+    	if (nf != null) {
+    		// the NumberField itself does the parsing!
+    		return nf.getValue(textField.getText());
+    	}
+    	return null;
+    }
+  }
+
+  class NFCellRenderer extends DefaultTableCellRenderer {
+    private final Border padding = BorderFactory.createEmptyBorder(0, 2, 0, 0);
+
+    @Override
+    public Component getTableCellRendererComponent(JTable table, Object value,
+            boolean isSelected, boolean hasFocus, int row, int column) {
+        super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+        
+        // add padding
+        setBorder(BorderFactory.createCompoundBorder(getBorder(), padding));
+        return this;
+    }
+  };	
 }
+
+

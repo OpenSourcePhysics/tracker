@@ -161,7 +161,7 @@ public class LineProfile extends TTrack implements MarkingRequired {
 		spreadLabel = new JLabel();
 		Border empty = BorderFactory.createEmptyBorder(0, 4, 0, 2);
 		spreadLabel.setBorder(empty);
-		spreadField = new IntegerField(3);
+		spreadField = new TrackIntegerField(3);
 		spreadField.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -832,6 +832,12 @@ public class LineProfile extends TTrack implements MarkingRequired {
 	 */
 	@Override
 	public void propertyChange(PropertyChangeEvent e) {
+		if (e.getSource() instanceof NumberField) {
+			NumberField nf = (NumberField)e.getSource();
+			if (nf == spreadField)
+				spreadField.postActionEvent();
+			return;
+		}
 		if (tp != null) {
 			switch (e.getPropertyName()) {
 			case TrackerPanel.PROPERTY_TRACKERPANEL_STEPNUMBER:
