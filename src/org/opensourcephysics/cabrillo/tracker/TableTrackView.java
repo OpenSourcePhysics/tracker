@@ -301,11 +301,15 @@ public class TableTrackView extends TrackView {
 			@Override
 			public void valueChanged(ListSelectionEvent e) {
 				selectedIndepVarValues.clear();
+				double val = Double.NaN;
 				int[] rows = dataTable.getSelectedRows(); // selected view rows
 				for (int i = 0; i < rows.length; i++) {
-					double val = getIndepVarValueAtRow(rows[i]);
+					val = getIndepVarValueAtRow(rows[i]);
 					if (!Double.isNaN(val))
 						selectedIndepVarValues.add(val);
+				}
+				if (rows.length == 1 && !Double.isNaN(val)) {
+					track.notifyTableRowValSelected(TableTrackView.this, rows[0], val);
 				}
 			}
 
