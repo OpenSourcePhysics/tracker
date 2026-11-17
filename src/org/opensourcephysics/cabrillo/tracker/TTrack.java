@@ -4250,7 +4250,9 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 	 * 
 	 */
 	public void notifyTableCellSelected(TableTrackView tableTrackView, int rowIndex, int colIndex, double t, Object v) {
-		System.err.println("TTrack.notifyTableRowSelected " + this + " row " + rowIndex + " selected for t=" + t + " v=" + v);
+		System.err.println("TTrack.notifyTableRowSelected " + this 
+				+ " row " + rowIndex + " col " + colIndex 
+				+ " selected for t=" + t + " v=" + v);
 	}
 
 }
