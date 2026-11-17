@@ -315,8 +315,8 @@ public class TableTrackView extends TrackView {
 				}
 				int[] cols = dataTable.getSelectedColumns();
 				double t = val;
-				Object v = dataTable.getValueAt(rows[0], cols[0]);
 				if (rows.length == 1 && cols.length == 1 && !Double.isNaN(val)) {
+					Object v = dataTable.getValueAt(rows[0], cols[0]);
 					SwingUtilities.invokeLater(() -> {
 						track.notifyTableCellSelected(TableTrackView.this, rows[0], cols[0], t, v);						
 					});
