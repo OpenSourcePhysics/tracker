@@ -250,13 +250,13 @@ public class RGBRegion extends TTrack implements MarkingRequired {
 			}			
 		};
 		
-		widthField = new IntegerField(2);
+		widthField = new TrackIntegerField(2);
 		widthField.setMinValue(1);
 		widthField.addFocusListener(sizeFocusListener);
 		widthField.addActionListener(sizeActionListener);
 		widthField.addMouseListener(formatMouseListener);
 		
-		heightField = new IntegerField(2);
+		heightField = new TrackIntegerField(2);
 		heightField.setMinValue(1);
 		heightField.addFocusListener(sizeFocusListener);
 		heightField.addActionListener(sizeActionListener);
@@ -1094,6 +1094,14 @@ public class RGBRegion extends TTrack implements MarkingRequired {
 	 */
 	@Override
 	public void propertyChange(PropertyChangeEvent e) {
+		if (e.getSource() instanceof NumberField) {
+			NumberField nf = (NumberField)e.getSource();
+			if (nf == xField || nf == yField)
+				setPositionFromFields();
+			else if (nf == widthField || nf == heightField)
+				widthField.postActionEvent();
+			return;
+		}
 		if (tp != null) {
 			if (maxEdgeLength == defaultMaxEdgeLength && tp.getVideo() != null) {
 				setMaxEdgeLength(tp.getVideo());

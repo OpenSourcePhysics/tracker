@@ -277,14 +277,14 @@ public class CircleFitter extends TTrack {
 		};
 		xDataPointLabel = new JLabel();
 		xDataPointLabel.setBorder(tLabel.getBorder());
-		xDataField = new NumberField(5);
+		xDataField = new TrackNumberField();
 		xDataField.setBorder(fieldBorder);
 		xDataField.addActionListener(dataPointAction);
 		xDataField.addFocusListener(dataFieldFocusListener);
 		xDataField.addMouseListener(formatMouseListener);
 		yDataPointLabel = new JLabel();
 		yDataPointLabel.setBorder(tLabel.getBorder());
-		yDataField = new NumberField(5);
+		yDataField = new TrackNumberField();
 		yDataField.setBorder(fieldBorder);
 		yDataField.addActionListener(dataPointAction);
 		yDataField.addFocusListener(dataFieldFocusListener);
@@ -519,6 +519,14 @@ public class CircleFitter extends TTrack {
 
 	@Override
 	public void propertyChange(PropertyChangeEvent e) {
+		if (e.getSource() instanceof NumberField) {
+			NumberField nf = (NumberField)e.getSource();
+			if (nf == xDataField)
+				xDataField.postActionEvent();
+			else if (nf == yDataField)
+				yDataField.postActionEvent();
+			return;
+		}
 		// events are via TrackerPanel
 		boolean isSelectedTrack = (tp.getSelectedTrack() == this);
 		switch (e.getPropertyName()) {
