@@ -24,7 +24,7 @@
 	var SCREEN_COUNTDOWN_SECONDS = 4;
 	var JPEG_QUALITY = 0.92;
 	var state = {
-		format: "images",
+		format: "mp4",
 		recorder: null,
 		recorderStream: null,
 		recordingResult: null,
@@ -96,6 +96,7 @@
 		var hasStream = !!state.stream;
 		var isBusy = state.capturing || state.countingDown || state.importing;
 		element("tracker-mp4-fps").disabled = isBusy;
+		element("tracker-mp4-jpeg-resolution").disabled = isBusy || !element("tracker-format-images").checked;
 		document.querySelectorAll('input[name="tracker-capture-format"]').forEach(function (input) {
 			input.disabled = isBusy;
 		});
@@ -440,12 +441,15 @@
 			var sourceY = bounds.ymin;
 			var sourceWidth = bounds.xmax - bounds.xmin;
 			var sourceHeight = bounds.ymax - bounds.ymin;
-			if (canvas.width !== sourceWidth) canvas.width = sourceWidth;
-			if (canvas.height !== sourceHeight) canvas.height = sourceHeight;
+			var scale = state.format === "images" ? Number(element("tracker-mp4-jpeg-resolution").value) : 1;
+			var width = Math.max(1, Math.round(sourceWidth * scale));
+			var height = Math.max(1, Math.round(sourceHeight * scale));
+			if (canvas.width !== width) canvas.width = width;
+			if (canvas.height !== height) canvas.height = height;
 			canvas.getContext("2d", { alpha: false }).drawImage(
 				preview,
 				sourceX, sourceY, sourceWidth, sourceHeight,
-				0, 0, sourceWidth, sourceHeight
+				0, 0, width, height
 			);
 			if (state.format === "mp4") {
 				setStatus("Recording MP4: " + ((performance.now() - state.captureStartedAt) / 1000).toFixed(1) + " seconds");
@@ -842,7 +846,10 @@
 			'<button id="tracker-mp4-cancel" type="button">Cancel</button>' +
 			'<label title="This is the target rate, not a guarantee—browser performance and source updates can reduce the actual rate. MP4 retains its encoded timing; image stacks use an estimated rate based on captured frames and elapsed time.">Frames/sec <select id="tracker-mp4-fps" title="This is the target rate, not a guarantee—browser performance and source updates can reduce the actual rate. MP4 retains its encoded timing; image stacks use an estimated rate based on captured frames and elapsed time."><option>5</option><option selected>10</option><option>15</option><option>30</option></select></label>' +
 			'</div><div class="tracker-mp4-controls">' +
-			'<span role="radiogroup" aria-label="Video format"><label><input type="radio" name="tracker-capture-format" id="tracker-format-images" value="images" checked> Images</label> <label><input type="radio" name="tracker-capture-format" id="tracker-format-mp4" value="mp4"> MP4</label></span>' +
+			'<span role="radiogroup" aria-label="Video format"><label><input type="radio" name="tracker-capture-format" id="tracker-format-images" value="images"> Images</label> <label><input type="radio" name="tracker-capture-format" id="tracker-format-mp4" value="mp4" checked> MP4</label></span>' +
+			'<label>JPEG resolution <select id="tracker-mp4-jpeg-resolution" disabled>' +
+			'<option value="1" selected>Full size</option><option value="0.75">75%</option>' +
+			'<option value="0.5">50%</option><option value="0.25">25%</option></select></label>' +
 			'<label><input id="tracker-mp4-crop-toggle" type="checkbox" disabled> Capture region</label>' +
 			'</div><div class="tracker-mp4-coordinates" aria-label="Capture coordinates">' +
 			'<div class="tracker-mp4-controls tracker-mp4-coordinates-heading">' +
@@ -854,6 +861,9 @@
 			'<label>Y max <input id="tracker-mp4-ymax" type="number" step="1" disabled></label>' +
 			'</div><p id="tracker-mp4-status" role="status" aria-live="polite"></p></div></div></div></div>';
 		element("tracker-mp4-host").appendChild(dialog);
+		dialog.querySelectorAll('input[name="tracker-capture-format"]').forEach(function (input) {
+			input.addEventListener("change", setControls);
+		});
 
 		["camera", "screen"].forEach(function (source) {
 			element("tracker-mp4-source-" + source).addEventListener("change", function (event) {
