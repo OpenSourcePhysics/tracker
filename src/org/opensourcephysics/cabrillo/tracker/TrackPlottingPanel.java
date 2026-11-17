@@ -1777,10 +1777,10 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 	}
 
 	public void showDataTool() {
-		DataTool tool = DataTool.getTool(true);
-		DataToolTab tab = tool.getTab(datasetManager);
-		tool.setUseChooser(false);
-		tool.setSaveChangesOnClose(false);
+		DataTool dataTool = DataTool.getTool();
+		DataToolTab tab = dataTool.getTab(datasetManager);
+		dataTool.setUseChooser(false);
+		dataTool.setSaveChangesOnClose(false);
 		DatasetManager toSend = new DatasetManager();
 		DataRefreshTool refresher = DataRefreshTool.getTool(datasetManager);
 		toSend.setID(datasetManager.getID());
@@ -1902,12 +1902,12 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 			}
 		}
 		// get data tool and send it the job
-		tool.send(new LocalJob(toSend), refresher);
-		tab = tool.getTab(toSend);
+		dataTool.send(new LocalJob(toSend), refresher);
+		tab = dataTool.getTab(toSend);
 		if (tab != null) {
 			tab.setWorkingColumns(xColName, yColName);
 		}
-		frame.setToolVisibility(tool, true);
+		frame.setToolVisibility(dataTool, true);
 	}
 
 	public void clearPopup() {

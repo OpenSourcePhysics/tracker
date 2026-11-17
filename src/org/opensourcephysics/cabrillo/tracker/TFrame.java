@@ -93,6 +93,7 @@ import javax.swing.JTextField;
 import javax.swing.JTextPane;
 import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
+import javax.swing.MenuSelectionManager;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
@@ -280,6 +281,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 	public static boolean haveExportDialog;
 	public static boolean haveThumbnailDialog;
 
+	private static boolean allowOnlyOneTool;
+
 	// instance fields
 
 	private Tracker tracker;
@@ -411,7 +414,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 		setLocation(bounds.x, bounds.y);
 		Rectangle rect = getBounds();
 		isPortraitOrientation = rect.height > rect.width;
-
+		allowOnlyOneTool = OSPRuntime.isJS;
 		// set transfer handler on tabbedPane
 		fileDropHandler = new FileDropHandler(this);
 		// set transfer handler for CTRL-V paste
@@ -693,7 +696,6 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 			TrackerPanel tp = getTrackerPanelForID(panelID);
 			if (doRefresh)
 				tp.refreshTrackBar();
-			// TTrackBar.getTrackbar(trackerPanel).refresh();
 			// DB following line needed to autoload data functions from external files
 			tp.getDataBuilder();
 			tp.changed = false;
@@ -3080,12 +3082,12 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 						// attempt to import data and add tab
 						Data[] data = DataTool.parseData(s, target);
 						if (data != null && data.length > 0) {
-							DataTool tool = DataTool.getTool(true);
+							DataTool dataTool = DataTool.getTool();
 							for (int i = 0; i < data.length; i++) {
-								ArrayList<DataToolTab> tabs = tool.createTabs(data[i]);
+								ArrayList<DataToolTab> tabs = dataTool.createTabs(data[i]);
 								for (int j = 0; j < tabs.size(); j++) {
-									tool.addTab(tabs.get(j));
-									setToolVisibility(tool, true);
+									dataTool.addTab(tabs.get(j));
+									setToolVisibility(dataTool, true);
 									loadFailed = true; // so Tracker will not take focus, datatool stays on top
 								}
 							}
@@ -3506,8 +3508,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 		super.setJMenuBar(OSPRuntime.isMobile() && !empty ? null : bar);
 		if (bar != null) {
 			bar.setEnabled(frameBlocker == null);
-			if (OSPRuntime.isJS && getJMenuBar() == bar)
-				AIPatch.installWindowDrag(this, bar);
+//			if (OSPRuntime.isJS && getJMenuBar() == bar)
+//				AIPatch.installWindowDrag(this, bar);
 		}
 		currentMenuBar = (bar == defaultMenuBar ? null : (TMenuBar) bar);
 		if (currentMenuBar != null)
@@ -4106,7 +4108,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 	}
 
 	void showLibraryBrowser(LibraryBrowser browser) {
-		getWindowManager().setDataToolVisibility(null, false);
+		setToolVisibility(null, false);
 		SwingUtilities.invokeLater(() -> {
 			// give the tool a chance to hide
 			browser.setVisible(true);			
@@ -4135,12 +4137,14 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 
 		private Dimension lastSize;
 		private Rectangle prevFrameSize;
-		private Window activeDataWindow;
+//		private Window activeDataWindow;
 		/**
 		 * current frame size if maximized; null otherwise
 		 */
 		private Dimension maximizedFrameSize;
-
+		
+		protected AdaptiveWindowManager() {
+		}
 		/**
 		 * state of frame maximization
 		 */
@@ -4149,18 +4153,6 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 		public boolean isMaximized() {
 			return maximized;
 		}
-
-		private ComponentAdapter dataWindowVisibility = new ComponentAdapter() {
-			@Override
-			public void componentHidden(ComponentEvent e) {
-				// A hide event from switching tools can arrive after the new window opens.
-				if (OSPRuntime.isJS) {
-					jsFinishDataWindowClose(e.getComponent(), activeDataWindow);
-					return;
-				}
-				refreshDataWindowChecks();
-			}
-		};
 
 		private void refreshDataWindowChecks() {
 			if (currentMenuBar != null)
@@ -4178,10 +4170,10 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 
 		private void setDataToolVisibility(Window tool, boolean toolVisible) {
 			
-			if (OSPRuntime.isJS) {
-				jsSelectDataWindow(toolVisible ? tool : null);
+			if (allowOnlyOneTool) {
+				selectDataWindow(toolVisible ? tool : null);
 			} else if (toolVisible) {
-				setDataWindowListener(tool);				
+				//setDataWindowListener(tool);				
 			} else if (tool != null) {
 				tool.setVisible(false);
 			}
@@ -4270,7 +4262,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 					@Override
 					public void run() {
 						getAdaptiveBounds(false, false);
-						DataTool tool = DataTool.getTool(false);
+						DataTool tool = DataTool.getToolIfExists();
 						TrackerPanel panel = getSelectedPanel();
 						if (tool != null && tool.isVisible())
 							fitDataWindow(tool);
@@ -4290,15 +4282,15 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 			return rect;
 		}
 
-		private void jsSelectDataWindow(Window selected) {
-			if (activeDataWindow != selected)
-				stopDataBuilderStacking();
-			activeDataWindow = selected;
+		private void selectDataWindow(Window selected) {
+//			if (activeDataWindow != selected)
+//				stopDataBuilderStacking();
+//			activeDataWindow = selected;
 			if (selected != null) {
 				closeLibraryBrowser();
-				setDataWindowListener(selected);
+//				setDataWindowListener(selected);
 			}
-			DataTool tool = DataTool.getTool(false);
+			DataTool tool = DataTool.getToolIfExists();
 			if (tool != null && tool != selected && tool.isVisible())
 				tool.setVisible(false);
 			for (int tab = 0; tab < getTabCount(); tab++) {
@@ -4328,100 +4320,115 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 				window.setBounds(x, y, width, height);
 				window.validate();
 			}
-			window.toFront();
-		}
-
-		private void setDataWindowListener(Window window) {
-			window.removeComponentListener(dataWindowVisibility);
-			window.addComponentListener(dataWindowVisibility);
-		}
-
-		private void stopDataBuilderStacking() {
-			// ??
-		}
-
-		private void jsFinishDataWindowClose(Component c, Window closedWindow) {
-			if (c == activeDataWindow && !activeDataWindow.isVisible()) {
-				/**
-				 * @j2sNative var ui = closedWindow.秘getUI$(), node = ui.outerNode ||
-				 *            ui.getDOMNode$(); if (node) { if (node.contains(J2S._mouseOwner)
-				 *            || node.contains(J2S._mouseTarget)) J2S.setMouseOwner(null); var
-				 *            owner = J2S._dmouseOwner; if (owner && node.contains(owner)) {
-				 *            owner.isDragging = false; J2S._dmouseOwner = J2S._dmouseDrag =
-				 *            J2S._dmouseUp = null; } }
-				 */
-			}
-			jsSelectDataWindow(null);
-			SwingUtilities.invokeLater(() -> {
-				if (activeDataWindow != null || !isShowing())
-					return;
-				javax.swing.MenuSelectionManager.defaultManager().clearSelectedPath();
-				invalidate();
-				validate();
-				frameResized();
-				GUIUtils.setupResizer(TFrame.this);
-				toFront();
-				requestFocus();
-				repaint();
-			});
+//			window.toFront();
 		}
 
 		protected void onDataBuilderVisible(TrackDataBuilder builder, boolean visible, Runnable setVisible) {
 			if (visible) {
-				if (OSPRuntime.isJS) {
-					jsSelectDataWindow(builder);
-				} else {
-					builder.removeComponentListener(dataWindowVisibility);
-					builder.addComponentListener(dataWindowVisibility);
+				if (allowOnlyOneTool) {
+					selectDataWindow(builder);
+//				} else {
+//					builder.removeComponentListener(dataWindowVisibility);
+//					builder.addComponentListener(dataWindowVisibility);
 				}
 			}
 			setVisible.run();
 			if (visible && OSPRuntime.isJS && isVisible()) {
 				fitDataWindow(builder);
-				SwingUtilities.invokeLater(() -> keepDataBuilderAboveTracker(TFrame.this, builder));
+//				SwingUtilities.invokeLater(() -> keepDataBuilderAboveTracker(TFrame.this, builder));
 			}
 			if (visible)
 				refreshDataWindowChecks();
 		}
 
-		private void keepDataBuilderAboveTracker(TFrame frame, JDialog builder) {
+//		private void keepDataBuilderAboveTracker(TFrame frame, JDialog builder) {
+//
+//			/**
+//			 * @j2sNative
+//			 * if (frame._dataBuilderStacking) {
+//			 *   frame._dataBuilderStacking();
+//			 *   frame._dataBuilderStacking = null;
+//			 * }
+//			 */
+//
+//			builder.toFront();
+//			
+//			/** @j2sNative
+//			 * var trackerUI = frame.秘getUI$(), builderUI = builder.秘getUI$();
+//			 * var closer = builderUI.closerNode;
+//			 * if (closer && !closer._trackerBuilderClose) {
+//			 *   closer._trackerBuilderClose = true;
+//			 *   // The close control sits inside the draggable title bar.
+//			 *   ["pointerdown", "mousedown", "touchstart"].forEach(function(type) {
+//			 *     closer.addEventListener(type, function(event) {
+//			 *       event.stopImmediatePropagation();
+//			 *     }, true);
+//			 *   });
+//			 *   closer.addEventListener("click", function(event) {
+//			 *     event.stopImmediatePropagation();
+//			 *     setTimeout(function() { builder.setVisible$Z(false); }, 0);
+//			 *   }, true);
+//			 * }
+//			 * var trackerNode = trackerUI.outerNode || trackerUI.getDOMNode$();
+//			 * var builderNode = builderUI.outerNode || builderUI.getDOMNode$();
+//			 * if (!trackerNode || !builderNode || trackerNode === builderNode) return;
+//			 * var rule = document.createElement("style");
+//			 * rule.textContent = "#" + CSS.escape(builderNode.id) + " { z-index: 19000 !important; }";
+//			 * document.head.appendChild(rule);
+//			 * frame._dataBuilderStacking = function() { rule.remove(); };
+//			 */
+//		}
+//		private void setDataWindowListener(Window window) {
+//		window.removeComponentListener(dataWindowVisibility);
+//		window.addComponentListener(dataWindowVisibility);
+//	}
+//
+//	private void stopDataBuilderStacking() {
+//		// ??
+//	}
+//
+//	@Deprecated
+//	private void jsFinishDataWindowClose(Component c, Window closedWindow) {
+//		if (true)
+//			return;
+//		if (c == activeDataWindow && !activeDataWindow.isVisible()) {
+//			/**
+//			 * @j2sNative var ui = closedWindow.秘getUI$(), node = ui.outerNode ||
+//			 *            ui.getDOMNode$(); if (node) { if (node.contains(J2S._mouseOwner)
+//			 *            || node.contains(J2S._mouseTarget)) J2S.setMouseOwner(null); var
+//			 *            owner = J2S._dmouseOwner; if (owner && node.contains(owner)) {
+//			 *            owner.isDragging = false; J2S._dmouseOwner = J2S._dmouseDrag =
+//			 *            J2S._dmouseUp = null; } }
+//			 */
+//		}
+//		selectDataWindow(null);
+//		SwingUtilities.invokeLater(() -> {
+//			if (activeDataWindow != null || !isShowing())
+//				return;
+//			MenuSelectionManager.defaultManager().clearSelectedPath();
+//			invalidate();
+//			validate();
+//			frameResized();
+//			GUIUtils.setupResizer(TFrame.this);
+//			toFront();
+//			requestFocus();
+//			repaint();
+//		});
+//		private ComponentAdapter dataWindowVisibility = new ComponentAdapter() {
+//		@Override
+//		public void componentHidden(ComponentEvent e) {
+//			// A hide event from switching tools can arrive after the new window opens.
+//			if (OSPRuntime.isJS) {
+//				jsFinishDataWindowClose(e.getComponent(), activeDataWindow);
+//				return;
+//			}
+////			refreshDataWindowChecks();
+//		}
+//};
+//	}
 
-			/**
-			 * @j2sNative
-			 * if (frame._dataBuilderStacking) {
-			 *   frame._dataBuilderStacking();
-			 *   frame._dataBuilderStacking = null;
-			 * }
-			 */
-
-			builder.toFront();
-			
-			/** @j2sNative
-			 * var trackerUI = frame.秘getUI$(), builderUI = builder.秘getUI$();
-			 * var closer = builderUI.closerNode;
-			 * if (closer && !closer._trackerBuilderClose) {
-			 *   closer._trackerBuilderClose = true;
-			 *   // The close control sits inside the draggable title bar.
-			 *   ["pointerdown", "mousedown", "touchstart"].forEach(function(type) {
-			 *     closer.addEventListener(type, function(event) {
-			 *       event.stopImmediatePropagation();
-			 *     }, true);
-			 *   });
-			 *   closer.addEventListener("click", function(event) {
-			 *     event.stopImmediatePropagation();
-			 *     setTimeout(function() { builder.setVisible$Z(false); }, 0);
-			 *   }, true);
-			 * }
-			 * var trackerNode = trackerUI.outerNode || trackerUI.getDOMNode$();
-			 * var builderNode = builderUI.outerNode || builderUI.getDOMNode$();
-			 * if (!trackerNode || !builderNode || trackerNode === builderNode) return;
-			 * var rule = document.createElement("style");
-			 * rule.textContent = "#" + CSS.escape(builderNode.id) + " { z-index: 19000 !important; }";
-			 * document.head.appendChild(rule);
-			 * frame._dataBuilderStacking = function() { rule.remove(); };
-			 */
-		}
 
 	}
+
 
 }

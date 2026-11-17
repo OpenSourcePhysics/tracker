@@ -846,6 +846,7 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 	 * @param locked <code>true</code> to lock this
 	 */
 	public void setLocked(boolean locked) {
+		System.err.println("TTrack locked " + locked + " " + this);
 		this.locked = locked;
 		firePropertyChange(PROPERTY_TTRACK_LOCKED, null, Boolean.valueOf(locked)); // $NON-NLS-1$
 	}
@@ -1621,7 +1622,7 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 				((DataFunction) datasets.get(i)).refreshFunctionData();
 			}
 		}
-		DataTool tool = DataTool.getTool(false);
+		DataTool tool = DataTool.getToolIfExists();
 		if (panel != null && tool != null && tool.isVisible() && tool.getSelectedTab() != null
 				&& tool.getSelectedTab().isInterestedIn(datasetManager)) {
 			tool.getSelectedTab().refreshData();
@@ -4305,6 +4306,22 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 		if (nf.getValue() == v)
 			return;
 		nf.setValue(v);		
+	}
+
+	/**
+	 * The user has clicked on a value in a TableTrackView data table. 
+	 * 
+	 * Could implement this to synchronize NumberField and mark?
+	 * 
+	 * @param tableTrackView 
+	 * @param rowIndex
+	 * @param colIndex
+	 * @param t  independent variable value
+	 * @param v  may be Number or String
+	 * 
+	 */
+	public void notifyTableCellSelected(TableTrackView tableTrackView, int rowIndex, int colIndex, double t, Object v) {
+		System.err.println("TTrack.notifyTableRowSelected " + this + " row " + rowIndex + " selected for t=" + t + " v=" + v);
 	}
 
 }

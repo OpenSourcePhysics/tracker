@@ -57,12 +57,14 @@
 		var stopButton = element("tracker-camera-stop");
 		var cropToggle = element("tracker-camera-crop-toggle");
 		var clearCropButton = element("tracker-camera-crop-clear");
+		var resolutionSelect = element("tracker-camera-jpeg-resolution");
 		if (openButton) openButton.disabled = isBusy;
 		if (screenButton) screenButton.disabled = isBusy;
 		if (recordButton) recordButton.disabled = !hasStream || isBusy;
 		if (stopButton) stopButton.disabled = !state.capturing;
 		if (cropToggle) cropToggle.disabled = !hasStream || isBusy;
 		if (clearCropButton) clearCropButton.disabled = !hasStream || isBusy || !state.crop;
+		if (resolutionSelect) resolutionSelect.disabled = isBusy;
 		updateCropVisual();
 	}
 
@@ -375,12 +377,13 @@
 			var sourceY = bounds.ymin;
 			var sourceWidth = bounds.xmax - bounds.xmin;
 			var sourceHeight = bounds.ymax - bounds.ymin;
-			canvas.width = sourceWidth;
-			canvas.height = sourceHeight;
+			var scale = Number(element("tracker-camera-jpeg-resolution").value);
+			canvas.width = Math.max(1, Math.round(sourceWidth * scale));
+			canvas.height = Math.max(1, Math.round(sourceHeight * scale));
 			canvas.getContext("2d", { alpha: false }).drawImage(
 				preview,
 				sourceX, sourceY, sourceWidth, sourceHeight,
-				0, 0, sourceWidth, sourceHeight
+				0, 0, canvas.width, canvas.height
 			);
 			state.frames.push(await canvasToBlob(canvas));
 			setStatus("Recording: " + state.frames.length + " frames captured");
@@ -676,6 +679,9 @@
 			'<button id="tracker-camera-open" type="button">Start camera</button>' +
 			screenButton +
 			'<label>Frames/sec <select id="tracker-camera-fps"><option>5</option><option selected>10</option><option>15</option><option>30</option></select></label>' +
+			'<label>JPEG resolution <select id="tracker-camera-jpeg-resolution">' +
+			'<option value="1" selected>Full size</option><option value="0.75">75%</option>' +
+			'<option value="0.5">50%</option><option value="0.25">25%</option></select></label>' +
 			'</div><div class="tracker-camera-controls">' +
 			'<button id="tracker-camera-crop-clear" type="button" disabled>Clear region</button>' +
 			'<label><input id="tracker-camera-crop-toggle" type="checkbox" disabled> Capture selected region only</label>' +

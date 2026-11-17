@@ -300,12 +300,26 @@ public class TableTrackView extends TrackView {
 		selectionModel.addListSelectionListener(new ListSelectionListener() {
 			@Override
 			public void valueChanged(ListSelectionEvent e) {
+				if (e.getValueIsAdjusting()) {
+					// mouse down, drag
+					return; 
+				}
+				// (on mouse up, prior to click)
 				selectedIndepVarValues.clear();
+				double val = Double.NaN;
 				int[] rows = dataTable.getSelectedRows(); // selected view rows
 				for (int i = 0; i < rows.length; i++) {
-					double val = getIndepVarValueAtRow(rows[i]);
+					val = getIndepVarValueAtRow(rows[i]);
 					if (!Double.isNaN(val))
 						selectedIndepVarValues.add(val);
+				}
+				int[] cols = dataTable.getSelectedColumns();
+				double t = val;
+				if (rows.length == 1 && cols.length == 1 && !Double.isNaN(val)) {
+					Object v = dataTable.getValueAt(rows[0], cols[0]);
+					SwingUtilities.invokeLater(() -> {
+						track.notifyTableCellSelected(TableTrackView.this, rows[0], cols[0], t, v);						
+					});
 				}
 			}
 
@@ -1078,7 +1092,7 @@ public class TableTrackView extends TrackView {
 	 *
 	 * @return double[] of selected values
 	 */
-	protected double[] getSelectedIndepVarValues() {
+	private double[] getSelectedIndepVarValues() {
 		Double[] d = selectedIndepVarValues.toArray(new Double[0]);
 		double[] vals = new double[d.length];
 		for (int i = 0; i < d.length; i++) {
@@ -1092,7 +1106,7 @@ public class TableTrackView extends TrackView {
 	 *
 	 * @param vals the values to select
 	 */
-	protected void setSelectedIndepVarValues(double[] vals) {
+	private void setSelectedIndepVarValues(double[] vals) {
 		if (dataTable.getRowCount() < 1) {
 			return;
 		}
@@ -1108,7 +1122,7 @@ public class TableTrackView extends TrackView {
 	/**
 	 * Creates the GUI.
 	 */
-	protected void createGUI() {
+	private void createGUI() {
 		columnsDialogButton = new TButton() {
 			// override getMaximumSize method so has same height as chooser button
 			@Override
@@ -1378,12 +1392,12 @@ public class TableTrackView extends TrackView {
 			next.setXColumnVisible(false);
 
 		}
-		DataTool tool = DataTool.getTool(true);
-		tool.setUseChooser(false);
-		tool.setSaveChangesOnClose(false);
+		DataTool dataTool = DataTool.getTool();
+		dataTool.setUseChooser(false);
+		dataTool.setSaveChangesOnClose(false);
 		DataRefreshTool refresher = DataRefreshTool.getTool(trackDataManager);
-		tool.send(new LocalJob(toSend), refresher);
-		frame.setToolVisibility(tool, true);
+		dataTool.send(new LocalJob(toSend), refresher);
+		frame.setToolVisibility(dataTool, true);
 	}
 
 	protected void tableMousePressed(MouseEvent e) {

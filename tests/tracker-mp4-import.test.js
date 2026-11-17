@@ -6,6 +6,8 @@ function setup(mp4, supported) {
  const elements = {};
  const el = id => elements[id] || (elements[id] = {style: {}, value: '10', checked: false, classList: {toggle() {}}, getBoundingClientRect() {return {width: 640, height: 480, left: 0, top: 0};}});
  el('tracker-format-mp4').checked = mp4;
+ el('tracker-format-images').checked = !mp4;
+ el('tracker-mp4-jpeg-resolution').value = '0.5';
  Object.assign(el('tracker-mp4-preview'), {videoWidth: 640, videoHeight: 480});
  let stopped = 0, draw;
  const stream = {getTracks: () => [{stop() {stopped++;}}]};
@@ -42,7 +44,10 @@ function setup(mp4, supported) {
  assert.deepStrictEqual(t.calls, [['mp4', 3]]);
  assert(t.stopped() >= 2);
  t = setup(false, false);
- t.api.begin(); await Promise.resolve(); await t.api.stop();
+ t.api.begin();
+ assert.deepStrictEqual(t.draw().slice(1), [0, 0, 640, 480, 0, 0, 320, 240]);
+ assert.strictEqual(t.el('tracker-mp4-jpeg-resolution').disabled, true);
+ await Promise.resolve(); await t.api.stop();
  assert.deepStrictEqual(t.calls, [['images', 1, 10]]);
  t = setup(true, false);
  t.api.begin();

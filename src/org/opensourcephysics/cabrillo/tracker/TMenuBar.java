@@ -193,7 +193,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 			return;
 		TrackerPanel panel = panel();
 		view_dataBuilderItem.setSelected(panel != null && panel.dataBuilder != null && panel.dataBuilder.isVisible());
-		DataTool tool = DataTool.getTool(false);
+		DataTool tool = DataTool.getToolIfExists();
 		view_dataToolItem.setSelected(tool != null && tool.isVisible());
 	}
 
@@ -1452,7 +1452,8 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 					TTrack track = p.getSelectedTrack();
 					if (track != null)
 						builder.setSelectedPanel(track.getName());
-					builder.setVisible(true);
+					frame.setToolVisibility(builder, true);
+//					builder.setVisible(true);
 				}
 			};
 			if (OSPRuntime.isJS)
@@ -1465,9 +1466,9 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		s += " (" + TrackerRes.getString("TableTrackView.Popup.MenuItem.Analyze") + ")"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 		view_dataToolItem = new JCheckBoxMenuItem(s);
 		view_dataToolItem.addActionListener((e) -> {
-				DataTool tool = DataTool.getTool(true);
-				if (tool.isVisible()) {
-					frame.setToolVisibility(tool, false);
+				DataTool dataTool = DataTool.getTool();
+				if (dataTool.isVisible()) {
+					frame.setToolVisibility(dataTool, false);
 //					if (OSPRuntime.isJS)
 //						frame.selectDataWindow(null);
 //					else
@@ -1499,8 +1500,8 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 							}
 					}
 				}
-				tool.setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
-				frame.setToolVisibility(tool, true);
+				dataTool.setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
+				frame.setToolVisibility(dataTool, true);
 		});
 		viewMenu.addSeparator();
 		refreshViewMenu(false);
