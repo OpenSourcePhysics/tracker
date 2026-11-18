@@ -742,11 +742,11 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 
 	class Compact {
 		
-		protected NumberFieldPanel1[] numberEditors;
+		protected NumberFieldPanel[] numberEditors;
 		protected TButton trackNumberEditorButton, pointNumberEditorButton;
 
 		Compact() {
-			numberEditors = NumberFieldPanel1.getNFPanelArray(panel());
+			numberEditors = NumberFieldPanel.getNFPanelArray(panel());
 			numberEditors[0].setUp(true);
 			numberEditors[1].setUp(true);
 

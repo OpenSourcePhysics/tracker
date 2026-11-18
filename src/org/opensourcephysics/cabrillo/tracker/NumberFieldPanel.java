@@ -8,6 +8,8 @@ import java.awt.GridBagLayout;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.ActionListener;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
@@ -82,6 +84,17 @@ public class NumberFieldPanel extends JPanel {
 				}
 			}
 		};
+		myActionListener = e -> {
+			javax.swing.SwingUtilities.invokeLater(()-> {
+				refreshFloatingBounds();
+			});
+		};		
+		frame.addComponentListener(new ComponentAdapter() {
+	    @Override
+	    public void componentResized(ComponentEvent e) {
+	      if (isVisible()) refreshFloatingBounds();
+	    }
+		});
 	}
 
 	public void addRow(JComponent label, JComponent comp) {
@@ -161,6 +174,7 @@ public class NumberFieldPanel extends JPanel {
 
 		// set the location boundaries
 		setBounds(pt.x, pt.y - 10, dim.width, dim.height);
+		revalidate();
 	}
 
 	public Component getPositionComponent() {
@@ -185,7 +199,8 @@ public class NumberFieldPanel extends JPanel {
 		add(comp, gbc);
 	}
 
-	public void updateTableLayout() {
+	public void updateLayout() {
+		refreshFloatingBounds();
 	}
 
 }
