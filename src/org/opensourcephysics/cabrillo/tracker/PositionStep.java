@@ -227,7 +227,6 @@ public class PositionStep extends Step {
 					mark = footprint.getMark(screenPoints); // this is standard footprint mark
 				}
 			} else {
-				Mark mark0 = (footprint instanceof PositionVectorFootprint ? null : footprint.getMark(screenPoints));
 				transform.setToTranslation(p.x, p.y);
 				int scale = FontSizer.getIntegerFactor();
 				if (scale > 1) {
@@ -235,6 +234,7 @@ public class PositionStep extends Step {
 				}
 				Color color = footprint.getColor();
 				Shape selectedShape = transform.createTransformedShape(selectionShape);
+				Mark mark0 = (footprint instanceof PositionVectorFootprint ? null : footprint.getMark(screenPoints));
 				mark = new Mark() {
 					@Override
 					public void draw(Graphics2D g, boolean highlighted) {
@@ -246,7 +246,7 @@ public class PositionStep extends Step {
 						g.setStroke(selectionStroke);
 						g.draw(selectedShape);
 						if (mark0 != null)
-							mark0.draw(g,  highlighted);
+							mark0.draw(g, highlighted);
 						g.setPaint(gpaint);
 						g.setStroke(gstroke);
 					}
