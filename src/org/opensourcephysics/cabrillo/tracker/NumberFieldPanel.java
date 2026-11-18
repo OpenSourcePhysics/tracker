@@ -29,6 +29,7 @@ import javax.swing.SwingUtilities;
 import org.opensourcephysics.cabrillo.tracker.TTrack.TextLineLabel;
 import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.media.core.NumberField;
+import org.opensourcephysics.tools.FontSizer;
 
 public class NumberFieldPanel extends JPanel {
 
@@ -65,8 +66,8 @@ public class NumberFieldPanel extends JPanel {
 
 	public void createGUI() {
 		gbc.fill = GridBagConstraints.BOTH;
-		gbc.ipady = 8; // Vertical cell padding
-		gbc.ipadx = 12; // Horizontal cell padding
+		gbc.ipady = 8; // vertical cell padding
+		gbc.ipadx = 8; // horizontal cell padding
 		setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY));
 		setBackground(new Color(245, 245, 245));
 		myMouseListener = new MouseAdapter() {
@@ -95,6 +96,16 @@ public class NumberFieldPanel extends JPanel {
 	      if (isVisible()) refreshFloatingBounds();
 	    }
 		});
+	}
+	
+	@Override
+	public void setVisible(boolean vis) {
+		super.setVisible(vis);
+		if (vis && getParent() == null) {
+			frame.getLayeredPane().add(this, JLayeredPane.PALETTE_LAYER);
+		} else if (!vis) {
+			frame.getLayeredPane().remove(this);
+		}
 	}
 
 	public void addRow(JComponent label, JComponent comp) {
@@ -139,14 +150,6 @@ public class NumberFieldPanel extends JPanel {
 		removeAll();
 	}
 
-	protected void setUp(boolean show) {
-		if (show && getParent() == null) {
-			frame.getLayeredPane().add(this, JLayeredPane.PALETTE_LAYER);
-		} else if (!show) {
-			frame.getLayeredPane().remove(this);
-		}
-	}
-
 	public void setPositionComponent(Component c) {
 		positionComp = c;
 		refreshFloatingBounds();
@@ -156,6 +159,7 @@ public class NumberFieldPanel extends JPanel {
 		if (positionComp == null || !positionComp.isShowing() || getParent() == null) {
 			return;
 		}
+		FontSizer.setFonts(this);
 
 		// the parent is the JLayeredPane
 		Component layeredPane = getParent();
@@ -197,10 +201,6 @@ public class NumberFieldPanel extends JPanel {
 		gbc.fill = GridBagConstraints.BOTH;
 		gbc.weightx = 1;
 		add(comp, gbc);
-	}
-
-	public void updateLayout() {
-		refreshFloatingBounds();
 	}
 
 }

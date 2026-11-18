@@ -224,6 +224,8 @@ public class Crosshair extends TPoint implements PropertyChangeListener {
     Graphics2D g2d = (Graphics2D) g;
     g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
     AffineTransform transform = g2d.getTransform();
+    Color mycolor = g2d.getColor();
+    Stroke mystroke = g2d.getStroke();
 		
     Point p = getScreenPosition(panel());
 		
@@ -352,7 +354,7 @@ public class Crosshair extends TPoint implements PropertyChangeListener {
 	    g2d.draw(nudgeV);	    		    
     }
     
-    // restore transform and clip
+    // restore transform, clip
     g2d.setTransform(transform);
     g2d.setClip(null);
 
@@ -360,6 +362,10 @@ public class Crosshair extends TPoint implements PropertyChangeListener {
     g2d.setColor(isOn? Color.WHITE: paleWhite);
     g2d.draw(outerCircle);
     g2d.draw(innerCircle);
+    
+    // restore color, stroke
+    g2d.setColor(mycolor);
+    g2d.setStroke(mystroke);
     
     // draw marked step last
     if (markedStep != null) {
