@@ -223,9 +223,11 @@ public class PositionStep extends Step {
 					twoPoints[0] = screenPoints[0];
 					twoPoints[1] = trackerPanel.getSnapPoint().getScreenPosition(trackerPanel);
 					mark = footprint.getMark(twoPoints);
-				} else
+				} else {
 					mark = footprint.getMark(screenPoints); // this is standard footprint mark
+				}
 			} else {
+				Mark mark0 = (footprint instanceof PositionVectorFootprint ? null : footprint.getMark(screenPoints));
 				transform.setToTranslation(p.x, p.y);
 				int scale = FontSizer.getIntegerFactor();
 				if (scale > 1) {
@@ -243,6 +245,8 @@ public class PositionStep extends Step {
 						g.setPaint(color);
 						g.setStroke(selectionStroke);
 						g.draw(selectedShape);
+						if (mark0 != null)
+							mark0.draw(g,  highlighted);
 						g.setPaint(gpaint);
 						g.setStroke(gstroke);
 					}
