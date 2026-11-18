@@ -2579,15 +2579,6 @@ public class PointMass extends TTrack {
 			super.propertyChange(e);
 
 		}
-		else if (e.getSource() instanceof NumberField) {
-			NumberField nf = (NumberField)e.getSource();
-			if (nf == xField || nf == yField)
-				setXY();
-			else if (nf == magField || nf == angleField)
-				setMagAngle();			
-			else if (nf == massField)
-				massField.postActionEvent();			
-		}
 	}
 
 	/**

@@ -491,16 +491,6 @@ public class TapeMeasure extends InputTrack  implements MarkingRequired {
 	 */
 	@Override
 	public void propertyChange(PropertyChangeEvent e) {
-		if (e.getSource() instanceof NumberField) {
-			NumberField nf = (NumberField)e.getSource();
-			if (nf == magField)
-				magField.postActionEvent();
-			else if (nf == angleField)
-				angleField.postActionEvent();
-			else if (nf == pixelLengthField)
-				pixelLengthField.postActionEvent();
-			return;
-		}
 		switch (e.getPropertyName()) {
 		case ImageCoordSystem.PROPERTY_COORDS_TRANSFORM:
 			if (isStickMode() && !isStepChangingScale) {

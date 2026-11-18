@@ -3383,7 +3383,7 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 	
 	interface hasTrack {
 		
-		public void fireValueChanged();
+//		public void fireValueChanged();
 		
 		public TTrack getTrack();
 
@@ -3398,12 +3398,12 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 			super(0);
 		}
 		
-		@Override
-		public void fireValueChanged() {
-			TTrack track = TTrack.this;
-			track.propertyChange(new PropertyChangeEvent(this, "value", null, null));
-		}
-		
+//		@Override
+//		public void fireValueChanged() {
+//			TTrack track = TTrack.this;
+//			track.propertyChange(new PropertyChangeEvent(this, "value", null, null));
+//		}
+//		
 		@Override
 		public TTrack getTrack() {
 			return TTrack.this;
@@ -3428,12 +3428,12 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 			super(0, places);
 		}
 
-		@Override
-		public void fireValueChanged() {
-			TTrack track = TTrack.this;
-			track.propertyChange(new PropertyChangeEvent(this, "value", null, null));
-		}
-		
+//		@Override
+//		public void fireValueChanged() {
+//			TTrack track = TTrack.this;
+//			track.propertyChange(new PropertyChangeEvent(this, "value", null, null));
+//		}
+//		
 		@Override
 		public TTrack getTrack() {
 			return TTrack.this;
@@ -3460,12 +3460,12 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 			super(columns);
 		}
 
-		@Override
-		public void fireValueChanged() {
-			TTrack track = TTrack.this;
-			track.propertyChange(new PropertyChangeEvent(this, "value", null, null));
-		}
-		
+//		@Override
+//		public void fireValueChanged() {
+//			TTrack track = TTrack.this;
+//			track.propertyChange(new PropertyChangeEvent(this, "value", null, null));
+//		}
+//		
 		@Override
 		public TTrack getTrack() {
 			return TTrack.this;

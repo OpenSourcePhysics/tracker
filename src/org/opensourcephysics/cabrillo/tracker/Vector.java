@@ -353,15 +353,6 @@ public class Vector extends TTrack {
 	 */
 	@Override
 	public void propertyChange(PropertyChangeEvent e) {
-		if (e.getSource() instanceof NumberField) {
-			NumberField nf = (NumberField)e.getSource();
-			if (nf == xField || nf == yField)
-				setXYComponents();
-			else if (nf == magField || nf == angleField)
-				setMagnitudeAngle();	
-			return;
-		}
-
 		switch (e.getPropertyName()) {
 		case Trackable.PROPERTY_ADJUSTING:
 //			if (e.getSource() instanceof TrackerPanel) {

@@ -667,16 +667,6 @@ public class CoordAxes extends TTrack {
 	 */
 	@Override
 	public void propertyChange(PropertyChangeEvent e) {
-		if (e.getSource() instanceof NumberField) {
-			NumberField nf = (NumberField)e.getSource();
-			if (nf == xField)
-				xField.postActionEvent();
-			else if (nf == yField)
-				yField.postActionEvent();
-			else if (nf == angleField)
-				angleField.postActionEvent();
-			return;
-		}
 		switch (e.getPropertyName()) {
 		case TrackerPanel.PROPERTY_TRACKERPANEL_STEPNUMBER:
 			int n = tp.getFrameNumber();

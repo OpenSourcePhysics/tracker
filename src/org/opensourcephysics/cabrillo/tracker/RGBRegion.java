@@ -1094,14 +1094,6 @@ public class RGBRegion extends TTrack implements MarkingRequired {
 	 */
 	@Override
 	public void propertyChange(PropertyChangeEvent e) {
-		if (e.getSource() instanceof NumberField) {
-			NumberField nf = (NumberField)e.getSource();
-			if (nf == xField || nf == yField)
-				setPositionFromFields();
-			else if (nf == widthField || nf == heightField)
-				widthField.postActionEvent();
-			return;
-		}
 		if (tp != null) {
 			if (maxEdgeLength == defaultMaxEdgeLength && tp.getVideo() != null) {
 				setMaxEdgeLength(tp.getVideo());

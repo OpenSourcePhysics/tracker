@@ -519,14 +519,6 @@ public class CircleFitter extends TTrack {
 
 	@Override
 	public void propertyChange(PropertyChangeEvent e) {
-		if (e.getSource() instanceof NumberField) {
-			NumberField nf = (NumberField)e.getSource();
-			if (nf == xDataField)
-				xDataField.postActionEvent();
-			else if (nf == yDataField)
-				yDataField.postActionEvent();
-			return;
-		}
 		// events are via TrackerPanel
 		boolean isSelectedTrack = (tp.getSelectedTrack() == this);
 		switch (e.getPropertyName()) {

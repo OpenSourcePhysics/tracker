@@ -416,14 +416,6 @@ public class OffsetOrigin extends TTrack implements MarkingRequired {
 	 */
 	@Override
 	public void propertyChange(PropertyChangeEvent e) {
-		if (e.getSource() instanceof NumberField) {
-			NumberField nf = (NumberField)e.getSource();
-			if (nf == xField)
-				xField.postActionEvent();
-			else if (nf == yField)
-				yField.postActionEvent();
-			return;
-		}
 		switch (e.getPropertyName()) {
 		case TrackerPanel.PROPERTY_TRACKERPANEL_STEPNUMBER:
 			if (tp.getSelectedTrack() == this) {

@@ -6,15 +6,21 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.FontMetrics;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
 import javax.swing.DefaultCellEditor;
 import javax.swing.JCheckBox;
@@ -41,6 +47,8 @@ import org.opensourcephysics.media.core.NumberField;
 
 public class NumberFieldPanel extends JPanel {
 	
+	static boolean useTable;
+	
 	private static HashMap<TrackerPanel, NumberFieldPanel[]> npPanelArrays;
 	static {
 		npPanelArrays = new HashMap<TrackerPanel, NumberFieldPanel[]>();
@@ -63,9 +71,11 @@ public class NumberFieldPanel extends JPanel {
 	private JTable table;
 	private Component positionComp;
 	private JLabel sizingLabel = new JLabel();
+	private MouseListener myMouseListener;
+	private ActionListener myActionListener;
 	
 	private NumberFieldPanel(TrackerPanel tp) {
-		super(new BorderLayout());
+		super(useTable? new BorderLayout(): new GridBagLayout());
 		trackerPanelID = tp.getID();
 		frame = tp.getTFrame();
 		createGUI();
@@ -86,26 +96,50 @@ public class NumberFieldPanel extends JPanel {
 		table.setBorder(BorderFactory.createLineBorder(Color.BLACK));
 		table.setSelectionBackground(table.getBackground());
 		table.setSelectionForeground(table.getForeground());
-		add(table, BorderLayout.CENTER);
-		
-		table.addMouseListener(new MouseAdapter() {
-	    @Override
-	    public void mouseClicked(MouseEvent e) {
-        int row = table.rowAtPoint(e.getPoint());
-        int col = table.columnAtPoint(e.getPoint());
-				if (OSPRuntime.isPopupTrigger(e) && col == 1) {
-        	if (rowObjects.get(row)[col] instanceof NumberField) {
-	        	NumberField field = (NumberField)rowObjects.get(row)[1];
-	        	if (field instanceof TTrack.hasTrack) {
-	        		TTrack.hasTrack tnf = (TTrack.hasTrack)field;
-	        		TTrack track = tnf.getTrack();        		
-	        		Rectangle cellRect = table.getCellRect(row, col, true);
-	        		track.showFormatPopup(field, table, cellRect);
+		table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+		if (useTable) {
+			add(table, BorderLayout.CENTER);			
+			table.addMouseListener(new MouseAdapter() {
+		    @Override
+		    public void mouseClicked(MouseEvent e) {
+	        int row = table.rowAtPoint(e.getPoint());
+	        int col = table.columnAtPoint(e.getPoint());
+					if (OSPRuntime.isPopupTrigger(e) && col == 1) {
+	        	if (rowObjects.get(row)[col] instanceof NumberField) {
+		        	NumberField field = (NumberField)rowObjects.get(row)[1];
+		        	if (field instanceof TTrack.hasTrack) {
+		        		TTrack.hasTrack tnf = (TTrack.hasTrack)field;
+		        		TTrack track = tnf.getTrack();        		
+		        		Rectangle cellRect = table.getCellRect(row, col, true);
+		        		track.showFormatPopup(field, table, cellRect);
+		        	}
 	        	}
-        	}
-				}				
-  		}
-		});
+					}				
+	  		}
+			});
+		}
+		else {
+			setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY));
+			setBackground(new Color(245, 245, 245));
+			myMouseListener = new MouseAdapter() {
+		    @Override
+		    public void mouseClicked(MouseEvent e) {
+					if (OSPRuntime.isPopupTrigger(e)) {
+	        	if (e.getSource() instanceof NumberField) {
+		        	NumberField field = (NumberField)e.getSource();
+		        	if (field instanceof TTrack.hasTrack) {
+		        		TTrack.hasTrack tnf = (TTrack.hasTrack)field;
+		        		TTrack track = tnf.getTrack();        		
+		        		track.showFormatPopup(field, null, null);
+		        	}
+	        	}
+					}
+	  		}
+			};
+			myActionListener = e -> {
+				updateTableLayout();
+			};		
+		}
 	}
 
 	public void addRow(JComponent label, Component comp) {
@@ -114,6 +148,19 @@ public class NumberFieldPanel extends JPanel {
 			label = new TextLineLabel(text);
 		}
 		if (label instanceof TextLineLabel) {
+//			label.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY));
+//			label.setBackground(new Color(2, 27, 27));
+
+			if (comp instanceof JCheckBox) {
+				((JCheckBox) comp).setText(null);
+			}
+			if (comp instanceof JComboBox) {
+				((JComboBox<?>) comp).setBorder(BorderFactory.createEmptyBorder());
+			}
+      comp.addMouseListener(myMouseListener);
+      if (comp instanceof NumberField) {
+        ((NumberField)comp).addActionListener(myActionListener);      	
+      }
 			rowObjects.add(new Object[] {label, comp});
 			model.fireTableRowsInserted(rowObjects.size()-1, rowObjects.size()-1);
 		}
@@ -124,6 +171,13 @@ public class NumberFieldPanel extends JPanel {
 	}
 	
 	protected void clear() {
+    for (int row = 0; row < rowObjects.size(); row++) {
+      Component comp = (Component)rowObjects.get(row)[1];
+      comp.removeMouseListener(myMouseListener);
+      if (comp instanceof NumberField) {
+        ((NumberField)comp).removeActionListener(myActionListener);      	
+      }
+    }
 		rowObjects.clear();
 		setPositionComponent(null);
 		model.fireTableStructureChanged();
@@ -181,14 +235,19 @@ public class NumberFieldPanel extends JPanel {
   public void updateTableLayout() {
   	if (table==null) return;
     Font font = table.getFont();
+    GridBagConstraints gbc = new GridBagConstraints();
+    if (!useTable)
+    	removeAll();
     
     // adjust row height based on font metrics
     FontMetrics fm = table.getFontMetrics(font);
     int newRowHeight = fm.getHeight() + 8; // add padding
     table.setRowHeight(newRowHeight);
-    
+	  int totalHeight = rowObjects.size() * newRowHeight;
+
     // adjust column widths based on preferred sizes
     TableColumnModel columnModel = table.getColumnModel();
+    int totalWidth = 0;
 	  for (int col = 0; col < 2; col++) {
 	    TableColumn tableColumn = columnModel.getColumn(col);         
 	    // find the widest string in a column
@@ -226,10 +285,32 @@ public class NumberFieldPanel extends JPanel {
 	    }
 	    maxWidth = Math.max(maxWidth, 20); // minimum size
 	    // set the new preferred width with padding
-		  tableColumn.setPreferredWidth(maxWidth + 8); 
+		  tableColumn.setPreferredWidth(maxWidth + 8);
+		  
+		  if (!useTable) {
+		  
+	      gbc.fill = GridBagConstraints.BOTH;
+	      gbc.ipady = 8;  // Vertical cell padding
+	      gbc.ipadx = 12; // Horizontal cell padding
+	      // fill gridbag
+	      for (int row = 0; row < rowObjects.size(); row++) {
+	        Object cellValue = rowObjects.get(row)[col];
+          gbc.gridy = row;
+          gbc.gridx = col;
+          gbc.weightx = col == 0? 1: 0; // column 0 stays fixed
+          gbc.weighty = 1.0 / rowObjects.size(); // equal heights
+          gbc.fill = GridBagConstraints.BOTH;
+          Component comp = (Component)cellValue;
+          add(comp, gbc);
+        }
+      }
+		  totalWidth += tableColumn.getPreferredWidth();
     }
-    table.revalidate();
-    table.repaint();
+    setSize(new Dimension(totalWidth, totalHeight));
+	  revalidate();
+	  repaint();
+//    table.revalidate();
+//    table.repaint();
 	}
   
   @Override
@@ -280,12 +361,10 @@ public class NumberFieldPanel extends JPanel {
         if (col == 1) {
         	if (rowObjects.get(row)[1] instanceof NumberField) {
 	        	NumberField field = (NumberField)rowObjects.get(row)[1];
-	        	// set yellow background to take action
+	        	// set yellow background so actionListener will recognize that value has changed
 	        	field.setBackground(Color.YELLOW);
 	        	field.setValue((double)value);
-	        	if (field instanceof TTrack.hasTrack) {
-	        		((TTrack.hasTrack)field).fireValueChanged();
-	        	}
+	        	field.postActionEvent();
 	        	field.setBackground(Color.WHITE);
         	}
         	else if (rowObjects.get(row)[1] instanceof JCheckBox) {
@@ -294,6 +373,9 @@ public class NumberFieldPanel extends JPanel {
         			checkbox.doClick(0);
         	}
           fireTableCellUpdated(row, col);
+      		javax.swing.SwingUtilities.invokeLater(()-> {
+             updateTableLayout();
+      		});
         }
     }
     
