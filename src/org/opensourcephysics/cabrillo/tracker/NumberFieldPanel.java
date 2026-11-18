@@ -148,7 +148,7 @@ public class NumberFieldPanel extends JPanel {
 		Component layeredPane = getParent();
 
 		// find bottom left corner of positionComp relative to the layeredPane
-		Point p = new Point(0, positionComp.getHeight());
+		Point p = new Point(0, positionComp.getParent().getHeight());
 		Point pt = SwingUtilities.convertPoint(positionComp, p, layeredPane);
 		Dimension dim = getPreferredSize();
 
@@ -160,7 +160,7 @@ public class NumberFieldPanel extends JPanel {
 		}
 
 		// set the location boundaries
-		setBounds(pt.x, pt.y + 6, dim.width, dim.height);
+		setBounds(pt.x, pt.y - 10, dim.width, dim.height);
 	}
 
 	public Component getPositionComponent() {
