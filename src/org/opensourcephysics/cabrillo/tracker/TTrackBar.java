@@ -1044,11 +1044,11 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 			add(axes.stepLabel);
 			add(axes.stepValueLabel);
 			add(pointNumberEditorButton);
+			add(axes.gridSeparator);
+			add(axes.gridCheckbox);
+			add(axes.gridButton);
 			
 			// add track items to NumberFieldPanels			
-			TextLineLabel label = new TextLineLabel(TrackerRes.getString("CoordAxes.Checkbox.Grid"));
-			numberEditors[0].addRow(label, axes.gridBox);
-			
 			numberEditors[1].addRow(axes.xLabel, axes.xField);
 			numberEditors[1].addRow(axes.yLabel, axes.yField);
 			numberEditors[1].addRow(axes.angleLabel, axes.angleField);

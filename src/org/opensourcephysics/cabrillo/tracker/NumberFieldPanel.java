@@ -23,7 +23,6 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JLayeredPane;
 import javax.swing.JPanel;
-import javax.swing.JTable;
 import javax.swing.SwingUtilities;
 
 import org.opensourcephysics.cabrillo.tracker.TTrack.TextLineLabel;
@@ -160,7 +159,13 @@ public class NumberFieldPanel extends JPanel {
 			return;
 		}
 		FontSizer.setFonts(this);
-
+		// remove any text on checkboxes
+    for (int row = 0; row < rowObjects.size(); row++) {
+      Object next = rowObjects.get(row)[1];
+      if (next instanceof JCheckBox) {
+      	((JCheckBox)next).setText(null);
+      }
+    }
 		// the parent is the JLayeredPane
 		Component layeredPane = getParent();
 
@@ -190,13 +195,14 @@ public class NumberFieldPanel extends JPanel {
 	}
 
 	public void addToGrid(int row, JComponent label, JComponent comp) {
-		// fill gridbag
+		// add label
 		gbc.gridy = row;
 		gbc.gridx = 0;
 		gbc.weightx = 0; // column 0 stays fixed
 		gbc.weighty = 1;
-//					gbc.weighty = 1.0 / rowObjects.size(); // equal heights
 		add(label, gbc);
+		
+		// add component
 		gbc.gridx = 1;
 		gbc.fill = GridBagConstraints.BOTH;
 		gbc.weightx = 1;

@@ -24,7 +24,6 @@
  */
 package org.opensourcephysics.cabrillo.tracker;
 
-import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -48,7 +47,6 @@ import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
-import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JSlider;
 import javax.swing.event.ChangeEvent;
@@ -136,7 +134,6 @@ public class CoordAxes extends TTrack {
 	protected WorldGrid grid;
 	protected JCheckBox gridCheckbox;
 	protected TButton gridButton;
-	protected Box gridBox;
 	protected Component gridSeparator;
 	protected boolean gridVisible;
 
@@ -248,7 +245,7 @@ public class CoordAxes extends TTrack {
 
 		gridSeparator = Box.createRigidArea(new Dimension(4, 4));
 		gridCheckbox = new JCheckBox();
-		gridCheckbox.setBorder(BorderFactory.createEmptyBorder());
+		gridCheckbox.setBorder(BorderFactory.createEmptyBorder(0, 4, 0, 4));
 		gridCheckbox.setOpaque(false);
 		gridCheckbox.addActionListener(new ActionListener() {
 			@Override
@@ -332,14 +329,8 @@ public class CoordAxes extends TTrack {
 
 		};
 		gridButton.hideContentWhenExit = true;
-		gridButton.setMargin(new Insets(0, 0, 0, 0));
-
-		gridBox = Box.createHorizontalBox();
-		gridBox.setOpaque(false);
-		gridBox.add(Box.createHorizontalGlue());
-		gridBox.add(gridCheckbox);
-		gridBox.add(gridButton);
-		gridBox.add(Box.createHorizontalGlue());
+		gridButton.setMargin(new Insets(2, 2, 2, 2));
+		
 	}
 
 	/**
@@ -627,15 +618,13 @@ public class CoordAxes extends TTrack {
 		yLabel.setText(origin + " y");
 		xField.setToolTipText(TrackerRes.getString("CoordAxes.Origin.Field.Tooltip")); //$NON-NLS-1$
 		yField.setToolTipText(TrackerRes.getString("CoordAxes.Origin.Field.Tooltip")); //$NON-NLS-1$
-		if (!OSPRuntime.isCompact(trackerPanel.getTFrame()))
-			gridCheckbox.setText(TrackerRes.getString("CoordAxes.Checkbox.Grid")); //$NON-NLS-1$
+		gridCheckbox.setText(TrackerRes.getString("CoordAxes.Checkbox.Grid")); //$NON-NLS-1$
 		gridCheckbox.setToolTipText(TrackerRes.getString("CoordAxes.Checkbox.Grid.Tooltip")); //$NON-NLS-1$
 		gridButton.setToolTipText(TrackerRes.getString("CoordAxes.Button.Grid.Tooltip")); //$NON-NLS-1$
 		list.add(gridSeparator);
 		gridButton.setContentAreaFilled(false);
-		list.add(gridBox);
-//		list.add(gridCheckbox);
-//		list.add(gridButton);
+		list.add(gridCheckbox);
+		list.add(gridButton);
 		list.add(magSeparator);
 		list.add(xLabel);
 		list.add(xField);
