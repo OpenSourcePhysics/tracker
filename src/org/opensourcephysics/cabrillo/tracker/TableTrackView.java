@@ -106,6 +106,7 @@ import org.opensourcephysics.display.OSPFrame;
 import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.display.TeXParser;
 import org.opensourcephysics.media.core.NumberField;
+import org.opensourcephysics.media.core.TPoint;
 import org.opensourcephysics.media.core.NumberField.NumberFormatter;
 import org.opensourcephysics.media.core.VideoClip;
 import org.opensourcephysics.tools.DataRefreshTool;
@@ -1518,6 +1519,17 @@ public class TableTrackView extends TrackView {
 						VideoClip clip = trackerPanel.getPlayer().getVideoClip();
 						int stepNum = clip.frameToStep(frameNum);
 						trackerPanel.getPlayer().setStepNumber(stepNum);
+						TTrack track = getTrack();
+						Step step = track.getStep(frameNum);
+						if (step != null) {
+							TPoint pt = step.getDefaultPoint();
+							trackerPanel.setSelectedPoint(pt);
+							if (pt != null) {
+								pt.showCoordinates(trackerPanel);
+							}
+							step.erase();
+							TFrame.repaintT(trackerPanel);
+						}
 					}
 				} catch (Exception ex) {
 				}
