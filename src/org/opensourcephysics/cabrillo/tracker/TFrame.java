@@ -4283,12 +4283,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 		}
 
 		private void selectDataWindow(Window selected) {
-//			if (activeDataWindow != selected)
-//				stopDataBuilderStacking();
-//			activeDataWindow = selected;
 			if (selected != null) {
 				closeLibraryBrowser();
-//				setDataWindowListener(selected);
 			}
 			DataTool tool = DataTool.getToolIfExists();
 			if (tool != null && tool != selected && tool.isVisible())
@@ -4320,112 +4316,21 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 				window.setBounds(x, y, width, height);
 				window.validate();
 			}
-//			window.toFront();
 		}
 
 		protected void onDataBuilderVisible(TrackDataBuilder builder, boolean visible, Runnable setVisible) {
 			if (visible) {
 				if (allowOnlyOneTool) {
 					selectDataWindow(builder);
-//				} else {
-//					builder.removeComponentListener(dataWindowVisibility);
-//					builder.addComponentListener(dataWindowVisibility);
 				}
 			}
 			setVisible.run();
 			if (visible && OSPRuntime.isJS && isVisible()) {
 				fitDataWindow(builder);
-//				SwingUtilities.invokeLater(() -> keepDataBuilderAboveTracker(TFrame.this, builder));
 			}
 			if (visible)
 				refreshDataWindowChecks();
 		}
-
-//		private void keepDataBuilderAboveTracker(TFrame frame, JDialog builder) {
-//
-//			/**
-//			 * @j2sNative
-//			 * if (frame._dataBuilderStacking) {
-//			 *   frame._dataBuilderStacking();
-//			 *   frame._dataBuilderStacking = null;
-//			 * }
-//			 */
-//
-//			builder.toFront();
-//			
-//			/** @j2sNative
-//			 * var trackerUI = frame.秘getUI$(), builderUI = builder.秘getUI$();
-//			 * var closer = builderUI.closerNode;
-//			 * if (closer && !closer._trackerBuilderClose) {
-//			 *   closer._trackerBuilderClose = true;
-//			 *   // The close control sits inside the draggable title bar.
-//			 *   ["pointerdown", "mousedown", "touchstart"].forEach(function(type) {
-//			 *     closer.addEventListener(type, function(event) {
-//			 *       event.stopImmediatePropagation();
-//			 *     }, true);
-//			 *   });
-//			 *   closer.addEventListener("click", function(event) {
-//			 *     event.stopImmediatePropagation();
-//			 *     setTimeout(function() { builder.setVisible$Z(false); }, 0);
-//			 *   }, true);
-//			 * }
-//			 * var trackerNode = trackerUI.outerNode || trackerUI.getDOMNode$();
-//			 * var builderNode = builderUI.outerNode || builderUI.getDOMNode$();
-//			 * if (!trackerNode || !builderNode || trackerNode === builderNode) return;
-//			 * var rule = document.createElement("style");
-//			 * rule.textContent = "#" + CSS.escape(builderNode.id) + " { z-index: 19000 !important; }";
-//			 * document.head.appendChild(rule);
-//			 * frame._dataBuilderStacking = function() { rule.remove(); };
-//			 */
-//		}
-//		private void setDataWindowListener(Window window) {
-//		window.removeComponentListener(dataWindowVisibility);
-//		window.addComponentListener(dataWindowVisibility);
-//	}
-//
-//	private void stopDataBuilderStacking() {
-//		// ??
-//	}
-//
-//	@Deprecated
-//	private void jsFinishDataWindowClose(Component c, Window closedWindow) {
-//		if (true)
-//			return;
-//		if (c == activeDataWindow && !activeDataWindow.isVisible()) {
-//			/**
-//			 * @j2sNative var ui = closedWindow.秘getUI$(), node = ui.outerNode ||
-//			 *            ui.getDOMNode$(); if (node) { if (node.contains(J2S._mouseOwner)
-//			 *            || node.contains(J2S._mouseTarget)) J2S.setMouseOwner(null); var
-//			 *            owner = J2S._dmouseOwner; if (owner && node.contains(owner)) {
-//			 *            owner.isDragging = false; J2S._dmouseOwner = J2S._dmouseDrag =
-//			 *            J2S._dmouseUp = null; } }
-//			 */
-//		}
-//		selectDataWindow(null);
-//		SwingUtilities.invokeLater(() -> {
-//			if (activeDataWindow != null || !isShowing())
-//				return;
-//			MenuSelectionManager.defaultManager().clearSelectedPath();
-//			invalidate();
-//			validate();
-//			frameResized();
-//			GUIUtils.setupResizer(TFrame.this);
-//			toFront();
-//			requestFocus();
-//			repaint();
-//		});
-//		private ComponentAdapter dataWindowVisibility = new ComponentAdapter() {
-//		@Override
-//		public void componentHidden(ComponentEvent e) {
-//			// A hide event from switching tools can arrive after the new window opens.
-//			if (OSPRuntime.isJS) {
-//				jsFinishDataWindowClose(e.getComponent(), activeDataWindow);
-//				return;
-//			}
-////			refreshDataWindowChecks();
-//		}
-//};
-//	}
 
 
 	}
