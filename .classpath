@@ -10,20 +10,13 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/osp"/>
 	<classpathentry kind="src" path="resources"/>
 	<classpathentry kind="lib" path="libraries/ffmpeg.jar"/>
-    <classpathentry kind="lib" path="libraries/ffmpeg-macosx-arm64.jar"/>
-	<classpathentry kind="lib" path="libraries/ffmpeg-windows-x86_64.jar"/>
+	<classpathentry kind="lib" path="libraries/ffmpeg-macosx-arm64.jar"/>
 	<classpathentry kind="lib" path="libraries/javacpp.jar"/>
 	<classpathentry kind="lib" path="libraries/javacpp-macosx-arm64.jar"/>
-	<classpathentry kind="lib" path="libraries/javacpp-windows-x86_64.jar"/>
 	<classpathentry kind="lib" path="libraries/javacv.jar"/>
 	<classpathentry kind="lib" path="libraries/opencv.jar"/>
 	<classpathentry kind="lib" path="libraries/opencv-macosx-arm64.jar"/>
-	<classpathentry kind="lib" path="libraries/opencv-windows-x86_64.jar"/>
 	<classpathentry kind="lib" path="libraries/openblas.jar"/>
 	<classpathentry kind="lib" path="libraries/openblas-macosx-arm64.jar"/>
-	<classpathentry kind="lib" path="libraries/javacpp-macosx-x86_64.jar"/>
-	<classpathentry kind="lib" path="libraries/ffmpeg-macosx-x86_64.jar"/>
-	<classpathentry kind="lib" path="libraries/opencv-macosx-x86_64.jar"/>
-	<classpathentry kind="lib" path="libraries/openblas-macosx-x86_64.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
