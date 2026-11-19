@@ -2,6 +2,7 @@ package org.opensourcephysics.cabrillo.tracker;
 
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -39,6 +40,16 @@ public class NumberFieldPanel extends JPanel {
 		npPanelArrays = new HashMap<TrackerPanel, NumberFieldPanel[]>();
 	}
 
+	public static void releaseNumberFieldPanels(TrackerPanel tp) {
+		NumberFieldPanel[] array = npPanelArrays.remove(tp);
+		if (array != null) {
+			for (NumberFieldPanel np : array) {
+				Container p = np.getParent();
+				if (p != null)
+					p.remove(np);				
+			}
+		}
+	}
 	public static NumberFieldPanel[] getNFPanelArray(TrackerPanel tp) {
 		NumberFieldPanel[] array = npPanelArrays.get(tp);
 		if (array == null) {
@@ -132,6 +143,16 @@ public class NumberFieldPanel extends JPanel {
 		}
 	}
 
+	@Override
+	public String toString() {
+		String s = "";
+		for (Object[] row : rowObjects) {
+			s += "" + row[0];
+		}
+		return "[NFP " + s + "]";
+		
+	}
+	
 	private TrackerPanel panel() {
 		return frame.getTrackerPanelForID(trackerPanelID);
 	}
@@ -178,7 +199,7 @@ public class NumberFieldPanel extends JPanel {
 		NumberFieldPanel nfp = getNFPanelArray(panel())[0];
 		if (this != nfp) {
 			Rectangle rect = nfp.getBounds();
-			pt.x = Math.max(pt.x, rect.x + rect.width + 2);
+			pt.x = Math.max(pt.x, rect.x + rect.width);
 		}
 
 		// set the location boundaries

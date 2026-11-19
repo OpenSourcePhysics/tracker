@@ -715,6 +715,10 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 	@Override
 	public void dispose() {
 		removeAll();
+		if (compact != null) {
+			compact.dispose();
+			compact = null;
+		}
 		panel().removeListeners(panelProps, this);
 		for (TTrack t : TTrack.getValues()) {
 			t.removeListenerNCF(this);
@@ -767,6 +771,10 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 			pointNumberEditorButton.setSelected(true);
 		}
 		
+		public void dispose() {
+			NumberFieldPanel.releaseNumberFieldPanels(panel());
+		}
+
 		private TPoint getSelectedPoint(TrackerPanel panel) {
 			TPoint p = panel.getSelectedPoint();
 			if (p instanceof Crosshair.Control) {
