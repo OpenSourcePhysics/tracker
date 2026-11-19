@@ -267,7 +267,7 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 		// it filters null entries.
 		Object[] objectsToSize = new Object[] 
 				{ sizingField, newVersionButton, trackButton, testButton, 
-						maximizeButton};
+						maximizeButton, trackBarChooseViewButton};
 		FontSizer.setFonts(objectsToSize, level);
 		numberFieldWidth = sizingField.getPreferredSize().width;
 		getCompact().setFontLevel(level);

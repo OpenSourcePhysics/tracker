@@ -1792,7 +1792,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		for (int i = 0; i <= Tracker.maxFontLevel; i++) {
 			String s = TrackerRes.getString("TMenuBar.MenuItem.Font");
 			ResizableIcon icon = (ResizableIcon) Tracker.getResourceIcon("zoom.gif", true); //$NON-NLS-1$
-			icon.setFixedSizeFactor(FontSizer.getIntegerFactor(i));
+			icon.setFixedSizeFactor(FontSizer.getFactor(i));
 			JMenuItem item = new JMenuItem(s, icon);
 			FontSizer.setFonts(item, i);
 			int n = i;

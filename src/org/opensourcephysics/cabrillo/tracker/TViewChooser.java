@@ -547,6 +547,7 @@ public class TViewChooser extends JPanel implements PropertyChangeListener, OSPR
 		if (isMaximized()) {
 			toolbar.add(viewChooserChooseViewButton);
 		}
+		FontSizer.setFont(viewChooserChooseViewButton);
 //		FontSizer.setFonts(toolbar);
 		toolbar.repaint();
 	}
