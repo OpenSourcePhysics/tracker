@@ -59,6 +59,14 @@ public class NumberFieldPanel extends JPanel {
 		return array;
 	}
 
+	static void hideNumberFieldPanels(TrackerPanel panel) {
+		NumberFieldPanel[] panels = npPanelArrays.get(panel);
+		if (panels != null) {
+			for (NumberFieldPanel numberPanel : panels)
+				numberPanel.setVisible(false);
+		}
+	}
+
 	private ArrayList<Object[]> rowObjects = new ArrayList<Object[]>();
 	private int trackerPanelID;
 	private TFrame frame;

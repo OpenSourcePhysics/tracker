@@ -2506,6 +2506,12 @@ public class Tracker {
 								switch (e.getID()) {
 								case JOptionPane.YES_OPTION:
 									OSPRuntime.hasKeyboard = true;
+									OSPRuntime.useVirtualNumberPad = false;
+									break;
+								case JOptionPane.NO_OPTION:
+									OSPRuntime.hasKeyboard = false;
+									OSPRuntime.useVirtualNumberPad = true;
+									break;
 								}
 							}
 						});

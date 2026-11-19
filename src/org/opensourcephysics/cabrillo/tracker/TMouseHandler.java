@@ -362,6 +362,16 @@ public class TMouseHandler implements InteractiveMouseHandler {
 	}
 
 	private void clearInteractive(TrackerPanel trackerPanel, MouseEvent e) {
+		trackerPanel.hidePopup();
+		javax.swing.MenuSelectionManager.defaultManager().clearSelectedPath();
+		NumberFieldPanel.hideNumberFieldPanels(trackerPanel);
+		if (OSPRuntime.isJS) {
+			/**
+			 * @j2sNative
+			 * J2S.Mobile.closeNumberPad();
+			 * Clazz.load("swingjs.plaf.JSComponentUI").hideMenusAndToolTip$();
+			 */
+		}
 		// no interactive
 		// erase and clear selected steps, if any
 		TTrack[] tracks = trackerPanel.selectedSteps.getTracks();

@@ -1800,6 +1800,7 @@ public class TableTrackView extends TrackView {
 		SwingUtilities.invokeLater(() -> {
 			if (request != goToStepRequest || frame == null || frame.getSelectedPanel() != panel)
 				return;
+			panel.getPlayer().stop();
 			goToStepPanel = panel;
 			goToStepListener = event -> {
 				if (panel.getFrameNumber() == frameNumber)
