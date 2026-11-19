@@ -120,7 +120,6 @@ import org.opensourcephysics.display.GUIUtils;
 import org.opensourcephysics.display.OSPFrame;
 import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.display.OSPRuntime.Disposable;
-import org.opensourcephysics.js.AIPatch;
 import org.opensourcephysics.media.core.ClipInspector;
 import org.opensourcephysics.media.core.DataTrack;
 import org.opensourcephysics.media.core.ImageVideo;
@@ -3508,8 +3507,6 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 		super.setJMenuBar(OSPRuntime.isMobile() && !empty ? null : bar);
 		if (bar != null) {
 			bar.setEnabled(frameBlocker == null);
-//			if (OSPRuntime.isJS && getJMenuBar() == bar)
-//				AIPatch.installWindowDrag(this, bar);
 		}
 		currentMenuBar = (bar == defaultMenuBar ? null : (TMenuBar) bar);
 		if (currentMenuBar != null)
