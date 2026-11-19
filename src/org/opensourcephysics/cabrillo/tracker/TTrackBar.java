@@ -379,6 +379,7 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 		});
 		// choose view button
 		trackBarChooseViewButton = new TButton.TStickyPopupButton(frame, panelID, "TrackBar");
+		trackBarChooseViewButton.setHorizontalTextPosition(TButton.LEFT);
 
 		mainViewIconLabel = new JLabel(TToolBar.pointmassOffIcon);
 		mainViewIconLabel.setBorder(BorderFactory.createEmptyBorder(2, 0, 2, 6));
@@ -609,13 +610,14 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 		}
 		maximizeButton.setText(TrackerRes.getString("TFrame.View.Main"));
 		add(mainViewIconLabel);
-		add(maximizeButton);
 		boolean small = OSPRuntime.isSmallScreen(frame);
+		if (!small) add(maximizeButton);
 		boolean mobile = OSPRuntime.isMobile();
 		if (panel().getMaximizedView() != TView.VIEW_UNSET) {
 			maximizeButton.setIcon(small? null: TViewChooser.RESTORE_ICON);
 			maximizeButton.setToolTipText(small? null: TrackerRes.getString("TViewChooser.Restore.Tooltip"));//$NON-NLS-1$
 			trackBarChooseViewButton.setToolTipText(TrackerRes.getString("TViewChooser.NextView.Tooltip")); //$NON-NLS-1$
+			trackBarChooseViewButton.setText(small? maximizeButton.getText(): null); //$NON-NLS-1$
 			add(trackBarChooseViewButton);			
 		}
 		else {

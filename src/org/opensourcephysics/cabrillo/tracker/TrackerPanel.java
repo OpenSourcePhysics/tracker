@@ -881,6 +881,11 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 //				boolean automark = track.isMarkByDefault();
 //				track.setMarkByDefault(automark || !OSPRuntime.hasKeyboard);
 			}
+			// if maximized, set to main view
+			if (getMaximizedView() != TView.VIEW_UNSET
+					&& getMaximizedView() != TView.VIEW_MAIN) {
+				frame.maximizeView(this, TView.VIEW_MAIN);
+			}
 			super.addDrawable(track);
 		}
 		

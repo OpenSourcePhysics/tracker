@@ -160,6 +160,7 @@ public class TViewChooser extends JPanel implements PropertyChangeListener, OSPR
 		});
 		// choose view button
 		viewChooserChooseViewButton = new TStickyPopupButton(frame, panelID, "view" + (type + 1));
+		viewChooserChooseViewButton.setHorizontalTextPosition(TButton.LEFT);
 		setSelectedViewType(type);
 	}
 
@@ -172,6 +173,7 @@ public class TViewChooser extends JPanel implements PropertyChangeListener, OSPR
 				TrackerRes.getString("TViewChooser.Maximize.Tooltip")); //$NON-NLS-1$
 		maximizeButton.setText(TrackerRes.getString("TMenuBar.Menu.Window")+" "+maximizeButton.getName());
 		viewChooserChooseViewButton.setToolTipText(TrackerRes.getString("TViewChooser.NextView.Tooltip")); //$NON-NLS-1$
+		viewChooserChooseViewButton.setText(small? maximizeButton.getText(): null); //$NON-NLS-1$
 	}
 
 	protected void showToolbarPopup(int x, int y) {
@@ -540,7 +542,8 @@ public class TViewChooser extends JPanel implements PropertyChangeListener, OSPR
 		toolbar.add(toolbarFiller);
 		refreshMaximizeButton();
 		toolbar.add(chooserButton);
-		toolbar.add(maximizeButton);
+		if (!OSPRuntime.isSmallScreen(frame))
+			toolbar.add(maximizeButton);
 		if (isMaximized()) {
 			toolbar.add(viewChooserChooseViewButton);
 		}
