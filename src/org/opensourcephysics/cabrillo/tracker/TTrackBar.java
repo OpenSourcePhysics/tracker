@@ -751,6 +751,7 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 		
 		protected NumberFieldPanel[] numberEditors;
 		protected TButton trackNumberEditorButton, pointNumberEditorButton;
+		private String stepLabelSpacer = "        ";
 
 		Compact() {
 			numberEditors = NumberFieldPanel.getNFPanelArray(panel());
@@ -808,7 +809,7 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 			}
 			ArrayList<Component> trackComps = track.getToolbarTrackComponents(panel);
 			ArrayList<Component> pointComps = track.getToolbarPointComponents(panel, p);
-			track.stepLabel.setText(TrackerRes.getString("TTrack.Label.Step")); //$NON-NLS-1$
+			track.stepLabel.setText(stepLabelSpacer  + TrackerRes.getString("TTrack.Label.Step")); //$NON-NLS-1$
 			int n = p==null? panel.getStepNumber(): p.getFrameNumber(panel);
 			track.stepValueLabel.setText(n + ":"); //$NON-NLS-1$
 			updateSize(track.stepLabel);

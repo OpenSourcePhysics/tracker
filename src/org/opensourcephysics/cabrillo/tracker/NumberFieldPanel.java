@@ -205,6 +205,7 @@ public class NumberFieldPanel extends JPanel {
 		// set the location boundaries
 		setBounds(pt.x, pt.y - 10, dim.width, dim.height);
 		revalidate();
+		repaint();
 	}
 
 	public Component getPositionComponent() {
