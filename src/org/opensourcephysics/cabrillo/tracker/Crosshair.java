@@ -220,6 +220,7 @@ public class Crosshair extends TPoint implements PropertyChangeListener {
 	@Override
 	public void draw(DrawingPanel panel, Graphics g) {
 		if (!isVisible()) return;
+		if (panel instanceof WorldTView.WorldPanel) return;
 		
     Graphics2D g2d = (Graphics2D) g;
     g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);

@@ -1051,7 +1051,6 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 		protected void buildCompactForCoordAxes(CoordAxes axes, TrackerPanel panel,
 				ArrayList<Component> trackComps) {
 			// add track items to toolbar
-			add(trackNumberEditorButton);
 			add(axes.stepLabel);
 			add(axes.stepValueLabel);
 			add(pointNumberEditorButton);
