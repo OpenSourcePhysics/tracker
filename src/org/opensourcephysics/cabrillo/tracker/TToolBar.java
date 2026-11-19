@@ -3141,6 +3141,7 @@ public class TToolBar extends JToolBar implements Disposable, PropertyChangeList
 			trackbar.getSelectTrackPopup(selectMenu.getPopupMenu());
 			mobileTrackPopup.addSeparator();
 			mobileTrackPopup.add(selectMenu);
+			FontSizer.setFonts(mobileTrackPopup);
 		}
 		
 		private void rebuildMobileViewPopup() {

@@ -157,7 +157,7 @@ public class TButton extends JButton {
 			if (e == null) {
 				// unnecessary				AIPatch.keepPopupOpenUntilSelection(this, this.popup);
 			} else {
-				if (popup == null)
+				if (popup == null || popup.getComponentCount() == 0)
 					popup = getPopup();
 				switch (e.getID()) {
 				case MouseEvent.MOUSE_PRESSED:

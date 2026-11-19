@@ -2813,7 +2813,7 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 	}
 
 	/**
-	 * Refreshes the Window menu for a TrackerPanel.
+	 * Refreshes the View menu for a TrackerPanel.
 	 * 
 	 * @param opening      TODO
 	 */
@@ -2860,6 +2860,14 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 		view_3Item.setText(TrackerRes.getString("TMenuBar.Menu.Window") + " 3 ("+viewNames[2]+")"); //$NON-NLS-1$;
 		view_4Item.setText(TrackerRes.getString("TMenuBar.Menu.Window") + " 4 ("+viewNames[3]+")"); //$NON-NLS-1$;
 				
+		if (view_singleViewMenu.getComponentCount() == 0) {
+			view_singleViewMenu.add(view_mainItem);
+			view_singleViewMenu.add(view_1Item);
+			view_singleViewMenu.add(view_2Item);
+			view_singleViewMenu.add(view_3Item);
+			view_singleViewMenu.add(view_4Item);
+		}
+		
 		// long t0 = Performance.now(0);
 		// determine if right pane is open or closed
 		JSplitPane pane = frame.getSplitPane(p, 0);
@@ -2891,11 +2899,6 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 			}
 //			viewMenu.removeAll();
 			viewMenu.add(view_singleViewMenu);
-			view_singleViewMenu.add(view_mainItem);
-			view_singleViewMenu.add(view_1Item);
-			view_singleViewMenu.add(view_2Item);
-			view_singleViewMenu.add(view_3Item);
-			view_singleViewMenu.add(view_4Item);
 			viewMenu.addSeparator();
 			
 			if (p.getMaximizedView() != TView.VIEW_UNSET) {
