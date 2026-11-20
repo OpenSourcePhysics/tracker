@@ -345,6 +345,12 @@ public class TMouseHandler implements InteractiveMouseHandler {
 					((VectorStep.Handle) selectedPoint).snap(trackerPanel);
 				}
 			}
+			for (Step step : new java.util.ArrayList<Step>(trackerPanel.selectedSteps)) {
+				if (step != null && step.points != null && step.points.length > 0
+						&& step.points[0] != null && step.points[0] != selectedPoint
+						&& step.points[0].isAdjusting())
+					step.points[0].setAdjusting(false, e);
+			}
 			// if autoAdvance, advance to next frame after step creation
 			if (stepCreated && selectedTrack != null && selectedTrack.isAutoAdvance()) {
 				trackerPanel.getPlayer().step();
