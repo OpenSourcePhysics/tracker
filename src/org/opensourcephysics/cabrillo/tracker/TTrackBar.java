@@ -60,7 +60,6 @@ import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.display.OSPRuntime.Disposable;
 import org.opensourcephysics.media.core.NumberField;
 import org.opensourcephysics.media.core.TPoint;
-import org.opensourcephysics.media.core.VideoClip;
 import org.opensourcephysics.tools.FontSizer;
 
 /**
@@ -517,6 +516,7 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 		track = panel.getSelectedTrack();
 		selectButton.setText(track != null? null:
 				TrackerRes.getString("TToolBar.Menu.Select.Text"));
+		FontSizer.setFont(selectButton);
 		add(selectButton);
 		trackButton.context = "track"; //$NON-NLS-1$
 		if (track != null && track.ttype != TTrack.TYPE_PERSPECTIVE) {
@@ -625,7 +625,7 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 			maximizeButton.setToolTipText(small? null: TrackerRes.getString("TViewChooser.Maximize.Tooltip"));//$NON-NLS-1$
 		}
 
-		FontSizer.setFonts(maximizeButton);
+		FontSizer.setFont(maximizeButton);
 		refreshNumberEditors(true);
 		revalidate();
 		TFrame.repaintT(this);
