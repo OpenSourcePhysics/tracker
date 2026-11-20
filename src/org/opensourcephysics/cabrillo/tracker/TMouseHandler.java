@@ -161,6 +161,8 @@ public class TMouseHandler implements InteractiveMouseHandler {
 
 		// create and/or select/deselect TPoints by pressing mouse
 		case InteractivePanel.MOUSE_PRESSED:
+			isDraggingFrame = false;
+			isResizingFrame = false;
 			if (Tracker.startupHintShown) {
 				Tracker.startupHintShown = false;
 				trackerPanel.setMessage(""); //$NON-NLS-1$
@@ -283,7 +285,9 @@ public class TMouseHandler implements InteractiveMouseHandler {
 				selectedPoint.showCoordinates(trackerPanel);
 				// move other TPoints associated with selectedSteps by same amount
 				trackerPanel.selectedSteps.setChanged(true);
-				for (Step step : trackerPanel.selectedSteps) {
+				for (Step step : new java.util.ArrayList<Step>(trackerPanel.selectedSteps)) {
+					if (step == null || step.points == null || step.points.length == 0 || step.points[0] == null)
+						continue;
 					selectedPoint = step.points[0];
 					if (selectedPoint == trackerPanel.getSelectedPoint())
 						continue;
@@ -358,11 +362,17 @@ public class TMouseHandler implements InteractiveMouseHandler {
 	}
 
 	private void clearInteractive(TrackerPanel trackerPanel, MouseEvent e) {
-		// no interactive
-		if (trackerPanel.getSelectedPoint() != null) {
-			// deselect the selected point--this will post undoable edit if changed
-			trackerPanel.setSelectedPoint(null);
+		trackerPanel.hidePopup();
+		javax.swing.MenuSelectionManager.defaultManager().clearSelectedPath();
+		NumberFieldPanel.hideNumberFieldPanels(trackerPanel);
+		if (OSPRuntime.isJS) {
+			/**
+			 * @j2sNative
+			 * J2S.Mobile.closeNumberPad();
+			 * Clazz.load("swingjs.plaf.JSComponentUI").hideMenusAndToolTip$();
+			 */
 		}
+		// no interactive
 		// erase and clear selected steps, if any
 		TTrack[] tracks = trackerPanel.selectedSteps.getTracks();
 		for (Step step : trackerPanel.selectedSteps) {
@@ -372,6 +382,8 @@ public class TMouseHandler implements InteractiveMouseHandler {
 		for (TTrack next : tracks) {
 			next.fireStepsChanged();
 		}
+		trackerPanel.setSelectedPoint(null);
+		TFrame.repaintT(trackerPanel);
 		if (!trackerPanel.isShowCoordinates()) {
 			trackerPanel.hideMouseBox();
 			trackerPanel.setMouseCursor(Cursor.getDefaultCursor());

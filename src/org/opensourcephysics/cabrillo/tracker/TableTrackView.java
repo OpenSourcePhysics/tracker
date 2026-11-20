@@ -42,6 +42,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.BitSet;
@@ -228,6 +229,10 @@ public class TableTrackView extends TrackView {
 	private JMenuItem dataToolItem, dataBuilderItem, deleteDataFunctionItem;
 	private JMenu numberMenu;
 	private JMenuItem goToFrameItem, formatDialogItem, setUnitsItem, showUnitsItem;
+	private TrackerPanel goToStepPanel;
+	private PropertyChangeListener goToStepListener;
+	private javax.swing.Timer goToStepTimeout;
+	private long goToStepRequest;
 	private JMenu copyDataMenu;
 	private JMenuItem copyDataRawItem, copyDataFormattedItem;
 	private JMenu setDelimiterMenu;
@@ -713,6 +718,7 @@ public class TableTrackView extends TrackView {
 
 	@Override
 	protected void dispose() {
+		cancelGoToStep();
 		trackDataManager = null;
 		getTrack().removePropertyChangeListener(TTrack.PROPERTY_TTRACK_TEXTCOLUMN, this); // $NON-NLS-1$
 		setViewportView(null);
@@ -1407,9 +1413,16 @@ public class TableTrackView extends TrackView {
 		}
 		if (!OSPRuntime.isPopupTrigger(e))
 			return;
-		getMenuItems();
-		java.awt.Point mousePt = e.getPoint();
+		showTablePopup(e.getX(), e.getY());
+	}
+
+	protected void showTablePopup(int x, int y) {
+		java.awt.Point mousePt = new java.awt.Point(x, y);
 		int col = dataTable.columnAtPoint(mousePt);
+		int row = dataTable.rowAtPoint(mousePt);
+		if (col < 0 || row < 0)
+			return;
+		getMenuItems();
 		deleteDataFunctionItem.setActionCommand(""); //$NON-NLS-1$
 		// set action command of delete item if data function column selected
 		String colName = dataTable.getColumnName(col);
@@ -1423,7 +1436,6 @@ public class TableTrackView extends TrackView {
 			}
 		}
 		// set action command and title of goToFrame item
-		int row = dataTable.rowAtPoint(mousePt);
 		goToFrameItem.setEnabled(row > -1);
 		if (goToFrameItem.isEnabled()) {
 			goToFrameItem.setActionCommand(String.valueOf(row));
@@ -1434,7 +1446,7 @@ public class TableTrackView extends TrackView {
 			s += " " + stepNum; //$NON-NLS-1$
 			goToFrameItem.setText(s);
 		}
-		getPopup().show(dataTable, e.getX() + 4, e.getY());
+		getPopup().show(dataTable, x + 4, y);
 	}
 
 	protected void tableHeaderMousePressed(MouseEvent e) {
@@ -1518,18 +1530,7 @@ public class TableTrackView extends TrackView {
 						TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
 						VideoClip clip = trackerPanel.getPlayer().getVideoClip();
 						int stepNum = clip.frameToStep(frameNum);
-						trackerPanel.getPlayer().setStepNumber(stepNum);
-						TTrack track = getTrack();
-						Step step = track.getStep(frameNum);
-						if (step != null) {
-							TPoint pt = step.getDefaultPoint();
-							trackerPanel.setSelectedPoint(pt);
-							if (pt != null) {
-								pt.showCoordinates(trackerPanel);
-							}
-							step.erase();
-							TFrame.repaintT(trackerPanel);
-						}
+						goToStep(trackerPanel, stepNum, clip.stepToFrame(stepNum));
 					}
 				} catch (Exception ex) {
 				}
@@ -1775,6 +1776,67 @@ public class TableTrackView extends TrackView {
 		setDelimiterMenu.add(addDelimiterItem);
 		if (hasCustom)
 			setDelimiterMenu.add(removeDelimiterItem);
+	}
+
+	private void cancelGoToStep() {
+		goToStepRequest++;
+		if (goToStepPanel != null && goToStepListener != null)
+			goToStepPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_STEPNUMBER,
+					goToStepListener);
+		if (goToStepTimeout != null)
+			goToStepTimeout.stop();
+		goToStepPanel = null;
+		goToStepListener = null;
+		goToStepTimeout = null;
+	}
+
+	private void goToStep(TrackerPanel panel, int stepNumber, int frameNumber) {
+		cancelGoToStep();
+		long request = goToStepRequest;
+		TTrack track = getTrack();
+		javax.swing.MenuSelectionManager.defaultManager().clearSelectedPath();
+		if (popup != null)
+			popup.setVisible(false);
+		SwingUtilities.invokeLater(() -> {
+			if (request != goToStepRequest || frame == null || frame.getSelectedPanel() != panel)
+				return;
+			panel.getPlayer().stop();
+			goToStepPanel = panel;
+			goToStepListener = event -> {
+				if (panel.getFrameNumber() == frameNumber)
+					finishGoToStep(panel, track, frameNumber, request);
+				else
+					cancelGoToStep();
+			};
+			panel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_STEPNUMBER, goToStepListener);
+			goToStepTimeout = new javax.swing.Timer(10000, event -> cancelGoToStep());
+			goToStepTimeout.setRepeats(false);
+			goToStepTimeout.start();
+			panel.getPlayer().setStepNumber(stepNumber);
+			if (panel.getFrameNumber() == frameNumber)
+				finishGoToStep(panel, track, frameNumber, request);
+		});
+	}
+
+	private void finishGoToStep(TrackerPanel panel, TTrack track, int frameNumber, long request) {
+		// Let the frame-change listeners finish clearing the previous selection.
+		SwingUtilities.invokeLater(() -> {
+			if (request != goToStepRequest)
+				return;
+			cancelGoToStep();
+			if (frame == null || frame.getSelectedPanel() != panel || getTrack() != track
+					|| panel.getFrameNumber() != frameNumber || track == null)
+				return;
+			Step step = track.getStep(frameNumber);
+			if (step == null)
+				return;
+			TPoint point = step.getDefaultPoint();
+			panel.setSelectedPoint(point);
+			if (point != null)
+				point.showCoordinates(panel);
+			step.erase();
+			TFrame.repaintT(panel);
+		});
 	}
 
 	protected JPopupMenu getPopup() {
@@ -2295,6 +2357,55 @@ public class TableTrackView extends TrackView {
 	}
 
 	class TrackDataTable extends DataTable {
+
+		@Override
+		public void addNotify() {
+			super.addNotify();
+			if (OSPRuntime.isJS) {
+				/**
+				 * @j2sNative
+				 * var table = this, node = table.getUI$().getDOMNode$();
+				 * if (!node || node._trackerTableTap) return;
+				 * node._trackerTableTap = true;
+				 * var start = null, suppressUntil = 0;
+				 * node.addEventListener("touchstart", function(e) {
+				 *   start = e.touches.length === 1 ? {
+				 *     x: e.touches[0].clientX, y: e.touches[0].clientY,
+				 *     id: e.touches[0].identifier, left: node.getBoundingClientRect().left,
+				 *     top: node.getBoundingClientRect().top
+				 *   } : null;
+				 *   e.stopImmediatePropagation();
+				 * }, {capture: true, passive: true});
+				 * node.addEventListener("touchcancel", function() { start = null; }, true);
+				 * node.addEventListener("touchend", function(e) {
+				 *   var first = start, end = e.changedTouches[0];
+				 *   start = null;
+				 *   if (!first || !end || first.id !== end.identifier) return;
+				 *   var rect = node.getBoundingClientRect();
+				 *   if (Math.hypot(end.clientX - first.x, end.clientY - first.y) > 10 ||
+				 *       Math.abs(rect.left - first.left) + Math.abs(rect.top - first.top) > 2) return;
+				 *   suppressUntil = Date.now() + 700;
+				 *   e.preventDefault();
+				 *   e.stopImmediatePropagation();
+				 *   table.showTouchPopup$I$I(Math.round(end.clientX - rect.left),
+				 *                           Math.round(end.clientY - rect.top));
+				 * }, {capture: true, passive: false});
+				 * node.addEventListener("click", function(e) {
+				 *   if (Date.now() < suppressUntil) {
+				 *     e.preventDefault();
+				 *     e.stopImmediatePropagation();
+				 *   }
+				 * }, true);
+				 */
+			}
+		}
+
+		public void showTouchPopup(int x, int y) {
+			SwingUtilities.invokeLater(() -> {
+				if (frame != null && isShowing())
+					showTablePopup(x, y);
+			});
+		}
 
 		@Override
 		public int findLastAddedModelIndex(StringBuffer names) {
