@@ -85,6 +85,7 @@ public class Crosshair extends TPoint implements PropertyChangeListener {
 	private Timer wasOnTimer;
 	private String hint, selectedName;
 	private JPopupMenu popup;
+	private JMenuItem closeItem;
 		
 	public Crosshair(TrackerPanel panel) {
 		panelID = panel.getID();
@@ -121,6 +122,8 @@ public class Crosshair extends TPoint implements PropertyChangeListener {
     Rectangle rect = mat == null ? null : mat.getBounds();
     setXY((rect == null ? panel.getImageWidth() : rect.getWidth()) / 2,
         (rect == null ? panel.getImageHeight() : rect.getHeight()) / 2);
+    closeItem = new JMenuItem();
+    closeItem.addActionListener((e) -> {setVisible(false);});
 	}
 	
 	@Override
@@ -183,10 +186,8 @@ public class Crosshair extends TPoint implements PropertyChangeListener {
 	protected JPopupMenu getPopup() {
 		popup.removeAll();
 		// add items
-		TMenuBar menubar = frame.getMenuBar(panelID, false);
-		JMenuItem item = menubar.getMenuItem("track_crosshairItem"); //$NON-NLS-1$
-		item.setSelected(panel().getCrosshair().isVisible());
-		popup.add(item);
+		closeItem.setText(TrackerRes.getString("Dialog.Button.Close"));; //$NON-NLS-1$
+		popup.add(closeItem);
 		return popup;
 	}
 	
