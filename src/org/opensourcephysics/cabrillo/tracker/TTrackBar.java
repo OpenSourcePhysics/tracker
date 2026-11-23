@@ -389,6 +389,7 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 	}
 	
 	int test = 0;
+	private Timer rebuildTimer;
 
 	
 	/**
@@ -466,18 +467,37 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 
 	/**
 	 * Refreshes the GUI.
+	 * 
+	 * BH: Added a forward-triggered timer for rebuilding that can be 
+	 *     pushed forward (as is done with Swing repaints) if a second
+	 *     request comes in before the time expires.
+	 *     
+	 *     Experimental. This does not seem to actually matter much.
+	 *     
 	 */ 
-	@SuppressWarnings("deprecation")
-	protected void refresh() {
+protected void refresh() {
 		// check to see if a build has already been done since the last refresh request
 		if (!panel().isPaintable() || buildRequested)
 			return;
 		if (selectButton == null)
 			createGUI();
+		if (buildRequested) {
+			if (rebuildTimer != null) {
+				rebuildTimer.stop();
+				buildRequested = false;
+			}
+		} 
+		if (!buildRequested) {
 		buildRequested = true;
-		OSPRuntime.postEvent(() -> {
-			rebuild();
+			rebuildTimer = OSPRuntime.trigger(100, () -> {
+				rebuildTimer = null;
+				rebuild();
 		});
+		}
+//		OSPRuntime.postEvent(() -> {
+//			rebuild();
+//		});
+//
 
 	}
 	
@@ -491,7 +511,14 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 	protected void refreshNumberEditors(boolean later) {
 		getCompact().refreshNumberEditors(later);
 		}
-	
+
+	@Override
+	public Dimension getPreferredSize() {
+		Dimension d = super.getPreferredSize();
+		d.height = 38; // temporary fix? Prevents the bar height being set to 0 after removeAll()
+		return d;
+	}
+
 	private boolean buildRequested;
 	
 	protected void rebuild() {
@@ -518,6 +545,7 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 				TrackerRes.getString("TToolBar.Menu.Select.Text"));
 		FontSizer.setFont(selectButton);
 		add(selectButton);
+		toolbarComponentHeight = selectButton.getPreferredSize().height;
 		trackButton.context = "track"; //$NON-NLS-1$
 		if (track != null && track.ttype != TTrack.TYPE_PERSPECTIVE) {
 			if (track instanceof ParticleDataTrack) {
@@ -534,13 +562,17 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 			track.addListenerNCF(this);
 			add(trackButton);
 			
-			toolbarComponentHeight = selectButton.getPreferredSize().height;
 			
 			if (OSPRuntime.isCompact(frame)) {
-				getCompact().buildCompact(panel);
-				return;
+				getCompact().buildCompact(track, panel);
+			} else {
+				buildStandardTrackBar(track, panel);
+			}
+		}
+		finishRebuilding(panel);
 					}
 			
+	private void buildStandardTrackBar(TTrack track, TrackerPanel panel) {
 			ArrayList<Component> list = track.getToolbarTrackComponents(panel);
 				for (Component c : list) {
 					if (c instanceof JComponent && !(c instanceof JButton) && !(c instanceof JCheckBox)) {
@@ -573,9 +605,6 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 				}
 			}
 		
-			finishRebuilding(panel);
-		}
-
 	protected void finishRebuilding(TrackerPanel panel) {
 		ArrayList<TTrack> userTracks = panel.getUserTracks();
 		TFrame frame = panel.getTFrame();
@@ -634,12 +663,14 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 
 	@Override
 	public void paint(Graphics g) {
-		if (selectButton == null) {
+		if (selectButton == null || buildRequested || !isValid()) {
+			// SwingJS may fire this before it is valid.
 			// this happens once before the frame is ready
 			return;
 		}
 		super.paint(g);
 	}
+	
 	private void updateSize(JComponent jc) {
 		int w = jc.getPreferredSize().width;
 		jc.setMaximumSize(null);
@@ -678,6 +709,7 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 		field.setMaximumSize(dim);
 		field.setPreferredSize(dim);
 		revalidate();
+		TFrame.repaintT(this);
 	}
 
 	/**
@@ -799,10 +831,9 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 			refreshNumberEditors(true);
 		}
 		
-		protected void buildCompact(TrackerPanel panel) {
+		protected void buildCompact(TTrack track, TrackerPanel panel) {
 			numberEditors[0].clear();
 			numberEditors[1].clear();
-			TTrack track = trackButton.getTrack();
 			TPoint p = panel.getSelectedPoint();
 			if (p != null && p instanceof Crosshair.Control) {
 				p = ((Crosshair.Control)p).getTarget().getMarkedPoint();
@@ -849,8 +880,6 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 				buildCompactForCircle((CircleFitter)track, panel, trackComps, pointComps);
 				return;				
 			}
-			
-			finishRebuilding(panel);			
 		}
 		
 		protected void buildCompactForPointMass(PointMass pm, TrackerPanel panel) {
@@ -957,7 +986,7 @@ public class TTrackBar extends JToolBar implements Disposable, PropertyChangeLis
 			}
 			
 			if (pointComps != null && pointComps.contains(rgn.editPolygonButton)
-					|| (trackComps != null && trackComps.contains(rgn.editPolygonButton))) {
+					|| trackComps.contains(rgn.editPolygonButton)) {
 				add(rgn.editPolygonButton);	
 			}
 			finishRebuilding(panel);			

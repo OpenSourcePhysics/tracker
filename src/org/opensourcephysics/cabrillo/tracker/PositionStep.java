@@ -420,11 +420,12 @@ public class PositionStep extends Step {
 			if (m.isAutofill()) {
 				m.markInterpolatedSteps(PositionStep.this, !adjusting);
 			}
+			// Release deferred data refresh before notifying the table of the edited step.
+			m.firePropertyChange(Trackable.PROPERTY_ADJUSTING, m, adjusting);
 			if (!adjusting) {
 				m.updateDerivatives(n);
 				m.firePropertyChange(TTrack.PROPERTY_TTRACK_STEP, null, new Integer(n)); // $NON-NLS-1$
 			}
-			m.firePropertyChange(Trackable.PROPERTY_ADJUSTING, m, adjusting); // $NON-NLS-1$
 		}
 
 	}

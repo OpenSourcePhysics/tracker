@@ -151,6 +151,7 @@ public class TrackControl extends JDialog implements OSPRuntime.Disposable, Prop
 	public void setVisible(boolean vis) {
 		if (panelID == null)
 			return;
+		boolean closing = !vis && isVisible();
 		if (!positioned && vis) {
 			positionForFrame();
 		}
@@ -161,6 +162,27 @@ public class TrackControl extends JDialog implements OSPRuntime.Disposable, Prop
 		TToolBar toolbar = frame.getToolBar(panelID, false);
 		if (toolbar != null)
 			toolbar.trackControlButton.setSelected(vis);
+		if (closing && OSPRuntime.isJS) {
+			/**
+			 * @j2sNative
+			 * var node = this.秘getUI$().getDOMNode$();
+			 * if (node.contains(J2S._mouseOwner) || node.contains(J2S._mouseTarget))
+			 *   J2S.setMouseOwner(null);
+			 * var owner = J2S._dmouseOwner;
+			 * if (owner && node.contains(owner)) {
+			 *   owner.isDragging = false;
+			 *   J2S._dmouseOwner = J2S._dmouseDrag = J2S._dmouseUp = null;
+			 * }
+			 */
+			javax.swing.SwingUtilities.invokeLater(() -> {
+				if (frame == null || isVisible())
+					return;
+				javax.swing.MenuSelectionManager.defaultManager().clearSelectedPath();
+				frame.toFront();
+				frame.requestFocus();
+				frame.repaint();
+			});
+		}
 	}
 
 	private void positionForFrame() {
