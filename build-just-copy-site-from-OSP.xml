@@ -18,7 +18,7 @@
   	
   		<!-- output directories -->
 
-  	<property name="swingjs.dir" value="site/swingjs/" />
+  	<property name="swingjs.dir" value="site/swingjs" />
 
     <!-- <for  ...> construct needs ant-contrib.jar -->
     <taskdef resource="net/sf/antcontrib/antlib.xml">
@@ -29,7 +29,7 @@
 
 
   	<echo> Copying ${osp.swingjs.dir} files into ${swingjs.dir} </echo>
-  	<copy todir="${swingjs.dir}">
+  	<copy todir="${swingjs.dir}" overwrite="true">
       <fileset dir="${osp.swingjs.dir}">
       	<include name="**"/>
   	</fileset>
@@ -40,7 +40,7 @@
  	<!-- assets to bin/ -->
 
  	<echo> Copying project *.zip and ${osp.bin} files into bin </echo>
-  	<copy todir="bin">
+  	<copy todir="bin" overwrite="true">
       <fileset dir="${osp.bin}">
       	<include name="*.zip"/>
   	</fileset>
