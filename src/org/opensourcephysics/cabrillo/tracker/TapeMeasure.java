@@ -1521,12 +1521,13 @@ public class TapeMeasure extends InputTrack  implements MarkingRequired {
 		public Object loadObject(XMLControl control, Object obj) {
 			TapeMeasure tape = (TapeMeasure) obj;
 			tape.notYetShown = false;
-			boolean locked = tape.isLocked();
 			tape.setLocked(false);
 			// load stickMode to set up footprint choices
 			tape.setStickMode(control.getBoolean("stickmode")); //$NON-NLS-1$
 			// load track data
 			XML.getLoader(TTrack.class).loadObject(control, obj);
+			boolean locked = tape.isLocked();
+			tape.setLocked(false);
 			// load position data
 			tape.keyFrames.clear();
 			FrameData[] data = (FrameData[]) control.getObject("framedata"); //$NON-NLS-1$
