@@ -1,0 +1,69 @@
+<?xml version="1.0"?>
+<!--
+ BH 2018.08.12
+
+ - requires tools/ant-contrib.jar
+  
+ - creates the site1/ directory if it does not exist
+ - copies site/* into site1
+ - copies ../osp/site1/* into site1
+ 
+-->
+
+<project name="swingjs-project" default="tosite" basedir="."
+ xmlns:if="ant:if"
+    xmlns:unless="ant:unless">
+	
+  <target name="tosite">
+  	  	
+  	<!-- input directories -->
+  	
+  	<!-- location of ant-contrib.jar -->
+  	<property name="tools.dir" value = "tools" />
+
+ 	<!-- SwingjS_site zip file (could be varied if versioning is needed) -->
+  	<property name="swingjs.zip" value="swingjs/SwingJS-site.zip" />
+
+  	<!-- location of third-party jar contents as precompiled zipped .js files to copy to site/ -->
+  	<property name="libjs.dir" value="libjs" />
+ 
+  	<!-- non-Java resources to copy to site/swingjs/j2s -->
+    <property name="resource.dir" value="resources" />  	
+  	
+  	<!-- non-Java resources to copy to site/ -->
+    <property name="site-resource.dir" value="site-resources" />  	  	
+
+	<!-- output directories -->
+
+    <property name="osp.site.dir" value="..\osp\site1" />
+  	<property name="site.dir" value="site" />
+    <property name="site1.dir" value="site1" />
+   	<property name="j2s.dir" value="${site.dir}/swingjs/j2s" />
+  	 
+    <!-- <for  ...> construct needs ant-contrib.jar -->
+    <taskdef resource="net/sf/antcontrib/antlib.xml">
+      <classpath>
+        <pathelement location="${tools.dir}/ant-contrib.jar" />
+      </classpath>
+    </taskdef>
+
+
+   	<echo> Copying ${site.dir} files into ${site1.dir} </echo>
+  	<copy todir="${site1.dir}" overwrite="true">
+      <fileset dir="${site.dir}" erroronmissingdir="false" >
+      	<include name="**"/>
+  	</fileset>
+    </copy>
+
+   <echo> Copying ${osp.site.dir} files into ${site1.dir} </echo>
+   <copy todir="${site1.dir}" overwrite="true">
+     <fileset dir="${osp.site.dir}" erroronmissingdir="false" >
+       <include name="**"/>
+   </fileset>
+   </copy>
+
+ 
+</target>
+	
+
+</project>
