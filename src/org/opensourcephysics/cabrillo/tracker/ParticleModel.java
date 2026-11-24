@@ -1259,7 +1259,7 @@ abstract public class ParticleModel extends PointMass {
 			ParticleModel p = (ParticleModel) obj;
 			// load mass
 			double m = control.getDouble("mass"); //$NON-NLS-1$
-			if (m != Double.NaN) {
+			if (!Double.isNaN(m)) {
 				p.mass = m;
 			}
 			// load velocity and acceleration footprint and color

@@ -2920,7 +2920,7 @@ public class PointMass extends TTrack {
 			p.setLocked(false);
 			// load mass
 			double m = control.getDouble("mass"); //$NON-NLS-1$
-			if (m != Double.NaN) {
+			if (!Double.isNaN(m)) {
 				p.setMass(m);
 			}
 			// load velocity and acceleration footprint and color
