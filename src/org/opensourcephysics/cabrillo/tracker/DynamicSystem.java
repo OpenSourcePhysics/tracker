@@ -443,7 +443,7 @@ public class DynamicSystem extends DynamicParticlePolar {
 		super.delete();
 	}
 
-	private double[] temp = new double[2];
+	private double[] temp = new double[5]; // polar particles also use this for {r, vr, theta, omega, t}
 
 	/**
 	 * Gets the rate based on a specified state.
@@ -460,7 +460,7 @@ public class DynamicSystem extends DynamicParticlePolar {
 		// one particle, no interactions: state is {x1, vx1, y1, vy1, t},
 		// rate is {vx1, ax1, vy1, ay1, 1}
 		if (particles.length == 1) {
-			double[] particleState = getState(particles[0]);
+			double[] particleState = getState(particles[0], state);
 			particles[0].getXYForces(particleState, temp);
 			double m = particles[0].getMass();
 			rate[0] = state[1]; // dx/dt = vx
@@ -481,7 +481,7 @@ public class DynamicSystem extends DynamicParticlePolar {
 		double ftheta = f[1].evaluate(polarState);
 		// use particle states {x, vx, y, vy, t} to get external forces on particles
 		for (int i = 0; i < particles.length; i++) {
-			double[] particleState = getState(particles[i]);
+			double[] particleState = getState(particles[i], state);
 			particles[i].getXYForces(particleState, temp);
 			double m = particles[i].getMass();
 			int sign = i == 0 ? 1 : -1; // polar forces are opposite on particles[1]
@@ -908,15 +908,26 @@ public class DynamicSystem extends DynamicParticlePolar {
 	 * @return the state of the particle {x, vx, y, vy, t}
 	 */
 	protected double[] getState(DynamicParticle particle) {
+		return getState(particle, state);
+	}
+
+	/**
+	 * Gets a particle state from the supplied system state, including solver stages.
+	 *
+	 * @param particle the particle
+	 * @param systemState the system state to read
+	 * @return the particle state {x, vx, y, vy, t}
+	 */
+	private double[] getState(DynamicParticle particle, double[] systemState) {
 		for (int i = 0; i < particles.length; i++) {
 			if (particles[i] == particle) {
 				// state is {x1, vx1, y1, vy1, x2, vx2, y2, vy2, t}
 				// particleState is {x, vx, y, vy, t}
-				particleState[0] = state[4 * i];
-				particleState[1] = state[4 * i + 1];
-				particleState[2] = state[4 * i + 2];
-				particleState[3] = state[4 * i + 3];
-				particleState[4] = state[state.length - 1];
+				particleState[0] = systemState[4 * i];
+				particleState[1] = systemState[4 * i + 1];
+				particleState[2] = systemState[4 * i + 2];
+				particleState[3] = systemState[4 * i + 3];
+				particleState[4] = systemState[systemState.length - 1];
 				return particleState;
 			}
 		}

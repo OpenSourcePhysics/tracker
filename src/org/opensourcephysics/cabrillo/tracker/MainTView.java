@@ -26,6 +26,8 @@ package org.opensourcephysics.cabrillo.tracker;
 
 import java.awt.BorderLayout;
 import java.awt.Container;
+import java.awt.event.ComponentEvent;
+
 import javax.swing.Icon;
 import javax.swing.JDialog;
 import javax.swing.JPopupMenu;
@@ -65,8 +67,8 @@ public class MainTView extends ZoomTView {
 	}
 
 	@Override
-	protected boolean doResized() {
-		if (!super.doResized())
+	protected boolean doResized(ComponentEvent e) {
+		if (!super.doResized(e))
 			return false;
 		TrackerPanel trackerPanel = frame.getTrackerPanelForID(panelID);
 		TToolBar tbar = trackerPanel.getToolBar(false);

@@ -31,6 +31,7 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ComponentEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
@@ -136,9 +137,10 @@ public class WorldTView extends ZoomTView {
 	}
 	
 	@Override
-	protected boolean doResized() {
-		if (!super.doResized())
+	protected boolean doResized(ComponentEvent e) {
+		if (!super.doResized(e)) {
 			return false;
+		}
 		TrackerPanel trackerPanel = worldPanel().getMainPanel();
 		trackerPanel.eraseAll();
 		refreshZoomButton();
@@ -200,6 +202,8 @@ public class WorldTView extends ZoomTView {
 
 	@Override
 	protected void refreshZoomButton() {
+		if (!Tracker.isInitialized())
+			return;
 		Runnable runner = new Runnable() {
 			@Override
 			public synchronized void run() {

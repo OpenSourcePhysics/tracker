@@ -259,6 +259,13 @@ public class TViewChooser extends JPanel implements PropertyChangeListener, OSPR
 		return tViews;
 	}
 
+	public TView getTViewIfExists(Class<? extends TView> c) {
+		for (TView view : tViews) {
+			if (view != null && view.getClass() == c)
+				return view;
+		}
+		return null;
+	}
 	/**
 	 * Gets the view of the specified class. Will create view if none exists.
 	 *
@@ -715,5 +722,6 @@ public class TViewChooser extends JPanel implements PropertyChangeListener, OSPR
 	public String toString() {
 		return getName() + " " + Arrays.toString(tViews);
 	}
+
 
 }

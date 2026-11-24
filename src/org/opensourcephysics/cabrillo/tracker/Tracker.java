@@ -526,6 +526,9 @@ public class Tracker {
 	 */
 	private static boolean testingFinal = true; //TEST_BH
 
+
+	private static boolean trackerInitialized;
+
 	/**
 	 * 
 	 */
@@ -2221,6 +2224,7 @@ public class Tracker {
 	}
 
 	private static void initializeApplication(String[] args) {
+		setInitialized(false);
 		OSPLog.debug(Performance.timeCheckStr("Tracker.main start", Performance.TIME_RESET));
 
 		boolean isHeadless = (args != null && args.length > 0 && ("-headless".equals(args[0])) || "true".equals(System.getProperty("java.awt.headless")));
@@ -2241,17 +2245,24 @@ public class Tracker {
 //  	}
 
 		// determine if this is tracker.jar (Tracker main class)
-		// bypassed in JavaScript
 		if (initializeJava(args)) {
-			//TFrame frame = 
-					start(args);
-
+			start(args);
 			if (testingFinal) { // TEST_BH
 				//testFinalize(frame);
 			}
 		}
+		setInitialized(true);
 	}
 
+	private static void setInitialized(boolean TF) {
+		System.err.println("Tracker initialized");
+		trackerInitialized = TF;
+	}
+
+	static public boolean isInitialized() {
+		return trackerInitialized;
+	}
+	
 	static void testFinalize(TFrame frame) {
 		
 		new Thread(()->{
