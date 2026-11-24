@@ -565,7 +565,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 					for (int j = 0; j < viewControls.length; j++) {
 						@SuppressWarnings("unchecked")
 						Class<? extends TView> viewClass = (Class<? extends TView>) viewControls[j].getObjectClass();
-						TView view = viewChoosers[chooserIndex].getTView(viewClass);
+						TView view = viewChoosers[chooserIndex].getTViewIfExists(viewClass);
 						if (view != null) {
 							viewControls[j].loadObject(view);
 							viewChoosers[chooserIndex].refresh();
@@ -2526,7 +2526,12 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 		// now lazy -- createNotesDialog();
 
 		// create the tabbed pane
-		tabbedPane = new JTabbedPane(SwingConstants.BOTTOM);
+		tabbedPane = new JTabbedPane(SwingConstants.BOTTOM) {
+			public void repaint(int x, int y, int w, int h) {
+				if (Tracker.isInitialized())
+					super.repaint(x,  y,  w,  h);
+			}
+		};
 
 		frameContentPane = new JPanel(new BorderLayout());
 		setContentPane(frameContentPane);

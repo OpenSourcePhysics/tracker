@@ -54,7 +54,7 @@ import org.opensourcephysics.media.core.VideoClip;
  * @author Douglas Brown
  */
 @SuppressWarnings("serial")
-public class ZoomTView extends TView {
+abstract public class ZoomTView extends TView {
 
 	// instance fields
 	protected JScrollPane scrollPane;
@@ -66,7 +66,7 @@ public class ZoomTView extends TView {
 	protected ComponentAdapter resizeListener = new ComponentAdapter() {
 		@Override
 		public void componentResized(ComponentEvent e) {
-			doResized();
+			doResized(e);
 		}
 	};
 	
@@ -79,7 +79,14 @@ public class ZoomTView extends TView {
 		super(panel);
 		init();
 		setLayout(new BorderLayout());
-		scrollPane = new JScrollPane();
+		scrollPane = new JScrollPane() {
+			public void repaint(int x, int y, int w, int h) {
+				if (w == 0 || h == 0)
+					return; // dead end
+				System.out.println("ZOOMTVIEW SCROLLPANE REPAINT"  + w + " " + h);
+				super.repaint(x,  y,  w,  h);
+			}
+		};
 		scrollPane.addComponentListener(resizeListener);
 		panel.addComponentListener(resizeListener);
 		SwingUtilities.replaceUIActionMap(scrollPane, null);
@@ -272,14 +279,18 @@ public class ZoomTView extends TView {
 		}
 	}
 
-	protected boolean doResized() {
-		if (!getTopLevelAncestor().isVisible())
+	protected boolean doResized(ComponentEvent e) {
+		if (!resizable())
 			return false;
 		dim = scrollPane.getViewport().getView().getSize(dim);
 		if (dim.equals(lastDim))
 			return false;
 		lastDim.setSize(dim);
 		return true;
+	}
+
+	private boolean resizable() {
+		return Tracker.isInitialized() && getTopLevelAncestor().isVisible();
 	}
 
 	/**
