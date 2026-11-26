@@ -1290,8 +1290,13 @@ public class PointMass extends TTrack {
 			}
 		}
 		refreshDataLater = !refreshData;
-		if (refreshData)
-			updateDerivatives(firstStep, lastStep - firstStep);
+		if (refreshData) {
+	    int spill = Math.max(algorithm == BOUNCE_DETECT ? bounceDerivsSpill : 2, vDerivSpill);
+	    int first = Math.max(firstStep - spill, 0);
+	    int last = Math.min(lastStep + spill, clip.getStepCount() - 1);
+	    updateDerivatives(clip.stepToFrame(first), last - first + 1);			
+//	    updateDerivatives(firstStep, lastStep - firstStep);
+		}
 		fireStepsChanged();
 		// post undoable edit if changes made
 		if (changed) {
@@ -2150,9 +2155,14 @@ public class PointMass extends TTrack {
 	 * @param frameNumber  the frame number
 	 */
 	protected void updateDerivatives(TrackerPanel panel, int frameNumber) {
-		VideoClip clip = panel.getPlayer().getVideoClip();
-		int startFrame = Math.max(frameNumber - 2 * clip.getStepSize(), clip.getStartFrameNumber());
-		updateDerivatives(panel, startFrame, 5);
+    if (algorithm == BOUNCE_DETECT) { // bounce choices depend on neighbouring windows
+      updatePanelDerivatives(panel);
+      return;
+	  }
+	  VideoClip clip = panel.getPlayer().getVideoClip();
+	  int spill = Math.max(algorithm == FINITE_DIFF_VSPILL2 ? 2 : vDerivSpill, aDerivSpill);
+	  int startFrame = Math.max(frameNumber - spill * clip.getStepSize(), clip.getStartFrameNumber());
+	  updateDerivatives(panel, startFrame, 2 * spill + 1);
 	}
 
 	/**
@@ -2261,8 +2271,8 @@ public class PointMass extends TTrack {
 					v.attach(p);
 					array.setStep(n, v);
 					panel.addDirtyRegion(null);// v.getBounds(panel));
-				} else if ((int) (100 * v.getXComponent()) != (int) (100 * x)
-						|| (int) (100 * v.getYComponent()) != (int) (100 * y)) {
+				} else if (v.getXComponent() != x
+						|| v.getYComponent() != y) {
 					panel.addDirtyRegion(null);// v.getBounds(panel));
 					v.attach(v.getAttachmentPoint());
 					v.setXYComponents(x, y);

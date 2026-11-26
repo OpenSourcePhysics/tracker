@@ -3377,10 +3377,9 @@ public class TFrame extends OSPFrame implements PropertyChangeListener, FileImpo
 							continue;
 						}
 						file = a[0];
+						res = ResourceLoader.getResource(file.getPath());					
 					}
 				}
-				// BH! but if the file is set in the prev block, res is still null. So this will
-				// not work?
 				if (res != null) {
 					if (!videoFilter.accept(file)) {
 						if (dataFile == null)

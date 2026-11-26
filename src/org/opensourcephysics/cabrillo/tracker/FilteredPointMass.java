@@ -252,6 +252,12 @@ public class FilteredPointMass extends PointMass implements PropertyChangeListen
 		if (source == null || source.tp == null || steps == null)
 			return;
 		
+		if (filter instanceof ButterworthFilter) {
+	    double ms = source.tp.getPlayer().getMeanStepDuration();
+	    if (ms > 0)
+	        ((ButterworthFilter) filter).setSampleRateHz(1000.0 / ms);
+		}
+		
 		VideoClip clip = source.tp.getPlayer().getVideoClip();
 		Step[] stepArray = source.getSteps();
 		int len = stepArray.length;

@@ -48,6 +48,7 @@ import java.awt.geom.Point2D;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -1565,28 +1566,8 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 		FontSizer.setFonts(objectsToSize);
 		erase();
 	}
-
-	/**
-	 * Returns the DatasetManager.
-	 *
-	 * @param panel the tracker panel
-	 * @return the DatasetManager
-	 */
-	public DatasetManager getData(TrackerPanel panel) {
-		if (datasetManager == null) {
-			datasetManager = new DatasetManager(true);
-			datasetManager.setSorted(true);
-			boolean b = refreshDataLater;
-			refreshDataLater = false;
-			refreshData(datasetManager, panel);
-			refreshDataLater = b;
-			return datasetManager;
-		}
-		if (refreshDataLater || dataValid)
-			return datasetManager;
-		dataValid = true;
-		// refresh track data
-		refreshData(datasetManager, panel);
+	
+	private void loadDataFunctions() {
 		// check for newly loaded dataFunctions
 		if (constantsLoadedFromXML != null) {
 			for (int i = 0; i < constantsLoadedFromXML.length; i++) {
@@ -1615,6 +1596,32 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 			}
 			dataProp = null;
 		}
+	}
+
+	/**
+	 * Returns the DatasetManager.
+	 *
+	 * @param panel the tracker panel
+	 * @return the DatasetManager
+	 */
+	public DatasetManager getData(TrackerPanel panel) {
+		if (datasetManager == null) {
+			datasetManager = new DatasetManager(true);
+			datasetManager.setSorted(true);
+			boolean b = refreshDataLater;
+			refreshDataLater = false;
+			refreshData(datasetManager, panel);
+			loadDataFunctions();
+			refreshDataLater = b;
+			return datasetManager;
+		}
+		if (refreshDataLater || dataValid)
+			return datasetManager;
+		dataValid = true;
+		// refresh track data
+		refreshData(datasetManager, panel);
+		// check for newly loaded dataFunctions
+		loadDataFunctions();
 		// refresh dataFunctions
 		ArrayList<Dataset> datasets = datasetManager.getDatasetsRaw();
 		for (int i = 0; i < datasets.size(); i++) {
@@ -2075,35 +2082,29 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 		int n;
 		if (attachmentNames == null || (n = attachmentNames.length) == 0)
 			return false;
-		boolean foundAll = true;
-		TTrack[] temp = new TTrack[n];
+		
 		ArrayList<TTrack> tracks = tp.getTracksTemp();
+		boolean foundAll = true, changed = false;
+		TTrack[] temp = Arrays.copyOf(getAttachments(), Math.max(n, getAttachments().length));
 		for (int i = 0; i < n; i++) {
-			// BH 2020.10.17 OK?
-			String name = attachmentNames[i];
-			if (name == null)
-				continue;
-			TTrack track = tp.getTrack(name, tracks);
-			if (track == null) {
-				foundAll = false;
-				break;
-			}
-			temp[i] = track;
-//			TTrack track = trackerPanel.getTrack(attachmentNames[i]);
-//			if (track != null) {
-//				temp[i] = track;
-//			} else if (attachmentNames[i] != null) {
-//				foundAll = false;
-//			}
+		    String name = attachmentNames[i];
+		    if (name == null)
+		        continue;
+		    TTrack track = tp.getTrack(name, tracks);
+		    if (track == null) {
+		        foundAll = false;
+		        continue;
+		    }
+		    temp[i] = track;
+		    attachmentNames[i] = null;
+		    changed = true;
 		}
-		tracks.clear();
-		if (foundAll) {
-			attachments = temp;
-			attachmentNames = null;
-			if (refresh)
-				refreshAttachmentsLater();
-		}
-		return foundAll;
+		attachments = temp;
+		if (foundAll)
+		    attachmentNames = null;
+		if (changed && refresh)
+		    refreshAttachmentsLater();
+		return foundAll;				
 	}
 
 	/**
@@ -3851,7 +3852,18 @@ public abstract class TTrack extends OSPRuntime.Supported implements Interactive
 	public static Collection<TTrack> getValues() {
 		return panelActiveTracks.values();
 	}
-
+	
+	/** Determine if track depends on a ParticleModel 
+	 * including through center-of-mass membership 
+	 */
+	static boolean dependsOnParticleModel(TTrack track, ParticleModel thisOneOnly) {
+	    if (track instanceof ParticleModel
+	    		&& (thisOneOnly == null || track == thisOneOnly)) return true;
+	    if (track instanceof CenterOfMass)
+	        for (PointMass m : ((CenterOfMass) track).getMasses())
+	            if (dependsOnParticleModel(m, thisOneOnly)) return true;
+	    return false;
+	}
 
 	public void invalidateData(Object newValue) {
 		dataValid = false;

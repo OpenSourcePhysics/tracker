@@ -117,6 +117,8 @@ public class CenterOfMass extends PointMass {
 			String name = massNames.get(i);
 			for (int m = 0, nm = masses.size(); m < nm; m++) {
 				PointMass mass = masses.get(m);
+		    if (mass == this || mass instanceof CenterOfMass)
+	        continue; // a center of mass cannot contain itself or another cm
 				if (mass.getName().equals(name))
 					addMass(mass);
 			}

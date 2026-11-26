@@ -346,6 +346,7 @@ public class TButton extends JButton {
 					+ " " + track.getName(context)); //$NON-NLS-1$
 			FontSizer.setFont(this);
 		}
+		popup = null;
 	}
 
 	/**

@@ -399,7 +399,7 @@ public class ModelBuilder extends FunctionTool {
 				String name = m.getName();
 				FTObject item = new FTObject (m.getFootprint().getIcon(21, 16), m, name );
 
-				// check that next is not a dynamic particle being boosted by selected model
+				// check that m is not a dynamic particle being boosted by selected model
 				// or part of a system being boosted by selected model
 				if (m instanceof DynamicParticle) {
 					DynamicParticle dynamic = (DynamicParticle) m;
@@ -412,16 +412,16 @@ public class ModelBuilder extends FunctionTool {
 						}
 					}
 				}
-
+				
 				if (dynamicModel != null) {
-					// check that next is not in same dynamic system as selected model
+					// check that m is not in same dynamic system as selected model
 					if (dynamicModel.system != null && m instanceof DynamicParticle) {
 						DynamicParticle dynamicNext = (DynamicParticle) m;
 						if (dynamicNext.system == dynamicModel.system) {
 							continue outer;
 						}
 					}
-					// check if next is selected model's booster
+					// check if m is selected model's booster
 					if (dynamicModel.modelBooster != null) {
 						PointMass booster = dynamicModel.modelBooster.booster;
 						// check if next pointmass is the current booster

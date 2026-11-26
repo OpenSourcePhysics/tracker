@@ -476,18 +476,25 @@ public class AttachmentDialog extends JDialog implements PropertyChangeListener 
 			attachableTracks = new ArrayList<TTrack>();
 		else
 			attachableTracks.clear();
-		attachableTracks.addAll(trackerPanel.getDrawables(PointMass.class));
-		attachableTracks.addAll(trackerPanel.getDrawables(RGBRegion.class));
+		attachableTracks.addAll(trackerPanel.getDrawablesTemp(PointMass.class));
+		attachableTracks.addAll(trackerPanel.getDrawablesTemp(RGBRegion.class));
 		for (TTrack p : attachableTracks) {
 			p.removeListenerNCF((PropertyChangeListener) this);
 		}
 		TTrack measuringTool = TTrack.getTrack(trackID);
 		if (measuringTool != null && measuringTool.ttype == TTrack.TYPE_TAPEMEASURE) {
-			// can't attach calibration stick to models--creates circular dependency
+			// can't attach calibration stick to models 
+			// or to cm tracks that include models--creates circular dependency
 			TapeMeasure tape = (TapeMeasure) measuringTool;
-			if (tape.isStickMode()) {
-				attachableTracks.removeAll(trackerPanel.getDrawablesTemp(ParticleModel.class));
+			if (tape.isStickMode()) {								
+				ArrayList<TTrack> temp = new ArrayList<TTrack>(attachableTracks);
+				for (int i = 0; i < temp.size(); i++) {
+					if (TTrack.dependsOnParticleModel(temp.get(i), null)) {
+						attachableTracks.remove(temp.get(i));
+					}
+				}
 			}
+			
 		}
 		for (TTrack p : attachableTracks) {
 			p.addListenerNCF(this);

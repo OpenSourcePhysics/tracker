@@ -2499,6 +2499,8 @@ public class TMenuBar extends TFrame.DeactivatingMenuBar implements Disposable, 
 				if (track.ttype == TTrack.TYPE_POINTMASS
 						&& !track.getClass().getSimpleName().endsWith("DataTrack")
 						&& !track.getClass().getSimpleName().startsWith("Filtered")) {
+					if (track instanceof CenterOfMass && TTrack.dependsOnParticleModel(track, null))
+						continue;
 					JRadioButtonMenuItem item = new JRadioButtonMenuItem(trackName);
 					item.addActionListener(actions.get("refFrame")); //$NON-NLS-1$
 					coords_refFrameGroup.add(item);

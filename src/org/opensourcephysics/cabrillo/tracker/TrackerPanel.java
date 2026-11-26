@@ -1050,6 +1050,19 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		exportableTracks = null;
 		track.removeListener(this);
 		super.removeDrawable(track);
+		for (TTrack t : getTracks()) {
+	    TTrack[] att = t.attachments;
+	    if (att == null) continue;
+	    boolean changed = false;
+	    for (int i = 0; i < att.length; i++)
+	        if (att[i] == track) { att[i] = null; changed = true; }
+	    if (changed) t.refreshAttachments();
+		}
+		
+		for (DynamicParticle p : getDrawablesTemp(DynamicParticle.class))
+	    if (p.getBooster() == track)
+	        p.setBooster(null);
+		
 		if (dataBuilder != null)
 			dataBuilder.removePanel(track.getName());
 //    if (modelBuilder != null) modelBuilder.removePanel(track.getName());
